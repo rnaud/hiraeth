@@ -79,6 +79,9 @@ export const FOE_VOICES = {
   brute: { family: 'iron',     // a deep cracked clang; done, the hull caves in with a crunch and a rumble
     hurt: [T('square', 150, 120, 0.22, 0.06), T('square', 233, 190, 0.2, 0.03), N('bandpass', 600, 0.12, 0.12, { q: 2, rate: 0.5 })],
     burst: [N('lowpass', 900, 0.5, 0.24, { rate: 0.5 }), T('square', 140, 45, 1.2, 0.06), N('lowpass', 140, 1.2, 0.18, { rate: 0.3, at: 0.15 })] },
+  fencer: { family: 'steel',   // a ringing steel plate and a servo's whine; done, plates clattering down and the whine dying
+    hurt: [R(880, BRONZE, 0.22, 0.04), T('sawtooth', 700, 980, 0.08, 0.025, { at: 0.02 })],
+    burst: [C(5, 0.08, 1700, 0.03, 0.1, { f1: 900, q: 3 }), T('sawtooth', 1100, 140, 0.8, 0.04, { at: 0.1 }), N('lowpass', 600, 0.4, 0.14, { rate: 0.5, at: 0.2 })] },
   // ---- the spirits
   blot: { family: 'ink',       // a splat of ink; done, a wet pop and a falling sigh (the old set, kept)
     hurt: [N('lowpass', 700, 0.14, 0.2, { q: 0.6, rate: 0.6 })],

@@ -99,8 +99,15 @@ export function guardianThreat(g, P) {
   return { t, wind, near, a };
 }
 
-/** Is a hop now a perfect dodge against `threat` ({ t, wind, near })? (pure: tests) */
-export const perfectAgainst = (threat, gentle = false) => !!threat && threat.near && threat.t >= 0 && threat.t <= dodgeLead(threat.wind, gentle);
+/**
+ * The hop a blow asks for (issue #661, docs/design/combat-botw-study.md ranked change 2; BotW: a sweep is answered by the
+ * back flip, an overhead or a thrust by the side hop): an attack's `dodge` 'back' | 'side' | 'any' (unset: any). Only the
+ * hop it asks for starts the flurry; the other still has its dodge frames (pure: tests). `hop`: 'back' | 'left' | 'right'
+ * (src/jump.js hopKind), null when not known (any).
+ */
+export const hopFits = (a, hop) => !a?.dodge || a.dodge === 'any' || !hop || (a.dodge === 'side' ? hop === 'left' || hop === 'right' : a.dodge === hop);
+/** Is a hop (`hop`, as hopFits) now a perfect dodge against `threat` ({ t, wind, near, a })? (pure: tests) */
+export const perfectAgainst = (threat, gentle = false, hop = null) => !!threat && threat.near && threat.t >= 0 && threat.t <= dodgeLead(threat.wind, gentle) && hopFits(threat.a, hop);
 
 /**
  * The flurry's screen: a soft vignette of lavender and cream closing in from the edges, as a page's margin washed in

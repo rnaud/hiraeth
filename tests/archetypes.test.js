@@ -31,14 +31,14 @@ function player(at = v(), o = {}) {
     hurt(a) { this.hurts.push(a); }, knockDown() { this.knocks++; return true; }, flinch() { this.flinches++; }, ...o };
 }
 const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
-const ROUTE_ROLES = new Set(['rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier']);
+const ROUTE_ROLES = new Set(['rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
 
 // ------------------------------------------------------------------------------------------- the tables
-test('the roster: 22 archetypes, 12 creatures, 5 machines and 5 spirits, each its own role, plan and answers; no two machines or spirits share a plan', () => {
-  assert.equal(ARCHETYPE_IDS.length, 22);
+test('the roster: 23 archetypes, 12 creatures, 6 machines and 5 spirits, each its own role, plan and answers; no two machines or spirits share a plan', () => {
+  assert.equal(ARCHETYPE_IDS.length, 23);
   const fam = (f) => ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].family === f);
-  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length], [12, 5, 5]);
-  assert.equal(new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].role)).size, 22, 'a job each');
+  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length], [12, 6, 5]);
+  assert.equal(new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].role)).size, 23, 'a job each');
   for (const a of ARCHETYPE_IDS) {
     const A = ARCHETYPES[a];
     assert.ok(ROUTE_ROLES.has(A.role), `${a}: a role of the doc's (${A.role})`);
@@ -65,7 +65,7 @@ test('the roster: 22 archetypes, 12 creatures, 5 machines and 5 spirits, each it
     const plans = fam(f).map((a) => ARCHETYPES[a].planNo + ARCHETYPES[a].plan);
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
-  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6: all 22 are built');
+  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6 and the fencer: all 23 are built');
   for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
@@ -120,7 +120,7 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
   // the decisions: the bell walker saved for the Signal Market, none in Vael II
   assert.ok(!worldArchetypes('arzach2').includes('bell') && worldArchetypes('bazaar').includes('bell'));
   // role coverage: every role fielded somewhere on the route or off it
-  assert.equal(new Set(Object.keys(WORLDS).flatMap((w) => worldArchetypes(w)).map((a) => ARCHETYPES[a].role)).size, 22);
+  assert.equal(new Set(Object.keys(WORLDS).flatMap((w) => worldArchetypes(w)).map((a) => ARCHETYPES[a].role)).size, 23);
 });
 
 test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the last; pack budgets by stage', () => {

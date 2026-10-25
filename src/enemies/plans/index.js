@@ -21,6 +21,7 @@ import { shadeModel } from './humanoid.js';
 import { rollerModel } from './roller.js';
 import { marionetteModel } from './strings.js';
 import { wispModel } from './ember.js';
+import { fencerModel } from './fencer.js';
 
 // One body builder per body plan (docs/design/enemy-roster.md, "Build plan"): each exposes its joints to the
 // locomotion kit (src/motion-kit/) and draws the archetype in a world's skin (src/enemies/skins.js); a skin only
@@ -48,10 +49,11 @@ import { wispModel } from './ember.js';
 //   blob.js       plan 20  the ink blot
 //   strings.js    plan 21  the marionette (a puppet hung on four strings from a knot of smoke, a pendulum)
 //   ember.js      plan 22  the ember wisp (a stand-in: a shell in two lids round a glowing coal; issue #398)
+//   fencer.js     plan 9   the makers' fencer (a machine's biped: sword and shield; issue #665)
 
 const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
-  shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel };
+  shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel };
 
 /** The body of a built archetype's kind in a world's skin, or null (not one: an old kind draws itself). */
 export function archetypeModel(kind, world) {

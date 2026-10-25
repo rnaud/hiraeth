@@ -235,6 +235,31 @@ export const PLANS = {
     },
     style: 'organic',
   },
+  // plan 9 for a machine (issue #665): the makers' fencer, a sword-and-shield duelist on two plated legs; the humanoid's
+  // biped (alternate, knees forward) but planted (no float), a quicker shorter step, the body riding stiffer springs with a
+  // small servo overshoot; its poses a fencer's: drawn back behind the shield, the sword up for the overhead, low for the
+  // sweep, the shield shoulder forward for the bash, crouched deep for the leap (src/enemies/plans/fencer.js)
+  fencer: {
+    gait: { gait: 'alternate', drift: 0.34, stepTime: [0.16, 0.36], height: 0.12, arc: 'organic', duty: 0.62, reach: 0.5 },
+    knee: { lenA: 0.5, lenB: 0.5, pole: 'forward' },
+    body: { bob: 0.035, lean: 0.05, bank: 0.03, sway: 0.2, tilt: 0.12, spring: { f: 3, z: 0.45, r: 0.1 }, height: { f: 3.2, z: 0.42, r: 0 } },
+    poses: {
+      coil: { y: -0.06, z: -0.1, pitch: -0.08, yaw: 0.25, spread: 1.15 },
+      strike: { y: -0.08, z: 0.22, pitch: 0.14, yaw: -0.2 },
+      recover: { y: -0.05, z: 0.04, pitch: 0.06 },
+      hurt: { y: -0.05, roll: 0.1 },
+      'coil:overhead': { y: -0.04, z: -0.12, pitch: -0.16, yaw: 0.1, spread: 1.15 },   // (the sword up over its head, leaning back)
+      'strike:overhead': { y: -0.14, z: 0.3, pitch: 0.3, yaw: 0 },                   // (down through it, all its weight)
+      'coil:sweep': { y: -0.12, z: -0.06, pitch: 0.04, yaw: 0.6, spread: 1.25 },     // (wound round, low, the sword behind its hip)
+      'strike:sweep': { y: -0.12, z: 0.12, pitch: 0.08, yaw: -0.7 },
+      'coil:bash': { y: -0.06, z: -0.12, yaw: -0.45, spread: 1.15 },                // (its shield shoulder drawn back)
+      'strike:bash': { y: -0.04, z: 0.32, pitch: 0.12, yaw: 0.35 },
+      'coil:shove': { y: -0.06, z: -0.12, yaw: -0.45, spread: 1.15 },
+      'strike:shove': { y: -0.04, z: 0.3, pitch: 0.12, yaw: 0.35 },
+      'coil:leap': { y: -0.3, z: -0.08, pitch: 0.2, spread: 1.3 },                   // (crouched deep behind the shield)
+    },
+    style: 'machine',
+  },
   // plan 16: the roller (the pearl roller): no legs. Unrolled it is a snail gliding on its foot, a ripple running back
   // along the sole (by distance, so it never skates); rolled up it is a ball whose spin is locked to the ground it
   // covers (angle = distance / radius: it never slips), wobbling on a spring over bumps and as it starts and stops

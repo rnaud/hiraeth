@@ -40,11 +40,11 @@ export const WORLDS = {
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
   // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
   // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
-  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2, wisp: 2.5 }, temple: ['machine', 'drone'] },
+  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2, wisp: 2.5, fencer: 1.5 }, temple: ['machine', 'drone'] },
   spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
   // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
-  spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3 }, temple: ['machine', 'drone'] },
-  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5 }, late: ['marionette'] },
+  spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3, fencer: 2 }, temple: ['machine', 'drone'] },
+  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5, fencer: 1.5 }, late: ['marionette', 'fencer'] },
   // the side worlds (all discarded, names.js DISCARDED: their tables stay as they are)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   waterfall: { stage: 2, lead: 'toad', roster: { toad: 4, centipede: 2, brute: 2, rootknot: 2 } },
@@ -77,9 +77,9 @@ export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', gu
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2 };
 /** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
 export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2 };
-export const FROM = { wisp: 1, skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1 };
+export const FROM = { wisp: 1, skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2 };
+export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
 export const BUDGET = [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */

@@ -166,6 +166,14 @@ export const SKINS = {
     waterfall: { name: 'turbine guardian', palette: { body: '#b9c6cc', body2: '#d2dde2', joint: '#8fa3ad', brass: '#c49a52', verd: '#5f9fb8', tar: '#1a2028', core: '#9fe0ff', glow: '#8f7bff', seam: '#2e3a44', slab: '#6f8a94', dark: '#1e262c' }, props: ['turbine', 'wet'] },
     moonfoundry: { name: 'crucible hand', palette: { body: '#ece0c4', body2: '#f6ecd6', joint: '#5a4a3e', brass: '#8a6a3a', verd: '#4a3a30', tar: '#1d1a20', core: '#ff9a3e', glow: '#ff7a2e', seam: '#3a2e28', slab: '#5a4e46', dark: '#2a2220' }, props: ['ladle'] },
   },
+  fencer: {
+    // (issue #665: no picked sheet. The makers' high tech of their temples: ivory ceramic plates over a dark frame, brass
+    // trim, seams of light; the Moon Foundry's warm with the furnaces' orange, the Space City's white and cyan with a round
+    // shield, the Signal Market's champion in red lacquer with a long blade and a pennant down its back)
+    moonfoundry: { name: 'foundry fencer', palette: { plate: '#e9dfc8', plate2: '#f4ecda', frame: '#2c2a33', trim: '#c9973f', steel: '#cfd3d8', seam: '#ff9a3c', shield: '#ddd2b8', eye: '#ffd27a', flare: '#ffefc0' }, props: [] },
+    spacecity: { name: 'orbit fencer', palette: { plate: '#f2f1ec', plate2: '#fbfaf6', frame: '#2b3346', trim: '#9fb4d0', steel: '#dfe6ee', seam: '#6fe0ff', shield: '#e6e8ee', eye: '#bff4ff', flare: '#ffffff' }, props: ['round'] },
+    bazaar: { name: 'market champion', palette: { plate: '#dcc8a0', plate2: '#ecdcb8', frame: '#3a2a30', trim: '#b0503a', steel: '#e0d6c4', seam: '#ffcf6a', shield: '#a8483a', eye: '#fff0c0', flare: '#ffffff' }, props: ['pennant', 'long'] },
+  },
   shade: {
     // (sheet-1, Lorn II's hollow woodsman: a pointed hood of rough olive bark, its point swept back; a moss-green and deep
     // teal cloak, worn and mottled, its tatters breaking into violet-black smoke; khaki ribbons; a brass clasp; sage

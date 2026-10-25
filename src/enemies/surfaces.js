@@ -225,6 +225,17 @@ Object.assign(SURFACES, {
     underside: { dome: { bands: null, spots: { color: 'band', scale: 0.08, share: 0.5, size: 0.35, ring: 0.4 }, gloss: { size: 0.03, sky: 0.5 } } },
   },
   // ----------------------------------------------------------------------------- batch 4: the possessed machines
+  fencer: {
+    '*': {
+      // (issue #665, no sheet: glazed ceramic plates with fine panel lines, a few worn patches; brass trim; the seams lit)
+      plate: { bands: { color: 'plate*0.86', axis: 1, period: 0.16, width: 0.012, ink: 0.35 }, mottle: { color: 'plate2', scale: 0.2, amount: 0.25, soft: 0.3, strength: 0.4 }, gloss: { size: 0.025, sky: 0.55, amount: 0.6 } },
+      shield: { bands: { color: 'shield*0.82', axis: 0, period: 0.12, width: 0.01, ink: 0.3 }, gloss: { size: 0.03, sky: 0.6, amount: 0.65 } },
+      trim: { gloss: { size: 0.03, sky: 0.4, amount: 0.6 } },
+      steel: { gloss: { size: 0.02, sky: 0.9, amount: 0.9 } },
+      seam: { glow: { color: 'seam', amount: 0.5, rim: 0.3, core: 2, emit: 0.4, pulse: 1.2 } },
+      frame: { mottle: { color: 'frame*0.8', scale: 0.08, amount: 0.3, soft: 0.2, strength: 0.4 } },
+    },
+  },
   brute: {
     '*': {
       // (sheet-1: old ivory cracked all over like a dropped jar, fine dark seams, the widest cracks glowing violet; tar

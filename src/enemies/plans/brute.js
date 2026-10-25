@@ -191,7 +191,7 @@ export function bruteModel(skin) {
   const slab = add(arms[1].fist, new THREE.DodecahedronGeometry(0.42, 0).scale(1.3, 0.7, 1), M.mat('slab', P.slab ?? '#8a7f70', { flat: true }), 0, -0.6, 0.35);
   slab.visible = false;
   const U = bodyM.uniforms.uFsCracksO;   // (the veins: wider and brighter as it is hurt)
-  let raise = 0, bend = 0, back = 0, swing = 0, wake = 0, glow = 0, twitchT = 0;
+  let raise = 0, bend = 0, back = 0, swing = 0, wake = 0, glow = 0, twitchT = 0, wall = 0, flung = 0;
   const twitch = [0, 0];
   return {
     group: g, gaze, body: hull, rig, parts, eyeMat: coreM, base: P.core, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.tar],
@@ -212,9 +212,13 @@ export function bruteModel(skin) {
       swing = ease(swing, id === 'sweep' && strike ? 1 : 0, 18, dt);
       const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, recovery: c.recovery, air: f.alt > 0.05 ? 1 : 0,
         touch: (at, L) => { c.touch(at, L); c.thump?.(at, 0.7); } });
+      // its guard (issue #661, src/foe-guard.js): both forearms up and crossed before it, the fists at its crown; broken
+      // (the charged cut), both arms flung out wide and its torso thrown back while it stands open
+      wall = ease(wall, f.guardK ?? 0, 10, dt);
+      flung = ease(flung, f.reel === 'guardbroken' && f.stunned > 0 ? 1 : 0, f.reel === 'guardbroken' ? 12 : 3, dt);
       const slump = 1 - wake;
       hull.position.set(o.x, o.y - slump * 0.12, o.z);
-      hull.rotation.set(o.pitch + slump * 0.16, o.yaw, o.roll);
+      hull.rotation.set(o.pitch + slump * 0.16 + wall * 0.08 - flung * 0.22, o.yaw, o.roll);
       hull.rotation.y += (f.gaze?.yaw ?? 0) * GAZE_TWIST * wake;   // (its torso twisted toward where it looks: it has no head)
       // the arms swing against the legs as it walks (by the distance walked, so the swing follows its pace)
       const walk = Math.sin(rig.walked * 1.45) * Math.min(1, Math.hypot(rig.vel.x, rig.vel.z) / 1.2) * 0.22;
@@ -229,6 +233,9 @@ export function bruteModel(skin) {
         if (k === 1) { x = lerp(x, -0.55, bend); elb = lerp(elb, -0.25, bend); x = lerp(x, -2.7, lift); elb = lerp(elb, -1.1, lift); z = lerp(z, 0.25, lift); }
         // sweep: the right arm (the saw's) back and out behind it, then across the front at the height of your chest
         if (k === 0) { x = lerp(x, 0.9, back); z = lerp(z, -1.15, back); y = lerp(y, -0.6, back); if (swing > 0) { x = lerp(0.9, -1.4, swing); z = lerp(-1.15, 0.5, swing); y = lerp(-0.6, 0.9, swing); } }
+        // the guard: forearms crossed before it (the elbows bent up, the fists meeting over its middle); flung wide when broken
+        x = lerp(x, -1.0, wall); elb = lerp(elb, -2.0, wall); z = lerp(z, -sgn * 0.85, wall); y = lerp(y, 0, wall);
+        x = lerp(x, -0.9, flung); z = lerp(z, sgn * 1.35, flung); elb = lerp(elb, -0.15, flung); y = lerp(y, 0, flung);
         a.sh.rotation.set(x, y, z);
         a.el.rotation.x = elb;
       }

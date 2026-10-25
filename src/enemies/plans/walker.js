@@ -148,14 +148,17 @@ export function crabModel(skin) {
   const shellTop = pivot(body, 0, SHELL_H + 0.05, 0);   // (the spin's glow rides on the shell)
   finish(g);
   const parts = [shell, rim, belly, ...seams, ...stalks, ...claws.map((c) => c.shoulder), ...dress, ...legs.map((l) => l.root)];
-  let side = 0, sink = 0, spin = 0, flip = 0;
+  let side = 0, sink = 0, spin = 0, flip = 0, clampK = 0;
   return {
     group: g, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.under, P.claw], gaze,
     tell: (id) => (id === 'snap' ? claws[1].tip : id === 'burrow' ? stalkEyes[0] : shellTop),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
       const flipped = f.flipped > 0;
-      const tuck = id === 'spin' ? (wind ? c.wind : strike ? 1 : 0) : 0;
+      // (its guard, issue #661: clamped down flat in its shell, legs and stalks drawn under, the pincers folded over its
+      // eyes: the spin's tuck held still and lower; src/foe-guard.js)
+      clampK = ease(clampK, f.guardK ?? 0, 12, dt);
+      const tuck = Math.max(id === 'spin' ? (wind ? c.wind : strike ? 1 : 0) : 0, clampK);
       // sideways: while it scuttles at you it travels side-on, its shell turned a quarter; to strike it turns to face you
       const scuttle = c.moving && f.state === 'chase' && f.dist > 3 ? 1 : 0;
       side = ease(side, scuttle * (f.home.x > 0 ? 1 : -1) * Math.PI / 2, 7, dt);
@@ -186,7 +189,7 @@ export function crabModel(skin) {
       const rock = id === 'spin' && wind ? Math.sin(c.now / 70) * 0.08 * c.wind : 0;
       spin += dt * (strike && id === 'spin' ? 26 : tuck > 0 ? tuck * 4 : 0);
       flip = ease(flip, flipped ? Math.PI : 0, 12, dt);
-      body.position.set(o.x, 0.6 - tuck * 0.22 - sink * 0.5 + o.y, o.z);
+      body.position.set(o.x, 0.6 - tuck * 0.22 - clampK * 0.12 - sink * 0.5 + o.y, o.z);
       body.rotation.set(o.pitch - (id === 'spin' && wind ? 0.32 * c.wind : 0) + rock, tuck > 0.5 && strike ? spin : o.yaw, flip + o.roll);
       if (awning) awning.rotation.z = Math.sin(c.now / 260) * 0.03 * (c.moving ? 1 : 0.3);
       rig.write();

@@ -897,6 +897,11 @@ About 12–13 sessions alongside the kit's 8–11. Phases 2–4 put the whole fi
 
 ## Status (the build, 2026-10-09)
 
+**v2.27 (issue #665): a 23rd archetype, the makers' fencer** (`fencer`: a machine, role `mirror`, tier 3, plan `fencer`),
+a sword-and-shield duelist that mirrors the traveller's kit, in the Moon Foundry, the City Floating in Space and the
+Signal Market. No reference sheet was generated or picked for it (`art: 'pending'`): its body is built from the
+roster's parts (docs/systems/foes.md, "The makers' fencer"). A sheet can be made later through the reference lab.
+
 The framework (build plan step 2) is in the game: `src/enemies/archetypes.js` (`ARCHETYPES`, each with its status),
 `src/enemies/skins.js` (`SKINS[archetype][world]`), the world table as `src/foe-worlds.js` `WORLDS` (wired into the
 wild packs, the relics' guards, the Arena's waves and FOES list, and the gallery, enemies.html), one body builder per

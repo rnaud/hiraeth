@@ -104,7 +104,7 @@ export const ARCHETYPES = {
     name: 'shellback crab', family: 'creature', plan: 'walker', planNo: 1, role: 'tank', tier: 2, ranged: false,
     status: 'built', kind: 'crab', was: ['salt crab'], sound: 'shell', drop: 5, art: { main: 'arzach2', alt: 'saltharbour' },
     moves: ['snap', 'shell spin', 'burrow and pinch'],
-    answers: ['parry (the spin flips it)', 'dash cut to its side', 'bombs crack the shell', 'ember'],
+    answers: ['parry (the spin flips it)', 'dash cut to its side', 'the air cut onto its clamped shell', 'bombs crack the shell', 'ember'],
     idle: 'picks along the tide line pinching at weed; backs away when you come near; fights only if you corner it',
     // (hp 3 since v1.41, was 4; the author: "they take too many hits". A heavy blow bites through its shell from the
     // front too, at half: src/foes.js SHELL)
@@ -112,6 +112,11 @@ export const ARCHETYPES = {
       name: 'shellback crab', hp: 3, hook: 'heavy', radius: 0.85, height: 0.6, speed: 3.2, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
       tone: '#b8553a', sound: 'machine', takes: { shoot: 0, fire: 1 }, weak: { bomb: 1.5 },
       calm: { mode: 'graze', wild: true, provoke: 3.2, shy: 7, alarm: 10 }, burst: [0.75, 0.45], sideways: true,
+      // its guard (issue #661, src/foe-guard.js): close in and it clamps its shell down flat, legs and stalks drawn under;
+      // every blow from every side rings off it. The air cut's plunge onto its back cracks it open, onto its back; a bomb too.
+      // Cut at it three times and it springs out of it into a snap.
+      guard: { pose: 'tuck', arc: Math.PI, near: 2.8, hold: 2.2, rest: 2.0, blocks: 3, counter: 'snap', breaks: ['air', 'bomb'], open: 1.4, onBreak: 'flip',
+        hint: 'It clamps its shell down: nothing gets in. Come down on it with an air cut.' },
       attacks: [
         { id: 'snap', name: 'snap', shape: 'cone', range: 2.3, angle: 0.7, damage: 0.5, wind: 0.75, strike: 0.2, contact: 0.5, max: 2.2, weight: 1.5, onParry: 'chip',
           tell: 'the near pincer opens wide and draws back past the eye stalks; it plants its back legs', counter: 'guard, or step to its side; a parry chips it' },
@@ -463,12 +468,17 @@ export const ARCHETYPES = {
     name: 'furnace brute', family: 'machine', plan: 'brute', planNo: 8, role: 'heavy', tier: 3, ranged: false,
     status: 'built', kind: 'brute', was: ['glass golem', 'makers’ machine (its slam and quake)'], sound: 'iron', drop: 8, art: { main: 'perdide2', alt: 'glassdunes' },
     possession: 'ink in the cracks: the hull cracked like a dropped jar, the dark seeping from every seam',
-    moves: ['slam', 'hurl', 'sweep'], answers: ['riposte (×2 on the stunned)', 'bombs ×2 crack the hull', 'charged cut on a glowing crack', 'jump the quake'],
+    moves: ['slam', 'hurl', 'sweep'], answers: ['riposte (×2 on the stunned)', 'bombs ×2 crack the hull', 'charged cut through its raised forearms', 'jump the quake'],
     idle: 'stands where it stopped working, rusted mid-task; wakes with a groan when you come close',
     def: S({
       name: 'furnace brute', hp: 8, hook: 'heavy', radius: 1.15, height: 2.4, speed: 1.7, sight: 18, giveUp: 32, reach: 12, heavy: true, stout: true, breaks: true,
       tone: '#a77bff', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 },
       calm: { mode: 'stand', provoke: 7 },
+      // its guard (issue #661, src/foe-guard.js): between its blows its forearms come up crossed before it, the cracks
+      // going dark behind them; light cuts from the front ring off. The charged cut (or a bomb) smashes them apart, and it
+      // reels open; or get round its side. Three cuts into the guard and it swings out of it into its backhand.
+      guard: { pose: 'arms', arc: 1.05, near: 4.5, hold: 3, rest: 1.8, blocks: 3, counter: 'sweep', breaks: ['charged', 'riposte', 'bomb'], open: 1.2,
+        hint: 'Its forearms are up: light cuts ring off. A charged cut smashes through, or get round its side.' },
       attacks: [
         // both fists high over the top of its body, the torso arching back, the veins blazing; down, and a quake runs out
         { id: 'slam', name: 'slam', shape: 'ring', radius: 2.1, ahead: 1.9, damage: 1, knock: 6, wind: 1.3, strike: 0.32, contact: 0.6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 }, max: 3.6, weight: 2, onParry: 'chip',
@@ -477,12 +487,57 @@ export const ARCHETYPES = {
         { id: 'hurl', name: 'hurl', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.7, damage: 0.75, wind: 1.5, track: 0.5, min: 4.5, max: 12, weight: 1.5,
           tell: 'it bends over and tears a slab out of the ground, then straightens with it held high over its shoulder', counter: 'walk out of the mark where it will land' },
         // one arm swung back behind it, the shoulder turning; then a backhand across its front
-        { id: 'sweep', name: 'sweep', shape: 'cone', range: 3.6, angle: 1.3, damage: 0.75, knock: 5, wind: 1.05, strike: 0.3, contact: 0.5, max: 3.4, weight: 1.2,
-          tell: 'one arm swings back behind it, its shoulder turning away', counter: 'duck under it with an evade, or guard' },
+        { id: 'sweep', name: 'sweep', shape: 'cone', range: 3.6, angle: 1.3, damage: 0.75, knock: 5, wind: 1.05, strike: 0.3, contact: 0.5, max: 3.4, weight: 1.2, dodge: 'back',
+          tell: 'one arm swings back behind it, its shoulder turning away', counter: 'back flip out of it, duck under it with an evade, or guard' },
       ],
       recover: 1.6, cool: [1.6, 2.6], hit: 0.55,
     }),
     note: 'A furnace brute: fists up? Get to its side and jump the quake.',
+  },
+  // the makers' fencer (issue #665; docs/design/combat-botw-study.md, ranked changes 5-8): a sword-and-shield duelist that
+  // fights the way you do. Its shield guards your light combo from the front; hide behind your own and it bashes it aside;
+  // its overhead asks for the side hop, its sweep for the back flip; a perfect parry of its sword knocks the sword away and
+  // it fights shield-only while it runs to pick it up; its leap slam hangs a second in the air. No design sheet was
+  // picked: built from the roster's parts in the makers' high tech (src/enemies/plans/fencer.js).
+  fencer: {
+    name: 'makers’ fencer', family: 'machine', plan: 'fencer', planNo: 9, role: 'mirror', tier: 3, ranged: false,
+    status: 'built', kind: 'fencer', was: [], sound: 'steel', drop: 8, art: 'pending',
+    possession: 'a duelling machine of the makers’, still keeping the drill it was built for: guard, cut, bash, leap',
+    moves: ['overhead and sweep', 'shield bash', 'leap slam'],
+    answers: ['the charged cut through its shield', 'the dash cut to its back', 'a perfect parry knocks its sword away', 'side hop the overhead, back flip the sweep'],
+    idle: 'stands at its post, sword grounded, shield on its arm; it salutes and comes on when you come near',
+    def: S({
+      name: 'makers’ fencer', hp: 8, hook: 'heavy', radius: 0.5, height: 1.45, speed: 3.1, sight: 18, giveUp: 34, reach: 7, metal: true, breaks: true, clamber: true, stout: true,
+      tone: '#e0a03a', sound: 'machine', takes: { shoot: 1, fire: 0.5 },
+      calm: { mode: 'stand', provoke: 9 },
+      // its shield (src/foe-guard.js): up between its blows, square before it; your light combo, your air swings and your
+      // shots ring off it from the front. The charged cut throws it wide (a bomb too); behind it, it is open
+      guard: { pose: 'shield', arc: 1.15, near: 4, close: 2.2, hold: 2.6, rest: 1.6, blocks: 3, counter: 'bash', breaks: ['charged', 'riposte', 'bomb'], open: 1.0, shots: true,
+        hint: 'Its shield turns your combo. A charged cut throws it wide, or get behind it.' },
+      // hide behind your own guard in its reach and it bashes it aside (Foes.strike `guardBreak`)
+      turtle: { after: 0.9, attack: 'bash', reach: 3.4 },
+      // a perfect parry of its sword: the sword lands `dist` m off after `fly` s; it bends `pickup` s to take it back
+      disarm: { dist: 3.8, fly: 0.6, pickup: 1.4 },
+      attacks: [
+        // the sword raised high over its head in its fist, the shield lowered; then down through it: the side hop
+        { id: 'overhead', name: 'overhead', armed: true, shape: 'lane', width: 1.3, range: 3.3, damage: 0.75, wind: 1.0, strike: 0.22, contact: 0.55, lunge: 0.8, max: 3.0, weight: 2, dodge: 'side', onParry: 'disarm',
+          tell: 'its sword rises high over its head, the shield lowered', counter: 'side hop; a perfect parry knocks the sword out of its hand' },
+        // wound round to its right, the sword low behind its hip; then a wide sweep at your knees: the back flip
+        { id: 'sweep', name: 'sweep', armed: true, shape: 'cone', range: 3.1, angle: 1.4, damage: 0.75, wind: 0.95, strike: 0.26, contact: 0.5, max: 2.9, weight: 2, dodge: 'back', onParry: 'disarm',
+          tell: 'it winds round to its right, the sword low behind its hip', counter: 'back flip; a perfect parry knocks the sword out of its hand' },
+        // crouched deep behind its shield; then it leaps high, hangs over you and comes down where you stood
+        { id: 'leap', name: 'leap slam', armed: true, shielded: true, shape: 'ring', radius: 1.8, damage: 1, knock: 6, wind: 0.95, strike: 1.15, contact: 0.95, leap: { height: 2.6 }, range: 7, track: 0.6, min: 3.5, max: 7, weight: 1.3, dodge: 'side',
+          tell: 'it crouches deep behind its shield, then leaps high and hangs over you', counter: 'side hop as it comes down; a perfect parry throws it down; an air cut meets it in the air' },
+        // its answer to a guard held at it, and to blows spammed at its own: the shield's shoulder drawn back, then a bash
+        { id: 'bash', name: 'shield bash', chain: true, answer: true, guardBreak: true, shielded: true, shape: 'cone', range: 2.5, angle: 0.9, damage: 0.5, knock: 5, wind: 0.75, strike: 0.2, contact: 0.5, lunge: 1.2,
+          tell: 'it draws its shield back to its shoulder', counter: 'a perfect parry, or hop away: a plain guard is knocked aside' },
+        // without its sword: the shield alone, shoved at you
+        { id: 'shove', name: 'shield shove', unarmed: true, shielded: true, shape: 'cone', range: 2.4, angle: 1.0, damage: 0.5, knock: 4, wind: 0.95, strike: 0.2, contact: 0.5, lunge: 1.0, max: 2.4, weight: 1,
+          tell: 'without its sword, it draws its shield back to its shoulder', counter: 'guard it, hop it, or cut it from behind' },
+      ],
+      recover: 0.85, cool: [1.2, 2.0], hit: 0.45,
+    }),
+    note: 'A makers’ fencer: a charged cut breaks its shield. Parry its sword away.',
   },
   // ----------------------------------------------------------------------------- spirits (the dark itself)
   blot: {
@@ -518,12 +573,17 @@ export const ARCHETYPES = {
       name: 'shade', hp: 5, hook: 'light', radius: 0.45, height: 1.3, speed: 3.0, sight: 18, giveUp: 40, reach: 7, clamber: true, lights: true,
       tone: '#3b2a5c', takes: { shoot: 1, fire: 2 },
       calm: { mode: 'pace', provoke: 5, round: 5, wait: 2.5 },
+      // its guard (issue #661, src/foe-guard.js): between its blows it holds the ink sword up across its body and turns your
+      // cuts from the front with it; two in a row and it answers with its cut at once: parry that, and riposte. Round its
+      // side (the dash cut) it is open.
+      guard: { pose: 'sword', arc: 1.0, near: 3.6, hold: 2.5, rest: 1.8, blocks: 2, counter: 'cut', breaks: ['riposte'], open: 0.9,
+        hint: 'Its sword turns your cuts. Parry the cut it answers with, then riposte; or cut it from the side.' },
       attacks: [
         // the sword drawn back over its shoulder, the body turning away, the hood turning to keep you in sight; the cut across
-        { id: 'cut', name: 'cut', shape: 'cone', range: 2.9, angle: 0.9, damage: 0.75, wind: 0.95, strike: 0.24, contact: 0.55, max: 2.8, weight: 2,
+        { id: 'cut', name: 'cut', shape: 'cone', range: 2.9, angle: 0.9, damage: 0.75, wind: 0.95, strike: 0.24, contact: 0.55, max: 2.8, weight: 2, dodge: 'back',
           tell: 'the sword drawn back over its shoulder, its hood turning to keep you in sight', counter: 'parry, then riposte' },
         // it starts the cut and stops halfway, the hood tilting; the sword drops to its hip; then the thrust, low and straight
-        { id: 'feint', name: 'feint and thrust', shape: 'lane', width: 1.0, range: 3.6, damage: 0.75, wind: 1.3, strike: 0.22, contact: 0.5, lunge: 1.4, feint: 0.45, min: 1.2, max: 3.4, weight: 1.5,
+        { id: 'feint', name: 'feint and thrust', shape: 'lane', width: 1.0, range: 3.6, damage: 0.75, wind: 1.3, strike: 0.22, contact: 0.5, lunge: 1.4, feint: 0.45, min: 1.2, max: 3.4, weight: 1.5, dodge: 'side',
           tell: 'it starts the cut and stops halfway, its hood tilting; the sword drops to its hip and it sinks', counter: 'evade sideways; or a parry timed on the thrust (not on the cut it never makes)' },
         // it sinks into its own shadow, the pool slides round beside you, it pours up out of it there and cuts; lit, it can't
         { id: 'step', name: 'step through the shade', shape: 'ring', at: 'beside', instant: true, radius: 1.3, track: 0.6, damage: 0, blink: true, dark: true, wind: 1.0, then: 'recut', min: 3.5, max: 7, weight: 1.2,

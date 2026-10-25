@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { allTargets, targetsInCone } from './targets.js';
 import { hitStop, kick, flurryLeft } from './feel.js';
-import { FLURRY } from './flurry.js';
+import { FLURRY, hopFits } from './flurry.js';
 import { hasUpgrade, UPGRADES } from './ink.js';
 import { fistGrip, carry, fitScale } from './blade-grip.js';
 import { buildSword, BladeWake, wakeStyle, WAKE_TONES, HILT } from './fluid-sword.js';
@@ -605,7 +605,8 @@ export class FluidBlade {
    * window closed less than EVADE.rest ago (spamming hops is never unbroken cover, as with the evade). The guard drops, a
    * swing in its follow-through stops.
    */
-  hop(win) {
+  hop(win, kind = null) {
+    this.hopKind = kind;   // ('back' | 'left' | 'right': a blow's `dodge` asks for one, src/flurry.js hopFits)
     this.hopAge = 0; this.hopWin = win; this.hopGranted = this.iframeRest === 0; this.dodged = false;
     if (this.swinging && (this.phase === 'recover' || this.charging)) this.stop();
     this.guardK = 0; this.since = 0;
@@ -616,14 +617,14 @@ export class FluidBlade {
    * (true), else false (it lands). The first blow an evade swallows is a perfect dodge ('perfect'): the frame
    * freezes a blink, a white ring at the feet, a hum (lingering ground, the burn, gives none).
    */
-  dodge(from, kind = 'strike', gentle = this.gentle) {
+  dodge(from, kind = 'strike', gentle = this.gentle, atk = null) {
     this.gentle = !!gentle;
     if (flurryLeft() > 0) return true;   // (the flurry: nothing touches you while the world is slowed, src/flurry.js)
     if (!this.iframes(gentle)) return false;
     if (this.dodged || kind === 'burn') return true;
     this.dodged = true;
     if (this.rolling !== null) this.onRollDodge?.(from, kind);
-    if (this.hopFrames(gentle)) this.onHopDodge?.(from, kind);   // (a hop's frames swallowed a blow: a perfect dodge too, main.js starts the flurry)
+    if (this.hopFrames(gentle) && hopFits(atk, this.hopKind)) this.onHopDodge?.(from, kind);   // (a hop's frames swallowed a blow: a perfect dodge too, main.js starts the flurry)
     const T = this.tool, p = T.player;
     hitStop(EVADE.perfect); kick(0.08);
     T.sound?.fluidMode?.('stun');

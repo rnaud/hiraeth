@@ -59,7 +59,9 @@ class EnemyViewer extends ItemViewer {
     // walking, it really walks (its feet are planted by the locomotion kit: src/motion-kit/), and the view follows its
     // steady progress along the ground (not its body's bob or sway: src/enemies/frame.js)
     const walking = this.mode === 'walk' && !this.fixed; m.walkZ = walking ? (m.walkZ ?? 0) + f.def.speed * dt : 0; f.pos.set(0, 0, m.walkZ);
-    let phase = this.fixed?.state ?? this.mode, k = this.fixed?.k ?? 0, a = null;
+    // (a guard and its opening, issue #661; the fencer's sword knocked away, #665: held states of its own, src/foe-guard.js)
+    const held = GUARD_POSES.includes(this.mode) ? this.mode : null;
+    let phase = held ? (held === 'broken' ? 'recover' : 'chase') : this.fixed?.state ?? this.mode, k = this.fixed?.k ?? 0, a = null;
     if (this.mode.startsWith('attack')) {
       a = movesOf(f)[Number(this.mode.slice(6))] ?? f.def.attack;
       const cycle = a.wind + (a.strike ?? 0.3) + (a.recover ?? f.def.recover), u = this.time % cycle;
@@ -67,6 +69,10 @@ class EnemyViewer extends ItemViewer {
       if (!this.fixed) { phase = u < a.wind ? 'wind' : u < a.wind + (a.strike ?? 0.3) ? 'strike' : 'recover'; k = phase === 'wind' ? u / a.wind : phase === 'strike' ? (u - a.wind) / (a.strike ?? 0.3) : 0; }
     } else f.atk = null;
     f.state = phase === 'walk' ? 'chase' : phase; f.k = k; f.timer = f.def.recover * (1 - (phase === 'recover' ? Math.min(1, (this.time % 2) / 2) : 0));
+    f.guardK = held === 'guard' ? 1 : 0;
+    if (held === 'broken') { f.reel = 'guardbroken'; f.stunned = 1; if (f.def.guard?.onBreak === 'flip') f.flipped = 1; }
+    else if (f.reel === 'guardbroken') { f.reel = null; f.flipped = 0; }
+    f.disarmed = held === 'disarmed' ? f.disarmed ?? { at: new T.Vector3(1.5, 0, 1.4), from: new T.Vector3(0, 1.4, 0), t: 9 } : null;
     if (phase === 'strike' && a?.lunge) f.pos.z = a.lunge * (1 - (1 - k) ** 2);
     f.alt = f.def.hover ? (phase === 'strike' && a?.dive ? T.MathUtils.lerp(f.def.hover, 0.35, k) : phase === 'recover' ? 0.35 : f.def.hover) : 0;
     m.owner.look(f, dt);
@@ -90,6 +96,9 @@ class EnemyViewer extends ItemViewer {
     return m;
   }
 }
+/** The held states the gallery can show beside its moves: its guard up, the guard broken open, its sword knocked away. */
+const GUARD_POSES = ['guard', 'broken', 'disarmed'];
+const posesOf = (f) => [...(f.def.guard ? [['guard', 'Guarding'], ['broken', 'Guard broken (open)']] : []), ...(f.def.disarm ? [['disarmed', 'Sword knocked away']] : [])];
 /** A foe's moves to show (not a combo's quick follow-up). */
 const movesOf = (f) => f.def.attacks.filter((a) => !a.chain);
 
@@ -110,8 +119,9 @@ function choose(id, w = null) {
   const family = A.family === 'machine' ? `An old makers’ machine with a dark spirit inside (${A.possession})` : A.family === 'spirit' ? `A spirit: ${A.manifestation}` : 'A creature: wildlife that fights only when provoked';
   $('kind').innerHTML = `<b>${A.name}</b> · ${A.role} · tier ${A.tier}. ${family}. <i>${A.idle}.</i>${A.status === 'built' ? '' : ` <br>Not built yet: the ${FOES[kind].name} stands in for it.`}${A.art === 'pending' ? ' <br><span class="hint">Art match pending its fresh reference sheet.</span>' : ''}`;
   const f = viewer.model(id).f;
-  $('pose').innerHTML = `<option value="idle">Standing</option><option value="walk">Moving</option>${movesOf(f).map((a, i) => `<option value="attack${i}">${a.name ?? a.id}</option>`).join('')}`;
+  $('pose').innerHTML = `<option value="idle">Standing</option><option value="walk">Moving</option>${posesOf(f).map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}${movesOf(f).map((a, i) => `<option value="attack${i}">${a.name ?? a.id}</option>`).join('')}`;
   $('moves').innerHTML = movesOf(f).map((a, i) => `<button data-attack="${i}">${a.name ?? a.id}</button><p>${a.tell ? `Tell: ${a.tell}. ` : ''}${a.counter ? `Answer: ${a.counter}. ` : ''}Wind-up: ${a.wind}s.${a.skins ? ` (Only in ${a.skins.map((x) => TITLES[x] ?? x).join(' and ')}.)` : ''}</p>`).join('')
+    + (f.def.guard ? `<p><b>Its guard:</b> ${f.def.guard.hint}</p>` : '')
     + `<p><b>Best answers:</b> ${A.answers.join('; ')}.</p>`;
   $('fight').href = `./?level=arena&enemy=${encodeURIComponent(id)}`;
   $('fightworld').hidden = world === 'roster'; $('fightworld').href = `./?level=arena&enemyWorld=${world}`;

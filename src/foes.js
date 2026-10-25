@@ -43,6 +43,7 @@ import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
 import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
+import { STANCE, guardBreaker, guardCovers, guardTurns, wantsGuard, guardUp } from './foe-guard.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -463,6 +464,10 @@ export class Foe {
     this.yank = null; this.pin = null; this.lift = 0;
     // called in out of a cloud of darkness (issue #664, src/foe-entrance.js): s its mind still waits
     this.arriving = 0;
+    // a guard (issue #661, src/foe-guard.js): how far it is raised (0..1), s held, s resting after it, blows turned in a
+    // row; s you have held your own guard up in its reach (def.turtle: the fencer's bash); its sword knocked away
+    // ({ at, t, from }: where it lies, s since; issue #665)
+    this.guardK = 0; this.guardT = 0; this.guardRest = 0; this.blocked = 0; this.turtle = 0; this.disarmed = null;
   }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt + this.lift); }
@@ -534,6 +539,8 @@ export class Foe {
       && (!a.pile || this.mates >= 2)                                             // (a heap needs two of its flock to climb on)
       && (!a.dark || !(this.lit > 0))                                             // (lit, a shade is solid: it can't step)
       && (!a.ball || !this.ballOut)                                               // (one fireball of its own in the air at a time)
+      && (!a.armed || !this.disarmed) && (!a.unarmed || !!this.disarmed)          // (its sword knocked away: only its shield's blows)
+      && !a.answer                                                                // (only as an answer: a guard's counter, a bash at a raised guard: tendGuard, punishTurtle)
       && (!a.possess || (!this.hosting && !!this.allyFor(a)))                     // (a marionette's strings: a creature to drop them on)
       && (!a.alone || (!this.hosting && !this.allyFor(this.def.attacks.find((x) => x.possess) ?? {}))));   // (its dance: nothing to hold)
   }
@@ -560,7 +567,7 @@ export class Foe {
   /** Begin winding up attack a at the traveller: its direction and area lock here (or follow you a while: track). */
   beginWind(a, P) {
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
-    this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false;
+    this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false; this.answering = false; this.turtle = 0;
     this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
     this.ring = null;
     this.allyTarget = a.ward || a.mend || a.possess ? this.allyFor(a) : null;   // (a support's move, a marionette's strings: to a neighbour)
@@ -739,6 +746,9 @@ export class Foe {
       this.fly(dt, P, env, ev);
       if (!this.alive) return ev;
     }
+    // (a guard drops as soon as it is stunned or busy with its own blow: src/foe-guard.js; a sword knocked away flies on)
+    if (D.guard && (this.stunned > 0 || this.state !== 'chase')) this.lowerGuard(dt);
+    if (this.disarmed) this.disarmed.t += dt;
     if (this.stunned > 0) { this.stunned -= dt; return ev; }
     const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
     this.dist = d;
@@ -755,6 +765,9 @@ export class Foe {
     const playerOk = !lost && !down;
     // led too far from home: only once you have left as well (you still fighting it there, it stays)
     const youLeft = Math.hypot(P.pos.x - this.home.x, P.pos.z - this.home.z) > D.giveUp + PRESSURE.leave;
+    // its guard between its blows (issue #661), its bash at a traveller hiding behind his own (issue #665)
+    if (D.guard && this.state === 'chase') this.tendGuard(dt, playerOk ? d : Infinity, P, ev, env);
+    if (D.turtle && this.state === 'chase') this.punishTurtle(dt, playerOk ? d : Infinity, P, ev, env);
     switch (this.state) {
       case 'idle': {
         // its calm (def.calm): wildlife grazes, basks or lies about and fights only when provoked (close in, hurt,
@@ -771,6 +784,7 @@ export class Foe {
         if (this.scatter > 0 && d > 1e-4) { this.step(-dx / d * D.speed * dt, -dz / d * D.speed * dt, env); this.face(-dx, -dz, dt, 10); break; }   // (a flock runs from an ember, then regroups)
         this.face(dx, dz, dt, 8);
         if (down) { this.circle(P, D.reach + PRESSURE.hold, dt, env); break; }   // (you are down: it waits round you, facing you, for you to rise)
+        if (this.disarmed && this.seekSword(dt, d, P, ev, env)) break;   // (its sword knocked away: it runs for it, the shield up)
         // a support (the jelly) keeps over its neighbours, a little toward you, and works on them; alone, it comes for you
         if (D.support) {
           const ally = this.allies.filter((x) => x.alive && x.dead === undefined).sort((p, q) => p.pos.distanceTo(this.pos) - q.pos.distanceTo(this.pos))[0];
@@ -889,6 +903,7 @@ export class Foe {
       case 'recover': {
         this.timer -= dt;
         // (a ray dives again only once its time up is over: surfaced, it is there to be fought)
+        if (this.timer <= 0 && this.reel === 'pickup') { this.disarmed = null; this.reel = null; ev.push({ type: 'rearmed' }); }   // (its sword back in its hand)
         if (this.timer <= 0) { this.state = 'chase'; this.cool = (D.cool[0] + this.rng() * (D.cool[1] - D.cool[0])) * (env.coolK?.() ?? 1); if (D.burrow && this.upFor <= 0) this.buried = true; }
         break;
       }
@@ -1149,6 +1164,80 @@ export class Foe {
     this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8; this.reel = perfect ? 'parried' : 'blocked';   // (reel: why it recovers, for the hitbox overlay's label)
     this.recoil = 1; this.heavyRecoil = perfect; this.recoilDir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
     if (!this.def.rooted) this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.def.heavy ? 2 : 5);   // (a root knot is rooted)
+  }
+
+  // ---------------------------------------------------------------- guards (issue #661, src/foe-guard.js)
+  /** Its guard comes down (stunned, or busy with a blow of its own); down, the blows it turned are forgotten. */
+  lowerGuard(dt) {
+    this.guardK = Math.max(0, this.guardK - dt / STANCE.lower);
+    if (this.guardK === 0) { this.guardT = 0; this.blocked = 0; }
+  }
+  /**
+   * Chasing you: the guard up between its blows while you are near (wantsGuard), held at most `hold` s, then down a while
+   * (`rest`: its next blow, or it closes in); `blocks` blows turned in a row and it answers at once with its `counter`.
+   */
+  tendGuard(dt, d, P, ev, env = {}) {
+    const G = this.def.guard;
+    if (this.guardRest > 0) this.guardRest = Math.max(0, this.guardRest - dt);
+    if (wantsGuard(this, d, G)) {
+      this.guardK = Math.min(1, this.guardK + dt / STANCE.raise); this.guardT += dt;
+      // (a duelist closes in behind it to its fighting distance, `close` m, a slow step at a time: the fencer)
+      if (G.close && d > G.close && this.cool > 0 && !this.disarmed) { const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z; this.step(dx / d * this.def.speed * 0.4 * dt, dz / d * this.def.speed * 0.4 * dt, env); }
+      if (this.guardT >= G.hold) { this.guardRest = G.rest; this.cool = 0; }   // (held long enough: down, and its blow comes)
+    } else this.lowerGuard(dt);
+    if (this.blocked >= (G.blocks ?? Infinity)) {
+      // the answer to a blow spammed at its guard: out of the guard straight into its counter (guard it, parry it, hop it)
+      const a = this.def.attacks.find((x) => x.id === G.counter && (!x.armed || !this.disarmed) && (!x.unarmed || this.disarmed))
+        ?? this.def.attacks.find((x) => x.answer && (!x.armed || !this.disarmed) && (!x.unarmed || this.disarmed));
+      this.blocked = 0; this.guardK = 0; this.guardT = 0; this.guardRest = G.rest;
+      if (a) { this.beginWind(a, P); this.answering = true; ev.push('warn'); ev.push({ type: 'answer', atk: a }); }
+    }
+  }
+  /** A breaker went through its guard: it reels, open (stunned) `open` s, every cut double; a crab on its back. */
+  openGuard() {
+    const G = this.def.guard;
+    this.guardK = 0; this.guardT = 0; this.blocked = 0; this.guardRest = G.rest;
+    this.state = 'recover'; this.timer = 0.25; this.k = 0; this.letGo = true;
+    this.stunned = Math.max(this.stunned, G.open); this.reel = 'guardbroken';
+    this.recoil = 1; this.heavyRecoil = true;
+    if (G.onBreak === 'flip') this.flipped = Math.max(this.flipped, G.open);
+  }
+  /**
+   * You hiding behind your guard in its reach (def.turtle: the fencer; issue #665, BotW's shield bash): after `after` s it
+   * bashes (its `attack`), a blow a plain block doesn't hold (Foes.strike: `guardBreak`); a perfect parry of it opens it.
+   */
+  punishTurtle(dt, d, P, ev, env) {
+    const T = this.def.turtle;
+    this.turtle = P.guarding?.() && d <= (T.reach ?? this.def.reach) ? this.turtle + dt : 0;
+    if (this.turtle < T.after || !(env.mayStrike?.(this) ?? true)) return;
+    const a = this.def.attacks.find((x) => x.id === T.attack);
+    if (!a) return;
+    this.turtle = 0; this.guardK = 0; this.guardT = 0;
+    this.beginWind(a, P); this.answering = true; ev.push('warn'); ev.push({ type: 'answer', atk: a });
+  }
+  /** Its sword knocked out of its hand (a perfect parry of a sword blow: onParry 'disarm'), to land at `at`. */
+  disarm(at) {
+    if (!this.alive || this.disarmed) return;
+    this.disarmed = { at: at.clone(), from: this.pos.clone().setY(this.pos.y + this.def.height), t: 0 };
+  }
+  /**
+   * Disarmed, chasing: it runs for its sword, the shield toward you; with you in reach and its turn come, it fights shield
+   * alone (the normal chase picks its `unarmed` blows); at the sword, it bends for it (`def.pickup` s, open: the long one).
+   * True when it handled the frame.
+   */
+  seekSword(dt, d, P, ev, env) {
+    const S = this.disarmed, D = this.def;
+    if (S.t < (D.disarm?.fly ?? 0.6)) { this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 8); return true; }   // (it watches it fly)
+    if (this.cool === 0 && d <= D.reach && (env.mayStrike?.(this) ?? true) && this.chooseAttack(d, Math.abs(P.pos.y - this.level))) return false;
+    const gx = S.at.x - this.pos.x, gz = S.at.z - this.pos.z, g = Math.hypot(gx, gz);
+    if (g <= 0.7) {
+      this.state = 'recover'; this.timer = D.disarm?.pickup ?? 1.3; this.k = 0; this.reel = 'pickup'; this.open = this.timer;
+      this.guardK = 0; this.heading = Math.atan2(gx, gz);
+      ev.push({ type: 'pickup' });
+      return true;
+    }
+    this.walkTo(S.at.x, S.at.z, D.speed * 1.15, dt, env, 0.5);
+    return true;
   }
 
   /** A blow travelling against its face (dir: the blow's way): what a shell turns (Foe.hit, shellBites). */
@@ -1455,6 +1544,15 @@ export class Foe {
       if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
       return true;
     }
+    // its guard up (issue #661, src/foe-guard.js): a blow it covers glances off unless it is the guard's breaker
+    let guardBreak = null;
+    if (D.guard && guardUp(this) && guardTurns(D.guard, mode, info) && src !== 'parry' && dir && guardCovers(D.guard, this.heading, dir)) {
+      guardBreak = guardBreaker(D.guard, mode, info);
+      if (!guardBreak) {
+        this.blocked++; this.flash = 0.25; this.recoil = 0.35; this.heavyRecoil = false; this.recoilDir.copy(dir).setY(0).normalize();
+        return 'guarded';
+      }
+    }
     if (src === 'bomb' && this.shelled) { this.shelled = false; this.flash = 1; }   // (a bomb cracks a crab's shell for good)
     if (src === 'bomb' && D.jams) this.jammed = D.jams;                             // (a bomb on a cart's tracks: it can't turn)
     // the bell walker: only the clapper takes harm; a cut or a bomb rings off the bronze unless it sits open (tipped toward
@@ -1534,7 +1632,7 @@ export class Foe {
     const topple = mode === 'blade' && D.topples && !!info.breaks && src !== 'parry' && !(this.toppled > 0);   // (a charged cut at a heron's legs)
     // (driven by a marionette's strings, light blows never stagger it: only a charged cut, a riposte, a parry)
     const driven = !!this.possessed && mode === 'blade' && !info.breaks && !info.stagger;
-    const reels = ringBroken || (!warded && !plated && !driven && ((mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.state === 'wind' && this.k < 0.66 && !(D.stout && mode === 'blade')) || (this.heavyRecoil && this.state !== 'strike')));
+    const reels = ringBroken || (!warded && !plated && !driven && ((mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.state === 'wind' && this.k < 0.66 && !(D.stout && mode === 'blade') && !(this.answering && mode === 'blade')) || (this.heavyRecoil && this.state !== 'strike')));
     // a cut that doesn't stop it: a heavy foe, or one committed to its blow (late in its wind-up, striking); Foes.hurt answers with its armour's thunk
     this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
     if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)
@@ -1544,6 +1642,7 @@ export class Foe {
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
+    if (guardBreak) { this.openGuard(); return 'guardbreak'; }
     if (topple) { this.toppled = TOPPLE; this.stunned = Math.max(this.stunned, TOPPLE); this.state = 'recover'; this.timer = 0.6; this.k = 0; this.open = 0; return 'toppled'; }
     return true;
   }
@@ -1867,11 +1966,11 @@ export class Foes {
    * A back flip or a side hop begun now (Player.hop): is it a perfect dodge? The foe (or a guardian's GuardianLock) whose
    * blow it slips, or null (src/flurry.js: the blow lands within dodgeLead of its wind-up, and you are in its way).
    */
-  perfectDodge() {
+  perfectDodge(hop = null) {
     const P = this.player;
     if (!P) return null;
     const slow = this.env?.slow?.() ?? 1, gentle = this.gentle;
-    if (this.on) for (const f of this.list) if (perfectAgainst(foeThreat(f, P, slow, f.possessed ? POSSESS.wind : 1), gentle)) return f;
+    if (this.on) for (const f of this.list) if (perfectAgainst(foeThreat(f, P, slow, f.possessed ? POSSESS.wind : 1), gentle, hop)) return f;
     for (const g of GUARDIANS_LIVE) if (g.model?.group?.parent && perfectAgainst(guardianThreat(g, P), gentle)) return guardianLock(g);
     return null;
   }
@@ -2374,6 +2473,8 @@ export class Foes {
       if (!this.game.flag('foes.stuck') && hintsFor('tip')) { this.game.set('foes.stuck', true); this.notice?.('Its claws are stuck in the floor: cut it now.'); }
       return;
     }
+    if (e.type === 'pickup') { worldSnd.thud(s, 0.3); this.animKit(f, 0, {}).dust(f.disarmed?.at ?? f.pos, '#cdb89a', 6, 0.5); return; }   // (it bends for its sword)
+    if (e.type === 'rearmed' || e.type === 'answer') return;
     if (e.type === 'hop') { worldSnd.thud(s, e.how === 'drop' ? 0.35 : 0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5); return; }   // (up or down a ledge: a soft landing)
     if (e.knocked) { this.knockedOff(f, e); return; }
     let info = null;
@@ -2471,6 +2572,8 @@ export class Foes {
     if (!r) return false;
     if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
     if (r === 'glance') { if (info) info.dull = true; this.sound?.foeGlance?.(); this.sparks(f, point ?? f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
+    if (r === 'guarded') { this.guarded(f, mode, dir, info, point); return true; }       // (off its guard: src/foe-guard.js)
+    if (r === 'guardbreak') { this.guardBroken(f, mode, dir, info, point); return true; }  // (its guard broken: it reels, open)
     if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
     if (f.shedNow) this.shedTail(f);
     // (the dash cut through its back, double: a gold ring runs out round it, as the riposte's does)
@@ -2815,10 +2918,15 @@ export class Foes {
     // roots running under the ground (the root knot's grip) take only feet on it: a jump clears them
     if (a.ground && P.onGround === false) return false;
     // the evade's i-frames swallowed it (src/fluid-blade.js dodge): a blow, a lob, a charge, a flash, a line or a grip
-    if (P.dodge?.(f.pos, a.tether || a.grab ? 'grab' : 'strike', this.gentle)) return false;
+    // (the blow is passed on: a hop that doesn't match its `dodge` still takes the frames but starts no flurry, src/flurry.js)
+    if (P.dodge?.(f.pos, a.tether || a.grab ? 'grab' : 'strike', this.gentle, a)) return false;
     // the guard took it (src/fluid-blade.js block): no harm, and the foe reels back
     const guarded = P.guard?.(f.pos);
-    if (guarded) {
+    // a bash (guardBreak: the fencer's shield, issue #665) is not held by a plain block: the guard is knocked aside and the
+    // blow comes through, staggering him; only a perfect parry holds it (and opens the fencer)
+    const bashed = !!guarded && guarded !== 'perfect' && !!a.guardBreak;
+    if (bashed && !this.game.flag('foes.bashed') && hintsFor('tip')) { this.game.set('foes.bashed', true); this.notice?.('A shield bash knocks a raised guard aside: parry it as it lands, or hop away.'); }
+    if (guarded && !bashed) {
       const perfect = guarded === 'perfect';
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
@@ -2839,6 +2947,11 @@ export class Foes {
       // a heron's bill knocked aside: its head open a while (longer on a perfect parry), within reach
       else if (a.onParry === 'open') { f.open = perfect ? OPEN.perfect : OPEN.guard; f.stunned = Math.max(f.stunned, f.open); }
       // a sky ray's skim parried: it ploughs into the ground and lies there, open
+      // a fencer's sword parried: knocked out of its hand, it lands a few metres off (issue #665); shield alone, it runs for it
+      else if (a.onParry === 'disarm' && perfect && f.alive) {
+        f.disarm(this.swordSpot(f)); this.sparks(f, f.chest); kick(0.2);
+        if (!this.game.flag('foes.disarmed') && hintsFor('tip')) { this.game.set('foes.disarmed', true); this.notice?.('Its sword is knocked away. Catch it as it bends to pick it up.'); }
+      }
       else if (a.onParry === 'ground' && perfect) { f.stunned = Math.max(f.stunned, GROUNDED); f.alt = 0.15; f.vel.multiplyScalar(0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 12, 1.2); }
       return false;
     }
@@ -2997,6 +3110,17 @@ export class Foes {
     const fwd = this.camera ? this.camera.getWorldDirection(_v).setY(0).normalize() : _v.set(Math.sin(P.heading ?? 0), 0, Math.cos(P.heading ?? 0));
     return fwd.dot(d) > 0.45;
   }
+  /** Where a fencer's parried sword lands (issue #665): `def.disarm.dist` m off, away from you and a little to a side, on the ground. */
+  swordSpot(f) {
+    const P = this.player, dx = f.pos.x - P.pos.x, dz = f.pos.z - P.pos.z, L = Math.hypot(dx, dz) || 1;
+    const turn = (this.rng() < 0.5 ? -1 : 1) * (0.5 + this.rng() * 0.5), c = Math.cos(turn), sn = Math.sin(turn);
+    const ux = (dx / L) * c - (dz / L) * sn, uz = (dx / L) * sn + (dz / L) * c, r = f.def.disarm?.dist ?? 3.6;
+    for (const k of [1, 0.7, 0.45]) {
+      const x = f.pos.x + ux * r * k, z = f.pos.z + uz * r * k, y = this.env.ground(x, f.pos.y + 1.5, z);
+      if (y != null && Math.abs(y - f.pos.y) < 1.2) return new THREE.Vector3(x, y, z);
+    }
+    return f.pos.clone();
+  }
   /** A strike's damage in hearts for this setting (Gentle: half), counted in quarters. */
   /** A foe's harm in hearts here: Gentle halves it; the last worlds' stage raises it (HARM_BY_STAGE); counted in quarters. */
   // (a fight temple sets `harmScale`, its own in place of the stage's, and `harmBank`, a purse that carries the hurts
@@ -3022,6 +3146,29 @@ export class Foes {
       this.game.set('foes.armour', true);
       this.notice?.('Light cuts glance off. The third swing or a perfect parry staggers it.');
     }
+  }
+
+  /**
+   * A blow its guard turned (issue #661, src/foe-guard.js): the clang and sparks where it met the guard, the blade's hit
+   * marked dull (no hit-stop, no splash: src/fluid-blade.js), a small shrug of its body off the blow (no flash: no harm);
+   * the first time, what breaks that guard (its `hint`).
+   */
+  guarded(f, mode, dir, info, point) {
+    if (info) info.dull = true;
+    this.sound?.foeGlance?.(); this.sparks(f, point ?? f.chest);
+    this.react(f, 'guard', dir, { reel: 'shrug', flash: false });
+    const G = f.def.guard, flag = `foes.guard.${f.kind}`;
+    if (G?.hint && !this.game.flag(flag) && hintsFor('tip')) { this.game.set(flag, true); this.notice?.(G.hint); }
+  }
+  /**
+   * Its guard broken (src/foe-guard.js: the charged cut, the air cut's plunge, a bomb): the heavy clang, a gold ring as the
+   * riposte's, and its body thrown into the stagger it holds while it is open; the hit lands as a cut.
+   */
+  guardBroken(f, mode, dir, info, point) {
+    this.sound?.foeArmour?.(); this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
+    this.sparks(f, point ?? f.chest); hitStop(0.08); kick(0.3);
+    this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: f.def.radius + 1.2, life: 0.4, color: '#ffd27a', thick: 1 });
+    this.react(f, mode, dir, { ...info, reel: 'stagger' }, point);
   }
 
   /** A guard that cut a line or chipped glass: a few bright sparks. */

@@ -39,6 +39,7 @@ export const DEFEATS = {
   bell: { time: 1.5, sag: { y: -1.3, at: [0.05, 0.6] }, topple: { angle: 0.4, at: [0.35, 0.95] }, puff: 'vent' },
   drone: { time: 1.1, land: { at: [0, 0.85] }, spin: 9, roll: { side: 1, angle: 0.9, at: [0.1, 0.6] }, puff: 'vent' },
   brute: { time: 1.5, sag: { y: -0.75, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
+  fencer: { time: 1.2, sag: { y: -0.5, at: [0, 0.45] }, topple: { angle: 1.35, at: [0.3, 0.9] }, puff: 'vent' },   // (onto its knees, then forward onto its shield)
   blot: { time: 0.9, squash: { sy: 0.12, sxz: 1.75, at: [0, 0.75] }, puff: 'ink' },
   shade: { time: 1.2, sag: { y: -0.55, at: [0.1, 0.7] }, squash: { sy: 0.4, sxz: 1.45, at: [0.15, 0.85] }, puff: 'ink' },
   hound: { time: 1.2, sag: { y: -0.3, at: [0, 0.35] }, roll: { side: 1, angle: 1.4, at: [0.25, 0.7] }, curl: [0.4, 0.9, 0.6], puff: 'ink' },

@@ -275,7 +275,7 @@ export function shadeModel(skin) {
   const parts = [hull, head, drape, ...arms.flatMap((a) => [a.sh, a.el, a.hand]), ...legs.map((l) => l.root)];
   // the cloak's lag and the hood's turn: springs
   const lagP = new SecondOrder(1.4, 0.35, 0), lagR = new SecondOrder(1.4, 0.35, 0), look = new SecondOrder(2.5, 0.7, 0);
-  let drawn = 0, sink = 0, rise = 1, prevX = null, prevZ = 0, prevH = 0, swing = 0;
+  let drawn = 0, sink = 0, rise = 1, prevX = null, prevZ = 0, prevH = 0, swing = 0, ward = 0;
   const local = new THREE.Vector3();
   return {
     group: g, gaze, body: hull, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.cloak, P.smoke, P.face],
@@ -314,6 +314,11 @@ export function shadeModel(skin) {
       const walk = Math.sin(rig.walked * 3.4) * Math.min(1, Math.hypot(rig.vel.x, rig.vel.z) / 2) * 0.32;
       let rx = walk, rz = 0.08, re = -0.35, rh = -0.9 * drawn, lx = -walk, lz = -0.08, le = -0.4;
       let tilt = 0;
+      // its guard (issue #661, src/foe-guard.js): the ink sword held up across its body, point high to its left, the empty
+      // sleeve's cuff against the blade: your cuts from the front ring off it
+      ward = ease(ward, f.guardK ?? 0, 12, dt);
+      rx = lerp(rx, -0.55, ward); rz = lerp(rz, -0.2, ward); re = lerp(re, -1.0, ward); rh = lerp(rh, -1.4, ward);
+      lx = lerp(lx, -1.05, ward); lz = lerp(lz, 0.35, ward); le = lerp(le, -1.3, ward);
       if (id === 'cut' || id === 'recut') {
         // the cut: the arm up and back over its shoulder, the sword pointing back; then across its front
         const w = wind ? c.wind : 0;
@@ -345,7 +350,7 @@ export function shadeModel(skin) {
         if (stepping) { g.updateMatrixWorld(true); local.copy(f.attackAt); g.worldToLocal(local); const t = smooth(k, 0.35, 1); pool.position.set(local.x * t, 0.03 / squash, local.z * t); }
         else pool.position.set(0, 0.03, 0);
       }
-      R.sh.rotation.set(rx, 0, -rz); R.el.rotation.x = re; R.hand.rotation.x = rh;
+      R.sh.rotation.set(rx, 0, -rz); R.el.rotation.x = re; R.hand.rotation.set(rh, 0, ward * 0.75);   // (the guard tilts the blade across it)
       Lf.sh.rotation.set(lx, 0, -lz); Lf.el.rotation.x = le;
       // the hood: turned to keep you in sight against the body's own turn (the cut turns it away), tilted in the feint
       const want = THREE.MathUtils.clamp(-o.yaw, -0.9, 0.9) + (f.state === 'idle' ? Math.sin(c.now / 1700 + f.home.x) * 0.25 : 0);

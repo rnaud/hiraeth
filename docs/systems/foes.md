@@ -1309,6 +1309,71 @@ Breath of the Wild's evade, asked for by the author (2026-10-10). Locked on, jum
 - **Teaching**: the first lock-on says it once (`hint.hop`, hints subtle or full): "Locked on: jump with the stick back flips
   away, to a side hops aside." Nothing else.
 
+## Guards and their breakers (v2.27, issue #661, `src/foe-guard.js`)
+
+The Breath of the Wild study (`docs/design/combat-botw-study.md`, ranked changes 2–4): a few kinds defend, and each
+defence is opened by one move of the kit. A kind with `def.guard` raises it between its own blows while you are within
+`near` m (`wantsGuard`: chasing, not stunned, not resting, not held past `hold`); it rises over `STANCE.raise` 0.22 s and
+drops the moment it winds up, is stunned or reels (`lowerGuard`). Up (`guardUp`; also through a `shielded` wind-up), a
+blow inside its `arc` that `guardTurns` (the blade, a bomb; a shot or an ember only off a shield, `shots`) glances
+(`Foe.hit` → `'guarded'`, `Foes.guarded`: the clang, sparks, a shrug of the body without the flash, the blade's hit dull:
+no hit-stop, no splash). The `breaks` move goes through (`guardBreaker`: `charged`, the charged cut, full or not; `air`,
+the air cut's plunge, not the air combo's light swings; `riposte`; `bomb`): the blow lands as a cut, the guard is thrown
+open (`openGuard`: stunned `open` s, 0.9–1.4: BotW's reel, never a long free stun; every first cut into it double; a
+crab `onBreak: 'flip'` on its back), told by the body flung wide, the gold ring, the stagger and the stun's stars
+(`Foes.guardBroken`).
+
+Never a wall: held `hold` s at most, then down `rest` s with its blow due (`cool` 0); `blocks` blows turned in a row and
+it answers at once with its `counter` (`tendGuard`), a blow begun as an answer (`answering`) that light cuts can't break
+off. Spam the wrong move and you are turned away, then hit, then the answer's recovery lets your cuts in: no stalemate
+(`tests/foe-guard.test.js` drives each kind in the Arena, headless). The first time each guard turns a blow, its `hint`
+(tips: off in today's hint levels, so the pose carries it).
+
+| Kind | Pose (`pose`) | Arc | Breaker | Answer to spam | Window |
+|---|---|---|---|---|---|
+| Furnace brute | both forearms up before it, the fists at its crown (`arms`) | 60° | the charged cut, the riposte, a bomb; round its side | its backhand after 3 | 1.2 s |
+| Shellback crab | clamped flat in its shell, legs and stalks drawn under (`tuck`) | all round | the air cut's plunge onto it, a bomb (it flips) | its snap after 3 | 1.4 s on its back |
+| Shade | the ink sword held up across it (`sword`) | 57° | the parry of its answering cut, then the riposte; round its side | its cut after 2 | the parry's 2 s |
+| Makers' fencer | its kite shield square before it (`shield`); also through its bash, shove and leap's crouch | 66° | the charged cut, the riposte, a bomb; its back (the dash cut) | its shield bash after 3 | 1.0 s |
+
+**The hop a blow asks for** (ranked change 2): an attack's `dodge` (`'back'` a sweep, `'side'` an overhead or a thrust;
+unset: any) names the hop that answers it (`src/flurry.js` `hopFits`): only that one starts the flurry (`Foes.perfectDodge(hop)`,
+`FluidBlade.dodge(…, atk)`); the other still has its dodge frames. Set on the brute's sweep (back), the shade's cut (back)
+and feint (side), the fencer's overhead (side), sweep (back) and leap (side).
+
+The creatures gallery (enemies.html) shows each guard and its broken pose beside the moves ('Guarding', 'Guard broken').
+
+## The makers' fencer (v2.27, issue #665, `src/enemies/plans/fencer.js`)
+
+A sword-and-shield duelist that fights the way you do (archetype `fencer`, a machine, role `mirror`, tier 3, plan
+`fencer` on the kit: the humanoid's biped, planted). **No design sheet was picked** (`art: 'pending'`): it is built from
+the roster's parts in the makers' high tech, kept simple to read at play distance: a little taller than you, ivory
+ceramic plates over a dark frame, a narrow helm with one round lens and a fin, a kite shield with lit seams, a straight
+blade with a lit edge; three skins (the Moon Foundry's furnace orange, the Space City's white and cyan with a round
+shield, the Signal Market's red-lacquered champion with a long blade and a pennant). About eight draws.
+
+- **Its shield** (`guard`, above): the light combo, the air swings and shots ring off from the front; the charged cut
+  throws it wide; behind it (the dash cut, double) it is open. Between blows it steps in behind it to `close` 2.2 m.
+- **The bash** (`turtle`): hold your guard up in its reach `after` 0.9 s and it bashes it aside (`guardBreak`: a plain
+  block is knocked open and the blow comes through, staggering you; a perfect parry holds it and stuns it). Also its
+  answer to three blows spammed at its shield.
+- **Overhead** (sword high over its head, 1.0 s: side hop) and **sweep** (wound round, the sword low behind its hip,
+  0.95 s: back flip). A perfect parry of either knocks its sword away (`onParry: 'disarm'`, `Foes.swordSpot`: 3.8 m off,
+  away from you, flying 0.6 s): shield alone (`unarmed` shove) it runs for it (`seekSword`) and bends to pick it up
+  (`disarm.pickup` 1.4 s, open: the long opening), armed again after.
+- **Leap slam** (crouched behind its shield 0.95 s, then 1.15 s in the air, about 2.6 m up, landing where you stood
+  at the wind-up's 60 %): a side hop, a perfect parry, or the air cut meeting it in the air (the toad's rule: on its back,
+  double).
+- `stout`: light cuts never break off its wind-ups (they still land while its shield is down).
+- **Where**: the Moon Foundry and the City Floating in Space (packs, from the third), the Signal Market (late); a big
+  lead (`COSTS` 2), never a filler; it counts as a striker under `TURNS` like any other. And the Arena (its skins' waves,
+  `?level=arena&enemy=fencer@moonfoundry`).
+
+Headless, in the Arena (`tests/fencer.test.js`): a traveller who answers (the charged cut into the shield, a parry at
+every blow, cuts while it is open) beat it in 7.0 s without a blow taken (a floor: that traveller never misses a
+parry); one who only spams the combo had 5 cuts turned off the shield, took 2 blows (its bash, its leap) and still won in
+9.1 s (no stalemate: its cuts land while it recovers from its own blows). Measured 2026-10-25 on this branch.
+
 ## More foes, the perfect parry, combos
 
 - **Spitter:** keeps `keep` (6.5 m) away, backing off. It lobs a glob (drawn arcing over the second half of

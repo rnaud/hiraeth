@@ -1351,6 +1351,124 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 export const CHANGELOG_MEDIA = {
   '2.27': [
   {
+    "match": "Some enemies now defend themselves",
+    "shots": [
+      {
+        "name": "brute-guard",
+        "only": "after",
+        "caption": "The furnace brute between its blows: forearms up before it, light cuts ring off",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: before this change foes had no guard pose, so no before picture is claimed. Staged placement; in a real fight the guard comes up the same way between its blows."
+      },
+      {
+        "name": "brute-broken",
+        "only": "after",
+        "caption": "A charged cut smashes through: its arms flung wide, the gold ring, the stars: open about a second",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: before this change foes had no guard pose, so no before picture is claimed. Staged placement; in a real fight the guard comes up the same way between its blows."
+      },
+      {
+        "name": "crab-guard",
+        "only": "after",
+        "caption": "The shellback crab clamped down flat in its shell, legs and stalks drawn under",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: before this change foes had no guard pose, so no before picture is claimed. Staged placement; in a real fight the guard comes up the same way between its blows."
+      },
+      {
+        "name": "shade-guard",
+        "only": "after",
+        "caption": "The shade's guard: its ink sword held up across its body",
+        "from": "Muted headless Chrome, the creatures gallery (enemies.html, the game's own body through Foes.look, inked), Vite on port 5418, branch claude/issue-661-665, 25 October 2026; its held 'Guarding' pose, run live 2 s so the springs settle; cropped, cwebp -q 72.",
+        "view": "After only: before this change foes had no guard pose, so no before picture is claimed. Staged placement; in a real fight the guard comes up the same way between its blows."
+      }
+    ]
+  },
+  {
+    "match": "A new enemy, the makers’ fencer",
+    "shots": [
+      {
+        "name": "fencer-skins",
+        "only": "after",
+        "caption": "The makers’ fencer in its three skins: the Moon Foundry, the City Floating in Space, the Signal Market",
+        "from": "Muted headless Chrome, the creatures gallery (enemies.html, the game's own body through Foes.look, inked), Vite on port 5418, branch claude/issue-661-665, 25 October 2026; standing, run live 2 s so the springs settle; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      },
+      {
+        "name": "fencer-guard",
+        "only": "after",
+        "caption": "Its shield up square before it, the sword drawn back over its shoulder",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      },
+      {
+        "name": "fencer-overhead",
+        "only": "after",
+        "caption": "The overhead: the sword high over its head (side hop)",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      },
+      {
+        "name": "fencer-sweep",
+        "only": "after",
+        "caption": "The sweep: wound round, the sword low behind its hip (back flip)",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      },
+      {
+        "name": "fencer-broken",
+        "only": "after",
+        "caption": "Its shield thrown wide by a charged cut: open",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      },
+      {
+        "name": "fencer-disarmed",
+        "only": "after",
+        "caption": "Its sword knocked away: it bends to pick it up (the long opening)",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      },
+      {
+        "name": "fencer-leap",
+        "only": "after",
+        "caption": "The leap slam, hanging in the air over the traveller",
+        "from": "Muted headless Chrome (Metal GPU, High, 1280 × 720), Vite on port 5418, branch claude/issue-661-665 (on origin/main 192353d4f with #672, #663 and #664 picked under it), 25 October 2026. The Arena (?level=arena&enemy=<kind>), the default follow camera behind the traveller; the foe placed 2.4–3.8 m in front and a little to the side by script and held between its blows (its cool) so its guard comes up; a broken guard is a charged cut dealt through Foes.hurt; cropped, cwebp -q 72.",
+        "view": "After only: a new enemy. No design sheet was picked for it, so no reference picture; it is built from the roster's parts. Staged placement and triggered moves (Foe.beginWind, Foe.disarm) for the still."
+      }
+    ],
+    "numbers": [
+      {
+        "title": "A headless duel with the fencer in the Arena",
+        "unit": "s to win / blows taken",
+        "better": "lower",
+        "device": "node, the game’s own Foes and Foe in the Arena level, 60 steps a second, a traveller standing his ground (tests/fencer.test.js fight())",
+        "rows": [
+          {
+            "where": "answers: charged cut into the shield, perfect parry at every blow, cuts while it is open (s)",
+            "before": null,
+            "after": 7.0
+          },
+          {
+            "where": "answers: blows taken",
+            "before": null,
+            "after": 0
+          },
+          {
+            "where": "spam: the light combo at its front only (s)",
+            "before": null,
+            "after": 9.1
+          },
+          {
+            "where": "spam: blows taken (its bash, its leap)",
+            "before": null,
+            "after": 2
+          }
+        ],
+        "source": "25 October 2026; the spammer had 5 of 13 cuts turned off the shield. A floor, not a player: the answering traveller never misses a parry. New enemy: no before."
+      }
+    ]
+  },
+  {
     "match": "The dark spot under you while you jump or fall",
     "shots": [
       {

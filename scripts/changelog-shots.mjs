@@ -227,7 +227,7 @@ const FOE = (v) => `(async () => {
   const f = () => V.models.get(J.id)?.f ?? V.model(J.id).f;
   const moves = f().def.attacks.filter((x) => !x.chain);
   const i = moves.findIndex((m) => m.id === J.pose);
-  if (!['idle', 'walk'].includes(J.pose) && i < 0) throw new Error('no move ' + J.pose + ' on ' + J.id);
+  if (!['idle', 'walk', 'guard', 'broken', 'disarmed'].includes(J.pose) && i < 0) throw new Error('no move ' + J.pose + ' on ' + J.id);
   const m = f(); m.provoked = true; m.watcher = true;   // (standing: a hound not lying as its shadow, a blot not pooled)
   V.mode = i >= 0 ? 'attack' + i : J.pose; V.fixed = null; V.orbit.yaw = J.yaw; V.orbit.pitch = J.pitch; V.orbit.zoom = J.zoom; V.setSize(W, H);
   V.time = 0;

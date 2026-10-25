@@ -768,7 +768,7 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
     sound?.flurry?.(true); kick(0.1); rumblePlay('flurry');
     if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); teach(tr('hint.flurry')); }   // (said after the fact, hints full)
   }
-  player.onHop = (kind, win) => { tool?.blade?.hop(win); if (foes.perfectDodge()) startFlurry(); };
+  player.onHop = (kind, win) => { tool?.blade?.hop(win, kind); if (foes.perfectDodge(kind)) startFlurry(); };   // (a blow's `dodge` asks for its hop: src/flurry.js hopFits)
   if (tool?.blade) tool.blade.onHopDodge = () => startFlurry();
   player.untouchable = () => flurryLeft() > 0;   // (a guardian's blows and rings pass you by: src/temples/boss.js)
   const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: lockViewAngle)

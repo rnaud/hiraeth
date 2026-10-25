@@ -27,7 +27,7 @@ export const SLOPE = {
     crab: { follow: 1 }, skitter: { follow: 1 }, centipede: { follow: 1 }, toad: { follow: 1 }, lizard: { follow: 1 },
     hound: { follow: 1 }, heron: { follow: 1, upright: 0.8 }, roller: { follow: 1 }, rootknot: { follow: 1 },
     tripod: { follow: 1, upright: 0.6 }, cart: { follow: 1 }, bell: { follow: 1, upright: 0.5 }, brute: { follow: 1, upright: 0.5 },
-    blot: { follow: 1 }, shade: { follow: 1, upright: 0.3 },
+    blot: { follow: 1 }, shade: { follow: 1, upright: 0.3 }, fencer: { follow: 1, upright: 0.4 },
   },
 };
 
