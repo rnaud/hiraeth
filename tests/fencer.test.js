@@ -96,8 +96,11 @@ test('hide behind your guard in its reach and it bashes it aside; a perfect parr
 
 test('a perfect parry of its sword knocks it away: shield-only it runs for it, bends to pick it up (the long opening), and is armed again', () => {
   const { foes, f, P, done } = duel({ parry: true });
-  f.cool = 0;
-  for (let i = 0; i < 240 && !f.disarmed; i++) { foes.update(DT); if (f.state === 'wind' && !f.atk.armed) { f.state = 'chase'; f.cool = 0; } }
+  // Exercise the sword-parry contract, not the randomized attack chooser: a
+  // sequence of unarmed choices could otherwise consume the four-second window.
+  f.state = 'chase'; f.cool = 0;
+  f.beginWind(FOES.fencer.attacks.find((a) => a.id === 'overhead'), P);
+  for (let i = 0; i < 240 && !f.disarmed; i++) foes.update(DT);
   assert.ok(f.disarmed, 'disarmed');
   const at = f.disarmed.at.clone();
   assert.ok(at.distanceTo(f.pos) > 2, `the sword lands ${at.distanceTo(f.pos).toFixed(1)} m off`);

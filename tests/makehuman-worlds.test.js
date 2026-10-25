@@ -1,3 +1,4 @@
+import { loadStoryData } from './story-data-modules.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -281,7 +282,8 @@ test('the Signal Market\'s people are MakeHuman bodies: Kip a child of eleven, S
 /** A world's story people (every exported table of its story data with people in it). */
 async function storyPeople(world) {
   let m;
-  try { m = await import(`../src/story/${world}-data.js`); } catch { return []; }
+  try { m = await loadStoryData(world); } catch { return []; }
+  if (!m) return [];
   const out = [];
   for (const [k, v] of Object.entries(m)) {
     if (['THINGS', 'QUESTS', 'ITEMS'].includes(k)) continue;

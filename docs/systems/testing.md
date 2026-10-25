@@ -369,3 +369,58 @@ No integration cases were deferred to the daily suite to obtain these reductions
 The timing table was refreshed from actual GitHub run40190711316. New and changed partition files
 use measured local durations scaled by the existing `RUNNER_PER_MAC` factor; these are planning
 estimates, not measurements of GitHub elapsed time. The unchanged timing-budget regression must pass.
+
+### Keeping the edit loop narrow
+
+Dependency selection is a maintained architecture contract, not a list of tests to skip.
+Use `node scripts/affected-tests.mjs --staged --explain` (or `--base SHA --head SHA
+--explain`) to inspect each selected test's import/resource chain and opaque root.
+Classify the cause before changing selection: a real dependency needs its test; an
+unresolved finite input needs better analysis; an unrelated launcher or registry needs
+an import boundary. Do not replace unknown paths with guessed directory wildcards.
+
+The analyzer resolves identifiers by lexical binding, including private unescaped helper
+arguments and finite `for…of` arrays. Unrelated callbacks reusing names do not taint one
+another. Writes, exported/escaped helpers, mutable or escaped arrays, unknown inputs and
+more than 64 alternatives remain conservative. Path helpers are matched to their actual
+imports, with namespace mutations and escapes rejected. Conditional paths retain both alternatives unless a finite string and strict comparison
+prove which branch applies; correlated branches never invent nonexistent module paths. `test-dependency-bindings.mjs` is global selector infrastructure: editing it
+requires the full gate, just like editing `affected-tests.mjs`.
+
+Keep importable libraries separate from CLI launchers with environment-driven discovery,
+output directories or tuning imports. Motion QC tests import `motion-qc/runner.mjs`;
+`run.mjs` remains the compatible CLI and re-exports the runner. No motion assertions were
+removed. `tests/test-selection-boundaries.test.js` checks both directions against real
+repository imports: HUD edits must not select motion QC, while player, physics, animation
+and motion-harness edits must select it. Similar contracts cover finite source audits.
+Add a boundary pair when fixing another accidental dependency so it cannot silently return.
+The existing daily full suite also runs these contracts; uncertainty is never deferred
+merely to obtain a smaller local selection.
+
+Compare selected files and their measured duration weights for the same revision and
+change set. A sum of per-file durations is workload, not parallel wall time. Keep unresolved
+roots visible in the timing dashboard and prioritize roots that broaden many unrelated
+consumers. A full game/VM integration test that actually loads the HUD can legitimately run
+for HUD behavior changes, even after motion-only tests have been separated.
+
+
+This applies across the repository, not only to HUD edits. Generated guardian audit
+readers enforce their supported model paths at runtime. Keeper-only audits import their
+own reader, so Elder asset edits do not select Keeper-only tests. Minigame and story audits use
+literal lazy import catalogs, checked against the original directory discovery sets;
+new modules cannot silently disappear from coverage. Z-fighting geometry tests load the
+geometry implementation without optional source-name filesystem instrumentation. Source
+name coverage still runs in its own test. The completion test gets its evidence revision
+with one exact shell-free Git metadata query; arbitrary subprocesses remain opaque.
+
+Normal selection builds the reachable import graph once and propagates changed inputs
+back to their consumers. Explanation mode preserves per-test chains; regression tests
+compare its results with normal selection. Old/new Git snapshots share syntax analysis
+only when file path, complete source bytes and diagnostic mode match. Missing files,
+changed source and changed modes cannot reuse stale analysis. This cache lives only for
+one invocation; it does not rely on mtimes or a previous successful run.
+
+A URL passed directly to the builtin `existsSync` stays an existence dependency.
+Unknown reference-image names still select their checks for additions, deletions and mode
+changes; constructing the URL alone does not turn unrelated regular content edits into
+content reads. Unbound lookalike functions and URLs escaping to other consumers remain opaque.

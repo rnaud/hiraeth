@@ -1,0 +1,47 @@
+// Literal lazy imports preserve discovery coverage without opaque module paths.
+// tests/audit-module-inputs.test.js checks this list against the source directory.
+const loaders = {
+  'canyon-rider.js': () => import('../src/minigames/canyon-rider.js'),
+  'canyon-rival.js': () => import('../src/minigames/canyon-rival.js'),
+  'canyon-sled.js': () => import('../src/minigames/canyon-sled.js'),
+  'canyon.js': () => import('../src/minigames/canyon.js'),
+  'channels.js': () => import('../src/minigames/channels.js'),
+  'cistern.js': () => import('../src/minigames/cistern.js'),
+  'drums.js': () => import('../src/minigames/drums.js'),
+  'elderflight.js': () => import('../src/minigames/elderflight.js'),
+  'fight-arzach.js': () => import('../src/minigames/fight-arzach.js'),
+  'fight-bazaar.js': () => import('../src/minigames/fight-bazaar.js'),
+  'fight-buried.js': () => import('../src/minigames/fight-buried.js'),
+  'fight-desert.js': () => import('../src/minigames/fight-desert.js'),
+  'fight-edena.js': () => import('../src/minigames/fight-edena.js'),
+  'fight-glassdunes.js': () => import('../src/minigames/fight-glassdunes.js'),
+  'fight-incal.js': () => import('../src/minigames/fight-incal.js'),
+  'fight-moonfoundry.js': () => import('../src/minigames/fight-moonfoundry.js'),
+  'fight-perdide.js': () => import('../src/minigames/fight-perdide.js'),
+  'fight-spacecity.js': () => import('../src/minigames/fight-spacecity.js'),
+  'fight-spheres.js': () => import('../src/minigames/fight-spheres.js'),
+  'fight-underwater.js': () => import('../src/minigames/fight-underwater.js'),
+  'fishing.js': () => import('../src/minigames/fishing.js'),
+  'formation.js': () => import('../src/minigames/formation.js'),
+  'framing.js': () => import('../src/minigames/framing.js'),
+  'gallery.js': () => import('../src/minigames/gallery.js'),
+  'lens-vault-arm.js': () => import('../src/minigames/lens-vault-arm.js'),
+  'lens-vault-hud.js': () => import('../src/minigames/lens-vault-hud.js'),
+  'lens-vault-level.js': () => import('../src/minigames/lens-vault-level.js'),
+  'lens-vault-rules.js': () => import('../src/minigames/lens-vault-rules.js'),
+  'lens-vault.js': () => import('../src/minigames/lens-vault.js'),
+  'pirates-rules.js': () => import('../src/minigames/pirates-rules.js'),
+  'pirates-sfx.js': () => import('../src/minigames/pirates-sfx.js'),
+  'pirates.js': () => import('../src/minigames/pirates.js'),
+  'platformer.js': () => import('../src/minigames/platformer.js'),
+  'rhythm.js': () => import('../src/minigames/rhythm.js'),
+  'rings.js': () => import('../src/minigames/rings.js'),
+  'sketchhunt.js': () => import('../src/minigames/sketchhunt.js'),
+  'ski.js': () => import('../src/minigames/ski.js'),
+  'waves.js': () => import('../src/minigames/waves.js'),
+  'wingdrop.js': () => import('../src/minigames/wingdrop.js'),
+};
+export const files = Object.freeze(Object.keys(loaders));
+export async function loadMinigameModules() {
+  return Object.fromEntries(await Promise.all(Object.entries(loaders).map(async ([name,load])=>[name,await load()])));
+}

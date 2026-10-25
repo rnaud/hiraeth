@@ -4,7 +4,7 @@
 // framing and the steady lock, and the traveller knocked back on his feet by a blow, not ragdolled.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
+import { readKeeperModelUrl } from '../scripts/model-audit/keeper-input.mjs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import './register-gadgets.js';
@@ -18,10 +18,9 @@ import { guardianLock, STEADY } from '../src/foes.js';
 import { CameraRig, BOSS_CAM, OPEN_DIST, STAGGER } from '../src/player.js';
 
 globalThis.ProgressEvent ??= class { constructor(type, v) { this.type = type; Object.assign(this, v); } };
-const PUBLIC = new URL('../public/', import.meta.url);
 GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
   try {
-    const bytes = fs.readFileSync(new URL(String(url).replace(/^\/+/, ''), PUBLIC)), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
+    const bytes = readKeeperModelUrl(url), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
     for (const m of json.meshes) for (const p of m.primitives) delete p.material;
     delete json.materials; delete json.textures; delete json.images;
     json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');

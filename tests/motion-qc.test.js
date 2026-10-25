@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyse, steps, pops, jolts, latency, pivots, LIMITS, BONES, JOINTS } from '../scripts/motion-qc/lib.mjs';
-import { runScenario } from '../scripts/motion-qc/run.mjs';
+import { runScenario } from '../scripts/motion-qc/runner.mjs';
 import { COURSE, WORLDS_FLAT, unevenFrames } from '../scripts/motion-qc/scenarios.mjs';
 
 const meta = { ballRest: 0.04, ankleRest: 0.08 };
@@ -105,7 +105,7 @@ test('the traveller on the course: the runs green today stay green (the default:
 });
 
 // (on the B3 body, the game's since 2026-10-13: the runs above were measured on the coral-shirt v1 until 2026-10-14, when
-// the QC moved to him (scripts/motion-qc/run.mjs body). Four that were green on v1 were not on him: the slow walk popped 5
+// the QC moved to him (scripts/motion-qc/runner.mjs body). Four that were green on v1 were not on him: the slow walk popped 5
 // a minute, up the ramp 6 (the limit 3), every gait 7, and the standing pivots' worst jolt was 5.2 cm. Every pop a calf
 // (his knee), 14-19 rad/s at a step's lift-off or touchdown, and one of 45 at the gaits' stop. Issue #47, 2026-10-15: the
 // soft IK's zone 2 -> 3.5 % of the leg (FEET.soft: B3's knee reached straight within v1's 2 %); a foot planted and let go

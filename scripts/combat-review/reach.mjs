@@ -9,7 +9,7 @@
 //   const S = await stageGuardian(G)     G from src/arena-guardians.js GUARDIANS: in its own temple (or the Arena's ring)
 //   const rows = hitboxes(S, { grid, dt })   per move: { id, hitM2, bodyM2, phantom, missed, farthest, reach, hit }
 //   reachFails(rows)                     the FAIL lines
-import fs from 'node:fs';
+import { readGuardianModelUrl } from '../model-audit/guardian-inputs.mjs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import '../../tests/register-gadgets.js';
@@ -23,11 +23,10 @@ export const REACH = { phantom: 0.15, far: 1.5, near: 1 };
 
 // (the game loads its skins by URL: here from public/, without textures: node has no image decoder)
 globalThis.ProgressEvent ??= class { constructor(type, v) { this.type = type; Object.assign(this, v); } };
-const PUBLIC = new URL('../../public/', import.meta.url);
 if (!GLTFLoader.prototype.load.fromPublic) {
   GLTFLoader.prototype.load = Object.assign(function (url, onLoad, onProgress, onError) {
     try {
-      const bytes = fs.readFileSync(new URL(String(url).replace(/^\/+/, ''), PUBLIC)), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
+      const bytes = readGuardianModelUrl(url), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
       for (const m of json.meshes) for (const p of m.primitives) delete p.material;
       delete json.materials; delete json.textures; delete json.images;
       json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');
