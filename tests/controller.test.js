@@ -108,6 +108,7 @@ test('the gadget in hand (the fluid gun is one): LT aims, RT uses it (shoots whi
   t.button(BOTTOM,true); input=t.c.update(.016);
   assert.ok(input.Space && input.PadJump, 'the jump is marked as the pad\'s (held in the air it fires the jets, as SPACE does)');
   t.button(RB,true); input=t.c.update(.016); assert.ok(input.PadBlade && !input.PadPush, 'RB swings the blade (the push is a gun mode)');
+  t.c.update(.2);   // (a moment after RB: LB with it at once would be the spell's chord, src/spells/)
   t.button(LB,true); assert.ok(t.c.update(.016).PadGuard, 'LB held: the guard');
   const b=setup(); b.button(LEFT,true); input=b.c.update(.016);
   assert.ok(!input.PadPush && input.KeyE, 'the left button interacts, it does not push');

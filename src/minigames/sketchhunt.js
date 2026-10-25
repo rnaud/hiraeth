@@ -325,7 +325,7 @@ function start(ctx) {
     const html = `<div class="hunt-page"><div class="leaf">${list.slice(0, 3).map(cell).join('')}</div><div class="leaf">${list.slice(3).map(cell).join('')}</div></div>`;
     setRaised(false);
     ctx.finish({
-      score: sc.total, title: all ? 'The page is full' : 'Time is up', wide: true, html,
+      score: sc.total, passed: !!all, title: all ? 'The page is full' : 'Time is up', wide: true, html,   // (passed: the page full, the outfit's goal: kit/rewards.js)
       lines: [`Sketched ${sc.found} of ${HUNT.n} · ${sc.base} for the sketches`, all ? `${Math.round(left)} s to spare: +${sc.bonus}` : 'The whole list sketched with time to spare earns the time left'],
     });
   };

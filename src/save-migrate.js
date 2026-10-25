@@ -110,11 +110,16 @@
 // is Burdock (beside Robin). Their ids went with their names: step 28 moves each one's `met.`, `talks.` and `said.` flags
 // (and Burdock's `perdide2.rowan.welcome`) to the new id (RENAMED_281).
 //
+// Nine of the Wardrobe's outfits became the prizes of the games in the worlds (issue #668): a save wearing one of
+// them keeps it, as won (step 30); the rest wait for their game.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
 import { ORDER, MERGED, DISMISSED, worldFor, ROUTE_PARTS } from './levels/names.js';
 import { STOPS as FELLOW_STOPS } from './story/fellow-data.js';
+import { rewardOfOutfit, outfitFlag } from './minigames/kit/rewards.js';
+import { awardSpells } from './spells/book.js';
 
 /** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
 export const RES_VERSION = 2;
@@ -287,7 +292,18 @@ const STEPS = [
   // 29: the gadgets earned in the temples (issues #375, #377, v1.80): a chest or a box a save opened holds something else
   // now; the save is given that too, and keeps what it had (the echo shell, the horn and the tongs folded into a gadget)
   (flags) => migrateGadgets375(flags),
+  // 30: nine outfits became the games' prizes (issue #668, src/minigames/kit/rewards.js): the one a save wears stays his
+  (flags) => migrateOutfits668(flags),
+  // 31: the makers' spells (issue #667, v2.27): a save that had resolved the Aerie, the Whale-House, the Engine-House or
+  // the Mooring-House is given that house's spell, the first of them chosen (src/spells/book.js awardSpells)
+  (flags) => awardSpells(flags),
 ];
+/** Step 30 (pure, in place): an outfit worn before the games' prizes gated it is kept as won (the others wait for their game). */
+export function migrateOutfits668(flags) {
+  const worn = flags['wardrobe.outfit'], r = typeof worn === 'string' ? rewardOfOutfit(worn) : null;
+  if (r) flags[outfitFlag(r.outfit)] = true;
+  return flags;
+}
 /**
  * Step 29's boxes (their ids the saves' flags, kept), each to what it holds since v1.80: the temples' chests their
  * house's gadget, the makers' courts' boxes the old temple things (docs/design/gadget-temples.md).

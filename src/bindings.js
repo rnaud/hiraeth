@@ -42,8 +42,10 @@ export const KEYS = {
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', jump: 'Space', interact: 'KeyE',
   blade: 'KeyF', guard: 'ControlLeft', evade: 'AltLeft', lock: 'Tab', aim: 'KeyR', fire: 'KeyG', mode: 'KeyX',
   scout: 'KeyQ', gadget: 'KeyT', gadgetNext: 'KeyB', whistle: 'KeyV', journal: 'KeyJ', menu: 'KeyO', controls: 'KeyH',
-  photo: 'KeyP', mute: 'KeyM', potion: 'KeyC',
+  photo: 'KeyP', mute: 'KeyM', potion: 'KeyC', spell: 'KeyY',
 };
+/** The spell's chord (src/spells/): the guard's and the blade's buttons pressed together, in Xbox / PlayStation form. */
+export const SPELL_PAD = `${BUTTON_NAME[PAD_VERBS.guard]} + ${BUTTON_NAME[PAD_VERBS.blade]}`;
 
 /**
  * Per context, [button, what it does]. Buttons: the face buttons by their Xbox letter (by position), the
@@ -72,6 +74,7 @@ export const BINDINGS = {
     ['View + ↓', 'free'],
     ['View + ←', 'free · the Arena: the input display (F6)'],
     ['View + →', 'free'],
+    ['LB + RB', 'the spell chosen (pressed together; won in four makers\' houses, chosen in the game menu\'s Items): then 30 s to recover'],
     ['L3 + R3', 'debug: the dev menu (F2, `): teleports, god mode, the FPS, cinematics, the quest\'s stage, items, the hitbox overlay'],
   ],
   ride: [

@@ -1347,7 +1347,7 @@ export class EngineMenus {
       text: c.name ?? '', sub: c.sub ?? '', col: c.col ?? k, span: grid && c.kind !== 'item' ? (c.col === 0 ? grid.carry : grid.cols - grid.carry) : 1,
       kind: c.kind, pt: `cell:${r},${k}`,
       // (a thing's picture: public/item-pictures/<id>, as the items page draws it; its kind's mark where it has none)
-      pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', on: !at.edge && at.r === r && at.c === k, inUse: !!c.it?.inUse, tracked: !!c.q?.tracked, track: c.act === 'track' ? ACT.track : '', done: c.kind === 'ended' ? (c.q?.failed ? 'failed' : 'done') : '',
+      pic: PICTURED.has(c.kind) && !c.it?.glyph ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? c.it?.glyph ?? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', on: !at.edge && at.r === r && at.c === k, inUse: !!c.it?.inUse, tracked: !!c.q?.tracked, track: c.act === 'track' ? ACT.track : '', done: c.kind === 'ended' ? (c.q?.failed ? 'failed' : 'done') : '',
       here: c.kind === 'world' && /here/i.test(c.sub ?? ''), off: c.kind === 'mark' && !c.mark?.on,
       // (a quest's next step under it, as the page's card shows it)
       step: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.step) : '',

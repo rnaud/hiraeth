@@ -31,6 +31,7 @@ export const TOUCH_BUTTONS = {
   evade: { r: 206, b: 296, d: 54, f: 22 },
   lock:  { r: 284, b: 244, d: 40, f: 18 },
   gadget: { r: 117, b: 274, d: 54, f: 22 },   // (added by src/gadgets/hud.js once a gadget is in hand)
+  spell: { r: 30, b: 274, d: 54, f: 22 },    // (added by src/spells/hud.js once a spell is won)
 };
 
 /** The movement stick (it appears under the left thumb): its ring's and its nub's diameters, and how far the nub travels. */

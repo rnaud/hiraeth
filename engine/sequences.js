@@ -185,7 +185,7 @@ export const SEQUENCES = [
     id: 'fight', title: 'A fight', setup: { level: 'arena', fight: true },
     beats: [
       { name: 'ready', act: (G) => { const F = G.foes; F.setPractice?.(''); F.waveRest = F.packRest = 1e9; for (const f of [...F.list]) F.remove(f); }, wait: 1 },
-      { name: 'spawn', act: (G) => { G.foe = G.foes.spawnKind('blot', { n: 1, dist: 5 })[0]; G.foeHp = G.foe?.hp; }, wait: 1 },
+      { name: 'spawn', act: (G) => { G.foe = G.foes.spawnKind('blot', { n: 1, dist: 5, entrance: false })[0]; G.foeHp = G.foe?.hp; }, wait: 1 },
       { name: 'lock', keys: tap('Tab'), wait: 0.8 },
       { name: 'cut', keys: tap('KeyF'), wait: 0.1 },
       { name: 'hit', keys: tap('KeyF', 'KeyF'), until: (G) => !G.foe || G.foe.hp < G.foeHp, timeout: 4, wait: 0.1 },
@@ -203,14 +203,14 @@ export const SEQUENCES = [
       act: (G) => {
         const F = G.foes; F.setPractice?.(''); F.waveRest = F.packRest = 1e9; for (const f of [...F.list]) F.remove(f);
         // (ahead and a little to the side, out from behind him)
-        const f = F.spawnKind(kind, { n: 1, dist: 3.2 })[0], h = G.player.heading ?? 0;
+        const f = F.spawnKind(kind, { n: 1, dist: 3.2, entrance: false })[0], h = G.player.heading ?? 0;
         if (f) { f.pos.x += Math.cos(h) * 1.5; f.pos.z -= Math.sin(h) * 1.5; f.heading = Math.atan2(G.player.pos.x - f.pos.x, G.player.pos.z - f.pos.z); }
       },
     })).concat([
       // (and the chimes a felled crab leaves, lying out of his reach: the crystals, src/crystal-shader.js)
       { name: 'chimes', wait: 1.6, act: (G) => {
         const F = G.foes; for (const f of [...F.list]) F.remove(f);
-        const f = F.spawnKind('crab', { n: 1, dist: 6 })[0], h = G.player.heading ?? 0;
+        const f = F.spawnKind('crab', { n: 1, dist: 6, entrance: false })[0], h = G.player.heading ?? 0;
         if (f) { f.pos.x += Math.cos(h) * 1.2; f.pos.z -= Math.sin(h) * 1.2; F.hurt(f, 'blade', new THREE.Vector3(0, 0, 1), { damage: 99 }); }
       } },
       // (and a while later, the crystals at rest on the sand, each with its patch of shade under it: chimes.js blobMaterial)

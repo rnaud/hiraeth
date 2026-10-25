@@ -976,6 +976,7 @@ export class Player {
    */
   hurt(amount, why = 'hit') {
     if (!(amount > 0) || this.opts.health === false || this.god || this.down?.dead) return;
+    if (this.absorb?.(amount, why)) return;   // (a spell's ward takes the blow: src/spells/caster.js)
     const q = amount === Infinity ? this.hearts : quarters(amount);
     this.hearts = Math.max(0, this.hearts - q);
     if (this.hearts < 1e-9) this.hearts = 0;

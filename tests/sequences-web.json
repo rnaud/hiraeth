@@ -1,6 +1,6 @@
 {
-  "recorded": "2026-10-24",
-  "sha": "aed53d616",
+  "recorded": "2026-10-25",
+  "sha": "cb97e3eae",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -1616,7 +1616,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1624,12 +1625,12 @@
             "stage": null
           },
           "objects": {
-            "ink": 400,
+            "ink": 394,
             "print": 1,
             "chimeshade": 1
           },
           "cam": [
-            -164.7,
+            -164.8,
             6.1,
             150.5,
             49.6
@@ -1651,7 +1652,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1659,7 +1661,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 403,
+            "ink": 397,
             "print": 1,
             "chimeshade": 1
           },
@@ -1686,7 +1688,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1694,7 +1697,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 405,
+            "ink": 399,
             "print": 1,
             "chimeshade": 1
           },
@@ -1702,7 +1705,7 @@
             -169.4,
             3.1,
             141.2,
-            34.6
+            34.5
           ],
           "player": [
             -168.4,
@@ -1725,7 +1728,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1733,7 +1737,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 457,
+            "ink": 413,
             "print": 1,
             "chimeshade": 1,
             "veil": 4
@@ -1761,7 +1765,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1769,15 +1774,15 @@
             "stage": null
           },
           "objects": {
-            "ink": 420,
+            "ink": 373,
             "print": 1,
             "chimeshade": 1,
             "veil": 12
           },
           "cam": [
-            39,
+            39.1,
             4.3,
-            -758.2,
+            -758.1,
             44
           ],
           "player": [
@@ -1797,7 +1802,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1805,7 +1811,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 435,
+            "ink": 388,
             "print": 1,
             "chimeshade": 1
           },
@@ -1836,7 +1842,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1872,7 +1879,8 @@
               "skip": true
             },
             "gadget": "gun",
-            "balloons": true
+            "balloons": true,
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1880,7 +1888,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 184,
+            "ink": 183,
             "print": 1,
             "chimeshade": 1
           },
@@ -1900,12 +1908,13 @@
         {
           "beat": "late",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 204,
+            "ink": 205,
             "print": 1,
             "chimeshade": 1
           },
@@ -1936,7 +1945,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -1953,7 +1963,7 @@
           },
           "cam": [
             6.9,
-            355.5,
+            355.4,
             4.3,
             58
           ],
@@ -1974,7 +1984,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2005,7 +2016,8 @@
         {
           "beat": "late",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
@@ -2044,7 +2056,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2052,7 +2065,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 177,
+            "ink": 179,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2062,7 +2075,7 @@
           "cam": [
             83.8,
             8.2,
-            91.9,
+            91.8,
             45.7
           ],
           "player": [
@@ -2082,7 +2095,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2090,7 +2104,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 175,
+            "ink": 174,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2120,7 +2134,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2128,7 +2143,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 195,
+            "ink": 194,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2163,7 +2178,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2171,15 +2187,15 @@
             "stage": null
           },
           "objects": {
-            "ink": 225,
-            "print": 1,
+            "ink": 210,
+            "print": 2,
             "chimeshade": 1
           },
           "cam": [
             77.4,
             15,
             -117.3,
-            50.8
+            51
           ],
           "player": [
             77.2,
@@ -2198,7 +2214,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2206,8 +2223,8 @@
             "stage": null
           },
           "objects": {
-            "ink": 179,
-            "print": 1,
+            "ink": 162,
+            "print": 2,
             "chimeshade": 1
           },
           "cam": [
@@ -2233,7 +2250,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2241,8 +2259,8 @@
             "stage": null
           },
           "objects": {
-            "ink": 195,
-            "print": 1,
+            "ink": 179,
+            "print": 2,
             "chimeshade": 1
           },
           "cam": [
@@ -2272,7 +2290,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2280,7 +2299,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 488,
+            "ink": 484,
             "print": 1,
             "chimeshade": 1
           },
@@ -2307,7 +2326,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2315,12 +2335,12 @@
             "stage": null
           },
           "objects": {
-            "ink": 486,
+            "ink": 484,
             "print": 1,
             "chimeshade": 1
           },
           "cam": [
-            1.1,
+            1,
             24.8,
             -598,
             55.7
@@ -2339,12 +2359,13 @@
               "text": "talk to Ume",
               "key": "E"
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 472,
+            "ink": 471,
             "print": 1,
             "chimeshade": 1
           },
@@ -2375,7 +2396,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2383,7 +2405,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 408,
+            "ink": 407,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2412,7 +2434,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2420,7 +2443,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 296,
+            "ink": 294,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2429,7 +2452,7 @@
           "cam": [
             -14,
             27.6,
-            33.6,
+            33.5,
             49.2
           ],
           "player": [
@@ -2449,7 +2472,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2457,7 +2481,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 261,
+            "ink": 259,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2467,7 +2491,7 @@
             1,
             45.6,
             -234.7,
-            34.3
+            34.2
           ],
           "player": [
             0,
@@ -2490,7 +2514,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2498,7 +2523,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 218,
+            "ink": 217,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2508,8 +2533,8 @@
           "cam": [
             1.5,
             2.6,
-            -160.8,
-            49.4
+            -160.9,
+            49.3
           ],
           "player": [
             0,
@@ -2528,7 +2553,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2536,7 +2562,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 233,
+            "ink": 242,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2565,7 +2591,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2573,7 +2600,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 274,
+            "ink": 268,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2607,7 +2634,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2615,7 +2643,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 234,
+            "ink": 236,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2644,7 +2672,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2652,7 +2681,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 205,
+            "ink": 203,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1
@@ -2680,7 +2709,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2688,7 +2718,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 250,
+            "ink": 252,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2721,7 +2751,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2729,7 +2760,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 265,
+            "ink": 263,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2759,7 +2790,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2767,7 +2799,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 440,
+            "ink": 437,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2797,7 +2829,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2805,7 +2838,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 227,
+            "ink": 224,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -2843,7 +2876,8 @@
               "who": "",
               "text": "Overhead, the singing light. It comes down out of the dusk, slowly, the way none of them ever saw it do.)"
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2851,12 +2885,12 @@
             "stage": null
           },
           "objects": {
-            "ink": 62,
+            "ink": 61,
             "print": 1,
             "chimeshade": 1
           },
           "cam": [
-            2.5,
+            2.4,
             3.4,
             34.8,
             48
@@ -2878,7 +2912,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2886,7 +2921,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 55,
+            "ink": 51,
             "print": 1,
             "chimeshade": 1
           },
@@ -2913,7 +2948,8 @@
               "walk": false,
               "skip": true
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -2921,7 +2957,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 87,
+            "ink": 81,
             "print": 1,
             "chimeshade": 1
           },
@@ -3510,12 +3546,13 @@
         {
           "beat": "play",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 416,
+            "ink": 412,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3539,7 +3576,8 @@
         {
           "beat": "start",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "start",
@@ -3584,7 +3622,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 416,
+            "ink": 412,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3608,7 +3646,8 @@
         {
           "beat": "items",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "game",
@@ -3641,6 +3680,10 @@
               "Spring boots",
               "Bubble wand",
               "Gust fan",
+              "Aerie ward",
+              "Slow tide",
+              "Engine shards",
+              "Mooring veil",
               "Fourth chamber",
               "Quick coil",
               "Dune fins",
@@ -3703,7 +3746,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 358,
+            "ink": 354,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3727,7 +3770,8 @@
         {
           "beat": "map",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "game",
@@ -3750,7 +3794,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 358,
+            "ink": 354,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3774,7 +3818,8 @@
         {
           "beat": "quests",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "game",
@@ -3801,7 +3846,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 380,
+            "ink": 354,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3825,7 +3870,8 @@
         {
           "beat": "settings",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "start",
@@ -3870,7 +3916,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 416,
+            "ink": 354,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3894,12 +3940,13 @@
         {
           "beat": "closed",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 415,
+            "ink": 412,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3931,12 +3978,13 @@
               "small": 0,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 236,
+            "ink": 234,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -3963,7 +4011,8 @@
               "small": 0,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "game",
@@ -3974,7 +4023,8 @@
               "House map",
               "Items",
               "Worlds",
-              "People"
+              "People",
+              "Wardrobe"
             ],
             "rows": [
               "Ground floor"
@@ -3982,7 +4032,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 236,
+            "ink": 234,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -4009,12 +4059,13 @@
               "small": 0,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 236,
+            "ink": 234,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -4251,12 +4302,13 @@
               "small": 0,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 233,
+            "ink": 234,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -4283,12 +4335,13 @@
               "small": 0,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 233,
+            "ink": 234,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -4315,12 +4368,13 @@
               "small": 1,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 230,
+            "ink": 231,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -4347,12 +4401,13 @@
               "small": 1,
               "big": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 230,
+            "ink": 231,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -4927,12 +4982,13 @@
         {
           "beat": "meadow",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 618,
+            "ink": 592,
             "print": 1,
             "chimeshade": 1,
             "wisp": 1,
@@ -4954,12 +5010,13 @@
         {
           "beat": "walk",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 597,
+            "ink": 571,
             "print": 1,
             "chimeshade": 1,
             "mote": 1
@@ -4980,12 +5037,13 @@
         {
           "beat": "stop",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 591,
+            "ink": 565,
             "print": 1,
             "chimeshade": 1,
             "mote": 1
@@ -4993,25 +5051,26 @@
           "cam": [
             -9,
             2.5,
-            6.6,
+            6.7,
             55
           ],
           "player": [
             -9,
             0,
-            1.9
+            2
           ],
           "late": false
         },
         {
           "beat": "splat",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 591,
+            "ink": 565,
             "print": 1,
             "chimeshade": 1,
             "mote": 1
@@ -5019,25 +5078,26 @@
           "cam": [
             -9,
             2.5,
-            6.6,
+            6.7,
             55
           ],
           "player": [
             -9,
             0,
-            1.9
+            2
           ],
           "late": false
         },
         {
           "beat": "splat-held",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 591,
+            "ink": 565,
             "print": 1,
             "chimeshade": 1,
             "mote": 1
@@ -5045,13 +5105,13 @@
           "cam": [
             -9,
             2.5,
-            6.6,
+            6.7,
             55
           ],
           "player": [
             -9,
             0,
-            1.9
+            2
           ],
           "late": false
         }
@@ -5066,12 +5126,13 @@
               "text": "ride the bird",
               "key": "E"
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 642,
+            "ink": 613,
             "print": 1,
             "chimeshade": 1,
             "wisp": 1,
@@ -5097,12 +5158,13 @@
               "text": "ride the bird",
               "key": "E"
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 565,
+            "ink": 561,
             "print": 1,
             "chimeshade": 1,
             "wisp": 1,
@@ -5890,7 +5952,8 @@
         {
           "beat": "play",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
@@ -5919,7 +5982,8 @@
         {
           "beat": "controls",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "start",
@@ -5953,6 +6017,7 @@
               "Next gadget",
               "Whistle, echo shell",
               "Drink a potion",
+              "Cast the spell",
               "Items, quests, worlds",
               "Menu",
               "This page",
@@ -5985,6 +6050,7 @@
               "Choose the gadget in hand (the fluid gun is one, once found)",
               "Aim the gadget in hand · use it (shoot, throw) · the glove's next mode",
               "Drink a healing potion (two hearts back)",
+              "Cast the spell chosen (once won; 30 s to recover; choose it in Items)",
               "Dive · rise (in water)",
               "Plumb finds your objective (a guardian's fight, a makers' house: a hint)",
               "Bell-note whistle, echo shell (once found)",
@@ -6006,6 +6072,7 @@
               "Aim the gadget in hand · use it (shoot, throw)",
               "The glove's modes (fluid, push, and those found): each its own slot on the wheel",
               "Drink a healing potion (two hearts back)",
+              "Cast the spell chosen (once won; 30 s to recover; choose it in Items)",
               "Jets: fly like a plane",
               "Bell-note whistle, echo shell (once found)",
               "Call your mount, hail a taxi",
@@ -6028,6 +6095,7 @@
               "Blade · guard (hold it) · evade · lock on",
               "Locked on: back flip · side hop",
               "Drink a healing potion",
+              "Cast the spell chosen (once won)",
               "Map, items, quests and worlds · menu · photo mode"
             ]
           },
@@ -6057,160 +6125,24 @@
         {
           "beat": "news",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": {
             "kind": "start",
             "page": "news",
             "side": [],
             "rows": [
-              "v1.87",
-              "In the Unity version, the Quests page lists the quests you finished close together under Done and shows each quest’s goal on its card, Items fits as many to a row as the web, and the Map says how many fragments you found there.",
-              "In the Unity version, What’s new opens over the game in its own panel and B closes it, and the Start menu shows your fragments on a line of their own, the version beside Settings and CONTROLS over “Your keys”, as on the web.",
-              "In the Unity version, Anselm’s shop opens over a darkened hold with its names and prices in heavy letters and every flag inside its box, as on the web, and a conversation’s box is as tall from its first page as when its answers come up.",
-              "v1.86",
-              "In the Glass Dunes a row of float-posts now leads west from the landing, through the red cleft and down the folded ravine to the pearl city, and home by the gap. Fenna, by the cleft’s arch, asks you to read the old city’s clock from its high gallery.",
-              "The city under the Glass Dunes’ sand no longer shimmers as you walk its lanes: the rooms jutting from its houses, their ledges and windows no longer lie in one another’s faces, and the same goes for the stairs and bridges where they meet a terrace, the pale floors over the sand and the pearl city’s tower windows.",
-              "Knocked off a high ledge, your limp body now falls the way it was going instead of drifting sideways as it tumbles, so it no longer swings back under the ledge it fell from and lands on the ground below as it should.",
-              "The films that end each makers’ house no longer look through the guardian. The shot of what it leaves you shows the chimes on the floor with the guardian beyond them, where it used to be filmed from inside its leaves, its moss or a wall; the chimes now land in the open in front of it rather than under it. The Lampless’s wings and the Listener’s shell no longer fill the first shot, the Gardener is no longer washed pale by its sunbeam in the wide over its hall, and after the Whale-House’s film the camera comes back beside you rather than under the Listener’s shell.",
-              "On screens faster than 60 frames a second, and in the Unity version, your first steps out of the ship at the end of the opening no longer stop short at the foot of the ramp with the camera caught in its railing: the ship walks you out to your first view of the desert, as at 60.",
-              "The soft-fall soles, the wind-silk scarf and the brass level are no longer on top of their climbs: they wait in the makers’ courts of the City-Shaft, Vael’s sky stones and the Glass Dunes.",
-              "The little chests on high places now have a small lock beside them that one of your tools opens: braziers to light with ember, rings to tug with the hook, jaws to still, a bud to bloom, a plate to stomp, a cracked cap to blast, an iron disc for the magnet glove, a ring for the tether, a lamp to float up to, and one chest only the seeing lens can show.",
-              "Every makers’ court’s chest now waits behind a gate its puzzle opens, and every court’s puzzle uses a tool you already have when you reach that world. Four courts that had no chest now have one, among them a new charm in the Signal Market that lets the recall hourglass reach further.",
-              "The ending now counts the fragments: Ilen answers in more steps for how many you brought, Anselm’s lamp goes in the round window at the true ending if you bought it, and the credits say how many splinters of her song you carried home.",
-              "Anselm has more to sell once his upgrades are yours: his notebook, a page at a time, a lamp for the hold that grows brighter with every fragment, the light’s whole tune, and, once you have found a hundred, his chart: your Map then marks every fragment still hiding in the world you are in.",
-              "The game no longer tells you how many fragments of the singing light there are. Picking one up, the Worlds page, the Start menu and Anselm now say how many you have found, and Anselm tells you roughly how much still sings in the world you are in.",
-              "In the fight temples, the hazards that lie on the floor take far fewer hearts: the Flooded Gallery’s dark is shorter, no quicker in the last wave and its lamps light a wider circle; burning oil, breaking tiles and slag give you a moment to step off before they burn, and the oil opens nearer you, where you can see it. The toll, the millstones, the ore carts and the falling loads hurt a little less, and no hazard grows stronger in the later worlds.",
-              "The fight temples now cost about the same share of your hearts from the first to the last, instead of the first costing the most. Each one’s blows and hazards are weighed against the hearts you can have on reaching its world: the Sunken Hall, with your first three hearts, no longer takes more than all of them, and the last ones hit harder for the hearts you bring. A small blow is no longer rounded up to a quarter heart, so the light foes really strike lightly, one blow never takes more than a heart, and the rank weighs the hearts you lost against the hearts you came with.",
-              "The Start menu (Menu) is shorter: Items, Quests and Map are in the game menu (View) alone, where they already were. Inside a makers’ house, its map is now a tab of that menu too, after Map, and ▲ ▼ go up and down its floors.",
-              "In the Unity version, the Controls page shows your keys and buttons on caps, two to a line, as on the web; the thing in your hand carries its red IN USE tag in Items; and photo mode’s line of keys reads as the web’s.",
-              "A new controller layout. Hold D-pad ↑ for the wheel: every gadget and each of the glove’s modes now has its own slot, and the game waits while you choose, so no foe hits you meanwhile. A tap of D-pad ↑ takes back your last pick, so push and fluid are a tap apart. D-pad → now calls Plumb to find your objective (or a hint in a guardian’s fight), riding too, and RS only locks on: with no foe near, it turns the camera behind you.",
-              "In the Mooring-House you now see the Anchor-Warden from the first hall, through the bars of its gate, and when it is stopped the gate opens and you walk back out into the hall where you began. Its floor is reached by a great door off the Cord Loft. Where it stood, past the west door, the Anchor Hold keeps a spare anchor out over a well: pull it home with the tether to draw back the moorers’ gate’s bar.",
-              "In the Builders’ Greenhouse the bloom is found first, on a mound in the middle of the great glass hall, and the whole house is about it from there: the Cold Frame’s door is a flower-door in the sun, its trays hold seeds to bring the sun to, and the Seed Chamber’s seed wants the water sent up before it grows and opens the way on.",
-              "The Lamp-House runs in a new order. The Kennel’s door now wakes to a glowing orb you roll across the first hall, so its keepers and their small key come before the bubble wand. With the wand, the great key in the Wick Room is yours half-way through, in the dark, and the great lamp is lit on the way back.",
-              "Pressing lock-on (RS / Tab) in a fight temple now answers: the aim’s ring flashes under the foe your blade will take, with the lock’s tick, and the first time a line says the right stick or the mouse aims in there.",
-              "The sign on each fight temple room’s floor is now the makers’ mark in a faint square. It was two dark rings, the very shape of the foes’ ring attacks, under every fight.",
-              "In the fight temples a hazard that starts near the edge of the screen (a pool of oil, a falling load, a breaking tile, an ink geyser) now draws the view toward it so you see it coming, and one still out of sight gets a marker at the screen’s edge, as a foe winding up out of sight does.",
-              "In the fight temples you no longer lose yourself in the crowd: when foes cover you or close in round you, an inked ring with a gold mark over your head shows where you are.",
-              "Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.",
-              "In the Unity version, the City-Shaft’s banners keep their pale colours and glyphs when they wave, where they turned into dark slabs, and the makers’ towers, the Rose House’s red one first, show their cut stone blocks as on the web.",
-              "In the Unity version, the Rose House’s lit circuits glow orange up its walls as on the web, instead of thin brown lines: a line of light two pixels wide no longer has the pen’s outline drawn over it, here or anywhere else.",
-              "People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.",
-              "The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.",
-              "v1.85",
-              "On Gentle, the fight temples’ hazards that take a quarter heart (a gust, the eyes’ flash, the toll, the dark, the shade, a broken tile, burning oil) now take half as much over a fight. They were meant to take half as much on Gentle, but half of a quarter heart came back as a whole one.",
-              "In the Kiln Yard, the Glass Dunes’ fight temple, a tile about to break now shows it: its edge glows and a dark star of cracks spreads across it. The thin white cracks it had were all but invisible on the pale glass, and the breaking tiles took more hearts than anything else in there.",
-              "In the Mooring-House, the great key’s last ring hangs on the house’s great cable: while the moored room is up, it is hauled out of reach under the roof, and you have to send the room down without you to bring it back within reach. The cables and chains in the house now hang from the roof, instead of stopping in mid-air.",
-              "In the Footprint, the seeing lens now shows you where to look. Raise it as you leave the Lens Chamber: the walker’s prints lead round the balcony to the foot of the hidden spiral, and it shows as soon as you look at it from there. The walker’s print is on the wall again by the chasm of hidden stones, and the first drop opens just outside the Hall of Spheres’ door, where you can see it from the puzzle that opens it.",
-              "In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.",
-              "In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.",
-              "In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.",
-              "People no longer start in the middle of a plant: in Viridel Mira stood inside a ribbon plant, in the desert Marrow and in Lorn Tansy had a flower growing right where they stood. Plants now keep off the spots people start from and the paths they walk.",
-              "The flowers, fans and fungi that answer you no longer grow on roofs: in Lorn they stood on the Hush-House’s round roof, in the Garden of Spheres on the pyramid’s top, in Viridel on a stall, and on buildings in the Glass Dunes. They grow on the ground now, and the plants of the Sky Stones no longer stand on the slabs and sand banks of Vael’s plain.",
-              "The Moon Foundry’s and the City Floating in Space’s big moments show what happens again. Out of the Casting-House, the film no longer opens on two seconds of a dark wall: it starts wide on the house and its tower from out on the floor. Over the Mooring-House, the cables drawing taut are filmed from under the great tripod, between its legs, instead of through one of them, and the first shot no longer presses against the house’s wall.",
-              "Each world’s recorded music plays louder, about twice as loud as before: it had been sitting well under the footsteps, the blade and the voices, so a fight or a conversation drowned it. Now the music holds its own under them, as the sounds were meant to sit, and nothing in it distorts.",
-              "A house’s great key now looks the part: its bow is the makers’ mark in brass and pale stone, a soft teal light runs down its shaft and its ward steps like a little staircase. Finding it, or the house’s map, now brings up a card as a makers’ box does, the key held over its chest until you go on.",
-              "The hearts and the key count no longer show over a makers’ box as it opens, as they did in the City-Shaft’s Ash Store after its fight: every box’s scene, like every other scene, keeps the screen clear whatever your health.",
-              "In the Unity version, a conversation’s answers are marked as on the web: with a controller, the A button on the answer you are on and a small arrow by the others, instead of the keyboard’s numbers.",
-              "Switching the glove’s modes, each one now has a sound of its own: a wet rise for fluid, a low whump for push, a soft rising pair for bloom and a taut twang for tether, besides stilling’s high chirp and ember’s warm one. The stilling shot, the hook’s reel, the magnet glove and the spring boots no longer play the very same sound every time, and the push, the bombs and the boots’ stomp are less deafening, the lens and the boots’ wound-up ping quieter, and the boots’ winding easier to hear.",
-              "In the Garden of Spheres, the grass tufts no longer flicker as you turn the camera. They were drawn in black ink and read as dark clumps, and their thin outlines came and went with every small move; now they are green, outlined in a darker green, and the Garden’s small flowers take a lighter line from afar as Viridel’s do.",
-              "In the chime pirates you can now boost (RB) and brake (LB) to meet the rocks and mines sooner or later, on a gauge that fills again. Gunboats, bombers and whole waves of fighters leave gold drops: fly through them for rapid fire, a spread shot and then the storm guns, until a hit takes you back to the twin bolts. The roll is on B and X.",
-              "The chime pirates’ flights now differ from one world to the next: a minefield strung across the way, an ice belt drifting across it and a field of old wrecks, each with fighters in formations of its own and a sky of its own. Your ship is drawn smaller, so there is room to dodge round it; it no longer shimmers as the fight starts, and the fight sounds shorter and cleaner instead of ringing on.",
-              "People in capes coming into sight no longer make the game catch for a moment, most of all on the Retroid: a cape now settles over a few frames instead of all in one. Walking through the camps and the City-Shaft, the frames over 50 ms on the Retroid fell from 12 to 4.",
-              "Shadows keep up with whatever casts them again on the Handheld, Low, Steam Deck and Xbox settings, and in the Unity version on the Steam Deck and handhelds. The shadows close to you were redrawn only every second or fourth frame there, so yours and the foes’ trailed a step behind and moved in jerks. Only the shadows of the far scenery, which barely moves, are still redrawn less often.",
-              "The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).",
-              "The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.",
-              "In the Unity version, choosing Continue or a save on the title now shows the loading screen, the pen turning and what is being prepared, instead of the title freezing until the world appears.",
-              "In the Unity version, the makers’ mark in a conversation or a speech balloon is the game’s own open-corner mark, as on the web, not a different sign.",
-              "In the Unity version, the menus show the controller’s buttons as the web does: a small button inside the one it presses (A in the entry you are on, B in Resume and Back, LB and RB on the side tabs), and the prompts at the foot as buttons too, instead of their names written out. On the Retroid they carry its own names.",
-              "Out in the open, the wings carry you about a quarter further on still air. Inside the makers’ houses they glide as before.",
-              "The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.",
-              "In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.",
-              "The fireflies drifting in the dark of Lorn’s Lamp-House are fewer, smaller and softer: little sparks again, not a hall of floating lamps.",
-              "Creatures and machines now look at you once they have noticed you: the crab’s eye stalks lean your way, the toad’s eyes turn in their sockets, the lizard, the hound and the heron turn their heads, the wisp’s eyes slide over its petals and the brute’s brass eye follows you round as its body twists to you. Left alone, they look where they are going.",
-              "The Unity version is a smaller download: the Android app is 111 MB instead of 130, and the Steam Deck’s download 186 MB instead of 429. The game’s shaders were packed twice, the second copy never read, and the Deck’s archive carried the build’s working files, which it never installed.",
-              "On the Quests page, the quest you are tracking now stands out, framed in red with a TRACKING tag, and the quest you are on shows the button to track it instead (A on a controller, Enter on the keyboard).",
-              "In the games’ menus (the start card, the pause, the results), the button you are on is now the one drawn in colour, filled red as in the other menus. Retry, Start or Resume no longer look picked when they aren’t: a red edge at their left says which one Enter presses.",
-              "Lorn’s skiff is solid end to end: its bow, its stern and the float off its side stop at the small crystals rising from the water instead of sailing through them. Its sail is set out over the side now, so it no longer runs through your face as you ride.",
-              "In the Unity version, D-pad ↓ calls your mount again: in Lorn the skiff comes over to you, as it always did on the web.",
-              "The hearts no longer stay up over a world’s filmed moment because a foe was chasing you as it began.",
-              "In the Unity version, the chimes a felled foe leaves lie on a soft violet patch of shade, as on the web, not on a white disc.",
-              "In the Unity version, flowers far across Viridel’s meadow are drawn in the light line they have on the web, not as black blots of ink; the cables and vines under the City in Space’s platforms stay whole lines far off instead of breaking into dashes; and the Whale-House’s great shell has its spiral and the seams of its chambers.",
-              "In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.",
-              "On the Steam Deck, Hiraeth is now one game in your library and always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The Hiraeth (web) shortcut leaves your library the next time the game updates while Steam is closed.",
-              "Foes arriving no longer freeze the game for a moment, most of all on the Retroid and in the Unity version: every foe of a kind now shares one body shape instead of building its own, and the foes a world can field are prepared while it loads. When a brute and a swarm of skitters come in, the longest frame on the Retroid is about half what it was.",
-              "Opening the Map for the first time in a world no longer freezes the game for a moment: its ground is drawn a little each frame while the page says how far along it is. In the Unity version the longest frame of a trip through the menus and the Map went from about 190 ms to 29.",
-              "Riding the bird in Vael, her wings no longer shimmer as they beat. Their feathers took turns in two tones, and seen from the saddle each wing was a bundle of thin lines crawling with every stroke; now each row of feathers is one tone.",
-              "In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.",
-              "The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.",
-              "In Lorn, locking on to a bellows toad near a bank or a rise in the ground no longer freezes the game. As the toad looked for high ground to spit from, its search broke and the game stopped.",
-              "Edda at the night halt, Nima and Ossa in the City-Shaft get to the point: the letter or the splinter comes within four or five pages instead of nine to twelve, and the rest is there if you ask. Madame Sel and Wen are a little shorter too, and the Signal Market’s first step now says whom you are looking for: “Hear Madame Sel out by the landing”.",
-              "The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.",
-              "Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.",
-              "v1.84",
-              "In the Unity version, the traveller’s eyes and brows are as sharp as on the web: close up and in conversations they were soft, blurred patches, and now they show the white, the iris, the pupil and its glint and the fine lash lines. People’s eyes are drawn as on the web too: a crisp ring round the iris, a clear glint, the lids open at rest and a lash line along them.",
-              "Each world’s own recorded music now plays the first time you land there, on the Xbox and in the Android app too, where it is downloaded the first time it is needed: it comes in as soon as it has arrived, faded in. Before, the Unity version played the game’s synthesised score for your whole first visit to every world but the Desert, and the Android app could wait minutes for the next moment to bring it in.",
-              "In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.",
-              "In the Unity version on the Steam Deck, the first launch after an update no longer freezes for three and a half seconds just after a world with foes appears: what the game needs to draw the foes, the water from below, the waterfalls, the shade under a jump and the marks on the ground is now made ready while the world loads (that one loading takes 2–3 seconds longer).",
-              "In the Unity version, the title’s name sits centred across the top on every screen, as on the web: on the Retroid’s 4:3 screen it opened pushed aside the first time, and a window resized or a screen turned kept the old layout.",
-              "In the Unity version, the marks lying on the desert’s ground are drawn whole, as on the web: the sand river’s pale ribbon, the tide lines along the dry wash, the salt pan, the basin’s wet shore, the sand banked against things and the crash’s scrapes no longer break into jagged pieces with the ground showing through.",
-              "In the Unity version the water looks as on the web from below and in the sun: under water the view sinks into the water’s colour in flat bands, and in the Underwater City pale shafts of light come down from the sea’s surface and caustics play on the floors, behind the halls’ glass too; above water the sun glints in white dashes on the water toward it (not on the Handheld, Steam Deck and Xbox presets, as on the web). Sounds are muffled under water there too, and the camera no longer stops half in, half out of the water.",
-              "In the Unity version the waterfalls fall as on the web: the great curtain over the City Behind the Waterfall and its small deep fall stream down in bands of teal, turquoise and white with pen streaks, glassy at the lip and misty at the foot, with slits you can see through; the Buried Machine’s oil fall, Viridel’s stair fall and the Glass Dunes’ sand falls too. They were flat sheets.",
-              "In the Unity version, “ride the bird” shows over the bird when you stand by it, as on the web; a scene’s black bars slide in as slowly and smoothly as on the web’s; and the fluid’s splats lie whole on the ground the moment they land (the ground hid them, in part or all, a beat longer).",
-              "Arriving in the City-Shaft, the game’s check that no far-off tree stands inside a house takes about half the time, with the same trees in the end: on the Steam Deck it is done half a minute after you arrive instead of nearly a minute, and the frames it slowed are back to full speed that much sooner.",
-              "The game’s own work each frame is lighter on slow processors: the Underwater City’s rising bubbles are only worked out where you can see them, and the posing of the traveller and the people walks their skeletons faster. In the Unity version on the Steam Deck that is up to 7 more frames a second in the Underwater City and up to 2 more in the other worlds.",
-              "In the Unity version, the worlds that have no drifting cloud shadows on the web (Lorn, Viridel, the Garden, the Signal Market and most others) have none in Unity either: Lorn’s marsh was all in shade, and Viridel’s far white tower under a cloud.",
-              "In the Unity version, more of the world moves and shines as on the web: the Garden’s still lake shows the far shore and the garden it remembers upside down in it, the Signal Market’s billboards turn into lit screens after dark, the Buried Machine’s great pistons slide out of the canyon walls and its vents puff steam, Lorn’s crystal veins glow under the water, the fluid’s splats pop out and shrink away instead of standing whole, and the grass parts along the last steps you took, not only round your feet.",
-              "In the Unity version, each frame spends less time copying the world over to Unity: only what changed is looked at again, not every building and rock. Up to 3 more frames a second in the City-Shaft and the Signal Market. And a lamp’s brief pulse in the Underwater City, which Unity used to miss, now shows.",
-              "In the Unity version, a game started from the Arcade offers the game before and after and the way back to the Arcade on its cards, and a fight temple’s start card shows its hall from above, as on the web.",
-              "In the Unity version, the true ending’s credits roll up the screen on their paper page, the worlds and the people you met, as on the web, instead of being read out a line at a time.",
-              "In the Unity version, Settings is laid out as on the web, in its groups (Screen and text, Camera and motion, Controls, Sound, Game) and order, and it has the web’s alien voices, run and guard, enemies and drone hints settings too.",
-              "In the Unity version, the shops, the Arcade’s board and a game’s cards look like the web’s: the keeper’s line in a speech bubble and the wares as cards with their pictures and prices, the games as inked cards with their coloured dots, and the cards in the web’s typeface with their rules in a dashed box.",
-              "In the browser and the Android app, each frame takes less work to get ready to draw on a slow processor: the world is looked over once a frame to find what is in view, instead of once for every picture the frame is made of (its shadows and the view itself). The picture is exactly the same.",
-              "In the Unity version, the lamps of the City During the Eclipse, the makers’ houses and the ship’s rooms pool their own warm colour on the floor round them, as on the web, instead of a white glare.",
-              "In the Unity version of the fight temples, a wall or pillar between you and the camera opens a ragged hole round you, as on the web, so a fight is never hidden behind it.",
-              "In the Unity version, your sword’s blade is living water again: turquoise with cream currents and rising bubbles, a bright wavering edge, bowing back through a swing, a ring of light running along it when it hits; the guard’s shield too. Before, it was a thin grey blade.",
-              "In the Unity version, the foes wear the patterns painted on them as on the web: the crabs’ star spots and mottling, the lizards’ scales and banded bellies, the centipede’s rivets and rust, the moths’ glowing lanterns, and the brute’s glowing cracks, which open wider as you hurt it. Before, each was its plain colours.",
-              "In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft and pale as on the web, no longer bright white slabs.",
-              "In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls, and the shafts of light, the doorways’ glow, the floating motes and the recordings’ figures are hidden behind what stands in front of them again: drawn straight to the screen, they had read the scene’s depth upside down.",
-              "In the Unity version, the world dims behind the “You were knocked out” card as it does on the web, and the card sits high with its gold Restart button.",
-              "In the Unity version, the menus look like the web’s: the pause screen’s yellow side with PAUSED in big lettering and its buttons in thick ink, the settings on ruled paper with their sliders, switches and boxes, the game menu’s tabs, quest cards and strip on a warm desk, and every menu, hint and conversation in the web’s own typeface instead of a typewriter’s.",
-              "In the Unity version, the use button over a person or a thing is the round button alone, as on the web, instead of a dark strip, and a hint that names a button shows the button as a badge before its words.",
-              "In the Unity version, a world loads behind the same inked page as on the web, the pen turning in its rings and a line saying what is being drawn, where the screen used to stay black.",
-              "In the Unity version, a new game no longer hands you the desert’s hoverbike as the opening ends. It lies under Marrow’s tarp in the hollow by the red rag again, and finding it starts its errand, as on the web. A save that was given it that way gets it back under the tarp.",
-              "The City Floating in Space’s sky-boats are longer and rounder, as on their design: a nine-metre capsule with its top and its belly in two colours, a long low cabin with lit windows, portholes down each side, two lamps in the nose and a fin and a screw at the tail. The boats moored in the Pier’s hoops sit inside them.",
-              "The City Behind the Waterfall’s landing is a proper port now, closer to its design: a docking niche is cut into the cliff ahead of your ship, its arch opening on a lit hall with a loading dock and steps up to it, a gantry bolted over it with a crate on its cable, crates on the dock and at its foot, puddles and moss on the wet stone, and a second courier parked beside the first. Tully waits by the niche.",
-              "In the Unity version, the hearts and the potion look as on the web: a part-filled heart fills by its quarters with thin lines between them (it filled round like a clock), its glint and shadow as on the web, the last heart pulsing when you are low; the potion beside them is the corked flask with its red draught (it was a red blob), its count in the web’s heavy figures, faded when you have none.",
-              "In the Unity version, a patch of shade lies under you whenever you jump, fall or glide, so you can judge where you will land, as on the web. The traveller’s captured jumps, idles, starts and stops and the people’s own walks play there too, and “Back to the Arcade” puts you in front of the game you just played.",
-              "In the Unity version, the fluid gun shows what it does as on the web: aiming puts the inked crosshair in the middle of the screen with the mode’s name under it, red and turned on what it would lock, faint when the tank is empty, kicking on a hit; a mode switch shows its name beside you a moment, and a tank run dry says “empty” there. The magic bar has its ticks between units and turns pale and hatched when there is not enough left for a shot.",
-              "In the Unity version, fights answer as on the web: fire and spines burn at the web’s rate (they bit twice as fast), a blow lands with a dull thud under the cry, the hearts stay up for the whole fight, the chimes count up into the wallet, the fight temples and the games shake the camera on a hit, the chime-pirates meet the ship on its first flight to a new world, and in the Lab RS and LS hop between the worlds’ rooms.",
-              "On the City-Shaft’s rim your ship now sets down into a lacquered cradle hung between two tall towers: the cradle, swung out toward the shaft, swings it in over the rim’s paving, rocks past its place and settles before the ramp opens. When you leave, it swings the ship out again and it lifts off from the cradle.",
-              "In the Underwater City your ship now comes down the Dock’s lock: it sets down on the lift’s coral plate high between four teal columns banded in brass, and the lock lowers it onto the dome before the ramp opens. When you leave, the lock lifts it up again and it takes off from there.",
-              "Each port has someone who runs it: Orla keeps the Pier’s harbour book, Faro wardens the City-Shaft’s rim docks, Ludo logs the Signal Market’s call-signs, Mabyn keeps the Float Yard’s tally, Cato walks ships in on the Eclipse city’s esplanade, Tully keeps the Waterfall’s ledge and Dace loads the Buried Machine’s freight.",
-              "The cities off the route have ports as well: rows of lamp-topped pylons and a mirror tower on the Eclipse city’s esplanade, stakes and old mooring ropes round your ship on Salt Harbour’s salt with a mast crane and a sand-skiff, a gantry and couriers on the Waterfall’s ledge, and a rust-orange crane with an ore bucket at the Buried Machine’s freight stage.",
-              "The Underwater City and the Glass Dunes have ports too. On the Dock’s dome a coral pontoon ring with brass rims lies under your ship, with a little cupola and two pods moored, and round pods glide between the domes. In the Glass Dunes your ship stands on a pale stone landing disc in a yard of ochre canvases, racks of green glass floats, float-sledges and a glass skiff.",
-              "The City-Shaft and the Signal Market have space ports round your ship. On the shaft’s rim, lacquered pink and lilac cradles reach out over the drop either side of your way to the edge, a gantry crane lowers a crate into the shaft, and three cabs wait at a stand. In the Market your ship stands on a ruled apron under a tall board of call-signs, one board dark, with a courier, a yellow walker and a hauler parked by it.",
-              "The City Floating in Space’s Pier is a real port now, drawn after its picked design: red bands round the deck, blue iron hoops hung off its rim with a moorer’s boat in three of them, a lamp-mast and the harbour hut by the bridge, and round-bellied sky-boats crossing the dark. It replaces the plain docks of the last version.",
-              "Lorn II’s marsh wisp now wears the colours of its own design sheet: mossy green-black petals patched with pale lichen rosettes, a brass band round its waist in place of the ring of light, plain ink drips, pale green eyes and a cold green marsh-light for a coal.",
-              "The ember wisp has its real body now, drawn from its design sheet: a pointed bud of four glossy black ink petals edged in gold, closed round its glowing coal, with a thin ring of light round its waist, two lilac eyes and three drips of ink hanging beneath. Before it throws its fireball, the petals open wide like a flower round the coal as it swells white-hot. Knocked down by its own fire, it rests just above the ground with its petals hanging open.",
-              "In the Unity version, the camera and the world round you behave as on the web too: the camera stays out of the cabs and carriers instead of passing through them; riding the bike or the bird, the camera takes the ride’s own view, and on the jets it comes round behind and tips with you, pulling back the faster you fly; the benches are there to sit on; the hoverbike and the skiff leave their glowing trails behind them; leaning on a world’s edge, the wind streams in round you and the ink shimmers where you touch it; in the Lab each biome room puts on its own world’s look, planets and hour; a potion’s hearts come back in a warm glow, and the first time you are hurt short of hearts you are told how to drink one; where a world wants to show you the way at once, the drone points it out; and the Start menu counts the fragments of the singing light you have found.",
-              "Inside the makers’ houses the wings now glide heavy: they open as a brake and come down steeply, with a lower, duller flap, so a running jump, the double jump and a glide no longer carry you over a chasm before its bridge or gate is open. Out in the world they glide as before, and moving air still carries them indoors: the columns, the gusts, the Warden’s Well’s draught out to its high ledge, and in the Aerie the breath of the Wind Well, the Eyrie’s gap, the Gulf and the Roost, so their glides work as they did.",
-              "A roll takes you through every hazard of the fight temples unharmed: gusts, millstones, ore carts, falling loads, the eyes’ flash and the toll as well as slag, oil, broken glass, the dark and the shade. Rolling across burning ground no longer flashes as a perfect dodge.",
-              "Foes felled in the fight temples are easy to see from up there: the blow throws the body back about a metre and it goes down quicker, a ring flashes on the floor, ink splashes out with a wet thump, and a star of ink stays where it fell for a few seconds before it dries away. When many fall at once each leaves its stain, but only a few ring and splash.",
-              "In the fight temples a roll cuts a swing off: pressed while the sword is drawn back or following through, you roll at once. Pressed during the cut itself, the cut lands and the roll comes the moment it ends.",
-              "In the fight temples the sword is about a third quicker: each cut of the combo draws back and follows through faster, the three cuts taking 1.2 s instead of 1.7 s, and the pause after the third is shorter.",
-              "In the fight temples the roll is on the button printed B on every controller: B on Xbox and PlayStation pads, and the bottom button on a pad or handheld with Nintendo letters, like the Retroid, where the button printed A used to roll. A does nothing in there.",
-              "In the browser and the Android app, a frame asks the graphics chip for up to 23 % fewer drawings, which helps on a slow processor: distant buildings no longer drop out of their shared batch when they switch to a simpler shape, the City-Shaft’s trees and the desert’s pebbles in one place are drawn together, the crowd no longer asks for drawings of nobody, and more still things cast their shadows together. The picture is exactly the same.",
-              "On the Handheld setting, people out of your view more than 30 m away move on a quarter of the frames, as on the Steam Deck, and catch up the moment they come back into view, so nobody you can see is ever a step behind, even when you swing the camera round fast. With this Mac’s processor slowed four times, the people take about half a millisecond less of each frame in the City-Shaft.",
-              "Being knocked over no longer makes the game stutter on a slow processor: the falling body looks for the ground under each limb once a frame instead of twice in every small step, and falls exactly as before. With this Mac’s processor slowed four times, as a stand-in for a handheld’s, a tumble down the City-Shaft takes 0.7 ms of each frame instead of 3.8.",
-              "In the Unity version on handhelds, every world runs smoother again: a test left in the shader for measuring had made every pixel of the world a little slower to draw. On the Retroid Pocket 5 the City-Shaft’s wide view runs at 41 frames a second instead of 39, the Signal Market’s arrival at 54 instead of 51, Lorn’s arrival at 48 instead of 46 and Underwater’s wide view at 51 instead of 48. The picture is the same.",
-              "In the Unity version on handhelds, Lorn runs smoother where you arrive: the cracks on the forest’s far trunks, too small to draw there, are no longer worked out pixel by pixel, as the browser version already did, so the picture is the same. On the Retroid Pocket 5 the arrival view runs at 46 frames a second instead of 44, and the view toward the keepers at 50 instead of 48.",
-              "In the Unity version on handhelds, the City-Shaft’s trees and Underwater’s glass are drawn with a lighter version of their shader that gives the same picture. On the Retroid Pocket 5 the City-Shaft’s wide view, the slowest of the game there, runs at 42 frames a second instead of 38, its arrival view at 54 instead of 51, and Underwater’s arrival reaches 60.",
-              "In the Unity version on handhelds, the City-Shaft runs smoother where you arrive: its far trees across the shaft are drawn with fewer triangles, too few pixels to see the difference. On the Retroid Pocket 5 the arrival view runs at 51 frames a second instead of 45.",
-              "On the Xbox, the Unity preview reaches the Desert about 7 seconds sooner, cold or warm: it starts preparing the first views’ graphics while the title shows, a few at a time, so the title and the loading screen stay smooth. The City-Shaft loads about as before.",
-              "On the Xbox, the Unity preview reaches the world about 9 seconds sooner each time you start it after the first: 44 s to the Desert instead of 53, 42 s to the City-Shaft instead of 51.",
-              "Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.",
-              "Every people now wears hats of its own, modelled from the design sheets picked for each world: pale lacquered hats on the City-Shaft’s rim, patched caps and goggle bands in its middle levels and rag hoods at the bottom; caps that leave the listeners’ ears clear; woven reed hats and moss hoods in Lorn; plain turbans, tasselled caps, porters’ head-pads and printed scarves in the Signal Market; the pilgrims’ headcloths with their cord and modest straw cones in the desert; bell wimples at the monastery; padded dome hoods and lamp hats in the mine; and so on in every world, each in its sheet’s colours. As many people wear a hat as before, and the same people."
+              "v2.26",
+              "Four makers’ houses now give a spell when their guardian is resolved: the Aerie a gold ward that takes two blows, the Whale-House a slow tide that slows foes inside it, the Engine-House shards that circle you and cut, the Mooring-House a veil that makes foes lose you. Press LB + RB together (Y on the keyboard, ✺ on touch) to cast; it recovers in 30 seconds, shown by the chip under the gadget’s. Choose your spell in Items. Saves that already resolved those houses have their spells.",
+              "Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.",
+              "v2.25",
+              "Joss explains which anchor to pull with your tether, and Hobb explains how the makers’ hourglass keeps and plays back a note.",
+              "The Seed Vault, Casting Stair and Choir maps now stand on low plinths aligned with the floor tiles, with their backs toward the nearest wall and their openings facing into the room.",
+              "v2.24",
+              "The Founders’ Belfry porch now has solid floor through its doorway, so you can walk into the Hall of Echoes and back without dropping through a gap.",
+              "v2.23",
+              "Achille explains where to stand and how to use the spring boots to send a deep note through the Whale-House’s dishes."
             ]
           },
           "playing": null,
@@ -6269,12 +6201,13 @@
         {
           "beat": "back",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 413,
+            "ink": 412,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7190,7 +7123,8 @@
               "walk": false,
               "skip": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -7198,7 +7132,7 @@
             "stage": 3
           },
           "objects": {
-            "ink": 246,
+            "ink": 247,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7229,7 +7163,8 @@
               "walk": false,
               "skip": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -7268,7 +7203,8 @@
               "walk": false,
               "skip": false
             },
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": {
@@ -7276,7 +7212,7 @@
             "stage": 5
           },
           "objects": {
-            "ink": 287,
+            "ink": 289,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -7303,12 +7239,13 @@
           "beat": "out",
           "hud": {
             "gadget": "gun",
+            "spell": true,
             "breath": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 300,
+            "ink": 301,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7316,9 +7253,9 @@
             "mote": 1
           },
           "cam": [
-            2.3,
+            2.2,
             85.1,
-            149.6,
+            149.7,
             55
           ],
           "player": [
@@ -7331,7 +7268,8 @@
         {
           "beat": "cabin",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
@@ -7362,12 +7300,13 @@
         {
           "beat": "surface",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 360,
+            "ink": 358,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -7385,7 +7324,7 @@
           ],
           "player": [
             0.4,
-            74.7,
+            74.6,
             128.6
           ],
           "late": false
@@ -7393,7 +7332,8 @@
         {
           "beat": "deep",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
@@ -7406,13 +7346,13 @@
           },
           "cam": [
             -0.4,
-            44,
-            126.7,
+            44.2,
+            126.8,
             55
           ],
           "player": [
             0.4,
-            41.5,
+            41.7,
             128.6
           ],
           "late": false
@@ -7420,7 +7360,8 @@
         {
           "beat": "crown",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,
@@ -7433,13 +7374,13 @@
           },
           "cam": [
             -0.4,
-            21.4,
+            21,
             126.3,
             55
           ],
           "player": [
             0.4,
-            18.7,
+            18.4,
             128.6
           ],
           "late": false
@@ -7447,7 +7388,8 @@
         {
           "beat": "dock",
           "hud": {
-            "gadget": "gun"
+            "gadget": "gun",
+            "spell": true
           },
           "menu": null,
           "playing": null,

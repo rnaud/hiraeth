@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 29);   // (29: the gadgets earned in the temples, issues #375, #377)
+  assert.equal(MIGRATED(), 31);   // (30: the outfit worn kept as won when the games' prizes came, issue #668; 31: the spells, issue #667)
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {

@@ -7,7 +7,8 @@
 //   <id>: { name, title, color, kind, palette, head, look?   a person, standing beside the game's sign (spawned;
 //           stand?: { side, ahead }                          which side of it: src/minigames/kit/hosts.js hostStand)
 //           object: true, name, prompt                       or the sign itself, read: a makers' post, a buoy
-//           say: [one or two toned lines], lines: [balloons] }
+//           say: [one or two toned lines], lines: [balloons],
+//           prize?: a toned line on the game's outfit (issue #668, src/minigames/kit/rewards.js), said until it is won }
 // The ids are the games' (src/minigames/<id>.js), the trials' (trial-<world>, src/trials/data.js) and the makers'
 // runs' (kit-<world>, src/trials/kit-data.js).
 
@@ -25,42 +26,49 @@ export const HOSTS = {
     id: 'host.fishing', name: 'Yusra', title: 'who fishes the basin', color: '#3f8f8a', kind: 'f',
     palette: { cloak: '#3f8f8a', lining: '#2b211f', cloth: '#e8d9b8', legs: '#4a3a2a', hat: '#d8a24a', hair: '#2b211f' }, head: 'straw', look: { prop: 'basket' },
     say: ['~neutral~ Six this morning, and one had legs. Whatever lives in the giants’ water, it bites my hook.', '~playful~ Take the rod. Three minutes on my pier. When the float goes under, strike. Snap my line and you’re mending it.'],
+    prize: '~playful~ Land eight kilos, and my old pearl-diving clothes are yours.',
     lines: ['~neutral~ They bite at dusk. And at noon. And whenever.'],
   }),
   canyon: P({
     id: 'host.canyon', name: 'Kamal', title: 'who races the Two Chasms', color: '#c9703e', kind: 'm',
     palette: { cloak: '#c9703e', lining: '#2b211f', cloth: '#3f4f5a', legs: '#4a3a2a', hat: '#e8c66a', hair: '#3a2a20' }, head: 'bandana', look: { mask: 'browgoggles', body: 'toolbelt' },
     say: ['~playful~ Rebuilt my bike twice this week. The canyon keeps the bits it likes. Three laps, two chasms. Fancy it?', '~neutral~ Hit the kickers flat out, or you’ll meet the chasm floor. The drifts and the banks eat your speed.'],
+    prize: '~playful~ Finish all three, and my old courier’s coat is yours.',
     lines: ['~playful~ The canyon’s faster than it looks.'],
   }),
   rings: P({
     id: 'host.rings', name: 'Aziza', title: 'who keeps the brass hoops', color: '#d8a24a', kind: 'f',
     palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#6b4a36', legs: '#3a3330', hat: '#71d7cf', hair: '#4a3226' }, head: 'wrap', look: { mask: 'glasses' },
     say: ['~curious~ I polish those brass hoops every week, and I still don’t know what the makers hung them for. Do you?', '~neutral~ So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little.'],
+    prize: '~neutral~ Fly it to the end, and the pathfinder’s coat on my peg is yours.',
     lines: ['~curious~ Twenty hoops. I’ve counted twice.'],
   }),
   wingdrop: P({
     id: 'host.wingdrop', name: 'Zayd', title: 'who painted the mesa', color: '#b8432e', kind: 'm',
     palette: { cloak: '#b8432e', lining: '#2b211f', cloth: '#f2e6c8', legs: '#4a3a2a', hat: '#e8c66a', hair: '#2b211f' }, head: 'headcloth', look: { body: 'scarf' },
     say: ['~playful~ I mixed the paint for the pilgrims’ bird mark up on the mesa. No bird’s landed on it. So we do.', '~neutral~ Three drops. Wings open, find the warm air, ride it up, and come down soft on the middle. Soft. It chips.'],
+    prize: '~playful~ Nine hundred over three drops, and my glider suit is yours.',
     lines: ['~playful~ Land soft. The paint chips.'],
   }),
   gallery: P({
     id: 'host.gallery', name: 'Fitz', title: 'who calls the shooting gallery', color: '#c8483a', kind: 'm',
     palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#f4ece0', legs: '#2b2f45', hat: '#e8c66a', hair: '#2b211f' }, head: 'brim', look: { body: 'neckerchief', build: 'heavy' },
     say: ['~shout~ Roll up, roll up! Fish, ink blots and bells, all painted by my own hand! One minute on the clock!', '~playful~ Splash all you can. A miss breaks your streak, and so does a parasol. Those are my customers.'],
+    prize: '~shout~ Nine hundred points wins the lamplighter’s coat off my back!',
     lines: ['~shout~ Roll up, roll up!', '~playful~ A minute. Any minute you like.'],
   }),
   drums: P({
     id: 'host.drums', name: 'Hamid', title: 'who keeps the camps’ drums', color: '#8a5a3a', kind: 'm',
     palette: { cloak: '#8a5a3a', lining: '#2b211f', cloth: '#e2d3b4', legs: '#4a3a2a', hat: '#c9974a', hair: '#2b211f' }, head: 'wrap', look: { robe: 0.4 },
     say: ['~happy~ I stretched these skins the night the procession set out. Every night since, the old song, round the fire.', '~playful~ Sit with us. When a beat rolls into the ring, strike it. Keep up and the whole camp gets dancing.'],
+    prize: '~happy~ Strike half the beats, and you dance in my festival clothes.',
     lines: ['~happy~ Dum, tek, tek. Dum, tek.'],
   }),
   sketchhunt: P({
     id: 'host.sketchhunt', name: 'Vesna', title: 'who draws the market', color: '#62c3c9', kind: 'f',
     palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f4ece0', legs: '#3a3330', hat: '#ff5fa2', hair: '#2b211f' }, head: 'beret', look: { body: 'satchel' },
     say: ['~curious~ That stall sold tea yesterday. The market changes faster than its signs, so I draw it first.', '~playful~ My list: six things, three minutes. Frame each one nicely, then sketch it. You can borrow my pencil.'],
+    prize: '~playful~ Fill my page, all six, and my observatory smock is yours.',
     lines: ['~curious~ Hold still. No, the other way.'],
   }),
   // the guardians' helping games (issue #339, docs/design/helper-guardians.md): by the Rose House's steps, and at the foot of
@@ -155,12 +163,14 @@ export const HOSTS = {
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },
     say: ['~playful~ The children slide down the Long Dune on boards. Boards! So I made skis. Nobody’s thanked me yet.', '~neutral~ Between every pair of poles. Tuck to go faster, and land your spins.'],
+    prize: '~playful~ Reach the bottom, and my surveyor’s kit is yours. It was for snow.',
     lines: ['~playful~ Downhill is the easy part.'],
   }),
   platformer: P({
     id: 'host.platformer', name: 'Sister Clem', title: 'who counts the fallen-up stones', color: '#f4efe2', kind: 'f',
     palette: { cloak: '#f4efe2', lining: '#2b211f', cloth: '#c9b08a', legs: '#6b5a4a', hat: '#f6c84e', hair: '#6b5a4a' }, head: 'hood', look: { prop: 'bell' },
     say: ['~solemn~ I count them each morning: the small stones that fell up with the cloud. They make a path to the makers’ gate.', '~neutral~ Step from stone to stone to the gate. A fall costs a life. Those I don’t count.'],
+    prize: '~neutral~ Reach the gate, and the ranger’s coat in my cell is yours.',
     lines: ['~solemn~ One hundred and four stones. One fewer each spring.'],
   }),
 

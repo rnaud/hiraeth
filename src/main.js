@@ -111,6 +111,7 @@ import { createItemEffects } from './boxes/effects.js';
 import { setView, viewNow, inViewNow } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
+import { wireSpells } from './spells/index.js';
 import { feelDt, shakeCamera, kick, selfDt } from './feel.js';
 import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
@@ -890,7 +891,9 @@ const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.ke
 // the game menu (View / Select, J: src/game-menu.js): what fills its four panels (src/game-menu-data.js),
 // and the items' pictures, drawn one a frame while it is open (src/item-icons.js)
 // (drawn in the late-morning light whatever the hour, so a picture made at night is not a dark one for the session)
+let spellsFailed = false;
 let gadgets = null;   // (src/gadgets/: made after the foes, below)
+let spells = null;    // (src/spells/: made with the gadgets)
 const itemIcons = new ItemIcons({ scene, build: buildItemModel,
   capture: (...a) => { const h = sky.hour; sky.hour = 10.5; updateSky(); try { return captureView(...a); } finally { sky.hour = h; updateSky(); } },
   place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
@@ -940,7 +943,7 @@ Object.assign(journal.menu, {
   // the Colours row: the next colour won for that piece, worn at once (src/kit-colours.js)
   onColour: (piece) => kit.cycle(piece),
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
-  onUse: (id) => { if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
+  onUse: (id) => { if (spells?.select(id)) return; if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
   // "Travel here" (the Worlds page): the galactic map's own way (src/ship/ship.js travel: the take-off, the arrival at
   // its landing, the saves), or the gate's line why not (the desert's blade and guard, Vael's wings: issue #217)
   onTravel: (id) => {
@@ -1216,6 +1219,9 @@ renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) i
 // (the trials' rewards, upgrades to the gadgets' tuning while owned: wireLessons, before the gadgets are made)
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t, o) => showToast(t, o), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
+// the makers' spells (src/spells/, issue #667): one won in each of four houses, cast with LB / L1 + RB / R1 (Y, the touch
+// ✺), 30 s to recover; the chip under the gadget's, the choice in the game menu's Items
+spells = wireSpells({ level, scene, player, foes: () => foes, tool, sound, game, toast: (t, o) => showToast(t, o), touch: isTouch, input });
 // the hitbox overlay (src/hitboxes.js): F4, the dev menu's Toggles (L3 + R3, F2, `), the Arena's board, ?hitboxes=1 (this session only)
 const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
 registerHitboxes((out) => foes.hitShapes(out));   // (the foes' shockwaves, slag, holds and volleys: src/foes.js)
@@ -2487,6 +2493,8 @@ function frame(ts) {
   // the foes, the flurry's end, the drops (wireFight); a foe that throws is said once and the world goes on, as in the
   // engines (engine/game.js): before issue #509 one throw here ended the frame loop, and the game froze
   try { fight.update(dt, busy() || photo.on || ship.playing); } catch (e) { if (!fightFailed) { fightFailed = true; console.warn('[game] the foes failed in their update', e); } }
+  // the spell (LB / L1 + RB / R1, Y, the touch ✺: src/spells/), after the foes: its recovery, what it does while it works
+  try { spells?.update(dt, busy() || photo.on ? noInput : ctl, busy() || photo.on || ship.playing || !!minigame, photo.on); } catch (e) { if (!spellsFailed) { spellsFailed = true; console.warn('[game] the spells failed', e); } }
   flurryFx.update();
   // locked on (R3 / Tab): the camera turns to keep the foe ahead, the traveller faces it, strafing round it (wireFight)
   fight.frame(realDt, { busy: busy(), still: photo.on });
@@ -2802,7 +2810,7 @@ window.contactAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { shopPanel, flatPass, motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, crowdPasses, lod: () => lod, skinnedLods, interiorCull, wardrobe, travellerV2 });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, crowdPasses, lod: () => lod, skinnedLods, interiorCull, wardrobe, travellerV2, spells: () => spells });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');

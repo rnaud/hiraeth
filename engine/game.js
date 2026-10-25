@@ -150,6 +150,7 @@ import { movesSetting } from '../src/loco-moves.js';
 import { ShopPanel } from '../src/shop-panel.js';
 import { resources } from '../src/resources.js';
 import { Gadgets } from '../src/gadgets/index.js';
+import { wireSpells, castNow } from '../src/spells/index.js';
 import { createItemEffects } from '../src/boxes/effects.js';
 import { createFragments, chartMarks } from '../src/fragments.js';
 import { t as tr } from '../src/i18n.js';
@@ -878,6 +879,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   }
   const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
     notice: (t, o) => toast(t, o), ring: () => itemFx?.ring?.() }));
+  // the makers' spells (src/spells/, issue #667), as main.js: the awards, LB / L1 + RB / R1 (Y) and its recovery, the chip
+  // (the screen's 'spell': BridgeHud.cs DrawSpell), the choice in the game menu's Items (useItem)
+  const spells = optional('the spells', () => wireSpells({ level, scene, player, foes: () => combat?.foes ?? null, tool, sound, game: gameState, toast: (t, o) => toast(t, o), castText: () => castNow(inputMode.kind === 'pad' ? 'pad' : 'keys') }));
 
   // the ship attached, as main.js attaches it, when the engine is played (its menus; not a bench's plan): walking up the
   // ramp takes you aboard, E at the console plays the voicemail (CallDirector), at the holo table the galactic map (the
@@ -1004,7 +1008,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (on && (pinned || talking() || (shipOn && ship.playing) || player.dead || !backend?.photo)) return;
     photo.on = !!on; photo.capture = 0;
     if (on) photo.pos.copy(camera.position);
-    for (const k of ['cue', 'prompt', 'stamina', 'tool', 'health', 'keys', 'toast', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks']) screen.set(k, null);
+    for (const k of ['cue', 'prompt', 'stamina', 'tool', 'health', 'keys', 'toast', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks', 'spell']) screen.set(k, null);
     screen.set('photo', on ? { hint: photoHint() } : null);
   }
   const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
@@ -1579,6 +1583,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
      * taken in hand.
      */
     useItem(id) {
+      if (spells?.select(id)) return;   // (a spell chosen: src/spells/)
       if (id === 'finder') { gameState.set('frag.finder.off', !gameState.flag('frag.finder.off')); return; }
       const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id];
       if (m && tool?.modes?.includes(m)) tool.setMode(m); else gadgets?.equip(id);
@@ -1876,6 +1881,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the foes, the drops, the knock-out's card and what the page draws over the picture for them (engine/combat.js)
       if (level.temple) struggle.tick(guardianHint(level.temple)?.id, busy ? 0 : dt);   // (how long this phase of a guardian's fight has gone on)
       if (combat) { try { combat.update(dt, realDt, { busy: busy || !!pinned, paused: shipOn && ship.playing }); } catch (e) { if (!game._foesFailed) { game._foesFailed = true; console.warn('[game] the foes failed in their update', e?.stack ?? e); } } }
+      // the spell, after the foes (main.js)
+      if (spells) { try { spells.update(dt, busy || pinned ? noInput : ctlS, busy || !!pinned || (shipOn && ship.playing) || !!trials?.running); } catch (e) { if (!game._spellsFailed) { game._spellsFailed = true; console.warn('[game] the spells failed', e?.stack ?? e); } } }
       lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
       try {

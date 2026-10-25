@@ -220,7 +220,7 @@ test('the Quests panel: the father\'s charge, the quests under way, then a short
 
 test('the Items panel: a slot for every item to find (the empty ones unnamed), the gear first, what you carry and the keepsakes under it', () => {
   const d = itemsData({ owned: ['jetpack', 'backpack', 'lantern'], carried: ['the spark-stone'], keepsakes: [{ id: 'desert.knowing', level: 'desert', name: 'What the giants left', text: 'The giants carried the water.' }], titles: { desert: 'The Desert' }, icon: (id) => (id === 'backpack' ? 'data:image/png;base64,AA' : null) });
-  assert.equal(d.slots, Object.values(ITEMS).filter((it) => !it.debug && !it.retired).length, 'a slot for every item there is to find');
+  assert.equal(d.slots, Object.values(ITEMS).filter((it) => !it.debug && !it.retired).length + 4, 'a slot for every item there is to find, and the four spells (src/spells/)');
   const { html, rows } = itemsPanel(d);
   assert.equal((html.match(/class="slot empty"/g) ?? []).length, d.slots - 3, 'empty slots drawn, never named');
   assert.match(html, /<img class="ico" src="data:image\/png;base64,AA"/, 'the item\'s own picture');

@@ -722,8 +722,9 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
 
 - **On the left**, two lists, a line each (the pack's line: a mark or a swatch, the name, WEARING on the one worn):
   **Outfit**, his own clothes and the five of the v2 traveller (`OUTFITS`, the ids of
-  `data/characters/traveller-v2/outfits.json`), each with an `unlock` (null: his from the start, all of them for now;
-  `{ flag }` later, won by progress; one not his shows as "Not yours yet", dashed, with nothing to do); **Blade**, the
+  `data/characters/traveller-v2/outfits.json`), each with an `unlock` (null: his from the start; `{ flag }` won: nine
+  are the games' prizes since issue #668, docs/systems/minigames.md "Outfits as prizes"; one not his shows its name
+  marked ?, dashed, with nothing to do, and under it "Not yours yet · Won at <where>: <what to do>."); **Blade**, the
   colours won (`bladeColours`: src/kit-colours.js, the makers' jade always and one more for each fight temple
   cleared). With B3 (the game's traveller until v2 is the default) the Outfit list is a line, "The outfits need the
   new traveller."; without the sword, the Blade list is "No sword yet.". One column of rows: ↑ ↓ go through both.

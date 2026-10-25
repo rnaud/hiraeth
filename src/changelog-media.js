@@ -1351,6 +1351,182 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 export const CHANGELOG_MEDIA = {
   '2.27': [
   {
+    "match": "The dark spot under you while you jump or fall",
+    "shots": [
+      {
+        "name": "jump-shadow-ledge",
+        "caption": "Over the terrace’s west lip: the spot hung out over the drop; now it stops at the edge",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.",
+        "view": "Held 1.5 m over the terrace’s edge, from behind and above."
+      },
+      {
+        "name": "jump-shadow-lift",
+        "caption": "Over the moving lift: the spot was on the sand under it; now it is on the lift, cut at its side",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.",
+        "view": "Held 1.3 m over the lift’s side as it moves; the lift’s pose differs by a few centimetres between the two."
+      },
+      {
+        "name": "jump-shadow-house",
+        "caption": "Inside the dark house, no sun on the floor: a faint grey disc before, a dark ink-ringed spot now",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.",
+        "view": "Held 1.4 m over the floor inside the house."
+      }
+    ]
+  },
+  {
+    "match": "Enemies now arrive out of a swirling cloud",
+    "shots": [
+      {
+        "name": "foe-entrance",
+        "only": "after",
+        "caption": "Four foes called in, 0.15 s to 1.4 s after: the cloud gathers, the body grows out of it, the cloud thins away (the Arena)",
+        "from": "Muted headless Chrome (Metal GPU), this branch on cb97e3eae plus the swoosh and entrance changes, 25 October 2026. The Arena, High preset, 10:00, clear; each foe called in 7 m from a still traveller, the foes’ step held at each time, a pinned side view. 800 × 560 crops at 0.6 scale tiled.",
+        "view": "After only: before, foes simply popped in, which a still cannot show. The hound lies as its shadow pool when idle, so its body is low at 1.4 s. Frozen frames: in motion the blobs swirl round the spot."
+      }
+    ],
+    "numbers": [
+      {
+        "title": "Frame time with four blots, the Arena",
+        "unit": "ms (median / 95th percentile)",
+        "better": "lower",
+        "device": "MacBook (Apple silicon), headless Chrome on Metal, High, 60 Hz",
+        "rows": [
+          {
+            "where": "fighting, swoosh trails off → on (95th pct.)",
+            "before": 18.5,
+            "after": 18.5
+          },
+          {
+            "where": "called in every 1.7 s, cloud off → on (95th pct.)",
+            "before": 18.5,
+            "after": 18.4
+          }
+        ],
+        "source": "12 s each; on and off toggled in the same page; frame rate held at the display's 60 Hz either way (median 16.3–16.6 ms). At most 4 ribbons drawn at once."
+      }
+    ]
+  },
+  {
+    "match": "Enemy attacks now leave a swoosh",
+    "shots": [
+      {
+        "name": "attack-trails",
+        "only": "after",
+        "caption": "The swoosh through four foes’ attacks: wind-up, strike, follow-through, recovery (the Arena)",
+        "from": "Muted headless Chrome (Metal GPU), this branch on cb97e3eae plus the trail change, 25 October 2026. The Arena, High preset, 10:00, clear; each foe called in 4 m away with a still traveller, the foes’ step held at the named moment of an attack, side view pinned. Four 800 × 560 crops at 0.6 scale tiled.",
+        "view": "After only: the trails did not exist before, so a before would only show the same poses without them. Frozen frames: in motion the ribbon trails the part by 0.2–0.3 s. The orange rings in the brute and machine rows are their existing shockwaves, not the trail."
+      }
+    ]
+  },
+  {
+    "match": "Nine outfits are now won at the games in the worlds",
+    "tags": [
+      "menus"
+    ],
+    "shots": [
+      {
+        "name": "prize-won-668",
+        "only": "after",
+        "title": "The prize won",
+        "caption": "The results card the first time the Wing drop’s mark is beaten: the glider pilot’s outfit, new, and where to wear it",
+        "from": "Issue #668: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5417), based on cb97e3eae plus this change, a fresh save with the sword. The Wing drop’s page (?game=wingdrop&from=desert&traveller=v2): its start card, then a run started with Enter and finished from the console with a staged 1,040-point score (the results card itself is the game’s own); then the Desert (?level=desert&traveller=v2), the game menu opened with J and turned to the Wardrobe, the cursor moved with the arrows; 25 October; cwebp -q 72",
+        "view": "Full frame; after only (before this change there was no prize to show). The run’s score was staged, not flown; the save’s prize flag and the Wardrobe that follow are the real ones. Unity not pictured.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "prize-wardrobe-668",
+        "only": "after",
+        "title": "In the Wardrobe",
+        "caption": "Back in the Desert, the Wardrobe: the glider pilot’s outfit now his and tried on under the cursor; the prizes not won yet dashed and marked ?",
+        "from": "Issue #668: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5417), based on cb97e3eae plus this change, a fresh save with the sword. The Wing drop’s page (?game=wingdrop&from=desert&traveller=v2): its start card, then a run started with Enter and finished from the console with a staged 1,040-point score (the results card itself is the game’s own); then the Desert (?level=desert&traveller=v2), the game menu opened with J and turned to the Wardrobe, the cursor moved with the arrows; 25 October; cwebp -q 72",
+        "view": "Full frame; after only (before this change there was no prize to show). The run’s score was staged, not flown; the save’s prize flag and the Wardrobe that follow are the real ones. Unity not pictured.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "prize-locked-668",
+        "only": "after",
+        "title": "Where to win it",
+        "caption": "The cursor on a prize not won: its name, and at the foot of the page where and how it is won",
+        "from": "Issue #668: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5417), based on cb97e3eae plus this change, a fresh save with the sword. The Wing drop’s page (?game=wingdrop&from=desert&traveller=v2): its start card, then a run started with Enter and finished from the console with a staged 1,040-point score (the results card itself is the game’s own); then the Desert (?level=desert&traveller=v2), the game menu opened with J and turned to the Wardrobe, the cursor moved with the arrows; 25 October; cwebp -q 72",
+        "view": "Full frame; after only (before this change there was no prize to show). The run’s score was staged, not flown; the save’s prize flag and the Wardrobe that follow are the real ones. Unity not pictured.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "prize-card-668",
+        "only": "after",
+        "title": "The start card",
+        "caption": "Before the run: the Wing drop’s rules end with its prize and its goal",
+        "from": "Issue #668: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5417), based on cb97e3eae plus this change, a fresh save with the sword. The Wing drop’s page (?game=wingdrop&from=desert&traveller=v2): its start card, then a run started with Enter and finished from the console with a staged 1,040-point score (the results card itself is the game’s own); then the Desert (?level=desert&traveller=v2), the game menu opened with J and turned to the Wardrobe, the cursor moved with the arrows; 25 October; cwebp -q 72",
+        "view": "Full frame; after only (before this change there was no prize to show). The run’s score was staged, not flown; the save’s prize flag and the Wardrobe that follow are the real ones. Unity not pictured.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "Four makers’ houses now give a spell",
+    "shots": [
+      {
+        "name": "spells-effects",
+        "only": "after",
+        "caption": "The four spells at work in the Arena: the Aerie ward (top left), the slow tide round three blots (top right), the Engine shards cutting (bottom left), the Mooring veil, the blots gone home (bottom right)",
+        "from": "Headless muted Chrome (hiraeth.muted set before load) against the issue-667 branch’s own Vite on port 5416, the Arena (?level=arena), High, 1280×720, 25 October 2026. The four temples’ done flags set by script to award the spells, the traveller in god mode, blots spawned by the Arena’s own spawner and each spell cast through the game’s caster (as LB / L1 + RB / R1 does). After only: the spells are new.",
+        "view": "A contact sheet of four separate casts, each 0.3–1.5 s after it; each tile is a full 1280×720 frame scaled to half."
+      },
+      {
+        "name": "spells-hud",
+        "only": "after",
+        "caption": "The spell chip, top right, enlarged three times: no spell yet; ready (its glyph, a full ring); working (the ring emptying); recovering (seconds left, a teal ring filling back)",
+        "from": "Headless muted Chrome (hiraeth.muted set before load) against the issue-667 branch’s own Vite on port 5416, the Arena (?level=arena), High, 1280×720, 25 October 2026. The four temples’ done flags set by script to award the spells, the traveller in god mode, blots spawned by the Arena’s own spawner and each spell cast through the game’s caster (as LB / L1 + RB / R1 does). After only: the spells are new.",
+        "view": "Crops of the top right corner of four frames, enlarged without smoothing."
+      },
+      {
+        "name": "spells-hud-frame",
+        "only": "after",
+        "caption": "Recovering: 17 seconds left on the chip under where the gadget’s sits, and the spell’s award line",
+        "from": "Headless muted Chrome (hiraeth.muted set before load) against the issue-667 branch’s own Vite on port 5416, the Arena (?level=arena), High, 1280×720, 25 October 2026. The four temples’ done flags set by script to award the spells, the traveller in god mode, blots spawned by the Arena’s own spawner and each spell cast through the game’s caster (as LB / L1 + RB / R1 does). After only: the spells are new.",
+        "view": "The full frame, the HUD as drawn."
+      },
+      {
+        "name": "spells-menu",
+        "only": "after",
+        "caption": "The game menu’s Items: the four spells after the gadgets, each its own glyph, the chosen one IN USE",
+        "from": "Headless muted Chrome (hiraeth.muted set before load) against the issue-667 branch’s own Vite on port 5416, the Arena (?level=arena), High, 1280×720, 25 October 2026. The four temples’ done flags set by script to award the spells, the traveller in god mode, blots spawned by the Arena’s own spawner and each spell cast through the game’s caster (as LB / L1 + RB / R1 does). After only: the spells are new.",
+        "view": "The Arena save has no other gear: only the spells fill the grid."
+      },
+      {
+        "name": "spells-menu-choose",
+        "only": "after",
+        "caption": "A spell’s full view: what it does, and A / × (Enter) to choose it",
+        "from": "Headless muted Chrome (hiraeth.muted set before load) against the issue-667 branch’s own Vite on port 5416, the Arena (?level=arena), High, 1280×720, 25 October 2026. The four temples’ done flags set by script to award the spells, the traveller in god mode, blots spawned by the Arena’s own spawner and each spell cast through the game’s caster (as LB / L1 + RB / R1 does). After only: the spells are new.",
+        "view": "Opened from the grid with the menu’s own moves; confirming chose it (the save’s spell.selected changed)."
+      }
+    ]
+  },
+  {
     "match": "When you slow down near someone your quest needs",
     "shots": [
       {
@@ -1395,14 +1571,6 @@ export const CHANGELOG_MEDIA = {
       }
     ]
   },
-  {
-    "match": "The dark spot under you while you jump or fall",
-    "shots": [
-      { "name": "jump-shadow-ledge", "caption": "Over the terrace’s west lip: the spot hung out over the drop; now it stops at the edge", "size": [1280, 720], "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.", "view": "Held 1.5 m over the terrace’s edge, from behind and above." },
-      { "name": "jump-shadow-lift", "caption": "Over the moving lift: the spot was on the sand under it; now it is on the lift, cut at its side", "size": [1280, 720], "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.", "view": "Held 1.3 m over the lift’s side as it moves; the lift’s pose differs by a few centimetres between the two." },
-      { "name": "jump-shadow-house", "caption": "Inside the dark house, no sun on the floor: a faint grey disc before, a dark ink-ringed spot now", "size": [1280, 720], "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.", "view": "Held 1.4 m over the floor inside the house." }
-    ]
-  }
 ],
   '2.25': [
   {

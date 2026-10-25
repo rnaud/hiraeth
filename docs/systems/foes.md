@@ -469,6 +469,37 @@ What changed per family:
 | shadow hound · step | 0.9 | light (0.5) | sinks into its own shadow pool |
 | shadow hound · bite | 0.55 | chain (0.4) | (behind you; the screen-edge marker) |
 
+### Swoosh trails (v2.26, issue #663, `src/attack-trail.js`)
+
+Each foe's striking part (the part its model's `tell` names, where the charge glow sits: `Foes.strikePoint`) lays an
+inked ribbon behind it through an attack, so the swing's path stays on screen a moment. Its look is read from the
+attack's own timing (`trailPhase`, the same states as `Foe.attackPhase`), never a clock of its own:
+
+| phase | when | look |
+|---|---|---|
+| `wind` | the wind-up (the part rearing back; still after `POSE_DONE`, so the held stillness lays nothing) | a thin ink stroke, a dusk-violet edge (`TRAIL.width.wind` 0.1 m) |
+| `active` | the strike until its hit is checked (`contacted` false) | the widest ribbon (0.46 m × size), warm danger red-orange with a hot cream leading edge |
+| `spent` | the strike's follow-through after the check | the same colours, narrower (0.26 m) |
+| (none) | recovery, a blow broken off, a lob / flash / blink / surfacing (their own signs) | nothing laid; what is there thins away over `TRAIL.fade` (0.28 s) |
+
+A ribbon is two lanes (the part's edge, the body toward the chest) laid square to the part's motion in the plane it
+swings through (`trailSide`; a straight lunge stands up). It fades by thinning, never by transparency, and folds its
+unused points onto its last (no draw range), so the Unity bridge mirrors it as any dynamic mesh. One pool for every
+foe (`TRAIL.max` 10 ribbons, two meshes each, four shared materials, no shadow); nothing is made per attack, and
+`Foes.remove` releases its ribbon. Tests: `tests/attack-trail.test.js`.
+
+### Entrances: out of a cloud of darkness (v2.26, issue #664, `src/foe-entrance.js`)
+
+A foe called in (the Arena's waves and practice `spawnKind`, a pack in the wilds, a relic's guards: `add(kind, at, {
+entrance: true })`; placed machines, posts and split-offs stand in the world as before) arrives inside a swirl of
+ink-outlined dark blobs. `ENTRANCE`: the cloud gathers over 0.35 s (the body hidden), the body grows up out of it over
+0.55 s (`bodyGrown`, its scale after its pose), the cloud thins outward and is gone at 1.5 s (`cloudSize`). For
+`ENTRANCE.hold` (1.1 s) its mind waits (`Foe.arriving`: it only turns to you) and its target is off (no lock, no cut);
+its first cool (0.6 s) starts after that, so its first telegraph begins at 1.7 s at the earliest, after the cloud has
+gone. One instanced mesh for every cloud (`FoeClouds`, 160 blobs, one draw, no shadow), the same pattern as the
+defeat's smoke. Tests: `tests/foe-entrance.test.js` (the timeline, the pool, the held mind and lock, repeated spawns
+leaving no mesh behind).
+
 ### The tells read again (v1.63, combat-v1.61 #260 #261 #258)
 
 - **The antler hound's pounce**, its most frequent blow, told for 0.8 s and was read a beat late (the evade had to

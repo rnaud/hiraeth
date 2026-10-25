@@ -23,6 +23,7 @@ import { readInput, NO_INPUT } from './input.js';
 import { gameSfx } from './sfx.js';
 import { disposeTree } from './dispose.js';
 import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
+import { awardOutfit, rewardFor, prizeRule } from './rewards.js';
 import { inputKind, escapeHtml, keyText, hasKeys } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
 import { stripTone } from '../../story/tone.js';
@@ -36,6 +37,9 @@ const h = (s) => escapeHtml(s);
 export const plainHtml = (html) => String(html ?? '').replace(/<\/(p|li|div|h\d)>\s*/gi, '\n').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')
   .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
   .split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
+
+/** The results card's block for a prize won (issue #668): the outfit, and where to wear it. */
+export const prizeHtml = (r) => `<div class="mg-prize"><p class="kicker">New outfit</p><p class="name">${h(r.name)}</p><p>Yours. Wear it from the Wardrobe (Menu).</p></div>`;
 
 export class MinigameRunner {
   /**
@@ -207,14 +211,17 @@ export class MinigameRunner {
     this.hintsEl.innerHTML = `<div class="mg-hint-row${row.off ? ' gone' : ''}">${items}</div>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
   }
 
-  finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0, goal = null } = {}) {
+  finish({ score, failed = false, passed = false, title, lines = [], html = null, wide = false, chimes = 0, goal = null } = {}) {
     if (this.ended || this.recovering || this.phase !== 'play') return;
     const kind = this.def.score?.kind ?? 'points';
     const value = score ?? (kind === 'time' ? this.clock + this.penalty : this.points);
     // (a time trial not finished has no time to keep; points count even when the lives run out)
     const sd = scoreDef(this.def, this.host.state);   // (a best of each difficulty: def.bestBy)
     const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, sd), isNew: false } : recordScore(this.host.state, sd, value);
-    this.result = { value, failed, title, lines, html, wide, chimes, ...kept, ...(goal ? { goal: { game: goal.game, complete: goal.complete === true } } : {}) };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
+    // (a game's prize, issue #668: an outfit, the first time a run meets its goal; kit/rewards.js. On the results card)
+    const prize = awardOutfit(this.host.state, this.def.id, { value, failed, passed });
+    if (prize) html = `${html ?? ''}${prizeHtml(prize)}`;
+    this.result = { value, failed, title, lines, html, wide, chimes, prize, ...kept, ...(goal ? { goal: { game: goal.game, complete: goal.complete === true } } : {}) };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
     if (failed) this.fails = (this.fails ?? 0) + 1;
     this.host.onResult?.(this.result);   // (a host that keeps more than the best: the pirates between worlds mark the trip won)
     this.phase = 'finishing';
@@ -445,15 +452,16 @@ export class MinigameRunner {
     const lead = I?.lead ? `<p class="lead"><b>${h(I.lead.name ?? '')}</b> “${h(stripTone(I.lead))}”</p>` : '';
     const bestLine = best === null ? 'No best yet.' : `Best${d.bestBy ? ` (${this.optionLabel(d.bestBy)})` : ''}: ${formatScore(d, best)}`;
     const buttons = [{ act: 'start', label: 'Start', main: true }, ...this.outList()];
+    const rules = [d.rules, prizeRule(rewardFor(d.id), S)].filter(Boolean).join(' ');   // (the prize, until won: issue #668)
     const plainKeys = (x) => keyText(x, { kind, teach: true });
-    this.setCard({ kind: 'intro', kicker: I?.kicker ?? 'A game', title: d.name, lead: I?.lead ? { name: I.lead.name ?? '', text: stripTone(I.lead) } : null, text: d.blurb, rules: d.rules,
+    this.setCard({ kind: 'intro', kicker: I?.kicker ?? 'A game', title: d.name, lead: I?.lead ? { name: I.lead.name ?? '', text: stripTone(I.lead) } : null, text: d.blurb, rules,
       rows: controlsFor(d, kind).map(([k, v]) => [plainKeys(k), plainKeys(v)]),
       options: (d.options ?? []).filter((o) => optionOffered(o, S)).map((o) => {
         const v = optionValue(d, S, o.id);
         return { id: o.id, label: o.label, hint: o.hint ?? '', ...(o.choices ? { choices: o.choices.map(([cv, label]) => ({ label, on: cv === v })) } : { text: optionText(o, v) }) };
       }),
       best: bestLine, buttons, hint: this.hint('start', 'quit') });
-    this.openCard(`<p class="kicker">${h(I?.kicker ?? 'A game')}</p><h1>${h(d.name)}</h1>${lead}<p>${h(d.blurb)}</p><p class="rules">${h(d.rules)}</p>
+    this.openCard(`<p class="kicker">${h(I?.kicker ?? 'A game')}</p><h1>${h(d.name)}</h1>${lead}<p>${h(d.blurb)}</p><p class="rules">${h(rules)}</p>
       ${rows ? `<dl>${rows}</dl>` : ''}${opts ? `<div class="opts">${opts}</div>` : ''}
       <p class="best">${h(bestLine)}</p>
       <div class="buttons">${this.buttonsHtml(buttons)}</div>

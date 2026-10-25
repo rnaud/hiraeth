@@ -12,6 +12,8 @@ import { workingsAt } from './workings.js';
 import { Telegraph, inArea, GUARDIANS_LIVE } from './temples/boss.js';
 import { foeThreat, guardianThreat, perfectAgainst } from './flurry.js';
 import { SmokePuffs, SMOKE } from './smoke-puff.js';
+import { AttackTrails, trailPhase, trailSize } from './attack-trail.js';
+import { FoeClouds, ENTRANCE, bodyGrown } from './foe-entrance.js';
 import { ChargeGlow, TELL, groundMark, poseK } from './telegraph.js';
 import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
@@ -459,6 +461,8 @@ export class Foe {
     // the grappling hook (issue #399, src/hook-foes.js): yanked through the air to you ({ from, to, t, time, lift, daze }),
     // pinned where it stands ({ t, time, x, z, dir }); lift: m its body rides over its feet on the yank's arc
     this.yank = null; this.pin = null; this.lift = 0;
+    // called in out of a cloud of darkness (issue #664, src/foe-entrance.js): s its mind still waits
+    this.arriving = 0;
   }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt + this.lift); }
@@ -692,6 +696,8 @@ export class Foe {
     const D = this.def, ev = [];
     if (!this.alive) return ev;
     this.flash = Math.max(0, this.flash - dt * 4);
+    // coming out of its cloud (src/foe-entrance.js ENTRANCE.hold): it only turns to you; its cool starts after
+    if (this.arriving > 0) { this.arriving = Math.max(0, this.arriving - dt); this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 3); return ev; }
     this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
@@ -744,7 +750,8 @@ export class Foe {
     }
     const away = Math.hypot(this.pos.x - this.home.x, this.pos.z - this.home.z);
     // lost: gone where it can't follow (riding, far above or below its level, fallen); down: knocked over, about to rise
-    const lost = P.dead || !!P.ride || Math.abs(P.pos.y - this.level) >= 6, down = !lost && !!P.down;
+    // (veiled by the spell: lost as well, src/spells/caster.js; the guardians are not foes here, and see through it)
+    const lost = P.dead || !!P.ride || !!P.veiled || Math.abs(P.pos.y - this.level) >= 6, down = !lost && !!P.down;
     const playerOk = !lost && !down;
     // led too far from home: only once you have left as well (you still fighting it there, it stays)
     const youLeft = Math.hypot(P.pos.x - this.home.x, P.pos.z - this.home.z) > D.giveUp + PRESSURE.leave;
@@ -1662,7 +1669,7 @@ function machineModel() {
     tell: (id) => (id === 'quake' ? cap : arms[0].children[2]) };   // (the slam's claw; the quake's crown, both arms over it)
 }
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _gl = new THREE.Vector3(), _gf = new THREE.Vector3();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _gl = new THREE.Vector3(), _gf = new THREE.Vector3(), _tp = new THREE.Vector3();
 /** The world's sounds on a foe (the game's synth, src/audio.js burst / sweep): spines, a flame's hiss, a hard landing. */
 const sndAt = (s) => (s?.ctx && s.burst && s.sweep ? s.ctx.currentTime : null);
 const worldSnd = {
@@ -2070,8 +2077,14 @@ export class Foes {
     f.hurtBody = body;
     const reach = body ? Math.min(hurtRadius(f.def), (f.def.hover ? bodyReach(body, -9, 9) : bodyReach(body, 0.5, 1.7)) || hurtRadius(f.def)) : undefined;
     f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire', 'bloom'],
-      position: () => f.chest, enabled: () => f.alive && f.model.group.visible, body: body ? () => body : null, reach,
+      position: () => f.chest, enabled: () => f.alive && f.model.group.visible && !(f.arriving > 0), body: body ? () => body : null, reach,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info, point) });
+    // out of a cloud of darkness (issue #664): the cloud at its feet, the body grown out of it (Foes.update), its mind held
+    if (o.entrance) {
+      f.arriving = ENTRANCE.hold; f.arrive = { t: 0 };
+      this.clouds ??= new FoeClouds(this.scene ?? this.group);
+      this.clouds.add(at, Math.max(0.8, (f.def.radius ?? 0.6) * 2 * Math.min(1.6, f.model.size ?? 1)), Math.max(0.8, (f.def.height ?? 1) + (f.def.hover ?? 0) * 0.5));
+    }
     this.list.push(f);
     return f;
   }
@@ -2121,7 +2134,7 @@ export class Foes {
   }
 
   remove(f) {
-    f.target?.(); f.tele?.dispose(); f.glow?.dispose(); f.model.group.removeFromParent();
+    f.target?.(); f.tele?.dispose(); f.glow?.dispose(); this.trails?.drop(f); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
     for (const b of this.balls.slice()) if (b.owner === f) this.popBall(b, 'fizzle');   // (its fireball burns out with it)
     if (f.ward) f.unward(); for (const T of f.wards ?? []) if (T.ward?.by === f) T.unward();   // (a ward on it, or the ones it held: their threads with them)
@@ -2258,7 +2271,7 @@ export class Foes {
       if (!Number.isFinite(y) || Math.abs(y - P.pos.y) > 5) continue;
       const at = new THREE.Vector3(x, y, z);
       if (!this.wild(at) || !this.roomAt(kinds[made], at)) continue;
-      this.add(kinds[made], at, { calm: true });
+      this.add(kinds[made], at, { calm: true, entrance: true });
       if (!flock && FOES[parseKind(kinds[made]).kind]?.flock) flock = at;
       made++;
     }
@@ -2277,7 +2290,7 @@ export class Foes {
       const kinds = guardKinds(this.worldHere, GUARDS.size);   // (the world's own: src/foe-worlds.js)
       for (let k = 0; k < GUARDS.size; k++) {
         const at = this.openSpot(kinds[k], g.pos, (k / GUARDS.size) * Math.PI * 2 + 0.7, GUARDS.ring, 4, 12);
-        const f = this.add(kinds[k], at);
+        const f = this.add(kinds[k], at, { entrance: true });
         f.guard = g;   // (guarding its relic: a calm kind is roused already)
       }
     }
@@ -2312,7 +2325,7 @@ export class Foes {
     const P = this.player, kinds = single ? Array(FOES[parseKind(single).kind].group ?? 1).fill(single) : ww ? ww[this.wave % ww.length] : arenaWave(this.wave), base = this.rng() * Math.PI * 2;
     kinds.forEach((kind, i) => {
       const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
-      this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40));
+      this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40), { entrance: true });
     });
     this.wave++;
     this.waveRest = WAVE.rest;
@@ -2646,9 +2659,11 @@ export class Foes {
       if (f.def.puppeteer) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && ARCHETYPES[x.archetype]?.family === 'creature' && !x.riding && x.pos.distanceTo(f.pos) < 14);
       // a flock knows how many of its own are near to climb into a heap with (attack.pile)
       if (f.def.flock) f.mates = this.list.filter((x) => x !== f && x.kind === f.kind && x.alive && x.dead === undefined && !x.riding && x.pos.distanceTo(f.pos) < PILE.near).length;
-      const ev = inTemple ? f.update(dt, P, this.env) : [];
+      // (a spell's slow tide round it: its own time runs slower, src/spells/caster.js; the look with it)
+      const fk = this.slowAt?.(f.pos) ?? 1, fdt = dt * fk;
+      const ev = inTemple ? f.update(fdt, P, this.env) : [];
       for (const e of ev) {
-        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow(), () => f.chest, (f.atk ?? f.def.attack).cue);   // (rising over its whole wind-up; its cue over it)
+        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow() / fk, () => f.chest, (f.atk ?? f.def.attack).cue);   // (rising over its whole wind-up, slowed or not; its cue over it)
         if (e === 'warn' && f.atk?.pile) this.pile(f);   // (its flock climbs onto it)
         if (e === 'notice') { this.meet(f); this.alarm(f); }
         if (e?.type === 'ward' || e?.type === 'mend') { this.support(f, e); continue; }
@@ -2667,7 +2682,8 @@ export class Foes {
       }
       if (f.def.trail && f.alive && inTemple) this.trailSlag(f);
       if (f.possessed?.done) this.unstring(f);   // (a marionette's strings ran out, or it is gone: the creature is let go)
-      this.look(f, dt);
+      this.look(f, fdt);
+      this.arrival(f, dt);
     }
     this.updateBalls(dt);
     this.updateHold(dt);
@@ -2681,6 +2697,8 @@ export class Foes {
     this.shadePools?.update(dt);
     this.slime?.update(dt);
     this.puffs?.update(dt);
+    this.trails?.update(dt);
+    this.clouds?.update(dt);
     if (this.level?.temple?.inside?.(P.pos)) this.templeKit();
     // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
     const fighting = this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28);
@@ -3293,13 +3311,13 @@ export class Foes {
 
   // ------------------------------------------------------------------ the Arena's practice (src/foe-spawner.js)
   /** A foe of `kind` comes in ahead of you (the Arena's spawner, tests, the console: foes.spawnKind('crab'), foes.spawnKind('lizard@bazaar')). */
-  spawnKind(kind, { n = FOES[parseKind(kind).kind]?.group ?? 1, dist = 9 } = {}) {
+  spawnKind(kind, { n = FOES[parseKind(kind).kind]?.group ?? 1, dist = 9, entrance = true } = {}) {
     const P = this.player;
     if (!FOES[parseKind(kind).kind] || !P) return [];
     const h = P.heading ?? 0, out = [];
     for (let i = 0; i < n; i++) {
       const at = this.openSpot(kind, P.pos, h + (i - (n - 1) / 2) * 0.35, dist, 20, 40);
-      const f = this.add(kind, at);
+      const f = this.add(kind, at, { entrance });
       f.heading = Math.atan2(P.pos.x - at.x, P.pos.z - at.z);
       out.push(f);
     }
@@ -3437,6 +3455,7 @@ export class Foes {
     }
     }
     this.chargeGlow(f, t);
+    this.attackTrail(f);
   }
 
   /**
@@ -3457,16 +3476,35 @@ export class Foes {
     else if (puff === 'ink' && Math.random() < 0.5) c.drip(f, M.tones?.[0] ?? '#14101a');
   }
 
+  /** Grown up out of its cloud (src/foe-entrance.js bodyGrown): its body's scale after its pose, until it is whole. */
+  arrival(f, dt) {
+    if (!f.arrive) return;
+    const b = bodyGrown((f.arrive.t += dt));
+    if (b >= 1) { f.arrive = null; return; }
+    f.model.group.scale.multiplyScalar(Math.max(0.01, b));
+  }
+
   /** The glow building on the striking part through a wind-up (src/telegraph.js ChargeGlow), a last flare as it strikes. */
   chargeGlow(f, t) {
     const winding = f.state === 'wind' && !f.stunned, striking = f.state === 'strike' && !f.contacted;
     if (!winding && !striking) { f.glow?.hide(); return; }
-    const M = f.model;
     f.glow ??= new ChargeGlow(this.group, f.def.tone ?? '#f05a3c', Math.max(0.14, Math.min(0.5, f.def.radius * 0.45)));
-    const a = f.atk ?? f.def.attack, part = M.tell?.(a.id, f) ?? null;
-    if (part) { M.group.updateMatrixWorld(true); part.getWorldPosition(_gl); }
-    else _gl.copy(f.chest).add(_gf.set(Math.sin(f.heading), 0, Math.cos(f.heading)).multiplyScalar(f.def.radius * 0.9));
-    f.glow.set(winding ? f.k : 1, _gl, performance.now() / 1000);
+    f.glow.set(winding ? f.k : 1, this.strikePoint(f, _gl), performance.now() / 1000);
+  }
+
+  /** Where its striking part is now (the part its model's `tell` names for the attack; else in front of its chest). */
+  strikePoint(f, out) {
+    const M = f.model, a = f.atk ?? f.def.attack, part = M.tell?.(a.id, f) ?? null;
+    if (part) { M.group.updateMatrixWorld(true); return part.getWorldPosition(out); }
+    return out.copy(f.chest).add(_gf.set(Math.sin(f.heading), 0, Math.cos(f.heading)).multiplyScalar(f.def.radius * 0.9));
+  }
+
+  /** The swoosh its striking part lays through an attack (src/attack-trail.js): wind-up ink, the blow's warm ribbon, its fade. */
+  attackTrail(f) {
+    const phase = trailPhase(f);
+    if (!phase) { this.trails?.release(f); return; }
+    this.trails ??= new AttackTrails(this.scene ?? this.group);
+    this.trails.follow(f, phase, this.strikePoint(f, _tp), f.chest, trailSize(f.def));
   }
 
   /** The stars of a foe dazed (Foe.dazed: knocked off a ledge by you) or stunned (stunCue), turning over its head. */
@@ -3539,5 +3577,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
+  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
 }

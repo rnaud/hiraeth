@@ -283,6 +283,7 @@ Conflicts and oddities:
 | View (on release) | the game menu | | | | the game menu | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
 | View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
+| LB + RB | **the spell chosen** (pressed together, within 0.12 s; issue #667, docs/systems/spells.md): Y on the keyboard, the ✺ button on touch | | | | | | | |
 | L3 + R3 | debug: the dev menu (F2, `; v1.81, issue #387: the world debug menu and the old dev panel in one; the hitbox overlay, F4, in its Toggles) | | | | the dev menu | | closes it | |
 | Menu | the Start menu | | | | the Start menu | | close | leave |
 
@@ -458,6 +459,7 @@ The author's decision of 19 October 2026 on the proposal in issue #511 (`PAD_SCH
 | **D-pad →** | D-pad → | **Plumb finds the objective**; a makers' house or a guardian's fight: a hint (docs/systems/boss-hints.md). Riding too. Plumb at your shoulder with its red mark: its talk first (v1.87, docs/systems/scout.md) |
 | View | Select | the game menu; View + ↑ photo mode; View + ↓ / ← / → free |
 | Menu | Start | the Start menu |
+| LB + RB | L1 + R1 | the spell chosen (pressed together; docs/systems/spells.md) |
 | L3 + R3 | L3 + R3 | the dev menu |
 
 **Riding:** R3 sends nothing (the lock-on is a foot verb); D-pad → is Plumb, as on foot. **Keyboard:** Tab locks on,

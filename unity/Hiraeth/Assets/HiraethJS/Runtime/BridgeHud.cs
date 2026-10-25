@@ -116,6 +116,7 @@ namespace Hiraeth.Bridge
             BuildUnder(mono);     // (the balloons over people, the breath meter, the brass level: BridgeHud.Parts.cs, issue #430)
             BuildDialogue(mono);
             BuildGadgets(mono);
+            BuildSpell(mono);
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
             BuildCharge();
@@ -445,6 +446,7 @@ namespace Hiraeth.Bridge
             DrawTool(Part("tool"));   // (the fluid tool's crosshair and mode, its notices by the traveller: BridgeHud.Tool.cs)
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
             DrawGadget(Part("gadget"));
+            DrawSpell(Part("spell"));
             DrawGadgetWheel(Part("gadgetWheel"));
             DrawReticle(Part("reticle"));
             DrawMarks(On("gadgetMarks") ? state.L("gadgetMarks") : null);
@@ -1074,6 +1076,43 @@ namespace Hiraeth.Bridge
             float s = d * grow;
             LayDisc(gChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 2, Ui.Hex("#fffaf0", 0.92f), BridgeMenu.Picture(id), g.S("glyph"));
             Ui.Group(gChip.rt).alpha = empty ? 0.5f : 1;
+        }
+
+        // the spell's chip (the screen's 'spell': src/spells/hud.js, issue #667): a paper disc under the gadget's, the
+        // spell's glyph in its colour when ready, the seconds left on a pale disc while it recovers, a ring round it filling
+        // as it comes back (teal), or emptying in the spell's colour while it works; a gold flash when it is ready again
+        Disc sChip; Image sGauge, sFlash; string sChipId = ""; float sFlashT = 1; bool sWasReady = true;
+        void BuildSpell(Font mono)
+        {
+            sGauge = Round(root, Track, "spell gauge"); sGauge.raycastTarget = false;
+            sFlash = Round(root, Ui.Gold, "spell flash");
+            sChip = MakeDisc(root, "spell chip", mono, 22);
+        }
+        void DrawSpell(Dictionary<string, object> g)
+        {
+            bool on = g != null;
+            Show(sChip.rt, on); Show(sGauge, on); Show(sFlash, false);
+            if (!on) { sChipId = ""; return; }
+            // (the web's: under the gadget's chip, 14 px apart, the same size)
+            float d = Mathf.Clamp(H * 0.06f, 30, 42), x = W - 14 - d, y = 12 + d + 14;
+            var id = g.S("id") ?? "";
+            bool ready = g.Get("ready") is bool r && r;
+            double active = g.Get("active") is double a ? a : 0, k = g.Get("k") is double kk ? kk : 1;
+            bool wait = !ready && active <= 0;
+            if (id != sChipId || (ready && !sWasReady)) { sChipId = id; sFlashT = 0; }
+            sWasReady = ready;
+            sFlashT += Time.unscaledDeltaTime;
+            var col = Ui.Hex(g.S("color") ?? "#2b211f");
+            Ui.Place(sGauge.rectTransform, x - 5, y - 5, d + 10, d + 10);
+            sGauge.type = Image.Type.Filled; sGauge.fillMethod = Image.FillMethod.Radial360; sGauge.fillOrigin = (int)Image.Origin360.Top; sGauge.fillClockwise = true;
+            sGauge.color = active > 0 ? col : wait ? Teal : col; sGauge.fillAmount = Mathf.Clamp01((float)(active > 0 ? active : k));
+            float f = Mathf.Clamp01(1 - sFlashT / 0.7f), grow = 1 + 0.35f * f * f;
+            if (f > 0) { Show(sFlash, true); sFlash.color = new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, f); float rr = d * grow + 12; Ui.Place(sFlash.rectTransform, x + d / 2 - rr / 2, y + d / 2 - rr / 2, rr, rr); }
+            float s = d * grow;
+            var left = g.Get("left") is double l ? ((int)l).ToString() : "";
+            LayDisc(sChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 2, wait ? Ui.Hex("#e8deca", 0.82f) : Ui.Hex("#fffaf0", 0.92f), null, wait ? left : g.S("glyph"));
+            sChip.glyph.color = wait ? Ui.Ink : col;
+            sChip.glyph.fontSize = wait ? 15 : 22;
         }
 
         void DrawGadgetWheel(Dictionary<string, object> w)

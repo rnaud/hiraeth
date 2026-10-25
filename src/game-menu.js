@@ -148,11 +148,11 @@ export class MenuState {
 
 const cellAttrs = (r, c) => `data-at="${r},${c}"`;
 /** An item's picture: the game's own render of it (src/item-icons.js), or its kind's mark until that is ready. */
-export const KIND_MARK = { core: '◍', weapon: '⚔', movement: '➶', mode: '◐', upgrade: '✚', charm: '✧', pass: '▭', cosmetic: '✦', quest: '⧉', keepsake: '✦' };
+export const KIND_MARK = { core: '◍', weapon: '⚔', movement: '➶', mode: '◐', spell: '✺', upgrade: '✚', charm: '✧', pass: '▭', cosmetic: '✦', quest: '⧉', keepsake: '✦' };
 const icon = (it) => it.icon
   ? `<img class="ico" src="${esc(it.icon)}" alt="" data-icon="${esc(it.id)}">`
-  : `<i class="ico mark" data-icon="${esc(it.id)}">${KIND_MARK[it.kind] ?? '✧'}</i>`;
-const KINDS = ['core', 'weapon', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic', 'quest', 'keepsake'];
+  : `<i class="ico mark" data-icon="${esc(it.id)}"${it.tint ? ` style="color:${esc(it.tint)}"` : ''}>${esc(it.glyph ?? KIND_MARK[it.kind] ?? '✧')}</i>`;   // (a spell: its own glyph in its colour, src/spells/)
+const KINDS = ['core', 'weapon', 'movement', 'mode', 'gadget', 'spell', 'upgrade', 'charm', 'pass', 'cosmetic', 'quest', 'keepsake'];
 const KIND_NAME = Object.defineProperties({}, Object.fromEntries(KINDS.map((k) => [k, { get: () => t(`gm.kind.${k}`), enumerable: true }])));
 
 /** What A / × does to an item in its full view: a gun mode taken, a gadget in hand, a switch turned (null: nothing). */
@@ -160,6 +160,7 @@ export function itemUse(it) {
   if (!it?.usable) return null;
   if (it.toggle) return it.inUse ? t('gm.full.off') : t('gm.full.on');
   if (it.kind === 'gadget') return t('gm.full.equip');
+  if (it.kind === 'spell') return t('gm.full.spell');   // (src/spells/: the one LB / L1 + RB / R1 casts)
   return t('gm.full.mode');
 }
 
@@ -413,11 +414,12 @@ export function housePanel({ view = null, floor = null } = {}) {
  * that they need the new traveller instead) and the blade's colours won (none without the sword), a line each, the worn
  * one tagged; on the right the stage the traveller is drawn on (a canvas main.js draws into: GameMenu.wardrobeCanvas).
  * One column of rows, the outfits then the blades: ↑ ↓ go through both, the preview follows (GameMenu.paint); A / ×
- * wears the one picked (act 'wear'; an outfit not his yet has no act).
+ * wears the one picked (act 'wear'; an outfit not his yet has no act: its name, marked ?, and where it is won under it,
+ * issue #668).
  */
 export function wardrobePanel({ v2 = false, sword = false, outfits = [], blades = [] } = {}) {
   const sub = (kind, worn, more = '') => [t(kind === 'outfit' ? 'gm.wd.outfit' : 'gm.wd.blade'), more, worn ? t('gm.wd.worn') : ''].filter(Boolean).join(' · ');
-  const os = v2 ? outfits.map((o) => ({ col: 0, kind: 'outfit', id: o.id, name: o.unlocked ? o.name : t('gm.wd.locked'), sub: sub('outfit', o.worn), desc: '', act: o.unlocked && !o.worn ? 'wear' : null, locked: !o.unlocked, worn: !!o.worn })) : [];
+  const os = v2 ? outfits.map((o) => ({ col: 0, kind: 'outfit', id: o.id, name: o.name, sub: o.unlocked ? sub('outfit', o.worn) : [t('gm.wd.locked'), o.how].filter(Boolean).join(' · '), desc: '', act: o.unlocked && !o.worn ? 'wear' : null, locked: !o.unlocked, worn: !!o.worn })) : [];
   const bs = sword ? blades.map((b) => ({ col: 0, kind: 'blade', id: b.id, name: b.name, sub: sub('blade', b.worn, b.house ? t('gm.wd.from', { house: b.house }) : t('gm.wd.makers')), desc: '', act: b.worn ? null : 'wear', swatch: b.swatch, worn: !!b.worn })) : [];
   const rows = [...os, ...bs].map((c) => [c]);
   const line = (c, r) => `<button class="line wd-${c.kind}${c.worn ? ' worn' : ''}${c.locked ? ' locked' : ''}" ${cellAttrs(r, 0)} data-wd="${esc(c.kind)}:${esc(c.id)}">${c.kind === 'blade'

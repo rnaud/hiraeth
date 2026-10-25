@@ -4,13 +4,17 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.27 — 2026-10-25
 
+- Four makers’ houses now give a spell when their guardian is resolved: the Aerie a gold ward that takes two blows, the Whale-House a slow tide that slows foes inside it, the Engine-House shards that circle you and cut, the Mooring-House a veil that makes foes lose you. Press LB / L1 + RB / R1 together (Y on the keyboard, ✺ on touch) to cast; it recovers in 30 seconds, shown by the chip under the gadget’s. Choose your spell in Items. Saves that already resolved those houses have their spells.
+- Nine outfits are now won at the games in the worlds: each host says what their game’s prize is, its start card names it, and the first run that wins it shows the new outfit on the results card. The Wardrobe tells you where to win each one you haven’t got. An outfit you were already wearing stays yours.
+- Enemies now arrive out of a swirling cloud of darkness: the body grows out of the ink, and they only start to fight once the cloud has cleared, so their first attack is never hidden in it.
+- Enemy attacks now leave a swoosh behind the claw, fist or blade that swings: a thin ink stroke while they wind up, a wide warm orange ribbon through the dangerous part of the blow, then it thins away as they recover.
+- In the desert, Nour now thanks you for lighting Qanat’s tree before you saw to your own ship, instead of saying you asked for nothing after you had asked her for power.
+- Foes now visibly reel back off your shield: a perfect parry throws them off balance and holds them leaning while they are open, and a plain block knocks them back a step.
+- The dark spot under you while you jump or fall is now easier to read: a solid ink-edged shadow that shows clearly indoors and in caves, sits on lifts and other moving floors you are about to land on, and stops at a ledge’s edge instead of hanging over the drop.
 - When you slow down near someone your quest needs you to talk to, or something it needs you to take, Plumb comes out and hovers beside it for a moment. It keeps out of fights, conversations and scenes, and goes back when you run.
 
 ## v2.26 — 2026-10-25
 
-- In the desert, Nour now thanks you for lighting Qanat’s tree before you saw to your own ship, instead of saying you asked for nothing after you had asked her for power.
-- Foes now visibly reel back off your shield: a perfect parry throws them off balance and holds them leaning while they are open, and a plain block knocks them back a step.
-- The dark spot under you while you jump or fall is now easier to read: a solid ink-edged shadow that shows clearly indoors and in caves, sits on lifts and other moving floors you are about to land on, and stops at a ledge’s edge instead of hanging over the drop.
 - Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.
 
 ## v2.25 — 2026-10-25

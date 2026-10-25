@@ -34,10 +34,11 @@ export function hostStand(at, heading = 0, { side = 1, ahead = 0.5 } = {}, out =
 
 /**
  * The host's talk (a src/story/dialogue.js person): their lines, then Play (`play`, once the talk has closed: `later`)
- * or Not now. `name`: the game's, for the prompt ("ask Kamal about the canyon run").
+ * or Not now. `name`: the game's, for the prompt ("ask Kamal about the canyon run"). `prizeWon()`: whether the game's
+ * outfit is won (issue #668, kit/rewards.js); until it is, the host's `prize` line is said after their own.
  */
-export function hostTalk(host, play, { later = (f) => f(), name = '', lacks = null } = {}) {
-  const { say, lines, object, prompt, stand, ...person } = host;
+export function hostTalk(host, play, { later = (f) => f(), name = '', lacks = null, prizeWon = null } = {}) {
+  const { say, lines, object, prompt, stand, prize, ...person } = host;
   const game = name ? name.replace(/^The /, 'the ') : '';
   // (`lacks()`: what the run wants that the traveller hasn't got, '' if nothing, a trial's "It wants the hoverbike.": then
   // the host says so and offers no Play to refuse a moment later (issue #226, quest QC: nothing asked before it can be had)
@@ -48,7 +49,9 @@ export function hostTalk(host, play, { later = (f) => f(), name = '', lacks = nu
     { text: '~neutral~ Not now.', end: true, ...(can ? { if: can } : {}) },
     ...(short ? [{ text: '~neutral~ I’ll come back with it.', end: true, if: () => !can() }] : []),
   ];
-  const told = short ? [...say, { if: () => !can(), get text() { return `~neutral~ ${short()} Come back with it.`; } }] : say;
+  // (the game's prize, issue #668: the host's own line on the outfit it wins, said until it is won: `prizeWon()`, kit/rewards.js)
+  const said = prize && typeof prizeWon === 'function' ? [...say, { if: () => !prizeWon(), text: prize }] : say;
+  const told = short ? [...said, { if: () => !can(), get text() { return `~neutral~ ${short()} Come back with it.`; } }] : said;
   return {
     ...person,
     lines: lines ?? ['~neutral~ …'],

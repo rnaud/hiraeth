@@ -150,9 +150,9 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   K.move = `${K.forward}${K.left}${K.back}${K.right}`;
   const rows = (prefix, ids, vars) => ids.map((id) => [t(`${prefix}.${id}`, vars), t(`${prefix}.${id}.how`, vars), id]);
   return {
-    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'charge', 'hop', 'gadget', 'aim', 'potion', 'dive', 'scout', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
-    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'charge', 'lock', 'hop', 'scout', 'gadget', 'aim', 'mode', 'potion', 'jets', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
-    touch: rows('ctl.t', ['move', 'jump', 'jets', 'run', 'scout', 'gadget', 'aim', 'fight', 'hop', 'potion', 'pages'], {}),
+    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'charge', 'hop', 'gadget', 'aim', 'potion', 'spell', 'dive', 'scout', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
+    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'charge', 'lock', 'hop', 'scout', 'gadget', 'aim', 'mode', 'potion', 'spell', 'jets', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
+    touch: rows('ctl.t', ['move', 'jump', 'jets', 'run', 'scout', 'gadget', 'aim', 'fight', 'hop', 'potion', 'spell', 'pages'], {}),
   };
 }
 // (the pad's rows that name the menus' own buttons, which never move: native-pad.js leaves them as they are)
@@ -160,7 +160,7 @@ export const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
 
 /** The verbs on the Controls page's "your buttons" and "your keys", in the order shown. */
 export const REBIND_PAD = ['jump', 'evade', 'interact', 'whistle', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'scout'];
-export const REBIND_KEYS = ['forward', 'back', 'left', 'right', 'run', 'jump', 'interact', 'blade', 'guard', 'evade', 'lock', 'aim', 'fire', 'mode', 'scout', 'gadget', 'gadgetNext', 'whistle', 'potion', 'journal', 'menu', 'controls', 'photo', 'mute'];
+export const REBIND_KEYS = ['forward', 'back', 'left', 'right', 'run', 'jump', 'interact', 'blade', 'guard', 'evade', 'lock', 'aim', 'fire', 'mode', 'scout', 'gadget', 'gadgetNext', 'whistle', 'potion', 'spell', 'journal', 'menu', 'controls', 'photo', 'mute'];
 
 /**
  * The Controls page's rebinding: each verb with its key or button now, the ones that share one marked

@@ -1,11 +1,14 @@
 import { HOSTS } from './hosts-data.js';
+import { outfitFlag, rewardFor } from '../minigames/kit/rewards.js';
 
 // Kamal owns the salvage, but only the traveller's fluid tank can power it.
 // A loss records his claim; he lends the tank back for a rematch, so the wager
 // cannot strand a story save without its essential tool.
 export function bikeWager({ race, practice, fuelled }) {
+  // (the three laps' prize, issue #668: Kamal's line on it, said until it is won; src/minigames/kit/rewards.js)
+  const { prize, ...kamal } = HOSTS.canyon, won = outfitFlag(rewardFor('canyon').outfit);
   return {
-    ...HOSTS.canyon,
+    ...kamal,
     title: 'who found the hoverbike',
     prompt: 'talk to Kamal',
     talk: {
@@ -37,7 +40,8 @@ export function bikeWager({ race, practice, fuelled }) {
           choices: [{ text: '~playful~ I’m winning them back.', if: fuelled, do: race, end: true }, { text: '~neutral~ I’ll be back.', end: true }],
         },
         won: {
-          say: ['~happy~ Fair win. Your bike, your backpack.', '~playful~ Fancy a longer run? Three laps through the Two Chasms. No wager.'],
+          say: ['~happy~ Fair win. Your bike, your backpack.', '~playful~ Fancy a longer run? Three laps through the Two Chasms. No wager.',
+            { text: prize, if: { not: { flag: won } } }],
           choices: [{ text: '~happy~ Let’s ride.', do: practice, end: true }, { text: '~neutral~ Another time.', end: true }],
         },
       },

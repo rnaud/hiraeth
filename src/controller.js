@@ -7,6 +7,7 @@
 //             · X interact, talk, get on · Y the bell-note whistle / echo shell
 //             · LT aims the gadget in hand · RT uses it (shoots, throws; the fluid gun is a gadget)
 //             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
+//             · LB + RB pressed together: the spell chosen (src/spells/; PadSpell for that frame)
 //             · L3 run until you stop · R3 lock on, nothing else (no foe in reach: the camera behind you)
 //             · L3 + R3 (both sticks) the dev menu (src/dev-menu.js)
 //             · D-pad ↑ held: the wheel, the game waiting (the gadgets and the glove's modes; tap: the last pick back)
@@ -27,6 +28,7 @@
 // is moved to positions first (faces().byLabel, see native-pad.js padFaces).
 import { controlPrefs, currentPadMap, capturingPad, padCaptured, IDENTITY } from './remap.js';
 import { padDirection, padOpen, gridStep, sideStep } from './menu-pad.js';
+import { SPELL_CHORD } from './spells/data.js';
 
 export const SOUTH = 0, EAST = 1, WEST = 2, NORTH = 3;
 const LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11, UP = 12, DOWN = 13, LEFT = 14, RIGHT = 15;
@@ -58,6 +60,7 @@ export class Controller {
     Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap, stickTaken, menuAnalog });   // (menuAnalog({ x, y, lt, rt }, dt): a menu page that reads the stick and triggers itself, true if it took them: the Map)   // (combat: a foe is near, LB blocks rather than zooms; stickTaken: the right stick chooses on the gadget wheel, it doesn't look)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null; this.running = false; this.guarding = false; this.view = null;
+    this.since = { lb: Infinity, rb: Infinity }; this.spell = false;   // (the shoulders' press times: the spell's chord)
   }
   update(dt, enabled = true) {
     // standard-mapped pads first; a pad without the mapping (an unrecognised handheld) is read as standard rather than ignored
@@ -181,6 +184,13 @@ export class Controller {
         // (guard: held, or a toggle, a press up and the next down: GUARD_MODES)
         if (P.guard === 'toggle') { if (press(LB)) this.guarding = !this.guarding; } else this.guarding = false;
         h.PadBlade = down(RB); h.PadGuard = P.guard === 'toggle' ? this.guarding : down(LB);
+        // LB + RB together (each within SPELL_CHORD s of the other): the spell (src/spells/), and neither the guard nor the
+        // blade until both are let go. The guard held a while, then RB, is still the blade (the riposte after a parry)
+        this.since.lb = press(LB) ? 0 : down(LB) ? this.since.lb + dt : Infinity;
+        this.since.rb = press(RB) ? 0 : down(RB) ? this.since.rb + dt : Infinity;
+        if (this.spell) { if (!down(LB) && !down(RB)) this.spell = false; }
+        else if ((press(LB) || press(RB)) && Math.max(this.since.lb, this.since.rb) <= SPELL_CHORD) { this.spell = true; h.PadSpell = true; if (P.guard === 'toggle') this.guarding = false; }
+        if (this.spell) { h.PadBlade = false; h.PadGuard = false; }
         h.PadEvade = down(EAST);   // B / ○ evades (the stick's way, or a backstep)
         // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below;
         // down() leaves the D-pad out then, whatever verb is bound to it)

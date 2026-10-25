@@ -4,8 +4,9 @@
 // A / × wears it (saved, worn in the world at once); B / ○ leaves him as he was.
 //
 // - The outfits are the v2 traveller's (src/characters/outfits.js, data/characters/traveller-v2/outfits.json): his
-//   own clothes and fifteen others. Each has an `unlock`: null is his from the start (all of them, for now); a flag of the
-//   save later (`{ flag }`), so they can be won by progress. B3 (the game's traveller until v2 is the default) has
+//   own clothes and fifteen others. Each has an `unlock`: null is his from the start; a flag of the save (`{ flag }`)
+//   is won: nine are the prizes of the games in the worlds (issue #668, src/minigames/kit/rewards.js), the Wardrobe
+//   saying where to win each one not won yet (`how`). B3 (the game's traveller until v2 is the default) has
 //   none: the list says the outfits need the new traveller.
 // - The blade's colours are the kit's (src/kit-colours.js): the makers' jade always, and one more for each fight temple
 //   cleared (its reward, worn on the backpack, the sword and the shield); the Wardrobe chooses the sword's, the Items
@@ -29,28 +30,30 @@ import { buildSword } from './fluid-sword.js';
 import { fistGrip } from './blade-grip.js';
 import { HAND_POSES } from './hands.js';
 import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
+import { rewardOfOutfit, outfitFlag, howToWin } from './minigames/kit/rewards.js';
 
 /**
  * The outfits, in the list's order (their ids are outfits.json's). `unlock`: null, his from the start; `{ flag }` once the
- * save has that flag (none yet: the author's "all available from day one today; in the future we will make them unlockable").
+ * save has that flag: the games' prizes (issue #668, src/minigames/kit/rewards.js), `outfit.<id>`.
  */
+const prize = (id) => (rewardOfOutfit(id) ? { flag: outfitFlag(id) } : null);
 export const OUTFITS = [
   { id: 'default', name: 'His own clothes', unlock: null },
-  { id: 'glider-pilot', name: 'Glider pilot', unlock: null },
-  { id: 'lamplighter', name: 'Lamplighter', unlock: null },
-  { id: 'pearl-diver', name: 'Pearl diver', unlock: null },
-  { id: 'moss-gardener', name: 'Moss gardener', unlock: null },
-  { id: 'salt-pilgrim', name: 'Salt pilgrim', unlock: null },
-  { id: 'storm-courier', name: 'Storm courier', unlock: null },
-  { id: 'furnace-mechanic', name: 'Furnace mechanic', unlock: null },
-  { id: 'frost-surveyor', name: 'Frost surveyor', unlock: null },
-  { id: 'observatory-apprentice', name: 'Observatory apprentice', unlock: null },
-  { id: 'festival-traveller', name: 'Festival traveller', unlock: null },
-  { id: 'gravity-ranger', name: 'Gravity ranger', unlock: null },
-  { id: 'star-archive-keeper', name: 'Star archive keeper', unlock: null },
-  { id: 'solar-voyager', name: 'Solar voyager', unlock: null },
-  { id: 'comet-pathfinder', name: 'Comet pathfinder', unlock: null },
-  { id: 'void-navigator', name: 'Void navigator', unlock: null },
+  { id: 'glider-pilot', name: 'Glider pilot', unlock: prize('glider-pilot') },
+  { id: 'lamplighter', name: 'Lamplighter', unlock: prize('lamplighter') },
+  { id: 'pearl-diver', name: 'Pearl diver', unlock: prize('pearl-diver') },
+  { id: 'moss-gardener', name: 'Moss gardener', unlock: prize('moss-gardener') },
+  { id: 'salt-pilgrim', name: 'Salt pilgrim', unlock: prize('salt-pilgrim') },
+  { id: 'storm-courier', name: 'Storm courier', unlock: prize('storm-courier') },
+  { id: 'furnace-mechanic', name: 'Furnace mechanic', unlock: prize('furnace-mechanic') },
+  { id: 'frost-surveyor', name: 'Frost surveyor', unlock: prize('frost-surveyor') },
+  { id: 'observatory-apprentice', name: 'Observatory apprentice', unlock: prize('observatory-apprentice') },
+  { id: 'festival-traveller', name: 'Festival traveller', unlock: prize('festival-traveller') },
+  { id: 'gravity-ranger', name: 'Gravity ranger', unlock: prize('gravity-ranger') },
+  { id: 'star-archive-keeper', name: 'Star archive keeper', unlock: prize('star-archive-keeper') },
+  { id: 'solar-voyager', name: 'Solar voyager', unlock: prize('solar-voyager') },
+  { id: 'comet-pathfinder', name: 'Comet pathfinder', unlock: prize('comet-pathfinder') },
+  { id: 'void-navigator', name: 'Void navigator', unlock: prize('void-navigator') },
 ];
 /** The save's flag that keeps the outfit chosen. */
 export const OUTFIT_KEY = 'wardrobe.outfit';
@@ -74,13 +77,16 @@ export function bladeColours(state) {
 
 /**
  * The page's lists: { v2 (his outfits can be worn: the v2 traveller is drawn), sword (he has it), outfits: [{ id, name,
- * unlocked, worn }], blades: [{ id, name, house, swatch, worn }] } (no blades without the sword).
+ * unlocked, worn, how (one not his yet: where to win it) }], blades: [{ id, name, house, swatch, worn }] } (no blades without the sword).
  */
 export function wardrobeData({ state, v2 = false, sword = true } = {}) {
   const outfit = chosenOutfit(state), blade = chosenColour(state, 'sword');
   return {
     v2: !!v2, sword: !!sword,
-    outfits: OUTFITS.map((o) => ({ id: o.id, name: o.name, unlocked: outfitUnlocked(o, state), worn: o.id === outfit })),
+    outfits: OUTFITS.map((o) => {
+      const unlocked = outfitUnlocked(o, state);
+      return { id: o.id, name: o.name, unlocked, worn: o.id === outfit, ...(unlocked ? {} : { how: howToWin(rewardOfOutfit(o.id)) }) };
+    }),
     blades: sword ? bladeColours(state).map((b) => ({ ...b, worn: b.id === blade })) : [],
   };
 }

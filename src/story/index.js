@@ -25,6 +25,7 @@ import { keyBadge, escapeHtml } from '../prompt-keys.js';
 import { hintsFor } from '../hint-level.js';
 import { shoulders, tagPlace } from '../talk-prompt.js';
 import { hostOf, hostTalk, hostStand } from '../minigames/kit/hosts.js';
+import { rewardFor, outfitWon } from '../minigames/kit/rewards.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
@@ -387,7 +388,8 @@ export function createStory(o) {
     if (!H) return null;
     // (Play once the talk has closed: the game's card or page comes up over the world, not over the panel)
     const later = (f) => { const go = () => (dialogue.open ? setTimeout(go, 40) : f()); setTimeout(go, 0); };
-    const def = hostTalk(H, spot.play, { later, name: spot.name, lacks: spot.lacks });
+    const prize = rewardFor(spot.id);   // (a game's outfit, issue #668: the host speaks of it until it is won)
+    const def = hostTalk(H, spot.play, { later, name: spot.name, lacks: spot.lacks, prizeWon: prize ? () => outfitWon(game, prize.outfit) : null });
     def.id ??= `host.${spot.id}`;
     if (H.object) {
       rumours.addHost({ id: def.id, name: H.name ?? 'the makers’ post', title: '', object: true, at: spot.at, lacks: spot.lacks });

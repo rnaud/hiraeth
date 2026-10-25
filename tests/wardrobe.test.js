@@ -17,6 +17,9 @@ const { menuSources } = await import('../src/game-menu-data.js');
 const { EngineMenus } = await import('../engine/menus.js');
 const { Controller } = await import('../src/controller.js');
 const { KIT_COLOURS, unlockColours, chosenColour } = await import('../src/kit-colours.js');
+const { OUTFIT_REWARDS, outfitFlag } = await import('../src/minigames/kit/rewards.js');
+/** A save that has won every game's outfit (issue #668). */
+const WON = Object.fromEntries(OUTFIT_REWARDS.map((r) => [outfitFlag(r.outfit), true]));
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 /** A save's state over memory (game.flag / set). */
@@ -29,29 +32,37 @@ function dresser(start = 'default') {
 const settle = () => new Promise((r) => setTimeout(r, 0));
 /** The page's host on a fake game: the save, the kit's paint counted, the sword owned, v2 drawn or not. */
 function host({ flags = {}, v2 = true, sword = true } = {}) {
-  const game = state(flags), dress = v2 ? dresser(chosenOutfit(game)) : null, kit = { painted: 0, paint() { this.painted++; } };
+  const game = state({ ...WON, ...flags }), dress = v2 ? dresser(chosenOutfit(game)) : null, kit = { painted: 0, paint() { this.painted++; } };
   const player = { object: new THREE.Group(), pos: new THREE.Vector3(), heading: 0, frame: null };
   new THREE.Scene().add(player.object);
   const w = wireWardrobe({ game, kit, tool: { swordOn: sword }, player, dress: () => dress });
   return { w, game, dress, kit, player };
 }
 
-test('the outfits: his own clothes and all fifteen outfits, the list outfits.json makes; each with its unlocked flag, all his from the start', () => {
+test('the outfits: his own clothes and all fifteen outfits, the list outfits.json makes; each with its unlocked flag, the games\' prizes won', () => {
   const list = JSON.parse(src('data/characters/traveller-v2/outfits.json'));
   assert.deepEqual(OUTFITS.map((o) => o.id), list.outfits.map((o) => o.id), 'the same outfits, in the same order');
   assert.equal(OUTFITS.length, 16);
   assert.equal(OUTFITS[0].id, 'default');
   const d = wardrobeData({ state: state(), v2: true });
-  assert.ok(d.outfits.every((o) => o.unlocked), 'all available from day one (the author, 2026-10-20)');
+  const prizes = new Set(OUTFIT_REWARDS.map((r) => r.outfit));
+  assert.equal(prizes.size, 9, 'nine outfits are the games\' prizes (issue #668)');
+  for (const o of d.outfits) {
+    assert.equal(o.unlocked, !prizes.has(o.id), `${o.id}: ${prizes.has(o.id) ? 'won at its game' : 'his from the start'}`);
+    if (!o.unlocked) assert.match(o.how, /^Won at .+: .+\.$/, `${o.id} says where it is won`);
+  }
+  assert.ok(wardrobeData({ state: state({ ...WON }), v2: true }).outfits.every((o) => o.unlocked), 'every prize won: all his');
   assert.deepEqual(d.outfits.filter((o) => o.worn).map((o) => o.id), ['default'], 'his own clothes worn on a new save');
   // later: an outfit won by progress, by a flag of the save
   const later = { id: 'x', unlock: { flag: 'temple.desert.done' } };
   assert.equal(outfitUnlocked(later, state()), false);
   assert.equal(outfitUnlocked(later, state({ 'temple.desert.done': true })), true);
   // the save's choice; one that isn't his (or no longer exists) is his own clothes
-  assert.equal(chosenOutfit(state({ [OUTFIT_KEY]: 'lamplighter' })), 'lamplighter');
+  assert.equal(chosenOutfit(state({ ...WON, [OUTFIT_KEY]: 'lamplighter' })), 'lamplighter');
+  assert.equal(chosenOutfit(state({ [OUTFIT_KEY]: 'lamplighter' })), 'default', 'a prize not won is not worn');
+  assert.equal(chooseOutfit(state(), 'lamplighter'), false, 'nor chosen');
   assert.equal(chosenOutfit(state({ [OUTFIT_KEY]: 'tuxedo' })), 'default');
-  const g = state();
+  const g = state({ ...WON });
   assert.equal(chooseOutfit(g, 'tuxedo'), false);
   assert.equal(chooseOutfit(g, 'pearl-diver'), true);
   assert.equal(g.flags[OUTFIT_KEY], 'pearl-diver');
@@ -75,7 +86,7 @@ test('the blade\'s colours: only those won (the makers\' jade always, one a figh
 });
 
 test('the page: the outfits then the blades, a row each, A / × wears all but the one worn; with B3 the outfits need the new traveller', () => {
-  const g = state({ 'kit.colours.ember': true });
+  const g = state({ ...WON, 'kit.colours.ember': true });
   const v2 = wardrobePanel(wardrobeData({ state: g, v2: true }));
   assert.deepEqual(v2.rows.map((r) => `${r[0].kind}:${r[0].id}`), [...OUTFITS.map((o) => `outfit:${o.id}`), 'blade:makers', 'blade:ember']);
   assert.ok(v2.rows.every((r) => r.length === 1 && r[0].col === 0), 'one column: ↑ ↓ go through both lists');
@@ -90,6 +101,12 @@ test('the page: the outfits then the blades, a row each, A / × wears all but th
   assert.equal(locked.rows[1][0].act, null);
   assert.ok(locked.rows[1][0].locked);
   assert.match(locked.html, /line wd-outfit locked/);
+  // a prize not won (issue #668): its name, and where it is won under it
+  const fresh = wardrobePanel(wardrobeData({ state: state(), v2: true }));
+  const diver = fresh.rows.find((r) => r[0].id === 'pearl-diver')[0];
+  assert.equal(diver.name, 'Pearl diver');
+  assert.equal(diver.act, null);
+  assert.match(diver.sub, /^Not yours yet · Won at the Desert’s mineral basin: land 8 kg of fish\.$/);
   // B3: no outfit rows, the line that says why; the blades as before
   const b3 = wardrobePanel(wardrobeData({ state: g, v2: false }));
   assert.deepEqual(b3.rows.map((r) => r[0].kind), ['blade', 'blade']);

@@ -672,7 +672,8 @@ function start(ctx) {
           ];
           if (adv) lines.push(Math.abs(adv.ms) < 15 ? `Your timing sits on the beat (${adv.ms >= 0 ? '+' : ''}${adv.ms} ms)` : `Your hits were ${Math.abs(adv.ms)} ms ${adv.ms > 0 ? 'late' : 'early'}: try Timing ${adv.suggest > 0 ? '+' : ''}${adv.suggest} ms`);
           band.close(2.5);
-          ctx.finish({ score: run.score, title: rank(acc) === 'D' ? 'The circle carried on' : 'The circle cheers', lines });
+          // (passed: half the beats or more, the circle cheering: the festival outfit's goal, src/minigames/kit/rewards.js; never the posed run)
+          ctx.finish({ score: run.score, passed: rank(acc) !== 'D' && !auto.on, title: rank(acc) === 'D' ? 'The circle carried on' : 'The circle cheers', lines });
         }
       }
       if (beat > beatHeard) beatHeard = beat;

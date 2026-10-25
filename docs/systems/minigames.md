@@ -162,6 +162,40 @@ refused a moment later by the notice. Once had, the lines and Play / Not now as 
 The Arena's Ink tide and the Arcade's signs are a developer's and keep their buttons; Chime pirates is the flight
 between worlds, not a sign.
 
+## Outfits as prizes (issue #668: `src/minigames/kit/rewards.js`)
+
+Nine of the Wardrobe's outfits (src/wardrobe.js, docs/systems/ui.md "The Wardrobe") are won at the games played in the
+main route's worlds (never the discarded side worlds'); the other six and his own clothes are his from the start. No new
+outfit was made: the prizes are the existing v2 outfits.
+
+| game | where | goal (`goal`) | outfit |
+|---|---|---|---|
+| Wing drop | the Desert's hanging bridge, west shelf | 900 points over the three drops (`points`) | Glider pilot |
+| The shooting gallery | the Signal Market's west pavement | 900 points in the minute, Fitz's own "good" (`points`) | Lamplighter |
+| Fishing | the Desert's mineral basin | 8 kg landed (`points`) | Pearl diver |
+| Canyon run (the three laps, after the wager) | the Desert's Two Chasms | finish (`finish`) | Storm courier |
+| Dune skiing | the Desert's Long Dune | finish (`finish`) | Frost surveyor |
+| Sketch hunt | the Signal Market's pavement | all six sketched, the page full (`passed`) | Observatory apprentice |
+| Drum circle | the Desert pilgrims' small fire | half the beats, rank C or better (`passed`) | Festival traveller |
+| Sky steps | Vael's start plateau, west rim | reach the makers' gate (`finish`) | Gravity ranger |
+| Ring race | the Desert's hanging bridge, east shelf | finish (`finish`) | Comet pathfinder |
+
+- **The goal** (`meetsGoal`): never a failed run (out of lives, a duel lost); `finish` any run finished, `points` the
+  score at or over the mark, `passed` the game's own mark of a good run, `ctx.finish({ passed })` (drums.js: rank C or
+  better, never the posed run; sketchhunt.js: the page full).
+- **The award** (`awardOutfit`, called by the runner's `finish`, kit/runner.js, so the web and the engines (engine/trials.js
+  makes the same runner) give it alike): the first run that meets the goal sets the save's flag `outfit.<id>` and the
+  results card shows it (`prizeHtml`: "New outfit", its name, "Wear it from the Wardrobe (Menu)."; the engines' card
+  draws it from `extra`, its plain lines). Won, a replay gives nothing more and takes nothing back; the flag is the
+  Wardrobe's `unlock` (`{ flag: 'outfit.<id>' }`), kept in the save slot like any flag.
+- **Before**: the host's own toned line on it (`prize` in src/story/hosts-data.js, said after their lines until it is
+  won: hostTalk's `prizeWon`; Kamal's on his "won" page, src/story/bike-wager.js, since the three laps' sign has no host
+  of its own), and the start card's rules end "The prize: the pearl diver's outfit, to land 8 kg of fish." (`prizeRule`)
+  until it is won. The Wardrobe lists each one not won by its name with where and what (`howToWin`): where, never who.
+- **Old saves** (src/save-migrate.js step 30): the outfit a save wears, if it became a prize, is kept as won.
+- Tests: `tests/outfit-rewards.test.js` (the mapping, the hosts' lines, each goal, replaying, the save across a reload
+  and step 30, the runner's results), `tests/wardrobe.test.js` (locked outfits and where they are won).
+
 ## The Arcade
 
 A developer's plaza for trying the games (`src/levels/arcade.js`, `?level=arcade`, `dev: true`, next to the Gadget
