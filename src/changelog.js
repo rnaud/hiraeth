@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.23', date: '2026-10-24',
+    items: [
+      { text: 'Achille explains where to stand and how to use the spring boots to send a deep note through the Whale-House’s dishes.', see: 'After entering the Whale-House, tell Achille that the Listener shuts its ear to anything close. His hint names the ball, footstone, floor position and jump-and-stomp action.' },
+    ],
+  },
+  {
     v: '2.22', date: '2026-10-24',
     items: [
       { text: 'The Lamp-House, Clock-House and Footprint maps stand on low plinths aligned with the floor tiles, with each chest’s back toward the nearest wall and its opening facing into the room.', see: 'Look for the map in the Lamp-House’s Roots, the Clock-House’s Striking Room and the Footprint’s Still Pool. Walk around the display and open it normally.' },

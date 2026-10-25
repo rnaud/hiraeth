@@ -60,7 +60,7 @@ export const PEOPLE = {
         },
         near: {
           say: ['~solemn~ It was built to hear the whales from far off. The makers never sang to its face. They sang into the dishes.',
-            '~neutral~ A dish only carries with a weight on its footstone. Put one there, and boom the deep note into it.'],
+            '~neutral~ Roll a ball onto the dish’s footstone. Stand on the floor beside the dish, clear of the ball. Jump and stomp with the spring boots while the Listener’s ear is open.'],
           choices: [{ text: '~neutral~ I’ll try that.', end: true }],
         },
         after: {

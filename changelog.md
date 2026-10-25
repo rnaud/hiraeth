@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.23 — 2026-10-24
+
+- Achille explains where to stand and how to use the spring boots to send a deep note through the Whale-House’s dishes.
+
 ## v2.22 — 2026-10-24
 
 - The Lamp-House, Clock-House and Footprint maps stand on low plinths aligned with the floor tiles, with each chest’s back toward the nearest wall and its opening facing into the room.

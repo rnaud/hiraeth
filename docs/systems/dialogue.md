@@ -281,3 +281,21 @@ comparison, three-page controller flow, narrow Larger text and plain speech.
 Native narrow fitting may reduce type size on longer pages. These staged private
 reviews do not claim physical-controller, installed-device or portrait-identity
 coverage. Reviewed web and native pictures accompany the v2.21 changelog line.
+
+### Whale-House repeat hint (#626)
+
+Achille’s visited-house `inside → near` branch names the ball and matching
+footstone, the floor beside the dish, and the spring-boots jump and stomp while
+the Listener is listening. Standing clear of the ball avoids using it as a
+support. The relay still reaches the Listener after its existing delay; the
+hint does not change that timing, any puzzle condition, or the conversation’s
+two pages, replies, neutral tone or save effects.
+
+The v2.23 after-only browser picture shows the complete hint and actual portrait
+after ordinary nearby interaction and production save/reload. The review staged
+a prior visit, learned tutorials and one initial nearby position; it does not
+prove the walked approach or puzzle completion. The native editor review also
+verified the complete conversation, ordinary replies and production save/reload
+across two VM boots at 1280×960 with normal text and keyboard input. It does not
+claim installed-device coverage; Achille’s existing torso material differs
+between browser and native rendering.
