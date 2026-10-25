@@ -2478,12 +2478,12 @@ export class Foes {
   react(f, mode, dir, info = {}, point = null, last = false) {
     const R = f.react;
     if (!R) return;
-    const kind = f.shrugged ? 'shrug' : last || f.reel === 'staggered' || f.reel === 'riposted' || f.toppled > 0 || (info.damage ?? 1) >= 2 ? 'stagger' : 'flinch';
+    const kind = info.reel ?? (f.shrugged ? 'shrug' : last || f.reel === 'staggered' || f.reel === 'riposted' || f.toppled > 0 || (info.damage ?? 1) >= 2 ? 'stagger' : 'flinch');
     installFlash(f.model, R);
     // An overhead / directionless blow still tips away from the foe's front,
     // rather than inheriting an unrelated previous hit or losing its shove.
     const reactionDir = dir && Math.hypot(dir.x, dir.z) > 1e-5 ? dir : _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
-    R.hit(reactionDir, kind, { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.state === 'recover' ? f.timer : 0 });
+    R.hit(reactionDir, kind, { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.state === 'recover' ? f.timer : 0, flash: info.flash ?? true });
     if (mode !== 'blade' && mode !== 'world') return;
     const T = this.tool, at = point ?? f.chest, tones = splashTones(R.family, f.model.tones);
     if (!T?.drops) return;
@@ -2805,6 +2805,10 @@ export class Foes {
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
       f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
+      // its body reels back off the shield as it would from a cut (src/foe-react.js; issue #672, the BotW study: a guarded
+      // blow throws the attacker off balance, and that reel is what says "now"): a perfect parry a full stagger held
+      // while it is open, a plain block a flinch; no flash on a plain block (it took no harm)
+      this.react(f, 'guard', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { reel: perfect ? 'stagger' : 'flinch', flash: perfect });
       if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried') && hintsFor('tip')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised as the blow landed, it costs nothing and stuns.'); } }
       // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
       // cut (the drone, the root knot dazed)

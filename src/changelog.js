@@ -20,6 +20,10 @@ export const CHANGELOG = [
     items: [
       { text: "Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.", see: "Ask Abel why the mirror shines at his wall. Ask Sel why it went quiet, then where the cylinder is now. Follow the replies to hear their instructions." },
       { text: 'The dark spot under you while you jump or fall is now easier to read: a solid ink-edged shadow that shows clearly indoors and in caves, sits on lifts and other moving floors you are about to land on, and stops at a ledge’s edge instead of hanging over the drop.', see: 'Jump off a ledge, onto a moving lift, or inside a dark room: the spot lies exactly where you will land. The Shadow Room in the Debug menu has all three.' },
+      { text: 'Foes now visibly reel back off your shield: a perfect parry throws them off balance and holds them leaning while they are open, and a plain block knocks them back a step.', numbers: [{ title: 'How far a guarded foe’s body reels back', unit: '°', better: 'higher', device: 'node, the game’s own hit-reaction springs (src/foe-react.js) on the ink blot, the furnace brute and the stilt heron, 60 steps a second', rows: [
+        { where: 'perfect parry: tilt', before: 0, after: '25–28' },
+        { where: 'plain block: tilt', before: 0, after: '8–10' },
+      ], source: 'Foes.strike with the guard answering, the body’s springs stepped for 3 s, before and after this change', note: 'A perfect parry also shoves the body 28–32 cm and holds its lean 2.2–3.0 s while it is open; a plain block shoves it 9–12 cm and settles in 0.25 s. Before, only the whole foe slid back.' }], see: 'Lock on to any foe and hold LB / L1 as its blow comes; tap it just as the blow lands for a perfect parry and watch the foe’s body rock back.' },
     ],
   },
 

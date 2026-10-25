@@ -919,6 +919,10 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   killing blow) 0.3 m / 0.42 rad, slower, leaning while it reels; a cut it shrugs off (armour, a committed blow) a little;
   smaller bodies move more (`size^0.35`). Each frame the body is put back as its own pose left it before it poses again
   (`restoreBody`), so nothing accumulates. The old kinds keep their recoil.
+- **Thrown back off the guard** (issue #672, `docs/design/combat-botw-study.md`): a blow the traveller guards reels the
+  attacker's body too (`Foes.strike` → `react(f, 'guard', …, { reel, flash })`): a perfect parry a stagger held while it
+  is open (and the flash), a plain block a flinch without the flash (it took no harm). Before, an archetype only slid
+  back: its body never moved (the old recoil is off for archetypes). `tests/guard-reel.test.js`.
 - **The flash** (`installFlash`): for `REACT.flash.time` (0.18 s) each of its meshes, as it is drawn (not in the shadow
   pass: the scene's override material), takes its family's pale tone (`REACT.tone`), is self-lit over the bloom's
   threshold (`uGlow`: a printed halo) and, for its first 0.08 s, has its line drawn white (`uLineWhite`; the shade's,
