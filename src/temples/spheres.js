@@ -241,7 +241,7 @@ export const LOGIC = {
     lift: { type: 'drum', room: 'rim', stops: { pUp: 0, pDown: 1 }, start: 0, roll: 'hand', through: 'well' },
     bW: { type: 'bridge', opens: { drumOn: ['lift', 'pUp'] } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'pool', at: [14.6, -18, 69.8], yaw: -Math.PI / 2 },
+    map: { type: 'map', room: 'pool', at: [13.5, -18, 70.5], yaw: -Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

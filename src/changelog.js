@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.22', date: '2026-10-24',
+    items: [
+      { text: 'The Lamp-House, Clock-House and Footprint maps stand on low plinths aligned with the floor tiles, with each chest’s back toward the nearest wall and its opening facing into the room.', see: 'Look for the map in the Lamp-House’s Roots, the Clock-House’s Striking Room and the Footprint’s Still Pool. Walk around the display and open it normally.' },
+    ],
+  },
+  {
     v: '2.21', date: '2026-10-24',
     items: [
       { text: 'Conversations use a compact dark panel, a small portrait and plain replies, with a brass diamond marking the selected answer.', see: 'Talk to someone, move between replies and compare Larger text or the plain speech background. The words and controls are unchanged.' },

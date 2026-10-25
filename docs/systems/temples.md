@@ -3239,3 +3239,20 @@ Map IDs, plinth dimensions and progression stay unchanged. Real-definition tests
 check skin-grid phase, nearest-wall facing and the existing puzzle-lane bounds.
 Earlier diagonal/cardinal-only pictures and native plans remain historical evidence;
 they do not qualify the current tile-and-wall revision.
+
+
+The next scoped map-display batch applies the same scale/plinth to the Lamp-House
+Roots, Clock-House Striking Room and Footprint Still Pool. Lamp uses the actual
+2.4 m local floor grid; Clock uses 3 m room-centred cells; Footprint uses 3 m
+room-relative cells. Each back faces its nearest full room wall. Clock uses local negative Z
+for its back (yaw 0), avoiding world-compass ambiguity. Footprint
+has an exact east/south distance tie and deliberately chooses east. Only map
+position, yaw and display change; puzzle geometry, IDs, keys and gates remain
+unchanged. Matched muted browser views and three Unity runs verify normal map
+opening, Enter confirmation, walking on both sides, an ordinary jump and an
+actual save/reload with unchanged keys and gates. All 24 native originals were
+reviewed, and native inputs, bundles and default settings were restored. Access
+to these rooms was staged; these checks do not establish earned temple traversal,
+continuous swept clearance or standing atop the chest. Browser pairs preserve
+the observation camera; Unity pictures are after-only. Source footprint checks
+remain separate from actual player movement evidence.

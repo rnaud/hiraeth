@@ -295,7 +295,7 @@ export const LOGIC = {
     kB: { type: 'key', kind: 'big', room: 'cupboard' },
     cache: { type: 'cache', room: 'cupboard' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'springs', at: [WING.strike.x + 10, 0, WING.strike.z - 11], yaw: -Math.PI / 4 },
+    map: { type: 'map', room: 'springs', at: [60.2, 0, 78.7], yaw: 0, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
     // (v1.83, issue #414, G1) THE HOUR: the great clock's hand at two, four or six (four the start), turned on at a lever by
     // the stair's foot, on its crown, on every dock and on the Escapement's far landing. Last, so the scout points at
     // anything else to do first. Its arm meets one dock: st2 (the north door), st4 (the Pendulum Hall's high door), st6

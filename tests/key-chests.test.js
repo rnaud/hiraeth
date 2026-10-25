@@ -236,8 +236,8 @@ test('the great key\'s chest and the map\'s: a card as a makers\' box\'s, once; 
   } finally { off(); boxes.dispose(); rt.dispose?.(); }
 });
 
-test('the six map displays retain optional collection and opened-save state without enlarging keys', () => {
-  for(const id of ['desert','bazaar','arzach','buried','underwater','arzach2']) {
+test('the nine map displays retain optional collection and opened-save state without enlarging keys', () => {
+  for(const id of ['desert','bazaar','arzach','buried','underwater','arzach2','perdide2','garage','spheres']) {
     game.reset();
     const first=world(id), rt=first.rt;
     const map=rt.pieces.find(p=>p instanceof MapChest);

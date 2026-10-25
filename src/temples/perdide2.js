@@ -310,7 +310,7 @@ export const LOGIC = {
     lamp: { type: 'drum', room: 'hallUp', rooms: ['pools', 'lantern', { room: 'galleryFar', needs: ['hook'] }], stops: { lampDark: 0, lampLit: 1 }, start: 0, roll: 'hand', verb: 'lamp' },
     lampDark: { type: 'plate' }, lampLit: { type: 'plate' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'roots', at: [-17.5, 0, 63 + S], yaw: Math.PI / 2 },
+    map: { type: 'map', room: 'roots', at: [-15.6, 0, 87.6], yaw: Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

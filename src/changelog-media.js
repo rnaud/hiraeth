@@ -1349,6 +1349,52 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.22': [
+  {
+    "match": "The Lamp-House, Clock-House and Footprint maps stand",
+    "shots": [
+      {
+        "name": "map-lamp-tiles",
+        "title": "Lamp-House",
+        "caption": "The Lamp-House map stands on a low plinth aligned with the tiles, its back toward the nearest wall.",
+        "from": "Actual muted browser canvas, 24–25 October 2026. Matched staged camera before and after the three-chest candidate on 9e3987a; world animation timing differs. Chest source was preserved byte-for-byte onto 7a27fd05. Private initial room access, not earned temple traversal. Full originals retained; resized to 1280 pixels wide."
+      },
+      {
+        "name": "map-lamp-unity",
+        "title": "Lamp-House · Unity",
+        "only": "after",
+        "caption": "The Lamp-House map stands on a low plinth aligned with the tiles, its back toward the nearest wall.",
+        "from": "Actual Unity 1280 × 960 closed-entry capture, 25 October 2026, 7a27fd05 plus the exact pinned three-chest candidate. Muted private store and initial room staging; ordinary map opening, side walking, jump and real save/reboot separately verified. After-only, not a matched web/native comparison."
+      },
+      {
+        "name": "map-clock-tiles",
+        "title": "Clock-House",
+        "caption": "The Clock-House map stands on a low plinth aligned with the tiles, its back toward the nearest wall.",
+        "from": "Actual muted browser canvas, 24–25 October 2026. Matched staged camera before and after the three-chest candidate on 9e3987a; world animation timing differs. Chest source was preserved byte-for-byte onto 7a27fd05. Private initial room access, not earned temple traversal. Full originals retained; resized to 1280 pixels wide."
+      },
+      {
+        "name": "map-clock-unity",
+        "title": "Clock-House · Unity",
+        "only": "after",
+        "caption": "The Clock-House map stands on a low plinth aligned with the tiles, its back toward the nearest wall.",
+        "from": "Actual Unity 1280 × 960 closed-entry capture, 25 October 2026, 7a27fd05 plus the exact pinned three-chest candidate. Muted private store and initial room staging; ordinary map opening, side walking, jump and real save/reboot separately verified. After-only, not a matched web/native comparison."
+      },
+      {
+        "name": "map-footprint-tiles",
+        "title": "Footprint",
+        "caption": "The Footprint map stands on a low plinth aligned with the tiles, its back toward the nearest wall.",
+        "from": "Actual muted browser canvas, 24–25 October 2026. Matched staged camera before and after the three-chest candidate on 9e3987a; world animation timing differs. Chest source was preserved byte-for-byte onto 7a27fd05. Private initial room access, not earned temple traversal. Full originals retained; resized to 1280 pixels wide."
+      },
+      {
+        "name": "map-footprint-unity",
+        "title": "Footprint · Unity",
+        "only": "after",
+        "caption": "The Footprint map stands on a low plinth aligned with the tiles, its back toward the nearest wall.",
+        "from": "Actual Unity 1280 × 960 closed-entry capture, 25 October 2026, 7a27fd05 plus the exact pinned three-chest candidate. Muted private store and initial room staging; ordinary map opening, side walking, jump and real save/reboot separately verified. After-only, not a matched web/native comparison."
+      }
+    ]
+  }
+],
   '2.21': [
   {
     "match": "Conversations use a compact dark panel",

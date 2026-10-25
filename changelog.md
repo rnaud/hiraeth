@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.22 — 2026-10-24
+
+- The Lamp-House, Clock-House and Footprint maps stand on low plinths aligned with the floor tiles, with each chest’s back toward the nearest wall and its opening facing into the room.
+
 ## v2.21 — 2026-10-24
 
 - Conversations use a compact dark panel, a small portrait and plain replies, with a brass diamond marking the selected answer.

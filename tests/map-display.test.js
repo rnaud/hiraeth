@@ -132,3 +132,47 @@ test('each raised map chest has its back toward the nearest full room wall', () 
     assert.ok((-Math.sin(yaw))*wall[2][0]+(-Math.cos(yaw))*wall[2][1] > 1-1e-10,def.id+' back points at wall');
   }
 });
+
+
+import { PERDIDE2_TEMPLE, ROOMS as LAMP_ROOMS } from '../src/temples/perdide2.js';
+import { GARAGE_TEMPLE, WING as CLOCK_WING } from '../src/temples/garage.js';
+import { SPHERES_TEMPLE, ROOMS as FOOT_ROOMS } from '../src/temples/spheres.js';
+import { LAMP_SKIN } from '../src/temples/skins/lamp-house.js';
+import { CLOCK_SKIN } from '../src/temples/skins/clock-house.js';
+import { FOOT } from '../src/temples/skins/footprint.js';
+
+const NEXT_DISPLAYS = [PERDIDE2_TEMPLE, GARAGE_TEMPLE, SPHERES_TEMPLE];
+test('Lamp, Clock and Footprint displays follow actual floor grids and back nearest walls', () => {
+  const c = CLOCK_WING.strike;
+  const cases = [
+    [PERDIDE2_TEMPLE, LAMP_ROOMS.roots, [0,0], LAMP_SKIN.floor.plate, 0, 'west'],
+    [GARAGE_TEMPLE, {x0:c.x-c.w/2,x1:c.x+c.w/2,z0:c.z-c.d/2,z1:c.z+c.d/2}, [c.x,c.z], [CLOCK_SKIN.plate[0],CLOCK_SKIN.plate[0]], .5, 'south'],
+    [SPHERES_TEMPLE, FOOT_ROOMS.pool, [(FOOT_ROOMS.pool.x0+FOOT_ROOMS.pool.x1)/2,(FOOT_ROOMS.pool.z0+FOOT_ROOMS.pool.z1)/2], [FOOT.floor.plate,FOOT.floor.plate], 0, 'east'],
+  ];
+  const fract = v => v-Math.floor(v);
+  for (const [def,room,origin,size,phase,expected] of cases) {
+    const {at:[x,,z],yaw,display}=def.logic.elements.map;
+    assert.deepEqual(display,{scale:1.5,plinth:[1.8,.24,1.6]});
+    assert.ok(Math.abs(fract((x-origin[0])/size[0]+phase)-.5)<1e-10,def.id+' tile x');
+    assert.ok(Math.abs(fract((z-origin[1])/size[1]+phase)-.5)<1e-10,def.id+' tile z');
+    const walls=[['west',x-room.x0,[-1,0]],['east',room.x1-x,[1,0]],['south',z-room.z0,[0,-1]],['north',room.z1-z,[0,1]]];
+    const chosen=walls.find(w=>w[0]===expected),nearest=Math.min(...walls.map(w=>w[1]));
+    assert.ok(Math.abs(chosen[1]-nearest)<1e-8,def.id+' nearest wall (Footprint east wins tie)');
+    assert.ok(-Math.sin(yaw)*chosen[2][0]-Math.cos(yaw)*chosen[2][1]>1-1e-10,def.id+' back points at wall');
+  }
+});
+
+test('three new plinth footprints retain support and leave machinery and pool routes clear', () => {
+  const bounds=def=>{const e=def.logic.elements.map,d=mapDisplay(e.at,e.display,e.yaw);d.plinth.computeBoundingBox();const b=d.plinth.boundingBox.clone();assert.ok(Math.abs(b.min.y-e.at[1])<1e-5);assert.ok(Math.abs(b.max.y-d.at[1])<1e-5);d.plinth.dispose();return b;};
+  const lamp=bounds(PERDIDE2_TEMPLE),lr=LAMP_ROOMS.roots;
+  assert.ok(lamp.min.x>lr.x0+1.5 && lamp.max.x< -13,'wall walkway and x-12 inscription remain clear');
+  assert.ok(lamp.min.z>lr.z0+1.5 && lamp.max.z<lr.z0+lr.near-1.5,'near slab and pit boundary remain clear');
+  assert.ok(lamp.max.y+2<9-.6,'full standing height below west return ledge');
+  const clock=bounds(GARAGE_TEMPLE),c=CLOCK_WING.strike,t=CLOCK_WING.track;
+  assert.ok(clock.min.z>c.z-c.d/2+1.5 && clock.max.z<t.z0-1.5,'south wall and hour track approach clear');
+  assert.ok(clock.max.x<c.x+c.w/2-1.5 && clock.min.x>t.x+3.05+.25+1.5,'east wall and clock posts clear');
+  const foot=bounds(SPHERES_TEMPLE),fr=FOOT_ROOMS.pool;
+  assert.ok(foot.min.z>fr.z0+1.5 && foot.max.z<fr.z0+fr.near-1.5,'fully on near slab, not a pool shortcut');
+  assert.ok(foot.max.x<fr.x1+1e-6 && foot.min.x>3.5+3.4/2+1.5,'bridge approach at x3.5 remains clear');
+  assert.equal(SPHERES_TEMPLE.logic.elements.map.at[1],fr.ledge);
+});
