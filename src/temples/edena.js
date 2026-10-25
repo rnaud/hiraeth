@@ -225,7 +225,7 @@ export const LOGIC = {
     sluice: { type: 'drum', room: 'potting', rooms: ['potting', 'landing', 'bud'], stops: { wLow: 0, wHigh: 1 }, start: 1, roll: 'hand', verb: 'sluice' },
     wLow: { type: 'plate' }, wHigh: { type: 'plate' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'vault', at: [-49.8, 0, 60.8], yaw: Math.PI / 4 },
+    map: { type: 'map', room: 'vault', at: [-49.2, 0, 62.4], yaw: Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

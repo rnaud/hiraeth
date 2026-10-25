@@ -299,3 +299,7 @@ verified the complete conversation, ordinary replies and production save/reload
 across two VM boots at 1280×960 with normal text and keyboard input. It does not
 claim installed-device coverage; Achille’s existing torso material differs
 between browser and native rendering.
+
+### Joss and Hobb repeat hints (#626)
+
+Joss’s inside → pull hint identifies the thrown anchor as the tether target. Hobb’s inside → note hint identifies the makers’ hourglass as the tool for keeping and replaying a nearby sung note. Adjacent pages, replies, tones and progression are unchanged. Actual staged browser conversations and normal-keyboard native Editor conversations were reviewed through their replies and production save/reload. Each native case used two fresh VM boots; all sixteen original panels were inspected. The after-only native pictures show the revised lines. These checks do not claim walked approaches, puzzle completion, installed devices or character-material parity.

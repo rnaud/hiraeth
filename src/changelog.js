@@ -9,6 +9,20 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.25', date: '2026-10-25',
+    items: [
+  {
+    "text": "The Seed Vault, Casting Stair and Choir maps now stand on low plinths aligned with the floor tiles, with their backs toward the nearest wall and their openings facing into the room.",
+    "see": "Find the maps in the Builders’ Greenhouse, Casting-House and Hush-House. Approach and open them normally, then save and return: collected maps stay collected."
+  },
+  {
+    "text": "Joss explains which anchor to pull with your tether, and Hobb explains how the makers’ hourglass keeps and plays back a note.",
+    "see": "After visiting their temples, ask Joss about the machine behind the barred gate, or tell Hobb that the doors need their own notes played back. Follow the replies to hear each hint."
+  }
+],
+  },
+
+  {
     v: '2.24', date: '2026-10-25',
     items: [
       { text: 'The Founders’ Belfry porch now has solid floor through its doorway, so you can walk into the Hall of Echoes and back without dropping through a gap.', see: 'Ring the porch bell after finding the hook, then walk through the open doorway toward the Hall of Echoes and back. The floor also stays solid after the bell falls quiet.' },

@@ -221,7 +221,7 @@ export const LOGIC = {
     d5: { type: 'door', opens: { resolved: true }, room: 'hall' },
     cache: { type: 'cache', room: 'stilling' },                    // in the smallest mouth's niche
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'choir', at: [-20.8, 0, 33.2], yaw: Math.PI / 4 },
+    map: { type: 'map', room: 'choir', at: [-19.5, 0, 38.7], yaw: Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

@@ -1349,6 +1349,59 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.25': [
+  {
+    "match": "The Seed Vault, Casting Stair and Choir maps now stand on low plinths aligned with the floor tiles, with their backs toward the nearest wall and their openings facing into the room.",
+    "shots": [
+      {
+        "name": "edena-map",
+        "caption": "Seed Vault: aligned with the floor, back toward the nearest wall.",
+        "from": "Actual muted internal-browser game, 25 October 2026. Before 520922eda; after same base plus placement diff fcc7adc97abfdc01db5a783e2041db4be1baa2f4f7e49437a98556a19cc40c43. Full-frame 2560 × 1150 originals resized to 1280 pixels wide, quality 72.",
+        "view": "Identical staged entry pose, camera and direction; ambient/player animation may differ. Player partly overlaps the display. Canvas excludes DOM map card; stills do not prove clearance."
+      },
+      {
+        "name": "moonfoundry-map",
+        "caption": "Casting Stair: aligned with the floor, back toward the nearest wall.",
+        "from": "Actual muted internal-browser game, 25 October 2026. Before 520922eda; after same base plus placement diff fcc7adc97abfdc01db5a783e2041db4be1baa2f4f7e49437a98556a19cc40c43. Full-frame 2560 × 1150 originals resized to 1280 pixels wide, quality 72.",
+        "view": "Identical staged entry pose, camera and direction; ambient/player animation may differ. Before chest is partly behind the player. Canvas excludes DOM map card; stills do not prove clearance."
+      },
+      {
+        "name": "perdide-map",
+        "caption": "Choir: aligned with the floor, back toward the nearest wall.",
+        "from": "Actual muted internal-browser game, 25 October 2026. Before 520922eda; after same base plus placement diff fcc7adc97abfdc01db5a783e2041db4be1baa2f4f7e49437a98556a19cc40c43. Full-frame 2560 × 1150 originals resized to 1280 pixels wide, quality 72.",
+        "view": "Identical staged entry pose, camera and direction; ambient/player animation may differ. Before chest is obscured by the unchanged crystal; after it is visible beside it. Canvas excludes DOM map card; stills do not prove clearance."
+      }
+    ]
+  },
+  {
+    "match": "Joss explains which anchor",
+    "shots": [
+      {
+        "name": "joss-hint",
+        "only": "after",
+        "caption": "Joss’s revised hint — native Editor, after only",
+        "from": "Muted native Editor at 7bb9886c4947fe128df1bb054745bb6f822044f6 plus the two reviewed Joss/Hobb dialogue lines. Normal keyboard, 1280×960. Staged prior visit and initial nearby pose; ordinary interaction, replies and production save/reload. No installed-device or puzzle-completion claim.",
+        "view": "Full original frame; existing renderer-specific costume appearance is outside this text-only change.",
+        "size": [
+          1280,
+          960
+        ]
+      },
+      {
+        "name": "hobb-hint",
+        "only": "after",
+        "caption": "Hobb’s revised hint — native Editor, after only",
+        "from": "Muted native Editor at 7bb9886c4947fe128df1bb054745bb6f822044f6 plus the two reviewed Joss/Hobb dialogue lines. Normal keyboard, 1280×960. Staged prior visit and initial nearby pose; ordinary interaction, replies and production save/reload. No installed-device or puzzle-completion claim.",
+        "view": "Full original frame; existing renderer-specific costume appearance is outside this text-only change.",
+        "size": [
+          1280,
+          960
+        ]
+      }
+    ]
+  }
+],
+
   '2.24': [
     {
       "match": "The Founders’ Belfry porch now has solid floor",

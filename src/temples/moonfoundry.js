@@ -275,7 +275,7 @@ export const LOGIC = {
     founder: { type: 'boss', room: 'hall', needs: ['gun', 'magnet'], requires: { drumOn: ['mA', 'pA'] } },
     d5: { type: 'door', opens: { resolved: true } },
     // the house's map, in a little chest by the hoist (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'stair', at: [SX + 7, 0, S0 + 3.4], yaw: -Math.PI / 4 },
+    map: { type: 'map', room: 'stair', at: [SX + 7.5, 0, S0 + 4.5], yaw: -Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

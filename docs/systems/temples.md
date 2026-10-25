@@ -3274,3 +3274,26 @@ to these rooms was staged; these checks do not establish earned temple traversal
 continuous swept clearance or standing atop the chest. Browser pairs preserve
 the observation camera; Unity pictures are after-only. Source footprint checks
 remain separate from actual player movement evidence.
+
+### Seed Vault, Casting Stair and Choir map displays
+
+These three optional maps reuse the 1.5-scale chest and 1.8 × 0.24 × 1.6 m
+plinth. The Seed Vault centre follows the baked 2.4 m world-space floor grid;
+the Casting Stair and Choir use their room-centred 3 m skin grids. Each chest
+backs toward its nearest full wall, with its jade latch facing the room. The
+Choir display moves clear of the tilted crystal. Puzzle geometry, map IDs,
+keys, gates and layout versions are unchanged; existing collected maps stay open.
+
+Matched muted browser views use base 520922eda and the placement candidate,
+with identical staged entry poses and cameras. The Casting Stair baseline is
+partly hidden by the player, and the Choir baseline is obscured by the crystal;
+these original limitations are retained. Ordinary opening, real map continuation,
+bounded side movements, jumps and actual private save/reloads passed in all three.
+Separate muted Unity runs on the same pinned candidate passed the corresponding
+ordinary routes and two-boot persistence, with complete input/default restoration.
+All 24 native originals were individually reviewed. Native map-card shots are
+mid-fade and do not establish full-opacity card readability. The crystal-side
+Choir movement is a partial roomward approach, not a passage behind the crystal
+or around the whole display. Access was staged; these checks do not establish
+whole-temple progression or continuous swept clearance. Tests use actual map
+definitions, skin-grid phase, wall-facing direction and nearby obstacle bounds.

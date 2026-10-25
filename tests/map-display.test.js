@@ -176,3 +176,52 @@ test('three new plinth footprints retain support and leave machinery and pool ro
   assert.ok(foot.max.x<fr.x1+1e-6 && foot.min.x>3.5+3.4/2+1.5,'bridge approach at x3.5 remains clear');
   assert.equal(SPHERES_TEMPLE.logic.elements.map.at[1],fr.ledge);
 });
+
+
+import { EDENA_TEMPLE, ROOMS as SEED_ROOMS } from '../src/temples/edena.js';
+import { MOONFOUNDRY_TEMPLE } from '../src/temples/moonfoundry.js';
+import { PERDIDE_TEMPLE, ROOMS as CHOIR_ROOMS } from '../src/temples/perdide.js';
+import { CASTING } from '../src/temples/skins/casting-house.js';
+import { HUSH } from '../src/temples/skins/hush-house.js';
+
+// Edena uses the baked world-space kit floor; the other two skins use room centres.
+// The Casting Stair omits its entry wall: that opening is not a nearest full wall.
+test('Seed Vault, Casting Stair and Choir maps follow their floor tiles and face away from walls', () => {
+  const cases = [
+    [EDENA_TEMPLE, SEED_ROOMS.vault, [-EDENA_TEMPLE.origin[0],-EDENA_TEMPLE.origin[2]], 2.4, 'west', []],
+    [MOONFOUNDRY_TEMPLE, {x0:-59,x1:-29,z0:48.2,z1:78.2}, [-44,63.2], CASTING.floor.plate, 'east', ['south']],
+    [PERDIDE_TEMPLE, CHOIR_ROOMS.choir, [0,(CHOIR_ROOMS.choir.z0+CHOIR_ROOMS.choir.z1)/2], HUSH.floor.plate, 'west', []],
+  ];
+  for (const [def,room,origin,size,expected,omitted] of cases) {
+    const {at:[x,y,z],yaw,display}=def.logic.elements.map;
+    assert.equal(y,0); assert.deepEqual(display,{scale:1.5,plinth:[1.8,.24,1.6]});
+    for (const [v,o] of [[x,origin[0]],[z,origin[1]]]) {
+      const q=(v-o)/size;assert.ok(Math.abs(q-Math.floor(q)-.5)<1e-10,def.id+' actual tile centre');
+    }
+    const walls=[['west',x-room.x0,[-1,0]],['east',room.x1-x,[1,0]],['south',z-room.z0,[0,-1]],['north',room.z1-z,[0,1]]].filter(w=>!omitted.includes(w[0]));
+    walls.sort((a,b)=>a[1]-b[1]);assert.equal(walls[0][0],expected,def.id);
+    assert.ok(-Math.sin(yaw)*walls[0][2][0]-Math.cos(yaw)*walls[0][2][1]>1-1e-10,def.id+' back faces nearest full wall');
+    const d=mapDisplay([x,y,z],display,yaw);d.plinth.computeBoundingBox();const b=d.plinth.boundingBox;
+    assert.ok(b.min.x>room.x0 && b.max.x<room.x1 && b.min.z>room.z0 && b.max.z<room.z1,def.id+' fully supported footprint');
+    assert.ok(Math.abs(b.min.y-y)<1e-5 && Math.abs(b.max.y-d.at[1])<1e-5);d.plinth.dispose();
+  }
+});
+
+test('new map plinths stay clear of vault pots, the moving hoist and the tilted choir crystal', () => {
+  const bounds=def=>{const e=def.logic.elements.map,d=mapDisplay(e.at,e.display,e.yaw);d.plinth.computeBoundingBox();const b=d.plinth.boundingBox.clone();d.plinth.dispose();return b;};
+  const seed=bounds(EDENA_TEMPLE);
+  // Authored solid pot rims (edena.js vault dressing), not just their vegetation.
+  for(const [x,z,r] of [[-49.2,66.6,.84],[-45,62.1,.72]]) {
+    const dx=Math.max(seed.min.x-x,0,x-seed.max.x),dz=Math.max(seed.min.z-z,0,z-seed.max.z);
+    assert.ok(Math.hypot(dx,dz)>r+.45,'pot plus capsule-width separation');
+  }
+  assert.ok(seed.max.x< -39-3,'seed/weight plate approach remains clear');
+  const casting=bounds(MOONFOUNDRY_TEMPLE);
+  assert.ok(casting.min.x> -44+2.4+.45,'outside hoist/base envelope');
+  assert.ok(casting.max.z<58.2-.45,'below upper landing approach');
+  const choir=bounds(PERDIDE_TEMPLE);
+  // Conservative envelope of the unchanged h6/r.9 crystal tilted .15 at[-19,35].
+  assert.ok(choir.min.z>35+.9+6*Math.sin(.15)+.45,'plinth clears tilted crystal plus capsule radius');
+  assert.ok(choir.max.z<50-.45,'west balcony approach remains clear');
+  // Static footprint separation is not proof of an entire swept walk or jump.
+});

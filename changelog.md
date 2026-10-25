@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.25 — 2026-10-25
+
+- Joss explains which anchor to pull with your tether, and Hobb explains how the makers’ hourglass keeps and plays back a note.
+- The Seed Vault, Casting Stair and Choir maps now stand on low plinths aligned with the floor tiles, with their backs toward the nearest wall and their openings facing into the room.
+
 ## v2.24 — 2026-10-25
 
 - The Founders’ Belfry porch now has solid floor through its doorway, so you can walk into the Hall of Echoes and back without dropping through a gap.

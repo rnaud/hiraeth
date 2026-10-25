@@ -56,7 +56,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        note: { say: ["~curious~ An echo. People said the first sign’s words ran back like sand in a glass. Look for something that can keep a sound.", "~neutral~ The makers seemed reluctant to let anything be forgotten."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        note: { say: ["~curious~ Look for the makers’ hourglass. Its sand keeps a note sung nearby. Use it to play that note back.", "~neutral~ The makers seemed reluctant to let anything be forgotten."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
           say: ["~surprised~ (Hobb sits upright beneath a newly lit tower lamp.) It stopped repeating. I thought it had gone silent for good.",
             "~happy~ Then the whole sentence came out: *Somebody out there is talking to you.* The market stopped to hear it. Even the noodle men.",

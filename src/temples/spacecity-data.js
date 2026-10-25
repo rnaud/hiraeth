@@ -61,7 +61,7 @@ export const PEOPLE = {
           ],
         },
         pull: {
-          say: ['~neutral~ Then pull. Anything that lets go can be pulled home, my mother said. She meant islands. She also meant my brother.',
+          say: ['~neutral~ Pull its thrown anchor home with your tether. Anything that lets go can be pulled home, my mother said. She meant islands. She also meant my brother.',
             '~curious~ If it throws its anchors out where your line won’t reach, turn its bars first. A capstan is pushed round. Then you pull.'],
           choices: [{ text: '~neutral~ Push, then pull.', end: true }],
         },
