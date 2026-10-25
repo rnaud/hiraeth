@@ -152,7 +152,7 @@ export const PEOPLE = {
         home: {
           say: ["~solemn~ Thirty years crossing the dark, and it still found someone from the same house. I’ve never seen one do that.",
             "~solemn~ (Across the square, the signs stop advertising. For once they share a message.)",
-            "~neutral~ Go home under the avenue, love: down the old steps to the first street, then out through the screen lanes. Every screen in them is showing the same face tonight."],
+            "~neutral~ Your way back runs under the avenue, love: down the old steps to the first street, then out through the screen lanes. Every screen in them is showing the same face tonight."],
           do: { advance: [Q, 'sel2'] },
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],
         },
@@ -306,7 +306,7 @@ export const STREET = {
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
         { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the avenue’s end. Silent since the night every sign showed the mark.' },
-        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* at its foot: the market climbs the towers from there, gallery over gallery. Or the parked cab, or that pack on your back.' },
+        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* at its foot: the market climbs the towers from there, gallery over gallery. Or take the parked cab, or fly up with that pack on your back.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
         '~curious~ The market’s first stall sold answers, one each. It’s still there, in the old market under the avenue.',
         { after: ON_AIR, say: '~happy~ The tower spoke! I’ve been welcoming people all morning, and they keep welcoming me back.' },
@@ -493,7 +493,7 @@ export const CROWD_TALK = {
       "~happy~ Seven-moon fruit! This one tastes like rain on a hot roof. Yes, I checked the roof.",
       '~shout~ Seven moons of fruit! This one bites back. That one’s only shy.',
       '~angry~ Touch it, you buy it. You touched it. No, you looked at it in a touching way.',
-      { if: { not: { quest: 'bazaar.bowl', done: true } }, say: '~curious~ Ummu’s crates came down in its alley, seven-moon fruit everywhere. The quiet one hasn’t found its bowl since. Somebody should *shift those crates*.' },
+      { if: { not: { quest: 'bazaar.bowl', done: true } }, say: '~curious~ Fruit crates fell in Ummu’s alley, seven-moon fruit everywhere. Ummu, the quiet one there, lost its bowl under them. Somebody should *shift those crates*.' },
     ] } },
     { name: 'A noodle cook', title: 'at the counter', talk: { listen: [
       "~playful~ The sign says my noodles remember your order. The noodles are liars. Tell me again.",
@@ -530,7 +530,7 @@ export const CROWD_TALK = {
     { name: 'A window cleaner', title: 'on a break', talk: { listen: [
       "~playful~ I clean the signs from behind. BUY becomes YUB. I find it more persuasive.",
       '~playful~ From up here you can read every fortune sign at once. They all disagree. I take the nicest.',
-      { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign hangs right under the second bridge. Dark for years. I clean it anyway. Somebody should *wake it up*.' },
+      { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign hangs right under the second bridge. Dark for years. I clean it anyway. Somebody should *shoot something bright at it* and light it up.' },
       '~angry~ Mind the bucket. No, the other bucket.',
     ] } },
   ],

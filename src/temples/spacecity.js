@@ -383,9 +383,9 @@ export const ANCHOR_WARDEN = {
   resolved: 'The Anchor-Warden takes up its last cable, and locks.',
   missHint: 'It overreaches, its anchor out on the floor: tether it home.',
   phases: [
-    { to: 0.4, attacks: ['bars', 'cast', 'drop'], pause: 1.6, hint: 'When its drum stalls, pull the anchor home with the tether.' },
-    { to: 0.75, attacks: ['cast', 'spin', 'bars'], pause: 1.3, hint: 'It hauls on the edge bollards now: when it stalls, tether one home.' },
-    { to: 1.0, attacks: ['casts', 'spin', 'drop'], pause: 1.1, hint: 'Its anchors are out over the void: push the capstan round, then pull.' },
+    { to: 0.4, attacks: ['bars', 'cast', 'drop'], pause: 1.6, hint: 'When its cable drum stops, pull the anchor back with the tether.' },
+    { to: 0.75, attacks: ['cast', 'spin', 'bars'], pause: 1.3, hint: 'Its anchors hook the edge posts now. When it stops, tether one back.' },
+    { to: 1.0, attacks: ['casts', 'spin', 'drop'], pause: 1.1, hint: 'Its anchor is out over the drop: push its drum round, then pull.' },
   ],
   attacks: {
     bars: { shape: 'cone', range: 8.5, angle: 1.1, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', parts: ['arms'], splash: 0.6, active: 0.35, reach: 4.2, gap: 0.6, damage: 0.5, knock: 10, recover: 0.6, then: 'bars2' },
@@ -1007,7 +1007,7 @@ function layout(rt) {
     K.add(brass, T(new THREE.CylinderGeometry(0.6, 0.6, 0.14, 10), [mx, 1.2, mz]));
     cable([Math.sin(wa) * 2.8, 3, C1 + Math.cos(wa) * 2.8], [Math.sin(wa) * (CLEAT.mast - 0.6), CLEAT.y + 0.05, C1 + Math.cos(wa) * (CLEAT.mast - 0.6)], 2.6);
     add(Weight, { id: 'wC', at: [wx, CLEAT.y, wz], yaw: wa, name: 'moorers’ weight', fall: 20, zone: { min: [-R1, -1, C1 - R1], max: [R1, 12, C1 + R1] },
-      hint: 'Off the plate, the cage rises round the coffer again. It wants a weight.', back: 'The moorers’ weight is back on its cleat.' });
+      hint: 'Off the plate, the cage rises round the coffer again. Put a weight on the plate.', back: 'The moorers’ weight is back on its cleat.' });
   }
 
   // ---- the Winch Room (south-west): the counterweight's groove down the middle of its floor to its socket at the winch's mouth
@@ -1048,7 +1048,7 @@ function layout(rt) {
     const SP = SHAFT_PIER, [ux, uz] = hallAt(SE, SP.draught);
     K.add(M.trim, T(annulus(3.2, 3.6, 0.05, 32), [ux, 0.02, uz]));
     for (let i = 0; i < 5; i++) K.add(M.dark, box(6.2, 0.05, 0.3, ux, 0.04, uz - 2.4 + i * 1.2, Math.PI / 4));
-    add(Updraft, { at: [ux, 0, uz], r: 3.4, h: 17, lift: 7, when: LOW, hint: 'The void’s breath rises up the shaft. Open your wings in it.', still: 'The counterweight sits on the grating. No breath gets past it.' });
+    add(Updraft, { at: [ux, 0, uz], r: 3.4, h: 17, lift: 7, when: LOW, hint: 'Wind rises up the shaft from below. Open your wings in it.', still: 'The counterweight sits on the grating. No breath gets past it.' });
     // (v1.83) its counterweight on the house's cable: on the grating while the moored room is high, hauled up the shaft while it is low
     add(ShaftWeight, { at: [ux, 0.05, uz], r: 2.8, h: 3.4, up: 23.6 });
     // the pier: its top 6 by 7.6 m, its lip 2.5 m from the draught's middle (as the balcony's was)
@@ -1110,7 +1110,7 @@ function layout(rt) {
   K.slab(MH.x0, WEST.zS[0], WEST.lip, WEST.zS[1], WEST.yS, 2);
   add(Pit, { room: 'drift', min: [MH.x0, -24, MH.z0], max: [MH.x1, -8, MH.z1] });
   // the void's breath under the east landing: fall off with your wings open and it bears you back up beside it
-  add(Updraft, { at: [EAST.lip - 7.6, -8, WEST.gang + 3], r: 3.6, h: 10.5, lift: 6.5, hint: 'The void breathes up under the hall. It bears your wings back up beside the landing.' });
+  add(Updraft, { at: [EAST.lip - 7.6, -8, WEST.gang + 3], r: 3.6, h: 10.5, lift: 6.5, hint: 'Wind rises from the drop under the hall. Open your wings in it to ride back up by the landing.' });
   // the docks: a wall across each floor's lip at the room's shaft, a gate in it (open while the room is docked there), a
   // moorers' ring on a post beside it
   // (posts either side of the gate and a lintel over it, 2 cm in from the floor's edge: no face shared with the slab's end,

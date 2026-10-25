@@ -613,7 +613,7 @@ of the light, only the needle. Afterwards, in the Salt Harbour, Hesper takes the
 The dark between the worlds is not empty. Since the night the sky rang, chimes have been the one coin every
 world takes, and a ship that lands on many worlds carries them: so the pirates wait on the lanes. The first time
 the family ship flies to a world it has never been to, a crew of them comes after it from behind (the ship's voice:
-"Ships closing from behind. Pirates! They want our hull."): rust-red skiffs, teal raiders, a hauler with a
+"Ships coming up behind us. Pirates! They want our hull."): rust-red skiffs, teal raiders, a hauler with a
 grab claw laying mines, and their captain's gunship (a galleon under solar sails until v1.59), who hails on an open channel ("Heave to,
 little ship! Your hull for scrap, and we part friends."). Beaten, they break off, and their wrecks are worth chimes
 (since v1.59 a win pays them, so nobody speaks of guarding the chimes aboard: issue #230); left too long, the

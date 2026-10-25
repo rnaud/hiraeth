@@ -314,14 +314,14 @@ export const FOREMAN = {
   resolved: 'The Foreman’s hands come round to the right time, and stop there.',
   missHint: 'It spins on, dizzy, its face open: hit the six numerals now.',
   phases: [
-    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'Its face opens: six numerals in a breath, three on the boomerang.' },
-    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its hands stop at four: hit the numerals round from four, in step.',
+    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'Its face is open: hit all six numbers quickly, three with the boomerang.' },
+    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its hands stop at four: hit the numbers in order, clockwise from four.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'parry', moves: ['hammer'], open: 5.6, perfect: 6.4,
-        hint: 'Guard its hammer: jarred, its face swings open.',
+        hint: 'Block its hammer with your guard: the hit makes its face open.',
         said: 'The hammer rings off your guard and its face swings open: the six numerals.',
-        lines: ['Its hammer comes down hard.', 'Take its hammer on your guard: jarred, its face opens.', 'When it rears its hammer, hold the guard (LB / L1) toward it; then six numerals in a breath, three on the boomerang.'] } },
-    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'Only numerals hit in step count now: six, clockwise from four.' },
+        lines: ['Its hammer comes down hard. Block it.', 'Block its hammer with your guard. The hit makes its face open.', 'When it rears its hammer, hold the guard (LB / L1) toward it; then hit all six numbers quickly, three with the boomerang.'] } },
+    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'Only numbers hit in order count now: six, clockwise from four.' },
   ],
   attacks: {
     // (the hammer's reach 3.8 m, v1.77 #361: at 4.5 it came for you only to 4 m, its arms landed 3.7 m out, and a guard held

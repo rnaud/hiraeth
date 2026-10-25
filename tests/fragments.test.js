@@ -201,8 +201,8 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   assert.equal(ctx2.game.flag('frag.met'), true);
   // aboard, with one: his count and what you hold; one answer opens his shop
   const c1 = talk(person, ctx, ['Where do they hide']);
-  assert.match(c1.said, /One so far\. One to spend\./);
-  assert.match(c1.said, /The Desert still sings loud\./, 'a loose word for the world, never a number (issue #519)');
+  assert.match(c1.said, /One found so far\. One to spend\./);
+  assert.match(c1.said, /Plenty of fragments left in the Desert\./, 'a loose word for the world, never a number (issue #519)');
   assert.doesNotMatch(c1.said, /288|twenty-three|still hide|Most left/i);
   assert.match(c1.said, /On the landmarks, off the main paths/, 'where they are now: on the landmarks (issue #550)');
   assert.equal(person.fresh(), false, 'no balloon: nothing you can buy yet');
@@ -217,18 +217,18 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   // (issue #519: "I shouldn't be able to tell how many fragments of light there are in total": his count says how many
   // found and how many to spend, and a loose word for the world you are in; never the total, never a world's number)
   const none = tallyLines({}, null, () => false).join(' ');
-  assert.match(none, /None yet\. None to spend\./, 'the zero count reads as words (issue #282)');
+  assert.match(none, /None found yet\. None to spend\./, 'the zero count reads as words (issue #282)');
   for (const n of [1, 30, 96, 150, FRAGMENT_TOTAL]) {
     const said = tallyLines(found(n), 'desert', () => false).join(' ');
     assert.doesNotMatch(said, new RegExp(`of ${FRAGMENT_TOTAL}|every one there is|\\d+ left|still hide`), `${n}: no total`);
   }
   const thirty = tallyLines({ ...found(30) }, 'arzach', () => false).join(' ');
-  assert.match(thirty, /Thirty so far\. Thirty to spend\./);
-  assert.match(thirty, /Vael still sings loud\./, 'more than half still to find: loud');
-  assert.match(tallyLines({ ...found(40) }, 'arzach', () => false).join(' '), /Some singing left in Vael\./, 'half or less, a fifth or more: some (#563)');
-  assert.match(hereLine({ total: 24, left: 4 }, 'arzach'), /A little singing left in Vael\./, 'under a fifth: a little');
-  assert.match(hereLine({ total: 24, left: 5 }, 'arzach'), /Some singing left/);
-  assert.match(tallyLines({ ...found(24) }, 'desert', () => false).join(' '), /gone quiet here/, 'all found: quiet');
+  assert.match(thirty, /Thirty found so far\. Thirty to spend\./);
+  assert.match(thirty, /Plenty of fragments left in Vael\./, 'more than half still to find: loud');
+  assert.match(tallyLines({ ...found(40) }, 'arzach', () => false).join(' '), /Some fragments left in Vael\./, 'half or less, a fifth or more: some (#563)');
+  assert.match(hereLine({ total: 24, left: 4 }, 'arzach'), /Only a few fragments left in Vael\./, 'under a fifth: a little');
+  assert.match(hereLine({ total: 24, left: 5 }, 'arzach'), /Some fragments left/);
+  assert.match(tallyLines({ ...found(24) }, 'desert', () => false).join(' '), /No fragments left here/, 'all found: quiet');
   assert.doesNotMatch(fs.readFileSync(new URL('../src/story/scientist-data.js', import.meta.url), 'utf8'), /\b(96|288)\b/);
   // every line he says, toned (the meeting, the count, the shop)
   const all = [...Object.values(THRUM_TALK.nodes).flatMap((n) => [n.say].flat()), ...Object.values(THRUM_TALK.nodes).flatMap((n) => (n.choices ?? []).map((c) => c.text)), ...THRUM.lines, ...Object.values(THRUM_SHOP_LINES).flat()];

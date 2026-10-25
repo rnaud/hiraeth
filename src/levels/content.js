@@ -246,7 +246,7 @@ export const CONTENT = {
         ] } },
       { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.', '~playful~ Hold still. No, you moved. Never mind, you’re a smudge now.'],
         id: 'traveller', name: 'Naji', title: 'who sketches the observatory', color: '#697a98', talk: { nodes: {
-          hello: { say: ["~sad~ Asleep again, in every one. East of camp, the observatory with a brass ring on top: I’ve drawn it a hundred times. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~playful~ Asleep is easier to draw.', end: true }] },
+          hello: { say: ["~sad~ Asleep again, in every drawing. East of camp, the observatory with a brass ring on top: I’ve drawn it a hundred times. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~playful~ Asleep is easier to draw.', end: true }] },
           how: { say: ["~playful~ Climb the six ledges and turn all three lenses toward its centre. Tell me what happens. My knees have retired from ledges."], choices: [{ text: '~happy~ I will.', end: true }] },
         } } },
       // out on the ride to the Givers' Hearth, a third of the way: the only shade between the camps and the red rocks

@@ -95,7 +95,7 @@ export const PEOPLE = {
         },
         take: {
           say: ['~surprised~ You would? Then *ring the bell on the platform*: the train has to stop for it, and the porters load your ship for nothing.',
-            '~neutral~ She never sits inside. She rides *the roofs of the long tail*, at the very back, by a chalk mark.'],
+            '~neutral~ She never sits inside. She rides *on the roof of the last carriage*, at the very back, by a chalk mark.'],
           do: [{ stage: [Q, 'board'] }, { give: 'letter' }],
           choices: [{ text: '~neutral~ I’ll ring the bell.', end: true }],
         },
@@ -140,8 +140,8 @@ export const PEOPLE = {
         },
         find: {
           say: ['~surprised~ A letter? For Solange? Somebody’s written to Solange?',
-            '~neutral~ She doesn’t sit inside. Forty years, and she’s never once taken a seat. She rides *the roofs of the long tail*, at the very back.',
-            '~playful~ Out past the landing wagon, *up the ladder on the porch*, and walk till the rails run out behind you. Hold on to your hat.'],
+            '~neutral~ She doesn’t sit inside. Forty years, and she’s never once taken a seat. She rides *on the roofs*, on the last carriage at the very back.',
+            '~playful~ Go out past the landing wagon, *up the ladder on the porch*, and walk back along the roofs to the last carriage. Hold on to your hat.'],
           choices: [{ text: '~neutral~ The roofs. Right.', end: true }],
         },
         ringing: {

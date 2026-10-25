@@ -302,8 +302,8 @@ export const LISTENER = {
   missHint: 'It rolls into the wall and lies there, its ear opening.',
   phases: [
     { to: 0.35, attacks: ['sweep', 'slam', 'pearl'], pause: 1.6, hint: 'When it spreads its ear, stomp close to it: the boom is the deep note.' },
-    { to: 0.65, attacks: ['song', 'pearls', 'sweep'], pause: 1.3, hint: 'Its ear shuts to you: weight a dish’s footstone, stomp into the dish.' },
-    { to: 0.9, attacks: ['roll', 'pearls', 'slam'], pause: 1.1, hint: 'Roll a stone back onto a footstone, then stomp into its dish.' },
+    { to: 0.65, attacks: ['song', 'pearls', 'sweep'], pause: 1.3, hint: 'Its ear shuts now. Roll a ball onto a dish’s footstone, stomp by it.' },
+    { to: 0.9, attacks: ['roll', 'pearls', 'slam'], pause: 1.1, hint: 'Roll a ball back onto a footstone, then stomp by its dish.' },
     { to: 1.0, weary: true },
   ],
   attacks: {

@@ -56,13 +56,13 @@ export const RELAY_TEXT = {
   // the console's screen (standby) and its "no new messages"
   screen: { far: 'RELAY SIGNAL', held: 'RECORDING HELD', trace: 'LIGHT TRACE' },
   console: {
-    far: 'No new messages. The receiver still holds a faint signal on an old relay, further along the route. Too weak to read.',
+    far: 'No new messages. The receiver still hears a faint signal from an old relay, further along the route. Too weak to make out.',
     // (after the first homecoming, until the market is heard: where it comes from, the goal now, issue #127)
-    tower: 'No new messages. The faint signal on the old relay comes from the Signal Market’s silent tower. The galactic map has it.',
+    tower: 'No new messages. The faint signal comes from the Signal Market’s silent tower. It’s on the galactic map.',
     held: 'One recording held: “For when he asks.” It will wait here.',
-    trace: 'No new messages. The light’s trace is charted: past the Signal Market, to a world on no chart. The galactic map has it.',
+    trace: 'No new messages. The light’s trail runs past the Signal Market, to a world on no chart. It’s on the galactic map.',
   },
 };
 
 /** The ship's line at the end of "Come home", while the signal is out there (tone-tagged). */
-export const RELAY_COME_HOME = '~neutral~ The receiver also holds a faint signal on an old relay, further along the route. Too weak to read yet. Marked on the map.';
+export const RELAY_COME_HOME = '~neutral~ The receiver also hears a faint signal from an old relay, further along the route. Too weak to make out yet. It’s marked on the map.';

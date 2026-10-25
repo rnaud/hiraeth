@@ -144,9 +144,9 @@ The ship's cutscenes and the filmed first times.
     right; cut outside, wide from the ship's right side: it brushes past the hull and rushes away past
     the lens. Sung loud, its pitch falling as it goes (`bend`), panned across. As it passes the ship goes
     dark (`setPower('dead')`, the core's glow drained, the screen to static, the picture torn) and the
-    view dims; "Power draining."
-  - `drain` (4.8 s): the hum winds down; "Main power drained. Emergency reserve only."; the amber reserve
-    comes on; "Not enough to hold orbit. Taking us down."; the planet swings up into the window; white.
+    view dims; "Losing power!"
+  - `drain` (4.8 s): the hum winds down; "Main power gone. Only the reserve is left."; the amber reserve
+    comes on; "Not enough power to stay up here. Taking us down."; the planet swings up into the window; white.
   - `glide` (5.2 s): over the desert, the dark ship comes down in a long shallow fall with a thin vapour
     behind it, no fire; the reserve's jets only at the very end.
   - `land` (3.6 s): down on its belly, a short skid through the dunes (`SITE_OVERRIDES.desert.crash.length`

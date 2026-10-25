@@ -237,9 +237,9 @@ export const TOOTH_WARDEN = {
   resolved: 'The Tooth-Warden locks up and goes still. Below you, the engine runs.',
   missHint: 'It ploughs into the wall: all four vents open. Hit all four.',
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Its four vents open: all four in a breath. A bomb on one takes three.' },
-    { to: 0.75, attacks: ['grind', 'beam', 'stomp'], pause: 1.2, hint: 'Jam the floor gear with the ball: then its vents count twice.' },
-    { to: 1.0, attacks: ['charge', 'mortars', 'grind'], pause: 1.0, hint: 'It stamped the ball out: roll it back into the gear’s teeth.',
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Its four vents are open: hit all four quickly. One bomb can hit three.' },
+    { to: 0.75, attacks: ['grind', 'beam', 'stomp'], pause: 1.2, hint: 'Jam the floor gear with the ball: then each vent you hit counts double.' },
+    { to: 1.0, attacks: ['charge', 'mortars', 'grind'], pause: 1.0, hint: 'It knocked the ball out: roll it back into the gear’s teeth.',
       openHint: 'Its vents open one at a time. Jam the gear for all four.' },
   ],
   attacks: {

@@ -27,7 +27,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ["~neutral~ Mind the wick. I light the rim’s lamps. Everyone appreciates a light until they have to stop leaning on it.",
-            "~curious~ That’s *the makers’ tower*. It used to send a wind up the shaft at night, clearing the smog. The palace calls it a folly. Easy from above the smog.",
+            "~curious~ That’s *the makers’ tower*. It used to send a wind up the shaft at night, clearing the smog. The palace calls it a folly. Easy to say from above the smog.",
             "~whisper~ The wind stopped when the sky rang. Now something paces upstairs. Listen. I’ll try something unusual and stop talking."],
           do: { set: { 'met.vell': true } },
           choices: [
@@ -41,7 +41,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go up and look.', do: { start: 'temple.incal' }, goto: 'go' }, { text: '~solemn~ Keep the rim lit, Vell.', end: true }],
         },
         go: {
-          say: ["~neutral~ *The door faces your ship.* It’s open. Going in has never been the problem; wanting to has.", "~curious~ My grandmother said the tower ran on its own breath: *little wind-wheels in the walls*, turning its floors. Splash one, she said, and watch it go. Until it stops.", "~playful~ There is supposed to be a gust fan inside. People below could use those. Stairs are an unfair way to distribute sky."],
+          say: ["~neutral~ *The door faces your ship.* It’s open. Going in has never been the problem; wanting to has.", "~curious~ Inside, *little wind-wheels in the walls* turn its floors. Splash a wheel and its floor moves, my grandmother said. Until it stops.", "~playful~ There is supposed to be a gust fan inside. People below could use those. Stairs are an unfair way to distribute sky."],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {

@@ -260,7 +260,7 @@ export const KEEPERS = [
           ],
         },
         skiff: {
-          say: ["~neutral~ That skiff of yours came up from the swamp with you? She used to tie up here, before my time. A boat that comes when anyone whistles was somebody’s first.", "~neutral~ Fen’s, in *the far dome* on the deep water, *between here and the saucer’s pool*. Visiting him requires a boat. You have one."],
+          say: ["~neutral~ That skiff of yours came up from the swamp with you? She used to tie up here, before my time. She comes to anyone who whistles now, but she had an owner first.", "~neutral~ Fen’s, in *the far dome* on the deep water, *between here and the saucer’s pool*. Visiting him requires a boat. You have one."],
           do: { start: 'perdide2.skiff' },
           choices: [{ text: '~neutral~ I’ll take her to him.', end: true }],
         },
@@ -286,14 +286,14 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~angry~ I’ve poured buckets into this pool. Nothing! Hollin says it needs water that remembers light. I’d settle for water that remembers to work.",
+          say: ["~angry~ I’ve poured buckets into this pool. Nothing! Hollin says it needs water that carries light. I’d settle for water that works.",
             "~curious~ The old keepers lit it from up in the trunks. Their lamp still hangs up there."],
           choices: [
             { text: '~curious~ What happened to it?', goto: 'night' },
             { text: '~neutral~ Let me try.', end: true },
           ],
         },
-        again: { say: ['~tired~ Still dark. Go on, *try yours*.'], choices: [{ text: '~curious~ What happened to it?', goto: 'night' }, { text: '~neutral~ (aim at the pool)', end: true }] },
+        again: { say: ['~tired~ Still dark. Go on, *shoot it with your tank*.'], choices: [{ text: '~curious~ What happened to it?', goto: 'night' }, { text: '~neutral~ (aim at the pool)', end: true }] },
         night: {
           say: ["~whisper~ I was filling my bucket when the singing light came over the wood. Low enough to light the leaves from underneath.", "~scared~ Three pools went out as it passed. One, two, three. Then the light climbed away."],
           do: { set: { 'perdide2.rumour.light': true } },
@@ -349,7 +349,7 @@ export const PEOPLE = {
             { if: { flag: 'perdide2.fen.lamp' }, text: "~happy~ Lamp’s burning! Now step onto the landing and push the skiff between the posts." }],
           choices: [{ text: '~curious~ Why won’t it just come in?', goto: 'proud' }, { text: '~neutral~ On it.', end: true }],
         },
-        proud: { say: ["~playful~ Light the berth, get off, give her a nudge. She likes the last bit to appear voluntary."], choices: [{ text: '~neutral~ A nudge, then.', end: true }] },
+        proud: { say: ["~playful~ Light the bow-post lamp, step onto the landing, give her a nudge. She likes the last bit to appear voluntary."], choices: [{ text: '~neutral~ A nudge, then.', end: true }] },
         after: { say: [{ if: { flag: 'perdide2.skiff.home' }, text: "~happy~ Home under her old lamp. I’ll keep it lit this time." }, "~happy~ Still quick. Still better at turning left. Some things are reassuringly themselves."], choices: [{ text: '~playful~ She still pulls left with me, too.', end: true }] },
       },
     },

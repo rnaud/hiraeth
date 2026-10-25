@@ -66,21 +66,21 @@ export function transitLinks(query, titles = {}) {
  * scenes, src/ship/cinematics.js) and the pirates' captain on an open channel.
  */
 export const AMBUSH_LINES = {
-  start: { who: 'plumb', text: 'Ships closing from behind. Pirates! They want our hull.', tone: 'scared' },
-  hauler: { who: 'plumb', text: 'A hauler, laying mines. Shoot them before they reach us.', tone: 'neutral' },
+  start: { who: 'plumb', text: 'Ships coming up behind us. Pirates! They want our hull.', tone: 'scared' },
+  hauler: { who: 'plumb', text: 'A big ship is dropping mines. Shoot them before they reach us.', tone: 'neutral' },
   captain: { who: 'captain', text: 'Heave to, little ship! Your hull for scrap, and we part friends.', tone: 'playful' },
-  open: { who: 'plumb', text: 'Her guns are down. The bridge is open!', tone: 'surprised' },
-  low: { who: 'plumb', text: 'Hull failing. Roll away from their fire!', tone: 'scared' },
+  open: { who: 'plumb', text: 'Her guns are down. Now hit the bridge on her back!', tone: 'surprised' },
+  low: { who: 'plumb', text: 'We’re badly hit. Roll away from their shots!', tone: 'scared' },
   // (issue #494: each level's hazard said as it comes; src/minigames/pirates-rules.js LEVELS)
   mines: { who: 'plumb', text: 'Mines strung across our way. Find the gap, or shoot one open.', tone: 'neutral' },
-  ice: { who: 'plumb', text: 'Ice spires below, shards drifting. Fly high, and brake to pick a way.', tone: 'neutral' },
-  wrecks: { who: 'plumb', text: 'Old wrecks, turning over. Mind them as they roll.', tone: 'sad' },
+  ice: { who: 'plumb', text: 'Ice spikes below, and ice chunks floating. Fly high, and slow down to find a way through.', tone: 'neutral' },
+  wrecks: { who: 'plumb', text: 'Old wrecked ships, rolling over. Keep clear of them.', tone: 'sad' },
   // (issue #555: the places' own)
   moon: { who: 'plumb', text: 'A heavy moon under us. Its pull drags us down: keep climbing.', tone: 'neutral' },
   storm: { who: 'plumb', text: 'A storm ahead. They hide in it: watch for their lamps.', tone: 'scared' },
-  won: { who: 'plumb', text: 'They are breaking off. Their wrecks are worth chimes. Resuming course.', tone: 'happy' },
+  won: { who: 'plumb', text: 'They’re running away! Their wrecks are worth chimes. Back on course.', tone: 'happy' },
   fled: { who: 'captain', text: 'Keep your hull, then! The dark is wide, and we are patient.', tone: 'angry' },
-  lost: { who: 'plumb', text: 'Hull breached. Falling back to try again.', tone: 'sad' },
+  lost: { who: 'plumb', text: 'We’re hit too badly. Going back to try again.', tone: 'sad' },
 };
 /** The name shown over a line. */
 export const SPEAKERS = { plumb: 'Plumb', captain: 'Pirate captain' };

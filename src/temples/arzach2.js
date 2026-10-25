@@ -270,10 +270,10 @@ export const MOTHER = {
     { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Hook a bell as she rises to dive: a stone drops where she dives.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'parry', moves: ['roll'], open: 3.6, perfect: 4.6,
-        hint: 'Guard her wing as it rolls at you: jarred, she sinks and cries.',
+        hint: 'Block her wing with your guard: knocked back, she sinks and cries.',
         said: 'Her wing rings off your guard. She sinks low, crying: hook a bell.',
-        lines: ['She rolls her wing at you.', 'Raise your guard as her wing rolls in: jarred, she sinks and cries.', 'When she tips onto one wing, hold the guard (LB / L1) toward her, then hook the bell nearest her ({key:aim}, {key:fire}).'] } },
-    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'Hook a bell as she rises: a stone drops under her. Again as she cries.' },
+        lines: ['She swings her wing at you. Block it.', 'Raise your guard as her wing swings in. The hit knocks her low, and she cries.', 'When she tips onto one wing, hold the guard (LB / L1) toward her, then hook the bell nearest her ({key:aim}, {key:fire}).'] } },
+    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'Hook a bell as she rises: a stone drops under her. Again when she cries.' },
     { to: 1.0, weary: true },
   ],
   attacks: {

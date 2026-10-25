@@ -45,7 +45,7 @@ export const PEOPLE = {
         go: {
           say: ['~neutral~ *The door faces the bridge.* It isn’t locked. Nothing here is locked, except the islands. They used to be.',
             '~curious~ The makers kept a tether in there, the old moorers said: a line you throw that pulls things home. Switch to it with {key:mode}.',
-            '~playful~ There’s a room in there that floats on a cable. Every weight in the house hangs on the same one.'],
+            '~playful~ One room in there is a lift on a cable. Every counterweight in the house hangs on that cable too: move the room, and they move.'],
           choices: [{ text: '~happy~ A line that pulls. Got it.', end: true }],
         },
         again: {

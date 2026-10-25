@@ -402,7 +402,7 @@ const BEATS = [
       YOU("~solemn~ (You ask the reel to search for Ilen, the name from the market.)", { 'calls.ilen.asked': true, 'calls.ilen.at': f.here ?? true }),
       PLUMB("~neutral~ One recording in your mother’s voice. Label: “For when he asks.” No match in your father’s voice."),
       YOU('~whisper~ Not here. Not yet.'),
-      PLUMB('~neutral~ Recording held. It will wait at the console.'),
+      PLUMB('~neutral~ Recording held. I’ll keep it at the console until you’re ready.'),
     ],
   },
   {
@@ -534,9 +534,9 @@ function motherAlone(f) {
 /** The ship's log after the first homecoming, and the one recording the reel finds for "singing". */
 function traceCall(f) {
   return [
-    PLUMB('~neutral~ Log from the receiver, while you were at the stone. The singing light passed over home. Same signature as our scar.'),
-    PLUMB(f.market ? '~neutral~ Its trace runs back out along the route, past the Signal Market, to a world on no chart. Charted on the galactic map.'
-      : '~neutral~ Its trace runs back out along the route, toward the Signal Market’s silent tower. Too faint to follow past it yet.'),
+    PLUMB('~neutral~ While you were at the stone, the receiver picked something up. The singing light passed over home. Same signal as on our hull.'),
+    PLUMB(f.market ? '~neutral~ Its trail runs back past the Signal Market, to a world on no chart. I’ve put it on the galactic map.'
+      : '~neutral~ Its trail runs back toward the Signal Market’s silent tower. Too faint to follow past there yet.'),
     YOU('~solemn~ (You ask the reel for anything about singing.)'),
     PLUMB('~neutral~ One match. Your father, late at night.'),
     F('~whisper~ It came over the house again tonight. Singing. Your mother says I dream it. I don’t.'),

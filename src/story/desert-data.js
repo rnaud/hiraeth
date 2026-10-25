@@ -484,12 +484,12 @@ export const PEOPLE = {
         // the water is up and the tree is cold: the second old line
         cold: {
           say: ["~solemn~ The roots drink but the fire is out. We have an old verse: *The fire must be carried.* You’ll need something to light the tree.",
-            "~neutral~ The fire-bearers travelled *south-east into the red rocks*, leaving marked stones along the route, and came back with it."],
+            "~neutral~ The fire-bearers went *south-east into the red rocks* and came back with it. Follow the marked stones they left along the way."],
           choices: [{ text: '~neutral~ The drain down there was blocked. I cleared it.', goto: 'rib' }, { text: '~neutral~ I’ll find the fire.', end: true }],
         },
         carried: { say: ["~surprised~ The spark-stone. You found it. *Set it in the tree’s roots*. We’ll keep the procession moving until the tree burns."], choices: [{ text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~neutral~ Keep them walking.', end: true }] },
         // the bell on the fire-bearers' way (THINGS.wayBell)
-        bell: { say: ["~surprised~ A bell, out on the fire-bearers’ way? Then the old accounts are true to the step. One of them came back with a quiet staff.", "~solemn~ Leave it there. It marks where somebody walked when walking was the only way."], do: { set: { 'desert.way.told': true } }, choices: [{ text: '~solemn~ I left it where it lay.', end: true }] },
+        bell: { say: ["~surprised~ A bell, out on the fire-bearers’ way? Then the old accounts are right, step for step. One fire-bearer came home with a staff that had lost its bell.", "~solemn~ Leave it there. It marks where somebody walked when walking was the only way."], do: { set: { 'desert.way.told': true } }, choices: [{ text: '~solemn~ I left it where it lay.', end: true }] },
         drinking: {
           say: ["~happy~ The tree burns! Listen to the drums. Nobody had to tell them when to begin.", "~solemn~ Under the giant, out to the red rocks, and back. The old route still works. I’ll need a new verse for your part."],
           choices: [{ text: '~neutral~ It wasn’t the tree. The drain was blocked.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],

@@ -1351,6 +1351,22 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 export const CHANGELOG_MEDIA = {
   '2.28': [
   {
+    "match": "Plumb and 32 other characters now speak plainly",
+    "shots": [
+      {
+        "name": "plumb-plain",
+        "only": "after",
+        "caption": "Plumb’s lost talk in plain words: “Going in circles.”, then it flies off to show the way — after only",
+        "from": "Muted headless Chrome (1280 × 720), Vite on port 5422, the issue #626 branch (192353d4f, now on 8d9d0cd6d) plus the clarity rewrites, 25 October 2026: the recorded sequence plumb-talk (node scripts/unity-compare/sequences.mjs web plumb-talk), its lostTalk beat; cwebp -q 72.",
+        "view": "Full frame of a scripted sequence (the traveller walked in a small circle by the ship until Plumb came with its mark, then its talk opened). The old line here was “That rock again.”; no before picture is claimed. Text-only change: one page of one talk shown, the guardian hints and the ship's lines are not pictured.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
     "match": "The Hush-House has a new side room off the Choir",
     "shots": [
       {

@@ -79,7 +79,7 @@ export const LANDING = [
       ],
       nodes: {
         hello: {
-          say: ["~playful~ Dry landing. Sensible. Most sky visitors introduce themselves to the deep water first.", '~happy~ The eggs warm and the plants hungry: that’s my work.'],
+          say: ["~playful~ Dry landing. Sensible. Most sky visitors introduce themselves to the deep water first.", '~happy~ I keep the eggs warm and the plants hungry. That’s my work.'],
           choices: [
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
             { text: '~curious~ Why keep the plants hungry?', goto: 'plants' },
@@ -124,7 +124,7 @@ export const LANDING = [
         },
         again: {
           say: [{ if: { quest: Q, stage: 'cross' }, text: "~neutral~ *East over the hill, through the ford.* Follow the hum to the crystal." },
-            { if: { quest: Q, stage: 'sing' }, text: "~playful~ Waiting for rain? Your backpack seems to be carrying a useful imitation." },
+            { if: { quest: Q, stage: 'sing' }, text: "~playful~ Waiting for rain? Your tank can be the rain: *three quick splashes on the spires*." },
             { if: { quest: Q, reached: 'splinter' }, text: "~surprised~ The crystal sang! Every jaw shut at once. I could hear myself thinking. Novel experience." }],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
@@ -314,7 +314,7 @@ export const PEOPLE = {
         },
         go: {
           say: [{ if: { not: { has: 'splinter' } }, text: "~playful~ *The splinter is below the spires.* Safe enough to pick up. I’m fairly sure it has no teeth." },
-            { if: { has: 'splinter' }, text: "~neutral~ Whistle for the skiff, cross west to the cave island, and raise the splinter at the cave’s heart." }],
+            { if: { has: 'splinter' }, text: "~neutral~ Whistle for the skiff, cross west to the cave island, and raise the splinter in *the empty ring in the middle of the cave*." }],
           choices: [{ text: '~neutral~ (go)', end: true }],
         },
         after: {
@@ -425,7 +425,7 @@ export const PEOPLE = {
         },
         boat: { say: ["~sad~ Two travellers survived it. They waited a season in the deep wood, then borrowed a boat and crossed the swamp. The lamp-keepers still hope they’ll return. That’s the story I heard."], choices: [{ text: '~happy~ Thanks, Ysse.', end: true }] },
         splinter: {
-          say: ["~surprised~ A splinter of the Great Crystal! It finally let something go.", "~whisper~ Take it *to the ring at the cave’s heart*. Raise it there. Gently."],
+          say: ["~surprised~ A splinter of the Great Crystal! It finally let something go.", "~whisper~ Take it *to the empty ring in the middle of the cave*. Raise it there. Gently."],
           choices: [{ text: '~neutral~ (go to the heart)', end: true }, { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } }],
         },
         after: {

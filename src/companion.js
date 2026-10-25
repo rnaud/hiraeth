@@ -54,7 +54,7 @@ export const DRONE_NAME = 'Plumb';
  */
 export const DRONE_LINES = {
   // the opening: each once per save (out and recharge one after the other, stepping out of the ship the first time)
-  out: '~curious~ Best bet? The village on the horizon.',
+  out: '~curious~ Where to? That village on the horizon.',
   recharge: '~neutral~ Someone there might help us recharge.',
   person: '~whisper~ Someone’s there. Go and say hello.',
   chest: '~happy~ Oh, that’s a good one. Keep it.',
@@ -63,9 +63,9 @@ export const DRONE_LINES = {
   // warning, #563; no flight after it: you are at the gate)
   bladegate: '~whisper~ Those blades mark a dangerous entrance. Be careful.',
   // lost, by why it thinks so (in turn)
-  still: ['~curious~ Lost? A little. This way.', '~playful~ Scenic route? It’s the other way.'],
-  away: ['~curious~ Wrong way, I think. Look.', '~neutral~ Further and further from it. Back here.'],
-  circling: ['~tired~ That rock again. Over here.', '~playful~ My petals are dizzy. This way.'],
+  still: ['~curious~ Lost? A little. This way.', '~playful~ Long way round? Our goal is the other way.'],
+  away: ['~curious~ Wrong way, I think. Look.', '~neutral~ We keep getting further away. Back here.'],
+  circling: ['~tired~ We passed that rock already. Over here.', '~playful~ Round and round. I’m getting dizzy. This way.'],
 };
 export const OPENING = ['out', 'recharge', 'person', 'chest', 'pointer'];
 /** Lines said once per save as the opening's are, later in the journey (flags drone.said.<id>). */
@@ -108,7 +108,7 @@ export function splitBark(line) {
 }
 /**
  * A line as the talk's pages (one to three), each with the line's tone: split at its sentences, a sentence of fewer than
- * PAGE_WORDS words kept with the next ("Lost? A little, I think." / "Scenic route? It's the other way."; "That plate wants a
+ * PAGE_WORDS words kept with the next ("Lost? A little, I think." / "Long way round? Our goal is the other way."; "That plate wants a
  * weight. I'll show you." stays one page).
  */
 export function talkPages(line) {
@@ -133,9 +133,9 @@ export const plumbTalk = (pages) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: 
  * puts the place at the start of a sentence.
  */
 export const PLACE_LINES = {
-  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place} is the other way.'],
-  away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ Further and further. {place} is behind us.'],
-  circling: ['~tired~ That rock again. {place}: over here.', '~playful~ My petals are dizzy. {place}: this way.'],
+  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Long way round? {place} is the other way.'],
+  away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ We’re moving away. {place} is behind us.'],
+  circling: ['~tired~ Going in circles. {place}: over here.', '~playful~ Round and round again. {place}: this way.'],
 };
 /** The longest place it names (characters): a longer label and it says the plain line. */
 export const PLACE_MAX = 28;
@@ -159,20 +159,20 @@ export function placeOf(label, people = new Set()) {
  * src/temples/logic.js next()), then it flies there.
  */
 export const HOUSE_LINES = {
-  switch: '~curious~ A switch nobody has thrown. Over here.',
-  plate: '~curious~ That plate wants a weight. I’ll show you.',
-  weight: '~curious~ That weight belongs on a plate.',
-  drum: '~curious~ Try moving that ball. Over here.',
-  key: '~happy~ A key, lying about. Over here.',
+  switch: '~curious~ There’s a switch to flip. Over here.',
+  plate: '~curious~ Put something heavy on that plate. I’ll show you.',
+  weight: '~curious~ Push that weight onto a floor plate.',
+  drum: '~curious~ Try rolling that ball. Over here.',
+  key: '~happy~ There’s a key to pick up. Over here.',
   door: '~curious~ There’s a locked door here. Let’s check it.',
-  bridge: '~curious~ That bridge needs to move. Look here.',
-  brazier: '~curious~ A cold brazier. Over here.',
-  bramble: '~curious~ Something’s grown over the way. Look.',
-  bell: '~curious~ A bell nobody has rung. Over here.',
+  bridge: '~curious~ Move that bridge so we can cross. Look.',
+  brazier: '~curious~ That fire bowl is cold. Light it. Over here.',
+  bramble: '~curious~ Plants have grown over the way. Look.',
+  bell: '~curious~ Try ringing that bell. Over here.',
   vane: '~curious~ Try turning that vane. Over here.',
-  arena: '~whisper~ Something waits in there. Ready?',
-  boss: '~whisper~ The keeper of this house waits. Ready?',
-  gadget: '~happy~ There’s equipment ahead. I’ll show you.',
+  arena: '~whisper~ Something big is in there. Ready?',
+  boss: '~whisper~ This house’s guardian is in there. Ready?',
+  gadget: '~happy~ There’s a new tool ahead. I’ll show you.',
   find: '~happy~ Something to pick up. This way.',
   default: '~curious~ Stuck? A little. Try over here.',
 };
@@ -202,7 +202,7 @@ export function droneSay(setting, hints = hintLevel()) {
   return DRONE_HINTS.includes(setting) ? setting : DEFAULT_DRONE_HINTS;
 }
 
-/** The line as the cue shows it: the drone's ◇ and its name, no tone tag ("◇ Plumb: Best bet? …"). */
+/** The line as the cue shows it: the drone's ◇ and its name, no tone tag ("◇ Plumb: Where to? …"). */
 export const shown = (line) => `◇ ${DRONE_NAME}: ${stripTone(line)}`;
 /** A lost line with its place filled in (or the plain line, no place). */
 export const withPlace = (line, place) => String(line).replace('{place}', place ?? '');

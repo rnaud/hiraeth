@@ -13,7 +13,7 @@ lines carry its name on the cue ("◇ Plumb: …", issue #434).
 **The prologue (issue #434):** after the landing, inside, by the amber reserve
 light, it wakes in its cradle, blooms, lifts out of the cup and comes to the
 traveller's shoulder at the hatch; it rides at his shoulder as he walks down
-the ramp, and once outside says the opening's two lines: "Best bet? The village
+the ramp, and once outside says the opening's two lines: "Where to? That village
 on the horizon." "Someone there might help us recharge." (Its cradle went dark
 with the ship: *us*.) Then it flies off toward the village, and the desert's
 quest starts on it, its first step the same village.
@@ -27,8 +27,15 @@ somebody else for the next step.
 **Voice:** short. Two to seven words a line, one line at a time. Dry, warm,
 practical. It points before it comments.
 
-**Tic:** it answers its own questions. "Lost? A little. This way." "Scenic
-route? The goal is over here." Do not overuse it: one line in three at most.
+**Plain first (issue #626):** every Plumb line must be clear to a ten-year-old on the first
+read. Name the thing and the action ("Put something heavy on that plate", "Ring the bell
+nearest her"), never a metaphor in its place ("that plate wants a weight", "that bridge is
+asleep"). No ship jargon on its own: say "our power is gone", "a signal on the hull", not
+"core drained", "magnetic signature", "hull breached". A guardian hint's first line is an
+action too, only shorter than the plainest.
+
+**Tic:** it answers its own questions. "Lost? A little. This way." "Long way
+round? Our goal is the other way." Do not overuse it: one line in three at most.
 
 **Body language:** it is not carried on you: it comes out of a small light over
 your shoulder when it is needed, and winks out again when it is done (after the

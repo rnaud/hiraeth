@@ -289,9 +289,9 @@ export const LAST_FOUNDER = {
   resolved: 'The Last Founder stops to look at one whole moon. Its heart goes dark.',
   missHint: 'It rolls into the wall, crucible doors open: splash its heart.',
   phases: [
-    { to: 0.35, attacks: ['ladle', 'slam', 'cast'], pause: 1.6, hint: 'When it has poured, its doors swing open: splash the molten heart.' },
-    { to: 0.7, attacks: ['cast', 'casts', 'ladle'], pause: 1.2, hint: 'Draw the iron moon into its cradle: as it looks, splashes count double.' },
-    { to: 1.0, attacks: ['charge', 'casts', 'slam'], pause: 1.0, hint: 'Its heart is too hot now: draw the moon back in, splash while it looks.',
+    { to: 0.35, attacks: ['ladle', 'slam', 'cast'], pause: 1.6, hint: 'After it pours, its doors swing open: splash water on the glowing heart.' },
+    { to: 0.7, attacks: ['cast', 'casts', 'ladle'], pause: 1.2, hint: 'Pull the iron moon into the cradle: then each splash counts double.' },
+    { to: 1.0, attacks: ['charge', 'casts', 'slam'], pause: 1.0, hint: 'Its heart is too hot now: pull the iron moon back into the cradle.',
       openHint: 'Too hot for water: with a moon in its cradle it stops, and cools.' },
   ],
   attacks: {
@@ -1002,7 +1002,7 @@ function layout(rt) {
   K.column(cx, cz, 0, SC.capital, 0.32, { mat: iron });
   K.both(M.trim, box(0.9, 0.3, 0.9, cx, SC.capital + 0.15, cz));
   add(Weight, { id: 'wS', at: [cx, SC.capital + 0.3, cz], yaw: 0, name: 'stone weight', fall: SC.capital + 2, zone: { min: [WX0, -1, WZ0], max: [WX1, SC.capital + 2, WZ1] },
-    hint: 'The scale’s floor pan wants a weight. One sits high on the column’s capital.', back: 'The weight is back on its capital.' });
+    hint: 'Put a weight in the scale’s floor pan. One sits high on top of the column.', back: 'The weight is back on its capital.' });
   crackedMoon(SC.x, 6.9, SC.z + (SC.z - SC.pan), 0.7);
   add(Watch, { test: (r) => r.logic.drumOn('mB', 'pB') && !r.logic.weightOn('wS'), say: 'The beam tips toward the pier. Its other pan, on the floor, wants a weight as heavy.', key: 'kG.tip' });
   add(Mark, { room: 'scales', at: [33, 0, WZ0 + 7], yaw: Math.PI * 0.25 });

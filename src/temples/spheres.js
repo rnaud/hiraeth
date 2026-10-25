@@ -255,7 +255,7 @@ export const ECHO = {
   missHint: 'It lies on the floor ringing: splash the sphere that glows.',
   phases: [
     { to: 0.45, attacks: ['note', 'pulse', 'ripple'], pause: 1.7, hint: 'When it sings, answer it: splash the sphere that glows with its note.' },
-    { to: 0.75, attacks: ['fall', 'chord', 'note'], pause: 1.3, hint: 'Keep answering it: through your lens, the right sphere wears the print.' },
+    { to: 0.75, attacks: ['fall', 'chord', 'note'], pause: 1.3, hint: 'Keep answering it: through your lens, the right sphere shows the print.' },
     { to: 0.9, attacks: ['scale', 'ripple', 'fall'], pause: 1.1, hint: 'All three spheres glow now: splash the one with the walker’s print.' },
     { to: 1.0, weary: true },
   ],

@@ -156,7 +156,7 @@ go next, or a hint about how to defeat a boss. In the prologue we should see the
   there (`Scout.escort`, phase `escort`, `ESCORT.secs` 60 s at `appearSpot`, a ping sends it off, else it winks out;
   skipped, it comes out of its light). The step out is a **walk**: `ship.autopilot(…, { walk: true })` holds the
   stick at `AUTO_WALK` (0.06: ~1.5 m/s, under the walk clip's top), only in the prologue's first step out.
-- **Its first word**: once outside, the opening's `out` brings `recharge` with it (`FOLLOWS`): "Best bet? The village on
+- **Its first word**: once outside, the opening's `out` brings `recharge` with it (`FOLLOWS`): "Where to? That village on
   the horizon." "Someone there might help us recharge." The second points (`OPENING_POINTS`: `village`): main.js (and
   engine/game.js) emit `drone:village`, which starts the desert's main quest (src/story/desert.js; its first step is
   "Walk to Qanat, under the dark tree"), and ping, so it flies off toward Qanat, whose camps and great tree stand in the
@@ -188,8 +188,8 @@ something critical to tell you, with the same button we use to ping Plumb to go 
 | id | when | example |
 |---|---|---|
 | `still`, `away`, `circling` | you look lost (the lost watch; the first time, the pointer line) | "Lost? A little." / "The giant's skull: this way." |
-| `house` | minutes on one step of a makers' house (`StepWatch`) | "That plate wants a weight. I'll show you." |
-| `bladegate` | danger: the first fight temple's Blade Gate within 12 m (`ONCE`) | (a whisper) "Blades on a gate." / "Keep out. Something got in." |
+| `house` | minutes on one step of a makers' house (`StepWatch`) | "Put something heavy on that plate. I'll show you." |
+| `bladegate` | danger: the first fight temple's Blade Gate within 12 m (`ONCE`) | (a whisper) "Those blades mark a dangerous entrance." / "Be careful." |
 
 Everything else of Plumb's stays on the cue as before: the opening's chatter (`out`, `recharge`, `person`, `chest`:
 they come before the button is taught, and `recharge`'s flight starts the desert's quest by itself) and a guardian's
@@ -222,7 +222,7 @@ way.", "Over here.", "The pool is back here.") point at nothing from a dialogue 
 last sentence off when it only points (`POINTING`): the box gets the rest (`pages`), and the pointing word (`bark`) goes
 on the cue as Plumb flies off after the talk, the frame after `dialogue:end` (`wireCompanion`'s step returns it, the
 host shows it 3.2 s as Plumb's other lines, then the find's line). A line that is whole without it keeps its words in the
-box ("That bridge is asleep. I'll show you.", "Scenic route? {place}'s the other way."). The sequence `plumb-talk`
+box ("Put something heavy on that plate. I'll show you.", "Long way round? {place} is the other way."). The sequence `plumb-talk`
 (engine/sequences.js) records both: the gate's talk and no flight, a lost talk, its bark, the find.
 5. Unanswered for `HAIL.secs` (40 s) it lets the talk go and winks out. A scene, a teleport or a ping of a world's own
    puts it away (and a fight sends it home); it comes back to your shoulder after, the talk still waiting.

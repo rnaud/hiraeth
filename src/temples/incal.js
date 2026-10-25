@@ -323,10 +323,10 @@ export const WARDEN = {
   // aimed down at you (swept across the floor in its second phase), the stomps and the slam a shock running out round
   // its feet, the flare a column of fire round it; never a lane of floor 28 m long that nothing drew (boss.js Blast))
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 2.2, hint: 'Keep out of its eye’s line. When its side vents open, shoot them.' },
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 2.2, hint: 'Stay out of its eye beam. When its side vents open, shoot them.' },
     { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.9, hint: 'Only its crown hatch opens now: get above it and shoot down.',
       openHint: 'Its crown hatch opens: ride the vane’s breath above it, shoot down.' },
-    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.7, hint: 'Fan the vane by it till the hatch lifts, then shoot down.',
+    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.7, hint: 'Fan the vane by it till its crown hatch opens, then shoot down into it.',
       openHint: 'Hatch shut: fan the vane beside it until the hatch lifts.' },
   ],
   attacks: {
@@ -981,7 +981,7 @@ function layout(rt) {
   add(Vane, { id: 'vG', at: vGat, r: 2.3, great: true, reach: VANES.reach,
     washed: 'The fan’s gust catches the great vane, and it turns; on the pillar beside it an eye’s stone lids lift. Its rising air holds you: aim from there.' });
   // the thin breath through its frame: it bears open wings, and holds you over the vane (too thin to turn it)
-  add(Updraft, { at: vGat, r: 2.6, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.', ride: 'The breath through the vane’s frame bears your wings, and holds you over it.' });
+  add(Updraft, { at: vGat, r: 2.6, h: VANES.breath, lift: 8, hint: 'A little wind rises through the great vane’s frame. Open your wings in it.', ride: 'The breath through the vane’s frame bears your wings, and holds you over it.' });
   // the loft's floor, a ring round the core (issue #413: the iris there before, the hole open for good; a rim of light round
   // it while the draught is let on through it)
   K.both(M.floor, T(annulus(VANES.iris + 0.1, GR + 0.4, 0.6, 56), [0, GC, C3]));
@@ -1008,7 +1008,7 @@ function layout(rt) {
   const vEat = [SX, GC, C3 - 8.6];   // (issue #413: its breath clear of the core)
   add(Vane, { id: 'vE', at: vEat, r: 2.1, great: true, reach: VANES.reach,
     washed: 'The great vane turns in the fan’s gust, and up on the raised walk stones grind up into the gap.' });
-  add(Updraft, { at: vEat, r: 2.5, h: VANES.breath - 1, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
+  add(Updraft, { at: vEat, r: 2.5, h: VANES.breath - 1, lift: 8, hint: 'A little wind rises through the great vane’s frame. Open your wings in it.' });
   add(BreathGauge, { shows: 'breath', room: 'loft', at: [-11, GC, C3 + 9] });
   // the crown's floor, a ring round the core (the second iris there before)
   K.both(M.floor, T(annulus(VANES.iris2 + 0.1, GR + 0.4, 0.6, 56), [0, GK, C3]));
@@ -1026,7 +1026,7 @@ function layout(rt) {
     wrong: 'The splash patters on the eye’s lids. They lift only while two things at once: the great vane in the floor turns, and the ring on its chain is pulled.' });
   add(Vane, { id: 'vC', at: vCat, r: 2.2, great: true, reach: VANES.reach,
     washed: 'The great vane turns in the fan’s gust. On the pillar, the eye’s lids stir.' });
-  add(Updraft, { at: vCat, r: 2.5, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
+  add(Updraft, { at: vCat, r: 2.5, h: VANES.breath, lift: 8, hint: 'A little wind rises through the great vane’s frame. Open your wings in it.' });
   // the ring on its chain from a sleeve high on the wall: down while the house breathes in, the hook's to tug
   add(HookBell, { id: 'ringS', at: RING.at, chain: 0.8, yaw: Math.atan2(RING.from[0] - RING.at[0], RING.from[2] - RING.at[2]), size: 0.55, from: RING.from });
   add(CrownRing, { id: 'rS', ringId: 'ringS', at: RING.at, sleeve: RING.sleeve, from: RING.from });
@@ -1075,7 +1075,7 @@ function layout(rt) {
     const a = (i / 4) * TAU;
     rt.hallVanes.push(add(Vane, { id: `vh${i}`, at: [Math.sin(a) * HALL.vane, H0, CW + Math.cos(a) * HALL.vane], r: 2.2, great: true, reach: HALL.reach, linger: 1.2 }));
     // (the breath through each: open wings ride it up over the warden's crown, and hover there to shoot down)
-    add(Updraft, { at: [Math.sin(a) * HALL.vane, H0, CW + Math.cos(a) * HALL.vane], r: 2.5, h: HALL.breath, lift: 9, hint: 'A breath rises through the vane’s frame. Open your wings in it.' });
+    add(Updraft, { at: [Math.sin(a) * HALL.vane, H0, CW + Math.cos(a) * HALL.vane], r: 2.5, h: HALL.breath, lift: 9, hint: 'Wind rises through the vane’s frame. Open your wings in it.' });
   }
   add(Door, { id: 'd5', at: [0, H0, CW + HR + 0.7], w: D.w, h: D.h });
   // the way out: a corridor to a dark doorway

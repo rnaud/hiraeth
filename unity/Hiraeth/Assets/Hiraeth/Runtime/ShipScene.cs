@@ -308,7 +308,7 @@ namespace Hiraeth
                 case "drain":
                     // the power goes with it: the hum winds down, the lamps out, then the amber reserve
                     S?.StopLoop("ship_hum"); holo.Speak(null); holo.Hide();
-                    Say("ship", "~neutral~ Main power drained. Emergency reserve only.");
+                    Say("ship", "~neutral~ Main power gone. Only the reserve is left.");
                     Fade(0.55f, 0.35f);
                     break;
                 case "glide":
@@ -427,7 +427,7 @@ namespace Hiraeth
                         LightFrame(nearAt - t);
                         if (t < nearAt + 0.4f) holo.Tear(0.25f * Smooth(t / nearAt));
                         if (t > nearAt && once.Add("drained")) { holo.Tear(1); if (holoSpace) holoSpace.state = "dead"; Fade(0.3f, 0.5f); }
-                        if (t > 3.6f && once.Add("passLine")) Say("ship", "~neutral~ Power draining.");
+                        if (t > 3.6f && once.Add("passLine")) Say("ship", "~neutral~ Losing power!");
                         break;
                     }
                 case "drain":
@@ -436,7 +436,7 @@ namespace Hiraeth
                         float k = Smooth(Seg(t, 1.6f, 4.8f));
                         Shot(Ws(new Vector3(-1.1f, DECK + 1.8f, -6.3f + cockpitShift)), Ws(new Vector3(0.3f, DECK + 1.9f - k * 0.7f, -12.8f + cockpitShift)), 58, k * 0.12f + Mathf.Sin(t * 1.3f) * 0.02f);
                         if (t > 1.3f && once.Add("reserve")) { if (holoSpace) holoSpace.state = "emergency"; Fade(0.25f, 0.8f); red = 0.18f; }
-                        if (t > 2.4f && once.Add("orbit")) Say("ship", "~neutral~ Not enough to hold orbit. Taking us down.");
+                        if (t > 2.4f && once.Add("orbit")) Say("ship", "~neutral~ Not enough power to stay up here. Taking us down.");
                         if (space) space.transform.rotation = spaceRot * Quaternion.Euler(0.76f * k * Mathf.Rad2Deg, 0, 0);
                         if (t > 4.35f && once.Add("white")) Fade(1, 0.4f);
                         break;

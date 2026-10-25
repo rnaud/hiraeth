@@ -52,7 +52,7 @@ export const LOCALS = {
       nodes: {
         hello: {
           say: ['~neutral~ I set floats on poles from the landing to the old city in the west. Walk by them, day or night.',
-            '~curious~ Its clock stopped the night the light passed, like ours. *Read it from the upper gallery*, past the prism crossings.'],
+            '~curious~ Its clock stopped the night the light passed, like ours. Cross *the prism crossings’ high bridge*, climb to the old city’s upper gallery, and read it from there.'],
           choices: [
             { text: '~neutral~ I’ll read it.', end: true },
             { text: '~curious~ Why not read it yourself?', goto: 'why' },

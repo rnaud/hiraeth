@@ -70,11 +70,11 @@ export const PEOPLE = {
         },
         who: {
           say: ['~solemn~ The night the singing went over, every hung moon on the floor turned on its hook. They’ve faced the same way since.',
-            '~neutral~ Look at them from *the signal box on the old hoist*, the iron tower past the moon in the claws. Whatever they face pours at night.'],
+            '~neutral~ Look at them from *the signal box on the old hoist*, the iron tower past the moon in the claws. See where they all face: that’s what pours at night.'],
           do: { set: { 'moonfoundry.hedda.heard': true } },
           choices: [{ text: '~neutral~ I’ll climb it.', end: true }],
         },
-        again: { say: ['~neutral~ The signal box on the old hoist, past the moon in the claws. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        again: { say: ['~neutral~ The signal box on the old hoist, past the moon in the claws. See where the moons face.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ No moon came down the rails this morning. My mould’s empty, and I don’t know what to do with my hands.', { if: { flag: 'moonfoundry.hedda.settle' }, text: '~playful~ You said let it settle. It settled so well it went home.' }],
           choices: [{ text: '~playful~ Pour something nobody ordered.', end: true }],
@@ -102,8 +102,8 @@ export const PEOPLE = {
             { text: '~neutral~ I’m walking the other way.', end: true },
           ],
         },
-        go: { say: ['~playful~ *The crane at the last furnace, across the floor toward the mouth.* Follow the warm. It’s straighter than he is.'], choices: [{ text: '~neutral~ Going.', end: true }] },
-        waiting: { say: ['~neutral~ The crane by the last furnace, east of the aisle. Follow the warm.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        go: { say: ['~playful~ *The crane at the last furnace, across the floor toward the mouth.* Walk toward the heat. The hook’s straighter than he is.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        waiting: { say: ['~neutral~ The crane by the last furnace, east of the aisle. Walk toward the heat.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~happy~ He sent a pot of soup back with a boy. That’s Bertil for thank you.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor doesn’t shake at night any more. I slept straight through. I’d forgotten what that was like.' }],

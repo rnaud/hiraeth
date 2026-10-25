@@ -36,7 +36,7 @@ test('Plumb says it: after the landing, on the map, out of the jump (once per wo
   for (const l of [LANDING_LINE, MAP_LINE]) {
     assert.equal(l.who, 'plumb');
     assert.ok(TONES.includes(l.tone) && !/^~/.test(l.text), 'a tone, and no tag in the text');
-    assert.match(l.text, /signature/);
+    assert.match(l.text, /\bsignal\b/, "the light's signature in plain words (issue #626)");
   }
   // following it is his own choice, said as the ship comes down (the restaged opening, October 2026)
   assert.equal(FOLLOW_LINE.who, 'you');

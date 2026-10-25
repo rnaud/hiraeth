@@ -327,7 +327,7 @@ export const LAMPLESS = {
     { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Send it a bubble of light, or leave it a lit pool to drink.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'dodge', moves: ['flutter'], open: 4.0,
-        hint: 'Hop clear as its wings beat down: overreached, it hangs low.',
+        hint: 'Hop back as its wings beat down: it overreaches and hangs low.',
         said: 'Its wings beat empty air. It hangs low, searching: send it a bubble of light.',
         lines: ['Its wings beat at you.', 'Hop back from its fluttering wings just as they come down.', 'When it flutters at you, flip back (stick back and A / ×) as the wings fall; then send it a bubble of light ({key:aim}, {key:fire}).'] } },
     { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'It shies from you: send light from afar, or leave it a lit pool.' },

@@ -39,7 +39,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.spheres' }, goto: 'go' }, { text: '~solemn~ Lonely and loud. I’ll listen from here.', end: true }],
         },
         go: {
-          say: ["~neutral~ Enter the door in the heel, on the grove side.", "~whisper~ It goes down a long way inside. Drop only where water waits.", "~curious~ There’s supposed to be a lens inside that reveals hidden marks. Hold it up and look closely. A wall isn’t always just a wall."],
+          say: ["~neutral~ Enter the door in the heel, on the grove side.", "~whisper~ It goes down a long way inside. Only jump down where there’s water below.", "~curious~ There’s supposed to be a lens inside that reveals hidden marks. Hold it up and look closely. A wall isn’t always just a wall."],
           choices: [{ text: '~happy~ I will.', end: true }],
         },
         again: {
@@ -53,7 +53,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        answer: { say: ["~solemn~ When it sings, splash the sphere answering its note. If the lights confuse you, look through the lens for the walker’s print."], choices: [{ text: '~neutral~ I will.', end: true }] },
+        answer: { say: ["~solemn~ When it sings, one sphere glows with the same note: splash the sphere that glows. If more than one glows, look through the lens for the walker’s print."], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
           say: ["~surprised~ Water in every toe! And the heel! I can see the sky from the whole rim now.",
             "~happy~ Light circles the spheres’ feet. They hum together at dusk. Linnet cried. I walked another lap to hear it twice.",

@@ -351,7 +351,7 @@ export class PrologueDirector {
         s.setPower(this.controlled ? 'emergency' : 'dead', sp);
         sp.callScreen?.set({ who: 'off', paused: false, statik: 0 });
         s.holo?.hide();
-        C.say({ who: 'plumb', text: 'Main power drained. Emergency reserve only.' });
+        C.say({ who: 'plumb', text: 'Main power gone. Only the reserve is left.' });
         break;
       case 'glide':
         C.say(null); C.red(0);   // (the white fade from the drain's end lifts: C.fade below)
@@ -524,7 +524,7 @@ export class PrologueDirector {
         if (pos && t < nearAt + 0.4) s.holo?.glitch(0.25 * smooth(t / nearAt));
         if (t > nearAt && !this.drained) { this.drained = true; rumblePlay('found'); s.setPower(this.controlled ? 'emergency' : 'dead', sp); sp.callScreen?.set({ statik: 1, talk: 0 }); s.holo?.glitch(1); C.fade(0.3, false, 0.5); }
         if (t > nearAt - 0.6) sp.mats.core.uniforms.uGlow.value = Math.max(0, 0.6 * (1 - (t - nearAt + 0.6) / 1.2));
-        if (t > 3.6 && !this.saidPass) { this.saidPass = true; C.say({ who: 'plumb', text: 'Power draining.' }); }
+        if (t > 3.6 && !this.saidPass) { this.saidPass = true; C.say({ who: 'plumb', text: 'Losing power!' }); }
         break;
       }
       case 'drain': {
@@ -533,7 +533,7 @@ export class PrologueDirector {
         s.shot({ pos: this.W(V(1.1, (pk.authored ? COCKPIT_DECK : DECK) + 1.8, pk.authored ? -17.7 : cockpitZ(-6.3))), look: this.W(V(-0.3, (pk.authored ? COCKPIT_DECK : DECK) + 1.9 - k * 0.7, pk.authored ? -26 : cockpitZ(-12.8))), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
-        if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'plumb', text: 'Not enough to hold orbit. Taking us down.' }); }
+        if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'plumb', text: 'Not enough power to stay up here. Taking us down.' }); }
         if (this.s.spaceCopy) this.s.spaceCopy.space.rotation.x = 0.76 * k;
         sp.mats.core.uniforms.uGlow.value = 0;
         if (t > 4.35 && !this.white) { this.white = true; C.fade(1, true, 0.4); }

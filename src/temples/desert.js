@@ -246,9 +246,9 @@ export const KEEPER = {
   // each: two braziers lit (KEEPER_LIGHT), then two drinks, then two more; an opening holds while it drinks (a gulp each
   // KEEPER_GUARD.gulp s), so one opening may end a phase: 10 calming acts over 6 openings before, 6 over 2 to 4 now)
   phases: [
-    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 2.4, hint: 'Light two braziers: cut a spoke’s ball out through its fire.' },
-    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 2.0, hint: 'Guard its charge, then water it. Or cut a lit ball down a spoke.' },
-    { to: 0.8, attacks: ['leap', 'spit', 'sweep2', 'charge'], pause: 1.8, hint: 'It leaps at you now. Water it as it gasps, or roll a lit ball to it.' },
+    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 2.4, hint: 'Light two fire bowls: cut a spoke’s ball loose to roll through its fire.' },
+    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 2.0, hint: 'Block its charge, then splash its open mouth. Or roll a lit ball at it.' },
+    { to: 0.8, attacks: ['leap', 'spit', 'sweep2', 'charge'], pause: 1.8, hint: 'It leaps now. Splash its mouth as it pants, or roll a lit ball at it.' },
     { to: 1.0, weary: true },
   ],
   // (its body's wind-ups are its tells, issue #320: no spark on the striking part, src/temples/boss.js tells)

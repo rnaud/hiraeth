@@ -57,15 +57,15 @@ export const BOSS_HINTS = {
   // the Rose House: the Keeper of the cistern (organic: calmed)
   desert: {
     phases: [
-      ['It is afraid of the dark round the walls.',
-        'Light two of the braziers round the rim: a ball cut out through its spoke’s little fire lights one.',
-        'Cut each spoke’s ball out: it rolls through its little fire into the hooded bowl. Each bowl lit calms it.'],
-      ['It is thirsty. Watch for it to pant.',
-        'When it pants with its mouth open, give it water. A fire rolled to it makes it pant too.',
-        'Take its charge on your guard and it pants: give it water at its mouth. Or cut a ball down past a lit bowl.'],
-      ['In the dark it only gasps a moment now.',
-        'Water it the moment it gasps. A burning ball rolled to it makes it pant for longer.',
-        'Cut the ball nearest it down its spoke past a lit bowl. By the flame it pants long and drinks deep.'],
+      ['It is scared of the dark. Light the fire bowls round the walls.',
+        'Cut a ball loose on a spoke: it rolls through a small fire and lights a bowl at the edge.',
+        'Cut the ball free on each spoke. It rolls through a small fire and lights a covered bowl. Each lit bowl calms it.'],
+      ['It is thirsty. When it pants, give it water.',
+        'When its mouth hangs open, splash water in it. A burning ball rolled at it makes it pant too.',
+        'Block its charge with your guard and it pants: splash water in its mouth. Or roll a burning ball at it.'],
+      ['Now it only pants for a moment. Be quick with the water.',
+        'Splash water the moment it pants. A burning ball rolled at it makes it pant longer.',
+        'Cut loose the ball nearest it: it rolls past a lit bowl and catches fire. Near the flame it pants longer. Splash it.'],
     ],
     // (from its second phase: the spoke ball nearest it, to roll in to it)
     at: (g, i) => (i === 0 ? nearestUnlit(g, ['b6', 'b7', 'b8', 'b9']) : nearestPiece(g, ['kb1', 'kb2', 'kb3', 'kb4'], g.model.pos)),
@@ -73,14 +73,14 @@ export const BOSS_HINTS = {
   // the Warden's Well: the warden (a robot: it can only be broken)
   incal: {
     phases: [
-      ['Its side vents open after its eye has swept the floor.',
-        'Keep out of the line its eye sweeps. When the vents open, glowing, shoot them.',
-        'Step out of the beam’s lane, then shoot the glowing vents while they are open. Four hits.'],
-      ['Its sides are shut now. Its crown hatch opens, and it backs toward a vane.',
-        'Fan the vane by it: its draught holds the hatch wide, and lifts you over its crown.',
-        'Swing the fan ({key:fire}) at the vane it backs onto, ride its draught up level with its crown, and shoot down.'],
-      ['It keeps its hatch shut against still air now.',
-        'It backs onto a vane when it opens. Make that vane turn: the fan’s gust turns the great ones.',
+      ['After its eye beam sweeps the floor, its side vents open. Shoot them.',
+        'Stay out of its eye beam. When the vents glow open, shoot them.',
+        'Step out of the beam’s path, then shoot the glowing vents while they are open. Four hits.'],
+      ['Its sides are shut now. Aim for the hatch on its crown, at the very top.',
+        'Blow the fan at the vane behind it. The wind holds its crown hatch open and lifts you above it.',
+        'Swing the fan ({key:fire}) at the vane it backs onto. Ride the wind up to its crown and shoot down into the hatch.'],
+      ['Its crown hatch stays shut now unless the vane under it turns.',
+        'Make the vane under it turn: blow on it with the fan.',
         'Swing the fan ({key:fire}) at the vane under it until the hatch lifts, then shoot down into it.'],
     ],
     // (from its second phase, the hatch open: the vane it backs onto)
@@ -89,15 +89,15 @@ export const BOSS_HINTS = {
   // the Elder's roost (organic: calmed by flying with her)
   arzach: {
     phases: [
-      ['She is afraid to fly alone.',
-        'When she spreads her wings and looks up, take to the air beside her.',
-        'Ride the wind in the middle of the hall up, and glide close round her while her wings are spread.'],
+      ['She is afraid to fly alone. Fly with her.',
+        'When she spreads her wings and looks up, fly up beside her.',
+        'Ride the wind up from the middle of the hall. Glide close around her while her wings are spread.'],
       ['She is in the air now. Go up with her.',
-        'When she hangs over a vent, fly in the wind beside her.',
-        'Ride the wind out of a vent up beside her while she hangs there: it counts twice.'],
-      ['She will not trust still air.',
-        'When she hangs over a vent, make the wind rise from it: the stone into the other.',
-        'Push the floor’s stone into the far vent, then open your wings in the column by her.'],
+        'When she hovers over a vent, fly in its wind beside her.',
+        'While she hovers over a vent, ride that vent’s wind up beside her. It counts double.'],
+      ['She only hovers where the wind blows. Make it blow by her.',
+        'Block the other vent with the stone, and the wind rises from the vent by her.',
+        'Push the stone on the floor into the vent away from her. Then open your wings in the wind by her.'],
     ],
     // (from her second phase: the stone, while the wind rises from the vent away from her)
     at: (g, i) => {
@@ -110,11 +110,11 @@ export const BOSS_HINTS = {
   // the Founders' Belfry: the Cloud-Mother (organic: answered with a bell, its ring hooked: issue #377)
   arzach2: {
     phases: [
-      ['She cries, and nobody answers.',
+      ['She cries out. Answer her with a bell.',
         'When she sinks low and cries, ring the bell nearest her.',
-        'While she cries, hook the ring under the bell nearest her ({key:aim}, then {key:fire}). Not the fluid, never a shove.'],
-      ['She is crying again.',
-        'Answer every cry with the bell nearest her.',
+        'While she cries, hook the ring under the bell nearest her ({key:aim}, then {key:fire}). The hook, not water or a push.'],
+      ['She is crying again. Ring the bell nearest her.',
+        'Each time she cries, ring the bell nearest her.',
         'Each time she sinks low and cries, hook the ring of the bell nearest her ({key:aim}, then {key:fire}).'],
     ],
     // (the drone's lens on the hall's bell nearest her: what to hook)
@@ -127,26 +127,26 @@ export const BOSS_HINTS = {
   // the First Garage: the Clockwork Foreman (a robot: it can only be stopped)
   garage: {
     phases: [
-      ['Watch its face after it strikes.',
-        'When the glass over its face swings up, hit all six numerals inside one breath.',
-        'Let it strike, lock three numerals with the boomerang ({key:aim}), throw ({key:fire}), splash three.'],
-      ['Its face still opens after a strike.',
-        'Six numerals, one breath, again. Keep clear of its cogs.',
-        'Dodge the cogs, wait for the hammer or the chime, then all six numerals before the glass comes down.'],
+      ['After it strikes, the glass over its face opens.',
+        'When the glass over its face swings up, hit all six numbers inside, quickly, before it shuts.',
+        'Let it strike. Aim the boomerang at three numbers ({key:aim}), throw it ({key:fire}), then splash the other three.'],
+      ['Its face still opens after a strike. Hit the six numbers again.',
+        'All six numbers again, quickly. Keep away from its flying cogs.',
+        'Dodge the cogs. After its hammer or its chime, hit all six numbers before the glass comes down.'],
     ],
   },
   // the Engine-House: the Tooth-Warden (a robot: it can only be stopped)
   buried: {
     phases: [
-      ['Four vents open after its beam. One faces away from you.',
-        'All four in one breath, and the bar holds three shots: a bomb reaches the ones you can’t splash.',
+      ['After its beam, four vents open. One is on its far side.',
+        'Hit all four vents quickly. Your tank holds three shots: throw a bomb for the ones you can’t splash.',
         'As its vents open, throw a bomb at its feet ({key:fire}), then splash the vents its blast missed.'],
-      ['It turns on the great gear in the floor now.',
-        'Roll the ball by the west wall into the gear’s teeth: then four vents in a breath count twice.',
-        'Push the ball along its groove into the gear, then hit all four vents in one breath when they open.'],
-      ['It stamped the ball out of the gear, and opens turning.',
-        'One vent faces out at a time while the gear turns. Jam it again with the ball.',
-        'Roll the ball back into the gear’s teeth; when it opens, all four face out: hit them in one breath.'],
+      ['Now it spins on the big gear in the floor. Jam the gear.',
+        'Roll the ball by the west wall into the gear’s teeth to jam it. Then hitting all four vents quickly counts double.',
+        'Push the ball along its groove into the gear, then hit all four vents quickly when they open.'],
+      ['It knocked the ball out of the gear. Now it spins while its vents are open.',
+        'While the gear turns, you can reach only one vent at a time. Jam the gear with the ball again.',
+        'Roll the ball back into the gear’s teeth. When its vents open, hit all four quickly.'],
     ],
     // (from its second phase, the gear free: the ball by the wall)
     at: (g, i) => (i >= 1 && !g.rt.gearJammed?.() ? g.rt.piece?.('bG')?.center ?? null : hiddenVent(g, 4)),
@@ -154,14 +154,14 @@ export const BOSS_HINTS = {
   // the Builders' Greenhouse: the Gardener (organic: bloomed)
   edena: {
     phases: [
-      ['It is looking at the dead beds round the walls.',
-        'Make the dead beds bloom.',
+      ['It keeps looking at the dead flower beds round the walls.',
+        'Make the dead flower beds bloom.',
         'Switch the tool to bloom and shoot each dead bed round the glasshouse.'],
       ['Its back is bare. Wait for it to kneel.',
-        'When it kneels, make its back bloom: in the sun the flowers take at once.',
-        'Let it kneel. Its quarter’s footstone turns the sun onto it; then shoot bloom onto its back.'],
-      ['Nothing grows on it in the shade now.',
-        'When it kneels, bring the sun to it first: the footstone of its quarter.',
+        'When it kneels, shoot bloom onto its back. In sunlight the flowers grow at once.',
+        'Let it kneel. Stand on the footstone nearest it to turn the sun onto it. Then shoot bloom onto its back.'],
+      ['Flowers won’t grow on it in the shade now.',
+        'When it kneels, bring the sun to it first: stand on the footstone nearest it.',
         'Let it kneel, stand on the footstone nearest it till the sun settles on it, then bloom its back.'],
     ],
     // (from its second phase: the footstone that brings the sun, while it kneels in the shade)
@@ -172,14 +172,14 @@ export const BOSS_HINTS = {
   // the Footprint: the Echo (organic: answered note for note)
   spheres: {
     phases: [
-      ['It sings, and waits for an answer.',
-        'When it sings, one sphere on the galleries glows with its note.',
+      ['It sings a note. Answer it on the sphere that glows.',
+        'When it sings, one sphere on the galleries glows. Shoot that one.',
         'Shoot the sphere that glows while it sings. The wrong one makes it flinch.'],
       ['It sings again, and faster.',
-        'Answer each song on the sphere that glows. Through your lens it wears the walker’s print.',
+        'Each time it sings, shoot the sphere that glows. Your lens shows the walker’s print on it.',
         'Watch which sphere lights when it sings, and splash that one before the song ends.'],
       ['All three spheres glow when it sings now.',
-        'Only one wears the walker’s print through your lens: three toes.',
+        'Look through your lens: only one glowing sphere has the three-toed print.',
         'When it sings, look for the three-toed print on one glowing sphere, and splash that one.'],
     ],
     at: (g) => (g.state === 'open' && g.rt.sing >= 0 && g.rt.resonators?.[g.rt.sing]?.center) || g.model.mouth,
@@ -187,11 +187,11 @@ export const BOSS_HINTS = {
   // the Hush-House: the Mother Snapper (organic: outwitted, never fought: issue #409). The lens on the next crystal
   perdide: {
     phases: [
-      ['She strikes at sounds: the crystals jangling over her.',
-        'Still the three swinging crystals to hush them.',
-        'Switch to stilling and shoot each pendulum crystal. Walk, never run, near her.'],
-      ['The hall is silent. Now the lullaby, low to high.',
-        'The smallest note grows at her root, under her head. Make a sound elsewhere.',
+      ['She snaps at noise. The swinging crystals above her are noisy.',
+        'Stop the three swinging crystals with a stilling shot.',
+        'Switch to stilling and shoot each swinging crystal. Walk, don’t run, near her.'],
+      ['The hall is quiet. Now sing her to sleep: splash the crystals one by one, in order.',
+        'The first crystal is the small one at her root, under her head. Make a noise elsewhere first, so she looks away.',
         'Splash a hanging crystal: she strikes at it. Then splash her root crystal, then the hanging ones, smallest first.'],
     ],
     at: (g) => {
@@ -204,11 +204,11 @@ export const BOSS_HINTS = {
   // the Lamp-House: the Lampless (organic: fed with your light)
   perdide2: {
     phases: [
-      ['It is searching for light.',
+      ['It is looking for light. Give it some.',
         'When it hangs low, send it a bubble of light.',
-        'Splash a pool, blow a bubble beside it ({key:aim}, {key:fire}) and send it, glowing, to the moth.'],
+        'Stand by a lit pool, blow a bubble ({key:aim}, {key:fire}), and send the glowing bubble to the moth.'],
       ['It wants more light.',
-        'Again: a bubble of a lit pool’s light while it searches.',
+        'Again: fill a bubble with light at a lit pool, and send it while the moth hangs low.',
         'When it hangs low, stand by a lit pool, blow a bubble and aim it at the moth until it has drunk.'],
     ],
     at: (g) => _p.copy(g.model.pos).setY(g.arena.y + 0.5),
@@ -216,14 +216,14 @@ export const BOSS_HINTS = {
   // the Undertower: the First Sign (a machine, given its words back)
   bazaar: {
     phases: [
-      ['It is trying to say something.',
-        'Catch its word in the hourglass, then give it back when it listens.',
-        'Stay near when it cries its word, then turn the hourglass on the air ({key:fire}) while its dish is lowered.'],
+      ['It keeps crying one word. Catch it.',
+        'Catch its word in the hourglass. Play it back while its dish is lowered.',
+        'Stand near when it cries its word. Then turn the hourglass ({key:fire}) while its dish is lowered.'],
       // (issue #418: its puzzle between its fights)
-      ['Its one word floods the cables. It hears nothing.',
-        'Shut the word out at the hall’s relay. Then give it the word it turns to.',
-        'Pull the lever by the door; splash the stone its dish faces, then turn the hourglass ({key:fire}) by it.'],
-      ['It hears only through its cables now.',
+      ['Its word fills the cables, so it can’t hear anything else.',
+        'Pull the lever by the door to shut its word out. Then give it the word from the stone its dish faces.',
+        'Pull the lever by the door. Splash the stone its dish faces, then turn the hourglass ({key:fire}) beside that stone.'],
+      ['Now it only hears through the dishes on the wall.',
         'Catch its word, then play it into a low dish on the wall.',
         'Be close when it cries, then stand under a low wall dish and turn the hourglass ({key:fire}) while it listens.'],
     ],
@@ -231,14 +231,14 @@ export const BOSS_HINTS = {
   // the Casting-House: the Last Founder (a machine, stopped)
   moonfoundry: {
     phases: [
-      ['Its crucible doors open after it pours.',
-        'When the doors swing open, splash the molten heart inside.',
-        'Wait out its ladle and its pour; when its chest opens, splash the glowing heart with water.'],
-      ['The iron moon by the west wall fits its cradle.',
-        'Roll the iron moon into the casting cradle: with a whole moon there, a splash counts twice.',
+      ['After it pours, the doors on its chest open.',
+        'When the doors swing open, splash water on the glowing heart inside.',
+        'Dodge its ladle and its pour. When its chest opens, splash the glowing heart with water.'],
+      ['The iron moon, the big ball by the west wall, fits the casting cradle.',
+        'Roll the iron moon into the casting cradle. While it sits there, each splash counts double.',
         'Draw the iron moon along its rail into the cradle with the magnet glove (hold {key:fire}), then splash its heart.'],
       ['It tipped the moon out. Its heart is too hot now.',
-        'Roll the moon back into the cradle. Only then does the water take.',
+        'Roll the moon back into the cradle. Water only works while it is there.',
         'Push the iron moon back into the casting cradle, then splash the heart while it stops to look.'],
     ],
     // (from its second phase, the moon out of the cradle: the moon)
@@ -247,15 +247,15 @@ export const BOSS_HINTS = {
   // the Mooring-House: the Anchor-Warden (a machine, stopped)
   spacecity: {
     phases: [
-      ['Its drum stalls after it throws its anchor.',
-        'When its cable runs slack, pull the anchor home with the tether.',
+      ['After it throws its anchor, its cable drum stops.',
+        'When its cable goes slack, pull the anchor back with the tether.',
         'Switch to the tether ({key:mode}), go near the anchor lying on the floor, and pull it while the drum is stalled.'],
-      ['Its anchors hook over the bollards now.',
-        'Pull the hooked anchor free and home while it hauls and stalls.',
-        'Wait for it to stall, stand by the bollard with the anchor on it, and pull with the tether.'],
-      ['Its anchor hangs out over the void.',
-        'Too far for the tether: push its bars to wind it in, then pull.',
-        'While it stalls, push the Warden twice, then tether the anchor home from the rim.'],
+      ['Now its anchor hooks onto the posts on the floor.',
+        'When it stops pulling, tether the hooked anchor free and back.',
+        'Wait for it to stop, stand by the post with the anchor on it, and pull with the tether.'],
+      ['Its anchor hangs out over the drop, too far to reach.',
+        'Push the bars on its drum to wind the anchor closer, then pull it.',
+        'While it is stopped, push it twice to wind the anchor in. Then pull the anchor back with the tether from the edge.'],
     ],
     // (an anchor out: the anchor; else its pawl)
     at: (g) => (g.rt.anchor?.out ? g.rt.anchor.at.clone() : g.model.drumAt?.(V()) ?? null),
@@ -264,14 +264,14 @@ export const BOSS_HINTS = {
   underwater: {
     phases: [
       ['Its great ear opens after it strikes.',
-        'When it stops and spreads its ear, stomp close to it: the boom is the deep note.',
-        'Wait out its fins and its slam; when its ear spreads wide, jump near it ({key:jump}) and stomp ({key:fire} in the air).'],
-      ['It shuts its ear to anything close now.',
-        'Roll a stone onto a dish’s footstone, then stomp into that dish while it listens.',
-        'Push a stone onto the footstone by the wall, then jump by its dish and stomp ({key:fire} in the air) as it listens.'],
-      ['It knocked the stones off the footstones.',
-        'Roll a stone back onto a footstone, and stomp into its dish while the ear is open.',
-        'Push a stone back onto a footstone, then stomp ({key:fire} in the air) by its dish when the ear spreads.'],
+        'When it stops and spreads its ear, stomp near it. The boom is the deep note it wants.',
+        'Dodge its fins and its slam. When its ear spreads wide, jump near it ({key:jump}) and stomp ({key:fire} in the air).'],
+      ['Now it shuts its ear when you get close. Use the dishes by the walls.',
+        'Roll a ball onto the footstone by a dish. Then stomp beside that dish while the ear is open.',
+        'Push a ball onto the footstone by the wall. Then jump by its dish and stomp ({key:fire} in the air) as the ear opens.'],
+      ['It knocked the balls off the footstones.',
+        'Roll a ball back onto a footstone, and stomp beside its dish while the ear is open.',
+        'Push a ball back onto a footstone, then stomp ({key:fire} in the air) beside its dish when the ear spreads.'],
     ],
     // (its first phase: its ear; then a stone off its footstone, or the dish a stone wakes)
     at: (g, i) => {

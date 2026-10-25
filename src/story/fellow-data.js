@@ -264,7 +264,7 @@ export const TANSY = {
         had: 4,
         do: [{ set: { 'fellow.end': 'on' } }, { give: 'saltletter' }],
         say: [
-          '~solemn~ Will you post this to my aunt? Hesper, at the Salt Harbour. *The market’s night halt* takes letters. (A page torn from her book, folded small.) It says where I went, and that I’m well. And the bit about the bird.',
+          '~solemn~ Will you post this to my aunt? Hesper, at the Salt Harbour. *The night halt*, the train stop past the market’s landing, takes letters. (A page torn from her book, folded small.) It says where I went, and that I’m well. And the bit about the bird.',
           '~neutral~ I’m keeping the compass. Sorry. I still need it.',
         ],
         choices: [

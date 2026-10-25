@@ -128,12 +128,12 @@ export const PEOPLE = {
           say: ["~surprised~ (Her hand stops. She taps the drawing, her stone seat, then points to the enormous stone hand.)", "~solemn~ (The same mark, everywhere. She turns her palms up: she cannot tell you who made it.)"],
           choices: [{ text: '~neutral~ I’ll go to the tower.', goto: 'go' }],
         },
-        go: { say: ["~neutral~ (She points at *the tower’s foot* and sweeps both hands up its side, like rising air. Then she spreads her arms: *wings*.)",
-          { if: { not: { flag: 'item.glider' } }, text: "~neutral~ (She looks at your bare back, then points *west, up the standing stones to the white streamer* on the slope. Past it, she draws a house with stone wings, and spreads her arms again.)" }], choices: [{ text: '~neutral~ (nod)', end: true }] },
+        go: { say: ["~neutral~ (She points at *the tower’s foot* and sweeps both hands up its side: the wind rises there. Then she spreads her arms: you need *wings* to ride it.)",
+          { if: { not: { flag: 'item.glider' } }, text: "~neutral~ (She looks at your bare back, then points *west, up the standing stones to the white streamer* on the slope. Past it, she draws *a house with stone wings*, and spreads her arms again: the wings are there.)" }], choices: [{ text: '~neutral~ (nod)', end: true }] },
         again: {
           say: [{ if: { flag: 'arzach.window.seen' }, text: "~curious~ (Oïa checks your empty hands. She points back at the tower’s window.)" },
-            { if: { not: { flag: 'arzach.window.seen' } }, text: "~neutral~ (A finger toward *the tower’s foot*. Both hands sweeping up: the wind. Arms out: wings. Her directions have not changed.)" },
-            { if: { all: [{ not: { flag: 'arzach.window.seen' } }, { not: { flag: 'item.glider' } }] }, text: "~neutral~ (Then west, up the standing stones to *the white streamer*, and past it *the white house with the stone wings*. Arms out again, patiently.)" }],
+            { if: { not: { flag: 'arzach.window.seen' } }, text: "~neutral~ (A finger toward *the tower’s foot*. Both hands sweeping up: the wind rises there. Arms out: you need wings to ride it.)" },
+            { if: { all: [{ not: { flag: 'arzach.window.seen' } }, { not: { flag: 'item.glider' } }] }, text: "~neutral~ (Then west, up the standing stones to *the white streamer*, and past it *the white house with the stone wings*. Arms out again, patiently: the wings are there.)" }],
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider', if: { not: { flag: 'arzach.glyph.drawn' } } }, { text: '~neutral~ (nod)', end: true }],
         },
         whistle: {
@@ -183,7 +183,7 @@ export const LOCALS = [
         },
         ship: { say: ["~solemn~ (She studies you.) You heard it too.", '~neutral~ (She puts her ear back to the stone.)'], choices: [{ text: '~curious~ The bird cried?', goto: 'cried' }, { text: '~neutral~ (leave her to listen)', end: true }] },
         cried: {
-          say: ["~sad~ She shook all night. Lost feathers. (Senn plucks at her sleeve.)", "~neutral~ *Two spires. Their flat tops.* (She points straight up the spire at her back, then far off past the tower.) The third feather is in *the stone hand*."],
+          say: ["~sad~ She shook all night. Lost feathers. (Senn plucks at her sleeve.)", "~neutral~ Two feathers *on top of two spires*. (She points straight up the spire at her back, then far off past the tower.) The third feather is in *the stone hand*."],
           do: { start: 'arzach.feathers' },
           choices: [{ text: '~happy~ I’ll find them for her.', end: true }],
         },

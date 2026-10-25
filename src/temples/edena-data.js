@@ -56,8 +56,8 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        tool: { say: ["~happy~ A tool for telling them to grow. Of course they left one. Nobody tends a garden with bare hands.", "~neutral~ Then the gardener may want the same. Gently, though."], choices: [{ text: '~neutral~ Gently.', end: true }] },
-        buds: { say: ["~curious~ Then open it. The builders wouldn’t tend a whole garden without leaving something to work with.", "~neutral~ Water won’t wake a bud. Something in there might."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        tool: { say: ["~happy~ A tool for telling them to grow. Of course they left one. Nobody tends a garden with bare hands.", "~neutral~ Then try it on the gardener too. Gently, though."], choices: [{ text: '~neutral~ Gently.', end: true }] },
+        buds: { say: ["~curious~ Then open it. The builders wouldn’t tend a whole garden without leaving something to work with.", "~neutral~ Water won’t open those flower doors. Whatever is in that chest might."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
           say: ["~surprised~ (Green fills the seed rows. Sorrel stands with soil in both hands.) Every one. This morning. I didn’t have to beg a single seed.",
             "~happy~ Look at the ruins: vines to the top, flowers below. Oro hasn’t stopped staring. Says they were always meant to look like that.",

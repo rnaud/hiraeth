@@ -68,11 +68,11 @@ export const THRUM = {
 export function hereLine(w, here) {
   if (!w?.total) return null;
   const share = w.left / w.total;
-  if (!w.left) return '~happy~ It’s gone quiet here. You’ve listened well.';
-  if (share > 0.5) return `~curious~ ${cap(inLine(here))} still sings loud.`;
+  if (!w.left) return '~happy~ No fragments left here. You found them all.';
+  if (share > 0.5) return `~curious~ Plenty of fragments left in ${inLine(here)}.`;
   // (a fifth or more left: some; under a fifth: a little, issue #563)
-  if (share >= 0.2) return `~neutral~ Some singing left in ${inLine(here)}.`;
-  return `~neutral~ A little singing left in ${inLine(here)}.`;
+  if (share >= 0.2) return `~neutral~ Some fragments left in ${inLine(here)}.`;
+  return `~neutral~ Only a few fragments left in ${inLine(here)}.`;
 }
 
 /**
@@ -82,7 +82,7 @@ export function hereLine(w, here) {
  */
 export function tallyLines(flags = {}, here = null, has = (id) => !!flags[`item.${id}`]) {
   const c = fragmentCounts(flags), { held } = fragmentPurse(flags, has);
-  const out = [`~neutral~ ${c.found ? `${cap(say(c.found))} so far.` : 'None yet.'} ${held ? `${cap(say(held))} to spend.` : 'None to spend.'}`];
+  const out = [`~neutral~ ${c.found ? `${cap(say(c.found))} found so far.` : 'None found yet.'} ${held ? `${cap(say(held))} to spend.` : 'None to spend.'}`];
   const hw = here && c.worlds[here];
   const h = hereLine(hw, here);
   if (h) out.push(h);

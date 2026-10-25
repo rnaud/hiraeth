@@ -703,8 +703,8 @@ giving me access to the quest for the temple first."
   the world's opening talk. They call you over (`src/story/balloons.js`: reason `quest`, a wave once).
 - **The lore** (`src/story/signature.js` `GIVERS_LINE`, said once by the ship, flag `signature.givers`): the light's
   pulse lingers, faintly, on the people it passed over (a few in every world saw it go over, low, the night before it
-  found the ship), and the scar hears its own beat in them: "The same pulse, faint, on people below who saw the light
-  pass. I'll mark them on your map." Said after the landing in the prologue (after his answer), or out of the first jump
+  found the ship), and the scar hears its own beat in them: "Some people down there saw the light pass. They give off
+  the same faint signal. I'll mark them on your map." Said after the landing in the prologue (after his answer), or out of the first jump
   for a save that landed before.
 - **Doing it first never waits for them.** Going into a temple starts its quest (its first step done); a box opened
   before anyone gave its quest is that quest done, on the Quests page's finished list; the world's own quest whose goal

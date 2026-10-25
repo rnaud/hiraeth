@@ -113,7 +113,7 @@ export const ALIENS = {
       lines: ['~neutral~ Mind my foot. It is most of me.', '~tired~ Going to the cave. Set out in spring.'],
       talk: { listen: [
         { if: { quest: LAMPS, stage: 'hollin' }, say: '~neutral~ *Out on the island, by the big lamp.* Its keeper has practised “welcome” for forty years. Let him say it.' },
-        { if: { quest: LAMPS, stage: 'pools' }, say: ['~sad~ Three pools along the path went dark when the high sound came. We all pulled in at once.', '~curious~ The pools take colours. Yours are bright ones. *Shoot the dark pools* and see.'] },
+        { if: { quest: LAMPS, stage: 'pools' }, say: ['~sad~ Three pools along the path went dark when the high sound came. We all pulled in at once.', '~curious~ The pools take colours. Your tank’s colours are bright. *Shoot the dark pools* with it and see.'] },
         { if: { quest: LAMPS, stage: 'answer' }, say: '~surprised~ Three short, one long, from across the water. My eyes went all the way up. *Whistle for the skiff*.' },
         '~tired~ Hurry is for people without a house. I have mine with me.',
         '~playful~ I am going to the cave. I set out in spring. Don’t wait for me.',

@@ -263,8 +263,8 @@ export const MOTHER = {
   weary: 'Her head sinks over the smallest crystal, crown aglow. Go to her softly.',
   resolved: 'The Mother Snapper sleeps. Up in the dome the crystals hum in tune.',
   phases: [
-    { to: 0.45, attacks: [], pause: 1.4, hint: 'She strikes at every sound: the crystals jangling over her. Still them.', openHint: 'Her head lies spent where the sound was. She hears; she does not see.' },
-    { to: 0.9, attacks: [], pause: 1.4, hint: 'Silence. Now sing her the lullaby: splash the crystals, smallest first.' },
+    { to: 0.45, attacks: [], pause: 1.4, hint: 'She snaps at sounds. Stop the swinging crystals over her with stilling.', openHint: 'Her head lies spent where the sound was. She hears; she does not see.' },
+    { to: 0.9, attacks: [], pause: 1.4, hint: 'Quiet now. Sing her to sleep: splash the crystals, smallest first.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -293,13 +293,13 @@ export const motherSpar = () => ({
     seedVolley: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.1, track: 0.55, part: 'mouth', pose: 'seed', link: true, open: 2.0, damage: 0.5, knock: 6, recover: 0.8 },
   },
   phases: [
-    { to: 0.45, attacks: ['lunge', 'sweep'], pause: 1.5, hint: 'When her head lies spent after a lunge, still her: cold in her mouth.' },
-    { to: 0.75, attacks: ['snap', 'seed', 'snap', 'sweep'], pause: 1.2, hint: 'She feints now. Still her as she strikes.',
+    { to: 0.45, attacks: ['lunge', 'sweep'], pause: 1.5, hint: 'When her head lies tired after a lunge, shoot stilling into her mouth.' },
+    { to: 0.75, attacks: ['snap', 'seed', 'snap', 'sweep'], pause: 1.2, hint: 'She fakes her strikes now. Use stilling on her when she really strikes.',
       asks: { verb: 'push', moves: ['snap', 'snap2'], open: 3.6,
-        hint: 'Push her head as she rears to snap: it slams down, spent.',
+        hint: 'Push her head as she rears to snap: it slams down, tired.',
         said: 'Shoved aside, her head slams down spent, jaws agape. Still her.',
-        lines: ['She rears back to snap.', 'Push her head as she rears to snap, and it slams down spent.', 'Switch to the push and fire it at her head as it draws back to snap; then still her open mouth.'] } },
-    { to: 0.9, attacks: ['thrash', 'seed', 'snap'], pause: 1.0, hint: 'Once more: when she lies spent, water.' },
+        lines: ['She rears back to snap.', 'Push her head as she rears back to snap. It slams down, tired.', 'Switch to the push and fire it at her head as it draws back to snap; then shoot stilling into her open mouth.'] } },
+    { to: 0.9, attacks: ['thrash', 'seed', 'snap'], pause: 1.0, hint: 'Once more: when she lies tired, splash her with water.' },
     { to: 1.0, weary: true },
   ],
 });

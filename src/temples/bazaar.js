@@ -321,7 +321,7 @@ const SIGN_ATTACKS = {
 };
 /** (v1.63, #257) Its second verb before the gadget, a dodge of its beam: in its last fight since issue #418. */
 const SIGN_ASKS = { verb: 'dodge', moves: ['beam'], open: 4.4,
-  hint: 'Hop clear of its beam as it fires: overreached, it lowers its dish.',
+  hint: 'Hop clear of its beam as it fires: it overreaches and lowers its dish.',
   said: 'Its beam burns past you. It lowers its dish to listen: play its word back.',
   lines: ['Its beam searches for you.', 'Hop aside from its beam just as it fires: it lowers its dish.', 'When its dish glows to fire, flip back (stick back and A / ×) as the beam comes; then turn the hourglass ({key:fire}) to give its word back.'] };
 
@@ -340,9 +340,9 @@ export const FIRST_SIGN = {
   resolved: 'The First Sign says its whole line once, quietly, and listens.',
   phases: [
     { to: 0.3, attacks: ['cry', 'beam', 'static'], pause: 1.6, hint: 'When it lowers its dish to listen, play its word back into it.' },
-    { to: 0.7, attacks: [], pause: 1.4, puzzle: true, hint: 'Its word floods the cables. Shut it out, then give it its line.',
+    { to: 0.7, attacks: [], pause: 1.4, puzzle: true, hint: 'Its word fills the cables. Pull the lever by the door, then answer it.',
       openHint: 'It turns its dish to a stone and listens: give it that word.' },
-    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'It hears only through its cables now: play its word into a wall dish.', asks: SIGN_ASKS },
+    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'Now it only hears through the wall dishes: play its word into one.', asks: SIGN_ASKS },
   ],
   attacks: SIGN_ATTACKS,
 };
@@ -355,7 +355,7 @@ export const signSpar = () => ({
   phases: [
     { to: 0.5, attacks: ['cry', 'beam', 'static'], pause: 1.6, hint: 'When it lowers its dish to listen, play its word back into it.' },
     { to: 0.75, attacks: ['beam', 'stutter', 'static'], pause: 1.2, hint: 'A new word: catch it, then play it into its dish.', asks: SIGN_ASKS },
-    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'Once more: when it lowers its dish, its word.' },
+    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'Once more: when it lowers its dish, play its word back.' },
   ],
 });
 

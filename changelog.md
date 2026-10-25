@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.28 — 2026-10-25
 
+- Plumb and 32 other characters now speak plainly. Plumb’s help when you’re lost, in the makers’ houses and against each guardian, and its words on the ship after the crash, on the map and against the pirates, now say what to do and where, without riddles. People’s directions and the guardians’ fight notices do too.
 - The last two house maps are on show like the others: bigger, on a low plinth, their backs to the wall and their openings toward the room. In the City-Shaft’s Vane Room it stands against the wall of the ledge, north of the door, leaving the ledge clear; in the Mooring-House’s Lamp Shaft it stands on a floor plate by the wall, left of the way in.
 - When a chest opens, what it held floats over your open hand again where you can see it. From some angles your own body hid it through the whole card; now you hold it out in the hand on the camera’s side.
 - The Engine-House has a Fuse Room north of the Governor Room: a bomb wakes its clock, and only while the clock runs does the wall panel show which floor tiles to step, and in what order. Out of time, the tiles go dark and you can start again.

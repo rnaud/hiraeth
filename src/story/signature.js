@@ -73,18 +73,18 @@ export function revealNote(titles = []) {
 }
 
 /** The ship's line after the landing, as the emergency power comes on. */
-export const LANDING_LINE = spoken('plumb', "~neutral~ Emergency power online. Whatever passed us drained the core and left a magnetic signature on the hull. I can track its pulse.");
+export const LANDING_LINE = spoken('plumb', "~neutral~ Some power is back. That light took our power as it passed, and left a signal on the hull: three slow pulses. I can follow it.");
 /** His answer: following the light is his own choice, not the ship's. */
 export const FOLLOW_LINE = spoken('you', "~whisper~ Then track it. When we can fly, we follow it. I want to hear it again.");
 
 /** The ship's line the first time the galactic map opens with power. */
-export const MAP_LINE = spoken('plumb', "~neutral~ These worlds carry the same magnetic signature as our scar. You asked me to follow the singing light: it went this way.");
+export const MAP_LINE = spoken('plumb', "~neutral~ These worlds give off the same signal as our hull. The singing light passed through them. You asked me to follow it: it went this way.");
 
 /** Out of the jump, the first time the ship comes to a world: null if it has said it before (or the world has none). */
 export function arrivalLine(id, flag = () => undefined) {
   const s = SIGNATURE_WORLDS[id];
   if (!s || flag(`signature.${id}`)) return null;
-  return spoken('plumb', `~neutral~ The singing light’s signature, here too. Strongest ${s.where}.`, { set: { [`signature.${id}`]: true } });
+  return spoken('plumb', `~neutral~ The singing light’s signal is here too. It’s strongest ${s.where}.`, { set: { [`signature.${id}`]: true } });
 }
 
 // The givers on the map (issue #273): why the ship can mark the people who have something for you before you meet them.
@@ -94,7 +94,7 @@ export function arrivalLine(id, flag = () => undefined) {
 // save that landed before (flag `signature.givers`); and in a line on the Map whenever someone is marked.
 export const GIVERS_FLAG = 'signature.givers';
 /** The ship's line: why some people are on the map before you have met them. */
-export const GIVERS_LINE = spoken('plumb', "~curious~ The same pulse, faint, on people below who saw the light pass. I'll mark them on your map.", { set: { [GIVERS_FLAG]: true } });
+export const GIVERS_LINE = spoken('plumb', "~curious~ Some people down there saw the light pass. They give off the same faint signal. I'll mark them on your map.", { set: { [GIVERS_FLAG]: true } });
 /** The Map's line while someone is marked (src/world-map.js mapMarks: the marks of kind 'giver'). */
 export const GIVERS_NOTE = 'The ship hears the light’s pulse on them: they saw it pass.';
 /** The ship's line about the givers if it has not said it yet, or null. */

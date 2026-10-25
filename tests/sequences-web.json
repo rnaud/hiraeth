@@ -650,7 +650,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "Power draining."
+              "text": "Losing power!"
             }
           },
           "menu": null,
@@ -691,7 +691,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "Main power drained. Emergency reserve only."
+              "text": "Main power gone. Only the reserve is left."
             }
           },
           "menu": null,
@@ -731,7 +731,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "Not enough to hold orbit. Taking us down."
+              "text": "Not enough power to stay up here. Taking us down."
             }
           },
           "menu": null,
@@ -999,7 +999,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "Emergency power online. Whatever passed us drained the core and left a magnetic signature on the hull. I can track its pulse."
+              "text": "Some power is back. That light took our power as it passed, and left a signal on the hull: three slow pulses. I can follow it."
             }
           },
           "menu": null,
@@ -1087,7 +1087,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "The same pulse, faint, on people below who saw the light pass. I'll mark them on your map."
+              "text": "Some people down there saw the light pass. They give off the same faint signal. I'll mark them on your map."
             }
           },
           "menu": null,
@@ -3156,7 +3156,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "The singing light’s signature, here too. Strongest among the humming standing stones."
+              "text": "The singing light’s signal is here too. It’s strongest among the humming standing stones."
             },
             "gadget": "gun"
           },
@@ -3196,7 +3196,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "The singing light’s signature, here too. Strongest among the humming standing stones."
+              "text": "The singing light’s signal is here too. It’s strongest among the humming standing stones."
             },
             "gadget": "gun"
           },
@@ -3238,7 +3238,7 @@
             },
             "sub": {
               "who": "PLUMB",
-              "text": "The same pulse, faint, on people below who saw the light pass. I'll mark them on your map."
+              "text": "Some people down there saw the light pass. They give off the same faint signal. I'll mark them on your map."
             },
             "gadget": "gun"
           },
@@ -6357,7 +6357,7 @@
           "hud": {
             "dialogue": {
               "name": "Anselm Thrum",
-              "text": "Twenty-four so far. Nine to spend.",
+              "text": "Twenty-four found so far. Nine to spend.",
               "choices": []
             },
             "gadget": "gun"
@@ -6392,7 +6392,7 @@
           "hud": {
             "dialogue": {
               "name": "Anselm Thrum",
-              "text": "Vael still sings loud.",
+              "text": "Plenty of fragments left in Vael.",
               "choices": [
                 "Show me what you have.",
                 "Where do they hide?"
@@ -6430,7 +6430,7 @@
           "hud": {
             "dialogue": {
               "name": "Anselm Thrum",
-              "text": "Vael still sings loud.",
+              "text": "Plenty of fragments left in Vael.",
               "choices": [
                 "Show me what you have.",
                 "Where do they hide?"
@@ -6650,7 +6650,7 @@
           "hud": {
             "dialogue": {
               "name": "Plumb",
-              "text": "That rock again.",
+              "text": "Going in circles.",
               "choices": []
             }
           },

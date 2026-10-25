@@ -449,8 +449,8 @@ export class HomecomingDirector {
         break;
       }
       case 'cargo':
-        C.say({ who: 'plumb', text: this.final ? 'Cargo check before descent. One passenger, and what is new in the hold.'
-          : this.items.length ? 'Cargo check before descent. Everything in the hold is going down with you.' : 'Cargo check before descent. The hold is empty.' });
+        C.say({ who: 'plumb', text: this.final ? 'Before we land, a look in the hold: one passenger, and what’s new.'
+          : this.items.length ? 'Before we land, a look in the hold. Everything in it goes down with you.' : 'Before we land, a look in the hold. It’s empty.' });
         this.panel = new CargoPanel({ items: this.final ? [{ id: 'ilen', kind: 'person', name: 'Ilen', level: FINALE_ID, text: 'In the jump seat, his old cap in her lap. She has not said anything since the jump.' }, ...this.items] : this.items, titles: this.titles, onGo: () => this.choose(), page: this.page });
         this.panel.show();
         sfx.beep(s.sound, true);
@@ -582,7 +582,7 @@ export class HomecomingDirector {
     this.panel?.remove();
     this.panel = null;
     sfx.beep(this.s.sound);
-    this.s.cinema.say({ who: 'plumb', text: this.items.length ? `${this.items.length === 1 ? 'One thing' : `${this.items.length} things`} for the hold door. Beginning descent.` : 'Nothing in the hold. Understood. Beginning descent.' });
+    this.s.cinema.say({ who: 'plumb', text: this.items.length ? `${this.items.length === 1 ? 'One thing' : `${this.items.length} things`} by the hold door. Going down.` : 'Nothing in the hold. Going down.' });
   }
 
   /** Set a token down: from the traveller's hands (or Ilen's) to its place on the slab (this.slab). */

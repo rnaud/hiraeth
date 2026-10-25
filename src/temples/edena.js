@@ -238,14 +238,14 @@ export const GARDENER = {
   resolved: 'The Gardener sighs and closes its eyes. Everything begins to grow.',
   missHint: 'Its claws are stuck in the floor: bloom its bare back.',
   phases: [
-    { to: 0.4, attacks: ['sweep', 'stamp', 'clods'], pause: 1.7, hint: 'It tramples the dead beds round the walls. Bloom them.' },
-    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'When it kneels in the sun, bloom its back. Footstones turn the louvre.',
+    { to: 0.4, attacks: ['sweep', 'stamp', 'clods'], pause: 1.7, hint: 'It tramples the dead flower beds round the walls. Make them bloom.' },
+    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'When it kneels in sun, bloom its back. A footstone turns the sun on it.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'shot', moves: ['roots'], open: 4.6,
-        hint: 'Splash it as it crouches to send its roots: it kneels to drink.',
+        hint: 'Splash water on it as it crouches: it kneels to drink.',
         said: 'It drinks the water and kneels, heaving. Bloom its back.',
-        lines: ['It crouches, its roots in the floor.', 'Splash water on it as it crouches for its roots: it kneels to drink.', 'Switch to the fluid and splash it while it crouches for its roots; then bloom its back as it kneels.'] } },
-    { to: 0.9, attacks: ['crush', 'clods', 'sweep'], pause: 1.1, hint: 'Nothing grows on it in shade: turn the sun on it, then bloom it.' },
+        lines: ['It crouches and pushes its roots into the floor.', 'Splash water on it while it crouches. It kneels to drink.', 'Switch to the fluid and splash it while it crouches for its roots; then bloom its back as it kneels.'] } },
+    { to: 0.9, attacks: ['crush', 'clods', 'sweep'], pause: 1.1, hint: 'Flowers won’t grow on it in shade: turn the sun onto it, then bloom it.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -703,7 +703,7 @@ function vault(rt, K, M, { pot, pane }) {
   // it turns
   const [wx, wy, wz] = Vt.weight, [px, , pz] = Vt.plate;
   add(Weight, { id: 'wV', at: [wx, wy, wz], yaw: Math.PI / 2, name: 'stone weight', fall: 14, zone: { min: [x0, -1, VR.z0], max: [x1, 14, VR.z1] },
-    hint: 'The plate wants a weight on it. One lies high on the ledge, over the glass.', back: 'The weight is back on the ledge.' });
+    hint: 'Put a weight on this plate. One lies high on the ledge, over the glass.', back: 'The weight is back on the ledge.' });
   add(Plate, { id: 'pVw', at: [px, 0, pz], r: 1.3 });
   add(Sunbeam, { from: [Vt.x + 1, Vt.h + 0.4, Z], w: 3, spots: [
     { at: [sx, 0.62, sz], r: 1.9, when: W0 },

@@ -234,7 +234,7 @@ export const ELDER = {
     { to: 0.75, attacks: ['buffet', 'dive', 'gale'], pause: 1.9, hint: 'When she hangs over a vent, ride its wind up beside her.' },
     // (aloft in her last phase she pecked from 3.5 m up, a blow that could only land 8 m off on the floor: now she
     // dives instead, beak first, where her body comes down)
-    { to: 0.9, attacks: ['feathers', 'dive', 'gale'], pause: 1.7, hint: 'Roll the stone into the other vent, then ride its wind up by her.' },
+    { to: 0.9, attacks: ['feathers', 'dive', 'gale'], pause: 1.7, hint: 'Push the stone into the vent away from her. Ride the wind up by her.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -588,7 +588,7 @@ function layout(rt) {
     for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, vz1 - vz0, vx + sd * 0.8, 0.06, (vz0 + vz1) / 2));
     add(Ball, { id: 'bF', a: [vx, 0.04, vz0], b: [vx, 0.04, vz1], r: 1.1, friction: 0.8 });
     add(Plate, { id: 'pF', at: [vx, 0, vz1], r: 1.3 });
-    add(Updraft, { at: [vx, 0, vz1], r: 1.4, h: 6, lift: 5, when: { all: [{ drumOn: ['ballW', 'pH'] }, { not: { drumOn: ['bF', 'pF'] } }] }, hint: 'The wind breathes up out of the little vent by the Moult’s door.' });
+    add(Updraft, { at: [vx, 0, vz1], r: 1.4, h: 6, lift: 5, when: { all: [{ drumOn: ['ballW', 'pH'] }, { not: { drumOn: ['bF', 'pF'] } }] }, hint: 'Wind rises out of the little vent by the Moult’s door.' });
   }
   // the feather raft by the east wall: the well's wind lifts it to the gallery, beside the Wing Chamber's shutter
   const RX = WELL.raft;
@@ -606,7 +606,7 @@ function layout(rt) {
     const [cx, cz] = at(SILL.r);
     K.both(M.trim, T(annulus(SILL.catch - 0.2, SILL.catch + 0.4, 0.06, 40), [cx, 0.06, cz]));
     for (let i = 0; i < 5; i++) K.add(M.dark, box(2 * SILL.catch - 1.4, 0.05, 0.3, cx, 0.04, cz - 2.4 + i * 1.2));
-    add(Updraft, { at: [cx, 0, cz], r: SILL.catch - 0.6, h: 11, lift: 4, hint: 'The makers’ breath rises here, soft and steady: enough to take a fall.' });
+    add(Updraft, { at: [cx, 0, cz], r: SILL.catch - 0.6, h: 11, lift: 4, hint: 'Wind rises here, soft and steady: enough to break a fall.' });
     add(Cushion, { at: [cx, 0, cz], r: SILL.catch, said: 'The makers’ breath takes your fall.' });
   }
 

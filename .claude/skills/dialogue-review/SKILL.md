@@ -47,6 +47,15 @@ It flags what can be measured (⚑):
 **The flags only say where to look.** A long page may be the right page, and a goodbye may carry a
 farewell that matters. Judge every flag against the craft before reporting it.
 
+**Clarity (issue #626, the author: "All characters should speak in a way that makes it easy to understand them"):**
+`node .claude/skills/dialogue-review/clarity.mjs <scratch>/dialogue <scratch>/clarity.json` scores every speaker 1–5
+on sentence length, long words, figures of speech, objects given wants ("that plate wants a weight"), pages opening on
+a pronoun and help nodes with no imperative. It points; the scores in a review are an editor's. Plumb is not in the
+extract: read `src/companion.js`, `src/temples/hints.js` (and each guardian's `asks.lines`) and the ship's lines
+(`src/story/signature.js`, `src/ambush.js`, `src/ship/cinematics.js`, `homecoming.js`, the `PLUMB(…)` lines of
+`src/story/calls.js`), and hold every Plumb line to a ten-year-old's first read. The ledger per speaker is
+`docs/audits/clarity-v<version>.md` (the first: v2.27).
+
 ## 3. Read like an editor
 
 Read each world's script whole, speaker by speaker. Read every recording, the ending's lines
