@@ -599,6 +599,33 @@ already in shade. `jumpShadowRadius(h)` grows the patch in just off the ground, 
 with height and removes it by `JUMP_SHADOW.far` (40 m). Standing, the real shadow does the
 job. The mesh stays out of the shadow passes (`level.noShadow`).
 
+**Precise landings (issue #666).** Shown only off the ground, on purpose: a disc always under
+the feet reads as a game marker, not a shadow, and standing the sun's shadow and the feet already
+ground him. While in the air it now says exactly where he will land:
+- **Inked.** Inside, the ground's colour × `JUMP_SHADOW.dark` (0.5); round its edge a crisp ring
+  (`ring`, a tenth of its radius) × `ink` (0.2), drawn from the mesh's own unit circle with
+  `fwidth` for a clean edge. Indoors and in caves, where no sun reaches the floor and taking the
+  light away changes little, the dark spot and its ring still read.
+- **On moving floors.** The ray asks `standGround` (src/carriers.js) with `level.dynamic`: a
+  lift's, a cab's or a riding disc's top counts (the one you ride does not), so the patch lies on
+  the lift you are about to land on, not on the ground under it.
+- **Cut at edges.** `rimReach` checks `RIM.probes` (16) points round its rim with short rays down
+  (`groundAt`, at most `maxDrop` past the centre's plane): a point whose surface is more than
+  `RIM.tol` (12 cm) off that plane (a drop, a step, a rail) is tried nearer the centre
+  (`RIM.tries`: 1, 0.66, 0.36 of the radius), else 0. The fan's 32 rim points take their probes'
+  reach (an odd point the nearer of its two), so at a ledge the patch stops along the lip instead
+  of hanging out over the drop and darkening the floor far below or the wall under the lip. The
+  mesh is rewritten only when the reach moves (a whole patch never is). Under a turned gravity the
+  patch stays whole.
+- **Quiet.** Its rays leave `physics.groundMover / groundKind / groundBase` as the player's own
+  step left them. 17 rays a frame in the air: 0.008 ms in the Shadow Room, 0.016 ms in the desert
+  (this Mac, Chrome); none on the ground.
+
+Tests: `tests/jump-shadow.test.js` (the ledge, the step, the slope, the gap, the lift and its rim,
+the physics' state, the shader), `tests/game-host.test.js` (sent to the engines as `jumpshade`
+with its ring). See it in the Shadow Room (`?level=shadows`): jump off the terrace's west side,
+onto the lift, or inside the dark house.
+
 ## Ragdolls follow the ground's slope (`src/ragdoll.js` `Ragdoll.step`, `groundNormalAt`, `RAG.wall`; issue #214)
 
 The author: "Ragdoll should follow physics. Right now it can ragdoll up a cliff?" It could: each particle was

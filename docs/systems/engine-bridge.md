@@ -2299,7 +2299,8 @@ Round 4 (#427): what was still the page's alone, or never drawn in Unity.
   short of a shot the paler fill under the hatching. (Unity had a plain bar of another teal.)
 - `wireJumpShade`: the patch of shade under a jump (src/jump-shadow.js), made in both hosts; Unity draws it with
   Hiraeth/JumpShade (port-format.js `jumpshade`): one plain shader, no keywords, one variant everywhere, the light term
-  under it taken away and the colour by `_Dark` as the page's multiply. Its (layout, material) pair is noted by
+  under it taken away and the colour by `_Dark` as the page's multiply, by `_Ink` in its ring of `_Ring` (issue #666: the
+  ring from the mesh's own x and z, its cut rim from the mirrored geometry). Its (layout, material) pair is noted by
   BridgePrewarm with the world (it is mirrored hidden), so a launch after the first has its pipeline made at the load.
 - The Arcade's links go through the shared arcadeLinks in both hosts (engine/trials.js as main.js); "Back to the Arcade"
   (`?level=arcade&back=<id>`) lost its `back` through Unity's reboot and landed at the way in: engine/unity/game.js carries

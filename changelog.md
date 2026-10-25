@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.26 — 2026-10-25
 
+- The dark spot under you while you jump or fall is now easier to read: a solid ink-edged shadow that shows clearly indoors and in caves, sits on lifts and other moving floors you are about to land on, and stops at a ledge’s edge instead of hanging over the drop.
 - Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.
 
 ## v2.25 — 2026-10-25

@@ -624,9 +624,10 @@ namespace Hiraeth.Bridge
             }
             if (m.S("port") == "jumpshade")
             {
-                // the patch of shade under a jump (src/jump-shadow.js): the light term under it taken away, its colour by _Dark
+                // the patch of shade under a jump (src/jump-shadow.js): the light term under it taken away, its colour by _Dark,
+                // by _Ink in the ring of _Ring (a share of its radius) round its edge (issue #666)
                 var jm = new Material(Shader.Find("Hiraeth/JumpShade")) { name = "jump shade (bridge)" };
-                jm.SetFloat("_Dark", m.F("dark", 0.75f));
+                jm.SetFloat("_Dark", m.F("dark", 0.75f)); jm.SetFloat("_Ink", m.F("ink", m.F("dark", 0.75f))); jm.SetFloat("_Ring", m.F("ring", 0f));
                 materials[mid] = jm;
                 return;
             }

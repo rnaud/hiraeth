@@ -1394,6 +1394,14 @@ export const CHANGELOG_MEDIA = {
         ]
       }
     ]
+  },
+  {
+    "match": "The dark spot under you while you jump or fall",
+    "shots": [
+      { "name": "jump-shadow-ledge", "caption": "Over the terrace’s west lip: the spot hung out over the drop; now it stops at the edge", "size": [1280, 720], "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.", "view": "Held 1.5 m over the terrace’s edge, from behind and above." },
+      { "name": "jump-shadow-lift", "caption": "Over the moving lift: the spot was on the sand under it; now it is on the lift, cut at its side", "size": [1280, 720], "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.", "view": "Held 1.3 m over the lift’s side as it moves; the lift’s pose differs by a few centimetres between the two." },
+      { "name": "jump-shadow-house", "caption": "Inside the dark house, no sun on the floor: a faint grey disc before, a dark ink-ringed spot now", "size": [1280, 720], "from": "Muted headless Chrome (GPU, High, 1280×720) on the worktree’s own dev server, the Shadow Room at 10:00, the traveller held still in the air by the capture script and the camera pinned; before: origin/main cb97e3eae, after: the same plus this change (issue #666). Same position, camera, hour and preset for both.", "view": "Held 1.4 m over the floor inside the house." }
+    ]
   }
 ],
   '2.25': [

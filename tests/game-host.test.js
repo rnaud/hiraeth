@@ -372,7 +372,7 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   j.player.teleport(j.player.pos.clone().add(new THREE.Vector3(0, 3, 0)), j.player.frame.up, new THREE.Vector3(0, 0, 1));
   quiet(() => j.frame(1 / 30));
   assert.ok(shade.visible && shade.scale.x > 0.2, `under him in the air (${shade.scale.x})`);
-  assert.ok([...ports.values()].some((p) => p.port === 'jumpshade' && p.dark === 0.75), 'sent as the port\'s jumpshade');
+  assert.ok([...ports.values()].some((p) => p.port === 'jumpshade' && p.dark === 0.5 && p.ink === 0.2 && p.ring > 0), 'sent as the port\'s jumpshade (its ring of ink too)');
   j.tool.modeFlash = 1;
   quiet(() => j.frame(1 / 30));
   const T = j.screen().state.tool;

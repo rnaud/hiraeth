@@ -50,9 +50,10 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && typeof u.uCore === 'number' && typeof u.uDark === 'number' && typeof u.uFar === 'number' && Array.isArray(u.uTint) && spec.transparent && !spec.depthWrite) {
     return { id, name: spec.name ?? '', port: 'chimeshade', tint: col(u.uTint), dark: r5(u.uDark), core: r5(u.uCore), far: r5(u.uFar), side: 2, plain: 1 };
   }
-  // the jump's shade (src/jump-shadow.js: a patch multiplied into the G-buffer, its light term taken away) → Hiraeth/JumpShade
-  if (spec.type === 'shader' && typeof u.uDark === 'number' && Object.keys(u).length === 1 && spec.transparent && !spec.depthWrite) {
-    return { id, name: spec.name ?? '', port: 'jumpshade', dark: r5(u.uDark), side: 2, plain: 1 };
+  // the jump's shade (src/jump-shadow.js: a patch multiplied into the G-buffer, its light term taken away, a ring of ink
+  // round its edge: issue #666) → Hiraeth/JumpShade
+  if (spec.type === 'shader' && typeof u.uDark === 'number' && Object.keys(u).every((k) => ['uDark', 'uInk', 'uRing'].includes(k)) && spec.transparent && !spec.depthWrite) {
+    return { id, name: spec.name ?? '', port: 'jumpshade', dark: r5(u.uDark), ink: r5(u.uInk ?? u.uDark), ring: r5(u.uRing ?? 0), side: 2, plain: 1 };
   }
   // the wind's wisps (wind.js WindStreaks: ribbons of ink with an alpha per vertex, tested against the G-buffer) → Hiraeth/Wisp
   if (spec.type === 'shader' && 'uRes' in u && 'uInk' in u && spec.transparent && !('uMode' in u) && !('uColor' in u)) {
