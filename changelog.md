@@ -2,9 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v2.26 — 2026-10-25
+## v2.27 — 2026-10-25
 
 - When you slow down near someone your quest needs you to talk to, or something it needs you to take, Plumb comes out and hovers beside it for a moment. It keeps out of fights, conversations and scenes, and goes back when you run.
+
+## v2.26 — 2026-10-25
+
 - Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.
 
 ## v2.25 — 2026-10-25

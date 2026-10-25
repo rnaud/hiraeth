@@ -9,10 +9,16 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.27', date: '2026-10-25',
+    items: [
+      { text: 'When you slow down near someone your quest needs you to talk to, or something it needs you to take, Plumb comes out and hovers beside it for a moment. It keeps out of fights, conversations and scenes, and goes back when you run.', see: 'At the start of the Desert, stand or walk slowly about 10 m from Marrow: after a moment Plumb hovers by his head, its ring lit. Run, talk or fight and it goes. Drone hints off in the settings turns it off.' },
+    ],
+  },
+
+  {
     v: '2.26', date: '2026-10-25',
     items: [
       { text: "Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.", see: "Ask Abel why the mirror shines at his wall. Ask Sel why it went quiet, then where the cylinder is now. Follow the replies to hear their instructions." },
-      { text: 'When you slow down near someone your quest needs you to talk to, or something it needs you to take, Plumb comes out and hovers beside it for a moment. It keeps out of fights, conversations and scenes, and goes back when you run.', see: 'At the start of the Desert, stand or walk slowly about 10 m from Marrow: after a moment Plumb hovers by his head, its ring lit. Run, talk or fight and it goes. Drone hints off in the settings turns it off.' },
     ],
   },
 
