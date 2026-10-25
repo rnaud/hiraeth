@@ -776,6 +776,8 @@ function layout(rt) {
 
   // ---- the Hall of Echoes: a chasm across its middle under a bridge of the founders' stones
   const EC = R0.echoes, [, ecz] = mid(EC), E0 = EC.z0, LIP = E0 + EC.lip, FAR = E0 + EC.far;
+  // Carry the porch floor through the doorway to the corridor.
+  K.slab(-D.w / 2, PO.z1 + 0.6, D.w / 2, PO.z1 + 1.2, UP);
   K.corridor([0, PO.z1 + 1.2], [0, E0 - 1.2], UP, { w: D.w, h: D.h });
   hall(EC, { floor: false, oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h, y0: UP - EC.y }, { side: 'n', w: D.w, h: D.h, y0: UP - EC.y }, { side: 'w', at: RING.z - ecz, w: RING.w, h: RING.door, y0: UP - EC.y }] });
   K.slab(EC.x0, E0, EC.x1, LIP, UP, UP - EC.y);

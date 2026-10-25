@@ -1349,6 +1349,42 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.24': [
+    {
+      "match": "The Founders’ Belfry porch now has solid floor",
+      "shots": [
+        {
+          "name": "belfry-porch-sill",
+          "title": "Belfry doorway · Unity",
+          "caption": "A narrow floor sill closes the gap between the Bell Porch and the corridor to the Hall of Echoes.",
+          "from": "Actual muted Unity editor captures, High, 1280 × 720, 24 October 2026 (local time). Before: exact source 520922eda85e. After: the same working source plus the reviewed two-line doorway-sill change (arzach2.js SHA256 1965a97a961b45224c3d564dd773308a1af24851115fa166088b1c6188dc95e9). Both load the same private save and use the exact same inspection camera; simulation is paused after real boot, while wall-clock decoration timing may differ. Actual native floor queries verify support separately. Not an ordinary native crossing, installed-device or whole-temple proof. Originals individually reviewed; WebP quality 72.",
+          "view": {
+            "level": "arzach",
+            "eye": [
+              77,
+              1610.2,
+              341
+            ],
+            "target": [
+              80,
+              1607.8,
+              344.3
+            ],
+            "fov": 50,
+            "size": [
+              1280,
+              720
+            ],
+            "quality": "high"
+          }
+        }
+      ],
+      "tags": [
+        "vael2",
+        "contact"
+      ]
+    }
+  ],
   '2.23': [
   {
     "match": "Achille explains where to stand",

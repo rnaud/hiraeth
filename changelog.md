@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.24 — 2026-10-25
+
+- The Founders’ Belfry porch now has solid floor through its doorway, so you can walk into the Hall of Echoes and back without dropping through a gap.
+
 ## v2.23 — 2026-10-24
 
 - Achille explains where to stand and how to use the spring boots to send a deep note through the Whale-House’s dishes.

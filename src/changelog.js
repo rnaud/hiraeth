@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.24', date: '2026-10-25',
+    items: [
+      { text: 'The Founders’ Belfry porch now has solid floor through its doorway, so you can walk into the Hall of Echoes and back without dropping through a gap.', see: 'Ring the porch bell after finding the hook, then walk through the open doorway toward the Hall of Echoes and back. The floor also stays solid after the bell falls quiet.' },
+    ],
+  },
+  {
     v: '2.23', date: '2026-10-24',
     items: [
       { text: 'Achille explains where to stand and how to use the spring boots to send a deep note through the Whale-House’s dishes.', see: 'After entering the Whale-House, tell Achille that the Listener shuts its ear to anything close. His hint names the ball, footstone, floor position and jump-and-stomp action.' },

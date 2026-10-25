@@ -1010,6 +1010,24 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   lit before opened the Kennel's door for good). Tests: `tests/lamp-house.test.js` (the walk in the new order: the orb
   rolled for real, the Kennel before the wand, the great key in the dark, the lamp kindled on the way back),
   `tests/temples.test.js` (the order, the orb wanted).
+- **Bell Porch doorway support** (v2.24, issue #628). The porch floor ended at local z194.0
+  and the corridor started at z194.6, leaving a 0.6 m unsupported strip under the open `d3` door.
+  A slab across the doorway width now joins those floors at `UP` using the ordinary floor material
+  and thickness. The door’s collider, opening conditions and latch are unchanged.
+  `tests/belfry-porch-floor.test.js` checks the closed door, production downward support queries,
+  and unsprinted real Player walking both ways across four lateral offsets while the bell rings
+  and after it falls quiet. The initial hook is an explicit unit-fixture prerequisite; the door
+  still opens through its actual bell transition. The unchanged test fails on the former geometry
+  and passes on the sill. Matched native inspection views and floor queries confirm the geometry
+  in Unity; these paused views are not an earned crossing or whole-temple completion proof.
+  Matched browser inspection captures also confirm the floor, with a private earned save, muted
+  startup and a disclosed fixed camera at actual 1280 × 720 rendering. A separate bounded
+  engine-VM replay inherited that earned save, collected the Ringers’ key through ordinary input,
+  rode the timed stone back and returned through the repaired doorway with the key unspent and
+  `d4` closed. It saved through the explicit production save API and reloaded in a fresh private VM.
+  This is not an autosave, ordinary native crossing, installed-device or whole-temple/ending proof;
+  the replay’s nearby-reload and step-to-height capsule checks retain their stated limits.
+
 - **The Founders' Belfry round the Great Belfry, its bell the house's state** (v1.83, issue #408; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G4, G6). The Stone Stair is gone: past the Hall of Stones
   the **Great Belfry** (`ROOMS.nave`), 40 by 66 m under 32, its gallery 8 m up round three sides (`GALLERY`: the north
