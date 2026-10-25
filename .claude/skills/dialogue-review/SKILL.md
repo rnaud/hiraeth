@@ -1,6 +1,6 @@
 ---
 name: dialogue-review
-description: Review Hiraeth's dialogue and narrative tone — every conversation, listen line, recording and temple guide — against the house voice guide (lore/voice-guide.md) and the craft of game writing (craft.md beside this file): brevity, subtext, distinct voices, choices that matter, barks, tone in grief, alien speakers, lore load, quest clarity, localisation. Quest structure (steps, hand-offs, straight to the end) and whether each answer follows from what was just said are quest-qc's. Writes docs/audits/dialogue-v<version>.md with findings and rewrites. Use when asked to review, critique or improve the dialogue, the writing, the tone, a character's voice or a world's script.
+description: Review Hiraeth's dialogue and narrative tone — every conversation, listen line, recording and temple guide — against the house voice guide (lore/voice-guide.md) and the craft of game writing (craft.md beside this file): brevity, subtext, distinct voices, choices that matter, barks, tone in grief, alien speakers, lore load, quest clarity, localisation; and the story's structure against Save the Cat's beat sheet and rules of thumb (craft.md §13: logline, save-the-cat moment, the fifteen beats on the route, pope in the pool, talking the plot, the covenant of the arc). Quest structure (steps, hand-offs, straight to the end) and whether each answer follows from what was just said are quest-qc's. Writes docs/audits/dialogue-v<version>.md with findings and rewrites, or docs/audits/story-structure-v<version>.md for the structure. Use when asked to review, critique or improve the dialogue, the writing, the tone, a character's voice or a world's script, or the story's structure, arc, beats or pacing ("Save the Cat").
 ---
 
 # The dialogue review
@@ -19,7 +19,7 @@ These come in a fixed order, and the house rules win over the general craft wher
    listen-only bystanders, tones, tongues), `lore/README.md`.
 2. **Who speaks:** `lore/characters/*.md` (the voice sheets), `docs/story-bible.md`, `LORE.md`,
    `lore/continuity.md` (facts that must not change).
-3. **The craft:** `craft.md` beside this file, with twelve sections of principles and checks.
+3. **The craft:** `craft.md` beside this file, with thirteen sections of principles and checks (§13 is the story's structure: Save the Cat, adapted).
 4. **The last review,** `docs/audits/dialogue-v*.md`, if there is one: recheck its findings first.
 
 ## 2. Extract the script
@@ -107,6 +107,14 @@ too. Most of all, check what can't be measured:
   - buttons named through the key system, never in prose (the remapping and the controller in hand
     must show).
 - **Read aloud:** at least one scene a world. Note where the tongue trips.
+- **Structure at the line** (craft.md §13), checked in every dialogue review, not only the structure audit:
+  - **save the cat:** in each world's first talk, does he give or only ask? A line that credits him with
+    a kindness he never did ("asked for nothing" after he asked for power) is a finding;
+  - **talking the plot:** a speaker naming the theme or their feelings outright, outside a letter or a
+    recording, is a subtext finding;
+  - **pope in the pool:** a lore page with nothing else happening (no joke, task or sight);
+  - **theme stated:** each world's answer to "something of value" in its own terms, never the ending's
+    lesson word for word.
 
 ## 4. Write `docs/audits/dialogue-v<version>.md`
 
@@ -165,7 +173,36 @@ Add the file to the `docs/audits/` line of `docs/README.md`.
 - add a changelog line for players (CLAUDE.md), in plain words, e.g. "Rewrote the Glass Dunes'
   conversations: shorter, and each witness tells the light their own way".
 
-## 5. Tell the user
+## 5. The story-structure audit (Save the Cat)
+
+When asked about the story's structure, arc, beats or pacing, or to rerun it, write
+`docs/audits/story-structure-v<version>.md` (the version from `src/changelog.js`'s newest entry):
+
+1. **Read:** `docs/game-brief.md`, `docs/story-bible.md` ("The thread", "The recordings", "The ending"),
+   `lore/continuity.md`, craft.md §13, the last story-structure audit (recheck its findings first).
+2. **Measure:** extract the script (§2); `node .claude/skills/quest-qc/check.mjs --all` for each main
+   quest's steps (laying pipe); per world, the speakers with an `after` node or changed listen lines (the
+   covenant of the arc); the first talk of each world (save the cat, theme stated, the local stake). Read
+   the spine whole: the prologue (`src/story/charge.js`, `src/story/signature.js`), the desert's
+   main path, the recordings (`src/story/calls.js`), the first homecoming and the stone
+   (`src/story/ending.js`), Tansy (`src/story/fellow-data.js`), the Market's broadcast, the Lantern.
+3. **Write,** with the score block (`overall:` the mean of all scored rows; `label:` what it is the mean of):
+   - the logline and the genre, scored;
+   - the fifteen beats: a table with *where it lives*, *on the spine or optional*, a 1–5 score and the
+     evidence (file and line);
+   - the rules of thumb: a table, 1–5 each, with evidence;
+   - the worlds as small beat sheets: a row per route world (local stake on landing, theme stated, the
+     moment, speakers changed after, the recording), marking the gaps;
+   - **recommendations, ranked,** with cost and an example rewrite in the speaker's voice, keeping the
+     tones and the house rules; mark which are small safe line changes and which are design work for the
+     author.
+4. Apply only the small safe line changes if asked (the same rules as §4's rewrites: tones, ids,
+   conditions and tests unchanged, a changelog line). Story changes stay recommendations: the author
+   writes this game's story.
+
+Add the file to the `docs/audits/` line of `docs/README.md`.
+
+## 6. Tell the user
 
 - the scores;
 - the three worst patterns;

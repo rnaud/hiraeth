@@ -634,7 +634,7 @@ export const PEOPLE = {
         // (the Rose House's step first while its blade and guard are missing: issue #278)
         drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.",
           { if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, text: "~solemn~ You gave us back our light, child. Qanat pays its debts: every house is filling a jar for your ship. Fetch *the Givers’ blade and guard from the Rose House*, east in the dunes. We’ll be at your ship." },
-          { if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, text: "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
+          { if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, text: "~solemn~ You gave us back our light, child, before you saw to your own ship. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
           choices: [{ text: '~neutral~ The Rose House, then.', if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, end: true }, { text: '~happy~ Then I’ll go and let them.', if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, end: true }] },
         after: {
           say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],

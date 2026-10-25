@@ -121,7 +121,10 @@ The script's `scoreTechnical` starts at 5 and takes points off; confirm or overr
 
 One point each, by watching (the frames, then the review page for the timing):
 1. **Purpose**: a reveal, a payoff or an emotion you can name in one line, tied to the story
-   (`docs/story-bible.md`, the world's arc).
+   (`docs/story-bible.md`, the world's arc). For the spine's scenes, name the beat it plays
+   (`.claude/skills/dialogue-review/craft.md` §13: the prologue is the opening image and the catalyst,
+   the first homecoming the midpoint, the stone the final image) and check it shows rather than tells:
+   a world's moment is that world's finale, so its last shot should answer the arrival's first.
 2. **Length**: no longer than it needs; no dead time at the start or the end (the moments' rule:
    8–10 s; a box ≈ 7–9 s; an arrival ≈ 7 s of space plus the landing).
 3. **Shot variety**: establishing, medium, close; not one static angle (`shots` ≥ 3 for a moment;

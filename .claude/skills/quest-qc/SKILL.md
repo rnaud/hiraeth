@@ -39,6 +39,20 @@ like this, it goes back in here.
 7. **Short talks.** A quest giver's talk is a few pages in their own voice, the essentials only (Nour from the open
    chest to the skull: three nodes, five pages, `tests/dialogue-playtest.test.js`). Lore is for whoever asks. Every
    giver is held to six pages the shortest way to the quest (`tests/short-talks.test.js`, issue #479).
+8. **Every quest is a small story** (Save the Cat, adapted: `.claude/skills/dialogue-review/craft.md` §13). Read
+   each main quest and errand as a beat sheet in miniature:
+   - **the stake on view:** what is wrong can be seen when you arrive (a cold tree, a stopped clock, a drum
+     gone), not only reported; and it is primal (water, light, warmth, someone lost);
+   - **save the cat:** on a world's main path his first errand helps someone else before it helps him (Ama's
+     jar before his ship's power); a line that thanks him for a kindness he never did is a finding;
+   - **the hero leads:** the steps follow what he wants or chose; an answer that only says "thank you"
+     where he could say what he will do is a weak spot (rule 2 is the strict half of this);
+   - **laying pipe:** steps that only explain before anything can be done; count the steps before a
+     world's first real verb, and the desert's before the first takeoff;
+   - **a final image:** the place answers when it is done (the giver's `after` node, changed listen lines,
+     the world's moment). A quest whose end changes nothing anyone says is a finding.
+   The structure of the whole route (the beats on the spine) is the dialogue review's story-structure
+   audit (`.claude/skills/dialogue-review/SKILL.md` §5).
 
 ## Run
 

@@ -455,8 +455,8 @@ Main quest (`desert.power`), in order:
     procession sings ("It burns!"), the bands play the feast. The water in Ama's jar catches
     the glow with it.
 12. **Qanat repays him.** He put the tree right for the city's sake; because he did, the city
-    chooses to help him in return. Nour: "You gave us back our light, child, and asked for
-    nothing. Qanat pays its debts." A little after the tree catches, the ones with something to
+    chooses to help him in return. Nour: "You gave us back our light, child, before you
+    saw to your own ship. Qanat pays its debts." A little after the tree catches, the ones with something to
     give go down to his ship and wait by the ramp; when he comes, they step up one by one and
     pour in what their houses can spare: Ama the camps' share of the Drinking, Idris the lamps of
     his street, Hessa the well's first water, Lula her oven's fire-water, Marrow a cell he was

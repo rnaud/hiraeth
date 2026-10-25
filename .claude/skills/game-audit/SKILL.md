@@ -25,7 +25,8 @@ Send two or three Explore agents at once, each given **the previous audit's find
 recheck one by one** (fixed, partly, not, or worse), with file:line evidence:
 
 1. **Story, progression, pacing:** themes 1, 4, 5 and 6. This covers the route and ending rules, quests,
-   choices, moments, collectibles, and the time to the first fluid moment.
+   choices, moments, collectibles, and the time to the first fluid moment. For the story's shape, read the last
+   story-structure audit (`docs/audits/story-structure-v*.md`, the dialogue review's Save the Cat pass).
 2. **Feel, UX, senses, quality:** themes 2, 3 and 7–12. This covers onboarding, wayfinding, the HUD and
    menus, audio, combat, settings and accessibility, localisation, performance numbers, tests, and
    sharing and discovery.

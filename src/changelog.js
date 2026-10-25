@@ -24,6 +24,7 @@ export const CHANGELOG = [
         { where: 'perfect parry: tilt', before: 0, after: '25–28' },
         { where: 'plain block: tilt', before: 0, after: '8–10' },
       ], source: 'Foes.strike with the guard answering, the body’s springs stepped for 3 s, before and after this change', note: 'A perfect parry also shoves the body 28–32 cm and holds its lean 2.2–3.0 s while it is open; a plain block shoves it 9–12 cm and settles in 0.25 s. Before, only the whole foe slid back.' }], see: 'Lock on to any foe and hold LB / L1 as its blow comes; tap it just as the blow lands for a perfect parry and watch the foe’s body rock back.' },
+      { text: "In the desert, Nour now thanks you for lighting Qanat’s tree before you saw to your own ship, instead of saying you asked for nothing after you had asked her for power.", see: "Relight the tree in Qanat after taking the Rose House’s blade, guard and push gun, then talk to Nour by the tree." },
     ],
   },
 

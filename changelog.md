@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.26 — 2026-10-25
 
+- In the desert, Nour now thanks you for lighting Qanat’s tree before you saw to your own ship, instead of saying you asked for nothing after you had asked her for power.
 - Foes now visibly reel back off your shield: a perfect parry throws them off balance and holds them leaning while they are open, and a plain block knocks them back a step.
 - The dark spot under you while you jump or fall is now easier to read: a solid ink-edged shadow that shows clearly indoors and in caves, sits on lifts and other moving floors you are about to land on, and stops at a ledge’s edge instead of hanging over the drop.
 - Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.
