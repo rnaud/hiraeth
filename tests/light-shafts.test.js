@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { TEMPLE_HOME, templeOf } from '../src/temples/attachment.js';
 import { Sunbeam } from '../src/temples/pieces.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { game } from '../src/game-state.js';

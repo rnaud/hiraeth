@@ -13,7 +13,7 @@ import { TEMPLES } from '../src/temples/index.js';
 import { TempleLogic, stopOf } from '../src/temples/logic.js';
 import { meetsWith } from '../src/resources.js';
 import { PAGES } from '../src/world-picker.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 test('the temple maps are a debug page beside the others', () => {
   assert.ok(PAGES.some((p) => p.href === 'temples.html' && p.label === 'Temple maps'), 'Debug → Pages → Temple maps');

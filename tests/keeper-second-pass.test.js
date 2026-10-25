@@ -11,8 +11,8 @@ import './register-gadgets.js';
 import { keeperGuardian } from '../src/temples/guardian-generated.js';
 import { Guardian } from '../src/temples/boss.js';
 import { KEEPER, KEEPER_GUARD, KEEPER_LIGHT, KEEPER_DARK } from '../src/temples/desert.js';
-import { templeOf } from '../src/temples/index.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { templeOf } from '../src/temples/attachment.js';
+import { createDesert } from '../src/levels/desert.js';
 import { Physics } from '../src/physics.js';
 import { guardianLock, STEADY } from '../src/foes.js';
 import { CameraRig, BOSS_CAM, OPEN_DIST, STAGGER } from '../src/player.js';
@@ -50,7 +50,7 @@ async function cistern() {
 }
 async function stageCistern() {
   const scene = new THREE.Scene();
-  const level = quiet(() => buildableById('desert').create(scene));
+  const level = quiet(() => createDesert(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
   const rt = templeOf(level, 'desert'), helper = rt.guardian, P = fakePlayer();

@@ -1,3 +1,5 @@
+import { buildableById } from '../src/levels/buildable.js';
+import { TEMPLE_HOME } from '../src/temples/attachment.js';
 // The wings past a house's locks (issue #436: "a running jump, then the double jump, then the wings carries the traveller
 // about 45 m on the level. That crosses the bridge or gate chasms both ways, without the step meant to open them, in"
 // nine houses). Inside a makers' house the wings glide steeper (src/player.js HOUSE_GLIDE: a metre down for every
@@ -115,7 +117,7 @@ for (const id of Object.keys(TEMPLES).filter((_, i) => i % of === part)) {
   test(`${TEMPLES[id].def.name}: no running jump, double jump and glide crosses a lock`, () => {
     game.reset();
     own(...carry(id));
-    const W = buildHouse(id), { rt, level, physics } = W, K = rt.kit;
+    const W = buildHouse(id, buildableById(TEMPLE_HOME[id] ?? id).create), { rt, level, physics } = W, K = rt.kit;
     const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: false });
     if (!P.canGlide) return;   // (the Rose House: before the wings)
     const plan = rt.housePlan(), where = (p) => roomAt(plan, K.local(p.clone()).toArray());

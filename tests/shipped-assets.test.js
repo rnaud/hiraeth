@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 import { siteOnly } from '../scripts/site-only.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

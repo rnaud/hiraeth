@@ -20,7 +20,14 @@ import {
 // line of sight), apart from the view's sun, which lights the city from high up (the whole sky's glow).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The City During the Eclipse / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The City During the Eclipse/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The City During the Eclipse/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The City During the Eclipse/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The City During the Eclipse/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The City During the Eclipse/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The City During the Eclipse / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const ECLIPSE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`eclipse-${n}`, sheet(n)]));
 
 /** sky top, horizon, shadow (the deep violet of the shade), light (the cold lavender of the lit limewash), sun */

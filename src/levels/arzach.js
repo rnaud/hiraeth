@@ -1,3 +1,7 @@
+import { ARZACH_TEMPLE } from '../temples/arzach.js';
+import * as ARZACH_WORDS from '../temples/arzach-data.js';
+import { ARZACH2_TEMPLE } from '../temples/arzach2.js';
+import * as ARZACH2_WORDS from '../temples/arzach2-data.js';
 import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -6,7 +10,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
-import { attachTemple, templeOf } from '../temples/index.js';
+import { attachTempleDefinition, templeOf } from '../temples/attachment.js';
 import { SITE as AERIE_SITE } from '../temples/arzach.js';
 import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
@@ -518,8 +522,8 @@ function finishVael(scene, terrain, S, V) {
   };
   // the Founders' Belfry out of the cloud west of the sky stones' first plateau, and the Aerie on the plain west of the
   // landing; their rooms far overhead (src/temples/arzach2.js, src/temples/arzach.js)
-  attachTemple('arzach2', scene, level);
-  attachTemple('arzach', scene, level);
+  attachTempleDefinition('arzach2', { def: ARZACH2_TEMPLE, words: ARZACH2_WORDS }, scene, level);
+  attachTempleDefinition('arzach', { def: ARZACH_TEMPLE, words: ARZACH_WORDS }, scene, level);
   scene.add(mastGroup);
   // the crossings between the plain and the sky stones (src/vael-crossing.js, the merged worlds' follow-ups): the riders'
   // gate at the plain's edge, the riders' lanterns from the rose cliff home to it, the monks' old rope way out to the island

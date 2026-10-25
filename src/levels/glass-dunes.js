@@ -1,3 +1,5 @@
+import { GARAGE_TEMPLE } from '../temples/garage.js';
+import * as GARAGE_WORDS from '../temples/garage-data.js';
 import * as THREE from 'three';
 import { attachPort } from './port-pad.js';
 import { GLASSDUNES_PORT } from './ports.js';
@@ -9,7 +11,7 @@ import { RoomKit } from './lab-kit.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DUNE_HAZE } from '../desert-sites.js';
 import { glassRidge, glassArch, glassPassage, awningCamp, boulders, glassOptions, glassBatch, glassPools, SAND } from './glass-dunes-kit.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { LOCALS } from '../story/glassdunes-people.js';
@@ -321,7 +323,7 @@ export function* buildGlassDunes(scene) {
   };
   // the Float Yard round the ship (issue #441, references/space-ports/glass-dunes/sheet-1.jpg; src/levels/ports.js)
   attachPort(level, scene, GLASSDUNES_PORT, { groundAt: (x, z) => terrain.heightAt(x, z) });
-  return attachTemple('garage', scene, level);
+  return attachTempleDefinition('garage', { def: GARAGE_TEMPLE, words: GARAGE_WORDS }, scene, level);
 }
 /** Marit's kiln-stall: on the valley floor up from the ship, turned to it. */
 export const GLASS_SHOP = { x: 26, z: 152, heading: Math.atan2(GLASS_SHIP.x - 26, GLASS_SHIP.z - 152) };

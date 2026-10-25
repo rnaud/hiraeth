@@ -19,7 +19,14 @@ import { formAxis } from '../form.js';
 // undersides and the thickets with deep green masses: the spot-black tier in the world's green.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Garden of Spheres / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Garden of Spheres/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3793": new URL("../../references/levels/The Garden of Spheres/environment/IMG_3793.JPG", import.meta.url).href,
+  "IMG_3794": new URL("../../references/levels/The Garden of Spheres/environment/IMG_3794.JPG", import.meta.url).href,
+  "IMG_3795": new URL("../../references/levels/The Garden of Spheres/environment/IMG_3795.JPG", import.meta.url).href,
+  "IMG_3796": new URL("../../references/levels/The Garden of Spheres/environment/IMG_3796.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `The Garden of Spheres / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const GARDEN_SHEETS = Object.fromEntries(['IMG_3793', 'IMG_3794', 'IMG_3795', 'IMG_3796'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own touches (spheres.js SPHERES_LOOK) and a clean sky. */

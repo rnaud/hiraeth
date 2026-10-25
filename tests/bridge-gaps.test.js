@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  ROOT, REPORT, gatherShaders, gatherPasses, gatherDom, gatherHost, gatherMaterials, bridgeParts, compare, checkEntries, reportMarkdown,
+  ROOT, REPORT, gatherShaders, gatherPasses, gatherDom, gatherHost, bridgeParts, compare, checkEntries, reportMarkdown,
 } from '../scripts/bridge-gaps.mjs';
 import { portMaterial, unmapped, unmappedKey } from '../engine/unity/port-format.js';
 
@@ -55,11 +55,7 @@ test('a material the port has no shader for is a recorded gap, said once, not a 
   assert.equal(unmapped.size, before);
 });
 
-test('every material of every world and minigame, as the bridge sees it: ported, or named in the list', async () => {
-  const found = await gatherMaterials();
-  assert.ok(found.size > 20, `the run saw the materials (${found.size} kinds)`);
-  verdict('materials', compare('materials', found));
-});
+// Material audits run in three scoped files; bridge-materials-contract.test.js guards complete coverage.
 
 test('docs/systems/bridge-gaps.md is the list\'s (node scripts/bridge-gaps.mjs)', () => {
   assert.equal(readFileSync(join(ROOT, REPORT), 'utf8'), reportMarkdown());

@@ -22,7 +22,7 @@ const { parseBody } = await import('../src/makehuman/body.js');
 const { MakeHumanPeople } = await import('../src/makehuman/people.js');
 const { loadAssets } = await import('./gait-sim.js');
 const { Dog, DOG } = await import('../src/dog.js');
-const { dogSubject } = await import('../scripts/motion-audit/walk.mjs');
+const { dogSubject } = await import('../scripts/motion-audit/walk-procedural.mjs');
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const hsl = (hex) => new THREE.Color(hex).getHSL({}, THREE.SRGBColorSpace);   // (as written: sRGB hex)

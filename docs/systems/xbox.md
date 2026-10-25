@@ -110,8 +110,7 @@ saves; a package under a new certificate needs the app removed first, and its sa
 
 ## The workflow (`.github/workflows/xbox.yml`)
 
-On a push that touches `xbox/`, `scripts/xbox-*` or the workflow, by hand, and nightly when the game moved since the
-last package (the release notes' *Built from commit* line). The unit tests first (`tests.yml`), then on
+Only by manual dispatch. The complete unit tests run first (`tests.yml`), then on
 `windows-latest` (or the repository variable `XBOX_RUNNER`, e.g. `windows-2022`, if an image lacks the UWP tools):
 find MSBuild, the UWP build tools and the newest Windows SDK; `npm ci && npm run build`; the certificate;
 `node scripts/xbox-package.mjs prepare` (stages `dist/` without what devices never carry, `scripts/site-only.mjs`,
@@ -406,13 +405,13 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   published. Synced (`QualitySettings.vSyncCount` 1 on WSA, `-vsync 0` off): a UWP app presents at 60 there, the TV at 120
   Hz too, so 59.5 fps with 97 % of frames on time (72.6 torn, unsynced; `-vsync 2` is 30). Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it opens on the title (engine-bridge.md, "The menus"); a plan starts the desert at its spawn, the foot of the ship's ramp (`-hull-spawn`: the spot under the ramp the plans started on until v1.62, issue #265).
-- **The workflow** (`.github/workflows/unity-xbox.yml`, windows-2022; on a push touching the Unity side and by hand):
+- **The workflow** (`.github/workflows/unity-xbox.yml`, windows-2022; manual dispatch only):
   Puerts' V8 (relinked, `scripts/unity-uwp-v8.ps1`, cached) and QuickJS with their UWP DLLs, the bundle, GameCI's
   Windows editor with the UWP module (Puerts' glue, then the
   solution), the package's identity written into Unity's manifest, `msbuild` (Master, x64, sideload, unsigned),
   `signtool` with the WebView2 app's certificate (`XBOX_PFX_BASE64`), published to the prerelease **`unity-xbox`**
   as `hiraeth-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files), from `main` only (a run
-  by hand from a branch keeps the artifact). A run by hand is a concurrency group of its own: a push never replaces it.
+  by hand from a branch keeps the artifact). Each manual run keeps its own concurrency group.
 - **The workflow's caches.** A cold run is about 37 minutes: the editor image's pull 8.5, the glue's editor run 2,
   the solution's 2, IL2CPP's C++ in msbuild 11 (1,220 files at `/Ox` on 4 cores; `Il2CppCompilerConfiguration.Release`
   whatever msbuild's configuration, no `/GL` or LTCG, so Release instead of Master would not shorten it).

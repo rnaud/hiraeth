@@ -1,3 +1,5 @@
+import { MOONFOUNDRY_TEMPLE } from '../temples/moonfoundry.js';
+import * as MOONFOUNDRY_WORDS from '../temples/moonfoundry-data.js';
 import * as THREE from 'three';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
@@ -14,7 +16,7 @@ import {
   MF_LOOK, MF_DAY, MF_DUSK, MF_NIGHT, MF_TONES,
 } from './moon-foundry-kit.js';
 import { trussStair, lathe } from './antennas-kit.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { SITE as CASTING_HOUSE } from '../temples/moonfoundry.js';
@@ -716,7 +718,7 @@ export function* buildMoonFoundry(scene) {
   const shop = placeShop(scene, { def: SHOPS.crucible, at: new THREE.Vector3(MF_SHOP.x, H(MF_SHOP.x, MF_SHOP.z), MF_SHOP.z), heading: MF_SHOP.heading });
   lights.push(...shop.lights);
   // (the makers' temple, the Casting-House on the hangar's east side: src/temples/moonfoundry.js)
-  return attachTemple('moonfoundry', scene, {
+  return attachTempleDefinition('moonfoundry', { def: MOONFOUNDRY_TEMPLE, words: MOONFOUNDRY_WORDS }, scene, {
     id: 'moonfoundry',
     ladders,
     portals: [...shop.portals],

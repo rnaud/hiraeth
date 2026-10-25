@@ -18,7 +18,14 @@ import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, gla
 // through the glass), its light a warm amber.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Glass Dunes / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Glass Dunes/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Glass Dunes/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Glass Dunes/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Glass Dunes/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Glass Dunes/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Glass Dunes / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const GLASS_SHEETS = { 'glassdunes-1': sheet(1), 'glassdunes-2': sheet(2), 'glassdunes-3': sheet(3), 'glassdunes-4': sheet(4) };
 
 /** The plates' ink: a clean sky, the far sand in the desert's stepped warm bands, few strokes. */

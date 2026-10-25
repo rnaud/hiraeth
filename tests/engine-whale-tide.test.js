@@ -8,7 +8,7 @@ import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { tempPath, removeTemp } from '../scripts/temp-dirs.mjs';
 import { DEEP, TIDE, SOUND } from '../src/temples/underwater.js';
-import { TEMPLE_HOME } from '../src/temples/index.js';
+import { TEMPLE_HOME } from '../src/temples/attachment.js';
 
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
 const backend = new Proxy({}, { get: (_, k) => UNSET.has(k) ? undefined : () => {} });

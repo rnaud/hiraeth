@@ -17,7 +17,14 @@ import { SCREEN, FILL_COLOURS, MN_TONES, PICTURES, crt, panel, roundScreen, plac
 // the view's sun picks (the sun stands behind the camera, out of the frame).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Signal Market at night / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Signal Market - Night/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Signal Market - Night/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Signal Market - Night/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Signal Market - Night/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Signal Market - Night/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Signal Market at night / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const MARKETNIGHT_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`marketnight-${n}`, sheet(n)]));
 
 /** The sheets' ink: the market's look (bazaar.js), a clean sky, little hatching (the night's walls are flat dark masses). */

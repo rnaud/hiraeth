@@ -41,4 +41,4 @@ export const HINT_KINDS = Object.freeze([
 export const HINT_VARS = `--hint-bg: ${HINT.bg}; --hint-ink: ${HINT.ink}; --hint-accent: ${HINT.accent}; --hint-radius: ${HINT.radius}; --hint-top: ${HINT.top};`;
 
 /** Existing quest/errand category mark, shared by both renderers; no completion inference. */
-export const questMark = (head = 'New quest') => /errand/i.test(head) ? '◇' : '◆';
+export { questMark } from './quest-mark.js';

@@ -1,28 +1,29 @@
 name: Tests
 
-# The whole unit suite (node --test tests/*.test.js), ONCE per push to main, on pull requests and by hand.
-# The deploys start when it has passed on main: deploy.yml, cloudflare.yml, android.yml and steam-deck.yml
-# are triggered by `workflow_run` of this workflow (by its name, "Tests": keep it), go on only when the run
-# was a push to main in this repository and succeeded, and build its commit (github.event.workflow_run.head_sha),
-# so a failing test never reaches players. xbox.yml (its own triggers: its paths, nightly) still calls this
-# file (workflow_call). The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
-# A flaky shard on main: "Re-run failed jobs" on this run; when it passes, the deploys follow.
-#
-# Split in four shards that run at once, of about equal time: scripts/test-shards.mjs deals the
-# files out by their times in tests/shard-timings.json (docs/systems/testing.md, "The shards").
-# The run succeeds (and the deploys start) only when every shard passed. Beside spec, the
-# test-file-times reporter prints each file's time (the table is updated from them:
-# node scripts/test-shards.mjs --ci <run id>) and warns of a file long enough to be split.
+# Affected tests on exact push/PR ranges; explicit full runs for nightly and manual review.
+# Keep the Tests name and push-main provenance: deployment listeners use both.
+# Main pushes include changes since the last successful main push ancestor.
+# Unproven history/API baseline falls back to full, never an empty selection.
 
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      full:
+        description: Run the complete gameplay suite
+        type: boolean
+        default: false
   workflow_call:
+    inputs:
+      full:
+        type: boolean
+        default: true
 
 permissions:
   contents: read
+  actions: read
 
 # Pushes to main run one at a time, in push order, never cancelled once started: so their runs finish in
 # order and the deploys (queued by their own concurrency groups) never ship an older commit after a newer one.
@@ -34,7 +35,33 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  selection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      files: ${{ steps.plan.outputs.files }}
+      head: ${{ steps.plan.outputs.head }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Resolve exact range and select tests
+        id: plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FULL_SUITE: ${{ inputs.full || false }}
+        run: node scripts/ci-test-plan.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-selection
+          path: test-selection.json
+          if-no-files-found: error
   unit:
+    needs: selection
     name: unit (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -44,6 +71,8 @@ jobs:
         shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.selection.outputs.head }}
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -86,4 +115,7 @@ jobs:
           sudo timeout -k 10s 150s apt-get "${apt_options[@]}" install -y --no-install-recommends ffmpeg
           ffmpeg -version
       - run: npm ci
-      - run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/test-file-times.mjs --test-reporter-destination=stdout $(node scripts/test-shards.mjs ${{ matrix.shard }}/4)
+      - name: Run only the selected shard (empty is explicit)
+        env:
+          SELECTED_TESTS: ${{ needs.selection.outputs.files }}
+        run: node scripts/run-test-shard.mjs ${{ matrix.shard }}/4 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/test-file-times.mjs --test-reporter-destination=stdout

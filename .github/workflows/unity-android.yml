@@ -14,28 +14,17 @@ name: Unity release (testers)
 # UNITY_PASSWORD and returns it after); without those secrets the first job fails at once and says so.
 # The same APK can be built and published from a Mac with scripts/unity-android-release.sh.
 #
-# When: a release changelog or Unity-side push, by hand, and every night when the game moved.
-# Every player-visible release change touches src/changelog.js, including script-only updates.
+# When: manually requested, or daily if relevant inputs changed since the last successful native build.
 # Fast when warm: Unity's Library (its imports, shader cache and the IL2CPP build's
 # objects in Library/Bee), Puerts' IL2CPP glue, Gradle's caches and Puerts are all cached between runs, each
 # under a key made of what it depends on: saved only when that changed, the entry it replaces then deleted
 # (the repository's caches are limited to 10 GB: new entries every run pushed each other out).
 # Both native players publish only after tests.yml passes on their exact commit (scripts/wait-tests.sh).
 
+# Native builds are independent of each web release; unchanged daily runs skip them.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/changelog.js'   # every player-visible release, including game-only changes
-      - 'unity/**'
-      - 'engine/**'
-      - 'scripts/unity-*'
-      - 'scripts/unity-*/**'
-      - 'scripts/engine-bundle.mjs'
-      - 'data/characters/traveller-v2/**'   # (the v2 traveller's models, packed by engine-bundle.mjs unity: issue #493)
-      - '.github/workflows/unity-android.yml'
   schedule:
-    - cron: '17 3 * * *'   # (nightly; skipped when nothing the build takes changed since the last one)
+    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       linux:
@@ -58,11 +47,28 @@ env:
   PROJECT: unity/Hiraeth
 
 jobs:
-  # the secrets first, in seconds, before the build; and whether a nightly run has anything new to build
-  check:
+  changes:
     runs-on: ubuntu-latest
     outputs:
-      build: ${{ steps.changed.outputs.build }}
+      build: ${{ steps.plan.outputs.build }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Compare with the last successful native build
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/unity-release-plan.mjs
+
+  # Check secrets only when a build is needed.
+  check:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
+    runs-on: ubuntu-latest
     steps:
       - name: Unity licence and signing key
         env:
@@ -81,29 +87,9 @@ jobs:
           fi
           echo "Unity licence (Personal from UNITY_EMAIL + UNITY_PASSWORD) and the release key are set"
 
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Anything new since the last build?
-        id: changed
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EVENT: ${{ github.event_name }}
-        run: |
-          # (a push or a run by hand always builds; the nightly one only when the build's inputs moved)
-          if [ "$EVENT" != schedule ]; then echo "build=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-          last=$(gh release view unity-android --json body --jq .body | sed -n 's/.*Built from commit `\([0-9a-f]*\)`.*/\1/p' | head -1)
-          if [ -n "$last" ] && git cat-file -e "$last^{commit}" 2>/dev/null \
-            && git diff --quiet "$last" HEAD -- unity engine src public scripts .github/workflows/unity-android.yml; then
-            echo "Nothing new since $last: no build tonight"; echo "build=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Changes since ${last:-the start}: building"; echo "build=true" >> "$GITHUB_OUTPUT"
-          fi
 
   android:
     needs: check
-    if: needs.check.outputs.build == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -399,7 +385,7 @@ jobs:
     # (after the APK, not beside it: one Personal seat held at a time; also when the APK failed)
     needs: [check, android]
     # (and only on main: a branch's run by hand builds the APK alone, unless asked for the Linux player too)
-    if: always() && needs.check.outputs.build == 'true' && (github.ref == 'refs/heads/main' || inputs.linux)
+    if: always() && needs.check.result == 'success' && (github.ref == 'refs/heads/main' || inputs.linux)
     runs-on: ubuntu-latest
     timeout-minutes: 150   # (the build, its smoke run on the CPU and the wait for the unit suite)
     steps:
@@ -601,9 +587,9 @@ jobs:
       - name: The Linux player packed
         run: |
           t0=$(date +%s)
-          skip="--exclude=*_BackUpThisFolder_ButDontShipItWithYourGame --exclude=*_BurstDebugInformation_DoNotShip"
-          if command -v pigz > /dev/null; then tar -I pigz $skip -cf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
-          else tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" $skip -C "$PROJECT/Builds" bridge-linux; fi
+          skip=('--exclude=*_BackUpThisFolder_ButDontShipItWithYourGame' '--exclude=*_BurstDebugInformation_DoNotShip')
+          if command -v pigz > /dev/null; then tar -I pigz "${skip[@]}" -cf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
+          else tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" "${skip[@]}" -C "$PROJECT/Builds" bridge-linux; fi
           ls -l "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz"; echo "packed in $(($(date +%s) - t0)) s"
           du -sm "$PROJECT/Builds/bridge-linux"/* "$PROJECT/Builds/bridge-linux"/*_Data/* | sort -n | tail -12
 

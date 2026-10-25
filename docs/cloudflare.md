@@ -15,7 +15,7 @@ Android app and the Steam Deck updater:
 | `/updates/web-<build>.zip` | this build's `dist/` (without `updates/`), deterministic: the same build gives the same bytes |
 | `/updates/web-<previous>.zip` | the previous build's zip, fetched from the live site before deploying and checked against the live `web.json`, so a device that read the old manifest a moment ago can finish its download |
 | `/updates/steam-deck.json` | the Steam Deck runtime (Electron, `main.mjs`, `deck.py`, a packaged game): `build`, `version`, `sha256`, `size`, `key`, `parts` (`scripts/deck-runtime.mjs`, read by `deck.py`) |
-| `/updates/steam-deck-<build>.tar.gz.<nnn>` | its package in 20 MiB parts (the 25 MiB file limit). While `key` (a hash of what the runtime runs) is unchanged, the live parts are fetched, checked and published again, so a deploy uploads nothing for them; otherwise the deploy packages a new runtime (`npm --prefix desktop ci`, `package-steam-deck.mjs`, `DECK_BUILD` as `steam-deck.yml` numbers it) |
+| `/updates/steam-deck-<build>.tar.gz.<nnn>` | its package in 20 MiB parts (the 25 MiB file limit). Automatic deploys always fetch, verify and retain the published runtime, including when its native inputs changed. A manual dispatch with `build_deck_runtime=true` may package a new runtime; a missing/corrupt published runtime fails rather than building automatically |
 
 `scripts/web-update.mjs` writes them into `dist/updates/` after the build. The build number
 is `node scripts/release-info.mjs build`, the commit count up to HEAD, the same in every
@@ -26,7 +26,9 @@ history (`fetch-depth: 0`) and refuses a shallow clone.
 **One deploy owns the site.** A Workers deploy replaces every asset, so only
 `cloudflare.yml` deploys the Worker; the Android and Steam Deck workflows publish to GitHub
 releases only. The workflow is never cancelled once started. Its concurrency group waits for
-the run before it.
+the run before it. After verifying the public deployment, it records the exact web source/build in
+the version’s GitHub release notes. Existing installer assets remain intact; a new web-only release
+does not replace the native updater’s latest APK release (`scripts/web-publish.sh`).
 
 **Limits** (Workers static assets, [limits](https://developers.cloudflare.com/workers/platform/limits/)):
 25 MiB per file and 20,000 files per version on the free plan. `web-update.mjs` checks the whole

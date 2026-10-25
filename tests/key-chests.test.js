@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { TEMPLE_HOME, templeOf } from '../src/temples/attachment.js';
 import { keyText } from '../src/prompt-keys.js';
 import { Door, Key, KEY_CHEST, MapChest, MAP_CHEST, GREAT_KEY_CHEST, keyGeometry, greatKeyGeometry } from '../src/temples/pieces.js';
 import { createBoxes } from '../src/boxes/index.js';

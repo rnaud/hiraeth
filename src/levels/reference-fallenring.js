@@ -17,7 +17,14 @@ import {
 // does them all (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Fallen Ring / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Fallen Ring/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Fallen Ring/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Fallen Ring/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Fallen Ring/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Fallen Ring/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Fallen Ring / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const RING_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`fallenring-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look (fallen-ring-kit.js); its cumulus are geometry. */

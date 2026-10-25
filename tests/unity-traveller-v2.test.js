@@ -1,3 +1,4 @@
+import { relevantUnityInput } from '../scripts/unity-release-plan.mjs';
 // Issue #493: the v2 traveller (the Blender rebuild, data/characters/traveller-v2/) in the engines. The page dresses him
 // behind its switch (src/characters/traveller-v2.js); the engines' host (engine/game.js) does the same when asked
 // (createGame({ traveller }): the Unity bridge's -traveller v2 -outfit <id>) or when the device keeps the switch on
@@ -128,7 +129,9 @@ test('Unity: the bridge carries the files, asks for v2 by -traveller, reads data
   const bundler = read('scripts/engine-bundle.mjs');
   assert.match(bundler, /const v = await unityTravellerV2\(\);/);
   assert.match(bundler, /shippedFiles\(ROOT\)/);
-  for (const w of ['unity-android', 'unity-xbox']) assert.match(read(`.github/workflows/${w}.yml`), /- 'data\/characters\/traveller-v2\/\*\*'/, `${w}: built again when his models change`);
+  assert.ok(relevantUnityInput('data/characters/traveller-v2/outfits.json'), 'daily Unity planner includes model changes');
+  assert.match(read('.github/workflows/unity-android.yml'), /node scripts\/unity-release-plan\.mjs/, 'daily workflow uses the tested input planner');
+  for (const w of ['unity-android', 'unity-xbox']) assert.match(read(`.github/workflows/${w}.yml`), /workflow_dispatch:/, `${w}: manual builds remain available`);
   const outfits = JSON.parse(read('data/characters/traveller-v2/outfits.json'));
   assert.equal(outfits.outfits.filter((o) => o.dir).length, 15, 'the fifteen outfits beside the base');
   const args = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs');

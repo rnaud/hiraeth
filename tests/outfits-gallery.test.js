@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { galleryRows, MOTIONS, motionSpeed, SPACING } from '../src/outfits-gallery/rows.js';
 import { PAGES } from '../src/world-picker.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 const list = JSON.parse(readFileSync('data/characters/traveller-v2/outfits.json', 'utf8'));
 

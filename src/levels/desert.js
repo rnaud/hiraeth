@@ -1,3 +1,5 @@
+import { DESERT_TEMPLE } from '../temples/desert.js';
+import * as DESERT_WORDS from '../temples/desert-data.js';
 import { ROSE_SITE } from '../desert-sites.js';
 import { buildDesertVistas, BASIN } from '../desert-vistas.js';
 import { buildDesertLandmarks, desertHeight } from '../desert-landmarks.js';
@@ -16,7 +18,7 @@ import { buildShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
-import { attachTemple, clearInstances } from '../temples/index.js';
+import { attachTempleDefinition, clearInstances } from '../temples/attachment.js';
 import { channelPath, alongGround, stripAlong, CHANNEL } from '../temples/desert.js';
 import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone, LEGACY_ROAD, CONTROLLED_ROAD, CONTROLLED_FIELD_STONE } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
@@ -151,7 +153,7 @@ export function* buildDesert(scene) {
     if (gameById(id)) placeGameMarker({ scene, levelId: 'desert', lights }, id, new THREE.Vector3(x, terrain.heightAt(x, z), z), { heading, ...(id === 'canyon' ? { host: false } : {}) });
   }
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
-  const level = attachTemple('desert', scene, {
+  const level = attachTempleDefinition('desert', { def: DESERT_TEMPLE, words: DESERT_WORDS }, scene, {
     id: 'desert',
     floraAvoid: avoidShop,
     // Qanat inside its walls is all streets, the paved square and houses: no flowers or plants there (src/paved.js)

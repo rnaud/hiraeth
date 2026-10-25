@@ -15,7 +15,14 @@ import {
 // border, found on the sheet; colours read off the panel.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Desert / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Desert/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3772": new URL("../../references/levels/The Desert/environment/IMG_3772.JPG", import.meta.url).href,
+  "IMG_3773": new URL("../../references/levels/The Desert/environment/IMG_3773.JPG", import.meta.url).href,
+  "IMG_3774": new URL("../../references/levels/The Desert/environment/IMG_3774.JPG", import.meta.url).href,
+  "IMG_3775": new URL("../../references/levels/The Desert/environment/IMG_3775.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `The Desert / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const DESERT_SHEETS = { IMG_3772: sheet('IMG_3772'), IMG_3773: sheet('IMG_3773'), IMG_3774: sheet('IMG_3774') };
 
 const n4 = createNoise2D(37754);

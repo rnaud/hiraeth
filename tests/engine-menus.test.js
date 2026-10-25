@@ -460,15 +460,6 @@ test('keys: arrows move, Enter chooses, Esc goes back, Q / E turn, J closes the 
   assert.equal(m.mode, null);
 });
 
-test('the Unity bridge draws the menus and feeds them the pad and the keys', () => {
-  const g = src('engine/unity/game.js');
-  assert.match(g, /new EngineMenus\(/);
-  assert.match(g, /host\.Menu\?\.\(/, 'the menu\'s state to Unity when it changes');
-  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs'), /public static void Menu\(string json\)/);
-  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /class BridgeMenu : MonoBehaviour/);
-  const eg = src('engine/game.js');
-  assert.match(eg, /context: \(\) => \(menus\?\.open \? 'menu'/, 'the controller in its menu context while a menu is open');
-});
 
 test('the pad\'s printed letters in an engine (issue #264): the Retroid\'s own names and Nintendo letters, the Xbox\'s, the Deck\'s', async () => {
   const { setEnginePad, setFaces, padLabels, padFaces, promptText } = await import('../src/native-pad.js');
@@ -662,12 +653,8 @@ test('the engine\'s settings (issue #346): the web\'s text size, plain speech ba
   assert.equal(s.reduceMotion, true);
   go('rumbleLevel'); m.navigate(-1, 0);
   assert.equal(s.rumbleLevel, 'low');
-  // BridgeHud honours them: the words' size, the plain background, the readout (engine/unity/game.js access)
-  const g = src('engine/unity/game.js'), hud = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
-  assert.match(g, /state = \{ ts: TEXT_SIZES\[s\.textSize\] \?\? 1, solid: !!s\.speechBg, fps: !!s\.showFps \}/);
-  assert.match(hud, /ts = Mathf\.Clamp\(acc\?\.F\("ts", 1\)/);
-  assert.match(g, /playEffect\(kind, o = \{\}\) \{ host\.Rumble\(/, 'the pad\'s motors through BridgeHost.Rumble');
-  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs'), /g\.SetMotorSpeeds\(/);
+  // Native settings renderer source contracts live in native-ui-source.test.js.
+
 });
 
 test('the Start menu says the save under its heading, as the web\'s (issue #346)', () => {

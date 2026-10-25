@@ -20,7 +20,14 @@ const wrapped = (g) => formAxis(g, 'wrap');   // a cylinder made about y: its st
 // (the dunes' shade a sage grey, the rust a deep rust, the teal a deep teal): no flat print here.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Buried Machine / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Buried Machine/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3789": new URL("../../references/levels/The Buried Machine/environment/IMG_3789.JPG", import.meta.url).href,
+  "IMG_3790": new URL("../../references/levels/The Buried Machine/environment/IMG_3790.JPG", import.meta.url).href,
+  "IMG_3791": new URL("../../references/levels/The Buried Machine/environment/IMG_3791.JPG", import.meta.url).href,
+  "IMG_3792": new URL("../../references/levels/The Buried Machine/environment/IMG_3792.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `The Buried Machine / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const BURIED_SHEETS = Object.fromEntries(['IMG_3789', 'IMG_3790', 'IMG_3791', 'IMG_3792'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: shade the surface's own colour darkened (no warm grey, no flat print), a clean sky. */

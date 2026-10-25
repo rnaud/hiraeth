@@ -7,7 +7,7 @@
 //
 //   wireKit({ tool, game, armed, onArm })                  the sword and the shield only once found, the kit's colours
 //   wireDangers({ scene, level })                          the fires that burn, a world's deadly void
-//   wirePeople({ levelId, npcs, journal, … })              the errands, the faces of whoever talks near, the hum
+//   wirePeople({ levelId, errandDefs, npcs, journal, … })              the errands, the faces of whoever talks near, the hum
 //   wireChemistry({ flammables, wildlife, tool, … })       fire, wind, creatures and foes on each other
 //   wireShip({ level, ship })                              the ship's place for quests, the scout and the Map
 //   wireMount({ levelId, level, flag })                    the bird's promise, the hoverbike (before the traveller)
@@ -35,7 +35,6 @@ import { fireHazard } from '../story/flames.js';
 import { worldVoid } from '../pit-void.js';
 import { hintsFor } from '../hint-level.js';
 import { Errands } from '../quest.js';
-import { ERRANDS } from '../levels/content.js';
 import { talkFaces, TALK_FACE } from '../talk-face.js';
 import { HumCue } from '../story/hum.js';
 import { Chemistry } from '../chemistry.js';
@@ -137,8 +136,9 @@ export function wireDangers({ scene, level }) {
  *   people.talk(dt, best, camera)     each frame, once the balloon is chosen (src/balloon-part.js pickBalloon)
  *   people.errands.update()           each frame, after the people
  */
-export function wirePeople({ levelId, npcs, journal, toast, titles, capture = () => null, sound = null, ship = null, game = null }) {
-  const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, toast, titles, capture, sound });
+export function wirePeople({ levelId, errandDefs, npcs, journal, toast, titles, capture = () => null, sound = null, ship = null, game = null }) {
+  if (!Array.isArray(errandDefs)) throw new TypeError('wirePeople requires the host errandDefs array');
+  const errands = new Errands({ levelId, defs: errandDefs, npcs, journal, toast, titles, capture, sound });
   const hum = new HumCue();
   const hear = (text) => { if (hum.hear(text, performance.now() / 1000)) sound?.makersHum?.({ vol: 0.7 }); };
   if (ship?.cinema) ship.cinema.onWords = hear;

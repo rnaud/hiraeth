@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { KINDS, LAB, LOOSE, ancestors, buildTree, classify, filterEntries, flatIds, formatHash, parseHash, worldsOf } from '../src/references-page/model.js';
 import { gridHtml, infoHtml, thumbSrc, treeHtml, fullSrc } from '../src/references-page/view.js';
 import { buildIndex, listPictures, referencesMiddleware, safePicture } from '../scripts/references-index.mjs';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 import { DEV_PAGES, PAGES, pagesHere } from '../src/world-picker.js';
 import { cameFromDebug } from '../src/debug-back.js';
 

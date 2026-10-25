@@ -55,6 +55,10 @@ test('the live runtime is published again while its key holds, checked against i
   const live = await liveRuntime(SITE, 'same', { fetch: site(), ...quiet });
   assert.deepEqual(Buffer.concat(live.parts), data);
   assert.equal(await liveRuntime(SITE, 'other', { fetch: site(), ...quiet }), null, 'other code: package a new one');
+  const preserved = await liveRuntime(SITE, 'other', { fetch: site(), reuseOnly: true, ...quiet });
+  assert.deepEqual(preserved.manifest, manifest, 'ordinary web deployment preserves the published native build');
+  assert.deepEqual(Buffer.concat(preserved.parts), data);
+  assert.equal(await liveRuntime(SITE, 'other', { fetch: site({ sha256: '0'.repeat(64) }), reuseOnly: true, ...quiet }), null, 'preservation still verifies all bytes');
   assert.equal(await liveRuntime(SITE, 'same', { fetch: site({ sha256: '0'.repeat(64) }), ...quiet }), null);
   assert.equal(await liveRuntime(SITE, 'same', { fetch: async () => { throw new Error('offline'); }, ...quiet }), null);
   const dist = tempDir('deck-runtime-');

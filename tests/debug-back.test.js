@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DEBUG_MENU_HREF, debugBackOptions, cameFromDebug, debugBackHtml, DEBUG_BACK_CSS } from '../src/debug-back.js';
 import { PAGES } from '../src/world-picker.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 const html = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 // (the pages built besides the game itself; the worlds list's pages are among them)

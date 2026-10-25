@@ -52,13 +52,14 @@ export function runtimeJson({ build, version, data, key, site = SITE, size = PAR
 }
 
 /** The live site's runtime, when it has `key`: { manifest, parts } with its bytes checked; else null. */
-export async function liveRuntime(site, key, { fetch = globalThis.fetch, log = console.warn } = {}) {
+export async function liveRuntime(site, key, { fetch = globalThis.fetch, log = console.warn, reuseOnly = false } = {}) {
   try {
     const get = (url) => fetch(`${url}?t=${Date.now()}`, { signal: AbortSignal.timeout(120_000), headers: { 'Cache-Control': 'no-cache' } });
     const res = await get(new URL(`${UPDATES}/steam-deck.json`, site).href);
     if (!res.ok) { log(`no live steam-deck.json (HTTP ${res.status})`); return null; }
     const manifest = await res.json();
-    if (manifest.key !== key) { log('the live runtime runs other code: a new one is packaged'); return null; }
+    if (manifest.key !== key && !reuseOnly) { log('the live runtime runs other code: a new one is packaged'); return null; }
+    if (manifest.key !== key) log('keeping the published native runtime; a manual runtime build is required to update it');
     const parts = [];
     for (const url of manifest.parts) {
       const part = await get(url);
@@ -89,11 +90,13 @@ async function main(args) {
   const at = args.indexOf('--live');
   const site = at >= 0 ? args[at + 1] : SITE;
   const key = await runtimeKey();
-  const live = await liveRuntime(site, key);
+  const reuseOnly = args.includes('--reuse-only');
+  const live = await liveRuntime(site, key, { reuseOnly });
   if (live) {
     await writeRuntime(dist, live.manifest, live.parts);
     console.log(`updates/steam-deck.json: the live runtime ${live.manifest.build} again (${live.parts.length} parts)`);
   } else {
+    if (reuseOnly) throw new Error('No verified published Steam Deck runtime to preserve; dispatch a manual runtime build.');
     // (the same number as the GitHub release's package of this commit: steam-deck.yml)
     if (!process.env.DECK_BUILD) throw new Error('DECK_BUILD is needed to package a new runtime');
     // (the packager fetches Linux's Electron itself)

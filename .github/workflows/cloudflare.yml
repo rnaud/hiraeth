@@ -10,7 +10,7 @@ name: Deploy to Cloudflare Workers
 # When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
 # run finishing and goes on only when that run was a push to main here and succeeded), building that run's
 # commit, github.event.workflow_run.head_sha (github.sha would be main's newest commit when this run
-# started). By hand (workflow_dispatch): the chosen ref at once, without waiting for the tests.
+# started). By hand (workflow_dispatch): the chosen ref only after its exact test gate succeeds.
 # (By hand only from main: the Worker is production.)
 
 on:
@@ -19,9 +19,15 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      build_deck_runtime:
+        description: Build a new Steam Deck runtime if its native inputs changed (manual only)
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  actions: read
+  contents: write
   statuses: write   # (scripts/commit-status.sh: "release: web (cloudflare)" on the tested commit)
 
 # Never cancelled once started; pushes meanwhile wait (GitHub keeps the newest one waiting).
@@ -50,6 +56,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           scripts/commit-status.sh pending "release: web (cloudflare)"
+      - name: Require the selected commit's test gate for a manual deploy
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/wait-tests.sh "${{ github.sha }}"
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -67,12 +78,18 @@ jobs:
       - name: The Steam Deck runtime on the site
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+          BUILD_DECK_RUNTIME: ${{ github.event_name == 'workflow_dispatch' && inputs.build_deck_runtime }}
         run: |
-          # the live one again while main.mjs, deck.py and Electron are unchanged, else a new package
-          # numbered as steam-deck.yml numbers this commit's (the GitHub release is private)
-          export WEB_BUILD=$(node scripts/release-info.mjs build)
+          # Automatic content updates retain the verified published runtime.
+          # Only explicit manual opt-in may rebuild Electron and the launcher.
+          WEB_BUILD=$(node scripts/release-info.mjs build)
+          export WEB_BUILD
           export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))
-          node scripts/deck-runtime.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/
+          if [ "$BUILD_DECK_RUNTIME" = true ]; then
+            node scripts/deck-runtime.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/
+          else
+            node scripts/deck-runtime.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/ --reuse-only
+          fi
           cat dist/updates/steam-deck.json
       - name: The changelog's pictures on the site
         run: |
@@ -132,6 +149,11 @@ jobs:
             if [ "$attempt" -lt 6 ]; then sleep 20; fi
           done
           exit 1
+      - name: Publish verified web release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/web-publish.sh "$SHA"
+
       - name: Commit status (the outcome)
         if: always()
         env:

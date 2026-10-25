@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { UNITY_RELEASES, unityNotes } from '../scripts/release-info.mjs';
+import { UNITY_RELEASES, unityNotes } from '../scripts/release-metadata.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const workflow = read('.github/workflows/unity-xbox.yml');
@@ -12,7 +12,7 @@ const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
 test('the workflow builds the UWP solution with GameCI on Windows, then packages and signs it', () => {
   assert.match(workflow, /runs-on: windows-2022/);
   assert.match(workflow, /^ {2}workflow_dispatch:/m);
-  assert.match(workflow, /- '\.github\/workflows\/unity-xbox\.yml'/);
+  assert.doesNotMatch(workflow, /^ {2}(?:push|schedule|workflow_run):/m);
   assert.match(workflow, /UNITY_VERSION: 6000\.6\.4f1/);
   const version = /m_EditorVersion: (\S+)/.exec(read('unity/Hiraeth/ProjectSettings/ProjectVersion.txt'))[1];
   assert.ok(workflow.includes(`UNITY_VERSION: ${version}`));
@@ -68,7 +68,7 @@ test('the Xbox build\'s caches: the glue on what it is made from, IL2CPP\'s obje
   // a run by hand never waits behind (nor is replaced by) a push; only main's builds are published
   assert.match(workflow, /group: unity-xbox-\$\{\{ github\.event_name == 'workflow_dispatch' && format\('dispatch-\{0\}', github\.run_id\) \|\| 'push' \}\}/);
   assert.match(workflow, /if: github\.ref == 'refs\/heads\/main' && env\.GFX == 'Direct3D12' && env\.DEV == ''\n[^\n]*\n[^\n]*\n[^\n]*\n[^\n]*\n {8}run: scripts\/unity-publish\.sh xbox/);
-  // Direct3D12 is the Xbox's (65 fps at 1440p against 51): a push builds and publishes it, Direct3D11 is the A/B
+  // Direct3D12 is the Xbox's (65 fps at 1440p against 51): a normal dispatch builds and publishes it, Direct3D11 is the A/B
   assert.match(workflow, /GFX: \$\{\{ inputs\.graphics_api \|\| 'Direct3D12' \}\}/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs'), /Arg\("-graphicsApi"\) == "Direct3D11" \? GraphicsDeviceType\.Direct3D11 : GraphicsDeviceType\.Direct3D12/);
   // the prune keeps to the run's branch and to the entries older than the one it keeps

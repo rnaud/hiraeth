@@ -15,7 +15,14 @@ import {
 // balcony's tip meets the floor's level, and the vanishing point its length runs to on the horizon.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Overnight Train / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Overnight Train/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Overnight Train/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Overnight Train/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Overnight Train/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Overnight Train/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Overnight Train / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const TRAIN_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`overnighttrain-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look and a clean sky. */

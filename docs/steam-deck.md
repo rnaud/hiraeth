@@ -378,8 +378,8 @@ python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --register-ste
 
 ## Build and release
 
-`.github/workflows/steam-deck.yml` runs on pushes to `main` and supports manual
-dispatch. It tests the installer, builds the web game, packages pinned Electron
+`.github/workflows/steam-deck.yml` runs only by manual dispatch on `main`, after the
+selected commit’s test gate succeeds. It tests the installer, builds the web game, packages pinned Electron
 for Linux x86-64, and opens the packaged game under Xvfb with software rendering.
 Only after the game finishes loading does it publish the archive and then the
 update manifest. The packaged game's build number (`WEB_BUILD`, `release-info.mjs build`) is

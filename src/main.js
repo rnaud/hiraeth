@@ -736,7 +736,7 @@ const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidde
 if (migrateJournal(journal.data, RELIC_BASE)) journal.save();
 // the errands, the hum when words on the screen speak of it, the face of whoever talks near (src/host/game-host.js
 // wirePeople, the engines' too; the words heard: the cinema's toasts and subtitles, a conversation's lines, a balloon)
-const people = wirePeople({ levelId, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound, ship, game });
+const people = wirePeople({ levelId, errandDefs: ERRANDS, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound, ship, game });
 const errands = people.errands;
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });

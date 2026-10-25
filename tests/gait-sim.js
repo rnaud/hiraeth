@@ -15,7 +15,7 @@ import { attachMotion } from '../src/motion-match.js';
 import { createTraveller } from '../src/characters/traveller.js';
 import { course, measure, timeToFace, CAM_PLUS_Z, sampleFrame } from '../src/gait-course.js';
 
-const parse = async (name) => {
+const parseAnimationAsset = async (name) => {
   const b = await readFile(new URL(`../public/anim/${name}`, import.meta.url));
   return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), '');
 };
@@ -23,7 +23,7 @@ let assets = null;
 export async function loadAssets() {
   // (the clip library with the captured motion attached, lib.motion: the people's walks, public/anim/walks.glb,
   // the matching database, public/anim/locomotion.glb, the moves and the conversation gestures)
-  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb'), parse('walks.glb'), parse('locomotion.glb'), parse('moves.glb'), parse('gestures.glb')]).then(([ual, m, f, walks, loco, moves, gestures]) => {
+  assets ??= Promise.all([parseAnimationAsset('ual.glb'), parseAnimationAsset('human_m.glb'), parseAnimationAsset('human_f.glb'), parseAnimationAsset('walks.glb'), parseAnimationAsset('locomotion.glb'), parseAnimationAsset('moves.glb'), parseAnimationAsset('gestures.glb')]).then(([ual, m, f, walks, loco, moves, gestures]) => {
     const lib = libraryFrom(ual);
     attachMotion(lib, walks);
     attachMotion(lib, loco);

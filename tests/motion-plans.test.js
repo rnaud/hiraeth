@@ -15,7 +15,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { foeSystem, foeSubject, OLD, kitLegs } from '../scripts/motion-audit/walk.mjs';
+import { foeSystem, foeSubject, OLD, kitLegs } from '../scripts/motion-audit/walk-procedural.mjs';
 
 const SUBJECTS = [
   { id: 'crab', legs: kitLegs, n: 6, groups: [[0, 2, 4], [1, 3, 5]] },

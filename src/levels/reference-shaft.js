@@ -13,7 +13,15 @@ import { cabModel } from '../taxi.js';
 // down (camera.pitch, roll).
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The City-Shaft / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The City-Shaft/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3778": new URL("../../references/levels/The City-Shaft/environment/IMG_3778.JPG", import.meta.url).href,
+  "IMG_3779": new URL("../../references/levels/The City-Shaft/environment/IMG_3779.JPG", import.meta.url).href,
+  "IMG_3780": new URL("../../references/levels/The City-Shaft/environment/IMG_3780.JPG", import.meta.url).href,
+  "IMG_3781": new URL("../../references/levels/The City-Shaft/environment/IMG_3781.JPG", import.meta.url).href,
+  "IMG_3782": new URL("../../references/levels/The City-Shaft/environment/IMG_3782.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `The City-Shaft / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const SHAFT_SHEETS = { IMG_3778: sheet('IMG_3778'), IMG_3779: sheet('IMG_3779'), IMG_3780: sheet('IMG_3780'), IMG_3781: sheet('IMG_3781'), IMG_3782: sheet('IMG_3782') };
 
 /**

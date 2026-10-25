@@ -1,3 +1,5 @@
+import { UNDERWATER_TEMPLE } from '../temples/underwater.js';
+import * as UNDERWATER_WORDS from '../temples/underwater-data.js';
 import * as THREE from 'three';
 import { buildCityLife } from './underwater-life.js';
 import { attachPort } from './port-pad.js';
@@ -7,7 +9,7 @@ import { MODE_TERRAIN, sharedUniforms } from '../materials.js';
 import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
 import { RoomKit } from './lab-kit.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { PEOPLE as UW_PEOPLE } from '../story/underwater-people.js';
@@ -642,7 +644,7 @@ export function* buildUnderwater(scene) {
   };
   // the Dock made a port: the pontoon ring on the dome's crown, pods round the city (issue #441, references/space-ports/underwater-city/sheet-1.jpg; src/levels/ports.js)
   attachPort(level, scene, UNDERWATER_PORT);
-  return attachTemple('underwater', scene, level);
+  return attachTempleDefinition('underwater', { def: UNDERWATER_TEMPLE, words: UNDERWATER_WORDS }, scene, level);
 }
 export const createUnderwater = stepped(buildUnderwater);
 

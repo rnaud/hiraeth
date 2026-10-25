@@ -14,7 +14,14 @@ import { whiteTree, rootArch, podHouse, walkway, stairs, punt, glowSpots, farTre
 // (mangroveScene) does them all (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The White Mangrove / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The White Mangrove/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The White Mangrove/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The White Mangrove/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The White Mangrove/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The White Mangrove/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The White Mangrove / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const MANGROVE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`mangrove-${n}`, sheet(n)]));
 
 /** The sheets' ink: the world's own look (mangrove-kit.js) and a clean sky. */

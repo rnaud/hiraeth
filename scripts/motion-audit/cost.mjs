@@ -11,7 +11,7 @@
 //                                          what the gaze costs beside the kit's own (issue #566)
 // Each row is the least of five runs (the machine is shared: a run is only ever slower than the kit).
 import * as THREE from 'three';
-import { foeSystem, DT } from './walk.mjs';
+import { foeSystem, DT } from './walk-procedural.mjs';
 import { keeperModel } from '../../src/temples/guardians.js';
 
 const view = await import('../../src/motion-kit/view.js').catch(() => null);   // (absent before kit phase 7: everything in view)

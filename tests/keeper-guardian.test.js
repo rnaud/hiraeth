@@ -11,8 +11,8 @@ import './register-gadgets.js';
 import { keeperGuardian } from '../src/temples/guardian-generated.js';
 import { Guardian } from '../src/temples/boss.js';
 import { KEEPER } from '../src/temples/desert.js';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { templeOf } from '../src/temples/attachment.js';
+import { createDesert } from '../src/levels/desert.js';
 import { Physics } from '../src/physics.js';
 import { bestInteractable } from '../src/interact.js';
 import { beginHelperEncounter, helperRun, consumeHelperReturn } from '../src/temples/helper-encounter.js';
@@ -117,7 +117,7 @@ test('the shell’s glyphs glow brighter as it calms', async () => {
 
 test('in the Rose House’s cistern: the fitted skin stays grounded, offers help and resolves on a completed game', async () => {
   const scene = new THREE.Scene();
-  const level = quiet(() => buildableById(TEMPLE_HOME.desert ?? 'desert').create(scene));
+  const level = quiet(() => createDesert(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
   const rt = templeOf(level, 'desert') ?? level.temple, K = rt.guardian, m = K.model;

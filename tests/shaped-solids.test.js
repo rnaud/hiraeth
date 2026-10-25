@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { buildableById } from '../src/levels/buildable.js';
+import { createArzach2 } from '../src/levels/arzach2.js';
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
@@ -84,7 +84,7 @@ test('the traveller dropped on a cab stands on what is drawn there, and walking 
 
 test('a rolling ball’s top is a dome: on its crest you stand on the stone, a little way down its side lower', () => {
   const scene = new THREE.Scene();
-  const level = buildableById('arzach2').create(scene);
+  const level = createArzach2(scene);
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
   level.init?.(physics);
   const ball = level.temple.pieces.find((p) => p.solid?.topAt && p.spin);

@@ -874,8 +874,9 @@ export function compareStreams(web, eng, { only = null } = {}) {
 }
 
 /** A list's pattern: `*` any run, `a|b` either. */
-export const glob = (p) => new RegExp(`^(?:${String(p).split('|').map((alt) => alt.split('*').map((x) => x.replace(/[.+?^$()|[\]\\{}]/g, '\\$&')).join('.*')).join('|')})$`);
+const sequencePattern = (p) => new RegExp(`^(?:${String(p).split('|').map((alt) => alt.split('*').map((x) => x.replace(/[.+?^$()|[\]\\{}]/g, '\\$&')).join('.*')).join('|')})$`);
+export { sequencePattern as glob };
 /** The entry of a list (engine/bridge-gaps.js STREAM_DIFFS) that names a difference, or null. */
 export function listedDiff(list, d) {
-  return list.find((e) => glob(e.seq ?? '*').test(d.seq) && glob(e.beat ?? '*').test(d.beat) && (e.keys ?? []).some((k) => glob(k).test(d.key))) ?? null;
+  return list.find((e) => sequencePattern(e.seq ?? '*').test(d.seq) && sequencePattern(e.beat ?? '*').test(d.beat) && (e.keys ?? []).some((k) => sequencePattern(k).test(d.key))) ?? null;
 }

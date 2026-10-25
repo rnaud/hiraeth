@@ -1,3 +1,5 @@
+import { buildableById } from '../src/levels/buildable.js';
+import { TEMPLE_HOME } from '../src/temples/attachment.js';
 // The grappling hook past a house's locks (issue #432: "The hook can pull the traveller onto any ledge within its 25 m
 // reach, so … the Lamp-House's gallery can be reached from the hall floor without the lamp-by-the-dais door"). Inside a
 // makers' house the hook takes only what the house set there for it (src/gadgets/hook.js `takes`: its anchors, loose
@@ -179,7 +181,7 @@ for (const id of Object.keys(TEMPLES)) {
   test(`${TEMPLES[id].def.name}: its bare stone doesn't take the hook, and no hold it takes reaches a room before its lock`, () => {
     game.reset();
     own(...carry(id), 'hook');
-    const W = buildHouse(id), { rt, level, physics } = W;
+    const W = buildHouse(id, buildableById(TEMPLE_HOME[id] ?? id).create), { rt, level, physics } = W;
     const def = rt.logic.def, K = rt.kit;
     // the rule here: from where you come in, the walls round you won't take it
     assert.ok(houseAt(level, rt.arrival.pos), 'the arrival is inside the house');

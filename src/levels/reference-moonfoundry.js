@@ -18,7 +18,14 @@ import {
 // (sheetAt: what is drawn at pixel (px, py), d m down the line of sight). reference-views.js describes the fields.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Moon Foundry / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Moon Foundry/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Moon Foundry/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Moon Foundry/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Moon Foundry/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Moon Foundry/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Moon Foundry / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const MOONFOUNDRY_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`moonfoundry-${n}`, sheet(n)]));
 
 /** The sheets' ink: the world's look (moon-foundry-kit.js), a clean sky. */

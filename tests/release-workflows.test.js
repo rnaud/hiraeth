@@ -15,13 +15,13 @@ const read = (p) => readFileSync(join(root, p), 'utf8');
 const workflows = Object.fromEntries(readdirSync(join(root, '.github/workflows')).map((f) => [f, read(`.github/workflows/${f}`)]));
 
 test('every release call in a workflow or publish script is retried', () => {
-  const sh = { ...workflows, 'scripts/unity-publish.sh': read('scripts/unity-publish.sh') };
+  const sh = { ...workflows, 'scripts/unity-publish.sh': read('scripts/unity-publish.sh'), 'scripts/web-publish.sh': read('scripts/web-publish.sh') };
   for (const [name, text] of Object.entries(sh)) {
     if (name === 'xbox.yml') continue;   // (PowerShell: its own loop, below)
     for (const line of text.split('\n')) {
       if (!/\bgh release (create|upload|edit)\b/.test(line) || /^\s*#/.test(line)) continue;
       // either retried itself, or inside the android publish function that is retried as a whole
-      const ok = /\bretry gh release/.test(line) || (name === 'android.yml' && /\|\| return 1$/.test(line));
+      const ok = /\bretry gh release/.test(line) || (['android.yml', 'scripts/web-publish.sh'].includes(name) && /\|\| return 1$/.test(line));
       assert.ok(ok, `${name}: ${line.trim()}`);
     }
   }
@@ -33,9 +33,9 @@ test('every release call in a workflow or publish script is retried', () => {
 test('the workflow_run deploys write their outcome on the tested commit', () => {
   for (const [file, context] of [['android.yml', 'release: android'], ['steam-deck.yml', 'release: steam deck'], ['cloudflare.yml', 'release: web (cloudflare)']]) {
     const w = workflows[file];
-    assert.match(w, /^ {2}workflow_run:/m, file);
+    assert.match(w, file === 'cloudflare.yml' ? /^ {2}workflow_run:/m : /^ {2}workflow_dispatch:/m, file);
     assert.match(w, /^permissions:\n(?: {2}.*\n)* {2}statuses: write/m, file);
-    assert.match(w, /SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/, file);
+    assert.match(w, file === 'cloudflare.yml' ? /SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/ : /SHA: \$\{\{ github\.sha \}\}/, file);
     assert.ok(w.includes(`run: |\n          scripts/commit-status.sh pending "${context}"`), file);
     assert.ok(w.includes(`        if: always()\n        env:\n          GH_TOKEN: \${{ github.token }}\n        run: |\n          scripts/commit-status.sh "\${{ job.status }}" "${context}"`), file);
   }
@@ -106,4 +106,27 @@ test('commit-status maps the job status and never fails the job', () => {
   writeFileSync(log, '');
   assert.match(run('failure', { GH_FAIL: '1' }), /::warning::couldn't set the commit status/);
   assert.equal(readFileSync(log, 'utf8').trim().split('\n').length, 2);   // (retried once with RETRY_DELAYS=0)
+});
+
+
+test('native installers skip per-push builds; Unity has a conditional daily build' , () => {
+  for (const file of ['android.yml', 'steam-deck.yml', 'unity-android.yml', 'unity-xbox.yml', 'xbox.yml']) {
+    const triggers = workflows[file].split('on:\n')[1].split('\npermissions:')[0];
+    assert.match(triggers, /^ {2}workflow_dispatch:/m, file);
+    assert.doesNotMatch(triggers, /^ {2}(push|workflow_run|pull_request):/m, file);
+    if (file !== 'unity-android.yml') assert.doesNotMatch(triggers, /^ {2}schedule:/m, file);
+  }
+  for (const file of ['android.yml', 'steam-deck.yml']) {
+    assert.match(workflows[file], /github.ref == 'refs\/heads\/main'/, file);
+    assert.match(workflows[file], /run: scripts\/wait-tests.sh "\$SHA"/, file);
+  }
+  for (const file of ['cloudflare.yml', 'deploy.yml']) assert.match(workflows[file], /^ {2}workflow_run:/m, file);
+  const unity = workflows['unity-android.yml'];
+  assert.match(unity, /cron: '17 3 \* \* \*'/);
+  assert.match(unity, /node scripts\/unity-release-plan.mjs/);
+  assert.match(unity, /check:\n    needs: changes\n    if: needs.changes.outputs.build == 'true'/);
+  const web = workflows['cloudflare.yml'];
+  assert.match(web, /build_deck_runtime:[\s\S]*?default: false/);
+  assert.match(web, /deck-runtime.mjs[^\n]*--reuse-only/);
+  assert.ok(web.indexOf('name: Verify the public deployment') < web.indexOf('run: scripts/web-publish.sh'));
 });

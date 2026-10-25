@@ -12,8 +12,8 @@ import './register-gadgets.js';
 import { keeperGuardian } from '../src/temples/guardian-generated.js';
 import { Guardian, windOf, comboOf, GroundShadow } from '../src/temples/boss.js';
 import { KEEPER, KEEPER_DARK } from '../src/temples/desert.js';
-import { templeOf } from '../src/temples/index.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { templeOf } from '../src/temples/attachment.js';
+import { createDesert } from '../src/levels/desert.js';
 import { Physics } from '../src/physics.js';
 import { guardianLock } from '../src/foes.js';
 import { guardianHitboxes } from '../src/hitboxes.js';
@@ -68,7 +68,7 @@ test('its tells and the breath between its blows: every move ≥ 1.3 s, every li
 
 test('an opening in every phase for a traveller who dodges or guards, its last phase too (in the dark: a gasp)', () => {
   const scene = new THREE.Scene();
-  const level = quiet(() => buildableById('desert').create(scene));
+  const level = quiet(() => createDesert(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
   const rt = templeOf(level, 'desert'), g = rt.guardian, A = g.arena, P = fakePlayer();

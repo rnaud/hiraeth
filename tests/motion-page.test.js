@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import * as THREE from 'three';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 import { DEFAULTS, cleanState, encodeState, decodeState, parseWalkers, formatWalkers, RUN_IDS } from '../src/motion/state.js';
 import { course, RUNS, PAGE_RUNS, scriptFrame, runFrames } from '../src/gait-course.js';
 import { traveller, drive } from './gait-sim.js';

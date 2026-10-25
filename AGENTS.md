@@ -32,7 +32,7 @@ These are the canonical project rules for Codex and other coding agents. Read th
 - **A new version starts a new release.** Adding a new entry at the top
   (`{ v: '0.38', date: 'YYYY-MM-DD', items: [...] }`) makes the next push create
   a new GitHub release `v0.38`. Smaller follow-ups go into the current entry, and
-  each push rebuilds that release (APK and web bundle) with a higher build number.
+  each push updates its web/content release with a higher build number. Native installers are built on request; Unity Android/Linux also builds daily when relevant inputs changed.
 - **Bump the version often.** Start a new entry after every few significant
   features (a new system, a reworked world, a new screen), roughly every
   10–15 changelog lines, or whenever a batch of work lands. Never let one
@@ -47,9 +47,10 @@ These are the canonical project rules for Codex and other coding agents. Read th
   repository or integrating. Do not substitute another image generator unless explicitly requested.
 - Before every commit that touches code, `.githooks/pre-commit` runs the unit tests
   the change reaches (`scripts/affected-tests.mjs`; `FULL_TESTS=1` runs them all;
-  enabled by `npm install`, or `git config core.hooksPath .githooks`). The whole suite
-  runs on GitHub (`.github/workflows/tests.yml`) and every deploy waits for it, so a
-  red test on `main` stops the release. Run `npx vite build` too before committing;
+  enabled by `npm install`, or `git config core.hooksPath .githooks`). GitHub uses
+  the same dependency selector on the complete unverified change range; unknown dependencies
+  fail closed. The full gameplay and tool suites run daily and can be run manually.
+  Automatic web deploys wait for the exact commit’s selected test gate; never bypass a failure. Run `npx vite build` too before committing;
   both must pass. Add tests for new systems and for bug fixes.
 - Check visual changes in the running game using the browser tools available in the session.
   Never touch port 5173: that is the user’s own dev server. Use a separate port in 5400–5499.
@@ -57,9 +58,11 @@ These are the canonical project rules for Codex and other coding agents. Read th
 - Document new systems in a short section of the right `docs/systems/<topic>.md`
   (or a new file there, added to the index in `docs/README.md`); keep `README.md`
   short.
-- Android: every push to `main` builds a signed APK and a web bundle and
-  publishes them to the release for the newest changelog version. Installed apps
-  update the game over the air (`web.json`). Bump `NATIVE_API` in
+- Releases: only web and compatible game-content bundles publish automatically after tests.
+  Android, Steam Deck and Xbox native installers are manual workflows; Unity Android/Linux
+  also builds daily if relevant inputs changed since its last successful build. Existing
+  apps update game content over the air (`web.json` / `unity.json`); native bridge changes
+  require a separately requested compatible installer. Bump `NATIVE_API` in
   `android/app/src/main/java/com/rnaud/hiraeth/WebBundles.java` whenever the
   Java bridge changes, so older apps are offered the new APK first. Keep the
   signing key backup in `.local-tools/android-signing/` (git-ignored); losing it

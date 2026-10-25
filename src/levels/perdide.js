@@ -1,3 +1,7 @@
+import { PERDIDE_TEMPLE } from '../temples/perdide.js';
+import * as PERDIDE_WORDS from '../temples/perdide-data.js';
+import { PERDIDE2_TEMPLE } from '../temples/perdide2.js';
+import * as PERDIDE2_WORDS from '../temples/perdide2-data.js';
 import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -7,7 +11,7 @@ import { Terrain, jitter } from '../world.js';
 import { Hoverbike, buildSocket } from '../bike.js';
 import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
 import { LANDING } from '../story/perdide-data.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
@@ -654,8 +658,8 @@ export function* buildPerdide(scene) {
       }
     },
   };
-  attachTemple('perdide2', scene, level);
-  attachTemple('perdide', scene, level);
+  attachTempleDefinition('perdide2', { def: PERDIDE2_TEMPLE, words: PERDIDE2_WORDS }, scene, level);
+  attachTempleDefinition('perdide', { def: PERDIDE_TEMPLE, words: PERDIDE_WORDS }, scene, level);
   // the crossing between the swamp and the wood (src/lorn-crossing.js, the merged worlds' follow-ups): the keepers' light
   // in the open water, the ferry bell off the landing island, the water-way carried on south to the ship (built last, after
   // the temples, so the audits' samples of what stood before stay where they were)

@@ -1,40 +1,35 @@
 #!/bin/sh
-# Before every commit: the unit tests the staged changes reach (scripts/affected-tests.mjs: the
-# tests that import or read a changed file). The full suite runs on GitHub on every push to main,
-# and the deploys wait for it (.github/workflows/tests.yml).
-# Enabled by `npm install` (package.json "prepare": git config core.hooksPath .githooks).
-# Skipped when the commit touches no code or tests (docs, pictures, the changelog's media only),
-# or with SKIP_TESTS=1 / `git commit --no-verify` in an emergency. FULL_TESTS=1 runs them all.
-# At most 4 test files at once (TEST_CONCURRENCY to change it): parallel agents' hooks at every core drove the
-# machine's load to 80.
-[ -n "$SKIP_TESTS" ] && exit 0
-staged=$(git diff --cached --name-only --diff-filter=ACMRD)
-if ! printf '%s\n' "$staged" | grep -qE '\.(js|mjs|cjs|json|glsl|html|css)$'; then
-  exit 0
-fi
-if [ -n "$FULL_TESTS" ]; then
-  tests=ALL
-else
-  # (the deleted files count too: a test that imported one should fail now)
-  tests=$(printf '%s\n' "$staged" | tr '\n' '\0' | xargs -0 node scripts/affected-tests.mjs) || tests=ALL
-fi
-if [ "$tests" = ALL ]; then
-  set -- tests/*.test.js
-  echo "pre-commit: node --test tests/*.test.js (all; SKIP_TESTS=1 to skip)"
-elif [ -z "$tests" ]; then
-  echo "pre-commit: no test reaches these changes (the full suite runs on GitHub)"
-  exit 0
-else
-  set -- $tests
-  echo "pre-commit: node --test, $# test files these changes reach (FULL_TESTS=1 for all)"
-fi
-out=$(node --test --test-concurrency="${TEST_CONCURRENCY:-4}" "$@" 2>&1)
-status=$?
-if [ $status -ne 0 ]; then
-  # (Node 22 marks a failure 'not ok' in TAP, Node 24 '✖' in spec: show both, with the assertion under each)
-  printf '%s\n' "$out" | grep -E -A6 '^not ok|^✖|^[ℹ#] (pass|fail)' | tail -40
-  echo "pre-commit: tests failed, commit stopped"
+# One selector for staged changes and CI. Unknown selection falls back to the full suite.
+# FULL_TESTS=1 explicitly requests all tests. The normal hook is never bypassed.
+set -eu
+# Tests execute the working tree: never certify different staged bytes.
+if ! git diff --quiet --ignore-submodules --; then
+  echo 'pre-commit: unstaged tracked changes differ from the index; stage or preserve them before testing this commit' >&2
   exit 1
 fi
-# (Node 22 reports in TAP when piped, "# pass"; 24 in spec, "ℹ pass". The tests passed: never fail on the summary.)
-printf '%s\n' "$out" | grep -E '^[ℹ#] (pass|fail)' || true
+selection=$(mktemp)
+trap 'rm -f "$selection"' EXIT HUP INT TERM
+if [ -n "${FULL_TESTS:-}" ]; then
+  node scripts/affected-tests.mjs --staged --all --json > "$selection" || printf 'null\n' > "$selection"
+else
+  node scripts/affected-tests.mjs --staged --json > "$selection" || printf 'null\n' > "$selection"
+fi
+# Use an argv array, never shell word-splitting or eval. A malformed/failed selection means all tests.
+node --input-type=module - "$selection" <<'JS'
+import {readFileSync,readdirSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+const all=readdirSync('tests').filter(f=>f.endsWith('.test.js')).sort().map(f=>'tests/'+f);
+let tests;try{tests=JSON.parse(readFileSync(process.argv[2],'utf8'));}catch{}
+if(!Array.isArray(tests)||tests.some(f=>typeof f!=='string'||!all.includes(f)))tests=all;
+tests=[...new Set(tests)];
+if(!tests.length){console.log('pre-commit: verified empty affected test set');process.exit(0);}
+const n=process.env.TEST_CONCURRENCY??'2';
+if(!/^[1-9][0-9]*$/.test(n))throw Error('Invalid TEST_CONCURRENCY');
+console.log(`pre-commit: ${tests.length} affected test files; concurrency ${n}`);
+// Git exports its repository/index context to hooks. Tests create disposable repositories;
+// preserve the context above for staged selection, then isolate all test subprocesses.
+const testEnv=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));
+const r=spawnSync(process.execPath,['--test',`--test-concurrency=${n}`,...tests],{stdio:'inherit',env:testEnv});
+if(r.error)throw r.error;
+process.exit(r.status??1);
+JS

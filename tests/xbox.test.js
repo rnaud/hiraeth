@@ -281,12 +281,11 @@ test('the prerelease: its notes, and a workflow that waits for the tests and nev
   const wf = read('.github/workflows/xbox.yml');
   assert.equal(XBOX_TAG, 'xbox');
   assert.match(wf, /uses: \.\/\.github\/workflows\/tests\.yml/);
-  assert.match(wf, /needs: \[check, tests\]/);
+  assert.match(wf, /package:\s+needs: tests/);
   assert.match(wf, /--prerelease --latest=false/);
   assert.match(wf, /windows-latest/);
-  assert.match(wf, /schedule:/);
-  assert.match(wf, /'xbox\/\*\*'/);
-  assert.match(wf, /Built from commit `\\\(\[0-9a-f\]\*\\\)`/, 'reads back the line the notes write');
+  assert.match(wf, /workflow_dispatch:/);
+  assert.doesNotMatch(wf, /^  (?:push|schedule|workflow_run):/m);
 });
 
 test('on the Xbox the page has the focus whenever it is shown (the console\'s WebView2 says hasFocus() false, so no pad loop read a press)', async () => {

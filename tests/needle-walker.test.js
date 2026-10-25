@@ -6,13 +6,13 @@ import { NEEDLE } from '../src/wildlife/species.js';
 import { clearTargets } from '../src/targets.js';
 import { Physics } from '../src/physics.js';
 import { CONTENT } from '../src/levels/content.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { createArzach } from '../src/levels/arzach.js';
 
 // Vael's needle walker (#209): it used to rise into the air and turn upright there, its tail's tip off the ground.
 // Now it walks a few steps on, plants itself with its tail's tip on the ground, and stands up on that tip.
 const Y = new THREE.Vector3(0, 1, 0);
 const scene = new THREE.Scene();
-const level = buildableById('arzach').create(scene);
+const level = createArzach(scene);
 const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
 level.init?.(physics);
 const player = (pos) => ({ pos: pos.clone(), vel: new THREE.Vector3(), onGround: true, frame: { up: Y.clone() }, vehicles: [] });

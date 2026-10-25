@@ -1,3 +1,5 @@
+import { EDENA_TEMPLE } from '../temples/edena.js';
+import * as EDENA_WORDS from '../temples/edena-data.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { markOnSurface } from '../makers-mark/surface.js';
 import { SITE as GREENHOUSE } from '../temples/edena.js';
@@ -9,7 +11,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_WATER } from '../material
 import { Terrain, jitter, soften } from '../world.js';
 import { buildRoom, portalPair } from '../interiors.js';
 import { PEOPLE } from '../story/edena-data.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
@@ -648,7 +650,7 @@ export function* buildEdena(scene) {
 
   // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
   yield;
-  const level = attachTemple('edena', scene, {
+  const level = attachTempleDefinition('edena', { def: EDENA_TEMPLE, words: EDENA_WORDS }, scene, {
     id: 'edena',
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch

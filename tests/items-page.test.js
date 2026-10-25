@@ -5,7 +5,7 @@ import { ITEMS } from '../src/items.js';
 import { PLACEMENTS, FALLBACKS } from '../src/boxes/placements.js';
 import { TITLES } from '../src/levels/names.js';
 import { itemsPage, whereFound } from '../src/items-page/view.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 test('the items page: every item with its picture, what it does, and where it is found', () => {
   assert.ok(Object.values(BUILD_INPUT).some((p) => p.endsWith('/items.html')), 'vite builds items.html');

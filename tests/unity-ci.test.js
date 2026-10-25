@@ -3,25 +3,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { UNITY_RELEASES, unityBuildOf, unityNotes } from '../scripts/release-info.mjs';
+import { UNITY_RELEASES, unityNotes } from '../scripts/release-metadata.mjs';
+import { unityBuildOf } from '../scripts/release-info.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const workflow = read('.github/workflows/unity-android.yml');
 const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
 const settings = read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset');
 
-test('the workflow runs on release changelog and Unity-side pushes, nightly when the game moved, and by hand', () => {
-  assert.match(workflow, /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths:/m);
-  const paths = /paths:\n((?: {6}- .*\n)+)/.exec(workflow)[1];
-  for (const p of ['src/changelog.js', 'unity/**', 'engine/**', 'scripts/unity-*', 'scripts/unity-*/**', 'scripts/engine-bundle.mjs'])
-    assert.ok(paths.includes(`- '${p}'`), p);
-  assert.ok(!paths.includes("'src/**'"));   // release changes are covered by their required changelog entry
+test('Unity builds by request or daily changed-input decision, never on each push', () => {
+  assert.doesNotMatch(workflow, /^ {2}push:/m);
   assert.match(workflow, /^ {2}schedule:\n {4}- cron: '\d+ \d+ \* \* \*'/m);
   assert.match(workflow, /^ {2}workflow_dispatch:/m);
   assert.match(workflow, /cancel-in-progress: false/);
-  // the nightly run builds only when the build's inputs moved since the commit the release names
-  assert.match(workflow, /git diff --quiet "\$last" HEAD -- unity engine src public scripts/);
-  assert.match(workflow, /if: needs\.check\.outputs\.build == 'true'/);
+  assert.match(workflow, /node scripts\/unity-release-plan.mjs/);
+  assert.match(workflow, /check:\n    needs: changes\n    if: needs.changes.outputs.build == 'true'/);
 });
 
 test('the workflow caches what makes a warm build short', () => {
@@ -56,7 +52,7 @@ test('the workflow caches what makes a warm build short', () => {
   assert.ok(linuxBody.indexOf('sudo rm -rf "$PROJECT/Library"') < linuxBody.indexOf('id: playerfresh'));
   assert.match(workflow, /FRESH: \$\{\{ steps\.playerfresh\.outcome == 'success' && '-fresh' \|\| '' \}\}/);
   // (the Linux player packed with every core, the same .tar.gz)
-  assert.match(workflow, /tar -I pigz \$skip -cf "\$RUNNER_TEMP\/hiraeth-unity-linux\.tar\.gz"/);   // (without the build's leftovers: issue #500)
+  assert.match(workflow, /tar -I pigz "\$\{skip\[@\]\}" -cf "\$RUNNER_TEMP\/hiraeth-unity-linux\.tar\.gz"/);   // (without the build's leftovers: issue #500)
   // Gradle's downloads: keyed on Unity's version and the packages, saved when that moved, the older deleted
   assert.match(workflow, /~\/\.gradle\/caches/);
   assert.match(workflow, /key: unity-gradle-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\(/);

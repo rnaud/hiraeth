@@ -7,7 +7,7 @@ import { installEffectFileDecoder } from '../scripts/sound-qc/render.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { installAudio } from '../engine/webaudio.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 import { PAGES } from '../src/world-picker.js';
 
 const G = globalThis;

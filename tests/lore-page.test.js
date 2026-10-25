@@ -12,7 +12,7 @@ import { WORLD_LORE, THREAD } from '../src/lore-page/lore-text.js';
 import { ORDER } from '../src/levels/names.js';
 import { TEMPLES, templesIn } from '../src/temples/index.js';
 import { ITEMS } from '../src/items.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 import { PAGES } from '../src/world-picker.js';
 import { handleIssues, SOURCES as FOOTERS } from '../worker/issues.js';
 import { LORE_FILE } from '../scripts/web-update.mjs';

@@ -13,7 +13,14 @@ import { hull, portholes, houseStack, superstructure, cloth, curtain, gangway, r
 // builder (harbourScene) does them all (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Salt Harbour / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Salt Harbour/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Salt Harbour/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Salt Harbour/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Salt Harbour/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Salt Harbour/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Salt Harbour / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const SALT_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`saltharbour-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look (salt-harbour-kit.js) and a clean sky. */

@@ -1,3 +1,5 @@
+import { SPACECITY_TEMPLE } from '../temples/spacecity.js';
+import * as SPACECITY_WORDS from '../temples/spacecity-data.js';
 import * as THREE from 'three';
 import { mulberry32 } from '../noise.js';
 import { stepped } from '../load-steps.js';
@@ -10,7 +12,7 @@ import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { PEOPLE as SC_PEOPLE, VISITORS as SC_VISITORS } from '../story/spacecity-people.js';
 import { table } from './eclipse-kit.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import {
   spaceMats, island, quarter, heap, bridge, railing, pipeStack, crownTree, lantern, resident, awning, laundry, poleCloth,
   SPACE_LOOK, SPACE_DAY, PLANET_TONE,
@@ -534,6 +536,6 @@ export function* buildSpaceCity(scene) {
     update(dt) { ways.drift.update(dt); port.update(dt); },
   };
   // the makers' Mooring-House on the Moorings (src/temples/spacecity.js): its door, its rooms far overhead, its quest
-  return attachTemple('spacecity', scene, level);
+  return attachTempleDefinition('spacecity', { def: SPACECITY_TEMPLE, words: SPACECITY_WORDS }, scene, level);
 }
 export const createSpaceCity = stepped(buildSpaceCity);

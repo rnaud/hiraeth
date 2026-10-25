@@ -13,7 +13,7 @@ import { HEAD_IDS, HEAD_ID_LIMIT, HAIR_IDS, HEADS, lookPieces, scalp, dressFor }
 import { mulberry32 } from '../src/noise.js';
 import { Humanoid, prepareHuman, buildGeometry, FACE } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 // The character studio (studio.html, src/studio/): its URL state, the people it shows, and the
 // body / face / expression systems it tunes (src/morph.js, src/expression.js, humanoid.js).

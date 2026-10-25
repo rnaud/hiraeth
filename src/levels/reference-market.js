@@ -15,7 +15,18 @@ import { cabModel } from '../taxi.js';
 // the teal walls with near-black pockets.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Signal Market / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Signal Market/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3801": new URL("../../references/levels/The Signal Market/environment/IMG_3801.JPG", import.meta.url).href,
+  "IMG_3802": new URL("../../references/levels/The Signal Market/environment/IMG_3802.JPG", import.meta.url).href,
+  "IMG_3803": new URL("../../references/levels/The Signal Market/environment/IMG_3803.JPG", import.meta.url).href,
+  "IMG_3804": new URL("../../references/levels/The Signal Market/environment/IMG_3804.JPG", import.meta.url).href,
+  "IMG_3805": new URL("../../references/levels/The Signal Market/environment/IMG_3805.JPG", import.meta.url).href,
+  "IMG_3806": new URL("../../references/levels/The Signal Market/environment/IMG_3806.JPG", import.meta.url).href,
+  "IMG_3807": new URL("../../references/levels/The Signal Market/environment/IMG_3807.JPG", import.meta.url).href,
+  "IMG_3808": new URL("../../references/levels/The Signal Market/environment/IMG_3808.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `The Signal Market / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const MARKET_SHEETS = Object.fromEntries(['IMG_3801', 'IMG_3802', 'IMG_3803', 'IMG_3804', 'IMG_3805', 'IMG_3806', 'IMG_3807', 'IMG_3808'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own look (bazaar.js MARKET_LOOK, the flat teal shade) and a clean sky. */

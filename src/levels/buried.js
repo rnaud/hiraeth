@@ -1,3 +1,5 @@
+import { BURIED_TEMPLE } from '../temples/buried.js';
+import * as BURIED_WORDS from '../temples/buried-data.js';
 import { omitCoveredCap } from '../covered-cap.js';
 import { COURTS } from '../finds/courts.js';
 import { templeVista } from '../temples/vistas.js';
@@ -14,7 +16,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { placeShop } from '../shop-world.js';
 import { buildToothPosts, buildOilMain, buildFlueVents, buildCanyonStack, buildDoorFlag, buildRampRope, CANYON_STACK } from '../buried-ways.js';
 import { SHOPS } from '../shop.js';
@@ -1190,7 +1192,7 @@ export function* buildBuried(scene) {
   // wheel's foot to Wen's dome, the way the counters carry the year's sliver: the way back with yours (built after the
   // temple, last in the scene)
   let toothPosts = null, oilMain = null, flue = null;
-  const level = attachTemple('buried', scene, {
+  const level = attachTempleDefinition('buried', { def: BURIED_TEMPLE, words: BURIED_WORDS }, scene, {
     id: 'buried',
     portals: [...shop.portals],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)

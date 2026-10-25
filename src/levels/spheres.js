@@ -1,3 +1,5 @@
+import { SPHERES_TEMPLE } from '../temples/spheres.js';
+import * as SPHERES_WORDS from '../temples/spheres-data.js';
 import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -7,7 +9,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
@@ -1198,7 +1200,7 @@ export function* buildSpheres(scene) {
   const shop = placeShop(scene, { def: SHOPS.listening, at: new THREE.Vector3(13, terrain.heightAt(13, -175), -175), heading: -Math.PI / 2 + 0.25 });
   // the Footprint north of the grove, and its rooms far overhead (src/temples/spheres.js)
   yield;
-  return attachTemple('spheres', scene, {
+  return attachTempleDefinition('spheres', { def: SPHERES_TEMPLE, words: SPHERES_WORDS }, scene, {
     id: 'spheres',
     portals: [...shop.portals],
     lights: [...shop.lights],

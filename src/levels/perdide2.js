@@ -1,6 +1,8 @@
+import { PERDIDE2_TEMPLE } from '../temples/perdide2.js';
+import * as PERDIDE2_WORDS from '../temples/perdide2-data.js';
 import { templeVista } from '../temples/vistas.js';
 import { SITE as LAMP_HOUSE } from '../temples/perdide2.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis } from '../form.js';
@@ -236,7 +238,7 @@ export function* buildPerdide2(scene) {
   const terrain = yield* Terrain.make({ size: 1800 + 2 * Math.max(Math.abs(OX), Math.abs(OZ)), seg: 360 + Math.round(Math.max(Math.abs(OX), Math.abs(OZ)) / 2.5), height, material: DEEP_WOOD_GROUND });
   scene.add(terrain.mesh);
   const part = yield* buildDeepWood(scene, terrain);
-  return attachTemple('perdide2', scene, part);
+  return attachTempleDefinition('perdide2', { def: PERDIDE2_TEMPLE, words: PERDIDE2_WORDS }, scene, part);
 }
 
 /**

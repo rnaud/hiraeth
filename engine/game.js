@@ -601,7 +601,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const journal = engineJournal({ write: !flags });
   // the errands (a parcel from one world's person to another's), the hum when words on the screen speak of it, the face of
   // whoever talks near you, as the page (src/host/game-host.js wirePeople: the engines had none of them before, #427)
-  folk = optional('the people\'s errands and faces', () => wirePeople({ levelId, npcs, journal, toast: (t, o) => toast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
+  folk = optional('the people\'s errands and faces', () => wirePeople({ levelId, errandDefs: ERRANDS, npcs, journal, toast: (t, o) => toast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
     sound, ship, game: gameState }));
   // the world's story page (src/quest.js Story, as main.js makes it): its quest's last step calls story.complete(), which
   // keeps the world in the journal as told (journal.storyDone: a world done for the route, the ship's map, the recordings

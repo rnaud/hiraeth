@@ -10,10 +10,10 @@ import { game } from '../src/game-state.js';
 import { SITE_OVERRIDES, LEGACY_DESERT_SITE, CONTROLLED_LANDING_FLAG, probeSite } from '../src/ship/sites.js';
 import * as caravanLayout from '../src/ship/caravan-layout.js';
 import { Player } from '../src/player.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { createDesert } from '../src/levels/desert.js';
 import { Physics } from '../src/physics.js';
 const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
-function freshWorld(){const scene=new THREE.Scene();const level=quiet(()=>buildableById('desert').create(scene));const physics=new Physics(scene,level.ground);quiet(()=>level.init?.(physics));return {scene,level,physics};}
+function freshWorld(){const scene=new THREE.Scene();const level=quiet(()=>createDesert(scene));const physics=new Physics(scene,level.ground);quiet(()=>level.init?.(physics));return {scene,level,physics};}
 
 test('controlled first berth is substantially closer to Qanat and fits both ships on real Desert terrain',async()=>{
   const w=freshWorld(), site=SITE_OVERRIDES.desert;

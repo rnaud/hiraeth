@@ -8,60 +8,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { TEMPLES } from '../src/temples/index.js';
 import { FINALE, FINALES, finaleLength, finaleShots, finaleFlag, playFinale, wayOut, keeperBox, fitFov, washes, FILM_HUSH } from '../src/temples/finale.js';
 import { helperOpeningShots } from '../src/temples/helper-cinematics.js';
 import { Moment, MomentStage, behindHim } from '../src/story/moment.js';
 import { sightClear } from '../src/story/film.js';
 import { purseSpot } from '../src/chimes.js';
-import { buildableById } from '../src/levels/buildable.js';
-import { Physics } from '../src/physics.js';
 import { game } from '../src/game-state.js';
 
-const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const quiet = (fn) => { const w = console.warn, l = console.log, i = console.info; console.warn = console.log = console.info = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; console.info = i; } };
-
-const built = new Map();
-/** A house in its world, built once: { rt, physics }; the traveller stood in its arena between the keeper and the way out. */
-function house(id) {
-  if (built.has(id)) return built.get(id);
-  const scene = new THREE.Scene();
-  const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
-  const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
-  quiet(() => level.init?.(physics));
-  const rt = templeOf(level, id) ?? level.temple;
-  scene.updateMatrixWorld(true);
-  const out = { rt, physics, scene };
-  built.set(id, out);
-  return out;
-}
-function standBy(rt) {
-  const G = rt.guardian, way = wayOut(rt);
-  const c = G.arena.center, door = way.piece.group.position;
-  const dir = V(door.x - G.model.pos.x, 0, door.z - G.model.pos.z).normalize();
-  const pos = G.model.pos.clone().addScaledVector(dir, Math.min(6, G.arena.r * 0.5)).setY(G.arena.y);
-  rt.player = { pos, vel: V(), heading: Math.atan2(-dir.x, -dir.z), riding: false };
-  return rt.player;
-}
-/** What drawn surface of the house stands between the lens and p (not the keeper, not the way out's own door, nothing see-through), or null. */
-function blocker(rt, from, p, skip, near = 0.4) {
-  const d = from.distanceTo(p);
-  const ray = new THREE.Raycaster(from, p.clone().sub(from).normalize(), 0.05, d - near);
-  const shown = (o) => { for (let q = o; q; q = q.parent) { if (!q.visible) return false; if (skip.includes(q)) return false; } return true; };
-  for (const h of ray.intersectObject(rt.root, true)) {
-    const mat = Array.isArray(h.object.material) ? h.object.material[0] : h.object.material;
-    if (!h.object.isMesh || mat?.transparent || mat?.visible === false || !shown(h.object)) continue;
-    return { name: h.object.name || h.object.parent?.name || '?', at: h.distance.toFixed(1) };
-  }
-  return null;
-}
-/** Is p in the frame of camera c (inside the letterbox, in front)? */
-function inFrame(c, p) {
-  const cam = new THREE.PerspectiveCamera(c.fov, 16 / 9, 0.1, 2000);
-  cam.position.copy(c.pos); cam.lookAt(c.look); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
-  const v = p.clone().project(cam);
-  return v.z < 1 && Math.abs(v.x) < 0.92 && Math.abs(v.y) < 0.78;
-}
+import { V, quiet, house, standBy, blocker, inFrame } from './temple-finale-house.js';
 
 test('the shape: four panels, 8–15 s, every house listed, a beat each', () => {
   const len = finaleLength();
@@ -345,40 +300,6 @@ test('a skip lands the house as its panel leaves it: the clocks at the time, the
   }
 });
 
-test('the Whale-House’s purse: close over it from the far side of the Listener’s shell, the chimes in the frame (#562)', () => {
-  const { rt } = house('underwater');
-  standBy(rt);
-  const film = finaleShots(rt), B = film.shots[1];
-  assert.ok(film.picked.reward, 'a lens found');
-  const chimes = film.at.reward.clone().setY(film.at.reward.y + 0.3);
-  for (const c of [B.from, B.to]) {
-    assert.ok(c.pos.distanceTo(chimes) < 8, `close to the chimes (${c.pos.distanceTo(chimes).toFixed(1)} m; the shell's underside filled the frame from 11 m)`);
-    assert.ok(inFrame(c, chimes), 'the chimes in the frame');
-    assert.ok(!keeperBox(rt.guardian.model).containsPoint(c.pos), 'out of its body');
-  }
-});
-
-// (issue #567) The Whale-House's way out: the Listener settles on its shell five metres before the door, and D was framed
-// past it, the shell half the frame and a pod before the door. Now (FINALES.underwater.way.clear) the doorway is whole in
-// the frame, nothing drawn before it, and the keeper's body as it stands through D clear of it.
-test('the Whale-House’s way out: framed clear of the Listener’s shell (#567)', () => {
-  const { rt } = house('underwater');
-  standBy(rt);
-  const film = finaleShots(rt), D = film.shots[3], way = wayOut(rt);
-  assert.ok(film.picked.way, 'a lens found that frames the door clear');
-  const tD = FINALE.keeper + FINALE.reward + FINALE.house, n = film.axis, across = V(-n.z, 0, n.x), dh = way.piece.h ?? 6, door = way.piece.group.position;
-  const pts = [-1.2, -0.6, 0, 0.6, 1.2].flatMap((s) => [0.15, 0.45, 0.75].map((h) => door.clone().addScaledVector(across, s).addScaledVector(V(0, 1, 0), dh * h).addScaledVector(n, 0.3)));
-  const ray = new THREE.Ray(), hit = V();
-  let behind = 0;
-  for (const k of [0, 0.5, 1]) {
-    const cam = D.from.pos.clone().lerp(D.to.pos, k), body = film.bodyAt(tD + k * FINALE.way);
-    for (const q of pts) { ray.set(cam, q.clone().sub(cam).normalize()); if (ray.intersectBox(body, hit) && hit.distanceTo(cam) < cam.distanceTo(q)) behind++; }
-    assert.equal(blocker(rt, cam, door.clone().addScaledVector(n, 0.3).addScaledVector(V(0, 1, 0), dh * 0.45), [way.piece.group]), null, 'nothing drawn before the doorway');
-  }
-  assert.equal(behind, 0, `the doorway clear of the keeper's body (${behind} of ${pts.length * 3} sight lines through it; 27 before)`);
-});
-
-
 test('Elder helper return starts on the source roost, not a second arrival; raw sparring keeps its guardian panel', () => {
   const { rt } = house('arzach'); standBy(rt);
   const helper = finaleShots(rt);
@@ -419,69 +340,4 @@ for (const id of ['desert', 'arzach']) test(`${id}: helper introduction uses two
     }
     offset += shot.dur;
   }
-});
-
-
-for (const generated of [false, true]) test(`Elder helper celebration keeps a readable animated subject with a normal lens (${generated ? 'accepted GLB' : 'procedural fallback'})`, async () => {
-  // A fresh actual room/model: this must catch the observed cropped head, not
-  // merely assert that the new camera helper was called.
-  const scene = new THREE.Scene();
-  const level = quiet(() => buildableById('arzach').create(scene));
-  const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
-  quiet(() => level.init?.(physics));
-  const rt = templeOf(level, 'arzach'), G = rt.guardian;
-  if (generated) {
-    const { loadElderGltf } = await import('../scripts/tripo/elder-cycles.mjs');
-    const { createElderCreature } = await import('../src/characters/elder-v3-creature.js');
-    G.model.swap(createElderCreature(await loadElderGltf(), { gameMaterial: true }));
-    assert.equal(G.model.generated, true, 'actual committed accepted Elder skin, not its procedural stand-in');
-  }
-  const bodyBounds = () => {
-    const inner = G.model.inner;
-    G.model.group.updateMatrixWorld(true);
-    if (!generated) return keeperBox({ group: inner.rig });
-    const bounds = new THREE.Box3();
-    for (const mesh of inner.meshes) bounds.union(keeperBox({ group: mesh }));
-    assert.ok(!bounds.isEmpty(), 'posed accepted skin has real bounds');
-    return bounds;
-  };
-  scene.updateMatrixWorld(true);
-  // Actual grounded return recorded in both completed browser runs, including
-  // 1792772473162 (the rejected 148.94-degree frame), not a recomputed arena pose.
-  const pos = V(-390, 1672, -461.95);
-  rt.player = { pos, vel: V(), heading: 0, riding: false, dead: false };
-  quiet(() => G.resolve());
-  const film = finaleShots(rt), moment = new Moment({ shots: film.shots, stage: { physics } });
-  const dt = 1 / 30; let samples = 0;
-  for (let t = 0; t < FINALE.keeper + FINALE.reward; t += dt) {
-    quiet(() => G.update(dt, t));
-    if (t < FINALE.keeper + .05) continue;
-    moment.t = t; const c = moment.camera(), body = bodyBounds();
-    assert.equal(film.shots[1].portraitAvailable, true, 'room-view fallback is not accepted as Elder framing');
-    assert.ok(Number.isFinite(c.fov) && c.fov <= 60, `bounded finite lens at ${t}`);
-    assert.ok(!physics.embedded(c.pos), `lens outside real room solids at ${t}`);
-    assert.ok(!body.containsPoint(c.pos), `lens outside animated Elder at ${t}`);
-    for (const aspect of [4 / 3, 16 / 9]) {
-      const cam = new THREE.PerspectiveCamera(c.fov, aspect, .1, 2000);
-      cam.position.copy(c.pos); cam.lookAt(c.look); cam.updateMatrixWorld();
-      const projected = [];
-      for (const x of [body.min.x, body.max.x]) for (const y of [body.min.y, body.max.y]) for (const z of [body.min.z, body.max.z]) {
-        const ndc = V(x, y, z).project(cam); projected.push(ndc);
-        assert.ok(ndc.z < 1 && Math.abs(ndc.x) < .92 && Math.abs(ndc.y) < .78, `whole animated body in ${aspect} letterbox at ${t}: ${ndc.toArray()}`);
-      }
-      const height = (Math.max(...projected.map(p => p.y)) - Math.min(...projected.map(p => p.y))) / 2;
-      assert.ok(height >= .22, `Elder occupies at least 22% of image height, not a distant speck: ${height}`);
-      assert.ok(rt.inside(c.pos), 'normal lens remains inside the hall');
-      assert.equal(blocker(rt, c.pos, c.look, [G.model.group]), null, 'drawn walls do not hide the Elder');
-    }
-    samples++;
-  }
-  assert.ok(samples > 50, 'exercise the animated second panel throughout, including the observed 4.2-second crop');
-  const inside = rt.inside;
-  try {
-    rt.inside = () => false;
-    moment.camera();
-    assert.equal(film.shots[1].portraitAvailable, false, 'invalidated cached lens uses explicitly identified room fallback');
-    assert.equal(film.shots[1].clear, film.shots[0].clear, 'fallback retains checked room collision policy');
-  } finally { rt.inside = inside; }
 });

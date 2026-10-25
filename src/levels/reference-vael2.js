@@ -20,7 +20,16 @@ import { rockKnobs } from './greeble-kit.js';
 // hatch densely only under the caps, the overhangs and the cliffs' faces.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `Vael II, the Sky Stones / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/Vael II- The Sky Stones/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3783": new URL("../../references/levels/Vael II- The Sky Stones/environment/IMG_3783.JPG", import.meta.url).href,
+  "IMG_3784": new URL("../../references/levels/Vael II- The Sky Stones/environment/IMG_3784.JPG", import.meta.url).href,
+  "IMG_3785": new URL("../../references/levels/Vael II- The Sky Stones/environment/IMG_3785.JPG", import.meta.url).href,
+  "IMG_3786": new URL("../../references/levels/Vael II- The Sky Stones/environment/IMG_3786.JPG", import.meta.url).href,
+  "IMG_3787": new URL("../../references/levels/Vael II- The Sky Stones/environment/IMG_3787.JPG", import.meta.url).href,
+  "IMG_3788": new URL("../../references/levels/Vael II- The Sky Stones/environment/IMG_3788.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `Vael II, the Sky Stones / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const VAEL2_SHEETS = Object.fromEntries(['IMG_3783', 'IMG_3784', 'IMG_3785', 'IMG_3786', 'IMG_3787', 'IMG_3788'].map((n) => [n, sheet(n)]));
 
 /**

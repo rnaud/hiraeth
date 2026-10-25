@@ -10,7 +10,7 @@
 //   tip lag      how far (rad of the cycle) the wing tip trails its root
 //   pulse        bell pulses a second drifting, and winding up (the lantern jelly): the telegraph quickens it
 import * as THREE from 'three';
-import { foeSystem } from './walk.mjs';
+import { foeSystem } from './walk-procedural.mjs';
 import { PLANS } from '../../src/motion-kit/plans.js';
 
 const DT = 1 / 60;

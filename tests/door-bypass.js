@@ -1,3 +1,5 @@
+import { buildableById } from '../src/levels/buildable.js';
+import { TEMPLE_HOME } from '../src/temples/attachment.js';
 // No way round a shut door, in any temple (issue #356: "In the Hush-House there is a locked door but I can just jump
 // around it?"). For every door of a house's links (a door of stone: not a lift, a raft, a hammer; and not one the logic
 // can go round by another link), shut with every other door open (the most the house ever lets you have):
@@ -91,7 +93,7 @@ export function doorBypass(part, of) {
     test(`${TEMPLES[id].def.name}: no way round a shut door, walked, nor round a locked one, walked, jumped or flown`, () => {
       game.reset();
       own(...carry(id));
-      const { level, physics, rt } = buildHouse(id);
+      const { level, physics, rt } = buildHouse(id, buildableById(TEMPLE_HOME[id] ?? id).create);
       const def = rt.logic.def, K = rt.kit;
       const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: false });
       const W = { physics, level, rt };

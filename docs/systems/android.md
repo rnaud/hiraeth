@@ -7,11 +7,11 @@ The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API. Since NATIVE_API 6 the app runs
 the game in its own engine, GeckoView, and in the system WebView only where that can't run
 (see "The engine: GeckoView").
-- **Release workflow** (`.github/workflows/android.yml`): every push to `main`
+- **Release workflow** (`.github/workflows/android.yml`): a manual dispatch on `main`, after its exact test gate,
   builds the web game, wraps it with Capacitor (`capacitor.config.json`,
   `android/`) and builds a signed release APK. The APK is published to the
   GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
-  on, via `scripts/release-info.mjs`). Pushes within one version replace that
+  on, via `scripts/release-info.mjs`). Requested builds within one version replace that
   release's APK; adding a changelog entry starts a new release. Next to the APK the release gets `latest.json` (APK URL, versionCode,
   native level) and, for apps up to NATIVE_API 4 only, `web-<build>.zip` + `web.json`, all from
   `scripts/release-info.mjs`. Newer apps take the game's updates from the site (see "Game updates
@@ -39,6 +39,19 @@ the game in its own engine, GeckoView, and in the system WebView only where that
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
 
+### Automatic web releases and manual installers
+
+The successful automatic Cloudflare deployment publishes the newest changelog version's release notes
+with `scripts/web-publish.sh`, including the exact web commit and build number. It preserves existing
+assets and their source labels. New web-only releases use `--latest=false`: GitHub's latest release
+continues to expose the last explicitly published Android `latest.json`, so the native updater is not
+pointed at a release without an APK. A requested Android build can make its release latest as before.
+Compatible content arrives through `web.json` / `unity.json`; native minimum-version guards remain.
+A bridge change requires a separately requested installer before older clients can accept that content.
+Automatic site publication reuses and verifies the currently published Steam Deck runtime even if
+native inputs changed. To rebuild it, manually dispatch Cloudflare with `build_deck_runtime=true`.
+A missing or corrupt published runtime fails the deployment instead of silently starting a native build.
+
 ### The Unity builds on a version's release (issue #186, v1.59)
 A version's release (`vX.Y`) also holds the Unity port's testers' builds, beside the APK:
 `hiraeth-unity-xbox.zip` (Xbox, Developer Mode), `hiraeth-unity-linux.tar.gz` (Linux / Steam Deck) and
@@ -54,12 +67,11 @@ it finishes:
   APK's label is "Hiraeth vX.Y for Android (the game)". The notes end with a Unity section
   (`<!-- unity builds -->`, `unitySection`) read back from those labels: each build and the commit it came
   from, or, for one not built since the release was made, a link to its prerelease. `unity-publish.sh` redoes
-  it (`unity-body`) and `android.yml` writes it with every push's notes (`notes <release.json>`), so a rewrite
+  it (`unity-body`), `android.yml` writes installer notes, and `web-publish.sh` writes web notes, so a rewrite
   of the notes never loses a commit: it travels with the file.
 - **Only what is needed:** one copy per build on its matching release (about 60 MB, 310 MB and 90 MB; GitHub's
   limit is 2 GiB a file, and a bigger build would stay on its prerelease with a warning). A new version's
-  release starts without them until its Unity build finishes. Every player-visible release changelog
-  change now triggers the Android and Linux builds; nothing is copied from older versions. Older versions keep the Unity builds they had.
+  release starts without them until a requested or changed-input daily Unity build finishes. Changelog changes do not trigger per-push native builds; nothing is copied from older versions. Older versions keep the Unity builds they had.
 - A failed version attachment fails the job; its rolling prerelease remains available for recovery. `VERSION_TAG=<tag>` points the
   step at another release (a test one), `NO_VERSION_RELEASE=1` skips it. `tests/unity-version-release.test.js`
   runs the script against a fake `gh`.

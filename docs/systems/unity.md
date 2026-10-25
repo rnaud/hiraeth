@@ -52,12 +52,12 @@ as a macOS player, and the port's WebGL (WebGPU) build. Results and the reading 
 ## Building in GitHub Actions (the testers' builds)
 
 The engine bridge's Unity player (docs/systems/engine-bridge.md, "Players"), built for testing on the
-devices next to the players' builds, by `.github/workflows/unity-android.yml`: on a push to `main` that
-touches the release changelog (`src/changelog.js`) or Unity side (`unity/`, `engine/`, `scripts/unity-*`, `scripts/engine-bundle.mjs`, the workflow),
-every night at 03:17 UTC when the game (`src/`, `public/`, …) moved since the commit the release names,
-and by hand (Actions ▸ Unity release (testers) ▸ Run workflow, or `gh workflow run unity-android.yml`).
-The game's own pushes come every 20–40 minutes, faster than a cold build: one run at a time, never
-cancelled once started; GitHub keeps only the newest waiting run and cancels those between.
+devices next to the players' builds, by `.github/workflows/unity-android.yml`, on request (Actions ▸ Unity release (testers) ▸ Run workflow, or `gh workflow run unity-android.yml`).
+It also runs daily at 03:17 UTC, building only when relevant code/assets changed since the last
+successful Android and Linux build. Failed or skipped runs do not advance that baseline. There are
+no per-push native builds. Compatible game scripts still arrive through the
+web deployment's Unity OTA bundle. C# / bridge changes need a requested installer; compatibility
+checks must not be lowered to make an older player accept them. Builds remain serialized.
 - **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.hiraeth.unity`, named "Hiraeth
   (Unity)", the game's icon (`public/icons/icon-512.png`), landscape, immersive, sound on (paused when
   left), the pads through the Input System; IL2CPP ARM64, Vulkan then GLES3; versionName the newest
@@ -102,7 +102,7 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   - `unity-library-<android|linux>-<Unity>-puerts-<version>-<hash>`, the hash of what Unity imports and
     compiles: the committed `Assets` (not `StreamingAssets`, the game's JavaScript, nor `Assets/Gen`),
     `ProjectSettings` and `Packages/manifest.json`. Restored from the newest entry; an exact hit is not
-    saved again (a push or a nightly run that only moved the JavaScript saves nothing); otherwise saved
+    saved again (a requested run that only moved the JavaScript saves nothing); otherwise saved
     after the build, as `…-partial` when the build failed (what was imported is kept, and the next run
     misses and saves it whole), then `scripts/unity-ci-cache-prune.sh` deletes the older entries (the
     workflow's token with `actions: write`; nothing is deleted unless the new entry is there). About
@@ -175,5 +175,4 @@ log does not say "Build succeeded!" (its own build script's words), so `BridgeBu
 on success; and an Android build ignores the default icon: with its adaptive icons left empty it
 draws Unity's cube, so `AndroidRelease` fills them (both layers: `public/icons/maskable-512.png`).
 
-Costs: the repository is private, so the minutes count; hence the nightly run for the game's changes
-rather than one a push.
+Costs: native builds run daily only when needed, or on request. The separate daily full test run never starts a native build.

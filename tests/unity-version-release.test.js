@@ -46,7 +46,7 @@ test('each Unity build is labelled with what it is and its commit, and read back
   assert.match(s, /Xbox \(Developer Mode\): `hiraeth-unity-xbox\.zip` below, built from commit \[0123456789ab\]\(https:\/\/github\.com\/o\/r\/commit\/0123456789ab\)/);
   assert.match(s, /for Android: `hiraeth-unity\.apk` below, from an unrecorded commit/);
   assert.match(s, /Linux \/ Steam Deck: not built since this release was made; the newest is on \[unity-linux\]\(https:\/\/github\.com\/o\/r\/releases\/tag\/unity-linux\)/);
-  assert.match(s, /earlier commit than the APK/);
+  assert.match(s, /earlier commit than the web update/);
 });
 
 test('the notes\' Unity section is replaced in place, or added once at the end', () => {

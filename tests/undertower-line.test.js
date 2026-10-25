@@ -11,9 +11,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { templeOf } from '../src/temples/attachment.js';
 import { ROOMS, WELL, SHELF, BELLOWS, LINE, LINE_LOOK, WEIGHTS, F1, F2, LineLamp } from '../src/temples/bazaar.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { createBazaar } from '../src/levels/bazaar.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { game } from '../src/game-state.js';
@@ -40,7 +40,7 @@ function house() {
   // (what the route has given by the last house: every older tool; the exam asks for the wings, the hook, the lens, the bombs)
   own('backpack', 'gun', 'doublejump', 'glider', 'hook', 'monocle', 'bomb');
   const scene = new THREE.Scene();
-  const level = quiet(() => buildableById(TEMPLE_HOME.bazaar ?? 'bazaar').create(scene));
+  const level = quiet(() => createBazaar(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   quiet(() => level.init?.(physics));
   const rt = templeOf(level, 'bazaar');

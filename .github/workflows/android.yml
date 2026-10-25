@@ -1,6 +1,6 @@
 name: Android release
 
-# Every push to main builds a signed APK (the web game in GeckoView, Mozilla's
+# On demand, builds a signed APK (the web game in GeckoView, Mozilla's
 # engine, shipped inside it; Capacitor and the system WebView where GeckoView
 # can't run; fully offline) and publishes it to the GitHub release for the newest version
 # in src/changelog.js, e.g. v0.34. Pushes within one version replace that
@@ -14,19 +14,15 @@ name: Android release
 # The build number (versionCode) is the commit's (release-info.mjs build), the
 # same as the Cloudflare web bundle's, so the app compares the two.
 #
-# When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
-# run finishing and goes on only when that run was a push to main here and succeeded), building that run's
-# commit: SHA, github.event.workflow_run.head_sha (github.sha would be main's newest commit when this run
-# started). By hand (workflow_dispatch): the chosen ref at once, without waiting for the tests.
+# When: explicitly dispatched on main, after the exact commit's Tests gate passes.
+# Ordinary main pushes publish web/content updates without rebuilding this installer.
 
+# Native installers are built only on explicit request; content updates use the web deploy.
 on:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: write
   statuses: write   # (scripts/commit-status.sh: "release: android" on the tested commit)
 
@@ -37,21 +33,26 @@ permissions:
 # (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
 # a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
 concurrency:
-  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)) && 'android-release' || format('android-release-skipped-{0}', github.run_id) }}
+  group: android-release
   cancel-in-progress: false
 
 jobs:
   apk:
     # (the suite passed on a push to main in this repository, or a run by hand; else skipped)
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit: built, and a new release's target
+      SHA: ${{ github.sha }}   # the tested commit: built, and a new release's target
     steps:
       - uses: actions/checkout@v5
         with:
           ref: ${{ env.SHA }}
           fetch-depth: 0   # the whole history: the build number counts its commits
+
+      - name: Require the selected main commit's test gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/wait-tests.sh "$SHA"
 
       # The outcome shows on the tested commit as "release: android" (pending now, success or failure at the
       # end): this workflow_run run's own check doesn't land on that commit, so a failed release went unseen

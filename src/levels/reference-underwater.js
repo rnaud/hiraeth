@@ -14,7 +14,14 @@ import {
 // builder (seaScene) does the four plates; each is a view (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Underwater City / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Underwater City/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The Underwater City/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The Underwater City/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The Underwater City/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The Underwater City/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The Underwater City / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const UNDERWATER_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`underwater-${n}`, sheet(n)]));
 
 /** sky top (toward the surface), horizon (the far water), shadow (the water's teal), light, sun */

@@ -19,7 +19,14 @@ import { braid, caveFrame, bankBush, nest as nestParts, taper } from './wood-kit
 // faces the camera in shade (violet, teal), and the spot blacks fill the hollows of roots and trunks.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `Lorn II / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/Lorn II The Deep Wood/environment/${name}.JPG`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "IMG_3797": new URL("../../references/levels/Lorn II The Deep Wood/environment/IMG_3797.JPG", import.meta.url).href,
+  "IMG_3798": new URL("../../references/levels/Lorn II The Deep Wood/environment/IMG_3798.JPG", import.meta.url).href,
+  "IMG_3799": new URL("../../references/levels/Lorn II The Deep Wood/environment/IMG_3799.JPG", import.meta.url).href,
+  "IMG_3800": new URL("../../references/levels/Lorn II The Deep Wood/environment/IMG_3800.JPG", import.meta.url).href,
+};
+const sheet = (name) => ({ name: `Lorn II / ${name}.JPG`, size: [1024, 1024], url: SHEET_URLS[name] });
 export const LORN_SHEETS = Object.fromEntries(['IMG_3797', 'IMG_3798', 'IMG_3799', 'IMG_3800'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own look (perdide2.js DEEP_WOOD_LOOK) and a clean sky. */

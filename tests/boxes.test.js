@@ -7,7 +7,7 @@ import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { partOf } from '../src/levels/names.js';
-import { templeOf } from '../src/temples/index.js';
+import { templeOf } from '../src/temples/attachment.js';
 import { CONTENT } from '../src/levels/content.js';
 import { game, GameState } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';

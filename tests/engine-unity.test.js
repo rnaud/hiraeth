@@ -457,20 +457,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.equal(progress.at(-1).p, 1);
   assert.ok(progress.some((x) => x.why === LOAD_WHY.world) && progress.some((x) => x.why === LOAD_WHY.batches) && progress.some((x) => x.why === LOAD_WHY.surfaces), JSON.stringify(progress.map((x) => x.why)));
   assert.ok(progress.every((x) => x.why === '' || Object.values(LOAD_WHY).includes(x.why)), JSON.stringify(progress.map((x) => x.why)));
-  const runner = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs', import.meta.url), 'utf8');
-  assert.match(runner, /\(!booted \|\| BridgeHost\.WorldLoading\) && !bootBlocking/, 'Unity draws on (the loading screen, the Xbox\'s pipelines warming) while the world builds');
-  const hudLoad = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Loading.cs', import.meta.url), 'utf8');
-  assert.match(hudLoad, /if \(world && !loadWorld\)/);
-  assert.match(runner, /if \(yieldToLoad && BridgeHost\.WorldLoading\) \{ awaitYielded = true; return true; \}/, 'not waited out on the title as the build begins');
-  assert.match(hudLoad, /overrideSorting = true/, 'over the title\'s canvas');
-  // the C# draws it: the bar's red fill as far as BridgeHost.LoadP (eased, never past it), the why line from LoadWhy;
-  // BridgeHost keeps the furthest and empties both as a load begins
-  assert.match(hudLoad, /loadBarFill = Ui\.Rect\(loadBar, LoadNib/);
-  assert.match(hudLoad, /loadShown = Mathf\.Min\(p, /);
-  assert.match(hudLoad, /var why = BridgeHost\.LoadWhy/);
-  const hostCs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs', import.meta.url), 'utf8');
-  assert.match(hostCs, /public static void LoadProgress\(double p, string why\)\s*\{\s*if \(p > LoadP\)/);
-  assert.match(hostCs, /public static void Loading\(bool on\) \{ if \(on\) LoadReset\(\);/);
+  // Native loading renderer source contracts live in native-ui-source.test.js; runtime progress stays here.
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
   assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null, 'start'], JSON.stringify(menus));
   // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks

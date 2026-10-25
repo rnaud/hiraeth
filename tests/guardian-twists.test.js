@@ -37,7 +37,7 @@ import { answerAsks } from './guardian-asks.js';
 import { comboOf } from '../src/temples/boss.js';
 import { LENS_VIEW } from '../src/gadgets/hidden.js';
 import { buildableById } from '../src/levels/buildable.js';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { TEMPLE_HOME, templeOf } from '../src/temples/attachment.js';
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');

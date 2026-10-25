@@ -4,8 +4,7 @@
 // doesn't hurt, never into a pit, with room for the traveller's body: tests/fragments-reach.js's steps), and its spots
 // looked up by place.
 import * as THREE from 'three';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
-import { buildableById } from '../src/levels/buildable.js';
+import { templeOf } from '../src/temples/attachment.js';
 import { Physics } from '../src/physics.js';
 import { items, ITEMS } from '../src/items.js';
 import { RISE } from './fragments-reach.js';
@@ -24,9 +23,10 @@ export const BODY = { r: 0.45, bottom: 0.65, top: 1.8, give: 0.05 };
 export const fmt = (p) => p.toArray().map((v) => v.toFixed(1)).join(', ');
 
 /** The house `id` built in its world: { scene, level, physics, rt }. */
-export function buildHouse(id) {
+export function buildHouse(id, createWorld) {
+  if (typeof createWorld !== 'function') throw new TypeError('buildHouse requires the actual world constructor');
   const scene = new THREE.Scene();
-  const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
+  const level = quiet(() => createWorld(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   quiet(() => level.init?.(physics));
   return { scene, level, physics, rt: templeOf(level, id) ?? level.temple };

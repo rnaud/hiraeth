@@ -4,8 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { buildableById } from '../src/levels/buildable.js';
-import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { createArzach2 } from '../src/levels/arzach2.js';
+import { templeOf } from '../src/temples/attachment.js';
 import { ROOMS, UP, HOLD } from '../src/temples/arzach2.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -22,7 +22,7 @@ test('Belfry porch threshold supports walking both ways while its latched door s
   // This is not an earned-item proof; d3 still starts closed and opens through its real bell.
   items.grant('hook');
   const scene = new THREE.Scene();
-  const level = buildableById(TEMPLE_HOME.arzach2 ?? 'arzach2').create(scene);
+  const level = createArzach2(scene);
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
   const rt = templeOf(level, 'arzach2'), door = rt.byId.get('d3');

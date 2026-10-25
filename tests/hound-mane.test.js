@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { foeSystem } from '../scripts/motion-audit/walk.mjs';
+import { foeSystem } from '../scripts/motion-audit/walk-procedural.mjs';
 
 test('the antler hound’s smoke mane moves: eight flames, each turning and stretching as time passes, flattened when it runs', () => {
   const sys = foeSystem();

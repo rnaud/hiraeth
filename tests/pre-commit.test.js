@@ -1,8 +1,12 @@
+import { tempDir, removeTemp } from '../scripts/temp-dirs.mjs';
 // The pre-commit hook runs the tests a commit's changes reach (scripts/affected-tests.mjs); the whole
-// suite runs on GitHub once per push to main, and every deploy waits for it to pass (.github/workflows/tests.yml).
+// affected suite runs on GitHub per change, with a separate daily full suite and exact-commit deploy gates.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { affectedTests, refsOf, MAX_CHANGED } from '../scripts/affected-tests.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -10,8 +14,11 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 test('the pre-commit hook runs the reached tests, all of them when asked, and is enabled by npm install', () => {
   const hook = read('.githooks/pre-commit');
   assert.match(hook, /node scripts\/affected-tests\.mjs/);
-  assert.match(hook, /set -- tests\/\*\.test\.js/);
+  assert.match(hook, /--staged --json/);
+  assert.match(hook, /spawnSync/);
   assert.match(hook, /FULL_TESTS/);
+  assert.match(hook, /--staged --all --json/);
+  assert.match(hook, /git diff --quiet --ignore-submodules --/);
   assert.ok(statSync(new URL('../.githooks/pre-commit', import.meta.url)).mode & 0o111, 'the hook is executable');
   const pkg = JSON.parse(read('package.json'));
   assert.match(pkg.scripts.prepare, /core\.hooksPath \.githooks/);
@@ -47,10 +54,11 @@ const EVENTS = {
 };
 const DISPATCH = { event_name: 'workflow_dispatch', ref: 'refs/heads/main', sha: 'dispatched', repository: REPO, run_id: 8, event: {} };
 
-test('the whole unit suite runs once per push, and every deploy waits for it to pass', () => {
+test('shared affected selection runs per change, and automatic web deploys wait for its exact commit', () => {
   const tests = read('.github/workflows/tests.yml');
   assert.match(tests, /^name: Tests\n/, 'the name the deploys wait for (workflow_run: workflows: [Tests])');
-  assert.match(tests, /\non:\n  push:\n    branches: \[main\]\n  pull_request:\n  workflow_dispatch:\n  workflow_call:\n/, 'on every push to main (and pull requests, by hand, and called by xbox.yml)');
+  for (const event of ['push', 'pull_request', 'workflow_dispatch', 'workflow_call']) assert.match(tests, new RegExp('\\n  '+event+':'), event);
+  assert.match(tests, /node scripts\/ci-test-plan\.mjs/);
   // pushes to main one at a time and never cancelled (so they finish in push order); a pull request's newer push cancels its older run
   const group = /\nconcurrency:\n  group: (.*)\n/.exec(tests)[1];
   const cancel = /\n  cancel-in-progress: (.*)\n/.exec(tests)[1];
@@ -64,11 +72,11 @@ test('the whole unit suite runs once per push, and every deploy waits for it to 
   assert.ok(n, 'a matrix of shards');
   const shards = n[1].split(',').map(Number);
   assert.deepEqual(shards, shards.map((_, i) => i + 1), 'numbered from 1');
-  assert.match(tests, new RegExp(`node --test (?:--[\\w-]+=\\S+ )*\\$\\(node scripts/test-shards\\.mjs \\$\\{\\{ matrix\\.shard \\}\\}/${shards.length}\\)`), 'each shard runs its share of all of them');
+  assert.match(tests, /node scripts\/run-test-shard\.mjs/);
+  assert.match(tests, /SELECTED_TESTS: \$\{\{ needs\.selection\.outputs\.files \}\}/);
   assert.doesNotMatch(tests, /fail-fast: true/, 'one shard failing doesn’t hide the others');
 
-  for (const [f, job, group, cancels] of [['deploy.yml', 'build', 'pages', true], ['cloudflare.yml', 'deploy', 'cloudflare-production', false],
-    ['android.yml', 'apk', 'android-release', false], ['steam-deck.yml', 'linux', 'steam-deck-release', false]]) {
+  for (const [f, job, group, cancels] of [['deploy.yml', 'build', 'pages', true], ['cloudflare.yml', 'deploy', 'cloudflare-production', false]]) {
     const yml = read(`.github/workflows/${f}`);
     const code = yml.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
     assert.doesNotMatch(code, /tests\.yml|needs: tests|\n  push:/, `${f}: no suite of its own, not on push`);
@@ -93,13 +101,22 @@ test('the whole unit suite runs once per push, and every deploy waits for it to 
       assert.equal(evalExpr(r, DISPATCH), 'dispatched', f);
     }
     for (const checkout of yml.split('uses: actions/checkout@').slice(1)) assert.match(checkout.split('\n      - ')[0], /\n {10}ref: /, `${f}: every checkout names the commit`);
-    assert.doesNotMatch(code.replace(/\|\| github\.sha \}\}/g, ''), /GITHUB_SHA|github\.sha/, `${f}: no other sha`);
+    assert.match(code, /if: github\.event_name == 'workflow_dispatch'[\s\S]*?run: scripts\/wait-tests\.sh \"\$\{\{ github\.sha \}\}\"/, `${f}: manual deploy verifies its selected commit`);
+    assert.doesNotMatch(code.replace(/\|\| github\.sha \}\}/g, '').replace(/scripts\/wait-tests\.sh \"\$\{\{ github\.sha \}\}\"/g, ''), /GITHUB_SHA|github\.sha/, `${f}: no other sha`);
   }
   // cloudflare.yml by hand only from main (the Worker is production)
   const cf = /\n  deploy:\n(?: *#[^\n]*\n)*    if: ([^\n]*)\n/.exec(read('.github/workflows/cloudflare.yml'))[1];
   assert.equal(!!evalExpr(cf, { ...DISPATCH, ref: 'refs/heads/try' }), false);
-  // xbox.yml, on its own triggers, still runs the suite first
-  assert.match(read('.github/workflows/xbox.yml'), /\n  tests:\n(    [^\n]*\n)*    uses: \.\/\.github\/workflows\/tests\.yml/);
+  for (const f of ['android.yml','steam-deck.yml','xbox.yml','unity-android.yml']) {
+    const code=read(`.github/workflows/${f}`).split('\n').filter(l=>!/^\s*#/.test(l)).join('\n');
+    assert.match(code,/\n  workflow_dispatch:/, `${f}: manual native release`);
+    assert.doesNotMatch(code,/\n  (?:push|workflow_run):/, `${f}: no per-push native build`);
+    if(f==='unity-android.yml') {
+      assert.match(code,/\n  schedule:/);
+      assert.match(code,/scripts\/unity-release-plan\.mjs/,'daily native build checks changed inputs');
+    } else assert.doesNotMatch(code,/\n  schedule:/, `${f}: manual only`);
+  }
+
 });
 
 // a small repository: a test reaching b.js through a.js, one reading c.json by its path, one naming d.md
@@ -120,12 +137,12 @@ test('a change reaches the tests that import it, through other files and lazy im
   assert.deepEqual(affectedTests(['src/c.json'], opts), ['tests/c.test.js'], 'read by a literal path');
   assert.deepEqual(affectedTests(['src/c.json', 'changelog.md'], opts), ['tests/c.test.js', 'tests/d.test.js'], 'named by its path');
   assert.deepEqual(affectedTests(['tests/e.test.js'], opts), ['tests/e.test.js'], 'a changed test runs');
-  assert.deepEqual(affectedTests(['src/nobody.js'], opts), [], 'nothing reaches it: GitHub runs it');
-  assert.deepEqual(affectedTests(['docs/x.md'], opts), [], 'no code changed');
+  assert.equal(affectedTests(['src/nobody.js'], opts), 'ALL', 'unowned changes fail closed');
+  assert.equal(affectedTests(['docs/x.md'], opts), 'ALL', 'unknown resource changes are not silently ignored');
 });
 
 test('shared pieces and large commits run everything', () => {
-  for (const f of ['package.json', 'package-lock.json', '.githooks/pre-commit', 'tests/playthrough-agent.js', 'scripts/affected-tests.mjs']) {
+  for (const f of ['package.json', 'package-lock.json', '.githooks/pre-commit', 'scripts/affected-tests.mjs']) {
     assert.equal(affectedTests([f], opts), 'ALL', f);
   }
   assert.equal(affectedTests(Array.from({ length: MAX_CHANGED + 1 }, (_, i) => `src/f${i}.js`), opts), 'ALL');
@@ -139,5 +156,59 @@ test('refsOf follows relative imports, re-exports and new URL, not packages', ()
 test('the real repository: a change to dev-gate.js reaches the first-run test, and not the whole suite', () => {
   const r = affectedTests(['src/dev-gate.js']);
   assert.ok(Array.isArray(r) && r.includes('tests/first-run.test.js'));
-  assert.ok(r.length < 100, `${r.length} tests`);
+  assert.ok(r.length > 0, 'known consumer retained alongside conservative dynamic consumers');
+});
+
+
+test('a real commit keeps Git context for staged selection but isolates fixture repositories in tests', () => {
+  const root = tempDir('hiraeth-hook-isolation-');
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+  const git = (...args) => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  try {
+    git('init', '-q');
+    git('config', 'user.name', 'Hook isolation fixture');
+    git('config', 'user.email', 'fixture@example.invalid');
+    git('config', 'core.hooksPath', '.githooks');
+    for (const dir of ['.githooks', 'scripts', 'tests']) mkdirSync(join(root, dir));
+    writeFileSync(join(root, '.githooks/pre-commit'), read('.githooks/pre-commit'), { mode: 0o755 });
+    writeFileSync(join(root, 'scripts/affected-tests.mjs'), `
+      import assert from 'node:assert/strict';
+      import { writeFileSync } from 'node:fs';
+      assert.ok(process.env.GIT_INDEX_FILE, 'selector must retain the staged index');
+      assert.ok(process.argv.includes('--staged'));
+      writeFileSync('selection-proof.json', JSON.stringify({ index: process.env.GIT_INDEX_FILE, args: process.argv.slice(2) }));
+      console.log(JSON.stringify(['tests/isolation.test.js']));
+    `);
+    writeFileSync(join(root, 'tests/isolation.test.js'), `
+      const { test } = require('node:test');
+      const assert = require('node:assert/strict');
+      const { tmpdir } = require('node:os');
+      const { join } = require('node:path');
+      const { execFileSync } = require('node:child_process');
+      test('nested Git is isolated from the committing repository', async () => {
+        const { tempDir, removeTemp } = await import(${JSON.stringify(new URL('../scripts/temp-dirs.mjs', import.meta.url).href)});
+        assert.deepEqual(Object.keys(process.env).filter(k => k.startsWith('GIT_')), []);
+        const nested = tempDir('hiraeth-nested-git-');
+        try {
+          execFileSync('git', ['init', '-q'], { cwd: nested });
+          execFileSync('git', ['config', 'user.name', 'Nested fixture'], { cwd: nested });
+          const dir = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: nested, encoding: 'utf8' }).trim();
+          assert.equal(require('node:fs').realpathSync(dir), require('node:fs').realpathSync(nested));
+        } finally { removeTemp(nested); }
+      });
+    `);
+    git('add', '.');
+    const configBefore = readFileSync(join(root, '.git/config'), 'utf8');
+    execFileSync('git', ['commit', '-qm', 'exercise normal hook'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: {
+      ...env, GIT_DIR: join(root, '.git'), GIT_WORK_TREE: root,
+      GIT_COMMON_DIR: join(root, '.git'), GIT_INDEX_FILE: join(root, '.git/index'), TEST_CONCURRENCY: '1',
+    } });
+    const selectionProof = JSON.parse(readFileSync(join(root, 'selection-proof.json'), 'utf8'));
+    assert.equal(selectionProof.index, join(root, '.git/index'), 'selector successfully saw the actual staged index, not a full-suite fallback');
+    assert.ok(selectionProof.args.includes('--staged'));
+    assert.equal(readFileSync(join(root, '.git/config'), 'utf8'), configBefore, 'nested init/config must not change parent Git settings');
+    assert.equal(git('rev-parse', '--is-bare-repository'), 'false');
+    assert.equal(git('config', 'core.hooksPath'), '.githooks');
+    assert.equal(git('rev-list', '--count', 'HEAD'), '1', 'the real normal-hook commit succeeded');
+  } finally { removeTemp(root); }
 });

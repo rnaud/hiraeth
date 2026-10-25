@@ -7,7 +7,7 @@ import { SHOPS, SHELF } from './shop.js';
 import { crystalGeometry } from './chimes.js';
 import { buildStyledFront } from './shop-fronts.js';
 import { buckets, heartGeo, lathe, flask, vial, bell, feather, gear, bulb, cord, block, stick, cloth, archSheet } from './shop-kit.js';
-import { clearInstances } from './temples/index.js';
+import { clearInstances } from './temples/attachment.js';
 
 // A shop in a world (docs/systems/interiors.md, "A shop"): the interior kit's building (src/interior-kit.js)
 // furnished as a shop: a counter across the room with the wares laid out on it (as many flasks as the shelf

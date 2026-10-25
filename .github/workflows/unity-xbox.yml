@@ -19,20 +19,11 @@ name: Unity release (Xbox, Developer Mode)
 # - Cached (docs/systems/xbox.md, "The workflow's caches"): Puerts and its UWP natives, Unity's Library, the glue (on
 #   what it is made from), IL2CPP's objects for msbuild (on the C++ Unity wrote, restored from the newest); the
 #   editor image is pulled in the background from the job's start.
-# When: a push that touches the Unity side or this workflow, and by hand. Licensed as the other Unity jobs (UNITY_EMAIL,
+# When: explicitly dispatched. Licensed as the other Unity jobs (UNITY_EMAIL,
 # UNITY_PASSWORD; a Personal seat), on windows-2022 (GameCI's Windows containers; Visual Studio's C++ UWP tools).
 
+# Native installers are built only on explicit request; content updates use the web deploy.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'unity/**'
-      - 'engine/**'
-      - 'scripts/unity-*'
-      - 'scripts/unity-*/**'
-      - 'scripts/engine-bundle.mjs'
-      - 'data/characters/traveller-v2/**'   # (the v2 traveller's models, packed by engine-bundle.mjs unity: issue #493)
-      - '.github/workflows/unity-xbox.yml'
   workflow_dispatch:
     inputs:
       graphics_api:

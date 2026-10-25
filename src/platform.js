@@ -8,7 +8,7 @@
 // modules that draw those set their part of `screen` as they draw, so the web and the engine draw
 // from the same state.
 
-import { questMark } from './hint-look.js';
+import { questMark } from './quest-mark.js';
 
 const hasDoc = () => typeof document !== 'undefined';
 const hasWin = () => typeof window !== 'undefined' && typeof window.addEventListener === 'function';

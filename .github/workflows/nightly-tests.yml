@@ -1,7 +1,7 @@
 name: Nightly tests
 
-# The unit tests too slow for every push that guard tools, not what players get (tests/nightly/*.test.js:
-# the art-reference gallery). Nightly and by hand; nothing waits for them. docs/systems/testing.md, "Nightly".
+# Complete gameplay suite in the four Tests shards, plus the existing slow tool tests.
+# Scheduled/manual provenance never satisfies production's successful push-main gate.
 
 on:
   schedule:
@@ -9,9 +9,14 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
+  gameplay:
+    uses: ./.github/workflows/tests.yml
+    with:
+      full: true
   nightly:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -23,3 +28,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test tests/nightly/*.test.js
+      - name: Steam Deck installer and updater tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v

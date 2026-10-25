@@ -21,7 +21,7 @@ import { parseArgs, main } from '../scripts/gen-reference.mjs';
 import { batchHtml, defaultChecked, filterBatches, filterHtml, pagerHtml, providerRow, promptFor, filterRefs, fileSrc, candidateThumb, refThumbSrc, needsPoll, pollIds, changedBatches, pageIds } from '../src/reference-lab/view.js';
 import { DEV_PAGES, pagesHere, PAGES } from '../src/world-picker.js';
 import { cameFromDebug } from '../src/debug-back.js';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 const KEY = 'sk-test-SECRET-1234567890';
 // (git run from a test inside the pre-commit hook inherits GIT_DIR / GIT_INDEX_FILE: never pass them on)

@@ -11,11 +11,12 @@ import { CHANGELOG, lineText } from '../src/changelog.js';
 import { CHANGELOG_MEDIA, MEDIA_DIR, changelogEntries, mediaFor, shotFiles, tagsOf } from '../src/changelog-media.js';
 import { delta, matches, mediaSrc, valueOf, MEDIA_SITE } from '../src/changelog-page/view.js';
 import { changelogMarkdown } from '../scripts/changelog-md.mjs';
-import { releaseNotes } from '../scripts/release-info.mjs';
+import { releaseNotes } from '../scripts/release-metadata.mjs';
 import { MEDIA_FILE, zipDir } from '../scripts/web-update.mjs';
-import { BUILD_INPUT } from '../vite.config.js';
+import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
+const MEDIA_ROOT = new URL('../changelog-media/', import.meta.url);
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 /** A picture: under 150 KB; a before / after pair under 260 KB; the whole folder under 260 MB. */
 export const MAX_FILE = 150 * 1024, MAX_PAIR = 260 * 1024, MAX_TOTAL = 260 * 1024 * 1024;
@@ -68,9 +69,10 @@ test('a design sheet is its own picture: from the repository’s references, cap
 });
 
 test('no picture in changelog-media/ that no line shows', () => {
-  if (!existsSync(join(ROOT, MEDIA_DIR))) return;
+  assert.equal(new URL(`../${MEDIA_DIR}/`, import.meta.url).href, MEDIA_ROOT.href, 'the inventory root matches the registered media directory');
+  if (!existsSync(MEDIA_ROOT)) return;
   const used = new Set(Object.entries(CHANGELOG_MEDIA).flatMap(([v, list]) => list.flatMap((m) => (m.shots ?? []).flatMap((s) => Object.values(shotFiles(v, s)).filter(Boolean)))));
-  for (const v of readdirSync(join(ROOT, MEDIA_DIR))) for (const f of readdirSync(join(ROOT, MEDIA_DIR, v))) {
+  for (const v of readdirSync(MEDIA_ROOT)) for (const f of readdirSync(new URL(`${v}/`, MEDIA_ROOT))) {
     assert.ok(used.has(`${MEDIA_DIR}/${v}/${f}`), `${MEDIA_DIR}/${v}/${f} is shown by no line`);
   }
 });

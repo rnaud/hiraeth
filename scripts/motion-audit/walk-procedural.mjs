@@ -1,0 +1,184 @@
+// Walking the game's own foes in node, for the motion audit (run.mjs) and its regression tests
+// (tests/motion-plans.test.js). docs/systems/procedural-animation.md, "Measuring".
+//
+// A foot is the lowest world-space vertex under its leg's pivot; the hip is the pivot's world position. Each
+// subject walks at its own speed on flat ground (y = 0) after 1 s to settle. With `pack`, a second foe of the
+// same kind walks beside it and `unison` is how alike their first legs' heights run (1: in step).
+import * as THREE from 'three';
+import { Foes } from '../../src/foes.js';
+import { GameState } from '../../src/game-state.js';
+import { keeperModel, sentinelModel, foremanModel, gardenerModel, signModel, elderModel } from '../../src/temples/guardians.js';
+import { jointAngle } from './metrics.mjs';
+import { walkReport, correlation } from './metrics.mjs';
+import { Dog } from '../../src/dog.js';
+
+export const DT = 1 / 60, SETTLE = 60, FRAMES = 240;
+const v = new THREE.Vector3();
+
+/** The lowest vertex (world) in an object's subtree. */
+export function lowest(obj, out) {
+  if (obj.lowest) return obj.lowest(out);
+  let best = Infinity;
+  obj.traverse((o) => {
+    if (!o.isMesh || !o.visible) return;
+    const p = o.geometry.attributes.position;
+    for (let i = 0; i < p.count; i += Math.max(1, Math.floor(p.count / 400))) {
+      v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
+      if (v.y < best) { best = v.y; out.copy(v); }
+    }
+  });
+  // (a leg drawn by a skinned mesh elsewhere in the model, its joints empty: that mesh's vertices bound to them, skinned)
+  if (best === Infinity) {
+    const joints = new Set(); obj.traverse((o) => joints.add(o));
+    let top = obj; while (top.parent) top = top.parent;
+    top.traverse((m) => {
+      if (!m.isSkinnedMesh) return;
+      const bones = new Set(m.skeleton.bones.map((b, i) => (joints.has(b) ? i : -1)).filter((i) => i >= 0));
+      if (!bones.size) return;
+      m.skeleton.update();
+      const p = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex;
+      for (let i = 0; i < p.count; i++) {
+        if (!bones.has(si.getX(i))) continue;
+        m.getVertexPosition(i, v).applyMatrix4(m.matrixWorld);
+        if (v.y < best) { best = v.y; out.copy(v); }
+      }
+    });
+  }
+  return out;
+}
+
+/** Record feet, hips and body over the run; step(dt, t) advances the subject one frame. */
+export function record({ root, legs, step, torso = root, frames = FRAMES, seconds = frames * DT, extra = null }) {
+  const feet = legs.map(() => []), hips = legs.map(() => []), body = [], f = new THREE.Vector3(), h = new THREE.Vector3(), b = new THREE.Vector3();
+  for (let i = 0; i < SETTLE + frames; i++) {
+    step(DT, i * DT);
+    root.updateMatrixWorld(true);
+    extra?.root.updateMatrixWorld(true);
+    if (i < SETTLE) continue;
+    legs.forEach((L, k) => { lowest(L, f); L.getWorldPosition(h); feet[k].push(f.toArray()); hips[k].push(h.toArray()); });
+    body.push(torso.getWorldPosition(b).toArray());   // (the drawn body, so its bob counts)
+    if (extra) extra.heights.push(lowest(extra.leg, f).y);
+  }
+  return { ...walkReport({ feet, hips, body, seconds }), heights: feet[0]?.map((p) => p[1]) ?? [] };
+}
+
+/** A foes system on flat ground, the traveller far ahead (they chase in a straight line). */
+export function foeSystem() {
+  return new Foes({ scene: new THREE.Scene(), level: { spawn: new THREE.Vector3(0, 0, -200) }, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new THREE.Vector3(0, 0, 50), health: 1, vel: new THREE.Vector3(), hurt() {} }, game: new GameState(null) });
+}
+
+// Where each kind keeps its legs: on the kit, its rig's chains; before it, by position in `parts`.
+export const kitLegs = (M) => M.rig?.legs.map((l) => l.root);
+export const OLD = {
+  machine: (M) => M.legs,
+};
+// The built archetypes (src/enemies/archetypes.js), each on the kit: a kind or a kind in a skin ('lizard@bazaar')
+export const ARCHETYPE_SUBJECTS = { crab: kitLegs, lizard: kitLegs, hound: kitLegs, tripod: kitLegs, centipede: kitLegs, toad: kitLegs, heron: kitLegs, skitter: kitLegs, rootknot: kitLegs, brute: kitLegs, bell: kitLegs, shade: kitLegs };
+/** The legs of any subject id: an old kind's, or an archetype's (in any skin). */
+export const legsFor = (id) => OLD[id] ?? (ARCHETYPE_SUBJECTS[id.split('@')[0]] ? kitLegs : null);
+
+/**
+ * A foe of the game (an old kind, or an archetype in a skin) chasing in a straight line at `pace` × its speed.
+ * pack: a second of its kind walks 3 m to its side, out of step or not (unison). cost: time the kit (µs a frame).
+ */
+export function foeSubject(sys, kind, legsOf, { pace = 1, pack = false, cost = false } = {}) {
+  const f = sys.add(kind, new THREE.Vector3());
+  const g = pack ? sys.add(kind, new THREE.Vector3(3, 0, 0)) : null;
+  const legs = legsOf(f.model);
+  const speed = (f.def.speed ?? 2) * pace;
+  const extra = g ? { root: g.model.group, leg: legsOf(g.model)[0], heights: [] } : null;
+  let kit = 0, frames = 0;
+  if (cost && f.model.rig) {
+    const R = f.model.rig, u = R.update.bind(R), w = R.write.bind(R);
+    R.update = (...a) => { const t = performance.now(); const o = u(...a); kit += performance.now() - t; return o; };
+    R.write = (...a) => { const t = performance.now(); w(...a); kit += performance.now() - t; frames++; };
+  }
+  const drive = (x, dt) => { x.state = 'chase'; x.heading = 0; x.dist = 2; /* (close by: a hound is solid) */ x.pos.z += speed * dt; sys.look(x, dt); };
+  const run = record({ root: f.model.group, legs, torso: f.model.body ?? f.model.group, extra, step: (dt) => { drive(f, dt); if (g) drive(g, dt); } });
+  sys.remove(f); if (g) sys.remove(g);
+  const L = f.model.rig?.length;
+  return {
+    speed, ...run,
+    legLength: L, reachShare: L ? run.reachSpan / L : null, liftShare: L ? run.lift / L : null,
+    unison: extra ? correlation(run.heights, extra.heights) : null,
+    kitUs: frames ? (kit / frames) * 1000 : null, legsN: legs.length,
+  };
+}
+
+/**
+ * A guardian model (src/temples/guardians.js) walking as its fight moves it (src/temples/boss.js place): its pos and
+ * heading set, the group put there, then its animate() with the speed. `knee`: the legs' mean bend (degrees from
+ * straight) and the least any leg bends, read from the kit's joints.
+ */
+export function guardianSubject(make, legsOf, speed = 2.2, pace = 1) {
+  const m = make();
+  speed *= pace;
+  const legs = legsOf(m);
+  let z = 0, n = 0, bends = 0, least = Infinity;
+  const h = new THREE.Vector3(), k = new THREE.Vector3(), f = new THREE.Vector3();
+  const run = record({ root: m.group, legs, torso: m.body ?? (m.rig?.isObject3D ? m.rig : m.group), frames: 600, step: (dt, t) => {
+    z += speed * dt;
+    m.pos.set(0, 0, z); m.heading = 0;
+    m.group.position.copy(m.pos); m.group.rotation.y = m.heading;
+    m.animate(dt, t, { state: 'fight', speed });
+    if (m.kit && t >= SETTLE * DT) for (const L of m.kit.legs) {
+      m.group.updateMatrixWorld(true);
+      L.root.getWorldPosition(h); L.shin.getWorldPosition(k); L.foot.getWorldPosition(f); f.y += L.ankle;
+      const bend = 180 - (jointAngle(h.toArray(), k.toArray(), f.toArray()) * 180) / Math.PI;
+      bends += bend; n++; least = Math.min(least, bend);
+    }
+  } });
+  const L = m.kit?.length;
+  return { speed, ...run, legLength: L, reachShare: L ? run.reachSpan / L : null, liftShare: L ? run.lift / L : null, knee: n ? { mean: bends / n, least } : null, legsN: legs.length };
+}
+
+// (on the kit since phase 6: each leg's chain, hung from the model's root; the Tooth-Warden is the sentinel on four legs)
+const guardianLegs = (m) => m.kit.legs.map((l) => l.root);
+/**
+ * A generated skin's legs (src/characters/keeper-creature.js, elder-creature.js): its kit chains draw nothing, so each
+ * leg is its three bones (leg<i>_thigh, _shin, _foot), the foot the lowest skinned vertex bound to them, the hip the thigh.
+ */
+export const boneLegs = (m) => m.kit.legs.map((_, i) => {
+  const bones = ['thigh', 'shin', 'foot'].map((r) => m.bones[`leg${i}_${r}`]), mesh = m.meshes[0];
+  // (the vertices its shin and foot carry most: where its lowest point is, at a stride)
+  const ids = new Set([1, 2].map((k) => mesh.skeleton.bones.indexOf(bones[k]))), si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight, list = [];
+  // (every third of them, the audit runs in a few seconds; within half a metre of the foot bone's rest: the pad, not the
+  // tips of a bird's long toes, whose lowest one changes as the foot rolls)
+  const pad = bones[2].position, pos = mesh.geometry.attributes.position, q = new THREE.Vector3();
+  for (let v = 0, n = 0; v < si.count; v++) if (ids.has(si.getX(v)) && sw.getX(v) > 0.5 && q.fromBufferAttribute(pos, v).distanceTo(pad) < 0.5 && n++ % 3 === 0) list.push(v);
+  return {
+    parent: bones[0].parent, traverse: (fn) => bones.forEach(fn), getWorldPosition: (out) => bones[0].getWorldPosition(out),
+    lowest(out) {
+      let best = Infinity;
+      mesh.skeleton.update();
+      for (const k of list) { mesh.getVertexPosition(k, v).applyMatrix4(mesh.matrixWorld); if (v.y < best) { best = v.y; out.copy(v); } }
+      return out;
+    },
+  };
+});
+export const GUARDIANS = {
+  keeper: (pace) => guardianSubject(keeperModel, guardianLegs, 2.2, pace),
+  sentinel: (pace) => guardianSubject(sentinelModel, guardianLegs, 2.4, pace),
+  warden: (pace) => guardianSubject(() => sentinelModel({ vents: 4, legs: 4, guarded: false }), guardianLegs, 2.4, pace),
+  foreman: (pace) => guardianSubject(foremanModel, guardianLegs, 2.4, pace),
+  gardener: (pace) => guardianSubject(gardenerModel, guardianLegs, 2.4, pace),
+  sign: (pace) => guardianSubject(signModel, guardianLegs, 2.4, pace),
+  elder: (pace) => guardianSubject(elderModel, guardianLegs, 1.8, pace),
+};
+
+/**
+ * Moustache (src/dog.js) following someone who walks a straight line at `speed` × pace (m/s): his own legs on the
+ * kit, measured as the foes' are. He settles at the walker's pace behind them.
+ */
+export function dogSubject(speed = 1.6, pace = 1) {
+  speed *= pace;
+  const dog = new Dog(null, { at: new THREE.Vector3(0, 0, 0) });
+  dog.state = 'follow';
+  const leader = { pos: new THREE.Vector3(-1.2, 0, 2.2), heading: 0, vel: new THREE.Vector3(0, 0, speed) };
+  const legs = dog.legs.map((l) => l.root);
+  const run = record({ root: dog.object, legs, torso: dog.body, step: (dt) => { leader.pos.z += speed * dt; dog.update(dt, { leader }); } });
+  const L = dog.rig.length;
+  return { speed, ...run, legLength: L, reachShare: run.reachSpan / L, liftShare: run.lift / L, legsN: legs.length, dog };
+}
+export const DOGS = { moustache: (pace) => dogSubject(1.6, pace), 'moustache-hurry': (pace) => dogSubject(4.2, pace) };
+

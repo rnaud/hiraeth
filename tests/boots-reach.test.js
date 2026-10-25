@@ -1,3 +1,5 @@
+import { buildableById } from '../src/levels/buildable.js';
+import { TEMPLE_HOME } from '../src/temples/attachment.js';
 // The spring boots past a house's locks (issue #433: "the spring boots' launch is about 14 m, and every reworked house
 // now has galleries and balconies 10–12 m up. A launch from a hall floor may reach a gallery before its intended lock").
 // Inside a makers' house the coils give only the tap's hop (src/gadgets/springs.js launchHeight's `house`: no wind, no
@@ -123,7 +125,7 @@ for (const id of Object.keys(TEMPLES)) {
   test(`${TEMPLES[id].def.name}: no launch of the spring boots lands past a lock`, () => {
     game.reset();
     own(...carry(id), 'glider', 'springs');
-    const W = buildHouse(id), { rt, level } = W, K = rt.kit;
+    const W = buildHouse(id, buildableById(TEMPLE_HOME[id] ?? id).create), { rt, level } = W, K = rt.kit;
     assert.ok(houseAt(level, rt.arrival.pos), 'the arrival is inside the house');
     const H = launchHeight(1, BOUNCE.max, true), HF = launchHeight(1, BOUNCE.max);
     const bad = [], free = [], wings = [];

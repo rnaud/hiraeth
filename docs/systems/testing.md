@@ -1,50 +1,59 @@
 # Testing: the unit tests and the play-through
 
-`node --test tests/*.test.js` runs every test (about 2400, two minutes on this Mac); `npx vite build`
-must pass too. `.githooks/pre-commit` runs the tests a commit's changes reach before every commit that
-touches code: `scripts/affected-tests.mjs` follows each test's relative imports (and the files it reads
-by a literal path, or names) and keeps those that reach a changed file; a change to `package.json`, the
-lock, a test helper or the hook, or more than 40 files, runs them all (`FULL_TESTS=1` too; `npm install`
-sets `core.hooksPath`; `SKIP_TESTS=1` or `--no-verify` skips them in an emergency). The whole suite runs on
-GitHub, once per push to main (`.github/workflows/tests.yml`), and no deploy starts until it passes ("Once
-per push, then the deploys" below). (Until 2026-10-08 the hook ran every test and
-GitHub none: with several agents committing at once on this Mac each commit waited 20+ minutes.) Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
-which plays that world alone from a new game. The play-through plays them all, one after the other.
+`node --test --test-concurrency=2 tests/*.test.js` runs the complete gameplay suite;
+`npx vite build` must pass too. Normal commits use `.githooks/pre-commit` and the same
+`scripts/affected-tests.mjs` dependency selector as GitHub. `FULL_TESTS=1` requests the full suite.
+Never disable hooks or bypass a failed test to ship.
 
-## Once per push, then the deploys
+## Affected tests locally and on GitHub
 
-`tests.yml` (named `Tests`) runs on every push to main, on pull requests and by hand. The four deploys
-(deploy.yml for Pages, cloudflare.yml, android.yml, steam-deck.yml) don't run on push: each is triggered
-by `workflow_run` of `Tests` (completed, on main), and its first job goes on only when that run succeeded
-and was a push to main in this repository (`github.event.workflow_run`: `conclusion`, `event`,
-`head_branch`, `head_repository`), so a failed or cancelled suite, a pull request (even a fork's from a
-branch named main) or a `Tests` run by hand deploys nothing. Until 2026-10-09 each deploy called
-`tests.yml` itself, so every push ran the suite four times (twelve shard jobs).
+The selector follows executable imports transitively, distinguishes source/data reads from execution,
+and includes referenced assets. It compares both the old and new dependency graphs so removing an
+import, deleting a file or renaming it cannot hide affected tests. Opaque loaders or unproved ownership
+expand coverage conservatively; package/lockfile, test infrastructure and workflow changes require
+full coverage. A daily full run is a backstop, not a reason to ignore an uncertain dependency.
+A shared registry importing every world can still select much of the suite. Smaller selections need
+real isolation of those modules/tests, not a smaller arbitrary path filter.
 
-- **The tested commit.** In a `workflow_run` run `github.sha` / `GITHUB_SHA` is main's newest commit when
-  the run started, not the tested one: every checkout names `github.event.workflow_run.head_sha || github.sha`
-  (with `fetch-depth: 0` where the build number counts commits, `release-info.mjs build`, which reads
-  HEAD), and android.yml and steam-deck.yml set it as `SHA`, the target of a new release.
-- **In push order.** Pushes to main run `Tests` one at a time and never cancel one that started (its
-  concurrency group), so the runs finish in push order and each deploy's own group (Pages cancels the
-  running deploy; the others never cancel and keep the newest waiting) never ships an older commit after
-  a newer one. A push whose waiting run was replaced by a newer one is cancelled and deploys nothing: the
-  newer one covers it. Only a deploy run that will build takes its group (`<group>-skipped-<run id>`
-  otherwise), so a failed suite can't replace a waiting deploy or cancel the running Pages deploy.
-- **By hand.** Each deploy keeps `workflow_dispatch`: it builds the chosen ref at once, without waiting
-  for the suite (cloudflare.yml only from main). A flaky shard on main: "Re-run failed jobs" on the
-  `Tests` run; when it passes, the deploys follow. (Re-running an older push's `Tests` would deploy that
-  older commit again.)
-- **Xbox, Unity.** xbox.yml keeps its own triggers (its paths, nightly, by hand) and still calls
-  `tests.yml` first (`workflow_call`; `github.workflow` in its concurrency group is the caller's name, so
-  those calls never queue with the push runs). unity-android.yml builds testers' builds and runs no suite.
-- `tests/pre-commit.test.js` checks all of this, evaluating each workflow's `if` and concurrency group
-  against the events above.
+Locally the range is HEAD to the staged index, including deletions and both rename paths. The hook
+retains Git’s repository/index environment for selection, then removes inherited `GIT_*` variables
+from the test runner. Disposable Git fixtures must also sanitize their subprocess environments so
+`git init`, configuration writes, and fixture commits cannot touch the repository being committed.
+
+CI uses:
+
+- Push: the complete range since a proven successful main test run, also covering the event's before
+  commit. Canceled or failed intermediate pushes are included. Missing baseline/API evidence runs full.
+- Pull request: merge base through the checked-out merge result.
+- Manual feature branch: merge base with main through the selected commit. Manual main, explicit
+  `full=true`, and the daily run execute the full gameplay suite.
+
+`scripts/ci-test-plan.mjs` records exact head/base, baseline evidence and selected files in the
+`test-selection` artifact. All four existing `unit (shard N/4)` checks remain. Empty shards explicitly
+succeed without invoking Node's automatic test discovery. Invalid selections or source refs fail visibly.
+
+## Automatic web, separately built installers
+
+`tests.yml` (`Tests`) runs on pushes to main, pull requests and manual requests. Only `deploy.yml`
+(Pages) and `cloudflare.yml` automatically listen for successful same-repository main **push** Tests
+runs. PR, nightly, reusable and manual test runs never trigger automatic deployment. Each web deploy
+checks out the tested SHA, not whichever main commit happens to be latest when it starts. Manual web
+deployments also require the chosen commit's push test gate.
+
+Native installers do not build on each push. Android, Steam Deck and Xbox workflows are manual;
+Unity Android/Linux additionally has a daily changed-input check. That check compares relevant inputs
+against the last fully successful native build, so failed or skipped builds do not conceal pending work.
+Unity publication still requires the exact source commit's test gate. Compatible game content continues
+through the web deployment's OTA bundles; native compatibility guards remain in place.
+
+Push tests and Cloudflare releases remain serialized; a replaced pending run deploys nothing and the
+next selection includes its unverified changes. Tests for selection, events and publication live in
+`tests/ci-test-plan.test.js`, `tests/pre-commit.test.js`, and `tests/release-workflows.test.js`.
 
 ## The shards
 
 On GitHub the suite runs as four jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3, 4]`;
-the run, and so the deploys, succeed only when all four pass). Each runs `node --test $(node scripts/test-shards.mjs N/4)`:
+the run, and so the deploys, succeed only when all four pass). Each runs its explicitly selected list through `scripts/run-test-shard.mjs`:
 the script deals the test files out by their times in `tests/shard-timings.json` (file → the seconds a GitHub
 runner takes over it, committed), longest first, each to the shard with the least time so far; a file not in the
 table yet (a new test) counts as the table's mean file (about 10 s), and one in the table that is gone is ignored.
@@ -80,11 +89,13 @@ for three.
 
 ## Nightly (`tests/nightly/`)
 
-Slow tests of developer tools, not of the game players get, run once a night and by hand
-(`.github/workflows/nightly-tests.yml`, `node --test tests/nightly/*.test.js`); no deploy waits for them, and the
-shards and the pre-commit hook leave the folder out (both read `tests/*.test.js` only). There now: the art-reference
-gallery (`tests/nightly/references.test.js`, every reference world built). A tool's check that builds every world
-on each push samples instead (`tests/world-debug-worlds.test.js`: two worlds, `WORLD_DEBUG_ALL=1` for all).
+At 04:17 UTC daily, `.github/workflows/nightly-tests.yml` calls `tests.yml` with `full=true`
+for all top-level gameplay tests and separately runs `node --test tests/nightly/*.test.js` for
+slower developer-tool tests plus the Python installer/updater suite (`tests/test_*.py`). It can also be dispatched manually. Neither job publishes a release.
+The gameplay hook/shards exclude the nightly tool folder; the nightly workflow covers both suites.
+There now: the art-reference gallery (`tests/nightly/references.test.js`, every reference world built).
+A tool check that builds every world on ordinary pushes samples instead (`tests/world-debug-worlds.test.js`:
+two worlds, `WORLD_DEBUG_ALL=1` for all).
 
 ## Heavy tests
 
@@ -241,3 +252,55 @@ City-Shaft's first find was only reachable on wings or by climbing: the red stai
 ### Recorded sound decoder on test hosts (#622)
 
 The Node audio harness decodes the actual packaged effects before game startup. Its WAV reader is built in; compressed MP3 takes require macOS `afconvert` or `ffmpeg` on PATH. The Ubuntu Tests workflow installs FFmpeg explicitly when it is absent. Its setup has a four-minute bound and uses an explicit task-local Ubuntu source list, package indexes and cache. This excludes the runner’s indirect Azure mirror list while retaining Ubuntu’s signed-package verification and archive keyring. Download retries and connection timeouts are bounded, leaving the existing twenty-minute job limit for the actual tests. Local Linux test hosts need FFmpeg too. The `sound-qc-decoder` regression uses a fresh OS-temporary cache and checks every packaged MP3 produces finite, non-silent PCM, so a warm developer cache cannot hide a missing decoder. Test caches use `os.tmpdir()` rather than a macOS-specific `/private/tmp` directory. This changes test prerequisites only; game readiness and production decoders are unchanged.
+
+### Smaller test dependencies
+
+Release-note formatting and update decisions live in `scripts/release-metadata.mjs`.
+Pure consumers import that module directly; `release-info.mjs` retains its public exports and CLI,
+including Git and file reads. This keeps formatting tests independent of unrelated release I/O.
+
+World builders import their own temple definitions through `src/temples/attachment.js`.
+The all-temple registry in `src/temples/index.js` remains the story/integration entry point,
+with compatibility exports for attachment helpers. Tests needing only runtime lookup or
+attachment import the smaller module; tests covering the registry still use the registry.
+
+Single-world fixtures import that world's real constructor directly; `tests/house-walk.js`
+requires it explicitly. The shared registry identity test protects moved/merged world mappings,
+and tests intentionally iterating every world retain the full registry. Scene construction and
+behavioral assertions are unchanged.
+## Keep semantic helpers separate from styling
+
+`src/quest-mark.js` owns the existing quest/errand category symbol. The shared platform imports that
+leaf directly; `src/hint-look.js` re-exports the same function for compatibility. Changing panel
+colours or spacing therefore does not create a runtime dependency in storage, input or world code
+merely because those modules use the platform. Category changes still reach both renderers.
+`tests/quest-mark.test.js` preserves function identity and actual toast metadata; existing HUD and
+cinema integration tests continue to cover presentation. This is a source dependency separation,
+not a test-selection exemption.
+
+Reference-world sheets use explicit authored asset URLs, retaining labels, sizes and view identity. Native UI source contracts live in `tests/native-ui-source.test.js`; real VM loading and menu-navigation assertions remain in their integration tests. The Node gadget helper uses ordered literal imports with a directory completeness regression, preserving automatic registration coverage without an opaque discovery dependency in every world test.
+
+
+Build-page declarations live in `scripts/build-input.mjs`; page contracts import those declarations
+without importing the development servers and packaging plugins. Vite uses the same object, with a
+compatibility re-export and a wiring regression. Procedural motion audits similarly import
+`walk-procedural.mjs`; actual generated-skin loading remains in `walk-generated.mjs`, with the
+original public facade, shared guardian registry and generated-model integration coverage retained.
+
+The selector's optional `--explain` reports the actual traversal reasons, including opaque reads,
+resource ownership and import chains. Unknown dependencies still select their consumers;
+unowned changed files fall back to the full suite. Directory resources own their descendants,
+with path boundaries preserved. Renames and deletions use ownership from both Git revisions.
+Changing a shared test helper follows its actual consumers rather than automatically selecting
+every test; changes to the selector, hooks and other global test infrastructure still run all tests.
+
+The sequence, temple-finale and bridge-material audits are partitioned to fit the existing
+per-file timing limit. Sequence partition contracts retain every discovered case and complete
+stream-diff groups. Material partitions audit every active world, prologue and discovered minigame;
+explicit material-key witnesses are assigned exactly once and must be observed by that partition,
+retaining global stale-key detection. New or moved keys require an explicit witnessed assignment.
+No integration cases were deferred to the daily suite to obtain these reductions.
+
+The timing table was refreshed from actual GitHub run40190711316. New and changed partition files
+use measured local durations scaled by the existing `RUNNER_PER_MAC` factor; these are planning
+estimates, not measurements of GitHub elapsed time. The unchanged timing-budget regression must pass.

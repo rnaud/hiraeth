@@ -75,8 +75,9 @@ test('the people: an errand\'s giver and taker watched, the hum on words that sp
   const journal = { data: {}, errand: (id) => journal.data[id], setErrand: (id, v) => { journal.data[id] = v; } };
   const ship = { cinema: {} };
   const said = [];
-  const p = wirePeople({ levelId: d.from[0], npcs, journal, toast: (t) => said.push(t), titles: {}, sound: { makersHum: () => hums.push(1) }, ship,
+  const p = wirePeople({ levelId: d.from[0], errandDefs: ERRANDS, npcs, journal, toast: (t) => said.push(t), titles: {}, sound: { makersHum: () => hums.push(1) }, ship,
     game: { on: (ev, f) => { listeners[ev] = f; } } });
+  assert.equal(p.errands.defs, ERRANDS, 'the host passes the actual registry unchanged');
   assert.equal(p.errands.watch.length, 1, 'the giver watched');
   npcs[d.from[1]].greeted = true;
   p.errands.update();
@@ -93,6 +94,19 @@ test('the people: an errand\'s giver and taker watched, the hum on words that sp
   try { p.talk(1 / 60, best, camera); } catch { /* the stub humanoid: driven is what counts */ }
   assert.equal(driven, 1, 'the face of whoever talks near');
   p.talk(1 / 60, null, camera);
+});
+
+test('the people: shared host wiring does not import the world content registry', () => {
+  const source = readFileSync(new URL('../src/host/game-host.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /(?:from\s*|import\s*\()(['"])[^'"]*levels\/content\.js\1/, 'world registries belong to the composing hosts');
+});
+
+test('the people: an explicitly empty host registry stays empty, while missing definitions fail visibly', () => {
+  const errandDefs = [];
+  const p = wirePeople({ levelId: 'desert', errandDefs, npcs: [], journal: {}, titles: {} });
+  assert.equal(p.errands.defs, errandDefs);
+  assert.deepEqual(p.errands.watch, [], 'no fallback to a hidden global registry');
+  assert.throws(() => wirePeople({ levelId: 'desert', npcs: [], journal: {}, titles: {} }), /requires the host errandDefs array/);
 });
 
 test('the chemistry: on the traveller\'s wind, with what burns, the creatures and the tool the host made', () => {

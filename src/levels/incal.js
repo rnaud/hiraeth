@@ -1,3 +1,5 @@
+import { INCAL_TEMPLE } from '../temples/incal.js';
+import * as INCAL_WORDS from '../temples/incal-data.js';
 import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { buildPort } from './port-pad.js';
@@ -16,7 +18,7 @@ import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
 import { SITE as WARDENS_WELL } from '../temples/incal.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
@@ -1255,7 +1257,7 @@ export function* buildIncal(scene) {
   })();
   // the Warden's Well, the makers' tower on the rim, and its rooms far overhead (src/temples/incal.js)
   yield;
-  return attachTemple('incal', scene, {
+  return attachTempleDefinition('incal', { def: INCAL_TEMPLE, words: INCAL_WORDS }, scene, {
     id: 'incal',
     // (1.15 million triangles: the load on a BVH quick to build, its rays 2.6 times quicker on the one built behind it,
     // src/physics.js Physics.create o.later; the trees' check after the first frame was 5 s of rays, issue #300)

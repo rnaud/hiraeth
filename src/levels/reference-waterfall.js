@@ -15,7 +15,14 @@ import {
 // plates; each is a view (reference-views.js describes the fields) framed on it.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The City Behind the Waterfall / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The City Behind the Waterfall/environment/reference-${n}.jpeg`, import.meta.url).href });
+// Explicit authored asset URLs keep bundler and affected-test dependencies finite.
+const SHEET_URLS = {
+  "1": new URL("../../references/levels/The City Behind the Waterfall/environment/reference-1.jpeg", import.meta.url).href,
+  "2": new URL("../../references/levels/The City Behind the Waterfall/environment/reference-2.jpeg", import.meta.url).href,
+  "3": new URL("../../references/levels/The City Behind the Waterfall/environment/reference-3.jpeg", import.meta.url).href,
+  "4": new URL("../../references/levels/The City Behind the Waterfall/environment/reference-4.jpeg", import.meta.url).href,
+};
+const sheet = (n) => ({ name: `The City Behind the Waterfall / reference-${n}.jpeg`, size: [1456, 816], url: SHEET_URLS[n] });
 export const WATERFALL_SHEETS = { 'waterfall-1': sheet(1), 'waterfall-2': sheet(2), 'waterfall-3': sheet(3), 'waterfall-4': sheet(4) };
 
 /**

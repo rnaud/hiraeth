@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { Rig, TierHold, jointedLeg, TIERS, LOD } from '../src/motion-kit/rig.js';
 import { PLANS, poleFor } from '../src/motion-kit/plans.js';
 import { setView, clearView, inView } from '../src/motion-kit/view.js';
-import { foeSystem, foeSubject, kitLegs, DT } from '../scripts/motion-audit/walk.mjs';
+import { foeSystem, foeSubject, kitLegs, DT } from '../scripts/motion-audit/walk-procedural.mjs';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 

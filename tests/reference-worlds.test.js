@@ -51,6 +51,8 @@ test('each world\'s entry: a unique id, its count of views, its sheets named for
       assert.ok(s, `${v.id}: its sheet ${v.sheet} is the world's`);
       assert.ok(s.name.startsWith(`${w.name} / `), `${v.id}: its sheet named for its world (${s.name})`);
       assert.ok(s.url && s.size?.length === 2);
+      assert.ok(existsSync(new URL(s.url)), `${v.id}: its explicit authored asset exists`);
+      assert.equal(decodeURIComponent(new URL(s.url).pathname.split('/').at(-1)), s.name.split(' / ').at(-1), `${v.id}: asset filename matches the sheet label`);
       assert.ok(!ids.has(v.id), `${v.id}: one view of that id`);
       ids.add(v.id);
     }

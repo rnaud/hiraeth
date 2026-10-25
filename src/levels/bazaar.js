@@ -1,3 +1,5 @@
+import { BAZAAR_TEMPLE } from '../temples/bazaar.js';
+import * as BAZAAR_WORDS from '../temples/bazaar-data.js';
 import * as THREE from 'three';
 import { wallOpenings } from '../wall-openings.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -7,7 +9,7 @@ import { mulberry32 } from '../noise.js';
 import { Taxi, cruiseRoutes } from '../taxi.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildListenersLane } from '../market-ways.js';
@@ -488,7 +490,7 @@ export function* buildBazaar(scene) {
   buildFragmentLandmarks(scene, 'bazaar');
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
-  return attachTemple('bazaar', scene, {
+  return attachTempleDefinition('bazaar', { def: BAZAAR_TEMPLE, words: BAZAAR_WORDS }, scene, {
     ladders: air.ladders,
     streetTowers,
     portals: [...cureStall.portals],

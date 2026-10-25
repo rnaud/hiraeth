@@ -1,3 +1,5 @@
+import { ARZACH2_TEMPLE } from '../temples/arzach2.js';
+import * as ARZACH2_WORDS from '../temples/arzach2-data.js';
 import * as THREE from 'three';
 import { glyphGeometry } from '../story/sign-text.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -7,7 +9,7 @@ import { TAU, nA, nB, nC, clean, place, lumpy, solid, table, needle, boulder, dr
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { Bird, STAND } from '../bird.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTempleDefinition } from '../temples/attachment.js';
 import { Z_GAP } from '../temples/kit.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
@@ -197,7 +199,7 @@ export function* buildArzach2(scene) {
   const terrain = yield* Terrain.make({ size: 5200, seg: 320, height, material: SKY_STONES_GROUND });
   scene.add(terrain.mesh);
   const part = yield* buildSkyStones(scene, terrain);
-  return attachTemple('arzach2', scene, part);
+  return attachTempleDefinition('arzach2', { def: ARZACH2_TEMPLE, words: ARZACH2_WORDS }, scene, part);
 }
 
 /**
