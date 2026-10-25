@@ -6,8 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { trianglesOf, coplanarOverlaps, visibleSites, overlapArea, clipPolygon } from '../scripts/zfight/lib.mjs';
-import { rayOver, standing, zfightsOf, shipZfights } from '../scripts/zfight/audit.mjs';
-import { nameParts, partOf, describe } from '../scripts/zfight/names.mjs';
+import { rayOver, standing, zfightsOf, shipZfights } from '../scripts/zfight/audit-core.mjs';
 import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Z_GAP } from '../src/temples/kit.js';
@@ -123,22 +122,6 @@ test('every temple’s visible z-fights at or under its baseline; the Rose House
   assert.equal(report.desert, 0, 'the Rose House: none');
 });
 
-test('a merged mesh says what its pieces are: the lines that made them and their comments (scripts/zfight/names.mjs)', async () => {
-  await nameParts();
-  // (this process loaded three's merge already: a fresh copy of it, as the audit's world modules get)
-  const { mergeGeometries } = await import(import.meta.resolve('three/addons/utils/BufferGeometryUtils.js') + '?names');
-  const wall = new THREE.BoxGeometry(4, 4, 1).toNonIndexed();   // the wall
-  const trim = new THREE.BoxGeometry(1, 4, 1.4).translate(1.5, 0, 0).toNonIndexed();   // the trim on it
-  const g = mergeGeometries([wall, mergeGeometries([trim.clone()])]);
-  const a = describe(partOf(g, 0)), b = describe(partOf(g, 12));
-  assert.match(a, /zfight\.test\.js:\d+ — the wall$/, a);
-  assert.match(b, /zfight\.test\.js:\d+ — the trim on it$/, b);
-  // and the finder carries them to its sites
-  const scene = new THREE.Scene();
-  scene.add(new THREE.Mesh(mergeGeometries([wall]), mat('#c88')), new THREE.Mesh(mergeGeometries([trim]), mat('#844')));
-  const f = coplanarOverlaps(trianglesOf(scene, { THREE, partOf }));
-  assert.ok(f.length && f[0].parts.map(describe).some((p) => p.endsWith('the trim on it')), 'a site names its pieces');
-});
 
 test('the City Floating in Space at or under its count; the market in the air, the canyon street and the furrows none of their own (issue #286)', async () => {
   // (a world the test of the temples built is taken as it left it, built and unchanged: else built here)

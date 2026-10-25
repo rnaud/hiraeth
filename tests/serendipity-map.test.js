@@ -1,9 +1,10 @@
+import { loadMinigameModules } from './minigame-modules.js';
 // The serendipity map (serendipity.html, src/serendipity-page/; issue #381; docs/systems/dev-tools.md "The serendipity
 // map"): a debug page beside the others, and its data collector finding things of interest in every world it offers,
 // each world built as the page builds it (world.js buildWorld: the level, the story's quests and people, the boxes).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import './register-gadgets.js';
 import './playthrough-agent.js';   // (its little DOM: the story never needs a real page)
 import { buildWorld, mapWorlds } from '../src/serendipity-page/world.js';
@@ -15,8 +16,7 @@ import { PAGES } from '../src/world-picker.js';
 import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 // the games' signs, as the game has them (src/minigames/index.js reads them by import.meta.glob, which node has not)
-const GAMES = collectGames(Object.fromEntries(await Promise.all(readdirSync(new URL('../src/minigames/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'index.js')
-  .map(async (f) => [f, await import(`../src/minigames/${f}`)]))), () => {});
+const GAMES = collectGames(await loadMinigameModules(), () => {});
 
 test('the serendipity map is a debug page beside the others', () => {
   assert.ok(PAGES.some((p) => p.href === 'serendipity.html' && p.label === 'Serendipity map'), 'Debug → Pages → Serendipity map');

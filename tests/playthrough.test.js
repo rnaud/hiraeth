@@ -38,7 +38,7 @@ const { completionSpec } = await import('./completion-spec.js');
 const { writeFileSync, mkdirSync } = await import('node:fs');
 const { join } = await import('node:path');
 const { tmpdir } = await import('node:os');
-const { execSync } = await import('node:child_process');
+import { execFileSync } from 'node:child_process';
 const say = process.env.PLAYTHROUGH_VERBOSE ? console.log : () => {};
 
 const journal = A.memoryJournal();
@@ -49,7 +49,7 @@ const snapshot = () => ({ ...here, items: items.owned(), keepsakes: game.keepsak
 const report = (i) => { ISSUES.push({ ...i, step: i.step ?? here.step, state: snapshot() }); };
 // the evidence of the run (written whatever the outcome): world by world what was played, how far, the save read back
 const OUT = process.env.PLAYTHROUGH_OUT ?? join(tmpdir(), 'hiraeth-playthrough');
-const rev = (() => { try { return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { return null; } })();
+const rev = (() => { try { return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { return null; } })();
 const EVIDENCE = { test: 'tests/playthrough.test.js', rev, node: process.version, started: new Date().toISOString(), worlds: [], ending: {}, completion: null,
   methods: {
     real: 'the levels, collision, people, story runtime, quests, conversations (answers chosen from their data), boxes, temple logic, the ship\'s voicemail and map, the save written and read back through the game\'s storage, the homecomings',

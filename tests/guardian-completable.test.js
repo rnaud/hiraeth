@@ -13,7 +13,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import fs from 'node:fs';
+import { readGuardianModelUrl } from '../scripts/model-audit/guardian-inputs.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -31,7 +31,7 @@ setHintLevel('full');
 globalThis.ProgressEvent ??= class { constructor(type, v) { this.type = type; Object.assign(this, v); } };
 GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
   try {
-    const bytes = fs.readFileSync(new URL(String(url).replace(/^\/+/, ''), new URL('../public/', import.meta.url))), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
+    const bytes = readGuardianModelUrl(url), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
     for (const m of json.meshes) for (const p of m.primitives) delete p.material;
     delete json.materials; delete json.textures; delete json.images;
     json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');

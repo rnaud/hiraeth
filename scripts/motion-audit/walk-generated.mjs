@@ -1,5 +1,5 @@
 // Generated-skin IO is separate from procedural motion measurements.
-import fs from 'node:fs';
+import { readGuardianSkin } from '../model-audit/guardian-inputs.mjs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createKeeperCreature } from '../../src/characters/keeper-creature.js';
 import { createElderCreature } from '../../src/characters/elder-creature.js';
@@ -12,8 +12,7 @@ import { GUARDIANS, guardianSubject, boneLegs } from './walk-procedural.mjs';
  */
 export async function loadSkin(file) {
   globalThis.ProgressEvent ??= class { constructor(type, x) { this.type = type; Object.assign(this, x); } };
-  const at = (dir) => new URL(`../../${dir}/guardians/${file}/model.glb`, import.meta.url);
-  const bytes = fs.readFileSync(fs.existsSync(at('public')) ? at('public') : at('data')), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
+  const bytes = readGuardianSkin(file), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
   for (const m of json.meshes) for (const p of m.primitives) delete p.material;
   delete json.materials; delete json.textures; delete json.images;
   json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');

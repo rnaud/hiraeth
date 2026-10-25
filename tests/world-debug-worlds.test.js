@@ -1,3 +1,4 @@
+import { loadMinigameModules } from './minigame-modules.js';
 // The dev menu in the route worlds (src/world-debug.js; docs/systems/dev-tools.md "The dev menu"): each world built as
 // the play-through builds it (tests/playthrough-agent.js loadWorld: the level and its temple, the collision, the story
 // with its people, quests and locators, the makers' boxes; it needs the story, so it builds its own instead of
@@ -6,7 +7,6 @@
 // on the ground or in its room, and its quests and cinematics listed.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
 import './register-gadgets.js';
 import { loadWorld, ORDER } from './playthrough-agent.js';
 import { gatherPoints, groupPoints, landingSpot, questList, cinematicsFor, devTabs, keyPlaces } from '../src/world-debug.js';
@@ -17,8 +17,7 @@ import { CONTENT } from '../src/levels/content.js';
 // terrain, the floating city's stacked platforms. WORLD_DEBUG_ALL=1 for every route world, ~30 s more)
 const WORLDS = process.env.WORLD_DEBUG_ALL ? ORDER : ['desert', 'spacecity'];
 // the games' signs, as the game has them (src/minigames/index.js reads them by import.meta.glob, which node has not)
-const GAMES = collectGames(Object.fromEntries(await Promise.all(readdirSync(new URL('../src/minigames/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'index.js')
-  .map(async (f) => [f, await import(`../src/minigames/${f}`)]))), () => {});
+const GAMES = collectGames(await loadMinigameModules(), () => {});
 
 test('route worlds: the key places landed on, on their feet; every kind of place in two, set down on the ground or in its room; quests and films listed', () => {
   const lines = [];

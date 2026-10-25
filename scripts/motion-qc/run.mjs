@@ -9,41 +9,15 @@
 // game's default), mm (motion matching, ?mm=1). Writes <out>/motion.json (every run's measures, events and verdict),
 // motion.md (the table) and <scenario>.<way>.svg (a contact sheet of its worst frames: the pose from the side and
 // from above, the feet's trails, captioned). Exits 1 if a run of the default way is red.
-import * as THREE from 'three';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { course, traveller } from '../../tests/gait-sim.js';
-import { CAM_PLUS_Z } from '../../src/gait-course.js';
-import { analyse, table, LIMITS } from './lib.mjs';
-import { sample, metaOf, stickOf, timeAnimator } from './sample.mjs';
+import { table, LIMITS } from './lib.mjs';
 import { COURSE } from './scenarios.mjs';
 import { sheetSVG } from './sheet.mjs';
 
-export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false } };
-
-/** One scenario one way: { samples, meta, r (lib.analyse) }. o.frames(k): frame k's dt (the game's uneven frames; default 1 / fps). */
-export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null, frames = null } = {}) {
-  const p = await traveller(course(), new THREE.Vector3(...sc.at), { ...WAYS[way], body });
-  timeAnimator(p.animator);
-  const S = [], st = {};
-  let t = 0, k = 0;
-  for (const [secs, input, tag] of sc.script) {
-    // (uneven frames: a phase lasts its seconds, however many frames that takes)
-    const n = frames ? Infinity : Math.round(secs * fps);
-    for (let i = 0, u = 0; i < n && (!frames || u < secs - 1e-9); i++) {
-      const dt = frames ? frames(k) : 1 / fps;
-      k++; u += dt;
-      p.update(dt, input, CAM_PLUS_Z);
-      p.object.updateMatrixWorld(true);
-      S.push(sample(p, st, { t, dt, tag, stick: stickOf(input), run: !!input.ShiftLeft }));
-      onFrame?.(p, S.length - 1, S[S.length - 1]);
-      t += dt;
-    }
-  }
-  const meta = { ...metaOf(p), fps };
-  return { samples: S, meta, r: analyse(S, meta) };
-}
+import { runScenario } from './runner.mjs';
+export { WAYS, runScenario } from './runner.mjs';
 
 const slug = (s) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
 

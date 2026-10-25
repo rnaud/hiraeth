@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import './register-gadgets.js';
 import { HOSTS, hostOf, hostTalk, hostStand, queueHost, takeHosts } from '../src/minigames/kit/hosts.js';
 import { placeGameMarker } from '../src/minigames/kit/marker.js';
-import { readdirSync } from 'node:fs';
+import { loadMinigameModules } from './minigame-modules.js';
 import { collectGames } from '../src/minigames/index.js';
 import { TRIALS } from '../src/trials/data.js';
 import { KIT_TRIALS } from '../src/trials/kit-data.js';
@@ -19,8 +19,7 @@ const { EVERYONE } = await import('../src/story/people-book.js');
 const { CONTENT } = await import('../src/levels/content.js');
 
 // every game file there is (as tests/arcade.test.js finds them: node has no glob)
-const files = readdirSync(new URL('../src/minigames/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'index.js');
-const GAMES = collectGames(Object.fromEntries(await Promise.all(files.map(async (f) => [`./${f}`, await import(`../src/minigames/${f}`)]))), (m) => { throw new Error(m); });
+const GAMES = collectGames(Object.fromEntries(Object.entries(await loadMinigameModules()).map(([f,m])=>[`./${f}`,m])), (m) => { throw new Error(m); });
 /** The games whose signs stand in a world (not the developer's Arena or Arcade): the levels' own, and the games' markers. */
 const IN_WORLDS = ['fishing', 'canyon', 'rings', 'wingdrop', 'gallery', ...GAMES.filter((g) => g.markers?.length).map((g) => g.id)];
 

@@ -304,3 +304,162 @@ test('Vite BASE_URL fallback is an HTTP base hint, while real filesystem and URL
  assert.ok(dependenciesOf('src/a.js',"const base=other.env.BASE_URL ?? './';").resources.includes('src/'));
  assert.ok(dependenciesOf('src/a.js',"const base=import.meta.env?.OTHER ?? './';").resources.includes('src/'));
 });
+
+
+test('lexical identities keep unrelated callback parameters and block locals independent',()=>{
+ for(const source of [
+  "const read=p=>readFileSync(`data/${p}.json`);read('a');other.map(p=>p.name);",
+  "const p='data/a.json';{const p='data/b.json';readFileSync(p);}readFileSync(p);",
+  "function read(p){readFileSync(`data/${p}.json`);}read('a');{function read(p){return p;}read(dynamic);}",
+  "const read=p=>readFileSync(p);function outer(){const p='data/a.json';read(p);}outer();const p=dynamic;"
+ ]){
+  const d=dependenciesOf('tests/read.test.js',source);assert.equal(d.unknown,false,source);assert.ok(d.resources.includes('data/a.json'),source);
+ }
+});
+
+test('finite loop inputs retain every resource and executable transitive dependency',()=>{
+ for(const loop of ["for(const f of ['a','b'])", "const names=['a','b'];for(const f of names)"]){
+  const source=loop+"{const read=p=>import(`../src/${p}.js`);read(f);}";
+  const files={'tests/read.test.js':source,'src/a.js':"import './leaf.js';",'src/b.js':'export const x=1;','src/leaf.js':'export const x=1;','src/other.js':'export const x=1;','tests/other.test.js':"import '../src/other.js';"};
+  assert.equal(dependenciesOf('tests/read.test.js',source).unknown,false);
+  for(const changed of ['src/a.js','src/b.js','src/leaf.js'])assert.deepEqual(affectedTests([changed],fixture(files)),['tests/read.test.js']);
+  assert.deepEqual(affectedTests(['src/other.js'],fixture(files)),['tests/other.test.js']);
+ }
+ const choice=dependenciesOf('tests/a.test.js',"const p=condition?'data/a.json':'data/b.json';readFileSync(p);");
+ assert.equal(choice.unknown,false);assert.ok(choice.resources.includes('data/a.json'));assert.ok(choice.resources.includes('data/b.json'));
+});
+
+test('loop inference rejects mutable, escaped, exported and unknown collections',()=>{
+ for(const prefix of [
+  "const names=['a'];names.push(dynamic);", "const names=['a'];consume(names);",
+  "const names=['a'];names[0]=dynamic;", "let names=['a'];names=dynamic;",
+  "export const names=['a'];", "const names=[...dynamic];", "const names=[dynamic];"
+ ])assert.equal(dependenciesOf('tests/read.test.js',prefix+"for(const f of names)readFileSync(`data/${f}.json`);").unknown,true,prefix);
+ for(const source of [
+  "const p='data/a.json';const C=class p{method(){readFileSync(p);}};",
+  "function read(p){function mutate(){p=dynamic;}mutate();readFileSync(p);}read('data/a.json');",
+  "function read(p){readFileSync(p);}export {read};read('data/a.json');",
+  "const read=function recurse(p){if(p)recurse(external);readFileSync(p);};read('data/a.json');",
+  "function read(p){arguments[0]=external;readFileSync(p);}read('data/a.json');",
+  "const read=p=>readFileSync(p);const alias=read;read('data/a.json');alias(dynamic);",
+  "const names=['a'];for(let f of names){f=dynamic;readFileSync(`data/${f}.json`);}",
+  "const names=['a'];function read(names){for(const f of names)readFileSync(`data/${f}.json`);}read(dynamic);"
+ ])assert.equal(dependenciesOf('tests/read.test.js',source).unknown,true,source);
+ assert.equal(affectedTests(['scripts/test-dependency-bindings.mjs'],fixture({'tests/a.test.js':'assert.ok(true);'})),'ALL');
+});
+
+
+test('path import identities distinguish unrelated shadows while rejecting namespace escapes',()=>{
+ const d=dependenciesOf('tests/read.test.js',"import {join} from 'node:path';readFileSync(join('data','a.json'));const other=join=>join;");
+ assert.equal(d.unknown,false);assert.ok(d.resources.includes('data/a.json'));
+ for(const source of [
+  "import path from 'node:path';consume(path);readFileSync(path.join('data','a.json'));",
+  "import path from 'node:path';const alias=path;alias.join=custom;readFileSync(path.join('data','a.json'));",
+  "import path from 'node:path';readFileSync(path[method]('data','a.json'));"
+ ])assert.equal(dependenciesOf('tests/read.test.js',source).unknown,true,source);
+});
+
+
+test('literal awaited filesystem imports use the same finite edges as static imports',()=>{
+ for(const code of [
+  "const {readFileSync:read}=await import('node:fs');read('data/a.json');",
+  "const fs=await import('node:fs');fs.readFileSync('data/a.json');",
+  "(await import('node:fs')).readFileSync('data/a.json');",
+  "await (await import('node:fs/promises')).readFile('data/a.json');",
+  "const {readFile}=await import('node:fs/promises');await readFile('data/a.json');",
+  "async function check(){const {readFileSync}=await import('node:fs');readFileSync(new URL('../data/a.json',import.meta.url));}check();"
+ ]){
+  const d=dependenciesOf('tests/read.test.js',code);assert.equal(d.unknown,false,code);assert.ok(d.resources.includes('data/a.json'));
+  const files={'tests/read.test.js':code,'tests/other.test.js':"readFileSync('data/b.json');"};
+  assert.deepEqual(affectedTests(['data/b.json'],fixture(files)),['tests/other.test.js']);
+  assert.deepEqual(affectedTests(['data/a.json'],fixture(files)),['tests/read.test.js']);
+ }
+ for(const code of [
+  "const fs=await import('node:fs');consume(fs);",
+  "const {readFileSync:read}=await import('node:fs');consume(read);",
+  "const {readFileSync:read}=await import('node:fs');read(dynamic);",
+  "const {readFileSync,...rest}=await import('node:fs');",
+  "const fs=await import(which);", "(await import('node:fs')).readFileSync(dynamic);", "consume((await import('node:fs')).readFileSync);", "consume(await import('node:fs'));",
+  "const {default:fs}=await import('node:fs');consume(fs);",
+  "const {readFileSync:read=fallback}=await import('node:fs');read('data/a.json');"
+ ])assert.equal(dependenciesOf('tests/read.test.js',code).unknown,true,code);
+});
+
+test('finite conditional imports preserve correlated branches and transitive consumers',()=>{
+ for(const condition of ["id==='legacy'","'legacy'===id","id!=='modern'"]){
+  const source=`for(const id of ['legacy','modern'])await import(${condition}?'../src/old.js':\`../src/\${id}.js\`);`;
+  const files={'tests/read.test.js':source,'src/old.js':"import './leaf.js';",'src/modern.js':'export const x=1;','src/leaf.js':'export const x=1;','src/other.js':'export const x=1;','tests/other.test.js':"import '../src/other.js';"};
+  const d=dependenciesOf('tests/read.test.js',source);assert.equal(d.unknown,false);
+  assert.deepEqual(d.imports.sort(),['src/modern.js','src/old.js']);
+  assert.deepEqual(affectedTests(['src/other.js'],fixture(files)),['tests/other.test.js']);
+  for(const path of ['src/old.js','src/modern.js','src/leaf.js'])assert.deepEqual(affectedTests([path],fixture(files)),['tests/read.test.js']);
+ }
+ assert.equal(dependenciesOf('tests/a.test.js',"const id=external;import(id==='legacy'?'../src/old.js':`../src/${id}.js`);").unknown,true);
+ assert.equal(dependenciesOf('tests/a.test.js',"for(let id of ['legacy','modern']){id=external;import(id==='legacy'?'../src/old.js':`../src/${id}.js`);}").unknown,true);
+});
+
+
+test('shared analysis cache follows exact source bytes and diagnostic mode across snapshots',()=>{
+ const files={'tests/a.test.js':"import '../src/a.js';",'src/a.js':"import './old.js';",'src/old.js':'export const x=1;','src/new.js':'export const x=2;', 'tests/b.test.js':"import '../src/new.js';"};
+ const analysisCache=new Map(), select=(path,extra={})=>affectedTests([path],{...fixture(files),analysisCache,...extra});
+ assert.deepEqual(select('src/old.js'),['tests/a.test.js']);
+ const cached=analysisCache.get('src/a.js');
+ assert.deepEqual(select('src/old.js'),['tests/a.test.js']);assert.equal(analysisCache.get('src/a.js'),cached);
+ files['src/a.js']="import './new.js';";
+ assert.deepEqual(select('src/new.js'),['tests/a.test.js','tests/b.test.js']);assert.notEqual(analysisCache.get('src/a.js'),cached);
+ const diagnostics={};select('src/new.js',{diagnostics});assert.ok(diagnostics.tests['tests/a.test.js']);assert.equal(analysisCache.get('src/a.js').explain,true);
+ delete files['src/a.js'];assert.ok(select('src/new.js').includes('tests/a.test.js'),'missing input is opaque, never a cached success');
+});
+
+
+test('exact revision metadata query is bounded; content reads and alternate commands are not',()=>{
+ const code="import {execFileSync} from 'node:child_process';execFileSync('git',['rev-parse','--short','HEAD'],{stdio:['ignore','pipe','ignore']});";
+ assert.equal(dependenciesOf('tests/run.test.js',code).unknown,false);
+ for(const changed of [code.replace("'rev-parse','--short','HEAD'","'show','HEAD:src/hud.js'"),code.replace("'git'","command"),code.replace("stdio:","shell:true,stdio:"),code.replace("stdio:","env:custom,stdio:")])assert.equal(dependenciesOf('tests/run.test.js',changed).unknown,true);
+});
+
+
+test('single graph propagation matches explanatory walks across cycles, globs, leaves and unknowns',()=>{
+ const files={
+  'tests/a.test.js':"import '../src/a.js';",
+  'tests/b.test.js':"import '../src/b.js';",
+  'tests/c.test.js':"import '../src/c.js';",
+  'tests/opaque.test.js':"import(unknown);",
+  'src/a.js':"import './b.js';readFileSync('data/a.json');",
+  'src/b.js':"import './a.js';import.meta.glob('./parts/*.js');",
+  'src/c.js':"readFileSync('src/a.js');",
+  'src/parts/x.js':"import '../leaf.js';",
+  'src/leaf.js':'export const x=1;',
+ };
+ for(const changed of [['src/a.js'],['src/leaf.js'],['data/a.json'],['src/c.js'],['new.bin'],['src/a.js','src/c.js']]){
+  const options=fixture(files),diagnostics={};
+  assert.deepEqual(affectedTests(changed,options),affectedTests(changed,{...options,diagnostics}),changed.join(','));
+ }
+ for(const change of ["import './missing.js';","readFileSync(dynamic);","existsSync(dynamic);","const = bad"]){
+  files['src/leaf.js']=change;
+  for(const modifiedRegularOnly of [true,false]){
+   const options={...fixture(files),modifiedRegularOnly};
+   assert.deepEqual(affectedTests(['src/c.js'],options),affectedTests(['src/c.js'],{...options,diagnostics:{}}),change);
+  }
+ }
+});
+
+
+test('dynamic URLs used only by builtin existsSync retain existence rather than content dependencies',()=>{
+ for(const code of [
+  "import {existsSync} from 'node:fs';existsSync(new URL(`../references/${name}.jpg`,import.meta.url));",
+  "import {existsSync as present} from 'node:fs';present(new URL(`../references/${name}.jpg`,import.meta.url));",
+  "import fs from 'node:fs';fs.existsSync(new URL(`../references/${name}.jpg`,import.meta.url));"
+ ]){
+  const d=dependenciesOf('tests/exists.test.js',code);assert.equal(d.unknown,false,code);assert.equal(d.unknownExistence,true,code);
+  const files={'tests/exists.test.js':code,'tests/other.test.js':"import '../src/other.js';",'src/other.js':'export const x=1;'};
+  assert.deepEqual(affectedTests(['src/other.js'],{...fixture(files),modifiedRegularOnly:true}),['tests/other.test.js']);
+  assert.deepEqual(affectedTests(['src/other.js'],{...fixture(files),modifiedRegularOnly:false}),['tests/exists.test.js','tests/other.test.js']);
+ }
+ for(const code of [
+  "existsSync(new URL(`../references/${name}.jpg`,import.meta.url));",
+  "import {readFileSync} from 'node:fs';readFileSync(new URL(`../references/${name}.jpg`,import.meta.url));",
+  "import {existsSync} from 'node:fs';const url=new URL(`../references/${name}.jpg`,import.meta.url);consume(url);existsSync(url);",
+  "import {existsSync} from 'node:fs';function check(URL){existsSync(new URL(`../references/${name}.jpg`,import.meta.url));}check(custom);"
+ ])assert.equal(dependenciesOf('tests/exists.test.js',code).unknown,true,code);
+});

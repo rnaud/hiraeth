@@ -9,10 +9,10 @@ const {parseBody}=await import('../src/makehuman/body.js');
 const {buildCharacter}=await import('../src/player.js');
 const {createTravellerB3}=await import('../src/characters/traveller-b3.js');
 const {Animator,libraryFrom}=await import('../src/animator.js');
-async function load(path,texture=false){const b=readFileSync(path);if(texture)return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.length),'');const n=b.readUInt32LE(12),j=JSON.parse(b.toString('utf8',20,20+n)),bin=b.subarray(28+n);j.buffers=[{uri:'data:application/octet-stream;base64,'+bin.toString('base64'),byteLength:bin.length}];delete j.images;delete j.textures;delete j.materials;for(const m of j.meshes)for(const p of m.primitives)delete p.material;return new GLTFLoader().parseAsync(JSON.stringify(j),'')}
+async function load(b,texture=false){if(texture)return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.length),'');const n=b.readUInt32LE(12),j=JSON.parse(b.toString('utf8',20,20+n)),bin=b.subarray(28+n);j.buffers=[{uri:'data:application/octet-stream;base64,'+bin.toString('base64'),byteLength:bin.length}];delete j.images;delete j.textures;delete j.materials;for(const m of j.meshes)for(const p of m.primitives)delete p.material;return new GLTFLoader().parseAsync(JSON.stringify(j),'')}
 const b=readFileSync('public/anim/mh/body.bin'),data=parseBody(b.buffer.slice(b.byteOffset,b.byteOffset+b.length));
-const gltf=await load('public/characters/traveller-b3/model.glb'),head=await load('public/characters/traveller-v1/head-v3/model.glb'),report=JSON.parse(readFileSync('public/characters/traveller-b3/rig.json'));
-const lib=libraryFrom(await load('public/anim/ual.glb',true));
+const gltf=await load(readFileSync('public/characters/traveller-b3/model.glb')),head=await load(readFileSync('public/characters/traveller-v1/head-v3/model.glb')),report=JSON.parse(readFileSync('public/characters/traveller-b3/rig.json'));
+const lib=libraryFrom(await load(readFileSync('public/anim/ual.glb'),true));
 const create=()=>{const char=buildCharacter();return {char,...createTravellerB3(char,{gltf,data,report,head,colors:JSON.parse(readFileSync('public/characters/traveller-b3/colors.json'))})}};
 
 test('B3 shares the fitted body/head skeleton and preserves rest binding at arbitrary spawns',()=>{
@@ -123,7 +123,9 @@ test('B3 fists oppose the thumb toward the palm instead of rolling it behind the
 });
 
 const {b3MotionCatalogue,B3MotionPlayer,B3_MOTION_FILES}=await import('../src/characters/traveller-b3-motion.js');
-const auditFiles=Object.fromEntries(await Promise.all(B3_MOTION_FILES.map(async name=>[name,await load(`public/anim/${name}.glb`,true)])));
+const auditInputs={moves:readFileSync('public/anim/moves.glb'),gestures:readFileSync('public/anim/gestures.glb'),walks:readFileSync('public/anim/walks.glb'),locomotion:readFileSync('public/anim/locomotion.glb')};
+assert.deepEqual(Object.keys(auditInputs).sort(),[...B3_MOTION_FILES].sort(),'every motion file has an explicit audit input');
+const auditFiles=Object.fromEntries(await Promise.all(B3_MOTION_FILES.map(async name=>[name,await load(auditInputs[name],true)])));
 const catalogue=b3MotionCatalogue(lib,auditFiles);
 // The mesh skinned in bulk, as SkinnedMesh.applyBoneTransform does it vertex by vertex, but with the bones'
 // matrices made once a pose and the rest positions put in bind space once: the audit's 209 clips × 33 poses
