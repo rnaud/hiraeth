@@ -24,6 +24,7 @@
 // after a build, then --url). Chrome: $CHROME, or the usual install path. Sound: --mute-audio, and the
 // game's own volumes at 0. Exits 1 if a check fails; screenshots go to --out.
 import { spawn, execSync } from 'node:child_process';
+import { holdUntil } from './browser-held-input.mjs';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { tempDir, ownProcess } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
@@ -124,9 +125,10 @@ try {
   await inGame();
   check(await ev(`window.ship.playing`), `the prologue plays on a new game (started with "${started}")`);
   await shot('prologue');
-  // skip it as a player does: hold Esc
-  for (let k = 0; k < 6 && (await ev('window.ship.playing')); k++) { await key('Escape'); await sleep(2200); await key('Escape', 'keyUp'); await sleep(400); }
-  await until(`!window.ship.playing || window.game.flag('prologue.done')`, 120, 'the prologue to end');
+  // Keep one continuous hold: low-FPS runners advance less simulation time than
+  // wall time, so repeated 2.2-second holds could reset before the skip threshold.
+  await holdUntil({ press: () => key('Escape'), release: () => key('Escape', 'keyUp'),
+    done: () => ev(`!window.ship.playing || window.game.flag('prologue.done')`), label: 'the prologue to end' });
   await until(`!window.ship.playing`, 60, 'the last of the prologue');
   await sleep(1500);
   check(await ev(`window.game.flag('prologue.done') === true`), 'the prologue is done');

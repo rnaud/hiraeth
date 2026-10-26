@@ -472,3 +472,20 @@ The minigame catalogue is a composition boundary: `kit/registry.js` holds defini
 Known changed paths use graph reachability regardless of their count. The old 40-file cutoff could force a full suite merely because a feature branch and concurrent main changes accumulated 46 paths; the graph now analyzes that same range without a size-based exemption or fallback. Unowned paths, unavailable history, outside-repository inputs, opaque consumers, selector/hook changes, and shared build configuration retain their existing conservative behavior. Large-range regressions cover both selector modes and multi-commit Git ranges, including deleted dependencies.
 
 Focused quest and people checks use literal lazy module readers; the catalogue contract compares supplementary people files with the directory inventory so additions cannot silently escape coverage. Fixed-scope minigame and quest checks name their own module loaders. Dialogue byte-preservation checks assert that their explicit source readers cover every ledger entry. Packaging filename rules and device exclusions live in `scripts/content-policy.mjs`, shared by the publisher and stripping tool, so policy-only consumers need not load either tool. Selection boundary tests check both unrelated HUD exclusion and actual-input inclusion. Whole-game engine integration tests still run when their HUD dependency changes.
+
+
+### Keep expensive fixtures out of presentation checks
+
+Map-chest persistence runs in `tests/map-chest-saves.test.js`: it still builds all nine
+real attached worlds twice, but HUD edits no longer run that reload audit. The
+key-opening/counter integration remains in `tests/key-chests.test.js`. Cab cue
+formatting and real ship floating prompts have focused `cab-hud` and `ship-hud`
+tests; city rides and hull/flight checks keep their own dependencies. The selection
+boundary tests assert both exclusion of unrelated HUD edits and inclusion of the
+actual world, chest and vehicle inputs. Assertions are moved intact, not discarded.
+
+The browser completion harness holds Escape continuously until the production
+prologue reports completion, with a bounded timeout and key release on success or
+failure. Fixed wall-clock presses are insufficient on software rendering because
+the game clamps each frame's simulation step; repeated releases reset hold-to-skip.
+The harness does not set completion flags or invoke the skip implementation directly.

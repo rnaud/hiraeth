@@ -21,7 +21,6 @@ const { Quests } = await import('../src/story/quests.js');
 const { setupCabs } = await import('../src/story/cab.js');
 const { CAB_LINES } = await import('../src/story/cab-lines.js');
 const { parseLine } = await import('../src/story/tone.js');
-const { cueText } = await import('../src/hud.js');
 const { RIDE_GRIPS } = await import('../src/hands.js');
 const { Controller } = await import('../src/controller.js');
 const { game } = await import('../src/game-state.js');
@@ -189,10 +188,6 @@ test('the pad in a cab: X / □ is SPACE (where to), B / ○ gets out, A / × ju
   assert.ok(press(0).JumpOff, 'A / ×');
 });
 
-test('the cue: no button hints in a cab (its dash asks where to by itself)', () => {
-  assert.equal(cueText({ ride: 'taxi', rideFor: 0 }), '');
-  assert.equal(cueText({ ride: 'taxi', rideFor: 0, controller: true }), '');
-});
 
 test('the cab\'s words each carry a tone, and none of them is a driver\'s', () => {
   const all = Object.values(CAB_LINES).flat();
