@@ -74,7 +74,7 @@ test('the size tool sorts a package into areas, and names what must not ship', (
   assert.equal(areaOf('bridge-linux/GameAssembly.so'), 'game code (IL2CPP)');
   assert.equal(areaOf('bridge-linux/hiraeth-js_BackUpThisFolder_ButDontShipItWithYourGame/GameAssembly.debug'), 'build leftovers (never to ship)');
   assert.equal(areaOf('assets/hiraeth-js/hiraeth.cjs'), 'JS bundle');
-  assert.equal(areaOf('Data/StreamingAssets/hiraeth-js/public/music/title.mp3'), 'music');
+  assert.equal(areaOf('Data/StreamingAssets/hiraeth-js/public/music/title-french-touch.mp3'), 'music');
   assert.equal(areaOf('assets/hiraeth-js/public/guardians/elder-v3/model.glb'), 'bodies, guardians and animations');
   assert.equal(areaOf('lib/arm64-v8a/libPapiV8.so'), 'V8 (Puerts)');
   assert.equal(areaOf('assets/hiraeth-pso/Vulkan.graphicsstate'), 'pipeline lists');

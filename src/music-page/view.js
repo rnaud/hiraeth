@@ -13,7 +13,7 @@ const words = (...t) => esc(t.filter(Boolean).join(' ').toLowerCase());
 export function manifestFor(manifest, file) {
   if (!manifest) return null;
   if (manifest.title?.file === file) return manifest.title;
-  return (manifest.tracks ?? []).find((t) => t.file === file) ?? null;
+  return [...(manifest.tracks ?? []), ...(manifest.scenes ?? [])].find((t) => t.file === file) ?? null;
 }
 
 function head(id, title, sub, label = title) {

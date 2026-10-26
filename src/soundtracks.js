@@ -1,5 +1,5 @@
-// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the desert's (and the title's)
-// is in the bundle; the others are downloaded from the site in the background and kept (src/music-store.js).
+// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. Device bundles carry the
+// desert, title and scene cues; other world themes download in the background (src/music-store.js).
 import { bundledGame } from './levels/reference-sheets.js';
 import { keepTheme, pageThemeStore, startThemeDownload, themeKey, themeSources } from './music-store.js';
 import { THEME_LEVELS } from './theme-levels.js';
@@ -7,28 +7,19 @@ import { runSteps, runStepsAsync } from './load-steps.js';
 export const SOUNDTRACKS = {
   home: 'home.mp3',
   lantern: 'home.mp3',   // (the Lantern: home's own theme, at Ilen's)
-  moonfoundry: 'moonfoundry.mp3',
-  underside: 'underside.mp3',
-  spacecity: 'spacecity.mp3',
+  moonfoundry: 'moonfoundry-makers-groove.mp3',
+  spacecity: 'spacecity-beyond-the-horizon.mp3',
   overnighttrain: 'overnighttrain.mp3',
-  glassdunes: 'glassdunes.mp3',
-  underwater: 'underwater.mp3',
-  eclipse: 'eclipse.mp3',
-  fallenring: 'fallenring.mp3',
-  saltharbour: 'saltharbour.mp3',
-  waterfall: 'waterfall.mp3',
-  antennas: 'antennas.mp3',
-  atelier: 'atelier.mp3',
-  perdide: 'perdide.mp3',
+  glassdunes: 'glassdunes-impossible-reflections.mp3',
+  underwater: 'underwater-life-under-pressure.mp3',
+  perdide: 'perdide-swamp-mischief.mp3',
   perdide2: 'perdide2.mp3',
   bazaar: 'bazaar.mp3',
-  mangrove: 'mangrove.mp3',
-  garage: 'garage.mp3',
   buried: 'buried.mp3',
-  edena: 'edena.mp3',
+  edena: 'edena-wild-bloom.mp3',
   spheres: 'spheres.mp3',
   desert: 'desert-bayati.mp3',   // (issue #207: "Descent into D Bayati", made to sit with its new score; the old desert.mp3 retired)
-  incal: 'incal.mp3',
+  incal: 'incal-streets-above-streets.mp3',
   arzach: 'arzach.mp3',
   arzach2: 'arzach2.mp3',
 };
@@ -122,7 +113,8 @@ export function nativeSoundtrack(original) {
  * ON_DEVICE_THEMES, since it is the first thing the game plays). Not a world's theme: the title's Sound plays it
  * on the menu bus in place of the procedural menu music (src/audio.js playTitleTheme).
  */
-export const TITLE_THEME = 'title.mp3';
+export const TITLE_THEME = 'title-french-touch.mp3';
+export const SCENE_THEMES = { battle: 'battle-trouble-finds-you.mp3', prologue: 'prologue-before-the-message.mp3' };
 
 /**
  * Load the title's recording and hand it, balanced and joined for looping (prepareSoundtrack), to
@@ -159,7 +151,7 @@ let themeWait = null;
 export function setThemeWait(wait) { themeWait = wait ?? null; }
 
 /** The theme files, once each (home and the Lantern share one). */
-export const THEME_FILES = [...new Set(Object.values(SOUNDTRACKS))];
+export const THEME_FILES = [...new Set([...Object.values(SOUNDTRACKS), ...Object.values(SCENE_THEMES)])];
 
 /**
  * Keep procedural music until a recording has loaded and decoded successfully: the bundle's, or the one a
@@ -228,7 +220,7 @@ function startTrack(sound, decoded, { late = false } = {}) {
   // (Sound.musicMomentsUpdate starts it, faded, when a moment wants it; held back, the prologue in the ship: issue #149)
   // (a recording that arrived while the score played, downloaded: it takes over now, faded in as on arriving, not at
   // the next moment minutes away; issue #471)
-  if (late || sound.themeHeld) {
+  if (late || sound.themeHeld || sound.sceneMusic?.battleActive) {
     sound.trackOn = false;
     if (late && !sound.themeHeld) sound.moments?.cue?.('arrival', ctx.currentTime);
     return;
@@ -241,4 +233,38 @@ function startTrack(sound, decoded, { late = false } = {}) {
   source.start(ctx.currentTime);
   sound.recordedTrack = source;
   sound.trackOn = true;   // (from here Sound.musicMomentsUpdate fades it in and out: src/music-moments.js)
+}
+
+
+/** Preload encounter cues so an enemy's appearance never waits for a network request. */
+export async function loadSceneThemes(sound, fetcher = globalThis.fetch, { here = globalThis.location, store, wait = themeWait } = {}) {
+  if (!sound.ctx || !sound.sceneMusic || !fetcher) return;
+  const abort = sound.sceneAbort = typeof AbortController === 'function' ? new AbortController() : null;
+  const device = bundledGame(here);
+  if (store === undefined) store = device ? pageThemeStore() : null;
+  for (const [id, file] of Object.entries(SCENE_THEMES)) {
+    if (sound._disposed) return;
+    if (id === 'prologue' && sound.levelId !== 'desert') continue;
+    const adopt = async (blob) => {
+      const decoded = await sound.ctx.decodeAudioData(await blob.arrayBuffer());
+      if (sound._disposed || sound.ctx.state === 'closed') return false;
+      const buffer = await runStepsAsync(prepareSoundtrackSteps(sound.ctx, decoded));
+      if (sound._disposed) return false;
+      sound.sceneMusic.install(id, buffer);
+      return true;
+    };
+    try {
+      let loaded = false;
+      for await (const { blob } of themeSources(file, { here, store, fetcher, signal: abort?.signal })) {
+        try { loaded = await adopt(blob); } catch { /* try the next source */ }
+        if (loaded || sound._disposed) break;
+      }
+      if (!loaded && !sound._disposed) {
+        // Retry through the shared theme loader when a source is temporarily unavailable.
+        const pending = device && store ? startThemeDownload(THEME_FILES, { first: file }).arrived(file, abort?.signal)
+          : wait ? wait(file, { signal: abort?.signal, gone: () => !!sound._disposed }) : null;
+        if (pending) void Promise.resolve(pending).then(blob => blob && !sound._disposed && adopt(blob)).catch(() => {});
+      }
+    } catch { /* the existing procedural cue remains available offline */ }
+  }
 }

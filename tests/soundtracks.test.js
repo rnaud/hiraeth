@@ -59,14 +59,18 @@ test('registered soundtracks are packaged audio files', () => {
   for (const file of Object.values(SOUNDTRACKS)) assert.ok(statSync(new URL(`../public/music/${file}`, import.meta.url)).size > 100000);
 });
 
-// The named worlds exclude development fixtures such as the Lab and Arena.
+// Shipping worlds include merged regions, but exclude discarded and dismissed locations.
 test('every playable world has exactly one packaged soundtrack and source record', async () => {
-  const { TITLES } = await import('../src/levels/names.js');
+  const { TITLES, isDiscarded, isDismissed } = await import('../src/levels/names.js');
   const { readFileSync } = await import('node:fs');
   const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
-  const worlds = Object.keys(TITLES).sort();
+  const worlds = Object.keys(TITLES).filter(id => !isDiscarded(id) && !isDismissed(id)).sort();
   assert.deepEqual(Object.keys(SOUNDTRACKS).sort(), worlds);
   assert.deepEqual(manifest.tracks.map(t => t.level).sort(), worlds);
+  const { existsSync } = await import('node:fs');
+  for (const id of Object.keys(TITLES).filter(id => isDiscarded(id) || isDismissed(id))) {
+    assert.ok(!existsSync(new URL(`../public/music/${id}.mp3`, import.meta.url)), `${id}: retired audio must not ship`);
+  }
   for (const track of manifest.tracks) {
     assert.equal(track.file, SOUNDTRACKS[track.level]);
     // a Suno song link; or, made by the author without one (the desert's, issue #207), the date and the prompt
@@ -132,7 +136,7 @@ test('the title\'s recording: its record, its file, carried by the devices', asy
   const { readFileSync } = await import('node:fs');
   const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
   assert.equal(manifest.title.file, TITLE_THEME);
-  assert.equal(manifest.title.title, 'Hiraeth - Distant Home');
+  assert.equal(manifest.title.title, 'Hiraeth - Main Theme - French Touch');
   assert.ok(manifest.title.source === null || /^https:\/\/suno\.com\/song\/[a-f0-9-]{36}$/.test(manifest.title.source));
   assert.ok(manifest.title.direction.length > 20);
   assert.ok(statSync(new URL(`../public/music/${TITLE_THEME}`, import.meta.url)).size > 100000);
@@ -251,7 +255,7 @@ test('a theme an engine\'s player downloads takes over as soon as it is there (i
   const wait = async (file, o) => { asked = file; assert.equal(o.gone(), false); return { arrayBuffer: async () => new ArrayBuffer(8) }; };
   // (an engine: its location is engine://, no IndexedDB, so no page store)
   assert.equal(await loadSoundtrack(sound, missing, { here: ENGINE, store: null, wait }), true);
-  assert.equal(asked, 'incal.mp3');
+  assert.equal(asked, 'incal-streets-above-streets.mp3');
   assert.equal(sound.trackFrom, 'site');
   assert.ok(sound.trackBuffer, 'the recording is ready');
   // and the moments bring it in now, not at the next moment minutes away

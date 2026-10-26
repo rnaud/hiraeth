@@ -2707,12 +2707,12 @@ export class Foes {
   update(dt, paused = false) {
     TELL.slow = this.difficulty === 'gentle' ? GENTLE.wind : 1;   // (the guardians' wind-ups too: src/telegraph.js)
     const P = this.player;
-    if (!P) return;
-    if (!this.on) { for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); } return; }
+    if (!P) { this.sound?.combat?.(false); return; }
+    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); } return; }
     // (held still by a scene, a conversation or a menu: nothing is fighting you. The flag kept its last value before, so a
     // toad that was chasing as a world's moment began kept the hearts and the wallet up over the whole of it: issue #264,
     // Lorn's crystal moment in the Unity batch run, whose foes had a few seconds more to wake than the page's)
-    if (paused) { if (this.fighting) { this.fighting = false; if (typeof document !== 'undefined') document.body.classList.toggle('combat', false); } return; }
+    if (paused) { this.sound?.combat?.(false); if (this.fighting) { this.fighting = false; if (typeof document !== 'undefined') document.body.classList.toggle('combat', false); } return; }
     this.clock = (this.clock ?? 0) + dt;   // (the foes' own time: seesYou's pace)
     if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();
@@ -2804,7 +2804,9 @@ export class Foes {
     this.clouds?.update(dt);
     if (this.level?.temple?.inside?.(P.pos)) this.templeKit();
     // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
-    const fighting = this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28);
+    const guardian = this.level?.temple?.guardian;
+    const guardianFighting = guardian && !guardian.def?.helper && ['wake', 'fight', 'open', 'shift'].includes(guardian.state) && this.level.temple.inside?.(P.pos);
+    const fighting = !P.dead && !P.ride && (!!guardianFighting || this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28));
     this.sound?.combat?.(fighting);
     this.fighting = fighting || !!this.lock;
     if (typeof document !== 'undefined') document.body.classList.toggle('combat', this.fighting);

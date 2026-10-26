@@ -133,7 +133,7 @@ namespace Hiraeth.EditorTools
         }
 
         /// <summary>The recordings every device carries (src/music-store.js ON_DEVICE_THEMES; tests/engine-music.test.js checks they agree).</summary>
-        public static readonly string[] OnDeviceThemes = { "desert-bayati.mp3", "singing-light.mp3", "title.mp3" };
+        public static readonly string[] OnDeviceThemes = { "desert-bayati.mp3", "singing-light.mp3", "title-french-touch.mp3", "battle-trouble-finds-you.mp3", "prologue-before-the-message.mp3" };
 
         /// <summary>Short effects are available offline on every native platform.</summary>
         static void Effects()

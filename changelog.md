@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.31 — 2026-10-26
+
+- Music downloads no longer include nine unfinished or retired destinations, keeping the soundtrack focused on the places you can visit.
+- Battle music starts when nearby enemies engage you, holds through brief gaps between attacks, then fades back to exploration when the fight ends.
+- The opening aboard your ship has its own theme, fading away for your father's message before the desert music takes over outside.
+- The Glass Dunes, Moon Foundry and Underwater City each have a new recording with a different rhythm and character.
+- A new French electro main theme welcomes you. Lorn is mysterious and mischievous, Viridel bursts with playful energy, the City-Shaft has an orchestral adventure, and Space City reaches for the epic.
+
 ## v2.30 — 2026-10-26
 
 - Lorn’s crystals are cut in clean facets: each face its own shade of the crystal’s colour, a light one toward the sky and a deep one in shade, with a pale rim along the edges and a soft glow brighter toward the root. Up close a few fine fractures and tiny bright specks show inside. The groves, the Great Crystal, the cave’s crystals and the Deep Wood’s clusters all have it.

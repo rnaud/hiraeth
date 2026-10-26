@@ -3,12 +3,13 @@
   "model": "v6",
   "created": "2026-10-08",
   "title": {
-    "title": "Hiraeth - Distant Home",
-    "source": null,
-    "file": "title.mp3",
-    "created": "2026-10-09",
-    "note": "The title screen's music (src/soundtracks.js TITLE_THEME). Made in Suno by the author; no song link was given. Trimmed by 0.6 s of near-silence at the start (whole MP3 frames, not re-encoded).",
-    "direction": "D lydian, 72 BPM, instrumental, no drums, meant to loop; glass harmonica and celesta carrying a slow five-note call, warm low strings, soft distant wordless voice, nylon guitar, hand bells, quiet low D drone"
+    "title": "Hiraeth - Main Theme - French Touch",
+    "source": "https://suno.com/song/409efb34-770f-4293-8a9c-e7cb8fd10c64",
+    "file": "title-french-touch.mp3",
+    "created": "2026-10-26",
+    "model": "v6",
+    "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+    "direction": "French electro with a playful, warm dance pulse"
   },
   "tracks": [
     {
@@ -18,15 +19,18 @@
       "file": "desert-bayati.mp3",
       "created": "2026-10-12",
       "note": "Made in Suno by the author on 2026-10-12 from the prompt below, written to match the desert's new procedural score (issue #207: src/score.js SCORES.desert, D bayati, 56 BPM); no song link was given. The MP3 as Suno gave it (2:45, 48 kHz, ~185 kb/s), not re-encoded. Replaces desert.mp3 (D hijaz, frame drum), retired in issue #207.",
-      "prompt": "Style: ambient, mysterious, slow (56 BPM), D Bayati maqam. Solo oud, sparse and intimate, long held notes with slides like a fretless neck, plenty of silence between phrases. Under it: warm analog synth pads slowly opening, a low drone on D and A, soft desert wind, a faint granular shimmer, tape-style echoes panning left and right. Modern electronic textures for a sci-fi world of space exploration, but organic and human. No drums, no percussion loops, no vocals, no big build, no dramatic climax. Think Jon Hassell meets Anouar Brahem meets Hiroshi Yoshimura. Structure: instrumental, 2:30–3:00, seamless loop: drone swells in, oud states a falling motif (A–G–F–E half-flat–D), a gliding sine lead answers with a long theme (D–F–A–G–A), then the shimmer, the motif a step lower over a soft bass, thinning to one or two oud notes, then the drone alone back to the start. Exclude: drums, darbuka, frame drum, vocals, choir, strings swell, cinematic hits, EDM, trap.",
+      "prompt": "Style: ambient, mysterious, slow (56 BPM), D Bayati maqam. Solo oud, sparse and intimate, long held notes with slides like a fretless neck, plenty of silence between phrases. Under it: warm analog synth pads slowly opening, a low drone on D and A, soft desert wind, a faint granular shimmer, tape-style echoes panning left and right. Modern electronic textures for a sci-fi world of space exploration, but organic and human. No drums, no percussion loops, no vocals, no big build, no dramatic climax. Think Jon Hassell meets Anouar Brahem meets Hiroshi Yoshimura. Structure: instrumental, 2:30\u20133:00, seamless loop: drone swells in, oud states a falling motif (A\u2013G\u2013F\u2013E half-flat\u2013D), a gliding sine lead answers with a long theme (D\u2013F\u2013A\u2013G\u2013A), then the shimmer, the motif a step lower over a soft bass, thinning to one or two oud notes, then the drone alone back to the start. Exclude: drums, darbuka, frame drum, vocals, choir, strings swell, cinematic hits, EDM, trap.",
       "direction": "D bayati, 56 BPM, instrumental, no drums; solo oud with fretless slides, warm analog pads, a low D/A drone, desert wind, granular shimmer, tape echoes; ambient and mysterious"
     },
     {
-      "level": "incal",
-      "title": "Hiraeth - The City-Shaft",
-      "source": "https://suno.com/song/2295772b-4ee2-4ead-95fc-f1db473962ba",
-      "file": "incal.mp3",
-      "direction": "F lydian, 80 BPM; muted trumpet, vibraphone, pizzicato bass, brushes; curious nocturnal chamber jazz"
+      "title": "Hiraeth - City-Shaft - Streets Above Streets",
+      "source": "https://suno.com/song/97da72f1-9474-4411-bf25-ffb20e529d93",
+      "file": "incal-streets-above-streets.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Whimsical orchestral adventure through a vertical city",
+      "level": "incal"
     },
     {
       "level": "arzach",
@@ -43,13 +47,6 @@
       "direction": "B flat dorian, 44 BPM; bowed drone, flute, singing bowls, hand bells; weightless monasteries above clouds"
     },
     {
-      "level": "garage",
-      "title": "Hiraeth - The Sealed Hangar",
-      "source": "https://suno.com/song/82f133c7-29b1-4ef1-969f-b76fb3132909",
-      "file": "garage.mp3",
-      "direction": "C whole tone, 84 BPM in 7; soft analog lead, sequenced pulse, clock ticks; playful machinery"
-    },
-    {
       "level": "buried",
       "title": "Hiraeth - The Buried Machine",
       "source": "https://suno.com/song/613507e8-10c5-405d-9234-fbbf109663da",
@@ -57,11 +54,14 @@
       "direction": "B Hungarian minor, 54 BPM; low brass, horn, metallic mallets; ancient engineering and patient awe"
     },
     {
-      "level": "edena",
-      "title": "Hiraeth - Viridel",
-      "source": "https://suno.com/song/26f8332a-4ea0-4382-bb8f-fb4a0b86a387",
-      "file": "edena.mp3",
-      "direction": "G mixolydian, 72 BPM in 6; harp, strings, flute, harmonium; pastoral wonder"
+      "title": "Hiraeth - Viridel - Wild Bloom",
+      "source": "https://suno.com/song/731b4796-9575-4bf0-bba0-354ab3cd53ab",
+      "file": "edena-wild-bloom.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Playful, explosive energy",
+      "level": "edena"
     },
     {
       "level": "spheres",
@@ -71,11 +71,14 @@
       "direction": "A major pentatonic, 60 BPM; glass harmonica, celesta, bells; luminous mirrored garden"
     },
     {
-      "level": "perdide",
-      "title": "Hiraeth - Lorn",
-      "source": "https://suno.com/song/8356f9d5-2ccc-4719-a63d-6d65166e2ee9",
-      "file": "perdide.mp3",
-      "direction": "E phrygian, 54 BPM; wet glass, bass clarinet, marimba, log drums; tender twilight swamp"
+      "title": "Hiraeth - Lorn - Swamp Mischief",
+      "source": "https://suno.com/song/21a14c82-54b1-4b22-863f-bd6fa4e851f3",
+      "file": "perdide-swamp-mischief.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Mysterious and playful swamp exploration",
+      "level": "perdide"
     },
     {
       "level": "perdide2",
@@ -92,88 +95,44 @@
       "direction": "E lydian dominant, 96 BPM; shawm, santur, electric piano, darbuka; warm alien market"
     },
     {
-      "level": "mangrove",
-      "title": "Hiraeth - The White Mangrove",
-      "source": "https://suno.com/song/cb01f398-9d9c-4a2a-bb90-21fb0e55e641",
-      "file": "mangrove.mp3",
-      "direction": "D dorian, 64 BPM; flute, plucked harp, bass clarinet, handpan; lanterns over black water"
+      "title": "Hiraeth - Glass Dunes - Impossible Reflections",
+      "source": "https://suno.com/song/6a595947-873c-4d3b-921d-5c839d95a581",
+      "file": "glassdunes-impossible-reflections.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Strange reflective desert exploration",
+      "level": "glassdunes"
     },
     {
-      "level": "saltharbour",
-      "title": "Hiraeth - The Salt Harbour",
-      "source": "https://suno.com/song/02492f3d-57e0-4db6-9ecd-0333ac3bf8df",
-      "file": "saltharbour.mp3",
-      "direction": "F mixolydian, 66 BPM; nylon guitar, flute, harmonium, upright bass; weathered ships in salt"
+      "title": "Hiraeth - Underwater City - Life Under Pressure",
+      "source": "https://suno.com/song/6a7e65e3-e265-4cee-b3f2-34349d482650",
+      "file": "underwater-life-under-pressure.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Lively underwater city",
+      "level": "underwater"
     },
     {
-      "level": "waterfall",
-      "title": "Hiraeth - The City Behind the Waterfall",
-      "source": "https://suno.com/song/63eaae60-f857-4583-a092-c519169ebb86",
-      "file": "waterfall.mp3",
-      "direction": "D flat lydian, 62 BPM; felt piano, harp, cello, glass mallets; hidden refuge behind water"
+      "title": "Hiraeth - Moon Foundry - The Makers Groove",
+      "source": "https://suno.com/song/6cd4dc9b-2367-4797-a979-2bc031a142b8",
+      "file": "moonfoundry-makers-groove.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Playful mechanical groove",
+      "level": "moonfoundry"
     },
     {
-      "level": "antennas",
-      "title": "Hiraeth - The Forest of Antennas",
-      "source": "https://suno.com/song/eecbc8e4-ca4b-4dac-b7e9-1455356a6ee6",
-      "file": "antennas.mp3",
-      "direction": "E dorian, 68 BPM; analog pulse, electric piano, bowed vibes; distant calls and hopeful solitude"
-    },
-    {
-      "level": "atelier",
-      "title": "Hiraeth - The Atelier",
-      "source": "https://suno.com/song/430e1c57-f9ae-45e9-9481-30bbc7ecd954",
-      "file": "atelier.mp3",
-      "direction": "C major, 60 BPM; felt piano, music box, strings, harmonium; memories drawn on a blank page"
-    },
-    {
-      "level": "glassdunes",
-      "title": "Hiraeth - The Glass Dunes",
-      "source": "https://suno.com/song/1d73147a-406b-4e2c-82ec-42af36f9ec50",
-      "file": "glassdunes.mp3",
-      "direction": "B lydian, 56 BPM; glass harmonica, bowed vibes, harp harmonics, cello; green crystalline dunes"
-    },
-    {
-      "level": "underwater",
-      "title": "Hiraeth - The Underwater City",
-      "source": "https://suno.com/song/c96f1104-e2a8-4811-abcf-85102933dd81",
-      "file": "underwater.mp3",
-      "direction": "F sharp dorian, 58 BPM; electric piano, harp, rounded mallets, cello; warm ocean refuge"
-    },
-    {
-      "level": "eclipse",
-      "title": "Hiraeth - The City During the Eclipse",
-      "source": "https://suno.com/song/955dab9e-f32f-40b0-b43b-13c19feaa9b0",
-      "file": "eclipse.mp3",
-      "direction": "C sharp dorian, 52 BPM; bass clarinet, muted strings, piano, bowls; suspended wonder"
-    },
-    {
-      "level": "fallenring",
-      "title": "Hiraeth - The Fallen Ring",
-      "source": "https://suno.com/song/7a417f35-bb5c-4ebc-8405-fbdc382d63bb",
-      "file": "fallenring.mp3",
-      "direction": "A mixolydian, 70 BPM; French horn, guitar, strings, frame drum; pastoral orbital ruins"
-    },
-    {
-      "level": "moonfoundry",
-      "title": "Hiraeth - The Moon Foundry",
-      "source": "https://suno.com/song/a739822f-3bff-4512-bede-ebf69a44e0d4",
-      "file": "moonfoundry.mp3",
-      "direction": "C dorian, 76 BPM; metallic mallets, brass, electric piano, analog arpeggios; patient moon-making"
-    },
-    {
-      "level": "underside",
-      "title": "Hiraeth - The Underside",
-      "source": "https://suno.com/song/a1d3fc85-eb91-411a-b53b-dd3e35f94bd4",
-      "file": "underside.mp3",
-      "direction": "G dorian, 64 BPM in 3; plucked cello, flute, harmonium, harp; a town suspended over clouds"
-    },
-    {
-      "level": "spacecity",
-      "title": "Hiraeth - The City Floating in Space",
-      "source": "https://suno.com/song/ffff8cc7-ea8b-4a41-88a2-a55dc5fe82b2",
-      "file": "spacecity.mp3",
-      "direction": "E flat lydian, 60 BPM; analog strings, celesta, electric piano, French horn; intimate cosmic wonder"
+      "title": "Hiraeth - Space City - Beyond the Horizon",
+      "source": "https://suno.com/song/9a1349d7-f6f2-4efb-8e6a-ce51b3f3ef0f",
+      "file": "spacecity-beyond-the-horizon.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Epic space exploration",
+      "level": "spacecity"
     },
     {
       "level": "overnighttrain",
@@ -205,6 +164,28 @@
       "file": "singing-light.mp3",
       "status": "to record: the game sings the synth version until this file is here (docs/systems/audio.md, \"The singing light's theme\", has the Suno brief)",
       "direction": "D lydian, 66 BPM, about 45 s, no drums; one wordless high voice (a soft 'oo', glass-like), a glass harmonica an octave over it, a very quiet low D drone swelling in threes; the five-note call A4, D5 E5, a glide up to G#5, a long F#5: far, nearer, close, alone, then rushing past"
+    }
+  ],
+  "scenes": [
+    {
+      "title": "Hiraeth - Battle - Trouble Finds You",
+      "source": "https://suno.com/song/5c9a450d-173c-4df9-bd15-f5b19214c8c9",
+      "file": "battle-trouble-finds-you.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Energetic instrumental combat",
+      "scene": "battle"
+    },
+    {
+      "title": "Hiraeth - Prologue - Before the Message",
+      "source": "https://suno.com/song/3ed54deb-97b5-40f2-9666-ef40167c4b78",
+      "file": "prologue-before-the-message.mp3",
+      "created": "2026-10-26",
+      "model": "v6",
+      "note": "Author-selected instrumental; original Suno MP3 export, not re-encoded. Playback joins the tail and balances loudness.",
+      "direction": "Intimate retro-futurist spacecraft score, 82 BPM, D Lydian",
+      "scene": "prologue"
     }
   ]
 }

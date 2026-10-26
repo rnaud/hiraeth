@@ -393,3 +393,20 @@ test('in a temple the machines meet its kit: a gust shoves them, and one standin
   assert.ok(!pressed.has('p1:foe'), 'and let go when it walks off');
   foes.dispose(); clearTargets();
 });
+
+test('encounters request battle music on engagement and release on defeat, pause, death and disabled enemies', () => {
+  clearTargets();
+  const P = player(), events = [];
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null), sound: { combat: on => events.push(on) } });
+  const f = foes.add('blot', v(0, 0, 8));
+  foes.update(DT); assert.equal(events.at(-1), true, 'noticed enemy begins combat');
+  foes.update(DT, true); assert.equal(events.at(-1), false, 'paused');
+  foes.update(DT); assert.equal(events.at(-1), true, 'resume engagement');
+  P.dead = true; foes.update(DT); assert.equal(events.at(-1), false, 'knocked out');
+  P.dead = false; f.hit('blade', v(0, 0, 1), { damage: 100 }); foes.update(DT); assert.equal(events.at(-1), false, 'last enemy defeated');
+  foes.level.temple = { guardian: { state: 'fight', def: {} }, inside: () => true };
+  foes.update(DT); assert.equal(events.at(-1), true, 'guardian encounter');
+  foes.level.temple.guardian.state = 'weary'; foes.update(DT); assert.equal(events.at(-1), false, 'guardian at peace');
+  foes.settings.enemies = false; foes.update(DT); assert.equal(events.at(-1), false, 'disabled encounters');
+  foes.dispose(); clearTargets();
+});

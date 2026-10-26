@@ -238,6 +238,7 @@ function playLines(ship, model, timeline, t, st = {}) {
  */
 export function prologueMusic(sound, phase) {
   if (!sound?.setScore) return;
+  sound.prologueTheme?.(phase === 'ship');
   if (phase === 'ship') { sound.holdTheme(true); sound.setScore('ship'); }
   else if (phase === 'quiet') { sound.holdTheme(true); sound.setScore(null); }
   else { sound.setScore('desert'); sound.holdTheme(false); }

@@ -167,13 +167,13 @@ test('large updates and the previous archive are split, then stream as intact re
 test('the zip carries the desert\'s theme and the title\'s music, not the other themes (fetched on demand), nor the site\'s headers; OTA_MUSIC=1 puts them back', async () => {
   const dist = site();
   mkdirSync(join(dist, 'music'));
-  for (const f of ['desert-bayati.mp3', 'title.mp3', 'incal.mp3', 'home.mp3', 'manifest.json']) writeFileSync(join(dist, 'music', f), f);
+  for (const f of ['desert-bayati.mp3', 'title-french-touch.mp3', 'incal-streets-above-streets.mp3', 'home.mp3', 'manifest.json']) writeFileSync(join(dist, 'music', f), f);
   writeFileSync(join(dist, '_headers'), '/music/*\n  Access-Control-Allow-Origin: *\n');
   await writeUpdate({ dist, build: 542, music: false });
   const names = Object.keys(unzip(readFileSync(join(dist, UPDATES, 'web-542.zip'))));
-  assert.ok(names.includes('music/desert-bayati.mp3') && names.includes('music/title.mp3') && names.includes('music/manifest.json'), names.join());
-  assert.ok(!names.includes('music/incal.mp3') && !names.includes('music/home.mp3') && !names.includes('_headers'), names.join());
+  assert.ok(names.includes('music/desert-bayati.mp3') && names.includes('music/title-french-touch.mp3') && names.includes('music/manifest.json'), names.join());
+  assert.ok(!names.includes('music/incal-streets-above-streets.mp3') && !names.includes('music/home.mp3') && !names.includes('_headers'), names.join());
   await writeUpdate({ dist, build: 543, music: true });
   const all = Object.keys(unzip(readFileSync(join(dist, UPDATES, 'web-543.zip'))));
-  assert.ok(all.includes('music/incal.mp3') && all.includes('music/home.mp3'), 'the hand-over update');
+  assert.ok(all.includes('music/incal-streets-above-streets.mp3') && all.includes('music/home.mp3'), 'the hand-over update');
 });

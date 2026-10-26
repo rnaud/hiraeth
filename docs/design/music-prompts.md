@@ -207,3 +207,33 @@ AIVA browser comparison generated 16 October 2026: Hiraeth - Rose House - AIVA M
 Desert AIVA comparison, 16 October 2026: author found the Rose House AIVA study too much like a MIDI synth; this feedback applies to the AIVA study, not the selected Suno recording. Generated Hiraeth - Desert - AIVA Ambient Hybrid from Ambient Hybrid (source shown as Hybrid Ensemble I - Alternative Harmonies 1), D minor, requested 2:00–2:30. Result: GP Ensemble, 80 BPM, 4/4, 2:27. This is a style-based interpretation; Bayati tuning, oud and the original's sound design were not individually specified by this generation interface. MP3 and full/reduced MIDI exported to /private/tmp/hiraeth-midi-comparison-20261016/desert/. Personal Use review candidate; not installed. One monthly AIVA composition download remains. Awaiting listening feedback.
 
 Suno Premier access resolved on 16 October 2026. Get MIDI on the selected Living Circuit B Synth stem now starts transcription; first conversion in progress. Other stems have not been converted.
+
+
+## Listening selections — 26 October 2026
+
+Selected via the author's active Suno likes, checked in the visible Codex browser. All ten selections, including prologue B below, are installed for release 2.31. Source links and filenames are in public/music/manifest.json. All generated with Suno v6, empty lyrics (instrumental).
+
+| Cue | Selected recording |
+| --- | --- |
+| Main theme — French Touch | https://suno.com/song/409efb34-770f-4293-8a9c-e7cb8fd10c64 |
+| Lorn — Swamp Mischief | https://suno.com/song/21a14c82-54b1-4b22-863f-bd6fa4e851f3 |
+| Viridel — Wild Bloom | https://suno.com/song/731b4796-9575-4bf0-bba0-354ab3cd53ab |
+| City-Shaft — Streets Above Streets | https://suno.com/song/97da72f1-9474-4411-bf25-ffb20e529d93 |
+| Space City — Beyond the Horizon | https://suno.com/song/9a1349d7-f6f2-4efb-8e6a-ce51b3f3ef0f |
+| Glass Dunes — Impossible Reflections | https://suno.com/song/6a595947-873c-4d3b-921d-5c839d95a581 |
+| Moon Foundry — The Makers Groove | https://suno.com/song/6cd4dc9b-2367-4797-a979-2bc031a142b8 |
+| Underwater City — Life Under Pressure | https://suno.com/song/6a7e65e3-e265-4cee-b3f2-34349d482650 |
+| Battle — Trouble Finds You | https://suno.com/song/5c9a450d-173c-4df9-bd15-f5b19214c8c9 |
+
+### Prologue — Before the Message (B selected and installed)
+
+Dedicated spacecraft recording requested by the author, distinct from the Desert. Existing prologue code holds back the Desert theme while inside the ship, uses a procedural ship score, then quiets it for the father's message and singing light. The installed prologue recording preserves these phases; battle has automatic combat entry and exit fades.
+
+Submitted Styles: Instrumental intimate retro-futurist prologue score, 82 BPM, D Lydian with gently unsettled suspended harmony. Waking alone inside a small spacecraft before a life-changing message. A simple original five-note melody on warm muted analog synth, answered by soft electric piano and tiny processed glass harmonics. A restrained pulsing sequencer suggests the ship quietly breathing, rounded low synth bass, occasional dry electronic ticks. Curious, vulnerable and quietly hopeful, human warmth inside old technology; French electronic colour with a cinematic sense of anticipation. Begin immediately but softly, reveal the melody in spacious short phrases, briefly widen the harmony, then thin back to the opening pulse. Keep the middle register open for dialogue, restrained dynamics, no climax. About two minutes with recurring sections and clean phrase boundaries for fading under a voicemail.
+
+Exclude: vocals, choir, oud, desert folk, dance kick, busy drums, epic brass, trailer impacts, horror drone, sentimental orchestral swell, EDM drop.
+
+- A (3:07): https://suno.com/song/180e5cbe-a989-4268-84d1-f98b8a303abe
+- B (2:56): https://suno.com/song/3ed54deb-97b5-40f2-9666-ef40167c4b78
+
+Suno originals for all retired locations are retained. Only game files were authorised for removal.

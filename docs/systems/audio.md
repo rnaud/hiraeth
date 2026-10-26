@@ -1224,3 +1224,16 @@ loudest 50 ms in dBFS; nothing played out loud). The full numbers and the reason
   second, two in its last seconds, never stacked (one clock per room). The spells reuse the shield's, the hum's, the
   riposte's and the whoosh's sounds, one call per cast. Foe entrances and attack trails have no sound of their own.
 - `tests/sound-mix.test.js` (the gap, the stack, the ambience duck) and `tests/spells.test.js` (the shards' one slash).
+
+## Retired world recordings (26 October 2026)
+
+Discarded side worlds (White Mangrove, Waterfall, Salt Harbour, Forest of Antennas, Eclipse, Fallen Ring and Underside) and dismissed worlds (Sealed Hangar and Atelier) no longer carry recorded MP3s, soundtrack registrations, manifest rows or engine gain entries. The music catalogue and background download queue derive from the remaining registrations. Suno originals remain available; the retained Sky Stones, Deep Wood and Overnight Train still have their recordings. This shared asset/registry change applies to web and Unity; already cached device files are not purged.
+
+
+### Selected soundtrack refresh (2.31)
+
+Ten author-selected Suno v6 originals replace the title and seven world recordings and add prologue/battle themes. `public/music/manifest.json` preserves source links. New filenames avoid stale device caches. Nine retired/WIP recordings are removed from game downloads; Suno originals are retained.
+
+`SceneMusic` shares the web/Unity audio graph and music volume bus. Battle is preloaded, begins on a nearby enemy's chase/wind/strike/recovery, holds for 1.2 seconds after disengagement, and fades over 2.5 seconds. Exploration fades down during combat and returns afterward. Pauses, death, riding and disabled encounters release combat. A new fight during the fade resumes from the current gain. Unavailable recordings retain procedural fallback. Disposal aborts pending loads and stops voices.
+
+Prologue music plays only in the ship phase, fades for the voicemail, and never substitutes for the desert outside. The prologue and battle recordings are carried in device/content bundles for immediate offline playback. World themes continue background downloading. `scripts/theme-levels.mjs` measures the same loop join and loudness target for Unity as the web uses at runtime.

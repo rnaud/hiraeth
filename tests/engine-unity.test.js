@@ -484,12 +484,12 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.ok(sound.batches >= 20, `the sound recorded and played elsewhere: ${sound.batches} batches`);
   assert.ok(Math.sqrt(sound.sumSq / (sound.frames * 2)) > 1e-5, 'and something to hear (the wind)');
   // the recorded music: the title's, then the world's theme, decoded by Unity and played where the graph says, faded in
-  assert.deepEqual(music.loads, ['music/title.mp3', 'music/glassdunes.mp3'], JSON.stringify(music.loads));
+  assert.deepEqual(music.loads, ['music/title-french-touch.mp3', 'music/glassdunes-impossible-reflections.mp3', 'music/battle-trouble-finds-you.mp3'], JSON.stringify(music.loads));
   const lines = music.natives.flatMap((t) => (t ? t.split(';') : [])).map((l) => l.split(',').map(Number));
   assert.ok(lines.some((l) => l[1] === 1), 'the title\'s recording played on the title');
   const world = lines.filter((l) => l[1] === 2);
   assert.ok(world.length > 20 && world.at(-1)[3] > 0.01 && world.at(-1)[5] === 1 && world.at(-1)[6] === 2, `the world's theme, looped, faded in: ${JSON.stringify(world.at(-1))}`);
-  assert.equal(music.fetch?.list.split(';')[0].split(' ')[0], 'glassdunes.mp3', 'the themes the package lacks fetched, this world\'s first');
+  assert.equal(music.fetch?.list.split(';')[0].split(' ')[0], 'glassdunes-impossible-reflections.mp3', 'the themes the package lacks fetched, this world\'s first');
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;

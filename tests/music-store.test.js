@@ -62,12 +62,12 @@ test('a device is the Android app (GeckoView or its WebView), the Deck; never th
 
 test('a theme is kept under its file name, for good: the database and the key never move', () => {
   assert.deepEqual([THEME_DB, THEME_STORE, THEME_DB_VERSION], ['hiraeth-music', 'themes', 1]);
-  assert.equal(themeKey('incal.mp3'), 'incal.mp3');
-  assert.equal(themeKey('music/incal.mp3'), 'incal.mp3');
-  assert.equal(siteThemeUrl('incal.mp3'), `${SHEET_SITE}music/incal.mp3`);
-  assert.equal(localThemeUrl('incal.mp3', './'), './music/incal.mp3');
-  assert.deepEqual(ON_DEVICE_THEMES, ['desert-bayati.mp3', 'singing-light.mp3', 'title.mp3'], 'the desert\'s theme, the singing light\'s cue (the prologue) and the title\'s music');
-  assert.equal(THEME_FILES.length, 25, 'home and the Lantern share one');
+  assert.equal(themeKey('incal-streets-above-streets.mp3'), 'incal-streets-above-streets.mp3');
+  assert.equal(themeKey('music/incal-streets-above-streets.mp3'), 'incal-streets-above-streets.mp3');
+  assert.equal(siteThemeUrl('incal-streets-above-streets.mp3'), `${SHEET_SITE}music/incal-streets-above-streets.mp3`);
+  assert.equal(localThemeUrl('incal-streets-above-streets.mp3', './'), './music/incal-streets-above-streets.mp3');
+  assert.deepEqual(ON_DEVICE_THEMES, ['desert-bayati.mp3', 'singing-light.mp3', 'title-french-touch.mp3', 'battle-trouble-finds-you.mp3', 'prologue-before-the-message.mp3'], 'the desert\'s theme, the singing light\'s cue (the prologue) and the title\'s music');
+  assert.equal(THEME_FILES.length, 18, 'home and the Lantern share one');
   assert.ok(THEME_FILES.includes('desert-bayati.mp3') && !THEME_FILES.includes('desert.mp3'), 'the desert\'s new recording under a new name (issue #207)');
 });
 
@@ -75,31 +75,31 @@ test('a world on a device: the bundle\'s theme first, then the kept copy; never 
   const order = async (files, store, opts) => {
     const { fetcher, calls } = net(files, opts);
     const out = [];
-    for await (const s of themeSources('incal.mp3', { here: ANDROID, store, fetcher })) out.push([s.from, await text(s.blob), s.keep]);
+    for await (const s of themeSources('incal-streets-above-streets.mp3', { here: ANDROID, store, fetcher })) out.push([s.from, await text(s.blob), s.keep]);
     assert.deepEqual(sites(calls), []);
     return out;
   };
-  assert.deepEqual(await order({ [local('incal.mp3')]: 'B' }, memStore({ 'incal.mp3': 'K' })), [['bundle', 'B', true]], 'an older install: its bundle has it (and keeps it)');
-  assert.deepEqual(await order({}, memStore({ 'incal.mp3': 'K' })), [['stored', 'K', false]]);
+  assert.deepEqual(await order({ [local('incal-streets-above-streets.mp3')]: 'B' }, memStore({ 'incal-streets-above-streets.mp3': 'K' })), [['bundle', 'B', true]], 'an older install: its bundle has it (and keeps it)');
+  assert.deepEqual(await order({}, memStore({ 'incal-streets-above-streets.mp3': 'K' })), [['stored', 'K', false]]);
   assert.deepEqual(await order({}, memStore()), [], 'not yet: the download brings it');
-  assert.deepEqual(await order({}, memStore({ 'incal.mp3': 'K' }), { html: true }), [['stored', 'K', false]], 'a page for a missing file is not the file');
+  assert.deepEqual(await order({}, memStore({ 'incal-streets-above-streets.mp3': 'K' }), { html: true }), [['stored', 'K', false]], 'a page for a missing file is not the file');
   const desert = [];
   for await (const s of themeSources('desert-bayati.mp3', { here: DECK, store: memStore(), fetcher: net({ [local('desert-bayati.mp3')]: 'D' }).fetcher })) desert.push([s.from, s.keep]);
   assert.deepEqual(desert, [['bundle', false]], 'the desert\'s is in every bundle: never kept twice');
   const title = [];
-  for await (const s of themeSources('title.mp3', { here: DECK, store: memStore(), fetcher: net({ [local('title.mp3')]: 'T' }).fetcher })) title.push([s.from, s.keep]);
+  for await (const s of themeSources('title-french-touch.mp3', { here: DECK, store: memStore(), fetcher: net({ [local('title-french-touch.mp3')]: 'T' }).fetcher })) title.push([s.from, s.keep]);
   assert.deepEqual(title, [['bundle', false]], 'the title\'s too');
 });
 
 test('on the site and the dev server: only the game\'s own files, never the store, the site or a download', async () => {
   const { fetcher, calls } = net({});
   const out = [];
-  for await (const s of themeSources('incal.mp3', { here: WEB, store: memStore({ 'incal.mp3': 'K' }), fetcher })) out.push(s.from);
+  for await (const s of themeSources('incal-streets-above-streets.mp3', { here: WEB, store: memStore({ 'incal-streets-above-streets.mp3': 'K' }), fetcher })) out.push(s.from);
   assert.deepEqual(out, []);
-  assert.deepEqual(calls, [local('incal.mp3')]);
+  assert.deepEqual(calls, [local('incal-streets-above-streets.mp3')]);
   const d = quick({ here: WEB, store: memStore(), fetcher });
   await d.start();
-  assert.deepEqual(calls, [local('incal.mp3')], 'no background download on the web');
+  assert.deepEqual(calls, [local('incal-streets-above-streets.mp3')], 'no background download on the web');
   assert.equal(await themeProgressText(THEME_FILES, { here: WEB, store: memStore() }), '');
 });
 
@@ -110,17 +110,17 @@ test('the first open downloads every theme but the desert\'s, one at a time, thi
   const { fetcher, calls } = net(files);
   const store = memStore(), seen = [];
   const d = quick({ here: ANDROID, store, fetcher, onProgress: (p) => seen.push(p.have) });
-  d.prefer('incal.mp3');
-  assert.equal(await themeProgressText(THEME_FILES, { here: ANDROID, store }), 'Music: 1 of 25 downloaded');
+  d.prefer('incal-streets-above-streets.mp3');
+  assert.equal(await themeProgressText(THEME_FILES, { here: ANDROID, store }), 'Music: 3 of 18 downloaded');
   await d.start();
-  assert.equal(sites(calls)[0], site('incal.mp3'), 'the world being played comes first');
-  assert.equal(sites(calls).length, 24, 'each once, not the desert\'s');
-  assert.deepEqual([...store.m.keys()].sort(), THEME_FILES.filter((f) => f !== 'desert-bayati.mp3').sort());
-  assert.deepEqual(seen, Array.from({ length: 25 }, (_, i) => i + 1), 'progress, from the desert\'s alone to all');
+  assert.equal(sites(calls)[0], site('incal-streets-above-streets.mp3'), 'the world being played comes first');
+  assert.equal(sites(calls).length, 15, 'each once, not the desert\'s');
+  assert.deepEqual([...store.m.keys()].sort(), THEME_FILES.filter((f) => !ON_DEVICE_THEMES.includes(f)).sort());
+  assert.deepEqual(seen, Array.from({ length: 16 }, (_, i) => i + 3), 'progress, from the desert\'s alone to all');
   assert.ok(d.state.done);
   assert.equal(await themeProgressText(THEME_FILES, { here: ANDROID, store }), '', 'all there: the settings say nothing');
   await d.start();
-  assert.equal(sites(calls).length, 24, 'never checked again');
+  assert.equal(sites(calls).length, 15, 'never checked again');
 });
 
 test('cut off midway: what arrived stays, the rest resumes when back online (or on the next open)', async () => {
@@ -137,8 +137,8 @@ test('cut off midway: what arrived stays, the rest resumes when back online (or 
   d.wake();   // ('online')
   await new Promise((r) => setTimeout(r, 0));
   await d.start();
-  assert.equal(store.m.size, 24);
-  assert.equal(new Set(sites(n.calls)).size, 24, 'nothing fetched twice but the file cut off');
+  assert.equal(store.m.size, 15);
+  assert.equal(new Set(sites(n.calls)).size, 15, 'nothing fetched twice but the file cut off');
 
   const next = quick({ here: DECK, store, fetcher: n.fetcher });   // (the next open)
   const before = n.calls.length;
@@ -148,12 +148,12 @@ test('cut off midway: what arrived stays, the rest resumes when back online (or 
 
 test('never while the page loads: it waits for the boot, then settles', async () => {
   let up = false, waited = [];
-  const { fetcher, calls } = net({ [site('incal.mp3')]: 'I' });
-  const d = themeDownloader({ files: ['incal.mp3'], here: ANDROID, store: memStore(), fetcher, booted: () => up, settle: 8000, gap: 0, online: () => true,
+  const { fetcher, calls } = net({ [site('incal-streets-above-streets.mp3')]: 'I' });
+  const d = themeDownloader({ files: ['incal-streets-above-streets.mp3'], here: ANDROID, store: memStore(), fetcher, booted: () => up, settle: 8000, gap: 0, online: () => true,
     sleep: async (ms) => { waited.push(ms); if (waited.length === 3) up = true; } });
   await d.start();
   assert.deepEqual(waited, [1000, 1000, 1000, 8000], 'polled until up, then the settle');
-  assert.deepEqual(sites(calls), [site('incal.mp3')]);
+  assert.deepEqual(sites(calls), [site('incal-streets-above-streets.mp3')]);
 });
 
 test('offline or with Data Saver it waits; nothing a world needs waits for it', async () => {
@@ -168,7 +168,7 @@ const soundFor = (levelId) => { const ctx = decodes(new AudioContext({ sampleRat
 const quietly = async (fn) => { const w = console.warn; console.warn = () => {}; try { return await fn(); } finally { console.warn = w; } };
 
 test('a kept theme plays at once, offline, and nothing is downloaded', async () => {
-  const sound = soundFor('incal'), store = memStore({ 'incal.mp3': 'kept' });
+  const sound = soundFor('incal'), store = memStore({ 'incal-streets-above-streets.mp3': 'kept' });
   const { fetcher, calls } = net({}, { offline: true });
   assert.equal(await loadSoundtrack(sound, fetcher, { here: ANDROID, store, downloader: quick({ here: ANDROID, store, fetcher }) }), true);
   assert.equal(sound.trackFrom, 'stored');
@@ -178,8 +178,8 @@ test('a kept theme plays at once, offline, and nothing is downloaded', async () 
 
 test('a world entered before its theme: the score plays, then the theme comes in with the next moment', async () => {
   const sound = soundFor('incal'), store = memStore();
-  const { fetcher } = net({ [site('incal.mp3')]: 'from the site', [site('edena.mp3')]: 'E' });
-  const d = quick({ here: ANDROID, store, fetcher, files: ['edena.mp3', 'incal.mp3'] });
+  const { fetcher } = net({ [site('incal-streets-above-streets.mp3')]: 'from the site', [site('edena-wild-bloom.mp3')]: 'E' });
+  const d = quick({ here: ANDROID, store, fetcher, files: ['edena-wild-bloom.mp3', 'incal-streets-above-streets.mp3'] });
   const playing = loadSoundtrack(sound, fetcher, { here: ANDROID, store, downloader: d });
   await new Promise((r) => setTimeout(r, 0));
   assert.equal(sound.trackBuffer, undefined, 'meanwhile, the procedural score');
@@ -189,20 +189,20 @@ test('a world entered before its theme: the score plays, then the theme comes in
   assert.ok(sound.trackBuffer && sound.trackGain, 'ready for Sound.musicMomentsUpdate');
   assert.equal(sound.recordedTrack, undefined, 'not started on top of the score');
   assert.equal(sound.trackOn, false, 'the moments bring it in, faded');
-  assert.equal(await text(store.m.get('incal.mp3')), 'from the site');
+  assert.equal(await text(store.m.get('incal-streets-above-streets.mp3')), 'from the site');
 });
 
 test('a damaged kept copy is dropped (the download fetches it again); a world left before it lands stays quiet', async () => {
-  const store = memStore({ 'incal.mp3': 'bad bytes' });
-  const { fetcher } = net({ [site('incal.mp3')]: 'good' });
-  const d = quick({ here: ANDROID, store, fetcher, files: ['incal.mp3'] });
+  const store = memStore({ 'incal-streets-above-streets.mp3': 'bad bytes' });
+  const { fetcher } = net({ [site('incal-streets-above-streets.mp3')]: 'good' });
+  const d = quick({ here: ANDROID, store, fetcher, files: ['incal-streets-above-streets.mp3'] });
   const sound = soundFor('incal');
   const playing = loadSoundtrack(sound, fetcher, { here: ANDROID, store, downloader: d });
   await new Promise((r) => setTimeout(r, 0));
-  assert.equal(store.m.has('incal.mp3'), false, 'dropped');
+  assert.equal(store.m.has('incal-streets-above-streets.mp3'), false, 'dropped');
   await d.start();
   assert.equal(await playing, true);
-  assert.equal(await text(store.m.get('incal.mp3')), 'good');
+  assert.equal(await text(store.m.get('incal-streets-above-streets.mp3')), 'good');
 
   const gone = soundFor('edena');
   const d2 = quick({ here: DECK, store: memStore(), fetcher: net({}, { offline: true }).fetcher });
@@ -221,7 +221,7 @@ test('an install from before (every theme in its bundle) keeps them from there, 
   assert.equal(sound.trackFrom, 'bundle');
   await quick({ here: ANDROID, store, fetcher: old.fetcher }).start();
   assert.deepEqual(sites(old.calls), [], 'from the bundle, not the site');
-  assert.deepEqual([...store.m.keys()].sort(), THEME_FILES.filter((f) => f !== 'desert-bayati.mp3').sort());
+  assert.deepEqual([...store.m.keys()].sort(), THEME_FILES.filter((f) => !ON_DEVICE_THEMES.includes(f)).sort());
 
   // the next update: only the desert's in the bundle, the site out of reach
   const next = net({ [local('desert-bayati.mp3')]: 'desert' }, { offline: true });
@@ -266,24 +266,24 @@ test('themeStore keeps Blobs in IndexedDB under the file name', async () => {
   assert.equal(themeStore(undefined), null, 'no IndexedDB: nothing kept');
   const idb = fakeIDB();
   const a = themeStore(idb);
-  assert.equal(await a.get('incal.mp3'), null);
-  await a.put('music/incal.mp3', new Blob(['I']));
+  assert.equal(await a.get('incal-streets-above-streets.mp3'), null);
+  await a.put('music/incal-streets-above-streets.mp3', new Blob(['I']));
   const b = themeStore(idb);   // (the next page, the next launch)
-  assert.equal(await text(await b.get('incal.mp3')), 'I');
-  assert.deepEqual(await b.keys(), ['incal.mp3']);
-  await b.delete('incal.mp3');
-  assert.equal(await a.get('incal.mp3'), null);
+  assert.equal(await text(await b.get('incal-streets-above-streets.mp3')), 'I');
+  assert.deepEqual(await b.keys(), ['incal-streets-above-streets.mp3']);
+  await b.delete('incal-streets-above-streets.mp3');
+  assert.equal(await a.get('incal-streets-above-streets.mp3'), null);
 });
 
 // issue #318: the music page (music.html) on a device played only the bundled themes (the desert's and the title's)
 test('the music page on a device plays every theme: the bundle\'s, the kept copy, else downloaded now and kept', async () => {
   // the site and a dev server: their own file, streamed
-  const web = await themeToListen('incal.mp3', { here: WEB, fetcher: net().fetcher, base: './' });
-  assert.deepEqual([web.url, web.from], ['./music/incal.mp3', 'local']);
+  const web = await themeToListen('incal-streets-above-streets.mp3', { here: WEB, fetcher: net().fetcher, base: './' });
+  assert.deepEqual([web.url, web.from], ['./music/incal-streets-above-streets.mp3', 'local']);
   // a device with the theme kept: from the store, the site never asked
-  const kept = memStore({ 'incal.mp3': 'KEPT' });
+  const kept = memStore({ 'incal-streets-above-streets.mp3': 'KEPT' });
   let n = net();
-  const a = await themeToListen('incal.mp3', { here: ANDROID, store: kept, fetcher: n.fetcher });
+  const a = await themeToListen('incal-streets-above-streets.mp3', { here: ANDROID, store: kept, fetcher: n.fetcher });
   assert.equal(a.from, 'stored');
   assert.match(a.url, /^blob:/);
   assert.equal(await (await fetch(a.url)).text(), 'KEPT');
@@ -294,13 +294,13 @@ test('the music page on a device plays every theme: the bundle\'s, the kept copy
   assert.equal((await themeToListen('desert-bayati.mp3', { here: ANDROID, store: memStore(), fetcher: n.fetcher })).from, 'bundle');
   // not there yet: downloaded from the site now, told first, and kept for the worlds
   const empty = memStore();
-  n = net({ [site('edena.mp3')]: 'SITE' });
+  n = net({ [site('edena-wild-bloom.mp3')]: 'SITE' });
   const told = [];
-  const b = await themeToListen('edena.mp3', { here: ANDROID, store: empty, fetcher: n.fetcher, onDownload: (k) => told.push(k) });
+  const b = await themeToListen('edena-wild-bloom.mp3', { here: ANDROID, store: empty, fetcher: n.fetcher, onDownload: (k) => told.push(k) });
   assert.equal(b.from, 'site');
-  assert.deepEqual(told, ['edena.mp3']);
-  assert.equal(await text(await empty.get('edena.mp3')), 'SITE');
-  assert.deepEqual(sites(n.calls), [site('edena.mp3')]);
+  assert.deepEqual(told, ['edena-wild-bloom.mp3']);
+  assert.equal(await text(await empty.get('edena-wild-bloom.mp3')), 'SITE');
+  assert.deepEqual(sites(n.calls), [site('edena-wild-bloom.mp3')]);
   // offline and not kept: an error to show, not a silent nothing
   n = net({}, { offline: true });
   await assert.rejects(themeToListen('spheres.mp3', { here: ANDROID, store: memStore(), fetcher: n.fetcher }), /isn't on this device yet/);

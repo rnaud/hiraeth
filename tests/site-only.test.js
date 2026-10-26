@@ -25,19 +25,19 @@ test('stripSiteOnly takes them out of a built dist/ and leaves the rest', async 
     mkdirSync(join(d, 'assets')); mkdirSync(join(d, 'changelog-media/1.0'), { recursive: true }); mkdirSync(join(d, 'music'));
     writeFileSync(join(d, 'assets/IMG_3801-C_OsWSdk.JPG'), Buffer.alloc(1000));
     writeFileSync(join(d, 'changelog-media/1.0/a-after.webp'), Buffer.alloc(500));
-    writeFileSync(join(d, 'assets/index-abc.js'), 'x'); writeFileSync(join(d, 'music/title.mp3'), 'x');
-    writeFileSync(join(d, 'music/incal.mp3'), Buffer.alloc(300)); writeFileSync(join(d, 'music/manifest.json'), '{}');
+    writeFileSync(join(d, 'assets/index-abc.js'), 'x'); writeFileSync(join(d, 'music/title-french-touch.mp3'), 'x');
+    writeFileSync(join(d, 'music/incal-streets-above-streets.mp3'), Buffer.alloc(300)); writeFileSync(join(d, 'music/manifest.json'), '{}');
     const r = await stripSiteOnly(d);
     assert.equal(r.files, 3); assert.equal(r.bytes, 1800);
-    assert.ok(!existsSync(join(d, 'assets/IMG_3801-C_OsWSdk.JPG')) && !existsSync(join(d, 'changelog-media')) && !existsSync(join(d, 'music/incal.mp3')));
-    assert.ok(existsSync(join(d, 'assets/index-abc.js')) && existsSync(join(d, 'music/title.mp3')) && existsSync(join(d, 'music/manifest.json')));
+    assert.ok(!existsSync(join(d, 'assets/IMG_3801-C_OsWSdk.JPG')) && !existsSync(join(d, 'changelog-media')) && !existsSync(join(d, 'music/incal-streets-above-streets.mp3')));
+    assert.ok(existsSync(join(d, 'assets/index-abc.js')) && existsSync(join(d, 'music/title-french-touch.mp3')) && existsSync(join(d, 'music/manifest.json')));
   } finally { rmSync(d, { recursive: true, force: true }); }
 });
 
 test('the recorded themes are fetched on demand, all but the desert\'s (the first world, offline from the first session)', () => {
-  assert.deepEqual(ON_DEVICE_THEMES, ['desert-bayati.mp3', 'singing-light.mp3', 'title.mp3']);
+  assert.deepEqual(ON_DEVICE_THEMES, ['desert-bayati.mp3', 'singing-light.mp3', 'title-french-touch.mp3', 'battle-trouble-finds-you.mp3', 'prologue-before-the-message.mp3']);
   assert.ok(!fetchedOnDemand('music/singing-light.mp3') && !leftOff('music/singing-light.mp3'), 'the singing light\'s cue rides in the package: the prologue plays it on a first launch');
-  assert.ok(!fetchedOnDemand('music/title.mp3') && !leftOff('music/title.mp3'), 'the title\'s music rides in the package: it is the first thing a launch plays');
+  assert.ok(!fetchedOnDemand('music/title-french-touch.mp3') && !leftOff('music/title-french-touch.mp3'), 'the title\'s music rides in the package: it is the first thing a launch plays');
   assert.equal(SOUNDTRACKS.desert, 'desert-bayati.mp3');
   assert.ok(!fetchedOnDemand('music/desert-bayati.mp3') && !leftOff('music/desert-bayati.mp3'), 'the desert\'s theme rides in the package (issue #207: its new recording)');
   for (const file of new Set(Object.values(SOUNDTRACKS))) {

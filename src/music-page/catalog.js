@@ -7,7 +7,7 @@
 // checks that every method of Sound is either here or named in PLUMBING (a new sound can't be missed).
 
 import { SCORES, SCORE_OF, MODES } from '../score.js';
-import { SOUNDTRACKS, TITLE_THEME, CUES, loadCue } from '../soundtracks.js';
+import { SOUNDTRACKS, TITLE_THEME, SCENE_THEMES, CUES, loadCue } from '../soundtracks.js';
 import { SFX } from '../sfx.js';
 import { FOE_VOICES, CUES as FOE_CUES, GLASS } from '../foe-voices.js';
 import { KINDS, hit, playColour } from '../score-voices.js';
@@ -27,6 +27,7 @@ export const PLUMBING = {
   assignedEffect: 'assigned recording ownership without substitution', assignedVoice: 'assigned voice ownership without substitution',
   constructor: 'the engine', startIfAllowed: 'the engine', masterLevel: 'the engine', _away: 'the engine', start: 'the engine',
   dispose: 'the engine', levels: 'the meters', toggleMute: 'the mute', setVolumes: 'the volumes', setVoices: 'the voice volume',
+  prologueTheme: 'recorded prologue phase controller',
   setMusicMode: 'Settings > Music', musicCue: 'the moments (src/music-moments.js)', musicMomentsUpdate: 'the moments',
   holdTheme: 'the moments', playTitleTheme: 'the title (its recording is among the songs)',
   setScore: 'the score player (Songs: each score)', schedule: 'the score player', playEvent: 'the score player', freq: 'the world\'s scale',
@@ -65,6 +66,7 @@ export function recordedSongs() {
     name: levels.map(name).join(' · '), where: `${levels.map(name).join(', ')}: the world's theme, at its moments (arriving, indoors, a moment), or always (Settings > Music)` }));
   songs.push({ id: `file:${TITLE_THEME.replace(/\.mp3$/, '')}`, kind: 'file', file: TITLE_THEME, levels: [], name: name('title'),
     where: 'the title screen (over the procedural menu music once it has loaded)' });
+  for (const [id, file] of Object.entries(SCENE_THEMES)) songs.push({ id: `file:${file.replace(/\.mp3$/, '')}`, kind: 'file', file, levels: [], name: id === 'battle' ? 'Battle' : 'Prologue', where: id === 'battle' ? 'Enemy encounters: enters at combat, fades after the fight.' : 'Inside the ship before the father’s message.' });
   for (const [id, file] of Object.entries(CUES)) {
     songs.push({ id: `cue:${id}`, kind: 'file', file, levels: [], cue: id, name: `Cue: ${id}`, where: 'played once at a moment; until its file is there the game sings its synth (the singing light\'s theme, under Tunes)' });
   }

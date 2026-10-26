@@ -9,6 +9,17 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.31', date: '2026-10-26',
+    items: [
+      { text: "A new French electro main theme welcomes you. Lorn is mysterious and mischievous, Viridel bursts with playful energy, the City-Shaft has an orchestral adventure, and Space City reaches for the epic.", see: "Listen on the title screen or visit these worlds with music enabled." },
+      { text: "The Glass Dunes, Moon Foundry and Underwater City each have a new recording with a different rhythm and character.", see: "Visit these worlds or listen to their recorded songs on the music page." },
+      { text: "The opening aboard your ship has its own theme, fading away for your father's message before the desert music takes over outside.", see: "Start a new journey and listen through the opening ship scene." },
+      { text: "Battle music starts when nearby enemies engage you, holds through brief gaps between attacks, then fades back to exploration when the fight ends.", see: "Meet enemies in the wilds; defeat them or escape. The battle theme fades over 2.5 seconds after a short lull. It also releases when paused or knocked out." },
+      { text: "Music downloads no longer include nine unfinished or retired destinations, keeping the soundtrack focused on the places you can visit.", see: "Open the music page: retired destinations no longer appear among the recorded songs. Playable worlds and their regions keep their music." },
+    ],
+  },
+
+  {
     v: '2.30', date: '2026-10-26',
     items: [
       "Vael’s sky stones are no longer one flat colour where you walk: the plateaus, the great table, the rose cliff, the floating island, the rock arch and the stones you hop across have soft patches of a warmer and a cooler tone, a fine crackled crust, long cracks and pebbles with their shadows, while their cliffs keep their bands. The aqueducts and the monastery’s walls are built of large pale stone blocks, the aqueducts’ decks laid in flagstones.",

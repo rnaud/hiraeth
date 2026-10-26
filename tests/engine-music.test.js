@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 const RATE = 48000;
 /** nativeText's lines as objects. */
 const natives = (text) => (text ? text.split(';').map((l) => { const [id, clip, pos, gain, lowpass, loop, join, length] = l.split(',').map(Number); return { id, clip, pos, gain, lowpass, loop: !!loop, join, length }; }) : []);
-const clip = (over = {}) => ({ native: 7, file: 'music/incal.mp3', numberOfChannels: 2, length: RATE * 10, sampleRate: RATE, ...over });
+const clip = (over = {}) => ({ native: 7, file: 'music/incal-streets-above-streets.mp3', numberOfChannels: 2, length: RATE * 10, sampleRate: RATE, ...over });
 
 test('a recording the engine decodes: no samples here, played where the graph says, as loud as its dry way there', async () => {
   setAudioDecoder(async () => clip());
@@ -111,17 +111,17 @@ test('the themes\' balance for the engines: every recording measured, prepareSou
     assert.ok(THEME_LEVELS[f] > 0.05 && THEME_LEVELS[f] <= 4, `${f}: ${THEME_LEVELS[f]} (node scripts/theme-levels.mjs)`);
   }
   const ctx = new AudioContext({ sampleRate: RATE });
-  const b = prepareSoundtrack(ctx, new NativeAudioBuffer(clip({ file: 'music/incal.mp3' })));
+  const b = prepareSoundtrack(ctx, new NativeAudioBuffer(clip({ file: 'music/incal-streets-above-streets.mp3' })));
   assert.equal(b.join, 2 * RATE);
   assert.equal(b.length, 8 * RATE);
-  assert.equal(b.level, THEME_LEVELS['incal.mp3']);
-  assert.ok(MUSIC_FILE.test('music/title.mp3') && !MUSIC_FILE.test('sfx/step-1.mp3'), 'the effects are not the engine\'s to decode');
+  assert.equal(b.level, THEME_LEVELS['incal-streets-above-streets.mp3']);
+  assert.ok(MUSIC_FILE.test('music/title-french-touch.mp3') && !MUSIC_FILE.test('sfx/step-1.mp3'), 'the effects are not the engine\'s to decode');
 });
 
 test('the themes a Unity package lacks: downloaded from the site, the world played first, the carried ones not', () => {
-  const d = themeDownloads('glassdunes.mp3');
+  const d = themeDownloads('glassdunes-impossible-reflections.mp3');
   const items = d.list.split(';').map((e) => e.split(' '));
-  assert.equal(items[0][0], 'glassdunes.mp3');
+  assert.equal(items[0][0], 'glassdunes-impossible-reflections.mp3');
   assert.ok(items.every(([f, u]) => !ON_DEVICE_THEMES.includes(f) && u === `https://hiraeth.alexandria-rnaud.workers.dev/music/${f}`));
   assert.equal(items.length, THEME_FILES.filter((f) => !ON_DEVICE_THEMES.includes(f)).length);
   assert.equal(d.carried, ON_DEVICE_THEMES.join(','));
@@ -150,7 +150,7 @@ test('the game\'s Sound: the world\'s theme in Unity under the volumes, the menu
   const { s, fetcher, done } = await gameSound('incal');
   try {
     assert.equal(await loadSoundtrack(s, fetcher), true);
-    assert.ok(s.trackBuffer instanceof NativeAudioBuffer && s.trackBuffer.level === THEME_LEVELS['incal.mp3']);
+    assert.ok(s.trackBuffer instanceof NativeAudioBuffer && s.trackBuffer.level === THEME_LEVELS['incal-streets-above-streets.mp3']);
     // (Settings > Music plays: moments; an arrival of 3 s here, its theme for that long)
     s.moments = new MusicMoments({ mode: 'moments', now: s.ctx.currentTime, T: { ...MUSIC_MOMENTS, arrival: 3, returnAfter: [1e4, 1e4] } });
     const calm = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0, indoor: 0 };
@@ -159,7 +159,7 @@ test('the game\'s Sound: the world\'s theme in Unity under the volumes, the menu
     const gain = () => theme(s)[0]?.gain ?? 0;
     run(s, 2.5, step);
     const [a] = theme(s);
-    const L = THEME_LEVELS['incal.mp3'], full = L * 0.62 * s.musicVol * 0.9;   // (its level, the music bus, the master)
+    const L = THEME_LEVELS['incal-streets-above-streets.mp3'], full = L * 0.62 * s.musicVol * 0.9;   // (its level, the music bus, the master)
     assert.ok(a && a.loop && a.join === 2 && Math.abs(a.gain - full) / full < 0.05, `faded in, under the music volume: ${JSON.stringify(a)} against ${full}`);
     // the moments: the arrival over, it fades out over 10 s, the ambience carrying the world; a story moment brings it back
     run(s, 12, step);

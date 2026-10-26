@@ -1,3 +1,4 @@
+import { SceneMusic } from './scene-music.js';
 import { SfxTrace } from './sfx-trace.js';
 // Recorded world soundtracks with procedural fallback, ambience and effects.
 // Mixed with Web Audio. Starts on the first click or
@@ -16,7 +17,7 @@ import { renderVoice } from './voice-synth.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
-import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
+import { loadSoundtrack, loadTitleTheme, loadSceneThemes } from './soundtracks.js';
 import { prepareEffectAssets, preparedBank, adoptEffectAssets } from './effect-assets.js';
 import { SFX } from './sfx.js';
 import { travellerVoice } from './traveller-voice.js';
@@ -408,7 +409,10 @@ export class Sound {
     this.nextBeat = ctx.currentTime + 0.3;
     this.chord = 0;
     if (this.score) this.scheduler = setInterval(() => this.schedule(), 100);
-    if (this.score) void loadSoundtrack(this);
+    if (this.score) {
+      this.sceneMusic ??= new SceneMusic(this);
+      void loadSoundtrack(this); void loadSceneThemes(this);
+    }
     if (this.titleTheme) void loadTitleTheme(this);
     this.moments = new MusicMoments({ mode: this.musicModeSetting, now: ctx.currentTime });
     // Preparation never starts this graph; activation adopts the decoded asset set.
@@ -458,7 +462,10 @@ export class Sound {
   }
 
   /** Per frame: fade the recording in or out as src/music-moments.js says; a theme stopped after its fade starts again from its opening. */
+  prologueTheme(on) { (this.sceneMusic ??= new SceneMusic(this)).ship(on); }
+
   musicMomentsUpdate(indoor = 0) {
+    this.sceneMusic?.update();
     const M = this.moments, ctx = this.ctx;
     // a score with moments of its own and no recording (yet) (the desert's, issue #207: until its recording has decoded,
     // or for good where it can't): the moments say whether it plays in full (scoreMoment) or only its light layers
@@ -466,7 +473,7 @@ export class Sound {
     if (M && ctx && !this.trackBuffer && this.S?.moments) { const { on } = M.update(ctx.currentTime, { indoor }); this.scoreMoment = on || !!this.themeHeld; return; }
     if (!M || !ctx || !this.trackBuffer || !this.trackGain) return;
     let { on } = M.update(ctx.currentTime, { indoor });
-    if (this.themeHeld) on = false;
+    if (this.themeHeld || this.sceneMusic?.battleActive) on = false;
     if (on === this.trackOn) return;
     this.trackOn = on;
     const t = ctx.currentTime, g = this.trackGain.gain;
@@ -482,7 +489,8 @@ export class Sound {
       }
       g.linearRampToValueAtTime(1, t + M.T.fadeIn);
     } else {
-      g.linearRampToValueAtTime(0, t + M.T.fadeOut);
+      const fadeOut = this.sceneMusic?.battleActive ? 0.3 : M.T.fadeOut;
+      g.linearRampToValueAtTime(0, t + fadeOut);
       this._trackStop = setTimeout(() => {
         const src = this.recordedTrack;
         if (this.trackOn || !src) return;
@@ -500,6 +508,17 @@ export class Sound {
   combat(on) {
     on = !!on;
     const ctx = this.ctx;
+    if (this._disposed) return;
+    this.sceneMusic ??= new SceneMusic(this);
+    this.sceneMusic.fight(on);
+    if (this.sceneMusic.buffers.battle) {
+      clearInterval(this.combatTimer); this.combatTimer = null;
+      clearTimeout(this._combatStop);
+      this.combatBus?.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
+      this.combatOn = on;
+      this.musicMomentsUpdate();
+      return;
+    }
     if (!ctx || on === this.combatOn) return;
     this.combatOn = on;
     const t = ctx.currentTime;
@@ -653,7 +672,8 @@ export class Sound {
     this._nextActionAudio?.dispose();
     this._selectedWorldAudio?.dispose();
     this.bank?.dispose();
-    this.trackAbort?.abort(); this.titleAbort?.abort();
+    this.trackAbort?.abort(); this.titleAbort?.abort(); this.sceneAbort?.abort();
+    this.sceneMusic?.dispose(); clearInterval(this.combatTimer); clearTimeout(this._combatStop);
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop); clearTimeout(this._preload); clearTimeout(this._trackStop);
     this.scheduler = this.menuTimer = null;
     const ctx = this.ctx;
@@ -767,7 +787,7 @@ export class Sound {
       // the recorded theme playing: no procedural score; resting between moments (src/music-moments.js): its light layers
       // (the theme held back, the prologue's ship: its score in full; the score off: nothing). A score with moments of its
       // own and no recording loaded (the desert's): in full for a moment, its light layers between (musicMomentsUpdate)
-      if (!(this.recordedTrack && this.trackOn) && !this.scoreOff) {
+      if (!(this.recordedTrack && this.trackOn) && !this.scoreOff && !this.sceneMusic?.suppressScore) {
         const events = scoreBeat(this.scoreId, this.beat, this.act);
         const light = this.trackBuffer ? !this.themeHeld : !!this.S.moments && this.scoreMoment === false;
         for (const e of light ? lightScore(events) : events) this.playEvent(e, t, spb);
