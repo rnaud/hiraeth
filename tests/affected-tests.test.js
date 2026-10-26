@@ -463,3 +463,39 @@ test('dynamic URLs used only by builtin existsSync retain existence rather than 
   "import {existsSync} from 'node:fs';function check(URL){existsSync(new URL(`../references/${name}.jpg`,import.meta.url));}check(custom);"
  ])assert.equal(dependenciesOf('tests/exists.test.js',code).unknown,true,code);
 });
+
+
+test('large known change sets follow reachability rather than the number of changed paths',()=>{
+ const changed=Array.from({length:128},(_,i)=>`src/batch/f${i}.js`);
+ const files=Object.fromEntries(changed.map(f=>[f,'export const value=1;']));
+ files['tests/batch.test.js']=changed.map(f=>`import '../${f}';`).join('\n');
+ files['tests/other.test.js']="import '../src/other.js';";
+ files['src/other.js']='export const value=1;';
+ files['tests/opaque.test.js']='import(name);';
+ const options=fixture(files),expected=['tests/batch.test.js','tests/opaque.test.js'];
+ assert.deepEqual(affectedTests(changed,options),expected);
+ const diagnostics={};
+ assert.deepEqual(affectedTests(changed,{...options,diagnostics}),expected,'explanation and fast graph agree');
+ assert.deepEqual(diagnostics.fallbacks,[]);
+ assert.equal(affectedTests([...changed,'unknown.config'],options),'ALL','one unowned input still fails closed');
+ assert.equal(affectedTests([...changed,'package-lock.json'],options),'ALL','shared infrastructure still requires all tests');
+ assert.equal(affectedTests([...changed,'../outside.js'],options),'ALL','outside-repository paths remain conservative');
+});
+
+test('large multi-commit Git ranges retain changed and deleted dependencies without unrelated tests',()=>{
+ const r=repo();
+ try{
+  const changed=Array.from({length:48},(_,i)=>`src/batch/f${i}.js`);
+  for(const path of changed)r.put(path,'export const value=1;');
+  r.put('src/batch/removed.js','export const value=1;');
+  r.put('tests/batch.test.js',[...changed,'src/batch/removed.js'].map(f=>`import '../${f}';`).join('\n'));
+  r.put('tests/other.test.js',"import '../src/other.js';");r.put('src/other.js','export const value=1;');
+  const base=r.commit();
+  for(const path of changed.slice(0,24))r.put(path,'export const value=2;');r.commit();
+  for(const path of changed.slice(24))r.put(path,'export const value=3;');
+  r.git('rm','src/batch/removed.js');
+  r.put('tests/batch.test.js',changed.map(f=>`import '../${f}';`).join('\n'));
+  const head=r.commit();
+  assert.deepEqual(gitSelection({root:r.root,base,head}),['tests/batch.test.js']);
+ }finally{r.close();}
+});

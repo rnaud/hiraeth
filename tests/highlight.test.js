@@ -3,12 +3,10 @@
 // formatText). A long *span* is a quotation (a letter, a recording) instead.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { files as DATA, loadStoryFile } from './story-data-modules.js';
 import { formatText } from '../src/story/dialogue.js';
 import { planLine, voiceOf, isQuote } from '../src/story/voice.js';
 
-const DIR = new URL('../src/story/', import.meta.url);
-const DATA = readdirSync(DIR).filter((f) => f.endsWith('-data.js')).sort();
 
 /** Every string under a value, with where it is. */
 function strings(v, where, out = [], seen = new Set()) {
@@ -23,7 +21,7 @@ function strings(v, where, out = [], seen = new Set()) {
 test('every *highlight* in the story data is closed, and never inside a {motif} or a tone tag', async () => {
   let spans = 0;
   for (const f of DATA) {
-    const m = await import(new URL(f, DIR));
+    const m = await loadStoryFile(f);
     for (const [where, s] of strings(m, f)) {
       const stars = s.match(/\*/g)?.length ?? 0;
       if (!stars) continue;

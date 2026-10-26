@@ -277,8 +277,10 @@ test('the Unity side: BridgeMenu places the pointer on what it drew and hands it
   assert.match(game, /readPad\(\);\n  readMenuPointer\(\);/, 'the title\'s too, before a world');
   // every kind of menu puts its targets down
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Wardrobe.cs'), /Hit\(cell\.box\.rt, c\.S\("pt"\)\);/, 'the Wardrobe\'s lines too');
-  const all = ['BridgeMenu.cs', 'BridgeMenu.Chrome.cs', 'BridgeMenu.Pause.cs', 'BridgeMenu.Shop.cs', 'BridgeMenu.Arcade.cs', 'BridgeMenu.StarMap.cs']
-    .map((f) => src(`unity/Hiraeth/Assets/HiraethJS/Runtime/${f}`)).join('\n');
+  const menuSources = [];
+  for (const f of ['BridgeMenu.cs', 'BridgeMenu.Chrome.cs', 'BridgeMenu.Pause.cs', 'BridgeMenu.Shop.cs', 'BridgeMenu.Arcade.cs', 'BridgeMenu.StarMap.cs'])
+    menuSources.push(src(`unity/Hiraeth/Assets/HiraethJS/Runtime/${f}`));
+  const all = menuSources.join('\n');
   for (const t of ['"close"', '"tab:" + i', '"go:-1"', '"go:1"', '"ask:0"', '"ask:1"', '"map"', '"zoom:1"', '"full:use"', '"floor:" + i', '"star:go"', 'r.S("ptSlide")', 'b.S("pt")', 'o.S("pt")', 'e.S("pt")', 'c.S("pt")'])
     assert.ok(all.includes(t), `a target ${t}`);
 });

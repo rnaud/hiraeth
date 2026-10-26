@@ -3,7 +3,7 @@ import { ensureNpcDom } from './helpers/npc-dom.js';
 ensureNpcDom();
 import assert from 'node:assert/strict';
 import rivalGame from '../src/minigames/canyon-rival.js';
-import {checkGame} from '../src/minigames/index.js';
+import {checkGame} from '../src/minigames/kit/registry.js';
 import {COURSE,makeTrack,makeCourse,newBike,bikeStep,botInput,newRival,stepRival,rivalWinner,awardRivalBike,loseRivalWager} from '../src/minigames/canyon.js';
 import {buildRivalSled} from '../src/minigames/canyon-sled.js';
 import {bikeWager} from '../src/story/bike-wager.js';

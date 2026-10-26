@@ -3,7 +3,7 @@
 // tension, the fish's kinds and the journal).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 import canyon, { makeTrack, makeCourse, nearest, pointAt, profileHeight, inGap, rampAt, newBike, bikeStep, botInput, newRace, raceStep, splitAt, splitDelta, fmtDelta, BIKE } from '../src/minigames/canyon.js';
 import fishing, { SPECIES, castPower, castDistance, biteSchedule, hookResult, newFight, fightStep, botFight, recordCatch, pickSpecies, rollWeight, oasisHeight, POND, FIGHT, speciesById } from '../src/minigames/fishing.js';
 

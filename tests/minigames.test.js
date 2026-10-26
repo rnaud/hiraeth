@@ -3,7 +3,7 @@
 // the platformer's (coyote time, the jump buffer, the jump's height, the course played through).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { collectGames, checkGame, gameById, gameHref } from '../src/minigames/index.js';
+import { collectGames, checkGame, gameById, gameHref } from '../src/minigames/kit/registry.js';
 import { formatTime, formatScore, better, recordScore, bestScore, bestKey, playsKey } from '../src/minigames/kit/scores.js';
 import { readInput, NO_INPUT } from '../src/minigames/kit/input.js';
 import { COUNT, countNumeral, controlsFor, quitHref } from '../src/minigames/kit/flow.js';

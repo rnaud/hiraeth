@@ -9,7 +9,6 @@ import { lexicalBindings, normalizeBuiltinImports } from './test-dependency-bind
 import { parseAst } from 'rolldown/parseAst'; // Vite's version is pinned by package-lock.json.
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-export const MAX_CHANGED = 40;
 const SHARED = /^(package(?:-lock)?\.json$|\.githooks\/|\.github\/workflows\/|scripts\/(?:affected-tests|test-dependency-bindings|test-loader-contract|test-shards|test-file-times)\.mjs$)/;
 const JS = /\.(?:js|mjs|cjs)$/;
 const clean = f => posix.normalize(f.replaceAll('\\', '/'));
@@ -199,7 +198,7 @@ export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,
   const touched=[...new Set(changed.map(clean))];
   if(diagnostics)Object.assign(diagnostics,{changed:touched,tests:{},fallbacks:[],unmatched:[]});
   if(!touched.length)return [];
-  if(touched.some(f=>!local(f)) || touched.length>MAX_CHANGED || touched.some(f=>SHARED.test(f))){if(diagnostics)diagnostics.fallbacks.push({reason:'global-policy',outside:touched.filter(f=>!local(f)),overLimit:touched.length>MAX_CHANGED,shared:touched.filter(f=>SHARED.test(f))});return 'ALL';}
+  if(touched.some(f=>!local(f)) || touched.some(f=>SHARED.test(f))){if(diagnostics)diagnostics.fallbacks.push({reason:'global-policy',outside:touched.filter(f=>!local(f)),shared:touched.filter(f=>SHARED.test(f))});return 'ALL';}
   const all=tests??readdirSync(join(root,'tests')).filter(f=>f.endsWith('.test.js')).map(f=>'tests/'+f);
   const cache=new Map(),matched=new Set();
   const dependency=f=>{

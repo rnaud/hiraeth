@@ -52,3 +52,11 @@ test('guardian and costume catalogs retain the complete original filesystem disc
  }
  assert.deepEqual(people,discovered);
 });
+
+
+test('story catalogue file lookup retains the module namespace and rejects unknown names',async()=>{
+ const {loadStoryFile,loadStoryData}=await import('./story-data-modules.js');
+ assert.equal(await loadStoryFile('desert-data.js'),await loadStoryData('desert'));
+ assert.throws(()=>loadStoryFile('../desert-data.js'),/Unknown story data/);
+ assert.throws(()=>loadStoryFile('missing-data.js'),/Unknown story data/);
+});

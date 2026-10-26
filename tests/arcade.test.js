@@ -2,17 +2,16 @@
 // there and back (?game=<id>&from=arcade, ?level=arcade&back=<id>), the games before and after, round.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { loadMinigameModules } from './minigame-modules.js';
 import * as THREE from 'three';
-import { collectGames, gameHref } from '../src/minigames/index.js';
+import { collectGames, gameHref } from '../src/minigames/kit/registry.js';
 import { arcadeSigns, arcadeLinks, arcadeHref, cycleGame, returnSpot, ARCADE, ARCADE_RING } from '../src/minigames/kit/arcade.js';
 import { quitHref } from '../src/minigames/kit/flow.js';
 import { allInteractables, clearInteractables } from '../src/interact.js';
 import { runSteps } from '../src/load-steps.js';
 
-// every game file there is, as the registry's glob finds them (a new game is in this test by itself)
-const files = readdirSync(new URL('../src/minigames/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'index.js');
-const modules = Object.fromEntries(await Promise.all(files.map(async (f) => [`./${f}`, await import(`../src/minigames/${f}`)])));
+// Complete literal catalogue; discovery parity is checked in audit-module-inputs.test.js.
+const modules = Object.fromEntries(Object.entries(await loadMinigameModules()).map(([f, m]) => [`./${f}`, m]));
 const GAMES = collectGames(modules, (m) => { throw new Error(m); });
 
 test('every registered game gets a sign round the plaza, apart, facing the middle', () => {

@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import gallery, { GALLERY, comboMult, newRun, scoreHit, ShotLedger, GalleryDirector, galleryPlan, swing, KEEPER_LINES, STAND } from '../src/minigames/gallery.js';
 import { lendTool, tune } from '../src/minigames/kit/onfoot.js';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 import { parseLine } from '../src/story/tone.js';
 import { mulberry32 } from '../src/noise.js';
 

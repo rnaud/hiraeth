@@ -3,7 +3,7 @@
 // and the start card's options in the kit (src/minigames/kit/flow.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 import { optionValue, stepOption, optionText, optionKey, scoreDef } from '../src/minigames/kit/flow.js';
 import { recordScore, bestScore } from '../src/minigames/kit/scores.js';
 import {
