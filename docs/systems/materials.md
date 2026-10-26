@@ -633,3 +633,14 @@ one vertex attribute, `aGlass` (vec4), written by the kit (`src/levels/glass-dun
 - The world's own colours went with it: the glass prints its shade less flat than the sand (`shadeFlat`
   0.45, its mint foot and teal top kept in shade), the world keeps none of the print's warm grey in shade
   (`uShadeKeep` 0: teal lifted toward a warm light turned grey), and its dusk shadow is an emerald.
+
+## The surface census (issue #690, `scripts/surface-census/`)
+
+What is still flat, measured: `node scripts/surface-census/census.mjs <out-dir> [--worlds incal,home] [--shots 4]`
+(`PORT`, `CDP`: the dev server's and Chrome's ports; muted headless Chrome, `?batch=0`). Every visible mesh in the
+surface shader, grouped by material and classed by its options and compiled defines (`lib.mjs classify`: treated, skin,
+skin-bare, grid, bands, plain, pending; a new `S_*` pattern goes in `TREATMENTS`), weighted by world area and by the
+walk: `walk.mjs` lays each world's critical path (the level design audit's) and its places in node, and the page
+(`page.js`) casts a ray down and a fan from the eye at each point. It writes `report.json`, `report.md` (the tables)
+and a contact sheet per world (the view, and the same with each material in magenta). Reports:
+`docs/audits/surfaces-v2.30.md`. `tests/surface-census.test.js` checks the classes.

@@ -100,3 +100,21 @@ Surface design sheet for a science fiction exploration game, the great shell dom
 ```
 Surface design sheet for a science fiction exploration game, the narrow irrigation channels that run between white stepped tea terraces: clear teal water in stone-lined channels, its surface drawn with a few calm flowing pen lines along the current, a pale line of light along each edge, small ripples where the water drops over a lip, the stone lip wet and darker, a little cream foam gathered at the corners, a faint reflection of the white steps. Three panels side by side: a large swatch of the channel seen from above; terraces with many channels seen from a walker's height with a small figure for scale; a strip showing the marks simplifying with distance, edge lights staying, flow lines and ripples gone far. Calm and readable, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, teal, white stone, cream and a touch of leaf green, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels fish boats
 ```
+
+## Part 4 (issue #690, 2026-10-26)
+
+The second census ([docs/audits/surfaces-v2.30.md](../audits/surfaces-v2.30.md)) found two untreated materials with
+real screen time that no picked sheet covers; the rest of what is still flat only needs code with an existing pick.
+Same rules as above.
+
+### 14. Garden beds and tilled soil (`garden-beds`)
+
+```
+Surface design sheet for a science fiction exploration game, the planted beds of terraced tea gardens and a small homestead garden: dark tilled soil raked in straight furrows, low rows of seedlings and tea bushes as small rounded tufts in tidy lines, a few bare patches of drier, paler earth, scattered pebbles each with a tiny shadow, narrow footpaths of trodden earth between the beds, crisp pale stone kerbs edging each bed, a little wet darkness along an irrigation runnel. Three panels side by side: a large swatch of a bed seen from above at close range; stepped terraces of these beds seen from a walker's height with a small figure and a watering can for scale; a strip showing the marks simplifying with distance, rows and kerbs staying, furrows and pebbles gone far, flat colour far. Calm, tidy, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, umber, olive, sage green and cream stone, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels flowers vegetables fruit people tools
+```
+
+### 15. The Rose House's red stone halls (`rose-house`)
+
+```
+Surface design sheet for a science fiction exploration game, the floors and walls of the first shrine of a vanished civilisation, cut from rose-red desert stone into precise ancient high technology: large floor slabs of rose and terracotta stone set in a strict grid with fine recessed joints, every slab its own close tone, thin inlaid lines of warm amber light running between some slabs and turning at right angles, a few small round sockets and a circular plate in the floor, tall wall panels of darker plum-red stone set at slightly different depths with crisp chamfered edges, a band of engraved geometric signs, very fine tooling marks, a faint polish where feet pass. Clean, precise, timeless, futuristic, never ruined. Three panels side by side: a large swatch of floor meeting wall; a long hall of this stone seen from a walker's height with a small figure and a brazier for scale; a strip showing the detail simplifying with distance, slabs and light lines staying, tooling marks gone far. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose, terracotta, plum and a single amber light accent, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels moss vines roots organic rot ruins rubble
+```
