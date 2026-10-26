@@ -5,7 +5,6 @@ import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { GameState } from '../src/game-state.js';
 import { Ship } from '../src/ship/ship.js';
-import { cueText } from '../src/hud.js';
 import { DECK, LIFT, WINDOW, WALL_IN, SHIP_SCALE } from '../src/ship/hull.js';
 import { CONSOLE_R, TABLE, inRooms } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, fromPlan, SITE_OVERRIDES, LEGACY_DESERT_SITE } from '../src/ship/sites.js';
@@ -142,30 +141,6 @@ test('the holo table in the middle of the deck opens the galactic map; the dash 
   assert.ok(said.includes('No new messages.'));
 });
 
-test('aboard, the ship’s prompts float by what they are for: the voicemail button, the table, the hatch (issue #350)', () => {
-  const { physics, ship } = flatWorld();
-  const m = ship.parked;
-  ship.player = new Player(physics);
-  ship.attach({ order: ORDER, levels: LEVELS, journal: { storyDone: () => false, seen: () => false }, titles: {} });
-  ship.inside = true;
-  const P = m.interior.points, near = (tag, local, r) => tag && tag.at.distanceTo(ship.world(m, local)) < r;
-  ship.placePlayer(ship.world(m, P.cockpit), 0, true);
-  const vm = ship.promptTag();
-  assert.equal(vm?.text, 'voicemail');
-  assert.ok(near(vm, P.voicemail, 0.5), 'over the voicemail button on the console');
-  ship.placePlayer(ship.world(m, P.tableFoot.clone().add(v(1.1, 0, 0.3))), 0, true);
-  assert.match(ship.promptTag()?.text ?? '', /^galactic map/);
-  assert.ok(near(ship.promptTag(), P.table, 0.8), 'over the holo table');
-  ship.placePlayer(ship.world(m, P.hatchIn), 0, true);
-  assert.equal(ship.promptTag()?.text, 'step outside');
-  assert.ok(near(ship.promptTag(), P.threshold, 2.2), 'in the hatch');
-  ship.placePlayer(ship.world(m, v(0.5, 0, 9)), 0, true);   // (the hold)
-  assert.equal(ship.promptTag(), null, 'nothing of the ship’s here: no tag');
-  // the cue at the top says none of them now (src/hud.js cueText: a prompt with a place floats)
-  ship.placePlayer(ship.world(m, P.cockpit), 0, true);
-  const tag = ship.promptTag();
-  assert.equal(cueText({ shipHint: tag ? null : ship.hud(), prompt: tag.text, promptAt: tag.at, words: true }), '');
-});
 
 test('aboard, E is the ship’s only where it has something to use: in the hold it is yours, to talk to Anselm (issue #352)', async () => {
   const { physics, ship } = flatWorld();

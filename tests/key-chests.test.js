@@ -235,32 +235,3 @@ test('the great key\'s chest and the map\'s: a card as a makers\' box\'s, once; 
     assert.ok(boxes.announce({ name: 'x' })); boxes.skip(); assert.equal(boxes.busy(), false);
   } finally { off(); boxes.dispose(); rt.dispose?.(); }
 });
-
-test('the nine map displays retain optional collection and opened-save state without enlarging keys', () => {
-  for(const id of ['desert','bazaar','arzach','buried','underwater','arzach2','perdide2','garage','spheres']) {
-    game.reset();
-    const first=world(id), rt=first.rt;
-    const map=rt.pieces.find(p=>p instanceof MapChest);
-    const e=rt.def.logic.elements[map.id];
-    assert.equal(map.scale,1.5);
-    assert.ok(map.pos.distanceTo(rt.kit.world(e.at[0],e.at[1]+.24,e.at[2]))<1e-6);
-    for(const key of rt.pieces.filter(p=>p instanceof Key && !(p instanceof MapChest))) {
-      assert.equal(key.scale,key.o.big?KEY_CHEST.big:KEY_CHEST.small,'unrelated key size preserved');
-    }
-    const before=rt.keyCount();
-    const gates = r => Object.fromEntries(Object.entries(r.def.logic.elements)
-      .filter(([, e]) => ['door','bridge'].includes(e.type)).map(([key]) => [key, r.logic.isOpen(key)]));
-    const beforeGates=gates(rt);
-    assert.ok(map.openIt(),'optional map opens through its actual interaction handler');
-    assert.equal(map.openIt(),false,'cannot grant twice');
-    assert.deepEqual(rt.keyCount(),before,'map is not a puzzle key');
-    assert.deepEqual(gates(rt),beforeGates,'collecting a map cannot open a puzzle gate');
-    rt.dispose?.();
-    const loaded=world(id);
-    const old=loaded.rt.pieces.find(p=>p instanceof MapChest);
-    assert.equal(old.taken,true,'existing saved map stays opened at its new display');
-    assert.deepEqual(gates(loaded.rt),beforeGates,'map-only reload preserves puzzle gates');
-    assert.equal(old.openIt(),false,'reload cannot reannounce or grant the map');
-    loaded.rt.dispose?.();
-  }
-});

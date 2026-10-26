@@ -176,3 +176,20 @@ test('packaging predicates have no dependency on publishing, stripping or game b
  const consumer='tests/reference-sheets.test.js';
  for(const file of ['scripts/web-update.mjs','scripts/site-only.mjs','scripts/engine-bundle.mjs'])assert.deepEqual(selection(file,consumer),[witness],file);
 });
+
+
+test('map chest save/reload audit stays selected for world and chest changes, not HUD presentation',()=>{
+ const consumer='tests/map-chest-saves.test.js';
+ assert.deepEqual(selection('src/hud.js',consumer),[witness]);
+ for(const input of ['src/temples/pieces.js','src/temples/runtime.js','src/temples/garage.js','src/temples/attachment.js','src/game-state.js']) {
+  assert.ok(selection(input,consumer).includes(consumer),consumer+' tracks '+input);
+ }
+ assert.ok(selection('src/hud.js','tests/key-chests.test.js').includes('tests/key-chests.test.js'),'actual key-to-HUD integration remains selected');
+});
+
+
+test('transport HUD tests do not drag unrelated city rides and hull audits into a HUD edit',()=>{
+ for(const consumer of ['tests/cab-ride.test.js','tests/ship.test.js'])assert.deepEqual(selection('src/hud.js',consumer),[witness],consumer);
+ for(const consumer of ['tests/cab-hud.test.js','tests/ship-hud.test.js'])assert.ok(selection('src/hud.js',consumer).includes(consumer),consumer);
+ for(const [consumer,input] of [['tests/cab-ride.test.js','src/taxi.js'],['tests/ship.test.js','src/ship/ship.js'],['tests/ship-hud.test.js','src/ship/ship.js']])assert.ok(selection(input,consumer).includes(consumer),input);
+});
