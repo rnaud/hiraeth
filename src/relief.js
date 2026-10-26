@@ -3,9 +3,9 @@
 // on the side turned from it, oriented by the sun's way across the face, so they agree with the cast shadows. Still flat
 // colour, Moebius's pen-and-wash bevel: a flagstone's edge catching the light, a rivet's shadow, a groove's lit far lip.
 //
-// One switch: the shared uRelief (materials.js sharedUniforms; 0 off, the default, 1 on), set at run time by ?relief=1 or
-// the dev panel's "painted relief" (main.js), and in the Unity port by the same shared value (_Relief, HiraethLook.cs).
-// Off, every pattern draws exactly what it drew before. RELIEF_GLSL is included by the surface shader before every
+// One switch: the shared uRelief (materials.js sharedUniforms; 1 on, the default since the author picked it, 0 off), set
+// at run time by ?relief=0 or the dev panel's "painted relief" (main.js), and in the Unity port by the same shared value
+// (_Relief, HiraethLook.cs). Off, every pattern draws exactly what it drew before (the flat marks). RELIEF_GLSL is included by the surface shader before every
 // pattern (materials.js); scripts/unity-export/marks-hlsl.mjs writes its HLSL at the head of SurfaceMarks.hlsl.
 //
 //   reliefEdge(dpx, g, sun2, inkW)  the signed relief beside an edge: + lit, - shaded, 0 away from it. dpx: px from the
@@ -18,9 +18,8 @@
 //                                   specks), or darker; nothing while uRelief is 0.
 //   reliefFrameSun(wdx, wdy, odx, ody, sun)  the sun's way across the face in another frame (an object's own, a room's),
 //                                   from the two frames' screen derivatives: for patterns drawn in object space.
-// Users (each the edge it knows): paving's stones (raised), sheet metal's panels and rivets (raised), worked timber's
-// planks (raised), pale stone's blocks (raised), the buried city's wind bands (engraved), the sea walls' repaired patches
-// (raised), a rock top's fissures (engraved), the interiors' floor tiles (raised), the makers' machined finish (its inlaid
+// Users (each the edge it knows): paving's stones (raised), sheet metal's panels and rivets (raised), pale stone's blocks (raised), the buried city's wind bands (engraved), the sea walls' repaired patches
+// (raised), a rock top's fissures (engraved, at half strength), the interiors' floor tiles (raised), the makers' machined finish (its inlaid
 // border and sockets engraved, its set-back panels' lips).
 
 /** light, dark: the strongest lift and darkening (a share of the colour), most: and at most this much of a channel (on a

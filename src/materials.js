@@ -108,9 +108,9 @@ export const sharedUniforms = {
   uShadeKeep: { value: 0 },
   // weathering at low detail (the handheld): the cracks without their shaded and lit edges
   uWearLite: { value: 0 },
-  // the painted relief (src/relief.js, issue #696): 1 draws the marks raised or engraved, a lit and a shaded line beside
-  // each by the sun; 0 (the default, for the author to judge first) leaves every pattern as it was. ?relief=1, the dev panel
-  uRelief: { value: 0 },
+  // the painted relief (src/relief.js, issue #696): 1 (the default since the author picked it) draws the marks raised or
+  // engraved, a lit and a shaded line beside each by the sun; 0 leaves every pattern flat. ?relief=0, the dev panel
+  uRelief: { value: 1 },
   // 1: the lens is inside the traveller (a wall right behind him in a cabin; main.js from player.js bodyGap): his own
   // surfaces (uHero) are left out of the view, not drawn from inside (issue #324). His shadow is the override's: kept.
   uHeroCut: { value: 0 },
@@ -1018,7 +1018,7 @@ const fragmentShader = /* glsl */ `
   uniform float uWindows;  // façades: the share of cells with a window
   uniform float uWeather;  // weathering: hairline cracks on old walls (weatherInk), 0..1
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
-  uniform float uRelief;   // the painted relief (src/relief.js; sharedUniforms, 0 off)
+  uniform float uRelief;   // the painted relief (src/relief.js; sharedUniforms, 1 on, 0 off)
   uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
   uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
   uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
@@ -2595,7 +2595,7 @@ ${SHADOW_GLSL}
     if (uTimber.w > 0.0) {
       vec3 ta = abs(normalize(on));
       int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
-      patInk = max(patInk, timber(vObjPos, tFace, objFw, n.y, objSun * smoothstep(-0.05, 0.2, dot(n, uSunDir)), albedo));
+      patInk = max(patInk, timber(vObjPos, tFace, objFw, n.y, albedo));
     }
     #endif
     #ifdef S_SEAWALL

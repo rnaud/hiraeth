@@ -297,9 +297,9 @@ export const SHEET_GLSL = /* glsl */ `
 export const TIMBER_GLSL = /* glsl */ `
   // ---------------------------------------------------------------- worked timber (src/surface-marks.js TIMBER)
   // Timber at p (object space, m), its face's axis (0 x, 1 y, 2 z: the face's normal's), pf its metres per px each way, ny
-  // the world normal's y, osun the sun's way across the face in object space (the painted relief's: reliefFrameSun): each
-  // plank's tone, a painted one, the sun on its top into alb; its joints', grain's, knots' ink.
-  float timber(vec3 p, int face, vec3 pf, float ny, vec3 osun, inout vec3 alb) {
+  // the world normal's y: each plank's tone, a painted one, the sun on its top into alb; its joints', grain's, knots' ink.
+  // (no painted relief: tried, lost in the planks' grain and hatching, issue 696)
+  float timber(vec3 p, int face, vec3 pf, float ny, inout vec3 alb) {
     int ga = int(uTimber.y + 0.5);
     alb *= 1.0 + 0.07 * clamp(ny, 0.0, 1.0) - 0.08 * clamp(-ny, 0.0, 1.0);   // (sun-bleached tops, darker undersides)
     if (face == ga) {
@@ -309,18 +309,12 @@ export const TIMBER_GLSL = /* glsl */ `
     int ca = 3 - face - ga;   // (across the grain, on this face)
     float s = ga == 0 ? p.x : ga == 1 ? p.y : p.z, t = ca == 0 ? p.x : ca == 1 ? p.y : p.z;
     float fs = max(ga == 0 ? pf.x : ga == 1 ? pf.y : pf.z, 1e-6), ft = max(ca == 0 ? pf.x : ca == 1 ? pf.y : pf.z, 1e-6);
-    float ink = 0.0, Wp = uTimber.x, pi = 0.0, trel = 0.0;
+    float ink = 0.0, Wp = uTimber.x, pi = 0.0;
     if (Wp > 0.0) {
       pi = floor(t / Wp);
       float dj = abs(fract(t / Wp + 0.5) - 0.5) * Wp / ft;
       float kJ = smoothstep(5.0, 10.0, Wp / ft);
       ink = inkLine(dj, 0.9) * kJ * 0.8;
-      // painted relief: each plank's arris rounded, lit on the side toward the sun
-      if (uRelief > 0.0) {
-        float tt = fract(t / Wp + 0.5) - 0.5;
-        vec2 s2 = vec2(ga == 0 ? osun.x : ga == 1 ? osun.y : osun.z, ca == 0 ? osun.x : ca == 1 ? osun.y : osun.z);
-        trel = reliefEdge(dj, vec2(0.0, tt > 0.0 ? -1.0 : 1.0), s2, 0.9) * smoothstep(6.0, 12.0, Wp / ft) * 0.8;
-      }
       float hp = hash(vec2(pi, 3.9));
       alb *= 1.0 + 0.09 * (hp - 0.5) * smoothstep(3.0, 8.0, Wp / ft);
       if (hash(vec2(pi, 8.3)) < uTimber.z) {
@@ -354,7 +348,6 @@ export const TIMBER_GLSL = /* glsl */ `
         ink = max(ink, (1.0 - smoothstep(0.6 * uPixelRatio, 1.4 * uPixelRatio, dn)) * kK * 0.8);
       }
     }
-    if (trel != 0.0) alb = reliefTone(alb, trel);
     return ink;
   }
 `;
@@ -714,7 +707,9 @@ export const ROCK_TOP_GLSL = /* glsl */ `
       float det = rtD.x * rtD.w - rtD.y * rtD.z;
       vec2 gv = vec2(rtD.w * rtV.x - rtD.y * rtV.y, rtD.x * rtV.y - rtD.z * rtV.x) / (abs(det) > 1e-14 ? det : 1e-14);
       vec2 away = normalize(gv + 1e-9) * (v3 > 0.5 ? 1.0 : -1.0);
-      alb = reliefTone(alb, reliefEdge(abs(v3 - 0.5) / f3, -away, uSunDir.xz, 1.0) * run * k * (1.0 - smoothstep(0.03, 0.09, gm)));
+      // (half strength: the fissure's field is steep across it, so its band is narrow and a full one was inked by
+      //  post.js as a second line beside the fissure)
+      alb = reliefTone(alb, reliefEdge(abs(v3 - 0.5) / f3, -away, uSunDir.xz, 1.0) * run * k * (1.0 - smoothstep(0.03, 0.09, gm)) * 0.5);
     }
     // pebbles and stones with their shadows (castK 1: a top is in the sun)
     if (uRockTop.y > 0.0 && gm < 0.25) {

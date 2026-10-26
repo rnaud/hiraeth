@@ -176,8 +176,8 @@
   },
   "lorn-timber": {
    "shot": {
-    "date": "2026-10-26T19:57:44.493Z",
-    "load": 6.7
+    "date": "2026-10-26T21:28:17.411Z",
+    "load": 11.7
    },
    "high": {
     "off": 6.975,
@@ -350,8 +350,8 @@
   },
   "vael-table": {
    "shot": {
-    "date": "2026-10-26T19:54:03.581Z",
-    "load": 9.5
+    "date": "2026-10-26T21:28:36.753Z",
+    "load": 14.6
    },
    "high": {
     "off": 7.479,
@@ -465,7 +465,7 @@
    }
   }
  },
- "commit": "26b565197",
+ "commit": "c30fe8272",
  "res": "1280x720",
  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Pro, Unspecified Version)"
 }

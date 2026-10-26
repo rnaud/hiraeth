@@ -444,7 +444,7 @@ uniform, BridgeRenderer keeping it off the plain and the slim variants.
   (e.g. 9.5/9.6/8.4/8.5 base against 9.8/9.9/8.2/8.6). Draw calls unchanged (the views' own ±3), three programs more
   (the crystals' variants). To re-measure on a quiet machine.
 
-## Painted relief (issue #696, `src/relief.js`, off by default)
+## Painted relief (issue #696, `src/relief.js`)
 
 The surface marks are flat: colour and ink, no normals. The painted relief makes them read raised or engraved the way a
 pen-and-wash drawing does: beside a mark's ink line, a thin lighter band on the side that faces the sun and a thin darker
@@ -452,22 +452,25 @@ one on the side turned from it, oriented by the sun's way **across the face** (`
 frame), so they agree with the cast shadows. Still flat colour: the darker band is a tone of the surface's own colour
 (−16 % and at most 0.065 a channel), never ink; the lighter one the same under a 0.9 ceiling (a brighter channel prints as specks).
 
-- **One switch**: the shared `uRelief` (materials.js `sharedUniforms`, **0 by default**). `?relief=1` turns it on for
-  the session; the dev panel's Beauty › "painted relief (review)" flips it live. Off, `reliefTone` multiplies by exactly
-  1 and every pattern skips its relief branch: nothing changes for players. The Unity port reads the same shared value
+- **One switch**: the shared `uRelief` (materials.js `sharedUniforms`), **on by default** since the author picked it
+  from the review page (v2.31). `?relief=0` turns it off for the session (a before/after); the dev panel's Beauty ›
+  "painted relief (review)" flips it live. Off, `reliefTone` adds exactly nothing and every pattern skips its relief
+  branch: the flat marks as they were. The Unity port reads the same shared value
   (`_Relief`, HiraethLook.cs from the look's `shared`).
 - **The helper** (`RELIEF_GLSL`, included before every pattern): `reliefEdge(dpx, g, sun2, inkW)` the signed band beside
   an edge (px from it; `g` the way the nearest slope faces: out of a raised thing, back toward an engraved groove; the
   band starts past the ink line's half and has soft ramps of 2 device px, so no step from one pixel to the next crosses
   post.js's colour-edge threshold and inks the band as a line of its own); `reliefTone(alb, r)`; `reliefFrameSun(...)`
-  the sun across a face in an object's own frame, from the two frames' screen derivatives (timber, rooms).
+  the sun across a face in an object's own frame, from the two frames' screen derivatives (rooms).
 - **Where**: paving's stones (raised), sheet metal's panels and rivets (raised: a lit and a shaded crescent beside each
-  dot), worked timber's planks (rounded arrises), pale stone's blocks (raised), the buried city's wind bands (grooves),
-  the sea walls' repaired patches (raised), a rock top's fissures (engraved; the field's direction from its screen
-  derivatives), the interiors' floor tiles (raised), the makers' machined finish (`mkFinish`: the inlaid border and the
+  dot), pale stone's blocks (raised), the buried city's wind bands (grooves),
+  the sea walls' repaired patches (raised), a rock top's fissures (engraved, at half strength: the field
+  is steep across a fissure, its band narrow, and a full one was inked as a second line; the field's direction from its
+  screen derivatives), the interiors' floor tiles (raised), the makers' machined finish (`mkFinish`: the inlaid border and the
   sockets engraved; the set-back panels' shadow along the edge toward the sun instead of the fixed top-left one). A wall
   panel's frame in `mkFinish` takes the sun's height only (its run along the wall is each skin's own, not known there).
 - Each band fades with the mark's size on screen, as the mark's own ink does; a face turned from the sun has none.
+- **Not on timber**: tried, and lost in Lorn's dark planks, their grain and hatching (the review page's verdict).
 - **Review**: `tools/relief-review.html` (open on any dev server), its pictures and frame times made by
   `node tools/relief-shots.mjs` (fixed views in `tools/relief-review/views.json`).
 

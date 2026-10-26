@@ -382,7 +382,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (off.has('shape')) backend.shapeAttrs = null;
   if (off.has('copy')) backend.frameView = false;
   if (off.has('surfd')) backend.surfacesD = false;   // (surfd: issue #264's surfaces D left out, the before: the portrait head's face still, no hatch's least spacing, plants' own lean, cut or white line)
-  if (off.has('eyepaint')) backend.eyePaint = false;   // (eyepaint: the portrait head's eyes and brows from his vertex colours, the before of issue #473)
+  if (off.has('eyepaint')) backend.eyePaint = false;
+  if (off.has('relief')) sharedUniforms.uRelief.value = 0;   // (relief: the marks flat, without the painted relief, src/relief.js: its before, issue #696)   // (eyepaint: the portrait head's eyes and brows from his vertex colours, the before of issue #473)
   if (off.has('portrait')) backend.portrait = null;   // (portrait: a conversation's chip without its picture, their initial instead)
   // (far: the small props past the preset's propFar drawn all the same, engine/game.js, issue #262)
   // (gestures: the conversations' captured gestures left unloaded, public/anim/gestures.glb, issue #197)

@@ -1311,8 +1311,8 @@ fBeauty.add(sharedUniforms.uFormHatch, 'value', 0, 1, 1).name('hatching follows 
 fBeauty.add(U.uSkyBands, 'value', 0, 1, 0.05).name('sky bands');
 fBeauty.add(U.uHazeBands, 'value', 0, 1, 0.05).name('haze layers');
 fBeauty.add(U.uRays, 'value', 0, 1, 0.05).name('sun rays');
-// the painted relief (src/relief.js, issue #696): off for players until the author picks it; ?relief=1 for this session
-if (query.get('relief') === '1') sharedUniforms.uRelief.value = 1;
+// the painted relief (src/relief.js, issue #696): on; ?relief=0 draws the marks flat for this session (a before/after)
+if (query.has('relief')) sharedUniforms.uRelief.value = query.get('relief') === '0' ? 0 : 1;
 fBeauty.add(sharedUniforms.uRelief, 'value', 0, 1, 1).name('painted relief (review)');
 fBeauty.close();
 const fWorld = gui.addFolder('World');

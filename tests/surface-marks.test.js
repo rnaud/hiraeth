@@ -43,7 +43,7 @@ test('each mark compiled only into the materials that ask for it, its uniforms s
   assert.ok('S_GROUNDMID' in surfaceDefines({ color: '#fff', mode: MODE_TERRAIN, groundMid: true }));
   const m = makeMaterial({ color: '#9a6a4a', timber: { plank: 0.3 } });
   assert.deepEqual(m.uniforms.uTimber.value.toArray(), [0.3, 1, 0.1, 1]);
-  assert.match(m.fragmentShader, /float timber\(vec3 p, int face, vec3 pf, float ny, vec3 osun, inout vec3 alb\)/);
+  assert.match(m.fragmentShader, /float timber\(vec3 p, int face, vec3 pf, float ny, inout vec3 alb\)/);
   // (o.room is the ship's rooms' key light, ROOM_LIGHT: never this)
   assert.equal(makeMaterial({ color: '#9a6a4b', room: { value: { x: 0, y: 1, z: 0, w: 1 } } }).uniforms.uInterior.value.x, 0);
 });

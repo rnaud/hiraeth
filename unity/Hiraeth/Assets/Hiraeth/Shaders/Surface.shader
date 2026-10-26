@@ -1521,8 +1521,7 @@ Shader "Hiraeth/Surface"
           float3 tFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
           float3 ta = abs(SafeNormalize(on));
           int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
-          float3 tSun = _Relief > 0.0 ? reliefFrameSun(ddx(i.worldPos), ddy(i.worldPos), ddx(i.objPos), ddy(i.objPos), _SunDir) * smoothstep(-0.05, 0.2, dot(n, _SunDir)) : float3(0.0, 0.0, 0.0);
-          patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, tSun, albedo));
+          patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, albedo));
         }
         // and issue #677's (sea walls, pale stone, the buried city, a water channel, panelled domes), each in its uniform branch
         UNITY_BRANCH if (WALLK && (_SeaWall.x > 0.0 || _PaleStone.x > 0.0 || _Buried.x > 0.0 || _Channel.w > 0.0))
