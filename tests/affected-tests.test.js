@@ -403,11 +403,11 @@ test('shared analysis cache follows exact source bytes and diagnostic mode acros
  const files={'tests/a.test.js':"import '../src/a.js';",'src/a.js':"import './old.js';",'src/old.js':'export const x=1;','src/new.js':'export const x=2;', 'tests/b.test.js':"import '../src/new.js';"};
  const analysisCache=new Map(), select=(path,extra={})=>affectedTests([path],{...fixture(files),analysisCache,...extra});
  assert.deepEqual(select('src/old.js'),['tests/a.test.js']);
- const cached=analysisCache.get('src/a.js');
- assert.deepEqual(select('src/old.js'),['tests/a.test.js']);assert.equal(analysisCache.get('src/a.js'),cached);
+ const cached=analysisCache.get('src/a.js\0false');
+ assert.deepEqual(select('src/old.js'),['tests/a.test.js']);assert.equal(analysisCache.get('src/a.js\0false'),cached);
  files['src/a.js']="import './new.js';";
- assert.deepEqual(select('src/new.js'),['tests/a.test.js','tests/b.test.js']);assert.notEqual(analysisCache.get('src/a.js'),cached);
- const diagnostics={};select('src/new.js',{diagnostics});assert.ok(diagnostics.tests['tests/a.test.js']);assert.equal(analysisCache.get('src/a.js').explain,true);
+ assert.deepEqual(select('src/new.js'),['tests/a.test.js','tests/b.test.js']);assert.notEqual(analysisCache.get('src/a.js\0false'),cached);
+ const diagnostics={};select('src/new.js',{diagnostics});assert.ok(diagnostics.tests['tests/a.test.js']);assert.ok(analysisCache.get('src/a.js\0true').dependency.opaqueReasons);
  delete files['src/a.js'];assert.ok(select('src/new.js').includes('tests/a.test.js'),'missing input is opaque, never a cached success');
 });
 

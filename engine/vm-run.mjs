@@ -19,7 +19,11 @@ const BUILTINS = ['Math', 'Object', 'Array', 'Number', 'String', 'Boolean', 'Sym
  * Returns its exports, the context, and readFile (public/ files as ArrayBuffers of that context).
  */
 export function loadBundle(file, host = {}, globals = {}, { seed = null } = {}) {
-  const code = readFileSync(resolve(ROOT, file), 'utf8');
+  return loadSource(readFileSync(resolve(ROOT, file), 'utf8'), host, globals, { seed, filename: file });
+}
+
+/** Execute supplied bundle bytes; the caller can bound the VM's asset reader. */
+export function loadSource(code, host = {}, globals = {}, { seed = null, filename = 'engine-bundle', readBytes = p => readFileSync(String(p).startsWith('data/') ? resolve(ROOT, p) : resolve(ROOT, 'public', p)) } = {}) {
   const ctx = { console, setTimeout, clearTimeout, setInterval, clearInterval, ...globals };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
@@ -27,14 +31,14 @@ export function loadBundle(file, host = {}, globals = {}, { seed = null } = {}) 
   if (seed != null) vm.runInContext(`(() => { let s = ${seed >>> 0}; Math.random = () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })()`, ctx);
   // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
   // (the game's data/ folder from the repository, beside public/, as the Unity bridge reads it: the v2 traveller's models, issue #493)
-  const readFile = (p) => { try { const b = readFileSync(String(p).startsWith('data/') ? resolve(ROOT, p) : resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
+  const readFile = (p) => { try { const b = readBytes(p); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
   ctx.__HIRAETH_HOST__ = { engine: 'node-vm', readFile, ...host };
   const module = { exports: {} };
   // (the context's built-ins handed to the bundle as locals, the same objects: a free name in a context made from an
   // object is looked up through its interceptor on every read, which made a world's build 15-20 times slower than
   // in Node: tests/pose-exact.test.js built the desert in 17 s instead of 1. An engine's own VM has no interceptor.)
   const names = BUILTINS.filter((n) => vm.runInContext(`typeof ${n} !== 'undefined'`, ctx));
-  const fn = vm.runInContext(`(function (${names.join(', ')}) { return function (module, exports, require) {${code}\n}; })(${names.join(', ')})`, ctx, { filename: file });
+  const fn = vm.runInContext(`(function (${names.join(', ')}) { return function (module, exports, require) {${code}\n}; })(${names.join(', ')})`, ctx, { filename });
   fn(module, module.exports, (n) => { throw new Error(`the bundle asked for '${n}'`); });
   return { exports: module.exports, ctx, readFile };
 }

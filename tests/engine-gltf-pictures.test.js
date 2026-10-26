@@ -9,8 +9,8 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { bundle } from '../scripts/engine-bundle.mjs';
-import { loadBundle } from '../engine/vm-run.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
+import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
 const PUBLIC = join(import.meta.dirname, '..', 'public');

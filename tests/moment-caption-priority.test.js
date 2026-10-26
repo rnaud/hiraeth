@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Cinema } from '../src/ship/cinema.js';
 import { MomentStage } from '../src/story/moment.js';
-import { PlaceName } from '../src/hud.js';
+import { PlaceName } from '../src/hud-state.js';
 import { screen } from '../src/platform.js';
 import { spoken } from '../src/story/tone.js';
 

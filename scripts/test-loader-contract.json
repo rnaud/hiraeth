@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "module": "engine/game-test-runtime.mjs",
+  "entry": "engine/game.js",
+  "assets": [
+    "public",
+    "data"
+  ],
+  "hostReaders": [
+    "engine/boot.js",
+    "engine/platform.js"
+  ],
+  "fingerprints": {
+    "engine/game-test-runtime.mjs": "2fbc7f2ab0bae88c6198ece257a3a9c3e81d3472f2f4b2ee1b4165c35888cef3",
+    "scripts/engine-bundle-core.mjs": "4c3efa7943f1495049e8f12d70f2f6338d626327778d4af2fea3d3b9d9a6c6dc",
+    "engine/vm-run.mjs": "aa6508970479068ef8cb2cb22686e5ec57348aade39929eaf94aae4ee433ebf3",
+    "engine/boot.js": "a5ba211a1967cee1ba33a14c196dffa0324da090df57492fb563e52c471ecfd9",
+    "engine/platform.js": "99a2d72f5fb588a52cab3e5f0a180e4af785b409bdb57e275028300c6139978d"
+  }
+}

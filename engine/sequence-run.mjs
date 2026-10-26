@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { loadBundle } from './vm-run.mjs';
+import { loadBundle } from './game-test-runtime.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'noticed', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then']);   // (photo: a no-op here, so P enters photo mode as on the page and in Unity, issue #264)
@@ -18,7 +18,7 @@ export const STEP = 1 / 30;
 
 /** The engines' bundle, built once into a temp file: its path. */
 export async function buildBundle() {
-  const { bundle } = await import('../scripts/engine-bundle.mjs');
+  const { bundle } = await import('./game-test-runtime.mjs');
   const { tempPath } = await import('../scripts/temp-dirs.mjs');
   const file = tempPath(join(tmpdir(), `hiraeth-sequences-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
@@ -84,9 +84,8 @@ export async function runSequence(file, id, { quiet = true, log = () => {}, leve
 /** Every sequence (or those of `ids`) → { <id>: { beats, errors } }. */
 export async function runAll(ids = null, { file = null, log = () => {} } = {}) {
   file ??= await buildBundle();
-  const { SEQUENCES } = await import('./sequences-ids.mjs').catch(() => ({ SEQUENCES: null }));
   const B = loadBundle(file, { pads: () => [] }).exports;
-  const all = (SEQUENCES ?? B.SEQUENCES).map((s) => s.id);
+  const all = B.SEQUENCES.map((s) => s.id);
   const out = {};
   for (const id of all) {
     if (ids && !ids.includes(id)) continue;

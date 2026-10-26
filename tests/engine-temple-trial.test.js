@@ -6,8 +6,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { bundle } from '../scripts/engine-bundle.mjs';
-import { loadBundle } from '../engine/vm-run.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
+import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 import { HELPER_OPENING } from '../src/temples/helper-cinematics.js';
 

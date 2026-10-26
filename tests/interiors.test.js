@@ -8,7 +8,7 @@ import { Physics } from '../src/physics.js';
 import { inTightRoom } from '../src/interiors.js';
 import { INTERIOR, interiorSlot, interiorAt, interiors, buildInterior, buildShopfront, wallBoxes } from '../src/interior-kit.js';
 import { viaPortal } from '../src/scout.js';
-import { PlaceName } from '../src/hud.js';
+import { PlaceName } from '../src/hud-state.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');

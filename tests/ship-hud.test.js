@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
-import { cueText } from '../src/hud.js';
+import { cueText } from '../src/hud-state.js';
 import { LEVELS } from '../src/levels/index.js';
 import { ORDER } from '../src/levels/content.js';
 

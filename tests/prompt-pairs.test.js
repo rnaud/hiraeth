@@ -13,7 +13,7 @@ import { FR } from '../src/i18n/fr.js';
 import { BUTTON_NAME, PAD, PAD_SCHEME_NOTE } from '../src/bindings.js';
 import { CHANGELOG, lineText } from '../src/changelog.js';
 import { GLYPH_ROLES, padGlyphs } from '../src/pad-glyphs.js';
-import { padCue } from '../src/hud.js';
+import { padCue } from '../src/hud-state.js';
 
 /** A pair of the same button's names in two families, as written in the source. */
 const PAIR_ONLY = /\b[ABXY] ?\/ ?[×○□△]|\b(?:LB ?\/ ?L1|RB ?\/ ?R1|LT ?\/ ?L2|RT ?\/ ?R2)\b/;

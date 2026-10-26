@@ -10,8 +10,8 @@ import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, boardPro
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
-import { bundle } from '../scripts/engine-bundle.mjs';
-import { loadBundle } from '../engine/vm-run.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
+import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 import { colourById } from '../src/kit-colours.js';
 import { portMaterial } from '../engine/unity/port-format.js';
