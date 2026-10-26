@@ -1,0 +1,85 @@
+{
+  "issue": 682,
+  "source": "references/characters/traveller-outfits/gravity-ranger/approved-reference.png",
+  "sheetSize": [
+    1536,
+    1024
+  ],
+  "notes": "Mechanical crops and one uniform scale only. Figure columns found against the flat background; outside them the square is filled with the sampled background colour (the neighbouring figures removed). All three views share one vertical span so the feet and crowns line up. Side view: nose points left in the image = the character's left side = Tripo `left`. No right view: the outfits are asymmetric, so the side was not mirrored.",
+  "background": [
+    237,
+    230,
+    210
+  ],
+  "threshold": 38,
+  "columnFraction": 0.03,
+  "margin": 0.06,
+  "sharedRows": [
+    23,
+    957
+  ],
+  "scale": 0.97897,
+  "size": 1024,
+  "recipes": [
+    {
+      "view": "front",
+      "figureColumns": [
+        131,
+        437
+      ],
+      "figureRows": [
+        23,
+        951
+      ],
+      "keptColumns": [
+        125,
+        443
+      ],
+      "square": {
+        "left": -239,
+        "top": -33,
+        "size": 1046
+      }
+    },
+    {
+      "view": "left",
+      "figureColumns": [
+        670,
+        853
+      ],
+      "figureRows": [
+        26,
+        957
+      ],
+      "keptColumns": [
+        664,
+        859
+      ],
+      "square": {
+        "left": 239,
+        "top": -33,
+        "size": 1046
+      }
+    },
+    {
+      "view": "back",
+      "figureColumns": [
+        1085,
+        1404
+      ],
+      "figureRows": [
+        24,
+        955
+      ],
+      "keptColumns": [
+        1079,
+        1410
+      ],
+      "square": {
+        "left": 722,
+        "top": -33,
+        "size": 1046
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "issue": 682,
+  "outfit": "void-navigator",
+  "review": "tools/tripo-outfits-review.html",
+  "note": "Review trial only, not in the game. The untouched export is git-ignored (over 10 MB); this file records it. preview.glb: the same positions, normals, UVs and triangles, its three textures re-encoded at 1024² JPEG.",
+  "reference": "references/characters/traveller-outfits/void-navigator/approved-reference.png",
+  "inputs": "reference/ (crop-recipe.json)",
+  "tripo": {
+    "task": "41fc4b3b-d4c8-42a9-9190-9317eda637dd",
+    "studio": "https://studio.tripo3d.ai/workspace/generate/41fc4b3b-d4c8-42a9-9190-9317eda637dd",
+    "endpoint": "/v3/generation/multiview-to-model",
+    "views": [
+      "front",
+      "left",
+      "back"
+    ],
+    "settings": {
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_version": "v3.5-20260815",
+      "texture_quality": "detailed",
+      "delight": true,
+      "texture_alignment": "original_image",
+      "smart_low_poly": true,
+      "face_limit": 20000
+    },
+    "credits": 50,
+    "balance": {
+      "before": 1925,
+      "after": 1825
+    },
+    "created": "2026-10-26T12:43:21.848Z"
+  },
+  "attempts": [
+    {
+      "task": "41fc4b3b-d4c8-42a9-9190-9317eda637dd",
+      "credits": 50,
+      "created": "2026-10-26T12:43:21.848Z"
+    }
+  ],
+  "source": {
+    "path": "output/tripo-outfits/void-navigator/41fc4b3b-d4c8-42a9-9190-9317eda637dd/model_url.glb",
+    "bytes": 10254252,
+    "sha256": "db8c78ab406e66a1c509d3f7915ddb96b706958e3340b2f6514c405d58dc836a",
+    "triangles": 29065,
+    "vertices": 36132,
+    "meshes": 1,
+    "primitives": 1,
+    "materials": [
+      {
+        "name": "tripo_material_41fc4b3b-d4c8-42a9-9190-9317eda637dd",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "baseColorTexture": {
+            "index": 0
+          },
+          "metallicFactor": 1,
+          "roughnessFactor": 1,
+          "metallicRoughnessTexture": {
+            "index": 1
+          }
+        },
+        "normalTexture": {
+          "index": 2,
+          "scale": 1
+        },
+        "doubleSided": true
+      }
+    ],
+    "images": [
+      {
+        "index": 0,
+        "mimeType": "image/jpeg",
+        "width": 4096,
+        "height": 4096,
+        "bytes": 3475071
+      },
+      {
+        "index": 1,
+        "mimeType": "image/jpeg",
+        "width": 4096,
+        "height": 4096,
+        "bytes": 2950047
+      },
+      {
+        "index": 2,
+        "mimeType": "image/png",
+        "width": 4096,
+        "height": 4096,
+        "bytes": 2496602
+      }
+    ],
+    "decodedTextureMiB": 256,
+    "skins": 0,
+    "animations": 0,
+    "bounds": {
+      "min": [
+        -0.0988258421421051,
+        -0.5,
+        -0.18101763725280762
+      ],
+      "max": [
+        0.09686887264251709,
+        0.4980430603027344,
+        0.18101760745048523
+      ]
+    }
+  },
+  "preview": {
+    "path": "data/characters/tripo-outfits/void-navigator/preview.glb",
+    "textureSize": 1024,
+    "bytes": 2217184,
+    "sha256": "be4d6f8ede1218ce69df1e3817fb2d9e689661911683bfa0a8e866f31ceade86",
+    "triangles": 29065,
+    "vertices": 36132,
+    "meshes": 1,
+    "primitives": 1,
+    "images": [
+      {
+        "index": 0,
+        "mimeType": "image/jpeg",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 360057
+      },
+      {
+        "index": 1,
+        "mimeType": "image/jpeg",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 410977
+      },
+      {
+        "index": 2,
+        "mimeType": "image/jpeg",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 113612
+      }
+    ],
+    "decodedTextureMiB": 16,
+    "skins": 0,
+    "animations": 0,
+    "bounds": {
+      "min": [
+        -0.0988258421421051,
+        -0.5,
+        -0.18101763725280762
+      ],
+      "max": [
+        0.09686887264251709,
+        0.4980430603027344,
+        0.18101760745048523
+      ]
+    }
+  }
+}

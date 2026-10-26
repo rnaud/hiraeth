@@ -5,6 +5,7 @@ __pycache__/
 .local-tools/
 output/character-local/
 output/character-tripo/
+output/tripo-outfits/
 .claude/worktrees/
 
 handheld-perf.jsonl

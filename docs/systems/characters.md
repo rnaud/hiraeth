@@ -2620,3 +2620,45 @@ default's body was drawn in for the default's clothes, so a tight outfit may nee
 **(Lamplighter):** no gloves or oil can; the quilting is paint, not puffed geometry; the jacket's hem
 pinches over the trousers at a jog and a sprint (up to 9 mm, 9 verts); the shoulders bunch a little with
 the arms lowered.
+
+### Tripo outfit trial (#682)
+
+A review trial, not in the game: could Tripo rebuild the void navigator and the gravity ranger from their picked
+sheets better than the Blender outfits (#680)? Everything lives in `data/characters/tripo-outfits/<id>/`.
+
+- **Inputs:** `node scripts/tripo/crop-outfit-sheets.mjs` cuts each sheet's three views (front, side, back) into
+  aligned 1024² squares in `reference/` — mechanical only: each figure's columns found against the flat background,
+  its neighbours filled with the sampled background, one shared vertical span and scale; `crop-recipe.json` holds
+  the numbers. The side view (nose to the left) is the character's left side, Tripo's `left`. No right view: both
+  outfits are asymmetric, so the side was not mirrored.
+- **Generation:** `node scripts/tripo/generate-outfits.mjs <id>` (the reference lab's Tripo client and key) runs one
+  `/v3/generation/multiview-to-model`: H3.1 (`v3.1-20260211`), smart mesh (`smart_low_poly`, `face_limit` 20 000),
+  PBR texture `detailed` on texture model `v3.5-20260815` with `delight` (Studio's Remove Lighting), colours matched to
+  the pictures. Void navigator task `41fc4b3b-d4c8-42a9-9190-9317eda637dd`, gravity ranger
+  `68d010a9-45cb-4da4-bdc6-163547d3a991`, 50 credits each (1 925 → 1 825), no retries.
+- **Files:** each untouched export is ~10 MB (one mesh, three 4096² textures: colour, metal-rough, normal), so it
+  stays git-ignored in `output/tripo-outfits/<id>/<task>/`; `inventory.json` records its hash and budget.
+  `node scripts/tripo/prepare-tripo-outfits.mjs` writes the committed `preview.glb` (same mesh, textures at 1024²:
+  2.2 and 1.9 MB) and the inventory.
+- **Review page:** `tools/tripo-outfits-review.html` on the dev server (`?outfit=`, `?angle=`, `?finish=ink|unlit|clay|matte`,
+  `?turn=0`): the sheet's matching view, the Blender outfit worn by the game's traveller standing (dressed as the
+  outfits gallery dresses him) and the Tripo model side by side at the same height and angle, turning. "Game ink" is
+  the gallery's own viewer and ink material; "Live in the outfits gallery" opens the gallery beside them. No audio.
+
+**Findings.** The texture is Tripo's strength: the sheets' painted detail comes across almost intact (the navigator's
+harness plates and centre disc, the rear Y, the cyan strips, the belt's disc; the ranger's shoulder plate, the back
+crescents, cargo pockets, the boots' dials), far closer to the sheets than the Blender atlases' flat swatches. The
+mesh is its weakness: one fused shell with the body, the garments and the hair melted together, soft and lumpy where
+the Blender pieces are crisp (the harness is a raised blob on the jacket, not a strap; boot soles and cuffs are
+rounded off; the hair is spiky clumps; the face is a smooth mask whose features are only painted). Under the game's
+ink the baked sheet shading and line work double the ink pass's own, so the Tripo figures read darker and busier,
+more like the sheet's drawing than like the game's flat-coloured people. Cost: 29 065 / 25 813 triangles for the
+whole figure against 97–100 k drawn for the Blender traveller in an outfit (body, portrait head, hair and a 46–48 k
+outfit), but three 4096² textures (256 MiB decoded with mipmaps; 16 MiB at 1024²) against one 1024² outfit atlas.
+
+**Integration would take:** a skeleton (Tripo's rig, or the `scripts/tripo/rig-*.mjs` tools as for v1) and skin
+weights for a body-and-clothes shell, which loses the wardrobe's model of one body with outfits swapped on it (each
+outfit would be a whole traveller); the portrait head and its face rig grafted on in place of Tripo's head (as v1's
+head-v3 was), and his hands; the textures cut to 1–2 k and the baked shading painted out to suit the ink; LODs; and
+Unity parity for a second kind of traveller. A cheaper middle road: use the Tripo textures as paint references for the
+Blender atlases. Not rigged here: the review shows Tripo's static A-pose.

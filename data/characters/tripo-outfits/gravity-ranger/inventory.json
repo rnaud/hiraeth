@@ -1,0 +1,163 @@
+{
+  "issue": 682,
+  "outfit": "gravity-ranger",
+  "review": "tools/tripo-outfits-review.html",
+  "note": "Review trial only, not in the game. The untouched export is git-ignored (over 10 MB); this file records it. preview.glb: the same positions, normals, UVs and triangles, its three textures re-encoded at 1024² JPEG.",
+  "reference": "references/characters/traveller-outfits/gravity-ranger/approved-reference.png",
+  "inputs": "reference/ (crop-recipe.json)",
+  "tripo": {
+    "task": "68d010a9-45cb-4da4-bdc6-163547d3a991",
+    "studio": "https://studio.tripo3d.ai/workspace/generate/68d010a9-45cb-4da4-bdc6-163547d3a991",
+    "endpoint": "/v3/generation/multiview-to-model",
+    "views": [
+      "front",
+      "left",
+      "back"
+    ],
+    "settings": {
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_version": "v3.5-20260815",
+      "texture_quality": "detailed",
+      "delight": true,
+      "texture_alignment": "original_image",
+      "smart_low_poly": true,
+      "face_limit": 20000
+    },
+    "credits": 50,
+    "balance": {
+      "before": 1875,
+      "after": 1825
+    },
+    "created": "2026-10-26T12:42:57.931Z"
+  },
+  "attempts": [
+    {
+      "task": "68d010a9-45cb-4da4-bdc6-163547d3a991",
+      "credits": 50,
+      "created": "2026-10-26T12:42:57.931Z"
+    }
+  ],
+  "source": {
+    "path": "output/tripo-outfits/gravity-ranger/68d010a9-45cb-4da4-bdc6-163547d3a991/model_url.glb",
+    "bytes": 10018824,
+    "sha256": "9eaea7552e280c3e298c2f635c9e09a32547ae3d30f3de134cfb343f9a9f0cca",
+    "triangles": 25813,
+    "vertices": 31779,
+    "meshes": 1,
+    "primitives": 1,
+    "materials": [
+      {
+        "name": "tripo_material_68d010a9-45cb-4da4-bdc6-163547d3a991",
+        "pbrMetallicRoughness": {
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "baseColorTexture": {
+            "index": 0
+          },
+          "metallicFactor": 1,
+          "roughnessFactor": 1,
+          "metallicRoughnessTexture": {
+            "index": 1
+          }
+        },
+        "normalTexture": {
+          "index": 2,
+          "scale": 1
+        },
+        "doubleSided": true
+      }
+    ],
+    "images": [
+      {
+        "index": 0,
+        "mimeType": "image/jpeg",
+        "width": 4096,
+        "height": 4096,
+        "bytes": 3561719
+      },
+      {
+        "index": 1,
+        "mimeType": "image/jpeg",
+        "width": 4096,
+        "height": 4096,
+        "bytes": 2694641
+      },
+      {
+        "index": 2,
+        "mimeType": "image/png",
+        "width": 4096,
+        "height": 4096,
+        "bytes": 2588749
+      }
+    ],
+    "decodedTextureMiB": 256,
+    "skins": 0,
+    "animations": 0,
+    "bounds": {
+      "min": [
+        -0.10273972153663635,
+        -0.5,
+        -0.17318981885910034
+      ],
+      "max": [
+        0.09882581233978271,
+        0.5,
+        0.17514675855636597
+      ]
+    }
+  },
+  "preview": {
+    "path": "data/characters/tripo-outfits/gravity-ranger/preview.glb",
+    "textureSize": 1024,
+    "bytes": 1946176,
+    "sha256": "26835d3d498f4a4c87d3ee55096808667f62ce87026424e34e264d5c00542c47",
+    "triangles": 25813,
+    "vertices": 31779,
+    "meshes": 1,
+    "primitives": 1,
+    "images": [
+      {
+        "index": 0,
+        "mimeType": "image/jpeg",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 349334
+      },
+      {
+        "index": 1,
+        "mimeType": "image/jpeg",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 334973
+      },
+      {
+        "index": 2,
+        "mimeType": "image/jpeg",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 88152
+      }
+    ],
+    "decodedTextureMiB": 16,
+    "skins": 0,
+    "animations": 0,
+    "bounds": {
+      "min": [
+        -0.10273972153663635,
+        -0.5,
+        -0.17318981885910034
+      ],
+      "max": [
+        0.09882581233978271,
+        0.5,
+        0.17514675855636597
+      ]
+    }
+  }
+}
