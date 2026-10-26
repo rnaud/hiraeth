@@ -269,8 +269,8 @@ Shader "Hiraeth/Surface"
     TEXTURE2D(_EyePaint); SAMPLER(sampler_EyePaint);   // the portrait head's painted eyes and brows (PortraitFace.hlsl, issue #473)
     #include "Figure.hlsl"
     #include "Marks.hlsl"
+    #include "SurfaceMarks.hlsl"   // (first: its head is the painted relief's helpers, src/relief.js, that Paving.hlsl and SkinPatterns.hlsl use)
     #include "Paving.hlsl"
-    #include "SurfaceMarks.hlsl"
     #include "TripoFace.hlsl"
     #include "Fall.hlsl"
     #include "PortraitFace.hlsl"
@@ -1500,7 +1500,9 @@ Shader "Hiraeth/Surface"
           interiorOn = 1.0;
           float3 oFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
           float3 ron = abs(SafeNormalize(on));
-          if (n.y > 0.7) patInk = max(patInk, interiorFloor(i.objPos.xz, oFw.xz, albedo));
+          // (the painted relief's sun across the face in the object's frame, src/relief.js: none while it is off)
+          float3 oSun = _Relief > 0.0 ? reliefFrameSun(ddx(i.worldPos), ddy(i.worldPos), ddx(i.objPos), ddy(i.objPos), _SunDir) : float3(0.0, 0.0, 0.0);
+          if (n.y > 0.7) patInk = max(patInk, interiorFloor(i.objPos.xz, oFw.xz, oSun.xz, albedo));
           else if (abs(n.y) < 0.3) patInk = max(patInk, ron.x > ron.z ? interiorWall(i.objPos.z, i.objPos.y, oFw.zy, albedo) : interiorWall(i.objPos.x, i.objPos.y, oFw.xy, albedo));
         }
         UNITY_BRANCH if (WALLK && _Sheet.x > 0.0)
@@ -1510,7 +1512,7 @@ Shader "Hiraeth/Surface"
           {
             bool sx = abs(n.x) > abs(n.z);
             float sSeed = floor(hash(floor(i.worldPos.xz / 9.0) + 23.0) * 47.0) + (sx ? 31.0 : 0.0);
-            float si = sheetWall(sx ? i.worldPos.zy : i.worldPos.xy, sx ? sFw.zy : sFw.xy, sSeed, albedo);
+            float si = sheetWall(sx ? i.worldPos.zy : i.worldPos.xy, sx ? sFw.zy : sFw.xy, sSeed, (sx ? _SunDir.zy : _SunDir.xy) * smoothstep(-0.05, 0.2, dot(n, _SunDir)), albedo);
             patInk = max(patInk, si * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
           }
         }
@@ -1519,7 +1521,8 @@ Shader "Hiraeth/Surface"
           float3 tFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
           float3 ta = abs(SafeNormalize(on));
           int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
-          patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, albedo));
+          float3 tSun = _Relief > 0.0 ? reliefFrameSun(ddx(i.worldPos), ddy(i.worldPos), ddx(i.objPos), ddy(i.objPos), _SunDir) * smoothstep(-0.05, 0.2, dot(n, _SunDir)) : float3(0.0, 0.0, 0.0);
+          patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, tSun, albedo));
         }
         // and issue #677's (sea walls, pale stone, the buried city, a water channel, panelled domes), each in its uniform branch
         UNITY_BRANCH if (WALLK && (_SeaWall.x > 0.0 || _PaleStone.x > 0.0 || _Buried.x > 0.0 || _Channel.w > 0.0))

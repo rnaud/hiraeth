@@ -9,11 +9,33 @@
 #ifndef HIRAETH_SURFACE_MARKS_INCLUDED
 #define HIRAETH_SURFACE_MARKS_INCLUDED
 
+  // ---------------------------------------------------------------- painted relief (src/relief.js RELIEF, issue 696)
+  float reliefEdge(float dpx, float2 g, float2 sun2, float inkW) {
+    float a = 0.5 * inkW * _PixelRatio, w = 0.8 * _PixelRatio;
+    float band = smoothstep(a - 0.2, a + 2.0, dpx) * (1.0 - smoothstep(a + 2.0 + w, a + 4.0 + w, dpx));
+    return band * clamp(dot(g, sun2) / 0.45, -1.0, 1.0);
+  }
+  float3 reliefTone(float3 alb, float r) {
+    float k = _Relief * r;
+    if (k > 0.0) return max(alb, min(alb + min(alb * 0.16, ((float3)(0.065))) * k, ((float3)(0.9))));
+    return alb + min(alb * 0.16, ((float3)(0.065))) * k;
+  }
+  float3 reliefFrameSun(float3 wdx, float3 wdy, float3 odx, float3 ody, float3 sun) {
+    float a = dot(wdx, wdx), b = dot(wdx, wdy), c = dot(wdy, wdy), det = a * c - b * b;
+    if (det <= 1e-6 * a * c) return ((float3)(0.0));
+    float sx = dot(wdx, sun), sy = dot(wdy, sun);
+    float u = (c * sx - b * sy) / det, v = (a * sy - b * sx) / det;
+    float3 w = u * wdx + v * wdy, o = u * odx + v * ody;
+    return o * (length(w) / max(length(o), 1e-12));
+  }
+
+
   // ---------------------------------------------------------------- interiors (src/surface-marks.js INTERIOR)
   // a grout line's place: a row's or a column's line moved a few millimetres its own way
   float interiorJ(float i, float sd) { return i + 0.035 * (hash(float2(i, sd)) - 0.5); }
-  // A room's floor at q (m, the room's x z), fq its metres per px each way: each tile's tone into alb; its grout's ink.
-  float interiorFloor(float2 q, float2 fq, inout float3 alb) {
+  // A room's floor at q (m, the room's x z), fq its metres per px each way, s2 the sun's way across it in the room's x z
+  // (the painted relief's): each tile's tone into alb; its grout's ink.
+  float interiorFloor(float2 q, float2 fq, float2 s2, inout float3 alb) {
     float2 g = q / _Interior.x, c = floor(g);
     float px = _Interior.x / max(max(fq.x, fq.y), 1e-6);
     if (px < 3.0) return 0.0;
@@ -24,6 +46,12 @@
     float h = hash(c + 9.1);
     if (h < _Interior.w) m *= hash(c + 5.7) < 0.5 ? float3(0.88, 1.04, 0.96) : float3(0.88, 0.95, 1.07);   // (a mint or a pale blue tile)
     alb *= lerp(((float3)(1.0)), m, kT);
+    // painted relief: each tile a little proud of its grout
+    if (_Relief > 0.0) {
+      float x0 = interiorJ(c.x, 1.3), x1 = interiorJ(c.x + 1.0, 1.3), y0 = interiorJ(c.y, 7.1), y1 = interiorJ(c.y + 1.0, 7.1);
+      float2 gr = dx < dy ? float2(abs(g.x - x0) < abs(g.x - x1) ? -1.0 : 1.0, 0.0) : float2(0.0, abs(g.y - y0) < abs(g.y - y1) ? -1.0 : 1.0);
+      alb = reliefTone(alb, reliefEdge(min(dx, dy), gr, s2, 0.9) * smoothstep(8.0, 16.0, px) * 0.8);
+    }
     return max(inkLine(dx, 0.9), inkLine(dy, 0.9)) * smoothstep(6.0, 12.0, px) * 0.85;
   }
   // A room's wall at (along, y: m over the floor), fq its metres per px: the skirting, the dado band, the plaster's
@@ -49,9 +77,10 @@
 
 
   // ---------------------------------------------------------------- industrial walls (src/surface-marks.js SHEET)
-  // A wall of sheet-metal panels at q (m: along, up), fq its metres per px, seed the building's: the panels' repaints and
-  // rust into alb; the seams', rivets' and streaks' ink.
-  float sheetWall(float2 q, float2 fq, float seed, inout float3 alb) {
+  // A wall of sheet-metal panels at q (m: along, up), fq its metres per px, seed the building's, sun2 the sun's way across
+  // it (along, up; the painted relief's, src/relief.js): the panels' repaints and rust into alb; the seams', rivets' and
+  // streaks' ink.
+  float sheetWall(float2 q, float2 fq, float seed, float2 sun2, inout float3 alb) {
     float H = _Sheet.y, row = floor(q.y / H), y0 = row * H;
     float W = _Sheet.x * (0.7 + 0.6 * hash(float2(row, seed))), off = hash(float2(row, seed + 2.3));
     float u = q.x / W + off, col = floor(u);
@@ -73,6 +102,9 @@
     // the seams
     float dxs = min(lx, W - lx) / fqm.x, dys = min(ly, H - ly) / fqm.y;
     float ink = max(inkLine(dxs, 0.9), inkLine(dys, 0.9)) * smoothstep(5.0, 10.0, min(pW, pH)) * 0.75;
+    // painted relief: each panel a little proud of its seams, the rivets' domes beside their dots
+    float rel = 0.0;
+    if (_Relief > 0.0) rel = reliefEdge(min(dxs, dys), dxs < dys ? float2(lx < 0.5 * W ? -1.0 : 1.0, 0.0) : float2(0.0, ly < 0.5 * H ? -1.0 : 1.0), sun2, 0.9) * smoothstep(6.0, 12.0, min(pW, pH)) * 0.7;
     // rivets in rows along each seam, a little in from it
     float sp = 0.2, ins = 0.06;
     float kR = smoothstep(4.0, 8.0, sp / fm);
@@ -82,6 +114,13 @@
       float dr = min(length(d1 / fqm), length(d2 / fqm));
       float rp = max(0.016 / fm, 0.6 * _PixelRatio);
       ink = max(ink, (1.0 - smoothstep(rp - 0.6, rp + 0.6, dr)) * kR * 0.8);
+      if (_Relief > 0.0) {
+        float2 r1 = float2(d1.x, ly - (ly < 0.5 * H ? ins : H - ins)) / fqm, r2 = float2(lx - (lx < 0.5 * W ? ins : W - ins), d2.y) / fqm;
+        float2 rv = dot(r1, r1) < dot(r2, r2) ? r1 : r2;
+        // (only on a rivet a few px across: on a smaller one the band outweighs the dot and post.js inks it as a smudge)
+        float rr = reliefEdge(max(dr - rp, 0.0), rv / max(dr, 1e-4), sun2, 0.0) * kR * smoothstep(1.6, 3.0, rp / _PixelRatio) * 0.6;
+        if (abs(rr) > abs(rel)) rel = rr;
+      }
     }
     // a rust streak run down from a rivet under the panel's top seam
     float hs = hash(id + 6.3);
@@ -96,14 +135,16 @@
         ink = max(ink, inkLine(dx / fqm.x, 0.5) * k * 0.45 * (1.0 - smoothstep(0.006, 0.014, fm)));
       }
     }
+    if (rel != 0.0) alb = reliefTone(alb, rel);
     return ink;
   }
 
 
   // ---------------------------------------------------------------- worked timber (src/surface-marks.js TIMBER)
   // Timber at p (object space, m), its face's axis (0 x, 1 y, 2 z: the face's normal's), pf its metres per px each way, ny
-  // the world normal's y: each plank's tone, a painted one, the sun on its top into alb; its joints', grain's, knots' ink.
-  float timber(float3 p, int face, float3 pf, float ny, inout float3 alb) {
+  // the world normal's y, osun the sun's way across the face in object space (the painted relief's: reliefFrameSun): each
+  // plank's tone, a painted one, the sun on its top into alb; its joints', grain's, knots' ink.
+  float timber(float3 p, int face, float3 pf, float ny, float3 osun, inout float3 alb) {
     int ga = ((int)(_Timber.y + 0.5));
     alb *= 1.0 + 0.07 * clamp(ny, 0.0, 1.0) - 0.08 * clamp(-ny, 0.0, 1.0);   // (sun-bleached tops, darker undersides)
     if (face == ga) {
@@ -113,12 +154,18 @@
     int ca = 3 - face - ga;   // (across the grain, on this face)
     float s = ga == 0 ? p.x : ga == 1 ? p.y : p.z, t = ca == 0 ? p.x : ca == 1 ? p.y : p.z;
     float fs = max(ga == 0 ? pf.x : ga == 1 ? pf.y : pf.z, 1e-6), ft = max(ca == 0 ? pf.x : ca == 1 ? pf.y : pf.z, 1e-6);
-    float ink = 0.0, Wp = _Timber.x, pi = 0.0;
+    float ink = 0.0, Wp = _Timber.x, pi = 0.0, trel = 0.0;
     if (Wp > 0.0) {
       pi = floor(t / Wp);
       float dj = abs(frac(t / Wp + 0.5) - 0.5) * Wp / ft;
       float kJ = smoothstep(5.0, 10.0, Wp / ft);
       ink = inkLine(dj, 0.9) * kJ * 0.8;
+      // painted relief: each plank's arris rounded, lit on the side toward the sun
+      if (_Relief > 0.0) {
+        float tt = frac(t / Wp + 0.5) - 0.5;
+        float2 s2 = float2(ga == 0 ? osun.x : ga == 1 ? osun.y : osun.z, ca == 0 ? osun.x : ca == 1 ? osun.y : osun.z);
+        trel = reliefEdge(dj, float2(0.0, tt > 0.0 ? -1.0 : 1.0), s2, 0.9) * smoothstep(6.0, 12.0, Wp / ft) * 0.8;
+      }
       float hp = hash(float2(pi, 3.9));
       alb *= 1.0 + 0.09 * (hp - 0.5) * smoothstep(3.0, 8.0, Wp / ft);
       if (hash(float2(pi, 8.3)) < _Timber.z) {
@@ -152,6 +199,7 @@
         ink = max(ink, (1.0 - smoothstep(0.6 * _PixelRatio, 1.4 * _PixelRatio, dn)) * kK * 0.8);
       }
     }
+    if (trel != 0.0) alb = reliefTone(alb, trel);
     return ink;
   }
 
@@ -260,6 +308,12 @@
       if (min(dd.x, dd.y) > 0.0) {
         alb *= lerp(((float3)(1.0)), float3(1.1, 0.97, 0.95), axisK * smoothstep(2.0, 6.0, min(spx.x, spx.y)));
         ink = max(ink, inkLine(min(dd.x / wf.x, dd.y / wf.y), 0.8) * axisK * 0.65 * smoothstep(8.0, 16.0, min(spx.x, spx.y)));
+        // painted relief: the fresh render laid a little proud of the old, its edge toward the sun lit
+        if (_Relief > 0.0) {
+          float2 dp = dd / wf, gp = dp.x < dp.y ? float2(w.x - lo.x < hi.x - w.x ? -1.0 : 1.0, 0.0) : float2(0.0, w.y - lo.y < hi.y - w.y ? -1.0 : 1.0);
+          float lit = smoothstep(-0.05, 0.2, dot(n, _SunDir));
+          alb = reliefTone(alb, reliefEdge(min(dp.x, dp.y), gp, (sx ? _SunDir.zy : _SunDir.xy) * lit, 0.8) * axisK * smoothstep(10.0, 20.0, min(spx.x, spx.y)));
+        }
       }
     }
     return ink;
@@ -295,6 +349,14 @@
     float ex = min(lx, L - lx), ey = min(ly, C - ly), rc = 0.07 * C;
     float dpx = ex < rc && ey < rc ? max(rc - length(float2(rc - ex, rc - ey)), 0.0) / fm : min(ex / fq.x, ey / fq.y);
     ink = max(ink, inkLine(dpx, 0.9) * smoothstep(5.0, 10.0, min(pW, pH)) * 0.7);
+    // painted relief: each block a little proud of its joints, the edge toward the sun lit, the other shaded
+    float rel = 0.0;
+    if (_Relief > 0.0) {
+      float2 sg = float2(lx < 0.5 * L ? -1.0 : 1.0, ly < 0.5 * C ? -1.0 : 1.0);
+      float2 gp = ex < rc && ey < rc ? normalize(float2(rc - ex, rc - ey) + 1e-5) * sg : ex / fq.x < ey / fq.y ? float2(sg.x, 0.0) : float2(0.0, sg.y);
+      float lit = smoothstep(-0.05, 0.2, dot(n, _SunDir));
+      rel = reliefEdge(dpx, gp, (top ? _SunDir.xz : sx ? _SunDir.zy : _SunDir.xy) * lit, 0.9) * smoothstep(8.0, 16.0, min(pW, pH));
+    }
     float arris = (C - ly) / fq.y;
     alb *= 1.0 + (top ? 0.0 : 0.05) * smoothstep(1.0, 1.8, arris) * (1.0 - smoothstep(1.8, 4.0, arris)) * smoothstep(8.0, 14.0, pH);
     // fine rain streaks hanging from a course's top, darker, tapering down
@@ -326,6 +388,7 @@
       float pr = 0.9 * _PixelRatio * (0.6 + 0.8 * hash(pq + 3.0));
       ink = max(ink, (1.0 - smoothstep(pr - 0.6, pr + 0.6, length(pd))) * step(hash(pq + 8.0), 0.1 * wear) * step(1.0, dpx) * kN * 0.5);
     }
+    if (rel != 0.0) alb = reliefTone(alb, rel);
     return ink;
   }
 
@@ -343,11 +406,18 @@
     alb *= 1.0 + (hash(float2(bi, 6.1)) - 0.5) * 0.11 * kB * _Buried.w;
     float run = smoothstep(0.48, 0.62, vnoise(q * 0.3 + bi * 1.7));
     ink = max(ink, inkLine(abs(frac(yb + 0.5) - 0.5) * Bh / fy, 0.6) * run * 0.55 * smoothstep(7.0, 14.0, Bh / fy) * up);
+    // painted relief: the line between two bands a groove the wind cut, its lower lip lit by a high sun, its upper shaded
+    float rel = 0.0;
+    if (_Relief > 0.0) {
+      float tb = frac(yb + 0.5) - 0.5, lit = smoothstep(-0.05, 0.2, dot(n, _SunDir));
+      rel = reliefEdge(abs(tb) * Bh / fy, float2(0.0, tb > 0.0 ? -1.0 : 1.0), float2(0.0, _SunDir.y * lit), 0.6) * run * up * smoothstep(9.0, 18.0, Bh / fy);
+    }
     // scoured lighter runs along the bands
     float st = 0.5 * (vnoise(float2(q.x * 0.22, p.y * 6.0)) + vnoise(float2(q.y * 0.22, p.y * 6.0 + 5.0)));
     alb *= 1.0 + 0.08 * smoothstep(0.6, 0.78, st) * smoothstep(1.0, 3.0, 0.16 / fy) * up * _Buried.w;
     // wind-worn tops, and a few blocks sand-blasted lighter (soft: never a colour edge)
     alb *= 1.0 + 0.05 * smoothstep(0.5, 0.85, n.y);
+    if (rel != 0.0) alb = reliefTone(alb, rel);
     float3 c = floor(p / float3(2.2, 1.1, 2.2));
     if (hash(c.xz + c.y * 13.7) < 0.12) alb *= 1.0 + 0.045 * up;
     // the sand against the foot: its line wavering, sand-coloured below, a faint stain over it
@@ -447,6 +517,9 @@
     float gm = max(max(fw.x, fw.z), 1e-6);
     float v1 = rockTopWarm(q), v2 = rockTopCool(q), v3 = rockTopFissure(q);
     float f1 = max(fwidth(v1), 1e-5), f2 = max(fwidth(v2), 1e-5), f3 = max(fwidth(v3), 1e-5);
+    // (the fissures' field across the ground, for the painted relief: its screen derivatives and the ground's, in uniform flow)
+    float4 rtD = float4(ddx(q), ddy(q));
+    float2 rtV = float2(ddx(v3), ddy(v3));
     float up = smoothstep(0.72, 0.88, n.y);
     if (up <= 0.0) return 0.0;
     float k = _RockTop.z * up, ink = 0.0;
@@ -470,6 +543,14 @@
     // long fissures across the rock, jagged, in runs, out to the middle distance
     float run = smoothstep(0.52, 0.64, vnoise(q * 0.04 + 9.9));
     ink = max(ink, inkLine(abs(v3 - 0.5) / f3, 1.0) * run * 0.75 * k * (1.0 - smoothstep(0.05, 0.14, gm)));
+    // painted relief: a fissure engraved, its wall toward the sun in shade, its far lip lit (the field's way across the
+    // ground from its screen derivatives: the 2 x 2 inverse of the ground's)
+    if (_Relief > 0.0 && run > 0.0) {
+      float det = rtD.x * rtD.w - rtD.y * rtD.z;
+      float2 gv = float2(rtD.w * rtV.x - rtD.y * rtV.y, rtD.x * rtV.y - rtD.z * rtV.x) / (abs(det) > 1e-14 ? det : 1e-14);
+      float2 away = normalize(gv + 1e-9) * (v3 > 0.5 ? 1.0 : -1.0);
+      alb = reliefTone(alb, reliefEdge(abs(v3 - 0.5) / f3, -away, _SunDir.xz, 1.0) * run * k * (1.0 - smoothstep(0.03, 0.09, gm)));
+    }
     // pebbles and stones with their shadows (castK 1: a top is in the sun)
     if (_RockTop.y > 0.0 && gm < 0.25) {
       ink = max(ink, pebbleField(q, gm, s2, len, 1.0, 1.1, _RockTop.y * 0.55, float2(0.04, 0.11), 63.0) * up);

@@ -1,0 +1,210 @@
+[
+ {
+  "name": "shaft-plaza",
+  "title": "City-Shaft plaza paving",
+  "world": "incal",
+  "patterns": "paving (raised stones)",
+  "eye": [
+   280,
+   203.4,
+   -6
+  ],
+  "target": [
+   283,
+   200,
+   -16
+  ],
+  "fov": 55,
+  "crop": [
+   520,
+   430,
+   320,
+   180
+  ],
+  "verdict": "helps",
+  "judgement": "The slabs read slightly raised: each stone's edge toward the sun takes a pale lip, the edge away a soft shade beside its joint. Quiet at full size, clear in the close-up; no new lines.",
+  "view": "Pinned camera: eye [280, 203.4, -6], target [283, 200, -16], fov 55; noon, clear."
+ },
+ {
+  "name": "aerie-hall",
+  "title": "The Aerie: a hall's panels and floor plates",
+  "world": "arzach",
+  "patterns": "machined finish (engraved borders, sockets, set-back panels)",
+  "eye": [
+   -395,
+   1639.8,
+   -736
+  ],
+  "target": [
+   -395,
+   1640.5,
+   -730.3
+  ],
+  "fov": 60,
+  "crop": [
+   300,
+   560,
+   320,
+   160
+  ],
+  "verdict": "mixed",
+  "judgement": "Faint. The floor plates' inlaid borders get a pale far lip and the sockets a lit rim; the wall panels barely change (on a temple wall the relief only knows the sun's height, not its run along the wall, so side edges get nothing). Harmless, but you have to look for it.",
+  "view": "Pinned camera: eye [-395, 1639.8, -736], target [-395, 1640.5, -730.3], fov 60; noon, clear."
+ },
+ {
+  "name": "foundry-walls",
+  "title": "Moon Foundry riveted walls",
+  "world": "moonfoundry",
+  "patterns": "sheet metal (raised panels, rivets)",
+  "eye": [
+   -87.77,
+   4,
+   -28.98
+  ],
+  "target": [
+   -95.9,
+   1.2,
+   -40.38
+  ],
+  "fov": 55,
+  "crop": [
+   900,
+   60,
+   320,
+   180
+  ],
+  "verdict": "helps",
+  "judgement": "On the upper box the horizontal seams pick up a lit top edge, so the plates read lapped. Rivets are left as they were here: on rivets this small the shade crescent was inked into smudges, so the relief only draws round rivets at least ~1.6 px across (close up).",
+  "view": "Pinned camera: eye [-87.77, 4, -28.98], target [-95.9, 1.2, -40.38], fov 55; noon, clear."
+ },
+ {
+  "name": "lorn-timber",
+  "title": "Lorn's timber walkway",
+  "world": "perdide",
+  "patterns": "worked timber (plank arrises)",
+  "eye": [
+   24,
+   3.0,
+   -745
+  ],
+  "target": [
+   14,
+   1.0,
+   -755
+  ],
+  "fov": 55,
+  "crop": [
+   440,
+   400,
+   320,
+   180
+  ],
+  "verdict": "noise",
+  "judgement": "Next to nothing: Lorn's dark planks and their grain leave the arris light lost in the hatching. Not worth it here; costs nothing either.",
+  "view": "Pinned camera: eye [24, 3.0, -745], target [14, 1.0, -755], fov 55; noon, clear."
+ },
+ {
+  "name": "lorn-stone",
+  "title": "Lorn's pale stone (the Hush-House)",
+  "world": "perdide",
+  "patterns": "pale stone (raised blocks)",
+  "eye": [
+   -108,
+   5,
+   109
+  ],
+  "target": [
+   -130,
+   5.5,
+   104
+  ],
+  "fov": 55,
+  "crop": [
+   100,
+   150,
+   320,
+   180
+  ],
+  "verdict": "helps",
+  "judgement": "The blocks read proud of their joints: a pale line along each block's top, a soft shade under the joint above. Gentle and in the house style.",
+  "view": "Pinned camera: eye [-108, 5, 109], target [-130, 5.5, 104], fov 55; noon, clear."
+ },
+ {
+  "name": "dunes-city",
+  "title": "Glass Dunes buried city (the clock drum)",
+  "world": "glassdunes",
+  "patterns": "buried city (wind-band grooves)",
+  "eye": [
+   662,
+   2603.5,
+   -640
+  ],
+  "target": [
+   643,
+   2607,
+   -625
+  ],
+  "fov": 55,
+  "crop": [
+   500,
+   250,
+   320,
+   180
+  ],
+  "verdict": "helps",
+  "judgement": "The wind bands read as cut grooves: a shade just above each line, a pale lip below. An earlier, stronger version doubled the lines into dashes (post.js inked the shade); the strength is now capped per channel, and only a faint flicker is left on the lowest band.",
+  "view": "Pinned camera: eye [662, 2603.5, -640], target [643, 2607, -625], fov 55; noon, clear."
+ },
+ {
+  "name": "vael-table",
+  "title": "Vael's table rock top",
+  "world": "arzach",
+  "patterns": "rock top (engraved fissures)",
+  "eye": [
+   -5,
+   73,
+   -425
+  ],
+  "target": [
+   -30,
+   69,
+   -455
+  ],
+  "fov": 55,
+  "crop": [
+   900,
+   470,
+   320,
+   180
+  ],
+  "verdict": "mixed",
+  "judgement": "The long fissure reads as cut in places, but its shaded wall is partly inked as a second thin line beside it, so in spots it looks like a doubled pen line. The crackle net and pebbles are unchanged.",
+  "view": "Pinned camera: eye [-5, 73, -425], target [-30, 69, -455], fov 55; noon, clear."
+ },
+ {
+  "name": "shop",
+  "title": "A shop's interior",
+  "world": "moonfoundry",
+  "patterns": "interior floor tiles (raised)",
+  "eye": [
+   -903,
+   3001.6,
+   903
+  ],
+  "target": [
+   -898,
+   3000.2,
+   898
+  ],
+  "fov": 60,
+  "crop": [
+   700,
+   480,
+   320,
+   180
+  ],
+  "verdict": "helps",
+  "judgement": "The clearest case: every floor tile reads as a slightly raised tile, a pale far edge and a shaded near one beside its grout.",
+  "view": "Pinned camera: eye [-903, 3001.6, 903], target [-898, 3000.2, 898], fov 60; noon, clear."
+ }
+]

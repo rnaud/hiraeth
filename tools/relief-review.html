@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painted relief review</title>
+<!-- Issue #696: the painted relief (src/relief.js) off and on, in fixed views captured by tools/relief-shots.mjs (static
+     pictures and numbers: no game runs here, nothing plays). Open on any dev server: /tools/relief-review.html -->
+<style>
+  :root { --bg: #f4efe6; --card: #fffaf2; --ink: #2b211f; --soft: #6d625a; --line: #d9cfc2; --accent: #b0562f; --good: #3d7a4a; --meh: #9a7a1e; --bad: #a33a2a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1d1a18; --card: #282320; --ink: #efe6da; --soft: #b3a698; --line: #463d36; --accent: #e08a5c; --good: #7fbf8a; --meh: #d8b85a; --bad: #e07a6a; } }
+  :root[data-theme="dark"] { --bg: #1d1a18; --card: #282320; --ink: #efe6da; --soft: #b3a698; --line: #463d36; --accent: #e08a5c; --good: #7fbf8a; --meh: #d8b85a; --bad: #e07a6a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 Georgia, 'Iowan Old Style', serif; }
+  main { max-width: 1320px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 0; }
+  p { margin: 6px 0; }
+  .lede { color: var(--soft); max-width: 900px; }
+  a { color: var(--accent); }
+  code { font: 13px ui-monospace, Menlo, monospace; background: var(--card); border: 1px solid var(--line); padding: 0 4px; border-radius: 3px; }
+  .summary { margin: 18px 0 26px; border-collapse: collapse; width: 100%; font-size: 14px; }
+  .summary th, .summary td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .summary td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .view { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin: 0 0 28px; }
+  .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 8px; }
+  .tag { font: 12px ui-monospace, Menlo, monospace; padding: 1px 6px; border-radius: 10px; border: 1px solid currentColor; }
+  .helps { color: var(--good); } .mixed { color: var(--meh); } .noise { color: var(--bad); }
+  .cmp { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; cursor: ew-resize; user-select: none; touch-action: pan-y; background: #000; border-radius: 4px; }
+  .cmp img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+  .cmp .on { clip-path: inset(0 0 0 var(--cut, 50%)); }
+  .cmp .bar { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; margin-left: -1px; background: var(--accent); }
+  .cmp .lab { position: absolute; top: 8px; font: 12px ui-monospace, Menlo, monospace; background: rgba(0,0,0,.55); color: #fff; padding: 2px 6px; border-radius: 3px; }
+  .cmp .lab.l { left: 8px; } .cmp .lab.r { right: 8px; }
+  .cmp .box { position: absolute; border: 1.5px dashed var(--accent); pointer-events: none; }
+  .crops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .crops figure { margin: 0; }
+  .crops canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; border-radius: 4px; background: #000; }
+  .crops figcaption { font-size: 13px; color: var(--soft); }
+  .nums { border-collapse: collapse; margin-top: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .nums th, .nums td { padding: 3px 10px 3px 0; text-align: right; } .nums th:first-child, .nums td:first-child { text-align: left; }
+  .note { color: var(--soft); font-size: 14px; }
+  .verdict { margin-top: 8px; }
+  @media (max-width: 640px) { .crops { grid-template-columns: 1fr; } h1 { font-size: 23px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Painted relief: before and after</h1>
+  <p class="lede">Beside each mark's ink line, a thin lighter line on the side facing the sun and a thin darker one on the side away from it,
+    oriented by the sun's way across the surface (so they agree with the cast shadows). No normal maps: still flat colour, the darker line a tone of
+    the surface's own colour, never ink. It is <b>off</b> in the game until you pick it. To try it live, add <code>?relief=1</code> to a world's
+    address, or use the dev panel's Beauty › “painted relief (review)”.</p>
+  <p class="lede">Drag across a picture to compare (left: off, right: on). The close-ups are the dashed box at 3×, pixel for pixel. Pictures and
+    numbers come from <code>node tools/relief-shots.mjs</code>: a muted headless Chrome on the real GPU, 1280 × 720, noon, clear, enemies off, the
+    HUD hidden, a pinned camera; off and on are the same load of the same build with only the switch flipped.</p>
+  <div id="meta" class="note"></div>
+  <table class="summary" id="summary"><thead><tr><th>View</th><th>Verdict</th><th>High: off → on</th><th>Handheld: off → on</th></tr></thead><tbody></tbody></table>
+  <div id="views"></div>
+</main>
+<script>
+const ROOT = 'relief-review/';
+const fmt = (m) => (m && m.off != null ? `${m.off.toFixed(2)} → ${m.on.toFixed(2)} ms (${m.deltaMs >= 0 ? '+' : ''}${m.deltaMs.toFixed(2)}, ${m.deltaPct >= 0 ? '+' : ''}${m.deltaPct}%)` : '–');
+const loadNote = (m) => (m && m.load != null ? `load ${m.load}${m.maxLoad > 12 ? ' (over 12: noisy)' : ''}` : '');
+const el = (t, a = {}, ...kids) => { const e = document.createElement(t); for (const [k, v] of Object.entries(a)) k === 'class' ? (e.className = v) : k === 'html' ? (e.innerHTML = v) : e.setAttribute(k, v); for (const c of kids) e.append(c); return e; };
+function compare(v) {
+  const box = el('div', { class: 'cmp' });
+  const off = el('img', { src: `${ROOT}${v.name}-off.webp`, alt: `${v.title}, relief off`, loading: 'lazy' });
+  const on = el('img', { class: 'on', src: `${ROOT}${v.name}-on.webp`, alt: `${v.title}, relief on`, loading: 'lazy' });
+  box.append(off, on, el('div', { class: 'bar' }), el('span', { class: 'lab l' }, 'off'), el('span', { class: 'lab r' }, 'on'));
+  if (v.crop) { const [x, y, w, h] = v.crop; box.append(Object.assign(el('div', { class: 'box' }), { style: `left:${x / 12.8}%;top:${y / 7.2}%;width:${w / 12.8}%;height:${h / 7.2}%` })); }
+  const set = (e) => { const r = box.getBoundingClientRect(); const x = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1); box.style.setProperty('--cut', `${x * 100}%`); };
+  let down = false;
+  box.addEventListener('pointerdown', (e) => { down = true; box.setPointerCapture(e.pointerId); set(e); });
+  box.addEventListener('pointermove', (e) => { if (down || e.pointerType === 'mouse') set(e); });
+  box.addEventListener('pointerup', () => { down = false; });
+  return box;
+}
+function crop(v, which) {
+  const [x, y, w, h] = v.crop, c = el('canvas', { width: w * 3, height: h * 3 });
+  const img = new Image();
+  img.onload = () => { const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(img, x, y, w, h, 0, 0, w * 3, h * 3); };
+  img.src = `${ROOT}${v.name}-${which}.webp`;
+  return el('figure', {}, c, el('figcaption', {}, `${which === 'off' ? 'Off' : 'On'}, 3×`));
+}
+(async () => {
+  const [views, data] = await Promise.all([fetch(`${ROOT}views.json`).then((r) => r.json()), fetch(`${ROOT}data.json`).then((r) => r.json()).catch(() => ({ views: {} }))]);
+  document.getElementById('meta').textContent = `Captured at ${data.commit ?? '?'} on ${data.gpu ?? 'unknown GPU'}, ${data.res ?? ''}. Frame time: 24 frames closed by a readPixels, median of five, off and on in turns; the machine's 1-minute load is noted with each (over ~12 the numbers are noisy).`;
+  const sum = document.querySelector('#summary tbody'), host = document.getElementById('views');
+  for (const v of views) {
+    const d = data.views?.[v.name] ?? {};
+    const tag = el('span', { class: `tag ${v.verdict ?? ''}` }, { helps: 'helps', mixed: 'mixed', noise: 'noise' }[v.verdict] ?? 'not judged');
+    sum.append(el('tr', {}, el('td', {}, Object.assign(el('a', { href: `#${v.name}` }), { textContent: v.title })), el('td', {}, tag.cloneNode(true)), el('td', { class: 'n' }, fmt(d.high)), el('td', { class: 'n' }, fmt(d.handheld))));
+    const card = el('section', { class: 'view', id: v.name });
+    card.append(el('div', { class: 'head' }, el('h2', {}, v.title), tag, el('span', { class: 'note' }, `${v.world} · ${v.patterns}`)));
+    card.append(compare(v));
+    if (v.crop) card.append(el('div', { class: 'crops' }, crop(v, 'off'), crop(v, 'on')));
+    if (v.judgement) card.append(el('p', { class: 'verdict', html: v.judgement }));
+    const t = el('table', { class: 'nums' }, el('tr', {}, el('th', {}, 'Frame time'), el('th', {}, 'off'), el('th', {}, 'on'), el('th', {}, 'Δ'), el('th', {}, 'load')));
+    for (const [k, lab] of [['high', 'High'], ['handheld', 'Handheld']]) { const m = d[k]; t.append(el('tr', {}, el('td', {}, lab), el('td', {}, m ? `${m.off.toFixed(2)} ms` : '–'), el('td', {}, m ? `${m.on.toFixed(2)} ms` : '–'), el('td', {}, m ? `${m.deltaMs >= 0 ? '+' : ''}${m.deltaMs.toFixed(2)} ms (${m.deltaPct}%)` : '–'), el('td', {}, loadNote(m)))); }
+    card.append(t);
+    if (v.view) card.append(el('p', { class: 'note' }, v.view));
+    host.append(card);
+  }
+})();
+</script>
+</body>
+</html>

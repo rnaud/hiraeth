@@ -10,7 +10,7 @@ import { calls, RESERVED } from './skin-hlsl.mjs';
 
 export const PAVING_HLSL_PATH = fileURLToPath(new URL('../../unity/Hiraeth/Assets/Hiraeth/Shaders/Paving.hlsl', import.meta.url));
 
-const HOST = { uPaving: '_Paving', uPixelRatio: '_PixelRatio', uWearLite: '_WearLite' };
+const HOST = { uPaving: '_Paving', uPixelRatio: '_PixelRatio', uWearLite: '_WearLite', uRelief: '_Relief', uSunDir: '_SunDir' };
 
 /** A plain GLSL chunk (functions only, no preprocessor lines) in HLSL, its uniforms named by host (scripts/unity-export/marks-hlsl.mjs too). */
 export function glslChunkToHlsl(glsl, host, who = 'paving-hlsl') {
@@ -19,7 +19,7 @@ export function glslChunkToHlsl(glsl, host, who = 'paving-hlsl') {
   for (const t of ['vec2', 'vec3', 'vec4']) s = calls(s, t, (a) => (a.length === 1 ? `((${t})(${a[0]}))` : `${t}(${a.join(', ')})`));
   s = calls(s, 'atan', (a) => (a.length === 2 ? `atan2(${a[0]}, ${a[1]})` : `atan(${a[0]})`));
   s = calls(s, 'int', (a) => `((int)(${a[0]}))`);
-  s = s.replace(/\bvec([234])\b/g, 'float$1').replace(/\bmix\s*\(/g, 'lerp(').replace(/\bfract\s*\(/g, 'frac(');
+  s = s.replace(/\bvec([234])\b/g, 'float$1').replace(/\bmix\s*\(/g, 'lerp(').replace(/\bfract\s*\(/g, 'frac(').replace(/\bdFdx\s*\(/g, 'ddx(').replace(/\bdFdy\s*\(/g, 'ddy(');
   for (const [k, v] of Object.entries(host)) s = s.replace(new RegExp(`\\b${k}\\b`, 'g'), v);
   s = s.split('\n').map((l) => { const c = l.indexOf('//'), code = c < 0 ? l : l.slice(0, c); return code.replace(/\b\w+\b/g, (w) => (RESERVED.has(w) ? `${w}_` : w)) + (c < 0 ? '' : l.slice(c)); }).join('\n');
   const left = s.replace(/\/\/.*$/gm, '').match(/\bu[A-Z]\w*|\bv[A-Z]\w*/);

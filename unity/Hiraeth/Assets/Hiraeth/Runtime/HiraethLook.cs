@@ -140,6 +140,7 @@ namespace Hiraeth
             Shader.SetGlobalFloat("_Halftone", shared.F("uHalftone", post.F("uHalftone", 0)));
             Shader.SetGlobalFloat("_Bounce", shared.F("uBounce", post.F("uBounce", 0)));
             Shader.SetGlobalFloat("_WearLite", shared.F("uWearLite", 0));
+            Shader.SetGlobalFloat("_Relief", shared.F("uRelief", 0));   // (the painted relief, src/relief.js: 0 off unless the web's ?relief=1 or dev panel)
             // the lens inside the traveller (materials.js uHeroCut; src/host/game-host.js heroCutFrame): his own surfaces (_CutMe) left out
             Shader.SetGlobalFloat("_HeroCut", shared.F("uHeroCut", 0));
             Shader.SetGlobalFloat("_LampsOn", LampTint ? shared.F("uLampsOn", 1) : 0);   // (how far the lamps' own colour shows in their pools: makeMaterial lampTint; src/eclipse.js dims it by day)

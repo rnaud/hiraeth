@@ -5,6 +5,7 @@ import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { PAVING_GLSL, pavingOf } from './paving-shader.js';
+import { RELIEF_GLSL } from './relief.js';
 import { INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL, CRYSTAL_FACETS_GLSL, interiorOf, sheetOf, timberOf, groundMidOf,
   seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, crystalFacetsOf } from './surface-marks.js';
 import { OPENINGS, OPENINGS_GLSL } from './wall-openings.js';
@@ -107,6 +108,9 @@ export const sharedUniforms = {
   uShadeKeep: { value: 0 },
   // weathering at low detail (the handheld): the cracks without their shaded and lit edges
   uWearLite: { value: 0 },
+  // the painted relief (src/relief.js, issue #696): 1 draws the marks raised or engraved, a lit and a shaded line beside
+  // each by the sun; 0 (the default, for the author to judge first) leaves every pattern as it was. ?relief=1, the dev panel
+  uRelief: { value: 0 },
   // 1: the lens is inside the traveller (a wall right behind him in a cabin; main.js from player.js bodyGap): his own
   // surfaces (uHero) are left out of the view, not drawn from inside (issue #324). His shadow is the override's: kept.
   uHeroCut: { value: 0 },
@@ -1014,6 +1018,7 @@ const fragmentShader = /* glsl */ `
   uniform float uWindows;  // façades: the share of cells with a window
   uniform float uWeather;  // weathering: hairline cracks on old walls (weatherInk), 0..1
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
+  uniform float uRelief;   // the painted relief (src/relief.js; sharedUniforms, 0 off)
   uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
   uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
   uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
@@ -1759,6 +1764,7 @@ ${SHADOW_GLSL}
     return inkLine(d, 0.9) * gaps * fade;
   }
 
+  ${RELIEF_GLSL}
   #ifdef S_PAVING
   ${PAVING_GLSL}
   #endif
@@ -2347,6 +2353,8 @@ ${SHADOW_GLSL}
     #if defined(S_INTERIOR) || defined(S_TIMBER)
     // a room's and timber's own frame (src/surface-marks.js): metres per px along the object's x, y, z
     vec3 objFw = vec3(length(vec2(dFdx(vObjPos.x), dFdy(vObjPos.x))), length(vec2(dFdx(vObjPos.y), dFdy(vObjPos.y))), length(vec2(dFdx(vObjPos.z), dFdy(vObjPos.z))));
+    // (the painted relief's sun across the face in the object's frame, src/relief.js: none while it is off)
+    vec3 objSun = uRelief > 0.0 ? reliefFrameSun(dFdx(vWorldPos), dFdy(vWorldPos), dFdx(vObjPos), dFdy(vObjPos), uSunDir) : vec3(0.0);
     #endif
     #if defined(S_SEAWALL) || defined(S_PALESTONE) || defined(S_BURIED) || defined(S_CHANNEL) || defined(S_ROCKTOP)
     // (issue #677's and #685's marks, src/surface-marks.js: metres per px along the world's x, y, z and the object's)
@@ -2569,7 +2577,7 @@ ${SHADOW_GLSL}
     // a room (src/surface-marks.js): its floor's tiles, its walls' skirting, dado and plaster, in its own frame
     if (uInterior.x > 0.0) {
       vec3 ron = abs(normalize(on));
-      if (n.y > 0.7) patInk = max(patInk, interiorFloor(vObjPos.xz, objFw.xz, albedo));
+      if (n.y > 0.7) patInk = max(patInk, interiorFloor(vObjPos.xz, objFw.xz, objSun.xz, albedo));
       else if (abs(n.y) < 0.3) patInk = max(patInk, ron.x > ron.z ? interiorWall(vObjPos.z, vObjPos.y, objFw.zy, albedo) : interiorWall(vObjPos.x, vObjPos.y, objFw.xy, albedo));
     }
     #endif
@@ -2578,7 +2586,7 @@ ${SHADOW_GLSL}
     if (uSheet.x > 0.0 && abs(n.y) < 0.55) {
       bool sx = abs(n.x) > abs(n.z);
       float sSeed = floor(hash(floor(vWorldPos.xz / 9.0) + 23.0) * 47.0) + (sx ? 31.0 : 0.0);
-      float si = sheetWall(sx ? vWorldPos.zy : vWorldPos.xy, sx ? sheetFw.zy : sheetFw.xy, sSeed, albedo);
+      float si = sheetWall(sx ? vWorldPos.zy : vWorldPos.xy, sx ? sheetFw.zy : sheetFw.xy, sSeed, (sx ? uSunDir.zy : uSunDir.xy) * smoothstep(-0.05, 0.2, dot(n, uSunDir)), albedo);
       patInk = max(patInk, si * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
     }
     #endif
@@ -2587,7 +2595,7 @@ ${SHADOW_GLSL}
     if (uTimber.w > 0.0) {
       vec3 ta = abs(normalize(on));
       int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
-      patInk = max(patInk, timber(vObjPos, tFace, objFw, n.y, albedo));
+      patInk = max(patInk, timber(vObjPos, tFace, objFw, n.y, objSun * smoothstep(-0.05, 0.2, dot(n, uSunDir)), albedo));
     }
     #endif
     #ifdef S_SEAWALL

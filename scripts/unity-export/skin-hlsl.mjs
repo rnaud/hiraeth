@@ -28,7 +28,7 @@ export const RESERVED = new Set(['line', 'point', 'triangle', 'lineadj', 'triang
   'signed', 'sizeof', 'static_cast', 'template', 'this', 'throw', 'try', 'typename', 'union', 'unsigned', 'using', 'virtual', 'abort', 'errorf',
   'printf']);
 // the surface shader's own names a skin reads, as the port has them (Surface.shader, HiraethCommon.hlsl)
-const HOST = { uTime: '_MTime', uPixelRatio: '_PixelRatio', uWearLite: '_WearLite', uGlow: '_Glow', cameraPosition: 'toThree(_WorldSpaceCameraPos)', gl_FragCoord: 'skFragCoord', bayer4: 'skBayer4' };
+const HOST = { uTime: '_MTime', uPixelRatio: '_PixelRatio', uWearLite: '_WearLite', uRelief: '_Relief', uSunDir: '_SunDir', uGlow: '_Glow', cameraPosition: 'toThree(_WorldSpaceCameraPos)', gl_FragCoord: 'skFragCoord', bayer4: 'skBayer4' };
 
 /** The argument list of the call whose '(' is at s[i]: [args (trimmed), the index after its ')']. */
 function args(s, i) {

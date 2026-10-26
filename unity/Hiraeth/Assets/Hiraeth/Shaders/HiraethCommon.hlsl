@@ -22,6 +22,7 @@ float3 hiraethAtan2(float3 y, float3 x) { return atan2(y, x + step(abs(x) + abs(
 
 // the shared uniforms (materials.js sharedUniforms), set every frame by HiraethLook.cs
 float3 _SunDir;          // three space, towards the light
+float _Relief;           // the painted relief (src/relief.js uRelief, issue #696): 0 off, the default
 float _Toon;             // 0.5: the two-tone threshold
 float _HatchOn;          // uHatch
 float _HatchSpacing;     // px

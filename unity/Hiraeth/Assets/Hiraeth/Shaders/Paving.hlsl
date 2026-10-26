@@ -48,6 +48,9 @@
     // the joints by distance: those across a course go first, the seams between the courses last
     float kJ = smoothstep(8.0, 16.0, spx.x), kR = smoothstep(7.0, 14.0, spx.y);
     float ink = inkLine(dpx, 1.0) * lerp(kR, kJ, g.x) * 0.8;
+    // painted relief (src/relief.js): each stone a little raised, its edge toward the sun lit, the other shaded
+    float rel = 0.0;
+    if (_Relief > 0.0) rel = reliefEdge(dpx, g * sign(q), float2(ca * _SunDir.x + sa * _SunDir.z, ca * _SunDir.z - sa * _SunDir.x), 1.0) * lerp(kR, kJ, g.x) * smoothstep(0.0, 0.1, _SunDir.y);
     // each stone its tone: a shade lighter or darker, a few rosier or sandier, now and then a patch of another stone
     float t = hash(id + 4.3), wear1 = min(wear, 1.0);
     float3 m = ((float3)(1.0 + 0.07 * (hash(id + 0.17) - 0.5)));
@@ -56,6 +59,7 @@
     bool patched = t > 1.0 - 0.03 * wear;
     if (patched) m *= float3(0.94, 0.95, 0.97);
     alb *= lerp(((float3)(1.0)), m, smoothstep(8.0, 20.0, min(spx.x, spx.y)) * _Paving.z);
+    if (rel != 0.0) alb = reliefTone(alb, rel);
     // a crack across the odd stone, from one edge, jagged, thinning to its end inside it
     float kC = 1.0 - smoothstep(0.012, 0.025, fm);
     if (kC > 0.0 && hash(id + 9.7) < 0.14 * wear) {

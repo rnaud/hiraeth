@@ -8,7 +8,8 @@
 //
 // PAVING_GLSL is the very GLSL the web draws (materials.js includes it under S_PAVING); scripts/unity-export/paving-hlsl.mjs
 // turns it into the Unity port's Shaders/Paving.hlsl (tests/engine-unity.test.js checks it is current). It reads the
-// surface shader's hash, hash2, inkLine, uPixelRatio, uWearLite and the material's uPaving.
+// surface shader's hash, hash2, inkLine, uPixelRatio, uWearLite, the material's uPaving, and the painted relief's
+// reliefEdge, reliefTone, uRelief and uSunDir (src/relief.js, issue #696: off by default).
 
 /**
  * size: a course's depth (m, the default; a material's paving: n asks for n); len: a course's stones' length (× the course,
@@ -97,6 +98,9 @@ export const PAVING_GLSL = /* glsl */ `
     // the joints by distance: those across a course go first, the seams between the courses last
     float kJ = smoothstep(${f(P.far.joint[0])}, ${f(P.far.joint[1])}, spx.x), kR = smoothstep(${f(P.far.seam[0])}, ${f(P.far.seam[1])}, spx.y);
     float ink = inkLine(dpx, ${f(P.joint.width)}) * mix(kR, kJ, g.x) * ${f(P.joint.ink)};
+    // painted relief (src/relief.js): each stone a little raised, its edge toward the sun lit, the other shaded
+    float rel = 0.0;
+    if (uRelief > 0.0) rel = reliefEdge(dpx, g * sign(q), vec2(ca * uSunDir.x + sa * uSunDir.z, ca * uSunDir.z - sa * uSunDir.x), ${f(P.joint.width)}) * mix(kR, kJ, g.x) * smoothstep(0.0, 0.1, uSunDir.y);
     // each stone its tone: a shade lighter or darker, a few rosier or sandier, now and then a patch of another stone
     float t = hash(id + 4.3), wear1 = min(wear, 1.0);
     vec3 m = vec3(1.0 + ${f(P.tone.value * 2)} * (hash(id + 0.17) - 0.5));
@@ -105,6 +109,7 @@ export const PAVING_GLSL = /* glsl */ `
     bool patched = t > 1.0 - ${f(P.tone.patch)} * wear;
     if (patched) m *= vec3(0.94, 0.95, 0.97);
     alb *= mix(vec3(1.0), m, smoothstep(${f(P.far.tone[0])}, ${f(P.far.tone[1])}, min(spx.x, spx.y)) * uPaving.z);
+    if (rel != 0.0) alb = reliefTone(alb, rel);
     // a crack across the odd stone, from one edge, jagged, thinning to its end inside it
     float kC = 1.0 - smoothstep(${f(P.crack.far[0])}, ${f(P.crack.far[1])}, fm);
     if (kC > 0.0 && hash(id + 9.7) < ${f(P.crack.share)} * wear) {

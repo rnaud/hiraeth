@@ -196,15 +196,30 @@ void s0_basin(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s1_mkH(float2(id, 1.31)), h2 = s1_mkH(float2(id, 7.93)), h3 = s1_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s1_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s1_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -222,6 +237,8 @@ void s0_basin(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float d = length(lp - c);
       ink = max(ink, s1_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -234,6 +251,7 @@ void s0_basin(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float on = step(s1_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s1_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -489,15 +507,30 @@ void s1_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s2_mkH(float2(id, 1.31)), h2 = s2_mkH(float2(id, 7.93)), h3 = s2_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s2_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s2_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -515,6 +548,8 @@ void s1_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float d = length(lp - c);
       ink = max(ink, s2_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -527,6 +562,7 @@ void s1_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float on = step(s2_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s2_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -789,15 +825,30 @@ void s2_cobalt(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s3_mkH(float2(id, 1.31)), h2 = s3_mkH(float2(id, 7.93)), h3 = s3_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s3_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s3_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -815,6 +866,8 @@ void s2_cobalt(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float d = length(lp - c);
       ink = max(ink, s3_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -827,6 +880,7 @@ void s2_cobalt(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float on = step(s3_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s3_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -1089,15 +1143,30 @@ void s3_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s4_mkH(float2(id, 1.31)), h2 = s4_mkH(float2(id, 7.93)), h3 = s4_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s4_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s4_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -1115,6 +1184,8 @@ void s3_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float d = length(lp - c);
       ink = max(ink, s4_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -1127,6 +1198,7 @@ void s3_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float on = step(s4_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s4_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -1381,15 +1453,30 @@ void s4_floor(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s5_mkH(float2(id, 1.31)), h2 = s5_mkH(float2(id, 7.93)), h3 = s5_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s5_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s5_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -1407,6 +1494,8 @@ void s4_floor(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float d = length(lp - c);
       ink = max(ink, s5_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -1419,6 +1508,7 @@ void s4_floor(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float on = step(s5_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s5_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -1629,15 +1719,30 @@ void s5_stone(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s6_mkH(float2(id, 1.31)), h2 = s6_mkH(float2(id, 7.93)), h3 = s6_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s6_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s6_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -1655,6 +1760,8 @@ void s5_stone(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float d = length(lp - c);
       ink = max(ink, s6_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -1667,6 +1774,7 @@ void s5_stone(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float on = step(s6_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s6_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -1912,15 +2020,30 @@ void s6_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s7_mkH(float2(id, 1.31)), h2 = s7_mkH(float2(id, 7.93)), h3 = s7_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s7_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s7_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -1938,6 +2061,8 @@ void s6_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float d = length(lp - c);
       ink = max(ink, s7_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -1950,6 +2075,7 @@ void s6_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float on = step(s7_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s7_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -2222,15 +2348,30 @@ void s7_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s8_mkH(float2(id, 1.31)), h2 = s8_mkH(float2(id, 7.93)), h3 = s8_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s8_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s8_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -2248,6 +2389,8 @@ void s7_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float d = length(lp - c);
       ink = max(ink, s8_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -2260,6 +2403,7 @@ void s7_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float on = step(s8_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s8_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -2526,15 +2670,30 @@ void s8_machine(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTex
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s9_mkH(float2(id, 1.31)), h2 = s9_mkH(float2(id, 7.93)), h3 = s9_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s9_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s9_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -2552,6 +2711,8 @@ void s8_machine(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTex
       float d = length(lp - c);
       ink = max(ink, s9_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -2564,6 +2725,7 @@ void s8_machine(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTex
       float on = step(s9_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s9_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -2780,15 +2942,30 @@ void s9_cable(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s10_mkH(float2(id, 1.31)), h2 = s10_mkH(float2(id, 7.93)), h3 = s10_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s10_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s10_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -2806,6 +2983,8 @@ void s9_cable(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float d = length(lp - c);
       ink = max(ink, s10_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -2818,6 +2997,7 @@ void s9_cable(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float on = step(s10_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s10_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -3058,15 +3238,30 @@ void s10_drum(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s11_mkH(float2(id, 1.31)), h2 = s11_mkH(float2(id, 7.93)), h3 = s11_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s11_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s11_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -3084,6 +3279,8 @@ void s10_drum(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float d = length(lp - c);
       ink = max(ink, s11_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -3096,6 +3293,7 @@ void s10_drum(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float on = step(s11_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s11_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
@@ -3400,15 +3598,30 @@ void s11_moon(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
     float de = min(e.x, e.y);
     if (de < 0.0) return 0.0;
     float h1 = s12_mkH(float2(id, 1.31)), h2 = s12_mkH(float2(id, 7.93)), h3 = s12_mkH(float2(id, 3.17));
+    // the painted relief's sun in the panel's frame, and the way out of it across its nearest edge
+    float2 rs = flr ? _SunDir.xz : float2(0.0, max(_SunDir.y, 0.0));
+    float2 ro = e.x < e.y ? float2(lp.x < 0.0 ? -1.0 : 1.0, 0.0) : float2(0.0, lp.y < 0.0 ? -1.0 : 1.0);
+    float rel = 0.0;
     albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
     float ink = 0.0;
     float inset = min(0.13, 0.3 * min(hs.x, hs.y));
     float kB = smoothstep(3.0, 6.0, inset / px);
-    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s12_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    if (kB > 0.0 && (flr || h3 < 0.5)) {
+      ink = max(ink, s12_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+      // (relief: the inlaid border an engraved groove, its wall toward the sun shaded, its far lip lit)
+      if (_Relief > 0.0) rel = reliefEdge(abs(de - inset) / px, de > inset ? ro : -ro, rs, 0.7) * kB;
+    }
     // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
     if (!flr && h3 > 0.6) {
       float sl = min(hs.y - lp.y, lp.x + hs.x);
-      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+      float rk = smoothstep(1.0, 2.5, 0.06 / px);
+      if (_Relief > 0.0) {
+        // (relief: the shadow along the edges toward the sun, wherever it is (its height on a wall), the lip opposite lit)
+        float sd = dot(ro, rs) / 0.45;
+        albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, de)) * rk * clamp(sd, 0.0, 1.0);
+        if (abs(rel) < 0.01) rel = reliefEdge(de / px, -ro, rs, 0.0) * rk * step(sd, 0.0);
+      }
+      else albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * rk;
     }
     float R = 0.055;
     float kS = smoothstep(2.2, 4.5, R / px);
@@ -3426,6 +3639,8 @@ void s11_moon(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float d = length(lp - c);
       ink = max(ink, s12_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
       albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+      // (relief: the socket's ring a round groove, shaded on its sun side, lit across)
+      if (_Relief > 0.0 && on > 0.0 && abs(d - R) < 4.0 * px) rel = reliefEdge(abs(d - R) / px, (lp - c) / max(d, 1e-5) * (d > R ? -1.0 : 1.0), rs, 0.8) * kS;
     }
     // near: sparse fine machining marks, short_ hairlines along its longer side
     float kM = 1.0 - smoothstep(0.004, 0.009, px);
@@ -3438,6 +3653,7 @@ void s11_moon(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
       float on = step(s12_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
       ink = max(ink, s12_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
     }
+    if (rel != 0.0) albedo = reliefTone(albedo, rel);
     return ink;
   }
 
