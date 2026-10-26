@@ -183,6 +183,8 @@ export function portMaterial(spec, id = 0) {
   const dBand = u.uDomesBand;   // (read either way: its material's whole record)
   if (Array.isArray(u.uDomes) && u.uDomes[3] > 0) Object.assign(e, { domes: u.uDomes.slice(0, 4).map(r5), domesBand: (dBand ?? [0, 0, 0, 0]).slice(0, 4).map(r5) });
   if (Array.isArray(u.uChannel) && u.uChannel[3] > 0) e.channel = u.uChannel.slice(0, 4).map(r5);
+  // and issue #685's: a rock's walked top (patches, cracks, fissures, pebbles on its upward faces)
+  if (Array.isArray(u.uRockTop) && u.uRockTop[3] > 0) e.rockTop = u.uRockTop.slice(0, 4).map(r5);
   if (typeof u.uFarNear === 'number' && typeof u.uFarScale === 'number') e.farDepth = [r5(u.uFarNear), r5(u.uFarScale), 0, 0];
   if (spec.defines?.S_THIN && v('uThinPx') > 0) e.thinPx = r5(v('uThinPx'));
   if (spec.defines?.LINE_FAR && Array.isArray(u.uLineFar)) e.lineFar = [...u.uLineFar.slice(0, 3).map(r5), 1];

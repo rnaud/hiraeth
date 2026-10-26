@@ -32,6 +32,7 @@ export const REQUIRED_MATERIAL_KEYS = {
     "define:S_TIMBER",
     "define:S_GROUNDMID",
     "define:S_DOMES",
+    "define:S_ROCKTOP",
     "define:S_WEATHER",
     "define:S_EYE",
     "define:S_TILES",

@@ -67,7 +67,7 @@ export function buildFallenTiles(scene) {
 }
 
 export function buildLanternStones(scene, { stones = LANTERN_STONES, name = 'The lantern stones', wide = {} } = {}) {
-  const stone = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', flat: true });
+  const stone = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', flat: true, rockTop: true });   // (its top the rock's: issue #685)
   const iron = makeMaterial({ color: '#3c4660', flat: true });
   const dark = makeMaterial({ color: '#8a7a62', flat: true });
   const lamp = makeMaterial({ color: '#ffd9a0', glow: 1 });
@@ -114,7 +114,7 @@ export function buildLanternStones(scene, { stones = LANTERN_STONES, name = 'The
 export function buildClapperLantern(scene, at) {
   const S = 2.4;   // (the lantern's own scale: a point of light at 550 m)
   const x = at.x - 3, y = at.y + 11, z = at.z + 2;
-  const stone = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', flat: true });
+  const stone = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', flat: true, rockTop: true });   // (its top the rock's: issue #685)
   const iron = makeMaterial({ color: '#3c4660', flat: true });
   const dark = makeMaterial({ color: '#8a7a62', flat: true });
   const lamp = makeMaterial({ color: '#ffd9a0', glow: 1 });
@@ -150,7 +150,7 @@ export const TALLY = { x: 218.6, z: -569 };
 export function buildOndineTally(scene, topAt) {
   const { x, z } = TALLY;
   const y = topAt(x, z, 46);
-  const stone = makeMaterial({ color: '#efe4cf', color2: '#e8dcc4', color3: '#f3ead8', flat: true });
+  const stone = makeMaterial({ color: '#efe4cf', color2: '#e8dcc4', color3: '#f3ead8', flat: true, paleStone: { course: 1.1, block: 2.3, foot: -300, wear: 0.8 } });   // (the aqueduct's pale stone, arzach2.js AQ_STONE)
   const ink = makeMaterial({ color: '#7a5a48', flat: true });
   const block = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.05, 2.6).translate(x, y + 0.52, z), stone);
   const marks = [];

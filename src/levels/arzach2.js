@@ -77,6 +77,10 @@ export const TIV_STACK = { r: 46, a: -2.27 };
 const CLAPPER = { x: 251, z: -503 };                               // on the floating island, before the church door
 const FACE = {};                                                   // filled in when the tower is built
 
+/** The aqueducts' pale stone (src/surface-marks.js paleStone): big blocks, no damp foot (their piers go down into the cloud). */
+export const AQ_STONE = { course: 1.1, block: 2.3, foot: -300, wear: 0.8 };
+/** The monastery's, the island church's and the hermitage's walls: Lorn's blocks, a little less worn. */
+const WALL_STONE = { course: 0.8, block: 1.6, foot: -300, wear: 0.6 };
 const tableTop = (t, r = 0) => t.top + t.dome * (1 - Math.min((r / t.R) ** 2, 1));
 const aq1Mid = [(AQ1.a[0] + AQ1.b[0]) / 2, (AQ1.a[1] + AQ1.b[1]) / 2];
 
@@ -216,18 +220,22 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
   const PRINT = { shadeFlat: SKY_STONES_FLAT };
 
   const DS = THREE.DoubleSide;
+  // (issue #685: what you walk on. The rock's tops take the open ground's marks in their rock version (rockTop: patches,
+  //  cracks, fissures, pebbles; its sides keep the strata), the aqueducts and the monastery's walls are pale stone (blocks
+  //  in courses, their decks and tops flagstones): src/surface-marks.js)
+  const ROCK = { rockTop: true };
   const M = {
     // (the needles' shade a flat tone with few strokes and no beds in the light, as the sheets draw them)
     // (form: a table's strokes radiate from its stalk under the cap and run down the stalk, src/form.js)
-    bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
+    bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...ROCK, ...PRINT }),
     // the needles: the bone, its shade by the stalk's own round form (sky-stones-kit.js needle: smooth normals without the
     // flutes), so the terminator runs down a needle in one clean band as on the sheets, not facets lit in islands
     needle: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
-    cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, form: true, ...PRINT }),   // smooth: clean terminator under the caps
-    rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, form: true, ...PRINT }),
-    aq: makeMaterial({ color: '#ece3d3', color2: '#e0d5c4', color3: '#f2ebde', mode: MODE_STRATA, strataSize: 2.6, flat: true, side: DS, ...PRINT }),
-    wall: makeMaterial({ color: '#f8f3ea', flat: true, pattern: 'facade', ...PRINT }),
-    plainWall: makeMaterial({ color: '#f6efe2', flat: true, ...PRINT }),
+    cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, form: true, ...ROCK, ...PRINT }),   // smooth: clean terminator under the caps
+    rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, form: true, ...ROCK, ...PRINT }),
+    aq: makeMaterial({ color: '#ece3d3', flat: true, side: DS, paleStone: AQ_STONE, ...PRINT }),
+    wall: makeMaterial({ color: '#f8f3ea', flat: true, pattern: 'facade', paleStone: WALL_STONE, ...PRINT }),
+    plainWall: makeMaterial({ color: '#f6efe2', flat: true, paleStone: WALL_STONE, ...PRINT }),
     roof: makeMaterial({ color: '#c9765c', flat: true, pattern: 'tiles', ...PRINT }),
     dome: makeMaterial({ color: '#cf8164', flat: true, ...PRINT }),
     dark: makeMaterial({ color: '#3c4660', flat: true }),

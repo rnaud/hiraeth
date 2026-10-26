@@ -76,6 +76,7 @@ Shader "Hiraeth/Surface"
     _GroundMid ("The ground's middle distance: contour (m), stones, amount, on", Vector) = (0, 0, 0, 0)
     _SeaWall ("Sea walls: tide spacing (m), foot (world y), salt, growth (src/surface-marks.js, issue #677)", Vector) = (0, 0, 0, 0)
     _PaleStone ("Pale stone: course, block (m), foot (world y), wear", Vector) = (0, 0, 0, 0)
+    _RockTop ("A rock's walked top: crack cell (m), pebbles, amount, on (issue #685)", Vector) = (0, 0, 0, 0)
     _Buried ("The buried city: band (m), foot (world y), sand line (m), scour", Vector) = (0, 0, 0, 0)
     _Domes ("Panelled domes: rings (a tower's: m), panels, scour (m), 1 dome / 2 tower", Vector) = (0, 0, 0, 0)
     _DomesBand ("Their painted rings: colour, share", Vector) = (0, 0, 0, 0)
@@ -235,6 +236,7 @@ Shader "Hiraeth/Surface"
     float4 _Paving;        // paving (src/paving-shader.js uPaving, issue #669): course (m), wear, tone, turn; x 0: none
     float4 _Interior, _InteriorDado, _InteriorSkirt, _Sheet, _Timber, _GroundMid;   // (src/surface-marks.js, issue #669)
     float4 _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel;   // (src/surface-marks.js, issue #677)
+    float4 _RockTop;       // (src/surface-marks.js rockTop, issue #685)
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -1525,6 +1527,12 @@ Shader "Hiraeth/Surface"
           UNITY_BRANCH if (_PaleStone.x > 0.0) patInk = max(patInk, paleStone(i.worldPos, mFw, n, albedo));
           UNITY_BRANCH if (_Buried.x > 0.0) patInk = max(patInk, buriedCity(i.worldPos, mFw, n, albedo));
           UNITY_BRANCH if (_Channel.w > 0.0) patInk = max(patInk, channel(i.objPos, mOFw, _MTime, albedo));
+        }
+        // and issue #685's: a rock's walked top (patches, cracks, fissures, pebbles; its sides keep their strata), its uniform branch
+        UNITY_BRANCH if (WALLK && _RockTop.w > 0.0)
+        {
+          float3 rFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
+          patInk = max(patInk, rockTop(i.worldPos, rFw, n, _SunDir.xz / max(length(_SunDir.xz), 1e-3), pebbleShadow(_SunDir.y), albedo));
         }
         UNITY_BRANCH if (WALLK && _Domes.w > 0.0)
         {

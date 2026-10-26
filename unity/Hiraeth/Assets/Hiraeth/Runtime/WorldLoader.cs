@@ -204,7 +204,9 @@ namespace Hiraeth
                 ("sheet", "_Sheet", Vector4.zero), ("timber", "_Timber", Vector4.zero), ("groundMid", "_GroundMid", Vector4.zero),
                 // (issue #677: sea walls, pale stone, the buried city, panelled domes and their painted rings, a water channel)
                 ("seaWall", "_SeaWall", Vector4.zero), ("paleStone", "_PaleStone", Vector4.zero), ("buried", "_Buried", Vector4.zero),
-                ("domes", "_Domes", Vector4.zero), ("domesBand", "_DomesBand", Vector4.zero), ("channel", "_Channel", Vector4.zero) })
+                ("domes", "_Domes", Vector4.zero), ("domesBand", "_DomesBand", Vector4.zero), ("channel", "_Channel", Vector4.zero),
+                // (issue #685: a rock's walked top: crack cell, pebbles, amount, w on)
+                ("rockTop", "_RockTop", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;
