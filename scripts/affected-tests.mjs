@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { dirname, join, normalize, relative, resolve, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lexicalBindings, normalizeBuiltinImports } from './test-dependency-bindings.mjs';
-import { boundedGameInputs, GAME_ADAPTER, CONTRACT_FILE } from './test-loader-contract.mjs';
+import { boundedGameInputs, GAME_ADAPTER, CONTRACT_FILE, boundedAudioInputs, AUDIO_ADAPTER, AUDIO_CONTRACT_FILE } from './test-loader-contract.mjs';
 import { parseAst } from 'rolldown/parseAst'; // Vite's version is pinned by package-lock.json.
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -199,7 +199,7 @@ export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,
   const touched=[...new Set(changed.map(clean))];
   if(diagnostics)Object.assign(diagnostics,{changed:touched,tests:{},fallbacks:[],unmatched:[]});
   if(!touched.length)return [];
-  if(touched.some(f=>!local(f)) || touched.some(f=>SHARED.test(f) || f===CONTRACT_FILE)){if(diagnostics)diagnostics.fallbacks.push({reason:'global-policy',outside:touched.filter(f=>!local(f)),shared:touched.filter(f=>SHARED.test(f)||f===CONTRACT_FILE)});return 'ALL';}
+  if(touched.some(f=>!local(f)) || touched.some(f=>SHARED.test(f) || (f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE))){if(diagnostics)diagnostics.fallbacks.push({reason:'global-policy',outside:touched.filter(f=>!local(f)),shared:touched.filter(f=>SHARED.test(f)||(f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE))});return 'ALL';}
   const all=tests??readdirSync(join(root,'tests')).filter(f=>f.endsWith('.test.js')).map(f=>'tests/'+f);
   const cache=new Map(),matched=new Set();
   const analyze=(f,text,{explain=false}={})=>{
@@ -217,6 +217,10 @@ export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,
       catch {d={imports:[],resources:[],patterns:[],unknown:true};}
       if (f===GAME_ADAPTER) {
         const bounded=boundedGameInputs({read,exists,files,analyze});
+        d=bounded??{...d,unknown:true};
+      }
+      if (f===AUDIO_ADAPTER) {
+        const bounded=boundedAudioInputs({read,exists,files,analyze});
         d=bounded??{...d,unknown:true};
       }
       cache.set(f,d);
@@ -293,7 +297,7 @@ export function gitSelection({root=ROOT,base,head,staged=false,all=false,diagnos
     const read=f=>{
       if(!texts){
         texts=new Map(); // Cache failure too: never repeat a failed bulk read for each test.
-        const paths=files.filter(f=>JS.test(f)||f===CONTRACT_FILE);
+        const paths=files.filter(f=>JS.test(f)||(f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE));
         if(paths.some(f=>/[\r\n]/.test(f)))throw Error('Unsupported newline in source path');
         const specs=paths.map(f=>ref?ref+':'+f:':'+f);
         const out=execFileSync('git',['cat-file','--batch'],{cwd:root,input:specs.join('\n')+'\n',maxBuffer:256*1024*1024});

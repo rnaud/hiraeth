@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "module": "scripts/sound-qc/test-runtime.mjs",
+  "entry": "scripts/sound-qc/render.mjs",
+  "assets": [
+    "public/sfx",
+    "public/music"
+  ],
+  "fingerprints": {
+    "scripts/sound-qc/test-runtime.mjs": "42304e03e852633baf16c9b8d22685ad822023d748a5deddf920bff183aba861",
+    "scripts/sound-qc/render.mjs": "ff4058354662e00cfdde0cbf0552724853ec5442923b66de55cc73d4b7bdcde4"
+  }
+}

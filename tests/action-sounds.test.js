@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { installAudio } from '../engine/webaudio.js';
 import { measure, variation, dB } from '../scripts/sound-qc/lib.mjs';
-import { seeded, CALM, decodedTakes } from '../scripts/sound-qc/render.mjs';
+import { seeded, CALM, decodedTakes } from '../scripts/sound-qc/test-runtime.mjs';
 
 const G = globalThis;
 G.window ??= G; G.addEventListener ??= () => {}; G.removeEventListener ??= () => {};

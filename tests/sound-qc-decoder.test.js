@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tempDir } from '../scripts/temp-dirs.mjs';
-import { decodedTakes, RATE } from '../scripts/sound-qc/render.mjs';
+import { decodedTakes, RATE } from '../scripts/sound-qc/test-runtime.mjs';
 import { sfxFiles } from '../src/sfx.js';
 
 test('every packaged MP3 decodes from a cold cache into finite non-silent PCM', () => {
