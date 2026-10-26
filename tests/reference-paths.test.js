@@ -32,8 +32,19 @@ function textFiles() {
     };
     walk('');
   }
+  // Enumerate documentation from its explicit root, then intersect with the same
+  // repository inventory. This makes its input boundary visible without ignoring
+  // untracked-file policy, dotfiles, or the rest of the repository's text.
+  const present = files.filter((f) => existsSync(join(ROOT, f)));
+  const listed = new Set(present);
+  const docsRoot = new URL('../docs/', import.meta.url);
+  const docs = existsSync(docsRoot) ? readdirSync(docsRoot, { recursive: true })
+    .map((f) => 'docs/' + f.replaceAll('\\', '/')).filter((f) => listed.has(f)) : [];
+  assert.deepEqual([...docs].sort(), present.filter((f) => f.startsWith('docs/')).sort(),
+    'bounded documentation scan must retain every inventoried document');
+  const ordered = [...docs, ...present.filter((f) => !f.startsWith('docs/'))];
   // (.claude/skills is the repo's: read it too; the rest of .claude is the agents' worktrees)
-  return files.filter((f) => !BINARY.test(f) && (!f.startsWith('.claude/') || f.startsWith('.claude/skills/')) && existsSync(join(ROOT, f)));
+  return ordered.filter((f) => !BINARY.test(f) && (!f.startsWith('.claude/') || f.startsWith('.claude/skills/')));
 }
 
 const entries = (dir) => (existsSync(dir) && statSync(dir).isDirectory() ? readdirSync(dir).filter((f) => !f.startsWith('.')) : []);

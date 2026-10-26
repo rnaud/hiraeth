@@ -17,16 +17,8 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
 /** The temple design audit's report for these houses, as the audit measures them (each built, its sight lines cast). */
 async function audit(temples) {
-  const { spawnSync } = await import('node:child_process');
-  const { readFileSync, rmSync } = await import('node:fs');
-  const { join } = await import('node:path');
-  const { tempDir } = await import('../scripts/temp-dirs.mjs');
-  const out = tempDir('far-keys-');
-  try {
-    const r = spawnSync(process.execPath, ['scripts/temple-design/audit.mjs', out, '--temples', temples.join(',')], { encoding: 'utf8', timeout: 180000 });
-    assert.equal(r.status, 0, r.stderr.slice(-400));
-    return JSON.parse(readFileSync(join(out, 'report.json'), 'utf8'));
-  } finally { rmSync(out, { recursive: true, force: true }); }
+  const { measureTemples } = await import('../scripts/temple-design/measure.mjs');
+  return (await measureTemples({ temples })).report;
 }
 
 test('the far keys read from their locks: the Mooring-House’s west door, great door and moorers’ gate, the Footprint’s Lens Chamber (obviousness 2.5 or over, or a keyhole)', async () => {

@@ -27,3 +27,11 @@ test('catalog contract detects additions, omissions, duplicates and misdirected 
  for(const changed of [[...names,'new-game.js'],names.slice(1),[...names,names[0]]])assert.throws(()=>assert.deepEqual(names,changed));
  assert.throws(()=>catalog(minigames.replace('../src/minigames/','../src/other/'),'../src/minigames/'));
 });
+
+test('fight-only imports cover both original fight discovery sets',()=>{
+ const source=readFileSync(new URL('./fight-modules.js',import.meta.url),'utf8');
+ const actual=readdirSync(new URL('../src/minigames/',import.meta.url));
+ const names=catalog(source,'../src/minigames/');
+ assert.deepEqual(names,actual.filter(f=>/^fight-.*\.js$/.test(f)).sort());
+ assert.deepEqual(names,actual.filter(f=>/^fight-\w+\.js$/.test(f)).sort());
+});

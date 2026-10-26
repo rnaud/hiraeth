@@ -424,3 +424,18 @@ A URL passed directly to the builtin `existsSync` stays an existence dependency.
 Unknown reference-image names still select their checks for additions, deletions and mode
 changes; constructing the URL alone does not turn unrelated regular content edits into
 content reads. Unbound lookalike functions and URLs escaping to other consumers remain opaque.
+
+
+Elder-only audits likewise use their own bounded model reader. Fight-only checks use a
+literal lazy catalog whose contents are checked against both original discovery patterns;
+other minigames cannot broaden those checks. Temple gameplay assertions import
+`temple-design/measure.mjs` directly. The CLI calls that same measurement function and
+owns arguments, report files and process exit; a separate CLI smoke test checks its
+artifact contract. This retains the sight-line, puzzle and design assertions while
+removing subprocess opacity from their game dependencies. Boundary regressions check
+both unrelated edits being excluded and actual model, fight and temple inputs being kept.
+
+The reference-path guard enumerates the documentation tree from its explicit root and
+intersects it with the same repository inventory. It asserts that no inventoried document
+was lost, including nested files. This gives documentation edits a real owning check
+without marking arbitrary unknown inputs safe or excluding other opaque consumers.

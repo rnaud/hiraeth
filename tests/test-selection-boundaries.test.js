@@ -55,3 +55,32 @@ test('Keeper-only audits exclude Elder model edits while retaining Keeper model 
   assert.ok(selection('public/guardians/keeper-v1/model.glb',consumer).includes(consumer));
  }
 });
+
+test('remaining guardian audits and fight-only discovery retain only their actual inputs',()=>{
+ for(const consumer of ['tests/elder-guardian.test.js','tests/guardian-fairness.test.js','tests/fight-load.test.js','tests/fight-temples-story.test.js'])assert.deepEqual(selection('src/hud.js',consumer),[witness],consumer);
+ assert.ok(selection('public/guardians/elder-v3/model.glb','tests/elder-guardian.test.js').includes('tests/elder-guardian.test.js'));
+ assert.ok(selection('src/temples/arzach.js','tests/elder-guardian.test.js').includes('tests/elder-guardian.test.js'));
+ assert.deepEqual(selection('public/guardians/keeper-v1/model.glb','tests/elder-guardian.test.js'),[witness]);
+ for(const consumer of ['tests/fight-load.test.js','tests/fight-temples-story.test.js']){
+  assert.ok(selection('src/minigames/fight-desert.js',consumer).includes(consumer));
+  assert.deepEqual(selection('src/minigames/pirates.js',consumer),[witness]);
+ }
+});
+
+
+test('temple measurements follow game inputs without importing the CLI process wrapper',()=>{
+ for(const consumer of ['tests/far-keys.test.js','tests/temple-design.test.js']) {
+  for(const unrelated of ['src/hud.js','scripts/temple-design/audit.mjs'])assert.deepEqual(selection(unrelated,consumer),[witness],consumer+' excludes '+unrelated);
+  for(const input of ['scripts/temple-design/measure.mjs','src/temples/spacecity.js','src/temples/logic.js'])assert.ok(selection(input,consumer).includes(consumer),consumer+' tracks '+input);
+ }
+ const cli=dependenciesOf('scripts/temple-design/audit.mjs',read('scripts/temple-design/audit.mjs'));
+ assert.ok(cli.imports.includes('scripts/temple-design/measure.mjs'),'CLI uses the measured implementation');
+});
+
+
+test('documentation edits have a real reference-scan owner; unrelated unknown inputs still fail closed',()=>{
+ const consumers=['tests/reference-paths.test.js',motion];
+ const opts={root,files:inventory,tests:consumers,read,exists:f=>existsSync(join(root,f)),analysisCache,modifiedRegularOnly:true};
+ assert.deepEqual(affectedTests(['docs/systems/testing.md'],opts),['tests/reference-paths.test.js']);
+ assert.equal(affectedTests(['unknown-build-input.config'],opts),'ALL');
+});
