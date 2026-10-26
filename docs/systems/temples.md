@@ -2390,6 +2390,27 @@ These differences seen in the comparisons are not the skins': the deadly pits' d
 Footprint's pools) is not drawn in Unity; the local lights' pools are lost in the editor's batch shots to
 `HiraethLook.CullLightsToView` (`-no-light-cull` brings them back).
 
+### The makers' machined finish (issue #669, `skins/machined.js`)
+
+The surface audit (docs/audits/surfaces-v2.27.md) found the skins' panels one flat dark tone each, far from the picked
+sheets (`references/surfaces/temple-walls/sheet-1.jpg`, `temple-floors/sheet-1.jpg`). `MK_GLSL` joins a skin's
+helpers, and each body hands `mkFinish(lp, hs, id, px, floor, albedo)` the panel or plate a pixel lies in (the point
+from its middle, its half size, its number, metres a pixel), as only the skin knows its joints, rings and courses:
+
+- each panel its own tone (±9 %), as the sheets' slabs at different depths; four wall panels in ten set back, a
+  shadow along their top and left edges;
+- an engraved border a hand (13 cm) in from the joints: every floor plate, half the wall panels;
+- small round sockets (5.5 cm rings with a dark middle): two or three corners of a third of the plates, one at about
+  1.5–2.6 m up a third of the wall panels;
+- near, sparse fine machining marks: short hairlines along the panel's longer side (not on the Handheld preset).
+
+All by size on screen: the marks go first (by 9 mm a px), then the sockets and borders, the tones last; far off a
+wall is its tone and the skin's own joints. Futuristic and clean: nothing organic. Wired into the walls and floors of
+the Aerie, the Casting-House, the Warden's Well (both), the Hush-House (its floors and dado: its coffers keep their
+own bevel), the Engine-House, the Mooring-House (its rings too), the Undertower, the Whale-House, the Clock-House, the
+Lamp-House, the Founders' Belfry and the Footprint's floors (its plaster walls are not panels). Not the Rose House
+(its red stone is a landmark's cut stone). Unity: SkinPatterns.hlsl gets each skin's copy (skin-hlsl.mjs).
+
 ### The Warden's Well (`skins/wardens-well.js`)
 
 After `references/temples/future/wardens-well/sheet-1.jpg` and `sheet-2.jpg`: a shaft of dark slate rings, cyan lines,

@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Aerie in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of the makers'
@@ -108,6 +109,7 @@ const SK_GLSL = /* glsl */ `
   float skSeam(float q, float s) { float f = fract(q / s); return min(f, 1.0 - f) * s; }
   // is there a joint at the left of slab cell i (of n round a round room)? Slabs one to three cells wide
   bool skJ(float i, float n) { float k = n > 0.5 ? mod(i, n) : i; return skH1(k * 1.37 + 0.5) > 0.42 || mod(k, 3.0) < 0.5; }
+${MK_GLSL}
 `;
 
 /**
@@ -156,6 +158,10 @@ const BODIES = {
           skInk = max(skInk, skInkL(abs(dl - ch), skPx) * 0.3 * near);
         }
         skInk = max(skInk, max(skInkL(dv, skPx) * 0.75, skInkL(dh, skPx) * 0.7) * near);
+        // the makers' finish (machined.js) on the slab's panel: from its left joint to its right, between two joints across
+        float s1 = ci + 1.0;
+        for (int j1 = 0; j1 < 3; j1++) { if (skJ(s1, NC)) break; s1 += 1.0; }
+        skInk = max(skInk, mkFinish(vec2(along - 0.5 * (s0 + s1) * CW, (hf - 0.5) * HH), vec2(0.5 * (s1 - s0) * CW, 0.5 * HH), s0 * 13.1 + hi * 7.7, skPx, false, albedo));
         // the rings of circuits: every uSkP.z m a pair of thin lit lines round the wall (most of them lit)
         float BH = uSkP.z, by = skP.y - 3.4, bi = floor(by / BH), bf = by - bi * BH;
         float on = step(0.22, skH1(bi * 5.3 + 2.0)) * step(0.0, by);
@@ -236,6 +242,7 @@ const BODIES = {
       bool low = inRoom && skP.y < Y.x + 0.6;
       vec3 cA = low ? uSkA : uSkS, cB = low ? uSkB : uSkT;
       albedo = low ? uColor : mix(uSkS, uSkT, 0.5);
+      vec3 mkA = vec3(1.0);
       if (n.y > 0.65) {
         float t = 0.5;
         if (uSkObj > 0.5) {
@@ -258,6 +265,8 @@ const BODIES = {
           float da = min(fract(aq), 1.0 - fract(aq)) / nseg * 6.2831853 * r;
           skInk = max(skInkL(skSeam(r, RS), skPx), skInkL(da, skPx) * step(1.0, ri)) * 0.6 * near;
           t = skH2(vec2(floor(aq), ri));
+          // the makers' finish (machined.js) on its plate of the ring (not the middle's disc)
+          if (ri > 0.5) skInk = max(skInk, mkFinish(vec2((fract(aq) - 0.5) * 6.2831853 * r / nseg, r - (ri + 0.5) * RS), vec2(3.14159265 * (ri + 0.5) * RS / nseg, 0.5 * RS), floor(aq) + ri * 31.0, skPx, true, mkA));
           if (low && R.z > 8.0) {
             float ro = R.z - 1.6, rm = 0.42 * R.z;
             skGlow = max(max(skLit(abs(r - ro), skPx, 0.045), skLit(abs(r - ro + 0.4), skPx, 0.022)), skLit(abs(r - rm), skPx, 0.035));
@@ -270,12 +279,14 @@ const BODIES = {
           vec2 g = (d + (inRoom ? vec2(0.0) : vec2(0.5 * S))) / S, gi = floor(g), gf = fract(g);
           skInk = max(skInkL(min(gf.x, 1.0 - gf.x) * S, skPx), skInkL(min(gf.y, 1.0 - gf.y) * S, skPx)) * 0.6 * near;
           t = skH2(gi + 0.13);
+          skInk = max(skInk, mkFinish((gf - 0.5) * S, vec2(0.5 * S), gi.x * 17.0 + gi.y * 5.0, skPx, true, mkA));
           if (low) {
             float e = max(abs(d.x) - R.z, abs(d.y) - R.w);
             skGlow = skLit(abs(e + 1.6), skPx, 0.04) * step(4.0, min(R.z, R.w));
           }
         }
         if (!lite) albedo = mix(albedo, mix(cA, cB, t), 0.7 * near + 0.2);
+        albedo *= mkA;   // (the finish's tone and sockets, over the plate's own)
       } else if (n.y < -0.65) {
         // a floor's underside, the ceiling of the room under it: slate
         albedo = SK_UNDER;

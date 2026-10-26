@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Footprint in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of the
@@ -228,6 +229,7 @@ const BODIES = {
         bool inRoom = uFpObj > 0.5 ? true : fpRoomOf(fpP, R, Y);
         vec2 d = fpP.xz - R.xy;
         float t = 0.5;
+        vec3 mkA = vec3(1.0);
         if (inRoom && R.w < 0.0) {
           vec3 g = fpRings(d, uFpObj > 0.5 ? 0.8 : S, S);
           fpInkV = fpInkL(g.x, fpPx) * 0.5 * near;
@@ -237,12 +239,15 @@ const BODIES = {
           vec2 gq = (d + (inRoom ? vec2(0.0) : vec2(0.5 * S))) / S, gi = floor(gq), gf = fract(gq);
           fpInkV = max(fpInkL(min(gf.x, 1.0 - gf.x) * S, fpPx), fpInkL(min(gf.y, 1.0 - gf.y) * S, fpPx)) * 0.5 * near;
           t = fpH2(gi + 0.13);
+          // the makers' finish (machined.js) on the plate
+          fpInkV = max(fpInkV, mkFinish((gf - 0.5) * S, vec2(0.5 * S), gi.x * 17.0 + gi.y * 5.0, fpPx, true, mkA));
           if (inRoom && uFpObj < 0.5) {
             float e = max(abs(d.x) - R.z, abs(d.y) - R.w);
             fpGlow = fpLit(abs(e + 1.6), fpPx, 0.04) * step(4.0, min(R.z, R.w));
           }
         }
         if (!lite) albedo = mix(uColor, mix(uFpA, uFpB, t), 0.7 * near + 0.2);
+        albedo *= mkA;
       } else if (n.y < -0.65) {
         // a floor's underside (a ledge's, a corridor's roof seen from under): plates, cream
         albedo = FP_UNDER;
@@ -262,7 +267,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('footprint', { pars: FP_PARS, defines: (() => { const u = new THREE.Color(FOOT.under); return `#define FP_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define FP_LINES ${FOOT.emit.lines.toFixed(3)}\n#define fpInkL fpInk\n`; })(), glsl: FP_GLSL, bodies: BODIES, ink: 'fpInkV', emit: 'fpGlow', emitAt: 'light' });
+const SHADER = skinShader('footprint', { pars: FP_PARS, defines: (() => { const u = new THREE.Color(FOOT.under); return `#define FP_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define FP_LINES ${FOOT.emit.lines.toFixed(3)}\n#define fpInkL fpInk\n`; })(), glsl: FP_GLSL + MK_GLSL, bodies: BODIES, ink: 'fpInkV', emit: 'fpGlow', emitAt: 'light' });
 
 /** The surface material of a skin's pattern: makeMaterial's own, its albedo, first pen lines and glow the pattern's. */
 function skinMaterial(body, look, pat, U, key, obj = false) {

@@ -72,7 +72,7 @@ export function* buildBazaar(scene) {
   const PRINT = { shadeFlat: MARKET_FLAT, ...LT };
   const coral = mat('#f0a083', { grid: 12, weathered: 0.7, ...PRINT }), teal = mat('#88b4b5', { grid: 9, weathered: 0.7, ...PRINT });   // (old painted plaster: materials.js WEATHER)
   const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab', PRINT), brass = mat('#c99758', { metal: 'brass' });
-  const paving = mat('#a4c1be', { grid: 10, ...LT }), lilac = mat('#b9a9c5', PRINT);
+  const paving = mat('#a4c1be', { grid: 10, paving: 2, ...LT }), lilac = mat('#b9a9c5', PRINT);
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
   const shop = colors.map(c => mat(c, { weathered: 0.7, ...PRINT }));
   // the billboards' painted faces: a lighter line in a dark shade of their own colours, not the walls' ink (materials.js LINE)
@@ -105,7 +105,7 @@ export function* buildBazaar(scene) {
   for (const [x0,x1,z0,z1] of rectMinus([-750,750,-880,620],OLD_HOLES)) box((x0+x1)/2,-1,(z0+z1)/2,x1-x0,2,z1-z0,paving);
   // Broad sidewalks leave a continuous 32 m central walking route.
   yield;
-  for (const side of [-1,1]) box(side*27,.15,-130,16,.3,600,mat('#d5c7a8',{grid:3,...LT}));
+  for (const side of [-1,1]) box(side*27,.15,-130,16,.3,600,mat('#d5c7a8',{grid:3,paving:1.2,...LT}));
   // Inlaid tram lines lead the eye from the entrance to the relay.
   yield;
   for (const x of [-12,12]) box(x,.012,-100,.12,.02,480,brass,false);

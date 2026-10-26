@@ -4,6 +4,7 @@ import { FACE_INK_GLSL, FACE_FLAT_GLSL, FACE_ROUND_GLSL } from './face-ink.js';
 import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
+import { PAVING_GLSL, pavingOf } from './paving-shader.js';
 import { OPENINGS, OPENINGS_GLSL } from './wall-openings.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL, GROUND, PEBBLES } from './ground-ink.js';
@@ -349,7 +350,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP', 'S_PAVING'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -488,6 +489,7 @@ export function surfaceFeatures(o) {
   on('S_GLYPHS', o.glyphs);
   on('S_GRID', o.grid || o.plates);
   on('S_PLATES', o.plates);
+  on('S_PAVING', pavingOf(o)[0] > 0);   // (flagstones on its upward faces: src/paving-shader.js)
   on('S_WEATHER', weatheredOf(o) > 0);
   on('S_DETAIL', detailOf(o)[0] > 0);
   on('S_FORM', formOf(o));
@@ -1001,6 +1003,7 @@ const fragmentShader = /* glsl */ `
   uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
   uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
+  uniform vec4 uPaving;    // paving (src/paving-shader.js): course (m), wear, tone, turn; x 0: none
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
@@ -1727,6 +1730,10 @@ ${SHADOW_GLSL}
     return inkLine(d, 0.9) * gaps * fade;
   }
 
+  #ifdef S_PAVING
+  ${PAVING_GLSL}
+  #endif
+
   float segDist(vec2 p, vec2 a, vec2 b) {
     vec2 ab = b - a;
     float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0);
@@ -2270,6 +2277,11 @@ ${SHADOW_GLSL}
     #ifndef GRASS
     else if (!gl_FrontFacing) n = -n;   // (grass blades: both sides lit like the ground)
     #endif
+    #ifdef S_PAVING
+    // paving (src/paving-shader.js) on the upward faces: their metres per px along x and z (in uniform flow)
+    vec2 paveFw = vec2(length(vec2(dFdx(vWorldPos.x), dFdy(vWorldPos.x))), length(vec2(dFdx(vWorldPos.z), dFdy(vWorldPos.z))));
+    float paveUp = uPaving.x > 0.0 ? smoothstep(0.7, 0.85, n.y) : 0.0;
+    #endif
 
     #ifdef WATER
       WaterLook wl = waterLook(vWorldPos, gl_FrontFacing);   // (water-shader.js; derivatives here, in uniform flow)
@@ -2453,6 +2465,14 @@ ${SHADOW_GLSL}
       float dSeed = floor(hash(floor(vWorldPos.xz / 9.0) + 11.0) * 53.0) + (facingX ? 29.0 : 0.0);
       float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, uDetail.y, dSeed, uDetail.x > 1.5);
       patInk = max(patInk, di * dUp * ${DETAIL.ink.toFixed(2)});   // (over 1: a darker pen line, post.js; under 2)
+    }
+    #endif
+    #ifdef S_PAVING
+    if (paveUp > 0.0) {
+      vec3 pa = albedo;
+      float pi = paving(vWorldPos.xz, paveFw, pa);
+      albedo = mix(albedo, pa, paveUp);
+      patInk = max(patInk, pi * paveUp);
     }
     #endif
     albedo *= instColor;
@@ -2651,6 +2671,9 @@ ${SHADOW_GLSL}
       if (uPlates > 0.5) detail = plateInk; else
       #endif
       detail = gridLines(gq, gfw, gw);
+      #ifdef S_PAVING
+      detail *= 1.0 - paveUp;   // (a paved top: its flagstones instead)
+      #endif
     }
     #endif
     detail = max(detail, carve.z * 0.62);
@@ -3052,6 +3075,7 @@ export function makeMaterial(o) {
       uVeins: { value: formOf(o) ? o.veins ?? 0 : 0 },
       uPatch: { value: patchesOf(o) },
       uDrift: { value: o.drift ? 1 : 0 },
+      uPaving: { value: new THREE.Vector4(...pavingOf(o)) },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
       uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },

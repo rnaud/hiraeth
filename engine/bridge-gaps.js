@@ -120,7 +120,7 @@ export const GAPS = {
       where: 'port-format.js\'s Surface plain takes its uColor and uGlow, which is all it has' },
     { keys: ['define:S_BIOMES', 'define:S_RIPPLES', 'define:S_SANDINK', 'define:S_TERRAIN', 'define:S_STRATA', 'define:S_GLYPHS', 'define:S_GRID', 'define:S_CRACKS',
       'define:S_SCRUB', 'define:S_WATERMODE', 'define:S_PLATES', 'define:S_DETAIL', 'define:S_PATCH', 'define:S_WEATHER', 'define:S_MAP', 'define:S_FIGURE', 'define:S_EYE',
-      'define:S_FOLDS', 'define:S_TILES', 'define:S_LEAVES', 'define:S_FACADE', 'define:S_VEIL', 'define:S_GLASS', 'define:S_TICKS'],
+      'define:S_FOLDS', 'define:S_TILES', 'define:S_LEAVES', 'define:S_FACADE', 'define:S_VEIL', 'define:S_GLASS', 'define:S_TICKS', 'define:S_PAVING'],
     what: 'the surface\'s features, each compiled only where used (materials.js surfaceFeatures)', status: 'handled',
     where: 'Surface.shader takes each from its uniform (uMode, uGrid, uPattern, uGlass…), which port-format.js sends; the define only trims the web\'s program' },
     { keys: ['define:SURFACE_SPEC'], what: 'the web\'s surface compiled with only its features', status: 'web-only', why: 'a compile-time trim of the web\'s program; Surface.shader has its own variants' },

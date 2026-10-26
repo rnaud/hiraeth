@@ -250,7 +250,7 @@ export function* buildIncal(scene) {
   {
     const g = new THREE.RingGeometry(R, 2600, 160, 1);
     g.rotateX(-Math.PI / 2);
-    const plain = new THREE.Mesh(g, makeMaterial({ color: '#e9dcc2', grid: 3 }));
+    const plain = new THREE.Mesh(g, makeMaterial({ color: '#e9dcc2', grid: 3, paving: 1.8 }));
     plain.position.y = TOP;
     scene.add(plain);
     // a low parapet with gaps around the rim

@@ -57,6 +57,8 @@ const TOGGLES = {
   noCaveGroup: ['level.qanat.cave.group.visible = false', 'level.qanat.cave.group.visible = true'],
   noInterior: ['window.__ir = interiorCull.rooms; interiorCull.rooms = []', 'interiorCull.rooms = window.__ir'],   // (as before perf.js InteriorCuller)
   noPool: ['level.qanat.cave.pool.visible = level.qanat.cave.stream.visible = false', 'level.qanat.cave.pool.visible = level.qanat.cave.stream.visible = true'],
+  // paving's flagstones off (src/paving-shader.js: its uniform's course 0, the branch not taken; issue #669)
+  noPaving: ['window.__pv = []; scene.traverse((o) => { for (const m of [].concat(o.material ?? [])) { const u = m?.uniforms?.uPaving?.value; if (u && u.x > 0 && !window.__pv.some((e) => e[0] === u)) { window.__pv.push([u, u.x]); u.x = 0; } } })', 'for (const [u, x] of window.__pv) u.x = x'],
   noWaterPass: ['window.__ro = waters.renderOver; waters.renderOver = () => {}', 'waters.renderOver = window.__ro'],
   scale05: ['quality.renderScale = 0.5; resize()', 'quality.renderScale = window.__scale; resize()'],
   // the last pass's antialiasing (preset aa, pipeline.js): FXAA in the blit, or SMAA in its place

@@ -249,6 +249,43 @@ ground or water:
   +0.43, the desert's spawn within the spread; Handheld Qanat +0.22, the Market +0.13 and +0.17. Every
   pixel of a built wall within 380 m pays a handful of hashes, no loop, no texture.
 
+## Paving: flagstones in courses (issue #669, `paving`)
+
+The plazas and streets were one colour and a ruled grid (`S_GRID`): 46–82 % of the measured surface in four cities
+(docs/audits/surfaces-v2.27.md). `makeMaterial({ paving })` (`true`, a course's depth in metres, or `{ size, wear,
+tone, turn }`; `S_PAVING`, `uPaving`, `src/paving-shader.js`) draws the picked sheet's flagstones
+(`references/surfaces/paving/sheet-1.jpg`) on a material's upward faces (n.y over 0.7; its sides keep their grid, the
+top's grid gives way):
+
+- **Courses and stones** (`paveStone`): courses along x (or turned by `turn`) of uneven depth (each seam moved by
+  ±20 % of a course), each course its own stone length (1.1–2 courses) and offset, each joint moved by ±25 % of a stone:
+  staggered, short and long. In world metres, so neighbouring meshes of one floor meet.
+- **The outline**: a box with worn round corners (6 % of a course), its distance in px across the nearer edge (each
+  axis its own metres per px: the follow camera sees the floor at a slant), a 1 px joint.
+- **Each stone its tone**: ±3.5 % in value, a sixth a little rosier, a seventh sandier, now and then (`wear`) a patch
+  of a greyer stone with denser pits. Under post.js's colour-edge threshold.
+- **Wear**: a crack across one stone in seven (× `wear`), from an edge, jagged on two scales, thinning to its end
+  inside the stone; grit gathered in the joints; small pits; a brass survey disc on one stone in fifty.
+- **By distance, as the sheet's strip**: grit and pits only within a few metres (gone by 1 cm a px, and on the
+  Handheld preset), cracks to ~2.5 cm a px, the joints across a course fade when a stone is under 16 px long, the seams
+  between courses when a course is under 14 px deep, the tones when a stone is under 20 px: flat colour far, never a
+  grey ruled field. Past every fade the function returns before looking anything up.
+- Where: the City-Shaft's rim plaza (1.8 m), the Signal Market's floor (2 m) and its pavements (1.2 m), the Moon
+  Foundry's yard (3 m slabs, half the wear, less tone), the City Floating in Space's piers (1.5 m) and bridges (0.8 m),
+  the Underwater City's streets (1.4 m), the Garden of Spheres' paths (0.9 m).
+- **Unity**: `scripts/unity-export/paving-hlsl.mjs` turns `PAVING_GLSL` into `Shaders/Paving.hlsl`; Surface.shader
+  calls it in a uniform branch on `_Paving` (port-format.js `paving`, WorldLoader.cs), never on the plain variant
+  (BridgeRenderer.Lean). `tests/paving.test.js`: the option, the define, the layout's JavaScript twin (`stoneAt`:
+  every point in one stone, course depths, staggered joints) and the port's copy being current.
+- **Cost**: M4 Pro, 1280 × 720, the shipped bundle, scripts/bench/passes.mjs's `noPaving` toggle (the uniform's course 0) paired
+  with the paving on in the same page at the worlds' benchmark views, whole frame, median of 5 reps, ms (on minus off): the
+  Signal Market High −0.2..+0.4, Handheld +0.2..+0.8 (its wide view the most); the Moon Foundry High −0.2..0, Handheld ±0.05;
+  the City-Shaft Handheld −0.9..+0.1. Within the spread of a shared machine (load average 10–16 from other agents' jobs;
+  the City-Shaft's paired High runs were too contended to read). Whole builds back to back in a quieter moment (load 4–7,
+  .claude/skills/perf-audit/fps.mjs, High, base d51d8549f against this change): the City-Shaft's plaza views' median frame
+  +0.7..+1.3 ms (8.9 → 9.8 at its start), its shop (no paving) +0.3 (the drift between the runs); the temples' views
+  (the machined finish) +0.1..+0.4. A few dozen hashes a near pixel, none past the fades.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

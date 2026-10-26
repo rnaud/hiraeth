@@ -239,7 +239,7 @@ export function* buildMoonFoundry(scene) {
     hot: mat({ color: T.molten2, glow: 0.9, flat: true, side: DS }),
     leaf: [mat({ color: T.leaf, pattern: 'leaves', hatch: 1.1, shade: 0.5, spot: 0, line: 0.7, lineTint: 0.6 }), mat({ color: T.leaf2, pattern: 'leaves', hatch: 1.1, shade: 0.5, spot: 0, line: 0.7, lineTint: 0.6 })],
     trunk: mat({ color: T.trunk, flat: true, thin: THIN }),
-    floor: mat({ color: T.floor, shade: 0.25, hatch: 0.15, grid: 9 }),   // (the slabs: no terrain ink, no pebbles: the sheets' floor is clean)
+    floor: mat({ color: T.floor, shade: 0.25, hatch: 0.15, grid: 9, paving: { size: 3, wear: 0.5, tone: 0.7 } }),   // (the slabs: no terrain ink, no pebbles: the sheets' floor is clean)
     line: mat({ color: '#9a8f7c', flat: true }),
   };
   const FLORA = new Set([...M.leaf, M.trunk]);

@@ -36,6 +36,8 @@ export const CHANGELOG = [
         { where: 'The Garden of Spheres', before: '115–149', after: '28–30' },
         { where: 'The Desert', before: '46–58', after: '33–34' },
       ], source: 'scripts/tech-audit/ab.mjs: the same minute of play (standing, running, a full turn of the camera, night, weather, a few blows) in each build, interleaved', note: 'Programs prepared mid-play: 1–2 in each of these worlds before, none after. Loading takes 15–100 ms longer. The Unity version builds its pictures differently and is not affected.' }], see: 'In Vael, stand at the landing and turn the camera all the way round: no half-second freeze as the Bell crossing’s rings and the fight temple’s door come into view.' },
+      'The paved plazas and streets are laid in flagstones now instead of a ruled grid: courses of uneven stones with worn corners, each a shade lighter, rosier or sandier, the odd cracked slab, grit in the joints near your feet and a brass survey disc here and there. Far off the joints thin out to flat colour. On the City-Shaft’s rim, the Signal Market’s floor and pavements, the Moon Foundry’s yard, the piers and bridges of the City Floating in Space, the Underwater City’s streets and the Garden of Spheres’ paths.',
+      'The makers’ houses look machined: every wall panel and floor plate has its own tone, some panels sit set back in shadow, and floor plates carry an engraved border a hand in from their joints, small round sockets and, up close, fine machining marks. In twelve of the thirteen houses (the Rose House keeps its red stone).',
     ],
   },
 

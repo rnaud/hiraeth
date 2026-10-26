@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Engine-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' engine
@@ -203,6 +204,8 @@ const BODIES = {
       }
       albedo = mix(albedo, uSkSeam, seam * 0.75 * near);
       skInk = seam * near * 0.5;
+      // the makers' finish (machined.js) on the slab
+      skInk = max(skInk, mkFinish((f - 0.5) * uSkCell, 0.5 * uSkCell, cell.x * 13.1 + cell.y * 7.7, fw, false, albedo));
       // (ceilings and undersides darker, as the picks' are)
       if (skN.y < -0.65) albedo *= 0.72;
       if (side) {
@@ -256,6 +259,8 @@ const BODIES = {
       }
       albedo = mix(albedo, uSkSeam, seam * 0.7 * near);
       skInk = seam * near * 0.45;
+      // the makers' finish (machined.js) on the plate (a floor's top only)
+      if (top) skInk = max(skInk, mkFinish((f - 0.5) * uSkCell, 0.5 * uSkCell, cell.x * 17.0 + cell.y * 5.0, fw, true, albedo));
       float cov = 0.0;
       if (top && uSkObj < 0.5) {
         // the lines along the plates' seams: rows along x (every 4 plates) and, but on the lighter presets, along z
@@ -295,7 +300,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('engine-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+const SHADER = skinShader('engine-house', { pars: PARS, glsl: GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** One of the skin's surface materials: makeMaterial's, its albedo and first pen lines the body's, its glow skEmit. */
 function skinMaterial(body, look, S, U, key, obj = false) {

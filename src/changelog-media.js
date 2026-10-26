@@ -1487,6 +1487,86 @@ export const CHANGELOG_MEDIA = {
         "view": "Staged at local (20.5, 0, 9.5) facing (14.5, 0, -2), the same in both. The ring’s plate phase is the GPU’s (a sin hash): read on this Mac’s GPU and checked from above; another GPU may turn the ring’s plates differently."
       }
     ]
+  },
+  {
+    "match": "The paved plazas and streets are laid in flagstones",
+    "shots": [
+      {
+        "name": "paving-shaft",
+        "caption": "The City-Shaft’s rim plaza: before, one cream colour and a 3 m ruled grid; after, flagstones in courses, a tone each, the odd crack, the joints thinning out toward the parapet",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "The City-Shaft’s ‘crowd’ benchmark view, the same pinned camera in both. People and floating things move between the two loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "paving-foundry",
+        "caption": "The Moon Foundry’s yard: big concrete slabs in courses with fewer marks (half the wear) in place of the 9 m grid",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "The Moon Foundry’s ‘crowd2’ benchmark view, the same pinned camera in both. People move between the loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "paving-market",
+        "caption": "The Signal Market’s floor: 2 m flagstones in courses; far down the street they thin to flat colour",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "The Signal Market’s ‘crowd2’ benchmark view, the same pinned camera in both. The crowd moves between the loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "paving-garden",
+        "caption": "The Garden of Spheres’ path, paved in small stones; the joints fade out toward the arch",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "The Garden of Spheres’ ‘start’ benchmark view, the same pinned camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The makers’ houses look machined",
+    "shots": [
+      {
+        "name": "machined-aerie",
+        "caption": "The Aerie’s first hall: the floor plates with their engraved borders and corner sockets; on the slate walls the tone steps between slabs are slight at this size",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the camera just inside each world's first way in, the follow camera behind the traveller) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "Just inside the Aerie (Vael’s first way in), the same staged spot and follow camera in both. Floating motes and the carried light differ between runs.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "machined-clock",
+        "caption": "The Clock-House: the floor plates bordered and socketed; the slate panels a step apart in tone",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the camera just inside each world's first way in, the follow camera behind the traveller) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "Just inside the Clock-House (the Glass Dunes’ first way in), the same staged spot and follow camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "machined-engine",
+        "caption": "The Engine-House: its plates bordered with sockets near the traveller; the dark slabs gain tone steps",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the camera just inside each world's first way in, the follow camera behind the traveller) on a Vite of its own (port 5436); before: origin/main at d51d8549f, after: this change; 25 October; cwebp -q 72",
+        "view": "Just inside the Engine-House (the Buried Machine’s first way in), the same staged spot and follow camera in both. The walls are dark navy: the change on them is small at this size.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
   }
   ],
   '2.27': [

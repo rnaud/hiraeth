@@ -701,7 +701,8 @@ namespace Hiraeth.Bridge
                 kw = why == "scrub" ? (leanScrub ? "HIRAETH_LEAN_SCRUB" : null) : (leanGlass ? "HIRAETH_LEAN_GLASS" : null);
             bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0
                 && V(m, "_ShellCenter").w <= 0.5f   // (a landmark's shell sutures: drawn with a wall's marks, issue #264)
-                && V(m, "_Stone").w <= 0.5f;   // (and a landmark's cut stone, issue #538)
+                && V(m, "_Stone").w <= 0.5f   // (and a landmark's cut stone, issue #538)
+                && V(m, "_Paving").x <= 0f;   // (and paving's flagstones, issue #669)
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
             // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
             // always plain, so the plain lean materials' only)

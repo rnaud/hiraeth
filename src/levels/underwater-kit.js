@@ -128,7 +128,7 @@ export function uwMats(kit, { shadeFlat = 0.82 } = {}) {
     wallIn: kit.mat({ color: '#e6844e', glow: 0.55, shade: 0.9, flat: true, spot: 0 }),
     table: kit.mat({ color: UW_PAL.table, glow: 0.5, shade: 0.9, flat: true, spot: 0 }),
     chair: kit.mat({ color: UW_PAL.chair, flat: true }),
-    street: kit.mat({ color: UW_PAL.street, flat: true, grid: 2.4, ...P }),
+    street: kit.mat({ color: UW_PAL.street, flat: true, grid: 2.4, paving: 1.4, ...P }),
     streetPale: kit.mat({ color: UW_PAL.streetPale, flat: true, ...P }),
     pier: kit.mat({ color: '#5e9aa0', flat: true, weathered: 0.3, ...P }),
     lamp: kit.mat({ color: UW_PAL.lamp, glow: 0.95, flat: true, spot: 0 }),

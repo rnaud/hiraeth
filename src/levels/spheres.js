@@ -227,7 +227,7 @@ export function* buildSpheres(scene) {
     lining: makeMaterial({ color: '#b3d0c9', side: THREE.BackSide, glow: 0.55 }),
     stone: makeMaterial({ color: '#efe7d4' }),
     stone2: makeMaterial({ color: '#e0d4bc' }),
-    path: makeMaterial({ color: '#efe8cc' }),
+    path: makeMaterial({ color: '#efe8cc', paving: { size: 0.9, wear: 0.7 } }),
     pole: makeMaterial({ color: '#f6f3ea', ...WHITE_SHADE }),
     paving: makeMaterial({ color: '#ffffff', vertexColors: true }),
     water: makeMaterial({ color: '#a8d0d6', color2: '#9fd0c8', mode: MODE_WATER }),

@@ -6,6 +6,7 @@ import { metal, glazing, glaze } from '../landmark-materials.js';
 import { Platform } from '../pieces.js';
 import { ESC, WELL } from '../garage.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Clock-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' clock
@@ -204,6 +205,8 @@ const BODIES = {
         }
         albedo = mix(albedo, uSkC, seam * 0.85 * near);
         skInk = seam * near * 0.45;
+        // the makers' finish (machined.js) on the slab
+        skInk = max(skInk, mkFinish(vec2((fx - 0.5) * W0, (fy - 0.5) * H0), vec2(0.5 * W0, 0.5 * H0), col * 13.1 + row * 7.7, max(fwx, fwy), false, albedo));
         // a thin brass strip in every third joint
         float k = floor(cx + 0.5), dj = abs(cx - k) * W0;
         float strip = chLine(dj, fwx, 0.045) * (1.0 - step(0.5, mod(k, 3.0)));
@@ -231,7 +234,8 @@ const BODIES = {
         int ri = uSkObj > 0.5 ? -1 : chFloor(skP);
         vec2 d = skP.xz;
         float seam = 0.0, brass = 0.0, teal = 0.0, nearK = 1.0, lit = 0.0, dark = 0.0;
-        vec2 cell = vec2(0.0);
+        vec2 cell = vec2(0.0), mkL = vec2(0.0), mkS = vec2(0.0);
+        float mkPx = 1.0;
         if (ri >= 0) d = skP.xz - uSkR[ri].xy;
         if (ri >= 0 && uSkR[ri].w < 0.0) {
           // a round room: rings of plates round its middle, a brass and a teal ring round it
@@ -245,6 +249,7 @@ const BODIES = {
           lit = chLine((1.0 - fract(qr)) * ${f2(C.plate[1])} - 0.09, fr, 0.05);
           dark = chLine(fract(qr) * ${f2(C.plate[1])} - 0.09, fr, 0.05);
           cell = vec2(ring, floor(qa));
+          if (ring > 0.5) { mkL = vec2((fract(qa) - 0.5) * rr * 6.2831853 / nseg, (fract(qr) - 0.5) * ${f2(C.plate[1])}); mkS = vec2(3.14159265 * (ring + 0.5) * ${f2(C.plate[1])} / nseg, 0.5 * ${f2(C.plate[1])}); mkPx = max(fr, fa); }
           brass = max(chLine(abs(rr - 3.2), fr, 0.08), chLine(abs(rr - (R - 1.0)), fr, 0.07));
           teal = chLine(abs(rr - 3.6), fr, 0.03);
         } else {
@@ -255,6 +260,7 @@ const BODIES = {
           float fq = max(fq2.x, fq2.y);
           nearK = chNear(fq, 0.5);
           cell = floor(q);
+          mkL = (f - 0.5) * ${f2(C.plate[0])}; mkS = vec2(0.5 * ${f2(C.plate[0])}); mkPx = fq;
           seam = max(chLine(min(f.x, 1.0 - f.x) * ${f2(C.plate[0])}, fq2.x, 0.02), chLine(min(f.y, 1.0 - f.y) * ${f2(C.plate[0])}, fq2.y, 0.02));
           lit = chLine((1.0 - f.y) * ${f2(C.plate[0])} - 0.09, fq2.y, 0.05);
           dark = chLine(f.y * ${f2(C.plate[0])} - 0.09, fq2.y, 0.05);
@@ -275,6 +281,8 @@ const BODIES = {
         albedo = mix(albedo, uSkC, seam * 0.7 * nearK);
         albedo = mix(albedo, uSkB, brass);
         skInk = max(seam * 0.5 * nearK, brass * 0.3 * nearK);
+        // the makers' finish (machined.js) on the plate
+        if (mkS.x > 0.0) skInk = max(skInk, mkFinish(mkL, mkS, cell.x * 17.0 + cell.y * 5.0, mkPx, true, albedo) * (1.0 - brass));
         float breathe = 0.86 + 0.14 * sin(uTime * 0.7 + length(d) * 0.2);
         albedo = mix(albedo, uSkA, teal);
         skEmit = teal * ${f2(C.emit.line)} * breathe;
@@ -325,7 +333,7 @@ const BODIES = {
   `,
 };
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('clock-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+const SHADER = skinShader('clock-house', { pars: PARS, glsl: GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** One of the skin's surface materials: makeMaterial's, its albedo and first pen lines the body's, its glow skEmit. */
 function skinMaterial(body, look, U, key, obj = false) {

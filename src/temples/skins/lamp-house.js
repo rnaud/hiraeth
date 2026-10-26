@@ -5,6 +5,7 @@ import { Switch, LightEar, Bridge } from '../pieces.js';
 import { paint } from '../kit.js';
 import { cyl, cone, box as gbox, torus, merge as gmerge } from '../../wildlife/geo.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Lamp-House's futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' lamp-house drawn
@@ -200,6 +201,8 @@ const BODIES = {
       if (side) tone *= 0.95 + 0.08 * f.y;
       albedo = uColor * mix(tone, 1.0, far);
       lhInkV = lhInk(min(em.x, em.y)) * 0.5 * (1.0 - far);
+      // the makers' finish (machined.js) on the slab
+      lhInkV = max(lhInkV, mkFinish((f - 0.5) * vec2(P, Hc), 0.5 * vec2(P, Hc), cell.x * 13.1 + cell.y * 7.7, fw, false, albedo));
       if (uWearLite < 0.5) {
         // the chamfers: a lit lip along each slab's top and left edge, a shaded one along its bottom and right
         float b = 0.08;
@@ -237,6 +240,8 @@ const BODIES = {
       float far = smoothstep(0.08, 0.2, max(fq.x, fq.y));
       albedo = uColor * mix(0.93 + 0.11 * lhH(cell + 5.0), 1.0, far);
       lhInkV = lhInk(min(em.x, em.y)) * 0.45 * (1.0 - far);
+      // the makers' finish (machined.js) on the plate (a floor's top only)
+      if (top) lhInkV = max(lhInkV, mkFinish((f - 0.5) * uLhCell, 0.5 * uLhCell, cell.x * 17.0 + cell.y * 5.0, fw, true, albedo));
       if (uWearLite < 0.5) {
         float b = 0.06;
         vec2 m = f * uLhCell, M2 = (1.0 - f) * uLhCell;
@@ -302,7 +307,7 @@ const BODIES = {
 
 const EMIT_LINE = 'float emit = 0.0;   // lit windows at night (facade)';
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('lamp-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'lhInkV', emit: 'lhGlow', emitAt: 'line' });
+const SHADER = skinShader('lamp-house', { pars: PARS, glsl: GLSL + MK_GLSL, bodies: BODIES, ink: 'lhInkV', emit: 'lhGlow', emitAt: 'line' });
 
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and light the body's. */
 function skinMaterial(body, look, color, U, key, cell = [1, 1]) {

@@ -4,6 +4,7 @@ import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { ROOMS, UP } from '../perdide.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Hush-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of Lorn's
@@ -164,6 +165,8 @@ const BODIES = {
           albedo = lite ? uSkB : mix(uSkB, uSkB * 1.06, skH1(si * 3.1 + 0.7));
           if (!lite) albedo *= (0.94 + 0.06 * h / DADO) * (1.0 + near * 0.14 * step(0.1, top) * (1.0 - smoothstep(0.24, 0.3, top)));
           skInk = max(skInkL(dv, skPx) * 0.7, skInkL(abs(top - 0.3), skPx) * 0.3 * near);
+          // the makers' finish (machined.js) on the dado's slab, under its chamfer
+          skInk = max(skInk, mkFinish(vec2((sf - 0.5) * sw, h - 0.5 * (DADO - 0.3)), vec2(0.5 * sw, 0.5 * (DADO - 0.3)), si * 13.1, skPx, false, albedo));
           if (top < 0.1) {
             albedo = uSkC;
             skInk = max(skInk, skInkL(top, skPx) * 0.8);
@@ -260,6 +263,7 @@ const BODIES = {
         bool inRoom = uSkObj > 0.5 ? true : skRoomOf(skP, R, Y);
         vec2 d = skP.xz - R.xy;
         float t = 0.5;
+        vec3 mkA = vec3(1.0);
         if (inRoom && R.w < 0.0) {
           // rings of plates round the middle; a violet inlay 1.6 m in from the wall (a disc's: at its rim)
           float r = length(d), RS = uSkObj > 0.5 ? 0.8 : S, ri = floor(r / RS);
@@ -268,6 +272,8 @@ const BODIES = {
           float da = min(fract(aq), 1.0 - fract(aq)) / nseg * 6.2831853 * r;
           skInk = max(skInkL(skSeam(r, RS), skPx), skInkL(da, skPx) * step(1.0, ri)) * 0.65 * near;
           t = skH2(vec2(floor(aq), ri));
+          // the makers' finish (machined.js) on its plate of the ring (not the middle's disc)
+          if (ri > 0.5) skInk = max(skInk, mkFinish(vec2((fract(aq) - 0.5) * 6.2831853 * r / nseg, r - (ri + 0.5) * RS), vec2(3.14159265 * (ri + 0.5) * RS / nseg, 0.5 * RS), floor(aq) + ri * 31.0, skPx, true, mkA));
           float rin = uSkObj > 0.5 ? R.z * 0.82 : R.z - 1.6;
           skGlow = skLit(abs(r - rin), skPx, 0.045);
           // (and some of the rings' seams lit, a stretch at a time)
@@ -278,6 +284,7 @@ const BODIES = {
           float ex = min(gf.x, 1.0 - gf.x) * S, ez = min(gf.y, 1.0 - gf.y) * S;
           skInk = max(skInkL(ex, skPx), skInkL(ez, skPx)) * 0.65 * near;
           t = skH2(gi + 0.13);
+          skInk = max(skInk, mkFinish((gf - 0.5) * S, vec2(0.5 * S), gi.x * 17.0 + gi.y * 5.0, skPx, true, mkA));
           float litX = step(0.9, skH2(vec2(floor(g.x + 0.5), floor(g.y / 3.0)) + 8.8)), litZ = step(0.91, skH2(vec2(floor(g.x / 3.0) + 3.0, floor(g.y + 0.5))));
           skGlow = max(skLit(ex, skPx, 0.03) * litX, skLit(ez, skPx, 0.03) * litZ);
           if (inRoom) {
@@ -286,6 +293,7 @@ const BODIES = {
           }
         }
         if (!lite) albedo = mix(uColor, mix(uSkA, uSkB, t), 0.7 * near + 0.2);
+        albedo *= mkA;   // (the finish's tone and sockets, over the plate's own)
       } else if (n.y < -0.65) {
         // a floor's underside, the vault of the room under it: slate coffers
         albedo = SK_UNDER;
@@ -308,7 +316,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('hush-house', { pars: SK_PARS, defines: (() => { const u = new THREE.Color(HUSH.wall.color); return `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${HUSH.emit.lines.toFixed(3)}\n`; })(), glsl: SK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skGlow', emitAt: 'light' });
+const SHADER = skinShader('hush-house', { pars: SK_PARS, defines: (() => { const u = new THREE.Color(HUSH.wall.color); return `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${HUSH.emit.lines.toFixed(3)}\n`; })(), glsl: SK_GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skGlow', emitAt: 'light' });
 
 /** The surface material of a skin's pattern: makeMaterial's own, its albedo, first pen lines and glow the pattern's. */
 function skinMaterial(body, look, pat, U, key, obj = false) {

@@ -4,6 +4,7 @@ import { makeMaterial } from '../../materials.js';
 import { paint } from '../kit.js';
 import { glyphGeometry } from '../../story/sign-text.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Casting-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of the
@@ -172,6 +173,10 @@ const BODIES = {
           skInk = max(skInk, skInkL(abs(dl - ch), skPx) * 0.3 * near);
         }
         skInk = max(skInk, max(skInkL(dv, skPx) * 0.75, skInkL(dh, skPx) * 0.7) * near);
+        // the makers' finish (machined.js) on the slab's panel: from its left joint to its right, between two joints across
+        float s1 = ci + 1.0;
+        for (int j1 = 0; j1 < 3; j1++) { if (skJ(s1, NC)) break; s1 += 1.0; }
+        skInk = max(skInk, mkFinish(vec2(along - 0.5 * (s0 + s1) * CW, (hf - 0.5) * HH), vec2(0.5 * (s1 - s0) * CW, 0.5 * HH), s0 * 13.1 + hi * 7.7, skPx, false, albedo));
         // the circuits: a line round the wall's foot, over its room's floor
         // (the house's two floors, 0 and the upper floor SK_UP m up: no search of the rooms per pixel; a tall room's wall
         // gets a second line and tier of circuits from the upper floor's height, as the picks' tall walls)
@@ -254,6 +259,7 @@ const BODIES = {
       vec4 R = vec4(0.0, 0.0, 2.2, -1.0), Y = vec4(0.0);
       bool inRoom = uSkObj > 0.5 ? false : skRoomOf(skP, R, Y);
       bool low = inRoom && skP.y < Y.x + 0.6;
+      vec3 mkA = vec3(1.0);
       if (n.y > 0.65) {
         float t = 0.5;
         vec2 gq = skP.xz - uSkQ.xy, ge = abs(gq) - uSkQ.zw;
@@ -283,6 +289,8 @@ const BODIES = {
           float da = min(fract(aq), 1.0 - fract(aq)) / nseg * 6.2831853 * r;
           skInk = max(skInkL(skSeam(r, RS), skPx), skInkL(da, skPx) * step(1.0, ri)) * 0.6 * near;
           t = skH2(vec2(floor(aq), ri));
+          // the makers' finish (machined.js) on its plate of the ring (not the middle's disc)
+          if (ri > 0.5) skInk = max(skInk, mkFinish(vec2((fract(aq) - 0.5) * 6.2831853 * r / nseg, r - (ri + 0.5) * RS), vec2(3.14159265 * (ri + 0.5) * RS / nseg, 0.5 * RS), floor(aq) + ri * 31.0, skPx, true, mkA));
           if (low && R.z > 8.0) {
             float ro = R.z - 1.6, rm = 0.42 * R.z;
             skGlow = max(max(skLit(abs(r - ro), skPx, 0.03), skLit(abs(r - ro + 0.4), skPx, 0.018)), skLit(abs(r - rm), skPx, 0.026));
@@ -295,6 +303,7 @@ const BODIES = {
           vec2 g = (d + (inRoom ? vec2(0.0) : vec2(0.5 * S))) / S, gi = floor(g), gf = fract(g);
           skInk = max(skInkL(min(gf.x, 1.0 - gf.x) * S, skPx), skInkL(min(gf.y, 1.0 - gf.y) * S, skPx)) * 0.6 * near;
           t = skH2(gi + 0.13);
+          skInk = max(skInk, mkFinish((gf - 0.5) * S, vec2(0.5 * S), gi.x * 17.0 + gi.y * 5.0, skPx, true, mkA));
           if (low) {
             float e = max(abs(d.x) - R.z, abs(d.y) - R.w);
             skGlow = skLit(abs(e + 1.6), skPx, 0.036) * step(4.0, min(R.z, R.w));
@@ -303,6 +312,7 @@ const BODIES = {
         // (the grating's own ivory line round it, half a metre out, as sheet-2's)
         if (!grate && uSkQ.z > 0.0 && abs(skP.y - uSkP.y) < 0.2) skGlow = max(skGlow, skLit(abs(max(ge.x, ge.y) - 0.5), skPx, 0.03));
         if (!lite && !grate) albedo = mix(albedo, mix(uSkA, uSkB, t), 0.7 * near + 0.2);
+        if (!grate) albedo *= mkA;   // (the finish's tone and sockets, over the plate's own)
         if (!low && !grate) albedo *= 1.06;   // (a raised floor a shade lighter: the landings, the dais)
       } else if (n.y < -0.65) {
         // a floor's underside, the ceiling of the room under it: slate
@@ -346,7 +356,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('casting-house', { pars: SK_PARS, defines: (() => { const u = new THREE.Color(CASTING.wall.color); return `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${CASTING.emit.lines.toFixed(3)}\n#define SK_UP ${CASTING.up.toFixed(2)}\n`; })(), glsl: SK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skGlow', emitAt: 'light' });
+const SHADER = skinShader('casting-house', { pars: SK_PARS, defines: (() => { const u = new THREE.Color(CASTING.wall.color); return `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${CASTING.emit.lines.toFixed(3)}\n#define SK_UP ${CASTING.up.toFixed(2)}\n`; })(), glsl: SK_GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skGlow', emitAt: 'light' });
 
 /** The surface material of a skin's pattern: makeMaterial's own, its albedo, first pen lines and glow the pattern's. */
 function skinMaterial(body, look, pat, U, key, obj = false) {

@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Mooring-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' capstan
@@ -226,6 +227,8 @@ const BODIES = {
       }
       albedo = mix(albedo, uSkSeam, seam * 0.75 * near);
       skInk = seam * near * 0.5;
+      // the makers' finish (machined.js) on the slab
+      skInk = max(skInk, mkFinish((f - 0.5) * uSkCell, 0.5 * uSkCell, cell.x * 13.1 + cell.y * 7.7, fw, false, albedo));
       // (ceilings and undersides darker, as the picks' are)
       if (skN.y < -0.65) albedo *= 0.7;
       if (side) {
@@ -256,7 +259,7 @@ const BODIES = {
       int ri = top && uSkObj < 0.5 ? mhFloor(skP) : -1;
       bool round = ri >= 0 && uSkR[ri].w < 0.0;
       vec2 q = top ? skP.xz : vec2(abs(skN.x) > abs(skN.z) ? skP.z : skP.x, skP.y);
-      float seam = 0.0, cov = 0.0;
+      float seam = 0.0, cov = 0.0, mkI = 0.0;
       if (round) {
         // plates in rings round the room's middle: rings 2.6 m apart, each cut into plates about 2.6 m long, each ring
         // turned its own way
@@ -269,6 +272,8 @@ const BODIES = {
         float dr = min(fr, 1.0 - fr) * ring, da = min(fa, 1.0 - fa) * ${TAU.toFixed(5)} * max(r, 0.5) / np;
         seam = k < 0.5 ? mhLine(dr, fw, 0.02) : max(mhLine(dr, fw, 0.02), mhLine(da, fw, 0.02));
         if (!lite) albedo *= 0.95 + 0.1 * mhH(vec2(k, floor(aa)) + 5.0);
+        // the makers' finish (machined.js) on its plate of the ring (not the middle's disc)
+        if (k > 0.5) mkI = mkFinish(vec2((fa - 0.5) * ${TAU.toFixed(5)} * r / np, r - (k + 0.5) * ring), vec2(3.14159265 * (k + 0.5) * ring / np, 0.5 * ring), floor(aa) + k * 31.0, fw, true, albedo);
         // a border line round the room, 1.5 m in from its wall
         cov = mhLine(abs(r - (R.z - 1.5)), fw, 0.026);
         // the capstan's foot: a dark well ring round it, a teal line at its lip, short spokes out to lenses
@@ -295,6 +300,7 @@ const BODIES = {
           albedo *= 0.95 + 0.1 * mhH(cell + 5.0);
           albedo = mhChamfer(albedo, f, uSkCell, fw, 0.06, 0.5);
         }
+        if (top) mkI = mkFinish((f - 0.5) * uSkCell, 0.5 * uSkCell, cell.x * 17.0 + cell.y * 5.0, fw, true, albedo);
         if (top && uSkObj < 0.5) {
           // a few runs of line along the plates' seams, but on the lighter presets
           if (!lite) { vec2 A = mhRuns(q, uSkCell.y * 3.0, uSkCell.x * 3.0, uSkCell.y * 0.5, 1.3, 0.35, 0.6); cov = max(mhLine(A.x, fw, 0.022), mhLens(A.y, fw, 1.0)); }
@@ -316,7 +322,7 @@ const BODIES = {
         }
       }
       albedo = mix(albedo, uSkSeam, seam * 0.7 * near);
-      skInk = seam * near * 0.45;
+      skInk = max(seam * near * 0.45, mkI);
       cov *= mhNear(fw, 0.25);
       float pulse = mhPulse(q);
       albedo = mix(albedo, uSkA * (0.85 + 0.15 * pulse), cov);
@@ -369,7 +375,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('mooring-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+const SHADER = skinShader('mooring-house', { pars: PARS, glsl: GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** One of the skin's surface materials: makeMaterial's, its albedo and first pen lines the body's, its glow skEmit. */
 function skinMaterial(body, look, S, U, key, obj = false) {

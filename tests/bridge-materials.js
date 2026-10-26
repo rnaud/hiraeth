@@ -26,6 +26,7 @@ export const REQUIRED_MATERIAL_KEYS = {
     "define:S_STRATA",
     "define:S_CRACKS",
     "define:S_PLATES",
+    "define:S_PAVING",
     "define:S_WEATHER",
     "define:S_EYE",
     "define:S_TILES",

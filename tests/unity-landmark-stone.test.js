@@ -55,7 +55,7 @@ test('the stone in Unity: the web\'s own arithmetic, term by term', () => {
 test('the stone: a uniform branch, no discard, kept off the plain variant (no new variant)', () => {
   assert.match(SURFACE, /UNITY_BRANCH if \(WALLK && _Stone\.w > 0\.5\)/);
   assert.doesNotMatch(branch, /discard|clip\(/);
-  assert.match(RENDERER, /&& V\(m, "_Stone"\)\.w <= 0\.5f;/, 'never HIRAETH_PLAIN, which has no wall marks');
+  assert.match(RENDERER, /&& V\(m, "_Stone"\)\.w <= 0\.5f\s/, 'never HIRAETH_PLAIN, which has no wall marks');
   assert.match(SURFACE, /_Stone \("A temple landmark's cut stone/);
   assert.match(SURFACE, /float4 _Stone;/);
 });

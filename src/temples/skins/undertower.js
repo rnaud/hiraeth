@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { Dish, EchoEar } from '../pieces.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Undertower's futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' first sign's
@@ -146,6 +147,9 @@ const BODIES = {
       float tone = 0.94 + 0.1 * utH(cell + 11.0) - 0.06 * step(0.85, utH(cell + 2.0));
       albedo = uColor * mix(tone, 1.0, far);
       utInkV = utInk(min(em.x, em.y)) * 0.55 * (1.0 - far);
+      // the makers' finish (machined.js) on the panel (a panel with no joint across: its sides only)
+      bool tall = em.y > 1e2;
+      utInkV = max(utInkV, mkFinish(vec2((f.x - 0.5) * P, tall ? 0.0 : (f.y - 0.5) * Hc), vec2(0.5 * P, tall ? 50.0 : 0.5 * Hc), cell.x * 13.1 + cell.y * 7.7, fw, false, albedo));
       if (uWearLite < 0.5) {
         // the chamfers: a lit lip along each slab's top and left edge, a shaded one along its bottom and right
         float b = 0.08;
@@ -185,6 +189,8 @@ const BODIES = {
       float far = smoothstep(0.08, 0.2, max(fq.x, fq.y));
       albedo = uColor * mix(0.94 + 0.09 * utH(cell + 5.0), 1.0, far);
       utInkV = utInk(min(em.x, em.y)) * 0.45 * (1.0 - far);
+      // the makers' finish (machined.js) on the plate (a floor's top only)
+      if (top) utInkV = max(utInkV, mkFinish((f - 0.5) * uUtCell, 0.5 * uUtCell, cell.x * 17.0 + cell.y * 5.0, fw, true, albedo));
       if (uWearLite < 0.5) {
         float b = 0.06;
         vec2 m = f * uUtCell, M2 = (1.0 - f) * uUtCell;
@@ -226,7 +232,7 @@ const BODIES = {
 
 const EMIT_LINE = 'float emit = 0.0;   // lit windows at night (facade)';
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('undertower', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'utInkV', emit: 'utGlow', emitAt: 'line' });
+const SHADER = skinShader('undertower', { pars: PARS, glsl: GLSL + MK_GLSL, bodies: BODIES, ink: 'utInkV', emit: 'utGlow', emitAt: 'line' });
 
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and light the body's. */
 function skinMaterial(body, look, S, U, key) {

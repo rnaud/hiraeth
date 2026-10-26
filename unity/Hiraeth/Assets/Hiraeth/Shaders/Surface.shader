@@ -67,6 +67,7 @@ Shader "Hiraeth/Surface"
     _ThinPx ("Thin bars kept this many pixels wide (materials.js S_THIN; their axis points in the form's slot)", Float) = 0
     _ShellCenter ("A temple landmark's shell: its centre (three, world); w 1 on (landmark-materials.js nacre)", Vector) = (0, 0, 0, 0)
     _Stone ("A temple landmark's cut stone: course, block width (m), wear; w 1 on (landmark-materials.js stone)", Vector) = (0, 0, 0, 0)
+    _Paving ("Paving: course (m), wear, tone, turn; x 0 none (src/paving-shader.js)", Vector) = (0, 0, 0, 0)
     _VGlyph ("A merged mesh's glyph cells per vertex, the grid's (materials.js S_VGLYPH: the banners)", Float) = 0
     _LineFar ("A lighter line from afar: its step, from, to (m); w 1 on (materials.js LINE_FAR)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
@@ -219,6 +220,7 @@ Shader "Hiraeth/Surface"
     float4 _PhFit, _PhFit2, _PhSpeech, _PhBlink, _SurfD, _CutMe, _LineWhite;
     float4 _ShellCenter;   // a temple landmark's shell (src/temples/landmark-materials.js nacre, uShellCenter): its centre, w 1 on
     float4 _Stone;         // a temple landmark's cut stone (landmark-materials.js stone(), no uniform on the web): course, width, wear, w 1 on
+    float4 _Paving;        // paving (src/paving-shader.js uPaving, issue #669): course (m), wear, tone, turn; x 0: none
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -249,6 +251,7 @@ Shader "Hiraeth/Surface"
     TEXTURE2D(_EyePaint); SAMPLER(sampler_EyePaint);   // the portrait head's painted eyes and brows (PortraitFace.hlsl, issue #473)
     #include "Figure.hlsl"
     #include "Marks.hlsl"
+    #include "Paving.hlsl"
     #include "TripoFace.hlsl"
     #include "Fall.hlsl"
     #include "PortraitFace.hlsl"
@@ -1454,6 +1457,21 @@ Shader "Hiraeth/Surface"
           float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
           patInk = max(patInk, di * dUp * 1.35);
         }
+        // paving (src/paving-shader.js, generated: Paving.hlsl): flagstones on a paved material's upward faces, a uniform branch
+        // (its metres per px taken in it), not on the plain variant (BridgeRenderer.Lean)
+        float paveUp = 0.0;
+        UNITY_BRANCH if (WALLK && _Paving.x > 0.0)
+        {
+          float2 paveFw = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
+          paveUp = smoothstep(0.7, 0.85, n.y);
+          if (paveUp > 0.0)
+          {
+            float3 pa = albedo;
+            float pInk = paving(i.worldPos.xz, paveFw, pa);
+            albedo = lerp(albedo, pa, paveUp);
+            patInk = max(patInk, pInk * paveUp);
+          }
+        }
         if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, SafeNormalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         // the fluid sword's living blade, the guard's shield: their currents (blade-shader.js bladeFluid, fluid kind 6)
         #if defined(FOEK)
@@ -1658,7 +1676,7 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if (_Grid > 0.0)
         {
           float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(SafeNormalize(on)), 6.0); gw /= max(gw.x + gw.y + gw.z, 1e-6);
-          if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
+          if (_Grid > 0.0) detail = (_Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw)) * (1.0 - paveUp);   // (a paved top: its flagstones instead)
         }
         detail = max(detail, carve.z * 0.62);   // (the carved inscriptions' outline: above)
         float2 gp = i.worldPos.xz;

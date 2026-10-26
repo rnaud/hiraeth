@@ -196,7 +196,9 @@ namespace Hiraeth
                 // (issue #264: a lighter line from afar, LINE_FAR: its step, the distances it turns over between, w on)
                 ("lineFar", "_LineFar", Vector4.zero), ("shellCenter", "_ShellCenter", Vector4.zero), ("farDepth", "_FarDepth", Vector4.zero),
                 // (issue #538: a temple landmark's cut stone, landmark-materials.js stone(): course, width, wear, w on)
-                ("stone", "_Stone", Vector4.zero) })
+                ("stone", "_Stone", Vector4.zero),
+                // (issue #669: paving, src/paving-shader.js: course, wear, tone, turn)
+                ("paving", "_Paving", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

@@ -6,6 +6,7 @@ import { paint, T } from '../kit.js';
 import { BellEar } from '../pieces.js';
 import { MOUND } from '../../boxes/mound.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Founders' Belfry in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): its rooms as an
@@ -146,6 +147,8 @@ const BODIES = {
       albedo = mix(albedo, uSkC, seam * 0.8 * near);
       albedo = mix(albedo, uSkB, edged * near);
       skInk = seam * near * 0.45;
+      // the makers' finish (machined.js) on the slab
+      skInk = max(skInk, mkFinish((f - 0.5) * vec2(${BELFRY_SKIN.panel[0].toFixed(2)}, ${BELFRY_SKIN.panel[1].toFixed(2)}), 0.5 * vec2(${BELFRY_SKIN.panel[0].toFixed(2)}, ${BELFRY_SKIN.panel[1].toFixed(2)}), cell.x * 13.1 + cell.y * 7.7, max(dfw.x, dfw.y), false, albedo));
       if (side && W.z > 0.5) {
         // the ledge band part way up: a darker course, pale on its top edge, a bronze rail under it
         float ly = skP.y - W.y - ${BELFRY_SKIN.ledge.toFixed(2)}, lfw = fwidth(ly);
@@ -200,7 +203,8 @@ const BODIES = {
         int ri = fbFloor(skP);
         vec2 d = skP.xz;
         float seam = 0.0, bronze = 0.0, cobalt = 0.0, disc = 0.0, nearK = 1.0;
-        vec2 cell = vec2(0.0);
+        vec2 cell = vec2(0.0), mkL = vec2(0.0), mkS = vec2(0.0);
+        float mkPx = 1.0;
         if (ri >= 0) d = skP.xz - uSkR[ri].xy;
         if (ri >= 0 && uSkR[ri].w < 0.0) {
           // a round room: rings of plates round its middle, radial seams, bronze and cobalt rings in the stone
@@ -212,6 +216,7 @@ const BODIES = {
           nearK = fbNear(fr, 0.5);
           seam = max(fbLine(min(fract(qr), 1.0 - fract(qr)) * ${BELFRY_SKIN.plate[1].toFixed(2)}, fr, 0.02), ring > 0.5 ? fbLine(min(fract(qa), 1.0 - fract(qa)) * rr * 6.2831853 / nseg, fa, 0.02) : 0.0);
           cell = vec2(ring, floor(qa));
+          if (ring > 0.5) { mkL = vec2((fract(qa) - 0.5) * rr * 6.2831853 / nseg, (fract(qr) - 0.5) * ${BELFRY_SKIN.plate[1].toFixed(2)}); mkS = vec2(3.14159265 * (ring + 0.5) * ${BELFRY_SKIN.plate[1].toFixed(2)} / nseg, 0.5 * ${BELFRY_SKIN.plate[1].toFixed(2)}); mkPx = max(fr, fa); }
           float r1 = 3.3, r2 = R * 0.62;
           disc = 1.0 - smoothstep(r1 - 0.05, r1 - 0.05 + fr, rr);
           bronze = max(fbLine(abs(rr - r1), fr, 0.1), fbLine(abs(rr - r2), fr, 0.12));
@@ -224,6 +229,7 @@ const BODIES = {
           float fq = max(fq2.x, fq2.y);
           nearK = fbNear(fq, 0.5);
           cell = floor(q);
+          mkL = (f - 0.5) * ${BELFRY_SKIN.plate[0].toFixed(2)}; mkS = vec2(0.5 * ${BELFRY_SKIN.plate[0].toFixed(2)}); mkPx = fq;
           seam = max(fbLine(min(f.x, 1.0 - f.x) * ${BELFRY_SKIN.plate[0].toFixed(2)}, fq2.x, 0.02), fbLine(min(f.y, 1.0 - f.y) * ${BELFRY_SKIN.plate[0].toFixed(2)}, fq2.y, 0.02));
           if (ri >= 0) {
             vec4 R = uSkR[ri];
@@ -249,6 +255,8 @@ const BODIES = {
         albedo = mix(albedo, uColor * 0.8, disc);
         albedo = mix(albedo, uSkB, bronze);
         skInk = max(seam * 0.5 * nearK, bronze * 0.35 * nearK);
+        // the makers' finish (machined.js) on the plate (not on the inlaid metal or the middle's disc)
+        if (mkS.x > 0.0) skInk = max(skInk, mkFinish(mkL, mkS, cell.x * 17.0 + cell.y * 5.0, mkPx, true, albedo) * (1.0 - bronze) * (1.0 - disc));
         float breathe = 0.75 + 0.25 * sin(uTime * 0.7 + length(d) * 0.25);
         albedo = mix(albedo, uSkA, cobalt);
         skEmit = cobalt * breathe;
@@ -299,7 +307,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('founders-belfry', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+const SHADER = skinShader('founders-belfry', { pars: PARS, glsl: GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** One of the skin's surface materials: makeMaterial's, its albedo and first pen lines the body's, its glow skEmit. */
 function skinMaterial(body, look, U, key) {
