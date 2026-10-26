@@ -56,7 +56,7 @@ test('the loader binds every bone the GLBs use to his skeleton, by name', async 
   }))];
   for (const [id, gltf] of files) {
     const parts = bindParts(gltf, bones, id);
-    assert.ok(Object.keys(parts).length >= 4, `${id}: its parts`);
+    assert.ok(Object.keys(parts).length >= 3, `${id}: its parts`);   // (#684: the shell-cut outfits are three: jacket, trousers, boots)
     for (const [name, part] of Object.entries(parts)) {
       // every bone the part's skin names is on the game's skeleton, and every weighted vertex now points at it
       for (const b of part.bones) assert.ok(bones.some((x) => x.name === b), `${id} ${name}: bone ${b} on his skeleton`);

@@ -290,20 +290,18 @@ def main():
     coll.objects.link(cut_skin)
     print('skin cut:', cut_skin_faces(cut_skin, getattr(S, 'SKIN_CUT', [])), 'faces')
 
-    # (#684) an outfit's shape target: a Tripo figure of it placed on him and unposed, its garments drawn to it
+    # (#684) an outfit's shape target: a Tripo figure of it placed on him and unposed, its garments cut out of it
     SHAPE = getattr(S, 'SHAPE', None)
     tgt, shape_report = None, None
     if SHAPE:
         tgt, shape_report = ST.load(os.path.join(REPO, SHAPE['target']), J, arm, [body, skin], BONES)
         print('shape target', json.dumps(shape_report))
-
-    def drawn_to(name, ob):
-        spec = (SHAPE or {}).get('pieces', {}).get(name)
-        if not spec:
-            return None
-        spec = dict(spec)
-        accept = spec.pop('accept')
-        return ST.conform(ob, tgt, SHAPE['colours'], accept, **spec)
+        # (#684, second pass: the builders cut their garments out of the shell itself, by its labelled triangles)
+        labels = ST.face_labels(tgt, SHAPE['colours'])
+        if SHAPE.get('reach_wrists'):
+            shape_report['sleeves'] = ST.reach_wrists(tgt, labels, J)
+            print('sleeves stretched', shape_report['sleeves'])
+        ST.ACTIVE = {'tgt': tgt, 'labels': labels, 'J': J}
 
     made = {}
     report = {}
@@ -313,18 +311,15 @@ def main():
         mats = [flat(f'{S.ID}.{name}.{z}', S.PAL[z]) for z in S.ZONES[name]]
         ob = mesh_object(name, bm, coll, mats)
         bm.free()
+        retopo = (ST.retopo(ob, spec['retopo'], getattr(S.BUILDERS[name], 'hems', lambda J: [])(J))
+                  if spec.get('retopo') else None)   # (#684: a piece cut from the shell)
         subdivide(ob, spec['levels'])
         left = fit_outside(ob, [body, cut_skin] + [made[n] for n in spec['outside']], spec['gap'])
-        drawn = drawn_to(name, ob)
-        if drawn is not None:      # drawn to the shape target, eased, then clear of what is under it again
-            F.relax(ob, 0.4, 3)
-            left = fit_outside(ob, [body, cut_skin] + [made[n] for n in spec['outside']], spec['gap'])
-            print('drawn', name, json.dumps(drawn))
         ob['kind'] = 'garment'
         ob['layer'] = spec['layer']
         ob['outfit'] = S.ID
         made[name] = ob
-        report[name] = {'fitLeft': left, **({'shape': drawn} if drawn is not None else {})}
+        report[name] = {'fitLeft': left, **({'fromShell': {'retopo': retopo, 'triangles': tris(ob)}} if retopo else {})}
         # its volume (tailor.py: quilting, raised pockets and straps, wound turns, pile), before what goes over it
         ops = getattr(S, 'RELIEF', {}).get(name)
         if ops:
@@ -365,10 +360,6 @@ def main():
             c.objects.unlink(boots)
         coll.objects.link(boots)
         boots['outfit'] = S.ID
-        drawn = drawn_to(S.BOOTS, boots)
-        if drawn is not None:
-            report[S.BOOTS] = {'shape': drawn}
-            print('drawn', S.BOOTS, json.dumps(drawn))
 
     # 2. weights: from the body and his skin piece (a sleeve over his forearm bends with it)
     PROPS = getattr(S, 'PROPS', {})
@@ -480,8 +471,7 @@ def main():
         m = pid == oi + 1
         if not m.any():
             continue
-        # (an outfit's PAINT_BOOTS: its kept boots painted by its paint() too, flat, instead of the base atlas's)
-        if boots and o.name == S.BOOTS and not getattr(S, 'PAINT_BOOTS', False):
+        if boots and o.name == S.BOOTS:
             src = bpx[m]
             Y = src @ np.array([0.299, 0.587, 0.114])
             lit = Y > 0.33
@@ -489,6 +479,28 @@ def main():
             target = np.array(S.PAL['boot']) / 255
             px[m, :3] = np.clip(src * (target / np.maximum(med, 1e-3)), 0, 1)
             base_col[o.name] = target
+        elif SHAPE and o.name in SHAPE.get('paint', {}):
+            # (#684, second pass: a piece cut from the shell takes the shell's colour map, in the sheet's flat colours:
+            # each texel the palette colour of the class the map has there among the piece's own, a 3 x 3 vote twice
+            # over the atlas against specks, then the outfit's flat details over it)
+            spec = SHAPE['paint'][o.name]
+            names = ST.transfer(tgt, SHAPE['colours'], P[m], N[m], spec['classes'], spec['default'], spec.get('limits'))
+            keys = sorted(set(spec['classes'].values()) | {spec['default']})
+            lab = np.full((SIZE, SIZE), -1)
+            lab[m] = [keys.index(x) for x in names]
+            for _ in range(2):
+                votes = np.zeros((len(keys), SIZE, SIZE), dtype=np.int16)
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        sh_ = np.roll(np.roll(lab, dy, 0), dx, 1)
+                        for k in range(len(keys)):
+                            votes[k] += (sh_ == k)
+                lab = np.where(m, votes.argmax(0), -1)
+            col = (np.array([S.PAL[k] for k in keys], dtype=float) / 255)[lab[m]]
+            if hasattr(S, 'paint_after'):
+                col = S.paint_after(o.name, col, zone[m], P[m], N[m], J)
+            px[m, :3] = col
+            base_col[o.name] = np.array(S.PAL[spec['default']]) / 255
         else:
             col = S.paint(o.name, zone[m], P[m], N[m], J)
             if o in shaded:

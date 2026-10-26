@@ -1,23 +1,26 @@
-"""A shape target for an outfit (issue #684): a Tripo figure of the outfit (one fused shell: body, clothes,
-hair) placed on the traveller and unposed to his rest pose, so the Blender garments can be drawn to its shape.
-It is only a shape (and, through its texture, a map of which garment is where): its colours, face and hair are
-never used in the outfit.
+"""A shape target for an outfit (issue #684): a Tripo figure of the outfit (one fused shell: body, clothes, hair)
+placed on the traveller and unposed to his rest pose; the outfit's garments are cut out of it. Its texture is used
+only as a map of which garment is where; its colours, face, hair and hands are never used in the outfit.
 
-    tgt = load(path, J, arm, body)       # imported, turned to face -Y, scaled and placed, arms unposed
-    hit = tgt.ray(p, n, reach)           # nearest surface along +-n: (point, normal, colour) or None
+    tgt, report = load(path, J, arm, [body, skin], bones)   # imported, turned, scaled, unposed, straightened
+    labels = face_labels(tgt, colours)                       # each triangle's class from the cleaned colour map
+    reach_wrists(tgt, labels, J)                             # its sleeves carried out to his wrists
+    BUILDERS = {piece: shell(select, hems, under)}           # a piece cut out (region), re-meshed later (retopo)
+    transfer(tgt, colours, P, N, classes, default)           # the map on a piece's texels, for flat paint
 
-Placement (`place`): the Tripo export is 1 unit tall (soles to the top of the hair), facing +X, Y up in glTF.
-It is turned to face -Y, scaled so its neck (the narrowest section between the shoulders and the head) sits at
-the traveller's, its soles on the ground, and centred over his pelvis and ankles in plan.
+Placement (`place`): the Tripo export is 1 unit tall (soles to the top of the hair), facing +X, Y up in glTF. It is
+turned to face -Y, scaled so its neck (the narrowest section between the shoulders and the head) sits at the
+traveller's, its soles on the ground, and centred over his trunk in plan.
 
-Unposing (`unpose`): the Tripo figure stands in an A-pose (arms ~76-78 degrees down from his T-pose rest). The
-rig is posed to the figure's arms (each upper arm turned down about the armature's Y axis to the angle of the
-figure's arm, measured from its shoulder to its hand), every Tripo vertex takes the skinning of the nearest posed
-body (an arm's or the rest's, smoothed over the shell within its group), and is carried back to the rest pose by
-the inverse of its blended bone matrix: a linear-blend unskin. Away from the armpits this is exact; there the
-shell's fused arm-to-torso faces stretch, and they are left out (stretched past 2.5x).
+Unposing (`unpose`): the figure stands in an A-pose (arms ~76-78 degrees down from his T-pose rest). The rig is
+posed to the figure's arms (each upper arm turned down about the armature's Y axis to the angle of the figure's arm,
+measured from its shoulder to its hand); every vertex takes the skinning of the nearest posed body (an arm's or the
+rest's, smoothed over the shell within its group) and is carried back to the rest pose by the inverse of its blended
+bone matrix: a linear-blend unskin. Away from the armpits this is exact; there the shell's fused arm-to-torso faces
+stretch, and they are left out (stretched past 2.5x).
 
-Straightening (`straighten`): the figure's trunk and legs moved in plan onto his, section by section."""
+Straightening (`straighten`): the figure's trunk leaned onto his as a straight line, each leg's sections onto his.
+"""
 import math
 import bmesh
 import bpy
@@ -26,6 +29,7 @@ from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 from mathutils.kdtree import KDTree
 
+DEBUG = False
 NECK_Z = 1.528        # the traveller's narrowest neck section (head-v3's neck), metres
 
 
@@ -236,9 +240,10 @@ def unpose(ob, arm, sources, bones, k=6):
 
 
 def straighten(ob, body, crotch=0.86, sigma=0.03):
-    """The figure's stance to his: above the crotch each 1 cm section's front-to-back centre (a strip down the
-    middle) moved onto his body's; below it each leg's section centre onto his leg's, in plan; the moves smoothed
-    over the height. Returns the largest move (m)."""
+    """The figure's stance to his: above the crotch the trunk leaned onto his body (a straight line fitted to its 1 cm
+    sections' front-to-back centres, a strip down the middle, against his: section by section, its pack and lapels
+    sheared the chest forward); below it each leg's section centre onto his leg's, in plan, smoothed over 8 cm.
+    Returns the largest move (m)."""
     P = _coords(ob)
     B = np.array([body.matrix_world @ v.co for v in body.data.vertices])
     zs = np.arange(0.0, 1.80, 0.01)
@@ -250,19 +255,25 @@ def straighten(ob, body, crotch=0.86, sigma=0.03):
         return np.array([0.5 * (np.percentile(s[:, 0], 3) + np.percentile(s[:, 0], 97)),
                          0.5 * (np.percentile(s[:, 1], 3) + np.percentile(s[:, 1], 97))])
 
-    def series(sel_t, sel_b, use_x):
+    def series(sel_t, sel_b, use_x, sig, line=None):
         d = []
         for z in zs:
             a, b = centre(P, z, sel_t), centre(B, z, sel_b)
             d.append(None if a is None or b is None else (b - a) * np.array([use_x, 1.0]))
         good = [i for i, x in enumerate(d) if x is not None]
         arr = np.array([d[i] if d[i] is not None else d[min(good, key=lambda g: abs(g - i))] for i in range(len(zs))])
-        w = np.exp(-0.5 * ((zs[:, None] - zs[None, :]) / sigma) ** 2)
+        if line:     # (a straight lean fitted over the range: the trunk's own features, a chest plate, a pack, a lapel,
+            #          never shear it section by section)
+            sel = (zs >= line[0]) & (zs <= line[1])
+            A_ = np.stack([np.ones(sel.sum()), zs[sel]], 1)
+            coef = np.linalg.lstsq(A_, arr[sel], rcond=None)[0]
+            return np.stack([np.ones(len(zs)), zs], 1) @ coef
+        w = np.exp(-0.5 * ((zs[:, None] - zs[None, :]) / sig) ** 2)
         return (w @ arr) / w.sum(1, keepdims=True)
 
-    trunk = series(lambda Q: np.abs(Q[:, 0]) < 0.06, lambda Q: np.abs(Q[:, 0]) < 0.06, 0.0)
+    trunk = series(lambda Q: np.abs(Q[:, 0]) < 0.06, lambda Q: np.abs(Q[:, 0]) < 0.06, 0.0, sigma, line=(0.95, 1.45))
     legs = {s: series(lambda Q, s=s: (s * Q[:, 0] > 0.02) & (s * Q[:, 0] < 0.30),
-                      lambda Q, s=s: (s * Q[:, 0] > 0.02) & (s * Q[:, 0] < 0.30), 1.0) for s in (1, -1)}
+                      lambda Q, s=s: (s * Q[:, 0] > 0.02) & (s * Q[:, 0] < 0.30), 1.0, 0.08) for s in (1, -1)}
     move = np.zeros_like(P)
     zi = np.clip(np.rint(P[:, 2] / 0.01).astype(int), 0, len(zs) - 1)
     t = np.clip((P[:, 2] - (crotch - 0.04)) / 0.08, 0, 1)[:, None]       # legs below, trunk above, blended
@@ -317,6 +328,8 @@ class Target:
         a (2 radius + 1) square, `rounds` times, so the texture's ink lines and specks of baked light go and its
         flat zones stay. Cached per set of classes."""
         key = (tuple(sorted(protos)), tuple(sorted(among)) if among else None)
+        if radius != 2 or rounds != 2:
+            key = key + (radius, rounds)
         if key in self._maps:
             return self._maps[key]
         names = [n for n in protos if among is None or n in among]
@@ -404,66 +417,370 @@ def load(path, J, arm, sources, bones):
     return Target(ob), report
 
 
-# ---- the garments drawn to the shell -------------------------------------------------------------------------
+# ---- the shell's own geometry as garments (#684, second pass) ---------------------------------------------------
 
-def conform(ob, tgt, protos, accept, out=0.04, inward=0.025, where=None, sigma=0.02, limit=None, k0=0.6):
-    """Draw a garment to the shell: each vert's ray along its normal (out up to `out`, in up to `inward`) to the
-    shell counts where it lands on one of the `accept` colours (the garment's own: the shell's harness, skin or
-    hair never shape a jacket), where the shell faces the same way (cos > 0.3) and `where(p)` allows. The signed
-    distances are low-passed in space (a Gaussian of `sigma` over the hits facing the same way: the shell's sculpted
-    crinkles go, its cut and volume stay), fading out where there are few hits (`k0`), and applied along the
-    normals. Returns a report."""
-    me = ob.data
-    n = len(me.vertices)
-    sd = np.zeros(n)
-    hit = np.zeros(n, bool)
-    names = set(protos)
-    # the direction each vert moves: its normal averaged over `sigma` (a garment's sewn gathers tilt the normals
-    # every centimetre; moved along those, a few centimetres bunch the verts into stripes)
-    N0 = np.array([v.normal[:] for v in me.vertices])
-    allkd = KDTree(n)
-    for v in me.vertices:
-        allkd.insert(v.co, v.index)
-    allkd.balance()
-    Ns = np.zeros_like(N0)
-    for v in me.vertices:
-        idx = [(j, d) for co, j, d in allkd.find_range(v.co, 1.5 * sigma) if N0[j] @ N0[v.index] > 0.3]
-        acc = sum((N0[j] * math.exp(-0.5 * (d / (0.75 * sigma)) ** 2) for j, d in idx), np.zeros(3))
-        Ns[v.index] = acc / max(np.linalg.norm(acc), 1e-9)
-    for v in me.vertices:
-        if where is not None and not where(v.co):
+def face_labels(tgt, protos, among=None, rounds=3):
+    """Each triangle of the shell (tgt.bm) labelled with the class at its centre and halfway to each corner (the
+    commonest of four), then voted over the triangles sharing its edges `rounds` times (a lone triangle of another
+    class goes). Returns a list of class names, one a triangle."""
+    names, lab = tgt.class_map(protos, among)
+    h, w = lab.shape
+    idx = {n: i for i, n in enumerate(names)}
+    out = np.zeros(len(tgt.bm.faces), dtype=int)
+    for f in tgt.bm.faces:
+        uvs = [l[tgt.uv].uv for l in f.loops]
+        c = sum(uvs, Vector((0, 0))) / 3
+        votes = np.zeros(len(names), dtype=int)
+        for q in [c] + [(c + u) / 2 for u in uvs]:
+            votes[lab[int(min(h - 1, max(0, q[1] * h))), int(min(w - 1, max(0, q[0] * w)))]] += 1
+        out[f.index] = votes.argmax()
+    nbr = [[g.index for e in f.edges for g in e.link_faces if g is not f] for f in tgt.bm.faces]
+    for _ in range(rounds):
+        nxt = out.copy()
+        for i, nb in enumerate(nbr):
+            if not nb:
+                continue
+            v = np.bincount(out[nb], minlength=len(names))
+            v[out[i]] += 1
+            if v.max() >= 2 and v.argmax() != out[i] and v[out[i]] <= 1:
+                nxt[i] = v.argmax()
+        out = nxt
+    return [names[i] for i in out]
+
+
+def _islands(faces):
+    seen, out = set(), []
+    for f in faces:
+        if f in seen:
             continue
-        nv = Vector(Ns[v.index])
-        r = tgt.ray(v.co, nv, out, inward)
-        if r is None or r[2].dot(nv) < 0.3:
+        isl, stack = [], [f]
+        seen.add(f)
+        while stack:
+            g = stack.pop()
+            isl.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h not in seen:
+                        seen.add(h)
+                        stack.append(h)
+        out.append(isl)
+    return out
+
+
+def boundary_loops(bm):
+    """The open edges of a bmesh as loops of verts."""
+    edges = {e for e in bm.edges if e.is_boundary}
+    loops = []
+    while edges:
+        e = edges.pop()
+        loop = [e.verts[0], e.verts[1]]
+        while True:
+            v = loop[-1]
+            nxt = [x for x in v.link_edges if x in edges]
+            if not nxt:
+                break
+            x = nxt[0]
+            edges.discard(x)
+            w = x.other_vert(v)
+            if w is loop[0]:
+                break
+            loop.append(w)
+        loops.append(loop)
+    return loops
+
+
+def region(tgt, labels, select, zones=None, hems=(), hem_reach=0.10, min_faces=40, smooth=2):
+    """A garment cut out of the shell: the triangles `select(centre, label)` keeps, each its material slot from
+    `zones` ({label: slot}, 0 otherwise); islands under `min_faces` go; every open loop that is not one of the
+    garment's hems (a loop whose centre lies within `hem_reach` of a point in `hems`: the neck, the wrists, the
+    waist...) is a hole the shell's cut or its stretched armpits left, and is filled; then `smooth` light Taubin
+    passes against the generator's noise. Returns a bmesh."""
+    src = tgt.bm
+    keep = [f for f, l in zip(src.faces, labels) if select(f.calc_center_median(), l)]
+    bm = bmesh.new()
+    vmap = {}
+    for f in keep:
+        vs = []
+        for v in f.verts:
+            if v not in vmap:
+                vmap[v] = bm.verts.new(v.co)
+            vs.append(vmap[v])
+        try:
+            g = bm.faces.new(vs)
+        except ValueError:
             continue
-        if tgt.klass(r[3], protos) in accept:
-            sd[v.index] = r[0]
-            hit[v.index] = True
-    ids = np.where(hit)[0]
-    field = np.zeros(n)
-    if len(ids):
-        kd = KDTree(len(ids))
-        for j, i in enumerate(ids):
-            kd.insert(me.vertices[int(i)].co, j)
-        kd.balance()
-        N = Ns
-        for v in me.vertices:
-            acc = tot = 0.0
-            for co, j, d in kd.find_range(v.co, 3 * sigma):
-                i = ids[j]
-                c = float(N[i] @ N[v.index])
-                if c <= 0.2:
-                    continue
-                w = math.exp(-0.5 * (d / sigma) ** 2) * c
-                acc += w * sd[i]
-                tot += w
-            if tot > 0:
-                field[v.index] = acc / tot * (tot / (tot + k0))
-    if limit is not None:
-        field = np.clip(field, -limit, limit)
-    for v in me.vertices:
-        v.co += Vector(Ns[v.index]) * float(field[v.index])
-    me.update()
-    return {'hit': round(float(hit.mean()), 3), 'meanMm': round(float(np.abs(field[hit]).mean() * 1000), 1) if hit.any() else 0,
-            'outMm': round(float(field.max() * 1000), 1), 'inMm': round(float(-field.min() * 1000), 1)}
+        g.material_index = (zones or {}).get(labels[f.index], 0)
+    bm.faces.ensure_lookup_table()
+    for isl in _islands(list(bm.faces)):
+        if len(isl) < min_faces:
+            bmesh.ops.delete(bm, geom=isl, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    cut_planes(bm, hems)
+    # (slivers: the unposing stretches a few long thin triangles from the arms to the trunk)
+    long_ = [f for f in bm.faces if max(e.calc_length() for e in f.edges) > 0.05]
+    bmesh.ops.delete(bm, geom=long_, context='FACES')
+    bm.faces.ensure_lookup_table()
+    for isl in _islands(list(bm.faces)):
+        if len(isl) < min_faces:
+            bmesh.ops.delete(bm, geom=isl, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    filled = fill_holes(bm, hems, hem_reach)
+    for _ in range(smooth):
+        for k in (0.5, -0.53):
+            new = {}
+            for v in bm.verts:
+                nb = [e.other_vert(v) for e in v.link_edges if (e.is_boundary or not v.is_boundary)]
+                if nb:
+                    new[v] = v.co + (sum((w.co for w in nb), Vector()) / len(nb) - v.co) * k
+            for v, p in new.items():
+                v.co = p
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.normal_update()
+    return bm, filled
+
+
+def extend_under(bm, near, up=0.06, inset=0.012, rings=3):
+    """A garment carried on under the one over it: the open loop whose centre is nearest `near` extruded `up` (+z) in
+    `rings` rings, each drawn `inset` toward the body's axis by its top (the trousers' top under a cropped jacket, so a
+    bend never opens a gap onto the body under them)."""
+    loops = boundary_loops(bm)
+    loop = min(loops, key=lambda L: (sum((v.co for v in L), Vector()) / len(L) - Vector(near)).length)
+    c = sum((v.co for v in loop), Vector()) / len(loop)
+    prev = loop
+    for k in range(1, rings + 1):
+        t = k / rings
+        ring = []
+        for v in prev:
+            p = v.co.copy()
+            d = Vector((p.x - c.x, p.y - c.y, 0))
+            q = Vector((p.x, p.y, p.z + up / rings)) - d.normalized() * (inset / rings) if d.length > 1e-6 else p
+            ring.append(bm.verts.new(q))
+        for i in range(len(prev)):
+            j = (i + 1) % len(prev)
+            try:
+                bm.faces.new([prev[i], prev[j], ring[j], ring[i]])
+            except ValueError:
+                pass
+        prev = ring
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.normal_update()
+
+
+def retopo(ob, tris, hems=(), levels=1):
+    """Clean, even topology near `tris` triangles: made manifold and its holes filled (fill_holes, `hems` kept open),
+    then QuadriFlow (quads, the boundary kept), else one subdivision and a collapse to the budget; its holes filled
+    again after. Returns how."""
+    def clean(after=False):
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        if after:       # (QuadriFlow caps some of the open loops: the level hems are cut open again)
+            cut_planes(bm, hems, nudge=0.002)
+        fill_holes(bm, hems)
+        orient_out(bm)  # (one consistent winding, facing out: QuadriFlow wants it, the hems and the ink too)
+        bm.to_mesh(ob.data)
+        bm.free()
+    clean()
+    bpy.ops.object.select_all(action='DESELECT')
+    ob.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    try:
+        r = bpy.ops.object.quadriflow_remesh(target_faces=max(100, tris // 2), use_preserve_boundary=True,
+                                             use_mesh_symmetry=False, use_preserve_sharp=False, seed=1)
+    except RuntimeError:
+        r = {'CANCELLED'}
+    how = 'quadriflow'
+    if 'FINISHED' not in r:
+        how = 'subdivided and collapsed'
+        if levels:
+            m = ob.modifiers.new('Subdivision', 'SUBSURF')
+            m.levels = m.render_levels = levels
+            m.boundary_smooth = 'PRESERVE_CORNERS'
+            with bpy.context.temp_override(object=ob, active_object=ob):
+                bpy.ops.object.modifier_apply(modifier=m.name)
+        now = sum(len(p.vertices) - 2 for p in ob.data.polygons)
+        if now > tris:
+            m = ob.modifiers.new('Decimate', 'DECIMATE')
+            m.ratio = tris / now
+            with bpy.context.temp_override(object=ob, active_object=ob):
+                bpy.ops.object.modifier_apply(modifier=m.name)
+    clean(after=True)
+    return how
+
+
+def transfer(tgt, protos, P, N, classes, default, limits=None, radius=4, rounds=3, out=0.03, inward=0.03):
+    """The shell's colour map on a garment's texels (their rest positions and normals, as the atlas's bakes give
+    them): each classified among `classes` ({shell class: palette name}) and skin and hair (which give `default`),
+    on the map cleaned over a wider square than for the cutting (`radius` texels, `rounds` votes: the shell's baked
+    shadows in the folds go, its colour zones stay); `limits` ({shell class: where(P) -> bool}) keeps a class to
+    where it belongs (the dark knit to the forearms and the waistband, not the jacket's shaded folds). Returns one
+    palette name per texel."""
+    names = np.empty(len(P), dtype=object)
+    names[:] = default
+    among = set(classes) | {'skin', 'hair'}
+    cls_names, lab = tgt.class_map(protos, among, radius=radius, rounds=rounds)
+    h, w = lab.shape
+    for i in range(len(P)):
+        r = tgt.ray(P[i], N[i], out, inward)
+        if r is None:
+            continue
+        uv = r[3]
+        c = cls_names[lab[int(min(h - 1, max(0, uv[1] * h))), int(min(w - 1, max(0, uv[0] * w)))]]
+        if c in classes and (not limits or c not in limits or limits[c](P[i])):
+            names[i] = classes[c]
+    return names
+
+
+def orient_out(bm, body=None):
+    """Faces turned to face away from his body (each sampled face's normal against its way out from the nearest
+    point of the body), consistently over the piece."""
+    body = body or bpy.data.objects['Body']
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.normal_update()
+    score = 0.0
+    for f in list(bm.faces)[::7]:
+        c = f.calc_center_median()
+        ok, q, n, _ = body.closest_point_on_mesh(c)
+        if ok:
+            score += f.normal.dot(c - q)
+    if score < 0:
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)
+        bm.normal_update()
+    return bm
+
+
+def reach_wrists(tgt, labels, J, shoulder=0.2, body=('skin', 'hair')):
+    """The figure's sleeves carried out to his wrists: scaled by its neck, the figure's arms are shorter than his, and
+    its cuffs stopped on his forearms. Each side's arm (|x| past `shoulder`) is stretched along x so the end of its
+    sleeve (the furthest triangle that is not skin) meets his wrist. Returns the stretch on each side."""
+    out = {}
+    for side, s in (('l', 1), ('r', -1)):
+        # (the sleeve ends where the arm's 1 cm slices turn mostly skin: a hand's shaded or dark-nailed triangles
+        #  are classed as cloth here and there, so the furthest cloth triangle is not the cuff)
+        arm = [(s * f.calc_center_median().x, l in body) for f, l in zip(tgt.bm.faces, labels)
+               if f.calc_center_median().z > 1.2 and s * f.calc_center_median().x > 0.3]
+        xe = None
+        for x0 in np.arange(0.35, 0.95, 0.01):
+            sl = [b for x, b in arm if x0 <= x < x0 + 0.01]
+            if len(sl) >= 4 and sum(sl) / len(sl) > 0.5:
+                xe = x0
+                break
+        if xe is None:
+            continue
+        want = abs(J['hand_' + side].x) - 0.012
+        k = (want - shoulder) / (xe - shoulder)
+        for v in tgt.bm.verts:
+            if s * v.co.x > shoulder:
+                v.co.x = s * (shoulder + (s * v.co.x - shoulder) * k)
+        out[side] = round(float(k), 3)
+    tgt.bm.normal_update()
+    tgt.tree = BVHTree.FromBMesh(tgt.bm)
+    return out
+
+
+def cut_planes(bm, hems, nudge=0.0):
+    """A hem given as (x, y, z, 'above' | 'below'): the piece cut on the level plane at z (moved `nudge` toward the
+    kept side), that side kept."""
+    for h in hems:
+        if len(h) > 3 and h[3] in ('above', 'below'):
+            z = h[2] + (nudge if h[3] == 'above' else -nudge)
+            geom = list(bm.verts) + list(bm.edges) + list(bm.faces)
+            bmesh.ops.bisect_plane(bm, geom=geom, plane_co=(0, 0, z), plane_no=(0, 0, 1), dist=1e-5,
+                                   clear_inner=h[3] == 'above', clear_outer=h[3] == 'below')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.faces.ensure_lookup_table()
+
+
+def make_manifold(bm):
+    """Doubled verts merged, degenerate triangles dissolved, the faces on edges shared by three (and on verts where two
+    sheets touch) taken out: the re-mesh needs a manifold, and fill_holes closes what this opens."""
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.dissolve_degenerate(bm, edges=bm.edges, dist=1e-5)
+    for _ in range(4):
+        bad = {f for e in bm.edges if len(e.link_faces) > 2 for f in e.link_faces}
+        bad |= {f for v in bm.verts if (not v.is_manifold or sum(e.is_boundary for e in v.link_edges) > 2)
+                for f in v.link_faces}
+        if not bad:
+            break
+        bmesh.ops.delete(bm, geom=list(bad), context='FACES')
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.faces.ensure_lookup_table()
+    for isl in _islands(list(bm.faces)):
+        if len(isl) < 40:
+            bmesh.ops.delete(bm, geom=isl, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+
+
+def fill_holes(bm, hems, hem_reach=0.10, rounds=3):
+    """Every open loop that is not one of the garment's hems (the biggest loops near each point of `hems`) filled with
+    triangles, each taking the commonest material round it; again while a filling has made an edge three faces share
+    (two holes touching at a vert). Returns how many."""
+    n = 0
+    for _ in range(rounds):
+        n += _fill_once(bm, hems, hem_reach)
+        if not any(len(e.link_faces) > 2 for e in bm.edges) and all(v.is_manifold for v in bm.verts):
+            break
+    return n
+
+
+def _fill_once(bm, hems, hem_reach):
+    make_manifold(bm)
+    loops = boundary_loops(bm)
+    centres = [sum((v.co for v in L), Vector()) / len(L) for L in loops]
+    hem_ids = set()
+    for h in hems:      # (a hem: the loops near its point at least 0.3 the size of the biggest there: a cuff cut level and
+        #               the fold under it are both open, a crumb of a hole beside them is not)
+        near = [i for i, c in enumerate(centres) if (c - Vector(h[:3])).length < hem_reach]
+        if near:
+            big = max(len(loops[i]) for i in near)
+            hem_ids |= {i for i in near if len(loops[i]) >= 0.3 * big}
+    if DEBUG:
+        print('loops', [(len(L), [round(x, 2) for x in c], i in hem_ids) for i, (L, c) in enumerate(zip(loops, centres)) if len(L) > 8],
+              'hems', [tuple(round(x, 2) for x in h[:3]) for h in hems])
+    filled = 0
+    for i, loop in enumerate(loops):
+        if i in hem_ids or any(not v.is_valid for v in loop):
+            continue
+        if DEBUG:
+            print('fill', len(loop), [round(x, 2) for x in centres[i]])
+        edges = list({e for v in loop for e in v.link_edges if e.is_boundary})
+        res = bmesh.ops.holes_fill(bm, edges=edges, sides=0)
+        new = res['faces']
+        if new:
+            mats = [f.material_index for v in loop for f in v.link_faces if f not in new]
+            for f in new:
+                f.material_index = max(set(mats), key=mats.count) if mats else 0
+            bmesh.ops.triangulate(bm, faces=new)
+            filled += 1
+    return filled
+
+
+# ---- an outfit's builders ----------------------------------------------------------------------------------------
+
+ACTIVE = None   # (outfit.py sets it once the shape target is loaded: {'tgt', 'labels', 'J'})
+
+
+def cloth(label):
+    """A triangle the figure painted as cloth: not its skin, not its hair."""
+    return label not in ('skin', 'hair')
+
+
+def shell(select, hems, under=None):
+    """An outfit's builder for a piece cut out of the shape target: its triangles that `select(centre, label)` keeps,
+    `hems(J)` its open loops (a level one as (x, y, z, 'above' | 'below'); the other loops are filled), carried on
+    `under` the piece over it if given (region, extend_under). The builder's `hems` are its open loops for the
+    re-mesh (retopo)."""
+    def build(cage, J):
+        bm, filled = region(ACTIVE['tgt'], ACTIVE['labels'], select, hems=hems(J))
+        if under is not None:
+            extend_under(bm, under, up=.07, inset=.03)
+        return orient_out(bm)
+
+    def loops(J):       # (carried on under: its level cut moves up to the top of what was added, 7 cm)
+        out = []
+        for h in hems(J):
+            if under is not None and abs(h[2] - under[2]) < 1e-6:
+                h = (h[0], h[1], h[2] + .0705) + tuple(h[3:])
+            out.append(h)
+        return out
+    build.hems = loops
+    return build

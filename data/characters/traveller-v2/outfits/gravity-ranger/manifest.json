@@ -14,8 +14,8 @@
  "parts": {
   "GravityTrousers": {
    "kind": "garment",
-   "triangles": 14740,
-   "vertices": 7473,
+   "triangles": 11758,
+   "vertices": 5940,
    "hides": [
     "hips",
     "knee.L",
@@ -32,98 +32,25 @@
   },
   "GravityJacket": {
    "kind": "garment",
-   "triangles": 17745,
-   "vertices": 9035,
+   "triangles": 22244,
+   "vertices": 11240,
    "hides": [
-    "belly",
-    "chest",
-    "forearm_upper.L",
-    "forearm_upper.R",
-    "upperarm.L",
-    "upperarm.R"
+    "upperarm.L"
    ],
    "layer": 2,
    "materials": {
     "outfit_gravity-ranger": "atlas"
    }
   },
-  "GravityShoulder": {
-   "kind": "garment",
-   "triangles": 1172,
-   "vertices": 594,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_gravity-ranger": "atlas"
-   },
-   "prop": "weighted"
-  },
-  "GravityPack": {
-   "kind": "garment",
-   "triangles": 1692,
-   "vertices": 864,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_gravity-ranger": "atlas"
-   },
-   "prop": "spine_03"
-  },
-  "GravityBelt": {
-   "kind": "garment",
-   "triangles": 600,
-   "vertices": 304,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_gravity-ranger": "atlas"
-   },
-   "prop": "pelvis"
-  },
-  "GravityCuffs": {
-   "kind": "garment",
-   "triangles": 1406,
-   "vertices": 716,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_gravity-ranger": "atlas"
-   },
-   "prop": "weighted"
-  },
-  "GravityLapels": {
-   "kind": "garment",
-   "triangles": 208,
-   "vertices": 128,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_gravity-ranger": "atlas"
-   },
-   "prop": "weighted"
-  },
-  "GravityBootPanels": {
-   "kind": "garment",
-   "triangles": 1736,
-   "vertices": 932,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_gravity-ranger": "atlas"
-   },
-   "prop": "weighted"
-  },
   "GravityBoots": {
    "kind": "garment",
-   "triangles": 6406,
-   "vertices": 3301,
+   "triangles": 6226,
+   "vertices": 3149,
    "hides": [
     "ankle.L",
     "ankle.R",
     "foot.L",
-    "foot.R",
-    "shin_lower.L",
-    "shin_lower.R"
+    "foot.R"
    ],
    "layer": 1,
    "materials": {
@@ -145,8 +72,6 @@
   "knee.R",
   "shin.L",
   "shin.R",
-  "shin_lower.L",
-  "shin_lower.R",
   "thigh.L",
   "thigh.R",
   "upperarm.L",
@@ -157,12 +82,6 @@
   "clothes": [
    "GravityTrousers",
    "GravityJacket",
-   "GravityShoulder",
-   "GravityPack",
-   "GravityBelt",
-   "GravityCuffs",
-   "GravityLapels",
-   "GravityBootPanels",
    "GravityBoots"
   ]
  },
@@ -171,7 +90,7 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 455,
+  "texelsPerMetre": 510,
   "swatches": {
    "GravityTrousers.inside": [
     45,
@@ -247,96 +166,45 @@
    ]
   }
  },
- "triangles": 45705,
+ "triangles": 40228,
  "fit": {
   "GravityTrousers": {
-   "fitLeft": 2,
-   "shape": {
-    "hit": 0.723,
-    "meanMm": 6.2,
-    "outMm": 31.8,
-    "inMm": 25.8
-   },
-   "relief": {
-    "op": {
-     "shapedVertices": 4200
-    },
-    "raised": {
-     "cuts": 142,
-     "raised": 147
-    },
-    "raised2": {
-     "cuts": 125,
-     "raised": 126
-    },
-    "raised3": {
-     "cuts": 136,
-     "raised": 47
-    },
-    "raised4": {
-     "cuts": 109,
-     "raised": 38
-    }
+   "fitLeft": 67,
+   "fromShell": {
+    "retopo": "quadriflow",
+    "triangles": 11255
    },
    "hem": {
-    "open": 112,
-    "covered": 96,
-    "band": 336,
-    "lips": 112
+    "open": 72,
+    "covered": 23,
+    "band": 159,
+    "lips": 72
    }
   },
   "GravityJacket": {
-   "fitLeft": 250,
-   "shape": {
-    "hit": 0.36,
-    "meanMm": 14.7,
-    "outMm": 42.2,
-    "inMm": 26.5
-   },
-   "relief": {
-    "op": {
-     "shapedVertices": 3462
-    },
-    "raised": {
-     "cuts": 107,
-     "raised": 33
-    },
-    "raised2": {
-     "cuts": 116,
-     "raised": 37
-    }
+   "fitLeft": 132,
+   "fromShell": {
+    "retopo": "quadriflow",
+    "triangles": 20793
    },
    "hem": {
-    "open": 272,
+    "open": 213,
     "covered": 0,
-    "band": 897,
-    "lips": 272
+    "band": 511,
+    "lips": 213
    }
   },
-  "GravityShoulder": {
-   "prop": "weighted"
-  },
-  "GravityPack": {
-   "prop": "spine_03"
-  },
-  "GravityBelt": {
-   "prop": "pelvis"
-  },
-  "GravityCuffs": {
-   "prop": "weighted"
-  },
-  "GravityLapels": {
-   "prop": "weighted"
-  },
-  "GravityBootPanels": {
-   "prop": "weighted"
-  },
   "GravityBoots": {
-   "shape": {
-    "hit": 0.588,
-    "meanMm": 8.4,
-    "outMm": 28.7,
-    "inMm": 7.5
+   "fitLeft": 17,
+   "fromShell": {
+    "retopo": "quadriflow",
+    "triangles": 5872
+   },
+   "hem": {
+    "open": 54,
+    "covered": 0,
+    "band": 123,
+    "lips": 54
    }
   }
  },
@@ -359,20 +227,29 @@
     0.742
    ]
   },
-  "stance": 0.11,
+  "stance": 0.101,
   "stretchedFaces": 406,
-  "triangles": 25225
+  "triangles": 25225,
+  "sleeves": {
+   "l": 1.242,
+   "r": 1.21
+  }
  },
  "shading": {},
  "pokes": {
   "under": {
    "Skin>GravityTrousers": 0,
-   "Skin>GravityJacket": 0,
-   "GravityTrousers>GravityJacket": 384
+   "Skin>GravityBoots": 0,
+   "Skin>GravityJacket": 26,
+   "GravityTrousers>GravityJacket": 218
   },
   "posed": {
    "lowered": {
     "Skin>GravityTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>GravityBoots": {
      "out": 0,
      "deepestMm": 0.0
     },
@@ -390,6 +267,10 @@
      "out": 0,
      "deepestMm": 0.0
     },
+    "Skin>GravityBoots": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
     "Skin>GravityJacket": {
      "out": 0,
      "deepestMm": 0.0
@@ -401,6 +282,10 @@
    },
    "jog-a": {
     "Skin>GravityTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>GravityBoots": {
      "out": 0,
      "deepestMm": 0.0
     },
@@ -418,6 +303,10 @@
      "out": 0,
      "deepestMm": 0.0
     },
+    "Skin>GravityBoots": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
     "Skin>GravityJacket": {
      "out": 0,
      "deepestMm": 0.0
@@ -429,6 +318,10 @@
    },
    "sprint": {
     "Skin>GravityTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>GravityBoots": {
      "out": 0,
      "deepestMm": 0.0
     },

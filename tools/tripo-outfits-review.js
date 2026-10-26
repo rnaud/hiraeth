@@ -201,7 +201,7 @@ try {
 
   const src = inventory.source;
   $('cap-old').textContent = `Blender outfit before (#680) · ${Math.round(stats.old).toLocaleString()} triangles drawn`;
-  $('cap-blender').textContent = `Blender outfit now (#684): Tripo's shape, flat paint · the game's · ${Math.round(stats.blender).toLocaleString()} triangles drawn`;
+  $('cap-blender').textContent = `Blender outfit now (#684): Tripo's garments, flat paint · the game's · ${Math.round(stats.blender).toLocaleString()} triangles drawn`;
   $('cap-tripo').textContent = `Tripo H3.1 smart mesh · whole figure, one mesh · ${src.triangles.toLocaleString()} triangles`;
   $('status').textContent = `Tripo task ${inventory.tripo.task} · ${inventory.tripo.credits} credits · untouched export ${(src.bytes / 1e6).toFixed(1)} MB, three ${src.images[0].width}² textures (colour, metal-rough, normal; ${Math.round(src.decodedTextureMiB)} MiB decoded) · shown here at 1024²`;
   $('links').innerHTML = `<a href="${inventory.tripo.studio}" target="_blank" rel="noopener">Tripo task</a><a href="${BASE}outfits-gallery.html?only=${id}&amp;motion=idle" target="_blank">Outfits gallery: ${OUTFITS[id]}</a><a href="?outfit=${other}">${OUTFITS[other]}</a>`;

@@ -288,8 +288,8 @@ test('legacy garments retain their paint and compact garments exclude baked illu
   }
 });
 
-// #684: the void navigator and the gravity ranger drawn to their Tripo figures' shape, painted flat
-test('the void navigator and the gravity ranger take their Tripo figures\' shape (#684)', () => {
+// #684: the void navigator's and the gravity ranger's garments cut out of their Tripo figures, painted flat
+test('the void navigator and the gravity ranger are cut out of their Tripo figures (#684)', () => {
   for (const [id, pieces] of [['void-navigator', ['NavigatorJacket', 'NavigatorTrousers', 'NavigatorBoots']],
     ['gravity-ranger', ['GravityJacket', 'GravityTrousers', 'GravityBoots']]]) {
     const m = JSON.parse(readFileSync(DIR + `outfits/${id}/manifest.json`, 'utf8'));
@@ -297,12 +297,14 @@ test('the void navigator and the gravity ranger take their Tripo figures\' shape
     assert.ok(t && statSync(t.source).size > 0, `${id}: its shape target is in the repository`);
     assert.ok(t.scale > 1.6 && t.scale < 2.0, `${id}: the figure scaled to his neck (${t.scale})`);
     for (const side of ['l', 'r']) assert.ok(t.armDown[side] < -60 && t.armDown[side] > -90, `${id}: its arms unposed from an A-pose`);
+    assert.deepEqual(Object.keys(m.parts).sort(), [...pieces].sort(), `${id}: its pieces are the figure's, his own boots not kept`);
     for (const p of pieces) {
-      const s = m.fit[p]?.shape;
-      assert.ok(s && s.hit > 0.3, `${id}: ${p} drawn to the figure (${JSON.stringify(s)})`);
-      assert.ok(s.outMm < 50 && s.inMm < 35, `${id}: ${p} moved within reach`);
+      const s = m.fit[p]?.fromShell;
+      assert.ok(s && s.triangles > 3000, `${id}: ${p} cut from the figure and re-meshed (${JSON.stringify(s)})`);
       assert.equal(m.shading[p], undefined, `${id}: ${p} flat, no baked light`);
     }
+    assert.ok(m.triangles >= 30000 && m.triangles <= 50000, `${id}: ${m.triangles} triangles`);
+    for (const a of ['chest', 'belly', 'hips']) assert.ok(m.hides.includes(a), `${id}: his body under the jacket and trousers left out (${a})`);
   }
 });
 

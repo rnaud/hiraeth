@@ -1481,9 +1481,9 @@ export const CHANGELOG_MEDIA = {
     {
       "name": "outfit-void-navigator-684",
       "title": "Void navigator",
-      "caption": "The void navigator: a fuller, shorter jacket over a broad belt with its disc on his left; the harness in broad plates, an X to a big chest disc and a Y with a tail plate on the back; tapered trousers with raised knee bands; bulkier boots",
-      "from": "Issue #684: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5445); before: this change's base (45bdf7ac0, #680's build), after: this change rebuilt by scripts/blender/traveller/outfit.sh with the Tripo shape target; 26 October; cropped round him and laid side by side, WebP q72",
-      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in. The Tripo figure the shape came from is not in the game: tools/tripo-outfits-review.html shows it beside both builds.",
+      "caption": "The void navigator: the jacket, harness, belt, trousers and boots taken from the 3D model of the drawing: the harness’s X to its chest disc and the Y on the back, the belt’s disc, the panelled trousers, the cream boots with dark collars",
+      "from": "Issue #684: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5445); before: this change's base (45bdf7ac0, #680's build), after: this change rebuilt by scripts/blender/traveller/outfit.sh, its garments cut out of the #682 Tripo figure (shape_target.py); 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in. The Tripo figure itself is not in the game (only its garments, re-meshed and repainted): tools/tripo-outfits-review.html shows it beside both builds.",
       "size": [990, 715],
       "reference": {
         "sheet": "references/characters/traveller-outfits/void-navigator/approved-reference.png",
@@ -1493,8 +1493,8 @@ export const CHANGELOG_MEDIA = {
     {
       "name": "outfit-gravity-ranger-684",
       "title": "Gravity ranger",
-      "caption": "The gravity ranger: a fuller jacket with ballooning sleeves, jogger trousers with their cargo pockets on the sides, a dark pack plate between the crescents, the sheet’s lighter olive, coral and lilac",
-      "from": "Issue #684: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5445); before: this change's base (45bdf7ac0, #680's build), after: this change rebuilt by scripts/blender/traveller/outfit.sh with the Tripo shape target; 26 October; cropped round him and laid side by side, WebP q72",
+      "caption": "The gravity ranger: the jacket, trousers and boots taken from the 3D model of the drawing: lapels, the coral stand collar, the pad on his right shoulder, the crescents on the back, ballooning sleeves with dark knit cuffs, joggers, big lilac boots",
+      "from": "Issue #684: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5445); before: this change's base (45bdf7ac0, #680's build), after: this change rebuilt by scripts/blender/traveller/outfit.sh, its garments cut out of the #682 Tripo figure (shape_target.py); 26 October; cropped round him and laid side by side, WebP q72",
       "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
       "size": [990, 715],
       "reference": {

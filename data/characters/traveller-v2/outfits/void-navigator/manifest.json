@@ -14,8 +14,8 @@
  "parts": {
   "NavigatorTrousers": {
    "kind": "garment",
-   "triangles": 15380,
-   "vertices": 7793,
+   "triangles": 11563,
+   "vertices": 5901,
    "hides": [
     "hips",
     "knee.L",
@@ -32,12 +32,11 @@
   },
   "NavigatorJacket": {
    "kind": "garment",
-   "triangles": 17698,
-   "vertices": 8999,
+   "triangles": 24109,
+   "vertices": 12186,
    "hides": [
-    "belly",
+    "chest",
     "forearm_upper.L",
-    "forearm_upper.R",
     "upperarm.L",
     "upperarm.R"
    ],
@@ -46,50 +45,15 @@
     "outfit_void-navigator": "atlas"
    }
   },
-  "NavigationCuffs": {
-   "kind": "garment",
-   "triangles": 1330,
-   "vertices": 676,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_void-navigator": "atlas"
-   },
-   "prop": "weighted"
-  },
-  "NavigationHarness": {
-   "kind": "garment",
-   "triangles": 2644,
-   "vertices": 1354,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_void-navigator": "atlas"
-   },
-   "prop": "weighted"
-  },
-  "NavigationBelt": {
-   "kind": "garment",
-   "triangles": 1612,
-   "vertices": 820,
-   "hides": [],
-   "layer": 3,
-   "materials": {
-    "outfit_void-navigator": "atlas"
-   },
-   "prop": "weighted"
-  },
   "NavigatorBoots": {
    "kind": "garment",
-   "triangles": 6406,
-   "vertices": 3301,
+   "triangles": 5509,
+   "vertices": 2791,
    "hides": [
     "ankle.L",
     "ankle.R",
     "foot.L",
-    "foot.R",
-    "shin_lower.L",
-    "shin_lower.R"
+    "foot.R"
    ],
    "layer": 1,
    "materials": {
@@ -111,21 +75,27 @@
   "knee.R",
   "shin.L",
   "shin.R",
-  "shin_lower.L",
-  "shin_lower.R",
   "thigh.L",
   "thigh.R",
   "upperarm.L",
   "upperarm.R"
  ],
- "skinCut": [],
+ "skinCut": [
+  {
+   "absx": [
+    0.45,
+    0.674
+   ],
+   "y": [
+    1.2,
+    1.6
+   ]
+  }
+ ],
  "draws": {
   "clothes": [
    "NavigatorTrousers",
    "NavigatorJacket",
-   "NavigationCuffs",
-   "NavigationHarness",
-   "NavigationBelt",
    "NavigatorBoots"
   ]
  },
@@ -134,7 +104,7 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 486,
+  "texelsPerMetre": 512,
   "swatches": {
    "NavigatorTrousers.inside": [
     40,
@@ -205,91 +175,45 @@
    ]
   }
  },
- "triangles": 45070,
+ "triangles": 41181,
  "fit": {
   "NavigatorTrousers": {
-   "fitLeft": 1,
-   "shape": {
-    "hit": 0.685,
-    "meanMm": 8.5,
-    "outMm": 25.5,
-    "inMm": 24.6
-   },
-   "relief": {
-    "op": {
-     "shapedVertices": 4208
-    },
-    "raised": {
-     "cuts": 137,
-     "raised": 94
-    },
-    "raised2": {
-     "cuts": 138,
-     "raised": 83
-    },
-    "raised3": {
-     "cuts": 130,
-     "raised": 97
-    },
-    "raised4": {
-     "cuts": 146,
-     "raised": 93
-    },
-    "raised5": {
-     "cuts": 111,
-     "raised": 101
-    },
-    "raised6": {
-     "cuts": 115,
-     "raised": 101
-    },
-    "raised7": {
-     "cuts": 93,
-     "raised": 31
-    }
+   "fitLeft": 31,
+   "fromShell": {
+    "retopo": "quadriflow",
+    "triangles": 10799
    },
    "hem": {
-    "open": 112,
-    "covered": 96,
-    "band": 336,
-    "lips": 112
+    "open": 87,
+    "covered": 70,
+    "band": 227,
+    "lips": 87
    }
   },
   "NavigatorJacket": {
-   "fitLeft": 233,
-   "shape": {
-    "hit": 0.468,
-    "meanMm": 12.2,
-    "outMm": 35.5,
-    "inMm": 24.3
-   },
-   "relief": {
-    "op": {
-     "shapedVertices": 3428
-    }
+   "fitLeft": 314,
+   "fromShell": {
+    "retopo": "quadriflow",
+    "triangles": 22300
    },
    "hem": {
-    "open": 272,
+    "open": 254,
     "covered": 0,
-    "band": 1030,
-    "lips": 272
+    "band": 650,
+    "lips": 254
    }
   },
-  "NavigationCuffs": {
-   "prop": "weighted"
-  },
-  "NavigationHarness": {
-   "prop": "weighted"
-  },
-  "NavigationBelt": {
-   "prop": "weighted"
-  },
   "NavigatorBoots": {
-   "shape": {
-    "hit": 0.705,
-    "meanMm": 6.5,
-    "outMm": 27.7,
-    "inMm": 7.7
+   "fitLeft": 10,
+   "fromShell": {
+    "retopo": "quadriflow",
+    "triangles": 5147
+   },
+   "hem": {
+    "open": 55,
+    "covered": 0,
+    "band": 126,
+    "lips": 55
    }
   }
  },
@@ -312,20 +236,29 @@
     0.724
    ]
   },
-  "stance": 0.133,
+  "stance": 0.118,
   "stretchedFaces": 185,
-  "triangles": 28880
+  "triangles": 28880,
+  "sleeves": {
+   "l": 1.049,
+   "r": 1.004
+  }
  },
  "shading": {},
  "pokes": {
   "under": {
    "Skin>NavigatorTrousers": 0,
-   "Skin>NavigatorJacket": 0,
-   "NavigatorTrousers>NavigatorJacket": 379
+   "Skin>NavigatorBoots": 0,
+   "Skin>NavigatorJacket": 13,
+   "NavigatorTrousers>NavigatorJacket": 426
   },
   "posed": {
    "lowered": {
     "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorBoots": {
      "out": 0,
      "deepestMm": 0.0
     },
@@ -343,6 +276,10 @@
      "out": 0,
      "deepestMm": 0.0
     },
+    "Skin>NavigatorBoots": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
     "Skin>NavigatorJacket": {
      "out": 0,
      "deepestMm": 0.0
@@ -354,6 +291,10 @@
    },
    "jog-a": {
     "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorBoots": {
      "out": 0,
      "deepestMm": 0.0
     },
@@ -371,6 +312,10 @@
      "out": 0,
      "deepestMm": 0.0
     },
+    "Skin>NavigatorBoots": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
     "Skin>NavigatorJacket": {
      "out": 0,
      "deepestMm": 0.0
@@ -382,6 +327,10 @@
    },
    "sprint": {
     "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorBoots": {
      "out": 0,
      "deepestMm": 0.0
     },
