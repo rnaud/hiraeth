@@ -50,3 +50,17 @@ test('marker composition keeps default discovery, explicit overrides, placement 
  assert.equal(world.lights.length,0);
  assert.ok(!allInteractables().some(x=>x.id==='minigame.'+game.id));
 });
+
+
+test('marker options keep inherited properties supported by the original destructured API',()=>{
+ const game={id:'inherited-marker-contract',name:'Contract',marker:{model:()=>new THREE.Group()}};
+ const world={scene:new THREE.Scene(),levelId:'arena',lights:[]};
+ const options=Object.create({games:[game],heading:0.25,plate:null,host:false});
+ const placed=marker.placeGameMarker(world,game.id,[1,2,3],options);
+ try{
+  assert.deepEqual(placed.object.position.toArray(),[1,2,3]);
+  assert.equal(placed.object.rotation.y,0.25);
+ }finally{placed.remove();}
+ assert.equal(world.scene.children.length,0);
+ assert.equal(world.lights.length,0);
+});

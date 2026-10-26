@@ -5,6 +5,6 @@ import { placeGameMarker as placeMarker } from './marker-core.js';
 export { gameMarkerModel, signPlate } from './marker-core.js';
 
 export function placeGameMarker(world, gameId, pos, options = {}) {
-  const { games = GAMES, ...rest } = options;
-  return placeMarker(world, gameId, pos, { ...rest, games });
+  const { heading, games = GAMES, plate, host } = options;
+  return placeMarker(world, gameId, pos, { heading, games, plate, host });
 }

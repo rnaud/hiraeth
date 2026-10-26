@@ -7,7 +7,7 @@ import { readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { affectedTests, refsOf, MAX_CHANGED } from '../scripts/affected-tests.mjs';
+import { affectedTests, refsOf } from '../scripts/affected-tests.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
@@ -141,11 +141,11 @@ test('a change reaches the tests that import it, through other files and lazy im
   assert.equal(affectedTests(['docs/x.md'], opts), 'ALL', 'unknown resource changes are not silently ignored');
 });
 
-test('shared pieces and large commits run everything', () => {
+test('shared infrastructure and unowned change sets run everything', () => {
   for (const f of ['package.json', 'package-lock.json', '.githooks/pre-commit', 'scripts/affected-tests.mjs']) {
     assert.equal(affectedTests([f], opts), 'ALL', f);
   }
-  assert.equal(affectedTests(Array.from({ length: MAX_CHANGED + 1 }, (_, i) => `src/f${i}.js`), opts), 'ALL');
+  assert.equal(affectedTests(Array.from({ length: 41 }, (_, i) => `src/f${i}.js`), opts), 'ALL', 'these paths have no known test owner');
 });
 
 test('refsOf follows relative imports, re-exports and new URL, not packages', () => {
