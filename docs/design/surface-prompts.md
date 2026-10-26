@@ -63,3 +63,40 @@ Surface design sheet for a science fiction exploration game, the open ground of 
 ```
 Surface design sheet for a science fiction exploration game, the worked timber of posts, planks, benches and market stall frames in a quiet alien village: long grain strokes along each plank, a few knots, split ends, nail holes and dark iron straps, sun-bleached tops and darker undersides, planks of slightly different tones, one painted plank with flaking pastel paint. Three panels side by side: a large square-on swatch of planks and a post; a market stall and a bench of this timber seen from a walker's height with a small figure for scale; a strip showing the marks simplifying with distance, planks staying, grain and knots gone far. Calm, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, warm ochre, grey-brown, bleached cream and one faded teal, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels
 ```
+
+## Part 2 (issue #677, 2026-10-26)
+
+Three materials the seven picks don't cover, asked for by the author after #669. Same rules as above.
+
+### 8. The Underwater City's sea-weathered walls (`sea-walls`)
+
+```
+Surface design sheet for a science fiction exploration game, the walls of a city built under the sea and sealed under great glass domes: smooth rounded walls and domes of pale coral pink and shell-cream render, softly weathered by damp sea air, faint white salt bloom gathered along the base and under ledges, a few horizontal tide lines of a slightly darker tone where water once stood, sparse tiny barnacle-like dots and pale green growth stains in the shaded corners only, round porthole windows with brass rims, repaired patches of a fresher pink. Three panels side by side: a large square-on swatch of the wall; a curved street of these domed houses seen from a walker's height with a small figure for scale, blue-green light falling through the glass above; a strip showing the marks simplifying with distance, tide lines and patches staying, dots and salt gone far. Calm and readable, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral pink, shell cream, sea green and a touch of brass, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels fish seaweed
+```
+
+
+### 9. Lorn's pale weathered stone (`pale-stone`)
+
+```
+Surface design sheet for a science fiction exploration game, the pale stone buildings of a quiet lamp-lit town in a misty wetland: walls, terrace columns and steps of pale bone-white and ash-grey limestone laid in large soft-edged blocks of slightly different tones, rounded worn arrises, fine vertical rain streaks below sills and cornices, a darker damp band at the foot of the walls, a few hairline cracks, sparse pitting, an occasional block replaced with a warmer one. Three panels side by side: a large square-on swatch of the wall; a terrace hall of this stone seen from a walker's height in soft mist with a small figure and a hanging lamp for scale; a strip showing the marks simplifying with distance, block joints and the damp band staying, cracks and pits gone far. Calm, quiet, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ash grey, a little lavender in the shadows and a warm lamp glow, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels moss vines
+```
+
+
+### 10. The Glass Dunes' buried city (`buried-city`)
+
+```
+Surface design sheet for a science fiction exploration game, an old city half buried under glassy dunes: the tops of pale sandstone walls and domes rising out of the sand, sand drifted against them in soft slopes, the walls scoured smooth and banded by the wind, their upper edges worn round, tall windows half full of sand with glints of fused glass in the frames, fine sand ripples, thin lines where the sand meets the stone, a few blocks sand-blasted lighter. Three panels side by side: a large square-on swatch of a scoured wall meeting the sand; a wide view of the buried city's roofs and windows across the dunes with a small figure for scale; a strip showing the marks simplifying with distance, sand lines and window shapes staying, scour bands and ripples gone far. Calm, wide, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale sand, apricot, honey and a cool glass blue, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels ruins rubble skulls
+```
+
+
+### 11. The Desert's dome-city shells (`desert-domes`)
+
+```
+Surface design sheet for a science fiction exploration game, the great shell domes and towers of a far city in a desert: smooth domes of white ceramic, sea-teal and burnt orange, built of large curved panels set in rings that follow the dome's curve, the seams fine and slightly raised, a few panels of a slightly different tone, wind-polished tops, a faint band of sand-scour near the ground, a few small round vents and a thin maintenance ladder. Three panels side by side: a large swatch of the curved panelling; a cluster of these domes and a tower rising from the dunes, seen from far off with a small figure for scale; a strip showing the marks simplifying with distance, panel rings staying, seams and vents gone, flat colour far. Calm, clean, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ceramic white, sea teal, burnt orange and pale sand, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels tiles bricks
+```
+
+### 12. Viridel's water channels (`water-channels`)
+
+```
+Surface design sheet for a science fiction exploration game, the narrow irrigation channels that run between white stepped tea terraces: clear teal water in stone-lined channels, its surface drawn with a few calm flowing pen lines along the current, a pale line of light along each edge, small ripples where the water drops over a lip, the stone lip wet and darker, a little cream foam gathered at the corners, a faint reflection of the white steps. Three panels side by side: a large swatch of the channel seen from above; terraces with many channels seen from a walker's height with a small figure for scale; a strip showing the marks simplifying with distance, edge lights staying, flow lines and ripples gone far. Calm and readable, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, teal, white stone, cream and a touch of leaf green, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render photo-texture text watermark lettering labels fish boats
+```

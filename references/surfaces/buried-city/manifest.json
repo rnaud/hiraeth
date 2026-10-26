@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, an old city half buried under glassy dunes: the tops of pale sandstone walls and domes rising out of the sand, sand drifted against them in soft slopes, the walls scoured smooth and banded by the wind, their upper edges worn round, tall windows half full of sand with glints of fused glass in the frames, fine sand ripples, thin lines where the sand meets the stone, a few blocks sand-blasted lighter. Three panels side by side: a large square-on swatch of a scoured wall meeting the sand; a wide view of the buried city's roofs and windows across the dunes with a small figure for scale; a strip showing the marks simplifying with distance, sand lines and window shapes staying, scour bands and ripples gone far. Calm, wide, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale sand, apricot, honey and a cool glass blue, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, ruins, rubble, skulls.",
+      "from": "docs/design/surface-prompts.md#buried-city",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-26-10-26-02-6579",
+      "candidate": "openai/1",
+      "sha256": "9b28c19a517862a596a61b68c0b1c1251f203c7e7de8b0b9ab9c9e8f953eb11a",
+      "bytes": 188306,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the pale stone buildings of a quiet lamp-lit town in a misty wetland: walls, terrace columns and steps of pale bone-white and ash-grey limestone laid in large soft-edged blocks of slightly different tones, rounded worn arrises, fine vertical rain streaks below sills and cornices, a darker damp band at the foot of the walls, a few hairline cracks, sparse pitting, an occasional block replaced with a warmer one. Three panels side by side: a large square-on swatch of the wall; a terrace hall of this stone seen from a walker's height in soft mist with a small figure and a hanging lamp for scale; a strip showing the marks simplifying with distance, block joints and the damp band staying, cracks and pits gone far. Calm, quiet, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ash grey, a little lavender in the shadows and a warm lamp glow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, moss, vines.",
+      "from": "docs/design/surface-prompts.md#pale-stone",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-26-10-25-33-4804",
+      "candidate": "openai/1",
+      "sha256": "0b3e1b17eecd88e306e76afd9438a057212bb3b42fe6d9d3f4438d19d4dc63f8",
+      "bytes": 198370,
+      "costUSD": 0.041
+    }
+  ]
+}
