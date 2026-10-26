@@ -220,10 +220,15 @@ export function buildWaterStair(scene, terrain, L) {
   const mk = (list, mat, name) => { const m = new THREE.Mesh(mergeGeometries(list.map(prep)), mat); m.name = name; scene.add(m); return m; };
   // (a warm white stone in big uneven blocks, its shade lifted: the sheet's, not a grey grid)
   mk(white, makeMaterial({ color: '#efe3c9', flat: true, plates: 3.6, shade: 0.35, line: 0.85 }), 'The water stair');
-  mk(kerb, makeMaterial({ color: '#f7eedb', flat: true, shade: 0.4, line: 0.75 }), 'The water stair’s kerbs');
+  // (issue #691: the kerbs and the stepping stones in the picked pale stone, dry and clean: soft blocks, worn arrises, a
+  // tone a stone; the stones' tops laid as its flagstones, one or two joints a stone; src/surface-marks.js paleStone)
+  const DRY = { foot: -1000, wear: 0.45 };
+  mk(kerb, makeMaterial({ color: '#f7eedb', flat: true, shade: 0.4, line: 0.75, paleStone: { course: 0.7, block: 1.6, ...DRY } }), 'The water stair’s kerbs');
   mk(lipList, makeMaterial({ color: '#f7eedb', shade: 0.4, line: 0.75 }), 'The water stair’s lips');   // (rounded: smooth shading)
-  mk(soil, makeMaterial({ color: '#7d8a52', flat: true }), 'The water stair’s beds');
-  mk(stones, makeMaterial({ color: '#ece2cd', flat: true, shade: 0.35, line: 0.8 }), 'The water stair’s stepping stones');
+  // (issue #691: the beds tilled after references/surfaces/garden-beds: umber earth raked in furrows across the stair,
+  // rows of seedlings and small bushes, dry patches, pebbles; src/garden-beds-shader.js)
+  mk(soil, makeMaterial({ color: '#86694a', flat: true, beds: { row: 0.55, turn: Math.atan2(E_U.z, E_U.x), plants: 0.7 } }), 'The water stair’s beds');
+  mk(stones, makeMaterial({ color: '#ece2cd', flat: true, shade: 0.35, line: 0.8, paleStone: { course: 0.75, block: 1.3, ...DRY } }), 'The water stair’s stepping stones');
   mk(posts, makeMaterial({ color: '#efe3c9', flat: true, plates: 1.4, shade: 0.35, line: 0.85 }), 'The water stair’s sluice-gates');
 
   // ---- the water: the channel down the middle, falling over each wall (always running); each gated bed's flood

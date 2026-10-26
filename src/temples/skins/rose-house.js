@@ -5,6 +5,7 @@ import { paint } from '../kit.js';
 import { Door, Flame, Switch, Sentry } from '../pieces.js';
 import { glyphGeometry } from '../../story/sign-text.js';
 import { skinShader, spliceSkin } from './skin-shader.js';
+import { MK_GLSL } from './machined.js';
 
 // ---------------------------------------------------------------------------
 // The Rose House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"), after the author's
@@ -33,14 +34,19 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
 /** The skin's colours (sRGB) and sizes (m). */
+// (issue #691: after the author's pick references/surfaces/rose-house/sheet-1.jpg the halls are red stone, not violet slate:
+// rose floor plates and deeper red wall slabs, each slab and plate in the makers' machined finish (machined.js mkFinish: its
+// tone, an inlaid border, sockets), amber light inlaid along some floor joints in long runs, the circuits amber too)
 export const ROSE_SKIN = {
-  ember: '#ff8a3d',
-  wall: { color: '#5e5462', seam: '#2f2833', bevel: '#8a7d88', sand: '#c4917c', size: [4.2, 6.0, 4.4, 0.8], more: [0.32, 0.85, 0.07, 0.6] },
-  machine: { color: '#554c58', seam: '#2a242d', bevel: '#7f7381', sand: '#c4917c', size: [1.7, 2.3, 2.0, 0.8], more: [0.45, 0.9, 0.05, 0.3] },
-  floor: { color: '#b89e90', seam: '#6a5550', bevel: '#d0bbab', sand: '#d29f88', size: [4.2, 0, 3.8, 0.6], more: [0, 0.55, 0.04, 0.7] },
-  basin: { color: '#8a7d86', seam: '#463d48', tide: '#dccdbd', step: 0.62 },
-  trim: '#4a4251', stone: '#5c5263', fitting: '#413a45', groove: '#2e2a33', dressing: '#584e5f',
-  sign: '#ff9a50', lens: '#2b2730',
+  ember: '#ffb04a',
+  /** the floor's lit joints: the share of joint lines lit, the share of a lit line's plates it runs along */
+  joints: [0.4, 0.75],
+  wall: { color: '#a85a56', seam: '#5c2f30', bevel: '#c98078', sand: '#d8a08a', size: [4.2, 6.0, 4.4, 0.8], more: [0.32, 0.55, 0.07, 0.4] },
+  machine: { color: '#9a5050', seam: '#522a2c', bevel: '#bd726a', sand: '#d8a08a', size: [1.7, 2.3, 2.0, 0.8], more: [0.45, 0.8, 0.05, 0.2] },
+  floor: { color: '#cf8676', seam: '#7e4642', bevel: '#e3a594', sand: '#dcab92', size: [4.2, 0, 3.8, 0.6], more: [0, 0.3, 0.04, 0.5] },
+  basin: { color: '#a8665e', seam: '#5c3432', tide: '#ecd2c0', step: 0.62 },
+  trim: '#86484a', stone: '#94504e', fitting: '#6c3a3c', groove: '#3e2426', dressing: '#8c4c4c',
+  sign: '#ffb04a', lens: '#3a2224',
   /** daylight through the slots along the halls' ceilings (drawn: a lit strip) */
   daylight: '#f4d29a', slot: { w: 1.5, off: 0.3, end: 1.4 },
   /** how many corner obelisks, floating plates a hall may have, and their sizes */
@@ -125,6 +131,8 @@ const BODIES = {
       albedo = mix(albedo, up > 0.0 ? uSkB : uColor * 0.7, bev * abs(up));
       // the joint: a pen line, rose sand caught in some of them
       skInk = rhLine(dj / pxm) * 0.85;
+      // the makers' finish (machined.js) on the slab (issue #691)
+      skInk = max(skInk, mkFinish((f - 0.5) * vec2(W, H), 0.5 * vec2(W, H), col * 13.1 + row * 7.7, pxm, !side, albedo));
       float sand = smoothstep(0.5, 0.78, vnoise(uv * 0.45 + 9.0)) * (1.0 - smoothstep(0.0, 0.14, dj)) * uSkQ.w;
       albedo = mix(albedo, uSkS, sand);
       // a panel inset in some slabs
@@ -157,6 +165,17 @@ const BODIES = {
       float bev = (1.0 - smoothstep(uSkQ.z, uSkQ.z + pxm, dj)) * near * (1.0 - lite * 0.6);
       albedo = mix(albedo, (fs.y > 0.5) == (dm.y < dm.x) ? uSkB : uColor * 0.82, bev * 0.8);
       skInk = rhLine(dj / pxm) * 0.75;
+      // the makers' finish (machined.js) on the plate, and amber light inlaid along some joints in long runs (issue #691)
+      skInk = max(skInk, mkFinish((fs - 0.5) * G / sub, 0.5 * G / sub, dot(c * 2.0 + cs, vec2(17.0, 5.0)), pxm, true, albedo));
+      if (top) {
+        vec2 jn = floor(uv / G + 0.5), jd = abs(uv / G - jn) * G;
+        float jx = step(rhH(vec2(jn.x, 4.4)), RH_JOINTS.x) * step(rhH(vec2(jn.x, c.y) + 8.1), RH_JOINTS.y);
+        float jz = step(rhH(vec2(jn.y, 6.6)), RH_JOINTS.x) * step(rhH(vec2(c.x, jn.y) + 2.3), RH_JOINTS.y);
+        float jl = max(jx * rhCov(jd.x, 0.07, pxm), jz * rhCov(jd.y, 0.07, pxm));
+        albedo = mix(albedo, uSkE, jl);
+        skEmit = max(skEmit, jl * rhBreathe(jn.x + jn.y));
+        skInk *= 1.0 - jl;
+      }
       // rose sand blown over the plates in drifts, and caught in the joints
       float drift = smoothstep(0.58, 0.82, vnoise(uv * 0.07 + 4.0)) * 0.5 + (1.0 - smoothstep(0.0, 0.12, dj)) * smoothstep(0.45, 0.7, vnoise(uv * 0.5));
       albedo = mix(albedo, uSkS, clamp(drift, 0.0, 1.0) * uSkQ.w * (top ? 1.0 : 0.0));
@@ -188,7 +207,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('rose-house', { pars: RH_PARS, glsl: RH_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+const SHADER = skinShader('rose-house', { pars: RH_PARS, defines: `#define RH_JOINTS vec2(${ROSE_SKIN.joints[0].toFixed(3)}, ${ROSE_SKIN.joints[1].toFixed(3)})\n`, glsl: RH_GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and emit the body's. */
 function skinMaterial(body, look, o, U, key, object = false) {

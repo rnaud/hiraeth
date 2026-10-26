@@ -77,6 +77,7 @@ Shader "Hiraeth/Surface"
     _SeaWall ("Sea walls: tide spacing (m), foot (world y), salt, growth (src/surface-marks.js, issue #677)", Vector) = (0, 0, 0, 0)
     _PaleStone ("Pale stone: course, block (m), foot (world y), wear", Vector) = (0, 0, 0, 0)
     _RockTop ("A rock's walked top: crack cell (m), pebbles, amount, on (issue #685)", Vector) = (0, 0, 0, 0)
+    _Beds ("Garden beds: row (m), turn (rad), plants, on (src/garden-beds-shader.js, issue #691)", Vector) = (0, 0, 0, 0)
     _Buried ("The buried city: band (m), foot (world y), sand line (m), scour", Vector) = (0, 0, 0, 0)
     _Domes ("Panelled domes: rings (a tower's: m), panels, scour (m), 1 dome / 2 tower", Vector) = (0, 0, 0, 0)
     _DomesBand ("Their painted rings: colour, share", Vector) = (0, 0, 0, 0)
@@ -239,6 +240,7 @@ Shader "Hiraeth/Surface"
     float4 _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel;   // (src/surface-marks.js, issue #677)
     float4 _RockTop;       // (src/surface-marks.js rockTop, issue #685)
     float4 _FacetMarks;    // Lorn's crystals (src/surface-marks.js crystalFacets, issue #686): rim, root glow, near marks, w 1 on; the uv in form.xy
+    float4 _Beds;          // (src/garden-beds-shader.js, issue #691): row (m), turn, plants, on
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -271,6 +273,7 @@ Shader "Hiraeth/Surface"
     #include "Marks.hlsl"
     #include "SurfaceMarks.hlsl"   // (first: its head is the painted relief's helpers, src/relief.js, that Paving.hlsl and SkinPatterns.hlsl use)
     #include "Paving.hlsl"
+    #include "GardenBeds.hlsl"
     #include "TripoFace.hlsl"
     #include "Fall.hlsl"
     #include "PortraitFace.hlsl"
@@ -1538,6 +1541,16 @@ Shader "Hiraeth/Surface"
         {
           float3 rFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
           patInk = max(patInk, rockTop(i.worldPos, rFw, n, _SunDir.xz / max(length(_SunDir.xz), 1e-3), pebbleShadow(_SunDir.y), albedo));
+        }
+        // and issue #691's: garden beds on the upward faces (furrows, plants, dry patches, pebbles), its uniform branch
+        UNITY_BRANCH if (WALLK && _Beds.w > 0.0)
+        {
+          float2 bFw = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
+          float bUp = smoothstep(0.7, 0.85, n.y);
+          float3 ba = albedo;
+          float bi = gardenBeds(i.worldPos.xz, bFw, _SunDir.xz / max(length(_SunDir.xz), 1e-3), ba);
+          albedo = lerp(albedo, ba, bUp);
+          patInk = max(patInk, bi * bUp);
         }
         UNITY_BRANCH if (WALLK && _Domes.w > 0.0)
         {

@@ -101,6 +101,8 @@ export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uH
 
 /** The white stone's shade: flat, in the day's pale blue, and almost no strokes (the sheets). */
 export const WHITE_SHADE = { shadeFlat: 1, hatch: 0.08 };
+/** (issue #691) The white stone in the picked pale stone (src/surface-marks.js paleStone): big soft blocks, dry and clean, tops as its flagstones. */
+const WHITE_STONE = { course: 1.1, block: 2.4, foot: -1000, wear: 0.4 };
 /**
  * The grass tufts' line (issue #504): a soft thing's, in a dark shade of their own green, a hairline past 20-35 m
  * (materials.js LINE, lineFar). In the world's black ink, each thin blade's outline came and went as the camera moved
@@ -217,7 +219,7 @@ export function* buildSpheres(scene) {
     // the umbrellas' undersides: a deep green, their veins drawn lighter as branches forking out to the rim (FORM.veins)
     under: makeMaterial({ color: '#2b4535', form: true, veins: 1 }),
     // (the white stone prints its shade flat in the day's pale blue, with almost no strokes, as the sheets)
-    white: makeMaterial({ color: '#f3efe2', flat: true, ...WHITE_SHADE }),
+    white: makeMaterial({ color: '#f3efe2', flat: true, ...WHITE_SHADE, paleStone: WHITE_STONE }),
     whiteSmooth: makeMaterial({ color: '#f5f2e8', ...WHITE_SHADE }),
     rock: makeMaterial({ color: '#f1ede2', ...WHITE_SHADE }),
     boulder: makeMaterial({ color: '#f3f0e6', ...WHITE_SHADE }),
@@ -228,8 +230,8 @@ export function* buildSpheres(scene) {
     stone: makeMaterial({ color: '#efe7d4' }),
     stone2: makeMaterial({ color: '#e0d4bc' }),
     path: makeMaterial({ color: '#efe8cc', paving: { size: 0.9, wear: 0.7 } }),
-    pole: makeMaterial({ color: '#f6f3ea', ...WHITE_SHADE }),
-    paving: makeMaterial({ color: '#ffffff', vertexColors: true }),
+    pole: makeMaterial({ color: '#f6f3ea', ...WHITE_SHADE, paleStone: { ...WHITE_STONE, course: 0.8, block: 1.6 } }),
+    paving: makeMaterial({ color: '#ffffff', vertexColors: true, paving: { size: 2.2, wear: 0.4, tone: 0.6 } }),   // (the plaza's painted rings, laid in flagstones: issue #691)
     water: makeMaterial({ color: '#a8d0d6', color2: '#9fd0c8', mode: MODE_WATER }),
   };
 

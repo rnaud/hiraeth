@@ -602,6 +602,8 @@ let MATS = null;
 export function portMaterials() {
   return MATS ??= {
     matte: paintMaterial({}),
+    // (issue #691: the pad's deck laid in flagstones on top, its paint kept: src/paving-shader.js; the pieces keep the matte)
+    deck: makeMaterial({ color: '#ffffff', vertexColors: true, flat: true, paving: { size: 1.2, wear: 0.5 } }),
     metal: paintMaterial({ metal: 'painted' }),   // (a craft in flight: the cab's own paint)
     glow: paintMaterial({ glow: 1 }),
     mark: paintMaterial({}),
@@ -632,9 +634,11 @@ function meshesOf(P, mats, { solid = false, shadow = true, group = new THREE.Gro
 /** The port: its pad, its pieces and its traffic, from the city's data (src/levels/ports.js). */
 export function buildPort(port, { groundAt = null } = {}) {
   const F = hullFrame(port.site), mats = portMaterials();
-  const loose = new Parts(), solid = new Parts();
+  const loose = new Parts(), solid = new Parts(), pad = new Parts();
   const y0 = (() => { const g = groundAt?.(port.site.x, port.site.z); return Number.isFinite(g) ? g : port.site.y; })();
-  for (const L of port.pad ?? []) PAD[L.kind](loose, F, L, y0 + (L.dy ?? 0));
+  for (const L of port.pad ?? []) PAD[L.kind](pad, F, L, y0 + (L.dy ?? 0));
+  // (the pad's paint its own mesh, paved; its lamps, marks, cables and lights with the loose pieces')
+  for (const k of ['glow', 'mark', 'cable', 'lights']) { loose[k].push(...pad[k]); pad[k] = []; }
   for (const p of port.pieces ?? []) {
     if (!PIECE[p.kind]) throw new Error(`port ${port.id}: no piece "${p.kind}"`);
     PIECE[p.kind](p.solid ? solid : loose, p, spot(F, p, groundAt));
@@ -643,6 +647,7 @@ export function buildPort(port, { groundAt = null } = {}) {
   const berth = port.berth ? buildBerth(port.berth, port.site, y0, solid, mats, noShadow) : null;
   for (const k of ['glow', 'mark', 'cable']) { loose[k].push(...solid[k]); solid[k] = []; }   // (lamps, paint and cables never stop you)
   group.name = `${port.id} port`;
+  meshesOf(pad, { ...mats, matte: mats.deck }, { group, noShadow });
   meshesOf(loose, mats, { group, noShadow });
   meshesOf(solid, mats, { solid: true, group, noShadow });
   if (berth) group.add(berth.group);

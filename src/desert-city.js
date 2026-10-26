@@ -334,7 +334,8 @@ function fireLeaves(tips, pivot, rand) {
 // mesh per colour. The textured materials (strata, grids, glows) batch by
 // material as usual.
 const PAINT = {};
-const paintMaterial = (smooth, side) => PAINT[`${smooth}${side}`] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side === THREE.DoubleSide ? { side } : {}) });
+// (issue #691: a place may wear its paint weathered, the walls' hairline cracks and pen detail over it: Qanat's houses)
+const paintMaterial = (smooth, side, weathered = 0) => PAINT[`${smooth}${side}${weathered}`] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side === THREE.DoubleSide ? { side } : {}), ...(weathered ? { weathered } : {}) });
 const paint = (color, { smooth = false, side = THREE.FrontSide } = {}) => ({ paint: new THREE.Color(color), smooth, side });
 function painted(geo, c) {
   const n = geo.attributes.position.count, a = new Float32Array(n * 3);
@@ -350,13 +351,14 @@ class Kit {
     this.origin = origin.clone(); this.yaw = yaw;
     this.frame = new THREE.Matrix4().compose(origin, new THREE.Quaternion().setFromAxisAngle(UP, yaw), V(1, 1, 1));
     this.batches = new Map(); this.proxies = [];
+    this.weathered = 0;   // (its paint weathered: paintMaterial)
   }
   world(x, y, z) { return V(x, y, z).applyMatrix4(this.frame); }
   local(p) { return p.clone().applyMatrix4(this.frame.clone().invert()); }
   heading(h) { return h + this.yaw; }
   add(mat, geo) {
     let g = prep(geo).applyMatrix4(this.frame);
-    if (mat.paint) { g = painted(g, mat.paint); mat = mat.material ?? paintMaterial(mat.smooth, mat.side); }   // (material: a painted part with a material of its own)
+    if (mat.paint) { g = painted(g, mat.paint); mat = mat.material ?? paintMaterial(mat.smooth, mat.side, this.weathered); }   // (material: a painted part with a material of its own)
     wallOpenings.addGeometry(g, mat);   // (a window, a door: no crack runs through it)
     if (!this.batches.has(mat)) this.batches.set(mat, []);
     this.batches.get(mat).push(g);
@@ -387,7 +389,7 @@ function materials() {
   return {
     wall: makeMaterial({ color: '#f0d7c3', color2: '#e8c4ae', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 2.4, flat: true, weathered: true }),
     wallGlyph: makeMaterial({ color: '#efd8c4', color2: '#e3bfa8', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.4, glyphs: true }),
-    paving: makeMaterial({ color: '#e9d6bf', grid: 2.2, flat: true }),
+    paving: makeMaterial({ color: '#e9d6bf', grid: 2.2, flat: true, paving: 1.1 }),   // (issue #691: the square's flagstones)
     white: paint('#f6efe0'), pink: paint('#e9a99a'), rose: paint('#dd8f86'), ochre: paint('#e6b86f'), teal: paint('#5fb7ad'), lav: paint('#b7a0cf'),
     // domes are smooth (no facets on the shadow line)
     dWhite: paint('#f6efe0', { smooth: true }), dPink: paint('#e9a99a', { smooth: true }), dRose: paint('#dd8f86', { smooth: true }),
@@ -438,6 +440,7 @@ export function buildDesertCity(scene, terrain) {
   // ================================================================ Qanat
   const C = STORY.city;
   const city = new Kit(root, 'Old city of Qanat', V(C.x, floor, C.z), C.yaw);
+  city.weathered = 0.7;   // (issue #691: its painted houses and towers weathered, as its walls)
   const R = 64, WALL_H = 9.5, WALL_T = 3;
   const GATE = 0, BACK = Math.PI;   // local angles of the gates (+z main, -z back)
   const angOf = (a) => [Math.sin(a), Math.cos(a)];   // local angle → (x, z): 0 = +z

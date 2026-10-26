@@ -143,6 +143,8 @@ const BODIES = {
           float lft = 1.0 - smoothstep(ch * 0.5, ch, sf * sw), rgt = 1.0 - smoothstep(ch * 0.5, ch, (1.0 - sf) * sw);
           albedo *= 1.0 + near * (0.05 * max(top, lft) - 0.07 * max(foot, rgt));
           fpInkV = max(fpInkV, max(fpInkL(abs(cf * CH - ch), fpPx), fpInkL(abs(sf * sw - ch), fpPx)) * 0.16 * near);
+          // the makers' finish (machined.js) on the panel, as the floors' plates (issue #691)
+          fpInkV = max(fpInkV, mkFinish(vec2((sf - 0.5) * sw, (cf - 0.5) * CH), vec2(0.5 * sw, 0.5 * CH), si * 13.1 + ci * 7.7, fpPx, false, albedo));
           // a plate set in some panels (never in the lowest course): a round one, two rings; or an octagon round a ring
           float h = fpH2(vec2(si * 1.31, ci * 2.77) + 5.1);
           if (ci >= 1.0 && h < 0.34) {

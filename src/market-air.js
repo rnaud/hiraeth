@@ -50,7 +50,7 @@ export function buildMarketInTheAir(scene, M) {
     for (let i = 1; i <= n; i++) {
       const y = S.y0 + rise * i, za = S.z0 + run * (i - 1), zb = S.z0 + run * i;
       // (its ends Z_GAP inside the stringers' outer faces: they were one plane, cream and ink; issue #286)
-      K.slab(AIR.x0 + Z_GAP, AIR.x1 - Z_GAP, y - 0.18, y, Math.min(za, zb) - 0.04, Math.max(za, zb) + 0.04, M.cream);
+      K.slab(AIR.x0 + Z_GAP, AIR.x1 - Z_GAP, y - 0.18, y, Math.min(za, zb) - 0.04, Math.max(za, zb) + 0.04, M.deck ?? M.cream);
       treads.push(V(XM, y, (za + zb) / 2));
     }
     // the stringers under the treads' ends, and the rails over them (solid: a bar at hand height, posts every two metres)
@@ -76,7 +76,7 @@ export function buildMarketInTheAir(scene, M) {
   const legsAt = [59.5, 32.5, 5.5, -48.5, -75.5, -102.5, -129.5, -156.5, -183.5, -210.5];   // (the gaps between the street's stalls)
   const galleries = GALLERIES.map((G) => {
     const zN = Math.max(G.z0, G.z1), zS = Math.min(G.z0, G.z1);
-    K.slab(AIR.x0, AIR.x1, G.y - 0.3, G.y, zS, zN, M.cream);
+    K.slab(AIR.x0, AIR.x1, G.y - 0.3, G.y, zS, zN, M.deck ?? M.cream);
     for (const x of [AIR.x0 + 0.1, AIR.x1 - 0.1]) K.slab(x - 0.12, x + 0.12, G.y - 0.95, G.y - 0.3, zS, zN, M.ink);   // (the girders)
     for (const z of legsAt) if (z < zN - 0.5 && z > zS + 0.5) {
       for (const x of [AIR.x0 + 0.25, AIR.x1 - 0.25]) K.slab(x - 0.2, x + 0.2, 0, G.y - 0.95, z - 0.2, z + 0.2, M.ink);

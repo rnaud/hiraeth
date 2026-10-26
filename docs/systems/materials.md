@@ -484,6 +484,72 @@ frame), so they agree with the cast shadows. Still flat colour: the darker band 
   stone, the Glass Dunes drum, the City-Shaft paving, the Foundry walls). A fix belongs in `src/relief.js` (both
   renderers): a smaller cap, bands that start past the kernel's reach, or the relief kept out of what the colour-edge
   test reads.
+## The census's code-only list applied (issue #691)
+
+docs/audits/surfaces-v2.30.md's "code only" list: every item an existing pick covers, as options on materials (no new
+pattern, nothing in `src/surface-marks.js`), biggest walked share first. The census's walked table before and after is
+in the audit ("After #691").
+
+- **The City-Shaft** (`levels/incal.js`): the tiers' slabs, the spire's rings, the bridges and the palace landing
+  `paving` (`TIER_PAVING`, 1.6 m courses; their sides keep the steel grid); the red stairs (`incal.stair`, also
+  `shaft-ways.js`) paving treads (0.7 m) and `sheet` sides; the rim's and the palace's cream parapets `paleStone` (dry: its
+  foot far under the world, no damp band).
+- **Viridel**: the water stair's kerbs and stepping stones `paleStone` (`viridel-stair.js`, dry); the Builders'
+  Greenhouse's walls and floors in the makers' machined finish (below).
+- **The Garden of Spheres** (`levels/spheres.js`): the white stone (`white`, `pole`) `paleStone`, its tops its
+  flagstones; the plaza's painted rings `paving` (2.2 m, little tone: their joints stay few). The Footprint's wall panels
+  call `mkFinish` too (`skins/footprint.js` plaster body).
+- **The Signal Market**: a `deck` material (paving 0.9 m, sheet sides) for the market in the air's galleries and treads
+  and the square's approach; the awnings, crates and trims keep the plain cream (paving on their tilted tops would lay
+  flagstones on cloth). **The Underwater City**: `streetPale` paved as `street` (1.4 m).
+- **The Moon Foundry**: the shed roof's deck `plates` (S_PLATES: staggered plating with its tones; `sheet` draws on walls
+  only); the cast moons' ivory `rockTop` (every ivory tone, so they still merge into one draw).
+- **Vael**: the plain's great column and the riders' road's worn steps `paleStone`; the road's red walls keep their
+  ledged bands with `weathered` (rock, not masonry); the salmon slabs `rockTop`.
+- **The Desert**: Qanat's kit paints weathered (`Kit.weathered`, desert-city.js; the camps and the giant keep theirs),
+  its square `paving` 1.1 m; the Givers' dry channel's bed `rockTop` (it curves: `channel` follows an object's straight
+  axis only) and its bank stones `paleStone`.
+- **The Glass Dunes**: the buried city's floors `interior` tiles (0.9 m, no dado or skirting); posts and poles `timber`
+  posts. **Every port** (`levels/port-pad.js`): the pad's paint its own mesh, a `deck` material with `paving` 1.2 m (the
+  pieces keep the matte; one draw more a port).
+- **Home**: the landing ring `paving`; the tomb's and the stepping stones' stone `paleStone`.
+- **Posts and stakes**: the Glass Dunes' poles, the Buried Machine's Tooth Day posts, Lorn's water-way and the keepers'
+  stalks' wood `timber: { post: true }`.
+- Left: Lorn's crystals and the Glass Dunes' prism crossings (#686, S_CRYSTAL), the ship's hull, Vael's cloud banks, the sand drifts in the buried city.
+
+- **Cost**: M4 Pro, 1280 × 720, High, the shipped bundle, .claude/skills/perf-audit/fps.mjs with `--root` (base 3473729a0 against this change), the City-Shaft, Viridel, the Signal Market, the Garden and the Desert with their temples and shops. Not read cleanly: the machine was shared (load average 22 → 57 → 38 over the pair, 13 → 35 over two more City-Shaft pairs), and the same views moved by ±5 ms between runs of one build. Draw calls +0..+5 a view (the ports' pads one mesh more), programs +2..+6. To re-measure on a quiet machine.
+
+### The machined finish outside the skins (`skins/machined-plates.js`)
+
+`machinedMaterial(options, { plate, panel, obj, origin })`: a surface material spliced with the `machined` skin
+pattern (skin-shader.js, last in `SKIN_ORDER`, so the Unity port draws it from `SkinPatterns.hlsl` like every skin's):
+upward faces square plates (`plate` m) and the rest panels in courses (`panel` [w, h] m) along the face's dominant
+axis, each handed to `mkFinish` (its tone, inlaid border, sockets, machining marks), the joints inked fine, in the
+object's frame (`obj`, the default) or the world's from `origin`. Used for the makers' courts' pads (`finds/courts.js`,
+1.9 m plates) and their blocks and chests' plinths (`gadgets/yard-kit.js` stone, 1.2 m, also the Gadget Yard), and by
+`machinedHouseSkin()`, the Greenhouse's `def.skin`: its kit's wall and floor swapped for machined ones in its own
+colours before the layout and put back after (its exterior keeps its look).
+
+### Garden beds (`beds`, `S_BEDS`, `src/garden-beds-shader.js`) and the Rose House in red stone
+
+After the author's two picks of the census (`references/surfaces/garden-beds/sheet-1.jpg`, `rose-house/sheet-1.jpg`):
+
+- **Garden beds** (`makeMaterial({ beds })`: true, a row in m, or `{ row, turn, plants }`; `uBeds`: row, turn, plants,
+  on): on a material's upward faces, in the world's frame turned by `turn`: earth raked in straight furrows (a ridge lit,
+  a furrow shaded, a fine pen line along its bottom near), rows of seedlings and small rounded bushes along the ridges of
+  a share of the rows (`plants`; each a soft rosette lit on the sun's side with its shadow beside it), drier paler
+  patches (nothing planted there), pebbles with their shadows near. By size on screen: pebbles and pen lines first,
+  then the plants, the rows last; flat colour far. On Viridel's water stair beds (turned across the stair, the soil now
+  umber `#86694a`), the long seed row (a few rows sprouting), the tea terraces' earth, and home's raised beds (their own
+  mesh, `garden: beds’ earth`, no plants: their crops are modelled). Unity: `scripts/unity-export/beds-hlsl.mjs` writes
+  `Shaders/GardenBeds.hlsl`; Surface.shader calls it in a uniform branch on `_Beds.w`; port-format.js `beds`,
+  WorldLoader.cs `_Beds`; BridgeRenderer.Lean keeps it off the plain variant. `tests/garden-beds.test.js`.
+- **The Rose House** (`skins/rose-house.js`): its slate recoloured to the pick's red stone (walls `#a85a56`, floors
+  `#cf8676`, its trims, fittings and dressing to match), every slab and floor plate handed to `mkFinish` (machined.js:
+  its tone, an inlaid border, sockets, machining marks), and amber light inlaid along a share of the floor's 4.2 m
+  joints in long runs (`ROSE_SKIN.joints`: 40 % of the joint lines, 75 % of a lit line's plates), emissive and breathing
+  as its circuits, which are amber now. Never organic. The engraved bands of the pick are the friezes the house already
+  has. It ports as every skin's pattern (`SkinPatterns.hlsl`, regenerated).
 
 ## Faceted normals near the camera
 

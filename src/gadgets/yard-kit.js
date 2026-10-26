@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
+import { machinedMaterial } from '../temples/skins/machined-plates.js';
 import { registerTarget } from '../targets.js';
 import { buildItemModel } from '../boxes/model.js';
 import { thinPole } from '../thin.js';
@@ -29,7 +30,8 @@ export class YardKit {
     this.flammables = [];   // (src/flammable.js: lanterns an ember lights)
     const M = (o) => makeMaterial({ flat: false, ...o });
     this.mats = {
-      stone: M({ color: '#c9b79a', color2: '#b7a385', color3: '#a08d70', mode: MODE_STRATA, strataSize: 0.9 }),
+      // (issue #691: the makers' blocks and the chests' plinths in their machined finish, skins/machined-plates.js)
+      stone: machinedMaterial({ color: '#c9b79a', flat: false }, { plate: 1.2, panel: [1.2, 0.9] }),
       pale: M({ color: '#e6d7b8', color2: '#d9c7a3', color3: '#c2ad88', mode: MODE_STRATA, strataSize: 1.4 }),
       cracked: M({ color: '#d8b98e', color2: '#c9a479', color3: '#b38b62', mode: MODE_STRATA, strataSize: 0.6, cracks: 1 }),
       crack: makeMaterial({ color: '#2b211f', flat: true }),

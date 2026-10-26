@@ -1372,6 +1372,206 @@ export const CHANGELOG_MEDIA = {
   ],
   see: 'Walk onto a paved plaza or into a shop at midday and look at the joints. Add ?relief=0 to the address to see a world flat again.',
 },
+{
+  "match": "The Rose House is red stone inside, after its new ",
+  "shots": [
+    {
+      "name": "rose-house-floor",
+      "caption": "The first hall’s floor: rose plates, machined, amber light in some joints, where it was sandstone and violet slate",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change, after the picked sheets references/surfaces/rose-house and garden-beds; cwebp -q 70 -resize 960",
+      "view": "In the Rose House’s first hall by the groove and its pilot flame (a pinned camera, the same in both).",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "rose-house-hall",
+      "caption": "The hall toward the door: red stone slabs, their circuits amber",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change, after the picked sheets references/surfaces/rose-house and garden-beds; cwebp -q 70 -resize 960",
+      "view": "The same hall, looking at its far door (a pinned camera, the same in both).",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "The garden beds are tilled: Viridel’s water stair ",
+  "shots": [
+    {
+      "name": "viridel-beds",
+      "caption": "Viridel’s water stair: its beds furrowed brown earth with rows of seedlings, where they were one olive",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change, after the picked sheets references/surfaces/rose-house and garden-beds; cwebp -q 70 -resize 960",
+      "view": "Beside a bed of the water stair (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "home-beds",
+      "caption": "Home: the raised beds furrowed between their crops",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change, after the picked sheets references/surfaces/rose-house and garden-beds; cwebp -q 70 -resize 960",
+      "view": "Over the garden’s raised beds from the west gate (a pinned camera, the same in both). Noon; the family move between loads.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "The City-Shaft is paved where you walk: the blue-g",
+  "shots": [
+    {
+      "name": "shaft-tiers",
+      "caption": "A tier down the shaft by the red stair: flagstones of the blue-grey steel, each its tone, where it was one colour and a ruled grid",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On the third tier from the rim, beside the lamplighters’ red stair (a pinned camera, the same in both). Noon; the people move between loads.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "shaft-stair",
+      "caption": "The red stair: flagstone treads, painted metal down its side",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "Going down the red stair from the rim (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "Viridel’s water stair: its stepping stones and ker",
+  "shots": [
+    {
+      "name": "viridel-stones",
+      "caption": "The water stair’s stepping stones and kerbs in soft pale stone blocks",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On a stepping stone in the water stair’s beds (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "greenhouse",
+      "caption": "Inside the Greenhouse: machined wall panels and floor plates where it was a ruled white grid",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "The Greenhouse’s first hall, by the potting benches (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "The Garden of Spheres’ white stone is built of big",
+  "shots": [
+    {
+      "name": "garden-discs",
+      "caption": "A stepping disc by the pond: its top laid in pale flagstones",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On a stepping disc east of the pond (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "garden-tower",
+      "caption": "A tower’s foot: big soft blocks and its plinth’s flagstones",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "At the foot of a sphere tower (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "The Signal Market’s cream decks and stairs up the ",
+  "shots": [
+    {
+      "name": "market-decks",
+      "caption": "A cream gallery in the market in the air: small flags, each its tone",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On a gallery of the market in the air, looking down to the street (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "underwater-walks",
+      "caption": "The pale walkway round a dome, paved like the street",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On the deck round a dome (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "More surfaces that were one colour: Vael’s great c",
+  "shots": [
+    {
+      "name": "qanat-square",
+      "caption": "Qanat’s square paved, its houses weathered",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "In Qanat’s square toward the great tree (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "buried-city-floor",
+      "caption": "The city under the Glass Dunes: its streets in hand-laid tiles",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "In the city under the sand (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    },
+    {
+      "name": "dunes-port",
+      "caption": "The Glass Dunes’ port: its pad in flagstones",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On the port’s pad toward the caravan (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
+{
+  "match": "Every makers’ court is the makers’ own: its pad an",
+  "shots": [
+    {
+      "name": "makers-court",
+      "caption": "The Underwater City’s makers’ court: machined plates where it was one cream",
+      "from": "Issue #691: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the surface census’s views), a Vite of its own (port 5450); before: origin/main at 3473729a0, after: this change; cwebp -q 70 -resize 960",
+      "view": "On the court’s pad (a pinned camera, the same in both). Noon.",
+      "size": [
+        960,
+        540
+      ]
+    }
+  ]
+},
   ],
   '2.30': [
 {

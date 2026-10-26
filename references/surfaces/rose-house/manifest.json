@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the floors and walls of the first shrine of a vanished civilisation, cut from rose-red desert stone into precise ancient high technology: large floor slabs of rose and terracotta stone set in a strict grid with fine recessed joints, every slab its own close tone, thin inlaid lines of warm amber light running between some slabs and turning at right angles, a few small round sockets and a circular plate in the floor, tall wall panels of darker plum-red stone set at slightly different depths with crisp chamfered edges, a band of engraved geometric signs, very fine tooling marks, a faint polish where feet pass. Clean, precise, timeless, futuristic, never ruined. Three panels side by side: a large swatch of floor meeting wall; a long hall of this stone seen from a walker's height with a small figure and a brazier for scale; a strip showing the detail simplifying with distance, slabs and light lines staying, tooling marks gone far. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose, terracotta, plum and a single amber light accent, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, moss, vines, roots, organic, rot, ruins, rubble.",
+      "from": "docs/design/surface-prompts.md#rose-house",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-26-17-07-43-6da3",
+      "candidate": "openai/1",
+      "sha256": "484a90e4b11f4152dcfa79c5483ed5e1e0f5a17789f4814f545157a53aec54f2",
+      "bytes": 199840,
+      "costUSD": 0.041
+    }
+  ]
+}

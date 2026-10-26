@@ -11,7 +11,7 @@
 
 /** The skins in their fixed order: a pattern's number is its skin's place here × 8 + its body's place + 1. */
 export const SKIN_ORDER = ['rose-house', 'wardens-well', 'founders-belfry', 'footprint', 'engine-house', 'lamp-house', 'hush-house',
-  'aerie', 'clock-house', 'undertower', 'mooring-house', 'casting-house', 'whale-house', 'whale-sea'];
+  'aerie', 'clock-house', 'undertower', 'mooring-house', 'casting-house', 'whale-house', 'whale-sea', 'machined'];
 export const BODIES_PER_SKIN = 8;
 
 // the surface shader's lines a skin replaces (materials.js)

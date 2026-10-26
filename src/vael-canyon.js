@@ -113,9 +113,11 @@ function earGeometry() {
 export function buildRidersRoad(scene, terrain, { uncut = (x, z) => terrain.heightAt(x, z) } = {}) {
   const H = (x, z) => terrain.heightAt(x, z);
   const top = (x, z) => Math.max(H(x, z), uncut(x, z));   // (the plain the cap is laid on, as it was)
-  const stone = makeMaterial({ color: '#efe4cf', color2: '#e2cfae', color3: '#d8c7a8', mode: MODE_STRATA, strataSize: 0.9, flat: true });
+  // (issue #691: the worn steps in the picked pale stone, src/surface-marks.js paleStone; the red walls keep their ledged
+  // bands, with the weathered walls' hairline cracks over them: rock, not masonry)
+  const stone = makeMaterial({ color: '#efe4cf', color2: '#e2cfae', color3: '#d8c7a8', flat: true, paleStone: { course: 0.8, block: 1.7, foot: -1000, wear: 0.9 } });
   const pale = makeMaterial({ color: '#f4efe2', color2: '#e6dcc6', color3: '#d6c7a8', mode: MODE_STRATA, strataSize: 1.2, flat: true });
-  const red = makeMaterial({ color: '#c7735a', color2: '#d98a6c', color3: '#a65a46', mode: MODE_STRATA, strataSize: 2.2, flat: true });
+  const red = makeMaterial({ color: '#c7735a', color2: '#d98a6c', color3: '#a65a46', mode: MODE_STRATA, strataSize: 2.2, flat: true, weathered: 0.8 });
   const capMat = makeMaterial({ ...terrain.materialOptions, drift: true });
   const dark = makeMaterial({ color: '#4a2f2c', flat: true });
   const iron = makeMaterial({ color: '#3c4660', flat: true });

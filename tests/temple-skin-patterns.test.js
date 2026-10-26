@@ -52,7 +52,7 @@ test('the web\'s shader is spliced as the skins did by hand: the body over the a
   const m = makeMaterial({ flat: true, color: '#5e5462', key: 'test.skin.splice' });
   const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
   // (rose-house.js before skin-shader.js, word for word)
-  const old = S.pars + fs.slice(0, at) + S.glsl + fs.slice(at).replace('vec3 albedo = uColor;', S.bodies.slab)
+  const old = S.pars + S.defines + fs.slice(0, at) + S.glsl + fs.slice(at).replace('vec3 albedo = uColor;', S.bodies.slab)
     .replace('float detail = 0.0;', 'float detail = skInk;').replace('float emit = 0.0;', 'float emit = skEmit;');
   spliceSkin(m, S, 'slab');
   assert.equal(m.fragmentShader, old);

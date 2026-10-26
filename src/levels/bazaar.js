@@ -72,6 +72,9 @@ export function* buildBazaar(scene) {
   const PRINT = { shadeFlat: MARKET_FLAT, ...LT };
   const coral = mat('#f0a083', { grid: 12, weathered: 0.7, ...PRINT }), teal = mat('#88b4b5', { grid: 9, weathered: 0.7, ...PRINT });   // (old painted plaster: materials.js WEATHER)
   const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab', PRINT), brass = mat('#c99758', { metal: 'brass' });
+  // (issue #691: the cream decks walked on, the market in the air's galleries and treads and the square's approach, laid in
+  // small flags on top, painted sheet metal down their sides; the awnings, crates and trims keep the plain cream)
+  const deck = mat('#f5dfab', { ...PRINT, paving: { size: 0.9, wear: 0.6 }, sheet: { panel: [1.6, 0.5] } });
   const paving = mat('#a4c1be', { grid: 10, paving: 2, ...LT }), lilac = mat('#b9a9c5', PRINT);
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
   const shop = colors.map(c => mat(c, { weathered: 0.7, ...PRINT }));
@@ -301,7 +304,7 @@ export function* buildBazaar(scene) {
     towerPosters.push({x:0,y:y+6,z:-239.9,w:20,h:10,yaw:0,k},{x:-13,y:y+6,z:-255,w:21,h:10,yaw:-Math.PI/2,k},{x:13,y:y+6,z:-255,w:21,h:10,yaw:Math.PI/2,k});
   }
   for(let k=1;k<=6;k++) box(k%2?-7:7,k*6,-238,12,.65,8,teal);
-  box(0,SIGNAL.deckY-.5,SIGNAL.approachZ,30,1,12,cream);
+  box(0,SIGNAL.deckY-.5,SIGNAL.approachZ,30,1,12,deck);
   // Roof console and aerial, with an open front landing edge.
   box(0,45.2,-238,3,2.4,1.6,coral);
   box(0,46,-237.1,2,.8,.12,glow,false);
@@ -446,7 +449,7 @@ export function* buildBazaar(scene) {
   // behind the east towers, the way home from the square
   yield;
   const XM = {
-    ink, brass, cream, dark, glow, lilac, paving, shop, teal,
+    ink, brass, cream, deck, dark, glow, lilac, paving, shop, teal,
     painted: mat('#ffffff', { vertexColors: true, ...PRINT }), wood: mat('#a07a58', LT), lamp: mat('#ffd59a', { glow: 0.8 }),
     stone: mat('#e9d8b6', { grid: 4, weathered: 0.6, ...PRINT }), flag: mat('#c9b9a2', { grid: 2.5, weathered: 0.5, ...LT }),
     recess: mat('#6f8f98', PRINT), glass: mat('#cfe8dc', { glow: 0.45 }),

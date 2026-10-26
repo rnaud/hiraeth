@@ -26,10 +26,10 @@ export const TREATMENTS = [
   'S_FORM', 'S_FOLDS', 'S_SCRUB', 'METAL_BRUSHED', 'METAL', 'S_TICKS', 'S_SANDINK', 'S_RIPPLES', 'S_BIOMES', 'S_CREASES',
   // (since v2.27: issues #669, #677, #685, #686)
   'S_PAVING', 'S_INTERIOR', 'S_SHEET', 'S_TIMBER', 'S_GROUNDMID', 'S_SEAWALL', 'S_PALESTONE', 'S_BURIED', 'S_DOMES',
-  'S_CHANNEL', 'S_ROCKTOP', 'S_CRYSTAL',
+  'S_CHANNEL', 'S_ROCKTOP', 'S_CRYSTAL', 'S_BEDS',
 ];
 /** The ones added after the v2.27 census (what a material treated since then carries). */
-export const NEW_TREATMENTS = ['S_PAVING', 'S_INTERIOR', 'S_SHEET', 'S_TIMBER', 'S_GROUNDMID', 'S_SEAWALL', 'S_PALESTONE', 'S_BURIED', 'S_DOMES', 'S_CHANNEL', 'S_ROCKTOP', 'S_CRYSTAL'];
+export const NEW_TREATMENTS = ['S_PAVING', 'S_INTERIOR', 'S_SHEET', 'S_TIMBER', 'S_GROUNDMID', 'S_SEAWALL', 'S_PALESTONE', 'S_BURIED', 'S_DOMES', 'S_CHANNEL', 'S_ROCKTOP', 'S_CRYSTAL', 'S_BEDS'];
 /** The classes counted in the shares, in table order. */
 export const COUNTED = ['treated', 'skin', 'skin-bare', 'grid', 'bands', 'plain', 'pending'];
 /** Left out of the shares (v2.27's exclusions). */

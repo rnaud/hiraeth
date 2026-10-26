@@ -297,3 +297,36 @@ Footprint's white walls (the machined finish exists), the cast moons (small, `pa
    the Greenhouse's machined finish, then the rest of the table. Each one a material option on an existing define
    except the two new picks.
 3. Rerun `node scripts/surface-census/census.mjs` after each batch of materials: the walked table is the measure.
+
+## After #691 (the code-only list, the garden beds and the Rose House)
+
+Issue #691 applied every item of the code-only list above, and the author's two picks (`garden-beds`, `rose-house`), as
+options on materials and two shader pieces (`S_BEDS`, the `machined` skin pattern): docs/systems/materials.md, "The
+census's code-only list applied". Re-run with the same census (`node scripts/surface-census/census.mjs`, High, noon,
+`?batch=0`), before at 3473729a0 and after on the change, the same walk. Walked shares (%, every ray's hit):
+
+| world | treated + skin, before | after | flat left (skin-bare, grid, bands, plain), before | after |
+|---|---|---|---|---|
+| The Desert | 9.3 | **32.7** | 18.7 | **8.1** |
+| Vael | 44.6 | **52.1** | 18.4 | **10.9** |
+| Lorn | 16.4 | **18.1** | 7.2 | **5.4** |
+| Viridel | 14.0 | **38.8** | 35.5 | **10.7** |
+| The Underwater City | 64.7 | **76.7** | 13.3 | **1.5** |
+| The City-Shaft | 45.9 | **88.5** | 53.0 | **10.4** |
+| The Glass Dunes | 24.8 | **37.0** | 14.9 | **5.7** |
+| The Buried Machine | 26.2 | **29.8** | 7.3 | **3.6** |
+| The Moon Foundry | 72.0 | **83.7** | 15.7 | **4.0** |
+| The Garden of Spheres | 35.5 | **57.5** | 24.5 | **2.3** |
+| The City Floating in Space | 88.8 | **90.4** | 9.4 | **7.7** |
+| The Signal Market | 76.9 | **92.0** | 18.6 | **3.4** |
+| Home | 4.3 | **16.6** | 22.8 | **10.6** |
+
+The City-Shaft's flat share fell from 53 to 10 %, Viridel's from 36 to 11, the Garden's from 25 to 2, the Signal Market's
+from 19 to 3, the Underwater City's from 13 to 2. One caution: the Desert's jump is partly the census's: Qanat's square
+lies in the plane of the sand under it, and a ray that meets both at the same distance counts the first in the scene's
+order, which this change moved (11 points of the 23 the Desert gained are the square's "under" rays, 0 before).
+
+Left flat where you walk: the Lorn crystals and the Glass Dunes' prisms (#686), the ship at home (3.9), the City-Shaft's
+small pads and the Warden's Well's exterior floor (grid, 1–2 each), the Greenhouse's exterior floor (3.4, the house's
+`M.floor` outside the skin), home's fence (3.8), the Desert's fallen giant and camps (2.5), Vael's Belfry cloud and the
+Aerie's painted pieces (1.8, 1.4).

@@ -203,13 +203,15 @@ export function flowerModel(kind, seed = 1) {
  * moons) and lines for their names, over a low plinth and a slab; a jar of dried flowers.
  * @returns { group (tomb-local: +z faces the path), place(meshes) , add(mesh, i, n), clear(), slots(n), stand, heading }
  */
+/** (issue #691) Home's pale stones (the tomb's terrace, the stepping stones): the picked pale stone, dry (src/surface-marks.js paleStone). */
+const HOME_STONE = { course: 0.6, block: 1.3, foot: -1000, wear: 0.8 };
 function buildTomb(scene, mat) {
   const group = new THREE.Group();
   group.name = 'tomb';
   group.position.copy(HOME_SPOTS.tomb);
   group.rotation.y = HOME_SPOTS.tombYaw;
   scene.add(group);
-  const stone = mat('#dccab0', { flat: true }), pale = mat('#efe2c4'), ink = mat('#2b211f', { flat: true });
+  const stone = mat('#dccab0', { flat: true, paleStone: HOME_STONE }), pale = mat('#efe2c4'), ink = mat('#2b211f', { flat: true });
   const add = (geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); group.add(mesh); return mesh; };
   add(new THREE.BoxGeometry(2.0, 0.22, 1.6), stone, 0, 0.11, 0);
   add(new THREE.BoxGeometry(1.7, 0.12, 1.15), pale, 0, 0.28, 0.12);
@@ -289,7 +291,7 @@ export function* buildHome(scene) {
   const smallProps = [];
   const mat = (color, o = {}) => makeMaterial({ color, ...o });
   const add = (geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); scene.add(mesh); return mesh; };
-  const cream = mat('#f3ead8'), ink = mat('#2b211f'), iron = mat('#2b211f', { metal: 'iron' }), stone = mat('#dccab0', { flat: true }), terracotta = mat('#c8483a', { flat: true });
+  const cream = mat('#f3ead8'), ink = mat('#2b211f'), iron = mat('#2b211f', { metal: 'iron' }), stone = mat('#dccab0', { flat: true, paleStone: HOME_STONE }), terracotta = mat('#c8483a', { flat: true });
   const teal = mat('#5fb7ad'), tealDark = mat('#3f8f8a'), lilac = mat('#b9a3c9', { flat: true });
 
   // ---------------------------------------------------------- the round house (the parents'): walked into, dark and still
@@ -345,7 +347,7 @@ export function* buildHome(scene) {
   yield;
   {
     const { x, z } = HOME_SPOTS.ship;
-    add(new THREE.CylinderGeometry(17, 17.4, 0.3, 48), mat('#efe2c4', { flat: true }), x, 0.0, z);
+    add(new THREE.CylinderGeometry(17, 17.4, 0.3, 48), mat('#efe2c4', { flat: true, paving: { size: 1.6, wear: 0.5 } }), x, 0.0, z);   // (issue #691: laid in flagstones)
     const mark = add(new THREE.RingGeometry(14.2, 15, 64).rotateX(-Math.PI / 2), terracotta, x, 0.17, z);
     mark.userData.noCollide = true;
     // The maker’s mark, painted beside the landing ring.

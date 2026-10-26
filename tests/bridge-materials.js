@@ -51,6 +51,7 @@ export const REQUIRED_MATERIAL_KEYS = {
     "define:S_SEAWALL",
     "define:S_PALESTONE",
     "define:S_BURIED",
+    "define:S_BEDS",
     "uniform:uPortraitFaceAmount",
     "uniform:uExpression",
     "uniform:uHeadBall",

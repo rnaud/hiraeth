@@ -68,7 +68,8 @@ function slabGeometry(r, thick, seed) {
 
 export function buildFallingUp(scene, terrain) {
   const H = (x, z) => terrain.heightAt(x, z);
-  const peach = makeMaterial({ color: '#eda584', color2: '#f2b48f', color3: '#c97a5c', mode: MODE_STRATA, strataSize: 1.6, flat: true });
+  // (issue #691: the slabs' walked tops as the sky stones' rock tops, src/surface-marks.js rockTop; their sides keep the strata)
+  const peach = makeMaterial({ color: '#eda584', color2: '#f2b48f', color3: '#c97a5c', mode: MODE_STRATA, strataSize: 1.6, flat: true, rockTop: true });
   const rose = makeMaterial({ color: '#c7735a', color2: '#d98a6c', color3: '#a65a46', mode: MODE_STRATA, strataSize: 1.8, flat: true });
   const bone = makeMaterial({ color: '#f4efe2', color2: '#e6dcc6', color3: '#d6c7a8', mode: MODE_STRATA, strataSize: 3, flat: true });
   const ink = makeMaterial({ color: '#8a5a48', flat: true });

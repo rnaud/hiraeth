@@ -1,6 +1,7 @@
 import { glyphGeometry } from '../story/sign-text.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
+import { machinedMaterial } from '../temples/skins/machined-plates.js';
 import { gadgetById } from '../gadgets/registry.js';
 import { YardKit } from '../gadgets/yard-kit.js';
 import { shiftAt, offsetOf } from '../levels/names.js';
@@ -292,7 +293,8 @@ export const courtBoxOf = (id) => (level) => level?.finds?.courts?.[id]?.box ?? 
 
 let mats = null;
 const courtMats = () => (mats ??= {
-  pave: makeMaterial({ color: '#e9dcc0', color2: '#ddcda9', color3: '#cdb98f' }),
+  // (issue #691: the makers' pad in their machined finish, plates on top, panels round its edge: skins/machined-plates.js)
+  pave: machinedMaterial({ color: '#e9dcc0', flat: false }, { plate: 1.9, panel: [1.9, 0.6] }),
   skirt: makeMaterial({ color: '#cbb894', color2: '#b9a37c', color3: '#a58f68' }),
   blue: makeMaterial({ color: '#3d6fa8', flat: true }),
   glow: makeMaterial({ color: '#bfe9ff', flat: true, glow: 0.8 }),

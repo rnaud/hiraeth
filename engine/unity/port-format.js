@@ -187,6 +187,8 @@ export function portMaterial(spec, id = 0) {
   if (Array.isArray(u.uRockTop) && u.uRockTop[3] > 0) e.rockTop = u.uRockTop.slice(0, 4).map(r5);
   // and issue #686's: Lorn's crystals, faceted (their uv, facetUV's, rides in the form's slot: Surface.shader)
   if (Array.isArray(u.uFacetMarks) && u.uFacetMarks[3] > 0) e.facetMarks = u.uFacetMarks.slice(0, 4).map(r5);
+  // and issue #691's: garden beds (furrows, plants, dry patches, pebbles on its upward faces)
+  if (Array.isArray(u.uBeds) && u.uBeds[3] > 0) e.beds = u.uBeds.slice(0, 4).map(r5);
   if (typeof u.uFarNear === 'number' && typeof u.uFarScale === 'number') e.farDepth = [r5(u.uFarNear), r5(u.uFarScale), 0, 0];
   if (spec.defines?.S_THIN && v('uThinPx') > 0) e.thinPx = r5(v('uThinPx'));
   if (spec.defines?.LINE_FAR && Array.isArray(u.uLineFar)) e.lineFar = [...u.uLineFar.slice(0, 3).map(r5), 1];

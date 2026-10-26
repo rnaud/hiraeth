@@ -145,7 +145,7 @@ export function* buildGlassDunes(scene) {
     glassFlow: kit.mat(glassOptions({ hatch: 0.1, glow: 0.2, shadeFlat: GLASS_FLAT })),
     light: kit.mat({ color: '#d4f8b4', glow: 0.95, flat: true, line: 0.25, lineTint: 1 }),
     dark: kit.mat({ color: '#2f5c4d', flat: true, spot: 0 }),
-    pole: kit.mat({ color: '#4b3b30', flat: true }),
+    pole: kit.mat({ color: '#4b3b30', flat: true, timber: { post: true } }),   // (issue #691: the posts and poles in worked timber)
     cloth: ['#ead6b4', '#dcb98f', '#d2c6a8', '#c9a27e'].map((c) => kit.mat({ color: c, flat: true, side: THREE.DoubleSide, hatch: 0.5 })),
     rug: ['#b5523e', '#c98a4a', '#7f6aa0', '#4f8a7f'].map((c) => kit.mat({ color: c, flat: true })),
     crate: kit.mat({ color: '#9b7652', flat: true }),

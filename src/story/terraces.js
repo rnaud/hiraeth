@@ -135,7 +135,8 @@ export function setupTerraces(ctx) {
 
   const root = new THREE.Group(); root.name = 'terraces';
   scene.add(root);
-  const earthMat = makeMaterial({ color: '#9a7d52', flat: true, side: THREE.DoubleSide });
+  // (issue #691: tilled in furrows along the terraces, rows of tea bushes, after references/surfaces/garden-beds: src/garden-beds-shader.js)
+  const earthMat = makeMaterial({ color: '#9a7d52', flat: true, side: THREE.DoubleSide, beds: { row: 0.7, plants: 0.75 } });
   const stoneMat = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3, glyphs: true, side: THREE.DoubleSide, paving: { size: 1.5, wear: 0.3, tone: 0.6 } });   // (the terraces' tops paved: src/paving-shader.js, issue #669)
   const foamMat = makeMaterial({ color: '#cfeef0', color2: '#9ad3d9', flat: true, glow: 0.15 });
   const accent = makeMaterial({ color: '#62c3c9', flat: true, grid: 3 });

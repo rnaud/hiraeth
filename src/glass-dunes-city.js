@@ -63,6 +63,8 @@ export const CITY = {
 };
 CITY.landingHeading = Math.atan2(CITY.tower.x - CITY.landing[0], CITY.tower.z - CITY.landing[2]);   // (the tower ahead as you land)
 /** The city's look (sRGB): pale stone and green glass, as the sheets'. */
+/** (issue #691) The buried city's floors: hand-laid tiles (src/surface-marks.js interior), a few odd ones, no dado or skirting on their edges. */
+const BURIED_FLOOR = { tile: 0.9, odd: 0.05, dadoColor: null, skirtColor: null };
 export const CITY_LOOK = { stone: '#ece2cc', stone2: '#ded2b8', floor: '#ddd3bc', glass: '#86d6aa', lit: '#c8f7c4', ceiling: '#a9e4c4', sand: '#e8c48f', print: '#8f6c4c', pane: '#9fe6c0' };
 
 // ------------------------------------------------------------------ the ground
@@ -216,7 +218,7 @@ function buildCity(scene, M, veils) {
     // (issue #677: the wind's bands and the sand against the walls, src/surface-marks.js BURIED_CITY; the floor at the city's own height)
     stone: kit.mat({ color: L.stone, flat: true, hatch: 0.45, line: 0.6, shade: 0.5, buriedCity: { foot: CITY.at[1] } }),
     stone2: kit.mat({ color: L.stone2, flat: true, hatch: 0.4, line: 0.6, shade: 0.5, buriedCity: { foot: CITY.at[1] } }),
-    floor: kit.mat({ color: L.floor, flat: true, hatch: 0.3, line: 0.4 }),
+    floor: kit.mat({ color: L.floor, flat: true, hatch: 0.3, line: 0.4, interior: BURIED_FLOOR }),   // (issue #691: hand-laid tiles, src/surface-marks.js INTERIOR)
     glass: kit.mat({ color: L.glass, flat: true, glow: 0.35, line: 0.4, lineTint: 0.8, spot: 0 }),
     lit: kit.mat({ color: L.lit, flat: true, glow: 0.9, line: 0.2 }),
     sand: kit.mat({ color: L.sand, flat: true, hatch: 0.35, spot: 0 }),
@@ -323,7 +325,7 @@ export function buildSandCity(scene, M, { ground, veils = null } = {}) {
     // (issue #677: the wind's bands, no sand line: what each window shows lies at its own depth)
     stone: kit.mat({ color: L.stone, flat: true, hatch: 0.45, line: 0.6, shade: 0.5, buriedCity: { sand: 0 } }),
     stone2: kit.mat({ color: L.stone2, flat: true, hatch: 0.4, line: 0.6, shade: 0.5, buriedCity: { sand: 0 } }),
-    floor: kit.mat({ color: L.floor, flat: true, hatch: 0.3, line: 0.4 }),
+    floor: kit.mat({ color: L.floor, flat: true, hatch: 0.3, line: 0.4, interior: BURIED_FLOOR }),   // (issue #691: hand-laid tiles, src/surface-marks.js INTERIOR)
     glass: kit.mat({ color: L.glass, flat: true, glow: 0.4, line: 0.4, lineTint: 0.8, spot: 0 }),
     lit: kit.mat({ color: L.lit, flat: true, glow: 0.9, line: 0.2 }),
     face: kit.mat({ color: '#f6f0e4', flat: true, glow: 0.5, spot: 0 }),

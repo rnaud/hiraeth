@@ -307,7 +307,10 @@ export function buildDryChannel(scene, terrain, O) {
     if (i % 10 === 0 || i === sand.length - 1) line.push([b.x, b.y + C.bed, b.z]);   // (its line, every 30 m: the level design audit follows it)
   }
   const group = new THREE.Group(); group.name = 'The Givers’ dry channel';
-  for (const [list, mat] of [[bed, makeMaterial({ color: '#c49a68', flat: true, side: THREE.DoubleSide })], [kerb, makeMaterial({ color: '#d9c3a0', flat: true })]]) {
+  // (issue #691: its bed the open ground's dry, crusted and fissured rock, src/surface-marks.js rockTop: it runs curved, so
+  // the water channels' own marks, laid along an object's straight axis, can't follow it; its bank stones pale stone)
+  for (const [list, mat] of [[bed, makeMaterial({ color: '#c49a68', flat: true, side: THREE.DoubleSide, rockTop: { cell: 0.9, pebbles: 0.6, amount: 1 } })],
+    [kerb, makeMaterial({ color: '#d9c3a0', flat: true, paleStone: { course: 0.5, block: 1.2, foot: -1000, wear: 1.2 } })]]) {
     const m = new THREE.Mesh(mergeGeometries(list), mat);
     m.userData.noCollide = true; m.receiveShadow = true;
     group.add(m);

@@ -136,6 +136,10 @@ export const PASTELS = ['#f1e6cf', '#eaa58e', '#f3ead8', '#efb7a2', '#efe2c8', '
 export const RUST = ['#d9a998', '#cdb38e', '#e2b9a6', '#c9b596', '#d39c8a'];               // warmer, dustier lower down
 export const ROOFS = ['#d9784f', '#c8673f', '#e08a5c', '#b9603e'];                         // terracotta
 export const STEEL = { color: '#9fb2c6', color2: '#8aa0b8', color3: '#b3c3d3' };            // blue-grey structure
+/** (issue #691) The tiers' walked tops, the spire's rings and the palace landing laid in flagstones (src/paving-shader.js; their sides keep the grid). */
+export const TIER_PAVING = { size: 1.6, wear: 0.6 };
+/** (issue #691) The rim's and the palace's cream parapets in pale stone (src/surface-marks.js paleStone), dry and clean. */
+const PARAPET_STONE = { course: 0.8, block: 1.9, foot: -1000, wear: 0.5 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildIncal(scene) {
@@ -257,7 +261,7 @@ export function* buildIncal(scene) {
     for (let i = 0; i < 24; i++) {
       if (i % 4 === 0) continue;
       const a0 = (i / 24) * TAU, a1 = a0 + TAU / 24 * 0.9;
-      const p = new THREE.Mesh(sectorGeometry(R, R + 2.5, a0, a1, 1.6), makeMaterial({ color: '#f3ead8', flat: true }));
+      const p = new THREE.Mesh(sectorGeometry(R, R + 2.5, a0, a1, 1.6), makeMaterial({ color: '#f3ead8', flat: true, paleStone: PARAPET_STONE }));
       p.position.y = TOP + 1.6;
       scene.add(p);
     }
@@ -339,7 +343,7 @@ export function* buildIncal(scene) {
       }
       curGroup = `t${li}`; curY = y;
       const slab = new THREE.Mesh(sectorGeometry(r0, R, a0, a1, 7),
-        strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 }));
+        strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3, paving: TIER_PAVING }));
       slab.position.y = y;
       scene.add(slab);
       terraces.push({ y, r0, a0, a1, width });
@@ -471,7 +475,7 @@ export function* buildIncal(scene) {
 
     // rings around the spire at each level + bridges to the terraces
     LEVELS.forEach((y) => {
-      const ring = new THREE.Mesh(sectorGeometry(SPIRE_R, SPIRE_RING, 0, TAU, 4), strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 }));
+      const ring = new THREE.Mesh(sectorGeometry(SPIRE_R, SPIRE_RING, 0, TAU, 4), strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3, paving: TIER_PAVING }));
       ring.position.y = y;
       scene.add(ring);
       const level = terraces.filter((t) => t.y === y);
@@ -482,7 +486,7 @@ export function* buildIncal(scene) {
         const len = t.r0 - SPIRE_RING + 2;
         const mid = SPIRE_RING - 1 + len / 2;
         const g = new THREE.BoxGeometry(len, 2.5, 7);
-        const m = new THREE.Mesh(g, strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3.5 }));
+        const m = new THREE.Mesh(g, strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3.5, paving: { ...TIER_PAVING, size: 1.2 } }));
         m.position.set(Math.cos(phi) * mid, y - 1.25, Math.sin(phi) * mid);
         m.rotation.y = -phi;
         scene.add(m);
@@ -824,8 +828,8 @@ export function* buildIncal(scene) {
     places.wren = P3(la - 0.02, low.r0 + 1.2, low.y);
     places.bottom = low;
     places.lights = [];   // warm lamps along the lower terraces, lit when the Lodestar is (Vector4s: the story moves them in)
-    const gold = makeMaterial({ color: '#f2c54b', grid: 5, metal: 'brass', refl: 0.55 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
-    const cream = makeMaterial({ color: '#f3ead8', flat: true }), ink = makeMaterial({ color: '#34405e', flat: true });
+    const gold = makeMaterial({ color: '#f2c54b', grid: 5, metal: 'brass', refl: 0.55 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3, paving: TIER_PAVING });
+    const cream = makeMaterial({ color: '#f3ead8', flat: true, paleStone: PARAPET_STONE }), ink = makeMaterial({ color: '#34405e', flat: true });
     // the small things up on the palace and down at the shrine drop out when you are far above or below them
     const palaceG = new THREE.Group(), shrineG = new THREE.Group();
     scene.add(palaceG, shrineG);
@@ -973,7 +977,8 @@ export function* buildIncal(scene) {
     const thB = top.a0 - STAIR.gangway;                      // the foot of the last flight: the landing on the terrace's end
     const drop = (TOP - top.y) / STAIR.flights, n = Math.round(drop / STAIR.rise), rise = drop / n;
     const flight = ((thB - thA) * rc - (STAIR.flights - 1) * STAIR.landing) / STAIR.flights, tread = flight / n;
-    const red = makeMaterial({ color: '#d0694a', flat: true, key: 'incal.stair' });
+    // (issue #691: its treads laid in small flags, its sides painted sheet metal; shaft-ways.js's the same material)
+    const red = makeMaterial({ color: '#d0694a', flat: true, paving: { size: 0.7, wear: 0.5 }, sheet: { panel: [1.4, 0.9] }, key: 'incal.stair' });
     const pipe = makeMaterial({ color: '#b24a36', flat: true, metal: 'iron' });
     const steelS = strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 });
     const cream = makeMaterial({ color: '#f3ead8', flat: true });

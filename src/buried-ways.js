@@ -35,7 +35,7 @@ export function buildToothPosts(scene, terrain) {
     rust.push(nonIdx(new THREE.CylinderGeometry(0.28, 0.28, 0.1, 6, 1, false, 0, Math.PI * 0.7).rotateX(Math.PI / 2).translate(0, h + 0.38, 0)).applyMatrix4(m));
     pts.push([x, y + 0.5, z]);
   }
-  const posts = new THREE.Mesh(mergeGeometries(wood), makeMaterial({ color: '#a8917a', flat: true }));
+  const posts = new THREE.Mesh(mergeGeometries(wood), makeMaterial({ color: '#a8917a', flat: true, timber: { post: true } }));   // (issue #691: worked timber posts)
   posts.name = 'The Tooth Day posts';
   const slivers = new THREE.Mesh(mergeGeometries(rust), makeMaterial({ color: '#b5583a', flat: true, metal: 'iron' }));
   // (drawn only, thin posts you walk beside: as solids they shifted the contact audit's sampling of the whole world)

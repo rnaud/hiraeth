@@ -28,7 +28,7 @@ export const WATER_WAY = [[56, -368], [95, -342], [118, -296], [120, -232], [108
 export const LAMP_RAFT = { x: 124 + OX, z: -236 + OZ };
 
 export function buildWaterWay(scene, terrain) {
-  const wood = makeMaterial({ color: '#3a3446', flat: true });
+  const wood = makeMaterial({ color: '#3a3446', flat: true, timber: { post: true } });   // (issue #691: worked timber, src/surface-marks.js TIMBER)
   const dark = makeMaterial({ color: '#6a5a5e', flat: true });
   const lamp = makeMaterial({ color: '#f2a07a', glow: 1 });
   const posts = [], glass = [];
@@ -89,7 +89,7 @@ export function buildKeepersStalks(scene, terrain) {
   const { x, z, r, step } = KEEPERS_STALKS;
   const S = steppedColumns({ x, z, r, step, sides: 12, ground: (px, pz) => terrain.heightAt(px, pz), face: Math.atan2(-z, -x) });
   const stalk = makeMaterial({ color: '#a49cc8', color2: '#b9b3d9', flat: true });
-  const wood = makeMaterial({ color: '#3a3446', flat: true });
+  const wood = makeMaterial({ color: '#3a3446', flat: true, timber: { post: true } });   // (issue #691: worked timber, src/surface-marks.js TIMBER)
   const dark = makeMaterial({ color: '#6a5a5e', flat: true });
   const lamp = makeMaterial({ color: '#f2a07a', glow: 1 });
   // the keepers' lamp on its post at the tallest stalk's back edge, away from the climb

@@ -12,6 +12,7 @@ import { Door, Plate, Ball, Switch, Platform, Bridge, Seed, Bud, Glass, Sunbeam,
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { gardenerModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { machinedHouseSkin } from './skins/machined-plates.js';
 
 // Viridel's temple: the Builders' Greenhouse, a round house of the white
 // builders' clean stone under a great ribbed dome of glass, in the meadow
@@ -1180,6 +1181,7 @@ export const EDENA_TEMPLE = {
   gadget: 'bloom', gadgetBox: 'edena.temple.bloom', arenaDoor: 'd4', arenas: ARENAS,
   origin: [300, 1700, -450], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
+  skin: machinedHouseSkin({ wall: [3.2, 2.8], plate: 2.4 }),   // (issue #691: its walls and floors in the makers' machined finish, skins/machined-plates.js)
   layout, exterior, change,
   local: { person: 'sorrel', out: 15, side: 6 },
   enterLine: 'Inside the Greenhouse it is warm and green-lit and smells of earth, and nothing grows. Every pot holds a dead stick.',

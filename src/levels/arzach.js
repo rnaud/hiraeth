@@ -245,7 +245,8 @@ function* buildVaelPlain(scene, terrain) {
     const spike = new THREE.ConeGeometry(2, 30, 6).translate(0, H0 + 34, 0);
     const foot = new THREE.CylinderGeometry(13.05, 13.6, H - H0 + 0.6, 12, 2).translate(0, -(H - H0) / 2 + 0.3, 0);
     const tower = new THREE.Mesh(mergeGeometries([shaft, room, balcony, spike, foot].map((p) => p.index ? p.toNonIndexed() : p)),
-      makeMaterial({ color: '#f6f0e2', color2: '#e9d9bd', color3: '#d8a24a', mode: MODE_STRATA, strataSize: 12, flat: true }));
+      // (issue #691: the plain's great column in the picked pale stone, big courses, dry: src/surface-marks.js paleStone)
+      makeMaterial({ color: '#f6f0e2', color2: '#e9d9bd', color3: '#d8a24a', flat: true, paleStone: { course: 1.5, block: 3.2, foot: -1000, wear: 0.7 } }));
     tower.position.set(x, base - 2 + (H - H0), z);
     scene.add(tower);
     // a single window: an arched opening in a deep stone frame (jambs, an arch, a keystone), the room's

@@ -84,7 +84,7 @@ export function dropLandings(terraces) {
 export const halfwayLanding = (terraces) => dropLandings(terraces).find((l) => l.y === -24) ?? null;
 
 export function buildShaftWays(scene, { terraces, places }) {
-  const red = makeMaterial({ color: '#d0694a', flat: true, key: 'incal.stair' });
+  const red = makeMaterial({ color: '#d0694a', flat: true, paving: { size: 0.7, wear: 0.5 }, sheet: { panel: [1.4, 0.9] }, key: 'incal.stair' });   // (the red stair's: levels/incal.js)
   const cream = makeMaterial({ color: '#f3ead8', flat: true });
   const lampMat = makeMaterial({ color: '#ffe3a6', flat: true, glow: 0.9, key: 'incal.drops.lamp' });
   const landings = dropLandings(terraces), lights = [], posts = [], rings = [], heads = [];

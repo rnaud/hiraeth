@@ -104,12 +104,12 @@ export function buildGarden(scene, { ground = () => 0 } = {}) {
   // ---------------------------------------------------------------- the raised beds
   const BEDS = [{ x0: 5.0, x1: 10.0, z: 14.15 }, { x0: 5.0, x1: 10.0, z: 16.45 }, { x0: 5.0, x1: 10.0, z: 18.75 }];
   const BED_D = 1.3, BED_H = 0.32;
-  const crops = [];
+  const crops = [], soil = [];   // (the beds' earth its own mesh: furrowed, issue #691)
   BEDS.forEach((b, i) => {
     const cx = (b.x0 + b.x1) / 2, w = b.x1 - b.x0, y = gy(cx, b.z);
     for (const s of [-1, 1]) solid.push(paintBox(w, BED_H, 0.08, BOARD, cx, y, b.z + s * (BED_D / 2 - 0.04)));
     for (const s of [-1, 1]) solid.push(paintBox(0.08, BED_H, BED_D, BOARD, cx + s * (w / 2 - 0.04), y, b.z));
-    solid.push(paintBox(w - 0.1, BED_H - 0.04, BED_D - 0.1, SOIL, cx, y, b.z));
+    soil.push(paintBox(w - 0.1, BED_H - 0.04, BED_D - 0.1, SOIL, cx, y, b.z));
     const top = y + BED_H - 0.04, rnd = seeded(`bed${i}`);
     if (i === 0) for (let k = 0; k < 7; k++) crops.push(put(cabbage(0, 0, 0.9 + rnd() * 0.4), [b.x0 + 0.45 + k * 0.68, top, b.z + (k % 2 ? 0.25 : -0.25)]));
     if (i === 1) {
@@ -182,6 +182,11 @@ export function buildGarden(scene, { ground = () => 0 } = {}) {
   const fence = new THREE.Mesh(mergeGeometries(solid), wood);
   fence.name = 'garden: fence and beds';
   root.add(fence);
+  // (issue #691: the beds' earth raked in furrows along them, dry patches and pebbles, after references/surfaces/garden-beds;
+  // their crops are drawn, so the pattern plants none: src/garden-beds-shader.js)
+  const earth = new THREE.Mesh(mergeGeometries(soil), makeMaterial({ color: '#ffffff', vertexColors: true, beds: { row: 0.3, plants: 0 } }));
+  earth.name = 'garden: beds’ earth';
+  root.add(earth);
   const soft1 = new THREE.Mesh(mergeGeometries(soft), wood);
   soft1.userData.noCollide = true;   // (stones, the gate leaves, the can: walked over and round)
   root.add(soft1);

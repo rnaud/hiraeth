@@ -221,16 +221,18 @@ export function* buildMoonFoundry(scene) {
   const DS = THREE.DoubleSide;
   // two surfaces drawn by tone (vertex-material.js): the moons' ivory and the machinery's and homes' oranges
   // (v0.95: the shade lifted less, so a moon turns from the light in a clear terminator and the rust goes dark, as the sheets)
+  const MOON_TOP = { cell: 1.1, pebbles: 0.25, amount: 0.6 };
   const IVORY = { shade: 0.24, hatch: 0.25, line: 0.85 }, METAL = { shade: 0.18, hatch: 0.38, sheet: true };   // (riveted, repainted sheet metal: src/surface-marks.js SHEET, issue #669)
   const M = {
-    ivory: Object.fromEntries(['ivory', 'ivory2', 'crater', 'edge', 'wall3'].map((k) => [k, mat({ color: T[k], ...IVORY })])),
+    // (issue #691: the cast moons' shells pitted and crusted on top as the open ground's rock, src/surface-marks.js rockTop)
+    ivory: Object.fromEntries(['ivory', 'ivory2', 'crater', 'edge', 'wall3'].map((k) => [k, mat({ color: T[k], ...IVORY, rockTop: MOON_TOP })])),
     metal: Object.fromEntries(['rust', 'rust2', 'rust3', 'wall', 'wall2', 'roofing'].map((k) => [k, mat({ color: T[k], ...METAL })])),
     inner: mat({ color: T.inner, shade: 0.2, hatch: 0.6, side: DS }),
     plated: mat({ color: T.plated, shade: 0.4, hatch: 0.3, plates: 2.4 }),
     dark: mat({ color: T.dark, shade: 0.3, hatch: 0.3, side: DS }),
     gDark: mat({ color: T.dark, shade: 0.3, hatch: 0.3 }),
     steel: mat({ color: T.steel, shade: 0.3, hatch: 0.3 }),
-    ceiling: mat({ color: T.ceiling, shade: 0.5, hatch: 0.2, grid: 2.4, side: DS }),
+    ceiling: mat({ color: T.ceiling, shade: 0.5, hatch: 0.2, grid: 2.4, plates: true, side: DS }),   // (issue #691: the shed roof's deck plated, staggered and toned: S_PLATES)
     strut: mat({ color: T.strut, flat: true, thin: THIN }),
     rail: mat({ color: T.strut, flat: true, thin: THIN }),
     plank: mat({ color: T.plank, flat: true, timber: { axis: 'x' } }),

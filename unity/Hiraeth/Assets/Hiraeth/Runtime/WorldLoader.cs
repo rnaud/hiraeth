@@ -208,7 +208,9 @@ namespace Hiraeth
                 // (issue #685: a rock's walked top: crack cell, pebbles, amount, w on)
                 ("rockTop", "_RockTop", Vector4.zero),
                 // (issue #686: Lorn's crystals, faceted: rim, the root's glow, near marks, on)
-                ("facetMarks", "_FacetMarks", Vector4.zero) })
+                ("facetMarks", "_FacetMarks", Vector4.zero),
+                // (issue #691: garden beds, src/garden-beds-shader.js: row, turn, plants, w on)
+                ("beds", "_Beds", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

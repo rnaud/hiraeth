@@ -8,6 +8,7 @@ import { PAVING_GLSL, pavingOf } from './paving-shader.js';
 import { RELIEF_GLSL } from './relief.js';
 import { INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL, CRYSTAL_FACETS_GLSL, interiorOf, sheetOf, timberOf, groundMidOf,
   seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, crystalFacetsOf } from './surface-marks.js';
+import { BEDS_GLSL, bedsOf } from './garden-beds-shader.js';
 import { OPENINGS, OPENINGS_GLSL } from './wall-openings.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL, GROUND, PEBBLES } from './ground-ink.js';
@@ -358,7 +359,7 @@ export function setEnvGround(color) {
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
   'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP', 'S_PAVING', 'S_INTERIOR', 'S_SHEET', 'S_TIMBER', 'S_GROUNDMID',
   'S_SEAWALL', 'S_PALESTONE', 'S_BURIED', 'S_DOMES', 'S_CHANNEL', 'S_ROCKTOP',
-  'S_CRYSTAL'];
+  'S_CRYSTAL', 'S_BEDS'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -509,6 +510,7 @@ export function surfaceFeatures(o) {
   on('S_CHANNEL', channelOf(o)[3] > 0);   // (a water channel)
   on('S_ROCKTOP', rockTopOf(o)[3] > 0);   // (issue #685: a rock's walked top)
   on('S_CRYSTAL', crystalFacetsOf(o)[3] > 0);   // (issue #686: Lorn's crystals, faceted)
+  on('S_BEDS', bedsOf(o)[3] > 0);   // (issue #691: garden beds, src/garden-beds-shader.js)
   on('S_WEATHER', weatheredOf(o) > 0);
   on('S_DETAIL', detailOf(o)[0] > 0);
   on('S_FORM', formOf(o));
@@ -1038,6 +1040,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uChannel;   // a water channel (CHANNEL): half width (m), 0 along x / 1 along z, flow (m/s), 1
   uniform vec4 uRockTop;   // a rock's walked top (ROCK_TOP, issue #685): crack cell (m), pebbles, amount, 1
   uniform vec4 uFacetMarks; // Lorn's crystals (CRYSTAL_FACETS, issue #686): rim, the root's glow, near marks, 1
+  uniform vec4 uBeds;      // garden beds (src/garden-beds-shader.js, issue #691): row (m), turn, plants, 1
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
@@ -1850,6 +1853,9 @@ ${SHADOW_GLSL}
   #ifdef S_ROCKTOP
   ${ROCK_TOP_GLSL}
   #endif
+  #ifdef S_BEDS
+  ${BEDS_GLSL}
+  #endif
 
   // Sparse, surface-anchored pen strokes. Their physical length stays fixed;
   // fade subpixel strokes away instead of enlarging them into screen-space dots.
@@ -2621,6 +2627,19 @@ ${SHADOW_GLSL}
     #ifdef S_CRYSTAL
     if (uFacetMarks.w > 0.0) patInk = max(patInk, crystalFacets(vTextureUV, cryFw, n, normalize(cameraPosition - vWorldPos), uSunDir, vWorldPos, cryMpp, albedo, emit));
     #endif
+    #ifdef S_BEDS
+    // garden beds (src/garden-beds-shader.js, issue #691) on the upward faces: furrows, plants, dry patches, pebbles
+    {
+      vec2 bedFw = vec2(length(vec2(dFdx(vWorldPos.x), dFdy(vWorldPos.x))), length(vec2(dFdx(vWorldPos.z), dFdy(vWorldPos.z))));
+      float bedUp = uBeds.w > 0.0 ? smoothstep(0.7, 0.85, n.y) : 0.0;
+      if (bedUp > 0.0) {
+        vec3 ba = albedo;
+        float bi = gardenBeds(vWorldPos.xz, bedFw, uSunDir.xz / max(length(uSunDir.xz), 1e-3), ba);
+        albedo = mix(albedo, ba, bedUp);
+        patInk = max(patInk, bi * bedUp);
+      }
+    }
+    #endif
     albedo *= instColor;
     #ifdef FOE_SURFACE
       patInk = max(patInk, foeSurface(albedo, emit, n));   // (foe-surface.js: an enemy's painted patterns, its glow)
@@ -3243,6 +3262,7 @@ export function makeMaterial(o) {
       uChannel: { value: new THREE.Vector4(...channelOf(o)) },
       uRockTop: { value: new THREE.Vector4(...rockTopOf(o)) },
       uFacetMarks: { value: new THREE.Vector4(...crystalFacetsOf(o)) },
+      uBeds: { value: new THREE.Vector4(...bedsOf(o)) },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
       uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },

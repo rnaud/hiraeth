@@ -144,7 +144,7 @@ export function buildSeedRow(scene, terrain) {
   const mk = (list, mat, name) => { const m = new THREE.Mesh(mergeGeometries(list.map(flat0)), mat); m.name = name; m.userData.noCollide = true; return m; };
   scene.add(band, heap,
     mk(kerb, makeMaterial({ color: '#f8f6f0', flat: true }), 'The long seed row'),
-    mk(soil, makeMaterial({ color: '#8a5f3e', flat: true }), 'The long seed row’s earth'),
+    mk(soil, makeMaterial({ color: '#8a5f3e', flat: true, beds: { row: 0.5, plants: 0.25 } }), 'The long seed row’s earth'),   // (furrowed, a few rows sprouting: issue #691)
     mk(sticks, makeMaterial({ color: '#f8f6f0', flat: true }), 'The long seed row’s marker sticks'));
   // (the way along it, for the level design audit: the row's own points, from the Greenhouse's beds to the landing)
   const points = SEED_ROW.map(([x, z]) => [x, H(x, z) + 0.3, z]);

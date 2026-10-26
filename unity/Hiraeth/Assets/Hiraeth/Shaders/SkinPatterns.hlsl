@@ -13,7 +13,7 @@ float2 skMod(float2 x, float2 y) { return x - y * floor(x / y); }
 float skBayer4(float2 p) { float2 q = skMod(floor(p), 4.0); int i = (int)q.x + (int)q.y * 4; static const int m[16] = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 }; return (m[i] + 0.5) / 16.0; }
 
 // ------------------------------------------------------------------ rose-house (src/temples/skins/rose-house.js)
-
+#define s0_RH_JOINTS float2(0.400, 0.750)
 
   float s0_rhH(float2 p) { return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453); }
   float s0_rhSeg(float2 p, float2 a, float2 b) { float2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0); return length(pa - ba * h); }
@@ -52,6 +52,59 @@ float skBayer4(float2 p) { float2 q = skMod(floor(p), 4.0); int i = (int)q.x + (
     ink = max(ink, ring * 0.6);
   }
 
+  // the makers' machined finish (src/temples/skins/machined.js)
+  float s0_mkH(float2 p) { return frac(sin(dot(p, float2(41.37, 289.13))) * 43758.5453); }
+  // a fine line_ d metres from its middle, w CSS px wide, px metres a pixel
+  float s0_mkLine(float d, float px, float w) { float hw = 0.5 * w * _PixelRatio * px; return 1.0 - smoothstep(hw, hw + px, d); }
+  // A panel's or plate's finish: lp the point_ from its middle (m: along, across), hs its half_ size (m), id its number, px
+  // metres a pixel, flr: a floor's plate (its border always, sockets at its corners) or a wall's panel (a border on half_ of
+  // them, a socket high up it). Its tone into albedo; its ink.
+  float s0_mkFinish(float2 lp, float2 hs, float id, float px, bool flr, inout float3 albedo) {
+    float2 e = hs - abs(lp);
+    float de = min(e.x, e.y);
+    if (de < 0.0) return 0.0;
+    float h1 = s0_mkH(float2(id, 1.31)), h2 = s0_mkH(float2(id, 7.93)), h3 = s0_mkH(float2(id, 3.17));
+    albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
+    float ink = 0.0;
+    float inset = min(0.13, 0.3 * min(hs.x, hs.y));
+    float kB = smoothstep(3.0, 6.0, inset / px);
+    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s0_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
+    if (!flr && h3 > 0.6) {
+      float sl = min(hs.y - lp.y, lp.x + hs.x);
+      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+    }
+    float R = 0.055;
+    float kS = smoothstep(2.2, 4.5, R / px);
+    if (kS > 0.0 && h2 < 0.32 && min(hs.x, hs.y) > 4.0 * R) {
+      float2 c;
+      float on = 1.0;
+      if (flr) {
+        // at the corner of its quarter, two sockets' width in from the border; two or three of the four corners
+        float2 sg = float2(lp.x < 0.0 ? -1.0 : 1.0, lp.y < 0.0 ? -1.0 : 1.0);
+        c = sg * (hs - ((float2)(inset + 2.5 * R)));
+        on = step(0.35, s0_mkH(sg + id * 0.37));
+      } else {
+        c = float2((h3 - 0.5) * hs.x, -hs.y + min(1.4 + 1.2 * h1, 1.6 * hs.y));
+      }
+      float d = length(lp - c);
+      ink = max(ink, s0_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
+      albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+    }
+    // near: sparse fine machining marks, short_ hairlines along its longer side
+    float kM = 1.0 - smoothstep(0.004, 0.009, px);
+    if (kM > 0.0 && _WearLite < 0.5) {
+      bool ax = hs.x >= hs.y;
+      float2 q = ax ? lp : lp.yx, hq = ax ? hs : hs.yx;
+      float row = floor(q.y / 0.16);
+      float ry = (row + 0.5 + 0.5 * (s0_mkH(float2(row, id + 0.7)) - 0.5)) * 0.16;
+      float x0 = (s0_mkH(float2(row, id + 5.1)) - 0.5) * 1.6 * hq.x, len = 0.07 + 0.28 * s0_mkH(float2(row, id + 9.3));
+      float on = step(s0_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
+      ink = max(ink, s0_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
+    }
+    return ink;
+  }
+
 void s0_slab(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextureUV, float4 skFragCoord, float3 n, float3 uColor, inout float3 albedoOut, inout float inkOut, inout float emitOut)
 {
 
@@ -77,6 +130,8 @@ void s0_slab(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextur
       albedo = lerp(albedo, up > 0.0 ? (_SkinData[4].xyz) : uColor * 0.7, bev * abs(up));
       // the joint: a pen line_, rose sand caught in some of them
       skInk = s0_rhLine(dj / pxm) * 0.85;
+      // the makers' finish (machined.js) on the slab (issue #691)
+      skInk = max(skInk, s0_mkFinish((f - 0.5) * float2(W, H), 0.5 * float2(W, H), col * 13.1 + row * 7.7, pxm, !side, albedo));
       float sand = smoothstep(0.5, 0.78, vnoise(uv * 0.45 + 9.0)) * (1.0 - smoothstep(0.0, 0.14, dj)) * (_SkinData[2]).w;
       albedo = lerp(albedo, (_SkinData[6].xyz), sand);
       // a panel inset in some slabs
@@ -112,6 +167,17 @@ void s0_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vText
       float bev = (1.0 - smoothstep((_SkinData[2]).z, (_SkinData[2]).z + pxm, dj)) * near * (1.0 - lite * 0.6);
       albedo = lerp(albedo, (fs.y > 0.5) == (dm.y < dm.x) ? (_SkinData[4].xyz) : uColor * 0.82, bev * 0.8);
       skInk = s0_rhLine(dj / pxm) * 0.75;
+      // the makers' finish (machined.js) on the plate, and amber light inlaid along some joints in long_ runs (issue #691)
+      skInk = max(skInk, s0_mkFinish((fs - 0.5) * G / sub, 0.5 * G / sub, dot(c * 2.0 + cs, float2(17.0, 5.0)), pxm, true, albedo));
+      if (top) {
+        float2 jn = floor(uv / G + 0.5), jd = abs(uv / G - jn) * G;
+        float jx = step(s0_rhH(float2(jn.x, 4.4)), s0_RH_JOINTS.x) * step(s0_rhH(float2(jn.x, c.y) + 8.1), s0_RH_JOINTS.y);
+        float jz = step(s0_rhH(float2(jn.y, 6.6)), s0_RH_JOINTS.x) * step(s0_rhH(float2(c.x, jn.y) + 2.3), s0_RH_JOINTS.y);
+        float jl = max(jx * s0_rhCov(jd.x, 0.07, pxm), jz * s0_rhCov(jd.y, 0.07, pxm));
+        albedo = lerp(albedo, (_SkinData[5].xyz), jl);
+        skEmit = max(skEmit, jl * s0_rhBreathe(jn.x + jn.y));
+        skInk *= 1.0 - jl;
+      }
       // rose sand blown over the plates in drifts, and caught in the joints
       float drift = smoothstep(0.58, 0.82, vnoise(uv * 0.07 + 4.0)) * 0.5 + (1.0 - smoothstep(0.0, 0.12, dj)) * smoothstep(0.45, 0.7, vnoise(uv * 0.5));
       albedo = lerp(albedo, (_SkinData[6].xyz), clamp(drift, 0.0, 1.0) * (_SkinData[2]).w * (top ? 1.0 : 0.0));
@@ -145,7 +211,7 @@ void s0_basin(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
   
   albedoOut = albedo; inkOut = skInk; emitOut = skEmit;
 }
-
+#undef s0_RH_JOINTS
 
 // ------------------------------------------------------------------ wardens-well (src/temples/skins/wardens-well.js)
 #define s1_SK_UNDER float3(0.1046, 0.1301, 0.2346)
@@ -909,6 +975,8 @@ void s3_plaster(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTex
           float lft = 1.0 - smoothstep(ch * 0.5, ch, sf * sw), rgt = 1.0 - smoothstep(ch * 0.5, ch, (1.0 - sf) * sw);
           albedo *= 1.0 + near * (0.05 * max(top, lft) - 0.07 * max(foot, rgt));
           fpInkV = max(fpInkV, max(s3_fpInkL(abs(cf * CH - ch), fpPx), s3_fpInkL(abs(sf * sw - ch), fpPx)) * 0.16 * near);
+          // the makers' finish (machined.js) on the panel, as the floors' plates (issue #691)
+          fpInkV = max(fpInkV, s3_mkFinish(float2((sf - 0.5) * sw, (cf - 0.5) * CH), float2(0.5 * sw, 0.5 * CH), si * 13.1 + ci * 7.7, fpPx, false, albedo));
           // a plate set in some panels (never in the lowest course): a round one, two rings; or an octagon round a ring
           float h = s3_fpH2(float2(si * 1.31, ci * 2.77) + 5.1);
           if (ci >= 1.0 && h < 0.34) {
@@ -3824,6 +3892,94 @@ void s13_sea(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextur
 }
 
 
+// ------------------------------------------------------------------ machined (src/temples/skins/machined.js)
+
+
+  // the makers' machined finish (src/temples/skins/machined.js)
+  float s14_mkH(float2 p) { return frac(sin(dot(p, float2(41.37, 289.13))) * 43758.5453); }
+  // a fine line_ d metres from its middle, w CSS px wide, px metres a pixel
+  float s14_mkLine(float d, float px, float w) { float hw = 0.5 * w * _PixelRatio * px; return 1.0 - smoothstep(hw, hw + px, d); }
+  // A panel's or plate's finish: lp the point_ from its middle (m: along, across), hs its half_ size (m), id its number, px
+  // metres a pixel, flr: a floor's plate (its border always, sockets at its corners) or a wall's panel (a border on half_ of
+  // them, a socket high up it). Its tone into albedo; its ink.
+  float s14_mkFinish(float2 lp, float2 hs, float id, float px, bool flr, inout float3 albedo) {
+    float2 e = hs - abs(lp);
+    float de = min(e.x, e.y);
+    if (de < 0.0) return 0.0;
+    float h1 = s14_mkH(float2(id, 1.31)), h2 = s14_mkH(float2(id, 7.93)), h3 = s14_mkH(float2(id, 3.17));
+    albedo *= 1.0 + 0.18 * (h1 - 0.5) * smoothstep(4.0, 12.0, min(hs.x, hs.y) / px);
+    float ink = 0.0;
+    float inset = min(0.13, 0.3 * min(hs.x, hs.y));
+    float kB = smoothstep(3.0, 6.0, inset / px);
+    if (kB > 0.0 && (flr || h3 < 0.5)) ink = max(ink, s14_mkLine(abs(de - inset), px, 0.7) * kB * 0.42);
+    // a wall's panel set back (some of them): the shadow its neighbours cast along its top and its left edge
+    if (!flr && h3 > 0.6) {
+      float sl = min(hs.y - lp.y, lp.x + hs.x);
+      albedo *= 1.0 - 0.3 * (1.0 - smoothstep(0.06 - px, 0.06 + px, sl)) * smoothstep(1.0, 2.5, 0.06 / px);
+    }
+    float R = 0.055;
+    float kS = smoothstep(2.2, 4.5, R / px);
+    if (kS > 0.0 && h2 < 0.32 && min(hs.x, hs.y) > 4.0 * R) {
+      float2 c;
+      float on = 1.0;
+      if (flr) {
+        // at the corner of its quarter, two sockets' width in from the border; two or three of the four corners
+        float2 sg = float2(lp.x < 0.0 ? -1.0 : 1.0, lp.y < 0.0 ? -1.0 : 1.0);
+        c = sg * (hs - ((float2)(inset + 2.5 * R)));
+        on = step(0.35, s14_mkH(sg + id * 0.37));
+      } else {
+        c = float2((h3 - 0.5) * hs.x, -hs.y + min(1.4 + 1.2 * h1, 1.6 * hs.y));
+      }
+      float d = length(lp - c);
+      ink = max(ink, s14_mkLine(abs(d - R), px, 0.8) * kS * on * 0.7);
+      albedo *= 1.0 - 0.4 * (1.0 - smoothstep(R * 0.5 - px, R * 0.5 + px, d)) * kS * on;
+    }
+    // near: sparse fine machining marks, short_ hairlines along its longer side
+    float kM = 1.0 - smoothstep(0.004, 0.009, px);
+    if (kM > 0.0 && _WearLite < 0.5) {
+      bool ax = hs.x >= hs.y;
+      float2 q = ax ? lp : lp.yx, hq = ax ? hs : hs.yx;
+      float row = floor(q.y / 0.16);
+      float ry = (row + 0.5 + 0.5 * (s14_mkH(float2(row, id + 0.7)) - 0.5)) * 0.16;
+      float x0 = (s14_mkH(float2(row, id + 5.1)) - 0.5) * 1.6 * hq.x, len = 0.07 + 0.28 * s14_mkH(float2(row, id + 9.3));
+      float on = step(s14_mkH(float2(row, id + 3.3)), 0.22) * step(x0, q.x) * step(q.x, x0 + len) * step(0.06, de);
+      ink = max(ink, s14_mkLine(abs(q.y - ry), px, 0.5) * on * kM * 0.45);
+    }
+    return ink;
+  }
+
+  // a joint between plates: a fine pen line_ d metres off, px metres a pixel, faded as the plates grow small
+  float s14_mcJoint(float2 f, float2 S, float px) {
+    float2 d = min(f, 1.0 - f) * S;
+    float k = 1.0 - smoothstep(min(S.x, S.y) / 40.0, min(S.x, S.y) / 14.0, px);
+    return max(s14_mkLine(d.x, px, 0.8), s14_mkLine(d.y, px, 0.8)) * 0.55 * k;
+  }
+
+void s14_plates(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextureUV, float4 skFragCoord, float3 n, float3 uColor, inout float3 albedoOut, inout float inkOut, inout float emitOut)
+{
+
+    float3 mcP = (_SkinData[0]).w > 0.5 ? vObjPos : vWorldPos - (_SkinData[1].xyz);
+    float mcPx = max(max(length(ddx(mcP)), length(ddy(mcP))), 1e-4);
+    float mcInk = 0.0;
+    float3 albedo = uColor;
+    {
+      float3 an = abs(n);
+      if (an.y > 0.65) {
+        float2 S = ((float2)((_SkinData[0]).x)), gq = mcP.xz / S, gi = floor(gq), gf = frac(gq);
+        mcInk = s14_mcJoint(gf, S, mcPx);
+        mcInk = max(mcInk, s14_mkFinish((gf - 0.5) * S, 0.5 * S, gi.x * 17.0 + gi.y * 5.0, mcPx, true, albedo));
+      } else {
+        bool sx = an.x > an.z;
+        float2 S = (_SkinData[0]).yz, gq = float2(sx ? mcP.z : mcP.x, mcP.y) / S, gi = floor(gq), gf = frac(gq);
+        mcInk = s14_mcJoint(gf, S, mcPx);
+        mcInk = max(mcInk, s14_mkFinish((gf - 0.5) * S, 0.5 * S, gi.x * 13.1 + gi.y * 7.7 + (sx ? 31.0 : 0.0), mcPx, false, albedo));
+      }
+    }
+  
+  albedoOut = albedo; inkOut = mcInk;
+}
+
+
 /** The skin's albedo, pen lines (the surface's detail starts from them) and glow, by its pattern's number (_SkinBody). */
 float3 skinSurface(int body, float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextureUV, float4 skFragCoord, float3 n, float3 uColor, out float ink, out float emit)
 {
@@ -3874,6 +4030,7 @@ float3 skinSurface(int body, float3 vWorldPos, float3 vObjPos, float3 vObjNormal
     case 97: s12_wall(vWorldPos, vObjPos, vObjNormal, vTextureUV, skFragCoord, n, uColor, albedo, ink, emit); break;
     case 98: s12_floor(vWorldPos, vObjPos, vObjNormal, vTextureUV, skFragCoord, n, uColor, albedo, ink, emit); break;
     case 105: s13_sea(vWorldPos, vObjPos, vObjNormal, vTextureUV, skFragCoord, n, uColor, albedo, ink, emit); break;
+    case 113: s14_plates(vWorldPos, vObjPos, vObjNormal, vTextureUV, skFragCoord, n, uColor, albedo, ink, emit); break;
     default: break;
   }
   return albedo;

@@ -13,7 +13,8 @@ import { AudioContext, installAudio } from '../engine/webaudio.js';
 
 test('every house in a futuristic skin has its air, and nothing else does', async () => {
   const { TEMPLES } = await import('../src/temples/index.js');
-  const skinned = Object.keys(TEMPLES).filter((id) => typeof TEMPLES[id].def.skin === 'function').sort();
+  // (a house in the machined finish only, skins/machined-plates.js, has no air of its own: the Greenhouse, issue #691)
+  const skinned = Object.keys(TEMPLES).filter((id) => typeof TEMPLES[id].def.skin === 'function' && !TEMPLES[id].def.skin.finishOnly).sort();
   assert.equal(skinned.length, 13);
   assert.deepEqual(Object.keys(HOUSE_AIR).sort(), skinned);
 });

@@ -703,7 +703,7 @@ namespace Hiraeth.Bridge
                 && V(m, "_ShellCenter").w <= 0.5f   // (a landmark's shell sutures: drawn with a wall's marks, issue #264)
                 && V(m, "_Stone").w <= 0.5f   // (and a landmark's cut stone, issue #538)
                 && V(m, "_Paving").x <= 0f   // (and paving's flagstones, issue #669)
-                && V(m, "_Interior").x <= 0f && V(m, "_Sheet").x <= 0f && V(m, "_Timber").w <= 0f && V(m, "_RockTop").w <= 0f   // (a room's tiles, sheet metal, timber: #669; a rock's top: #685)
+                && V(m, "_Interior").x <= 0f && V(m, "_Sheet").x <= 0f && V(m, "_Timber").w <= 0f && V(m, "_RockTop").w <= 0f && V(m, "_Beds").w <= 0f   // (a room's tiles, sheet metal, timber: #669; a rock's top: #685; garden beds: #691)
                 && V(m, "_SeaWall").x <= 0f && V(m, "_PaleStone").x <= 0f && V(m, "_Buried").x <= 0f && V(m, "_Domes").w <= 0f && V(m, "_Channel").w <= 0f   // (#677's)
                 && V(m, "_FacetMarks").w <= 0f;   // (and Lorn's faceted crystals, #686)
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
