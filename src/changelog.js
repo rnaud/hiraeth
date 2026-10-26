@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.30', date: '2026-10-26',
+    items: [
+      "Vael’s sky stones are no longer one flat colour where you walk: the plateaus, the great table, the rose cliff, the floating island, the rock arch and the stones you hop across have soft patches of a warmer and a cooler tone, a fine crackled crust, long cracks and pebbles with their shadows, while their cliffs keep their bands. The aqueducts and the monastery’s walls are built of large pale stone blocks, the aqueducts’ decks laid in flagstones.",
+    ],
+  },
+
+  {
     v: '2.29', date: '2026-10-26',
     items: [
       "The shops and rooms look lived in: their floors are hand-laid tiles with a few of another pastel colour, and their walls are painted plaster over a darker band at waist height and a tiled skirting, in place of ruled grids. In every world’s shop and every room.",

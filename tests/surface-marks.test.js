@@ -1,10 +1,10 @@
 // The surface marks of issues #669 and #677 (src/surface-marks.js): interiors, sheet-metal walls, worked timber and the
 // ground's middle distance; sea walls, pale stone, the buried city, panelled domes and water channels: each option as its
-// uniforms, each compiled only where asked (its S_* define), and the Unity port's copy of the GLSL current and wired.
+// uniforms, each compiled only where asked (and issue #685's rock tops) (its S_* define), and the Unity port's copy of the GLSL current and wired.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { INTERIOR, SEA_WALL, PALE_STONE, BURIED_CITY, DOMES, CHANNEL, interiorOf, sheetOf, timberOf, groundMidOf, seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, MARKS_GLSL } from '../src/surface-marks.js';
+import { INTERIOR, SEA_WALL, PALE_STONE, BURIED_CITY, DOMES, CHANNEL, ROCK_TOP, interiorOf, sheetOf, timberOf, groundMidOf, seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, MARKS_GLSL } from '../src/surface-marks.js';
 import { makeMaterial, surfaceDefines, MODE_TERRAIN, MODE_WATER } from '../src/materials.js';
 import { marksHlsl, MARKS_HLSL_PATH } from '../scripts/unity-export/marks-hlsl.mjs';
 import { inkSpec } from '../engine/ink-spec.js';
@@ -49,8 +49,8 @@ test('each mark compiled only into the materials that ask for it, its uniforms s
 
 test('the marks reach the Unity port: SurfaceMarks.hlsl made from the GLSL, the uniforms in the material\'s record', () => {
   assert.equal(readFileSync(MARKS_HLSL_PATH, 'utf8'), marksHlsl(), 'SurfaceMarks.hlsl is out of date: node scripts/unity-export/marks-hlsl.mjs');
-  assert.ok(!/\b(vec[234]|mix|fract|uInterior\w*|uSheet|uTimber|uGroundMid|uSeaWall|uPaleStone|uBuried|uDomes\w*|uChannel)\b/.test(marksHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
-  assert.equal(MARKS_GLSL.length, 9);
+  assert.ok(!/\b(vec[234]|mix|fract|uInterior\w*|uSheet|uTimber|uGroundMid|uSeaWall|uPaleStone|uBuried|uDomes\w*|uChannel|uRockTop)\b/.test(marksHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
+  assert.equal(MARKS_GLSL.length, 10);
   const p = portMaterial(inkSpec(makeMaterial({ color: '#c0c0c0', sheet: true, timber: true, interior: true })), 5);
   assert.deepEqual(p.sheet, [1.6, 1.25, 1, 1]);
   assert.deepEqual(p.timber, [0.24, 1, 0.1, 1]);
@@ -110,4 +110,24 @@ test('issue #677: each compiled only where asked, its uniforms set, and the port
   for (const [k, u] of [['seaWall', '_SeaWall'], ['paleStone', '_PaleStone'], ['buried', '_Buried'], ['domes', '_Domes'], ['domesBand', '_DomesBand'], ['channel', '_Channel']]) assert.ok(loader.includes(`("${k}", "${u}", Vector4.zero)`), k);
   const bridge = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs', import.meta.url), 'utf8');
   for (const u of ['_SeaWall', '_PaleStone', '_Buried', '_Domes', '_Channel']) assert.ok(bridge.includes(`V(m, "${u}")`), `${u} keeps a material off the plain variant`);
+});
+
+test('issue #685: a rock\'s walked top as its uniform, compiled only where asked, carried to Unity', () => {
+  assert.deepEqual(rockTopOf({ rockTop: true }), [ROCK_TOP.cell, ROCK_TOP.pebbles, ROCK_TOP.amount, 1]);
+  assert.deepEqual(rockTopOf({ rockTop: { cell: 0.1, pebbles: 3, amount: 0.5 } }), [0.3, 1, 0.5, 1], 'clamped');
+  // never on the terrain (its own ground marks), glass, lights or figures
+  for (const o of [{ mode: MODE_TERRAIN }, { glass: true }, { glow: 1 }, { figure: true }]) assert.equal(rockTopOf({ rockTop: true, ...o })[3], 0);
+  assert.equal(rockTopOf({})[3], 0);
+  assert.ok(!('S_ROCKTOP' in surfaceDefines({ color: '#fff' })));
+  assert.ok('S_ROCKTOP' in surfaceDefines({ color: '#f3ead8', rockTop: true }));
+  const m = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: 2, strataSize: 7, rockTop: true });
+  assert.deepEqual(m.uniforms.uRockTop.value.toArray(), [ROCK_TOP.cell, ROCK_TOP.pebbles, ROCK_TOP.amount, 1]);
+  assert.match(m.fragmentShader, /float rockTop\(vec3 p, vec3 fw, vec3 n, vec2 s2, float len, inout vec3 alb\)/);
+  assert.match(m.fragmentShader, /smoothstep\(0\.72, 0\.88, n\.y\)/, 'its upward faces only: the sides keep their strata');
+  assert.deepEqual(portMaterial(inkSpec(m), 8).rockTop, [ROCK_TOP.cell, ROCK_TOP.pebbles, ROCK_TOP.amount, 1]);
+  const shader = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader', import.meta.url), 'utf8');
+  assert.ok(shader.includes('rockTop(i.worldPos') && shader.includes('_RockTop.w > 0.0'));
+  assert.ok(readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs', import.meta.url), 'utf8').includes('("rockTop", "_RockTop", Vector4.zero)'));
+  assert.ok(readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs', import.meta.url), 'utf8').includes('V(m, "_RockTop")'), 'keeps a material off the plain variant');
+  assert.ok(marksHlsl().includes('float rockTop(float3 p, float3 fw, float3 n, float2 s2, float len, inout float3 alb)'));
 });

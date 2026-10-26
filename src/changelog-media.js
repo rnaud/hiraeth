@@ -1349,6 +1349,135 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.30': [
+{
+  "match": "Vael’s sky stones are no longer one flat colour",
+  "shots": [
+    {
+      "name": "sky-start",
+      "caption": "The start plateau, where you land from the plain’s aqueduct: soft warm and cool patches, a crackled crust in the warm ones, a long crack, pebbles, where it was one cream",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "Standing on the start plateau north of Aube’s hermitage, looking at the Founders’ Belfry and the needle plateau (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-needles",
+      "caption": "The needle plateau at the foot of the great needles: pebbles with their shadows and faint patches on the top; the needles and the boulders keep their bands and shade",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "On the needle plateau, south of the great needle cluster (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-monastery",
+      "caption": "The rose cliff: the monastery’s walls in pale stone blocks, the rose rock’s top with its pebbles and soft patches",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "On the rose cliff, looking at the almonry and the white monastery behind it (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-table",
+      "caption": "The great mushroom table: a crackled warm patch with its broken edge, pebbles, cooler patches beyond",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "On the great table east of its middle, toward Tiv’s stack (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-island",
+      "caption": "The floating island’s top by the church: a long crack and soft patches, pebbles near",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "On the floating island before the church, looking west over the cloud to the great table (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-aq1",
+      "caption": "The aqueduct from the start plateau to the needle plateau: its deck laid in flagstones of pale stone, its parapets blocks, where both were plain strata",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "At the start plateau’s end of the first aqueduct, looking along it (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-aq2",
+      "caption": "The long aqueduct to the plain, where Ondine walks: the same pale stone deck",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "On the long aqueduct south of the floating island, looking toward the plain (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "sky-arch",
+      "caption": "The natural rock arch from the rose cliff to the great table: the rock’s top marks along its crest, its flanks still banded",
+      "from": "Issue #685: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, Vael (?level=arzach) on a Vite of its own (port 5446); before: origin/main at 280a6d97c (the floating island’s: this change with its two marks switched off in the page, uRockTop and uPaleStone, which is the same picture), after: this change; 26 October; cwebp -q 72",
+      "view": "Over the arch near the rose cliff, looking along it to the great table (a pinned camera, the same in both). Hour 12; the lanterns, the tiles and the bird move between loads.",
+      "size": [
+        1280,
+        720
+      ]
+    }
+  ],
+  "numbers": [
+    {
+      "title": "Frame time on the start plateau (the sky stones’ benchmark views)",
+      "unit": "ms (median)",
+      "better": "lower",
+      "device": "M4 Pro (Mac), headless Chrome on Metal, 1280 × 720, the shipped bundle (.claude/skills/perf-audit/fps.mjs --worlds arzach2 --root), two pairs a preset, base and change back to back; load average 6–9 (first pair) and 7–16 (second pair: shared with other agents’ jobs)",
+      "rows": [
+        {
+          "where": "High, start (the plateau’s top fills the view), pair 1",
+          "before": 8.9,
+          "after": 9.5
+        },
+        {
+          "where": "High, start, pair 2",
+          "before": 8.4,
+          "after": 10.0
+        },
+        {
+          "where": "High, crowd / crowd2 / wide, pair 1",
+          "before": "6.4–7.5",
+          "after": "6.7–7.4"
+        },
+        {
+          "where": "Handheld, start, pair 1",
+          "before": 6.5,
+          "after": 6.1
+        },
+        {
+          "where": "Handheld, start, pair 2",
+          "before": 8.8,
+          "after": 9.5
+        },
+        {
+          "where": "Handheld, crowd / crowd2 / wide, pair 1",
+          "before": "4.4–5.0",
+          "after": "4.9–5.2"
+        }
+      ],
+      "source": "scratchpad fps-*.json of issue #685; docs/systems/materials.md, “The sky stones’ walked tops”",
+      "note": "The rock top costs most where a plateau’s top fills the screen (+0.6..+1.6 ms on High); elsewhere within the machine’s noise. Draw calls unchanged; four shader programs more."
+    }
+  ]
+}
+  ],
   '2.29': [
 {
   "match": "Eight of the new outfits look more like their drawings",

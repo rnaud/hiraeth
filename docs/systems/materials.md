@@ -377,6 +377,41 @@ them off the plain variant). Every mark fades by its size on screen, the finest 
   −0.7..+1.8, mostly +0.1..+1.1 (the patches' fields and their edge are paid on every pixel of ground). Draw calls unchanged;
   the Underwater City compiles four programs more. To re-measure on a quiet machine.
 
+## The sky stones' walked tops (issue #685, `rockTop`, `src/surface-marks.js`)
+
+The author: "for Vael I also meant the bridges and islands that I traverse". #677 strengthened the plain's ground; the
+sky stones (`src/levels/arzach2.js buildSkyStones`, part of Vael) were still one flat cream, rose or strata band where
+you walk. The survey (a downward ray at each walked place, the material it meets): the start plateau, the needle
+plateau, the floating island, the rock arch and the stepping stones by the great table were the bone rock (strata,
+`flat`), the great table and the hoodoos the smooth cap (strata), the rose cliff the rose rock (strata), the aqueducts
+`aq` (strata bands 2.6 m, flat on the deck), the monastery's, the island church's and the hermitage's walls flat white
+(`facade` windows, or plain). There are no timber bridges: every bridge is masonry (the aqueducts) or rock (the arches).
+
+- **A rock's walked top** (`rockTop`, `S_ROCKTOP`, `uRockTop`: crack cell, pebbles, amount; `ROCK_TOP`): on a material's
+  upward faces only (n.y over ~0.8; its sides keep their strata, which read well on the cliffs), the open-ground sheet's
+  marks in their rock version: broad soft patches of a warmer, sandier tone and a cooler grey one (multiplied, soft over
+  four pixels: never a colour edge), a crackled crust of small Voronoi cells (1.4 m) in parts of the warm patches with a
+  broken pen line along their edge, long jagged fissures in runs, and pebbles and stones with their shadows
+  (`pebbleField`, 1.1 m and 4 m cells; a top is in the sun, so their cast is always drawn). The crust goes when its cells
+  are under ~10 px, the patches' edge past 3–8 cm a px, the fissures past 5–14 cm a px; the tones stay, broad and calm,
+  as the sheet's far strip. On the bone rock, the cap and the rose rock (`arzach2.js ROCK`: every plateau, table, the
+  island, the arches, the stepping stones), and the lantern stones (`sky-stones-ways.js`). Not the needles (no walked
+  top), never on the terrain (its own ground marks) and never in the Founders' Belfry.
+- **The aqueducts** (`AQ_STONE`): pale stone (`paleStone`, course 1.1 m, block 2.3 m, no damp foot: their piers go down
+  into the cloud) in place of their strata bands, so their decks are laid in flagstones of the same stone and their
+  parapets are blocks; Ondine's tally stone on the long aqueduct the same. **The monastery's walls** (and the island
+  church's and the hermitage's: one material each) are pale stone in Lorn's blocks, a little less worn (`WALL_STONE`),
+  their drawn windows over them.
+- **Unity**: `rockTop` in `SurfaceMarks.hlsl` (generated), called in Surface.shader in a uniform branch on `_RockTop.w`,
+  carried by port-format.js and WorldLoader.cs, kept off the plain variant (BridgeRenderer.Lean). Compiled in batch
+  mode on Metal (default, SKIN, LEAN, LEAN_SLIM, LEAN_TERRAIN, LEAN_WATER, VMAT, LEAN+PLAIN): 0 errors. No Unity pictures.
+- `tests/surface-marks.test.js`: the option, the define, the upward-faces test, the port's record and the Unity wiring.
+- **Cost**: M4 Pro, 1280 × 720, the shipped bundle, .claude/skills/perf-audit/fps.mjs `--worlds arzach2,arzach --root`
+  (base 280a6d97c against this change), two pairs a preset back to back, median frame ms. The sky stones' start view
+  (the plateau's top fills the screen): High 8.9 → 9.5 and 8.4 → 10.0, Handheld 6.5 → 6.1 and 8.8 → 9.5; their other
+  views and Vael's plain within the noise (load average 6–9 in the first pair, 7–16 in the second). Draw calls unchanged,
+  four programs more.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

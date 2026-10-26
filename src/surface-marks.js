@@ -31,6 +31,10 @@
 //            ring painted another colour, small round vents, a band of sand-scour at the ground.
 //   S_CHANNEL (channel) references/surfaces/water-channels/sheet-1.jpg: a narrow water channel along its object's x or z
 //            (its middle at 0): calm flow lines along the current, a pale line of light along each edge, a darker wet lip.
+// Part 3 (issue #685), the sky stones' walked tops:
+//   S_ROCKTOP (rockTop) references/surfaces/open-ground/sheet-1.jpg, its rock version: on a rock's upward faces (its sides
+//            keep their strata), broad soft patches of a warmer and a cooler tone, a crackled net in the warm ones with a
+//            broken line along their edge, long fissures across the rock in runs, pebbles with their shadows.
 // Every mark goes by its size on screen, as each sheet's distance strip: the fine marks first, the joints and bands
 // next, the tones last; far off a flat colour.
 
@@ -52,6 +56,8 @@ export const PALE_STONE = { course: 0.9, block: 1.8, damp: 0.75, warm: 0.07, str
 export const BURIED_CITY = { band: 0.55, sand: 0.4, sandColor: [0.91, 0.77, 0.55], blasted: 0.12 };
 /** The desert's domes: rings over a hemisphere (or a tower's ring, m), panels round the equator (or a tower), the scour band (m over the foot). */
 export const DOMES = { rings: 5, panels: 22, tower: [4, 10], scour: 1.8, odd: 0.16, vent: 0.12, band: 0.22 };
+/** A rock's top: the crack net's cell (m), the pebbles' density, how strong the patches. */
+export const ROCK_TOP = { cell: 1.4, pebbles: 0.5, amount: 1 };
 /** A water channel: its half width (m), the current's speed (m/s). */
 export const CHANNEL = { half: 0.35, flow: 0.25 };
 
@@ -129,6 +135,13 @@ export function channelOf(o) {
   if (!o.channel || o.glass || o.glow || o.figure) return [0, 0, 0, 0];
   const c = typeof o.channel === 'object' ? o.channel : {};
   return [Math.max(c.half ?? CHANNEL.half, 0.05), c.axis === 'x' ? 0 : 1, c.flow ?? CHANNEL.flow, 1];
+}
+
+/** rockTop: true or { cell, pebbles, amount }, not on terrain → [cell, pebbles, amount, 1] (zeros: none). */
+export function rockTopOf(o) {
+  if (!o.rockTop || excluded(o) || o.mode === 1) return [0, 0, 0, 0];
+  const r = { ...ROCK_TOP, ...(typeof o.rockTop === 'object' ? o.rockTop : {}) };
+  return [Math.max(r.cell, 0.3), clamp(r.pebbles, 0, 1), clamp(r.amount, 0, 2), 1];
 }
 
 const f = (v) => (Number.isInteger(v) ? `${v}.0` : `${+v.toFixed(5)}`);
@@ -569,5 +582,53 @@ export const CHANNEL_GLSL = /* glsl */ `
   }
 `;
 
+export const ROCK_TOP_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- a rock's walked top (src/surface-marks.js ROCK_TOP, issue 685)
+  // (the open-ground sheet's marks in their rock version: the sky stones' tables, plateaus, island and arch, where the
+  //  author walks; their sides keep the strata)
+  // the warmer patches' field (its border at 0.6, jagged by a fine octave), the cooler ones' (under 0.3), the fissures'
+  float rockTopWarm(vec2 p) { return vnoise(p * 0.035 + 7.1) * 0.6 + vnoise(p * 0.13 + 2.9) * 0.3 + vnoise(p * 0.8 + 5.5) * 0.1; }
+  float rockTopCool(vec2 p) { return vnoise(p * 0.05 + 13.7) * 0.7 + vnoise(p * 0.19 + 6.1) * 0.3; }
+  float rockTopFissure(vec2 p) { return vnoise(p * 0.09 + 3.3) * 0.8 + vnoise(p * 0.45 + 1.1) * 0.2; }
+  // A rock's top at p (world), fw its metres per px along x, y, z, n its world normal, s2 the sun's way across the ground,
+  // len its shadows' length: the patches' tones into alb; the crack net's, the patches' edge's, the fissures' and the
+  // pebbles' ink. Its sides (n.y under ~0.8) are left as they are.
+  float rockTop(vec3 p, vec3 fw, vec3 n, vec2 s2, float len, inout vec3 alb) {
+    vec2 q = p.xz;
+    float gm = max(max(fw.x, fw.z), 1e-6);
+    float v1 = rockTopWarm(q), v2 = rockTopCool(q), v3 = rockTopFissure(q);
+    float f1 = max(fwidth(v1), 1e-5), f2 = max(fwidth(v2), 1e-5), f3 = max(fwidth(v3), 1e-5);
+    float up = smoothstep(0.72, 0.88, n.y);
+    if (up <= 0.0) return 0.0;
+    float k = uRockTop.z * up, ink = 0.0;
+    // the patches: a warmer, sandier tone and a cooler grey one, each soft over a few pixels (never a colour edge)
+    float w1 = max(0.012, 4.0 * f1), w2 = max(0.012, 4.0 * f2);
+    float warm = smoothstep(0.6 - w1, 0.6 + w1, v1), cool = 1.0 - smoothstep(0.3 - w2, 0.3 + w2, v2);
+    alb *= mix(vec3(1.0), vec3(1.0, 0.965, 0.9), warm * k * 0.85);
+    alb *= mix(vec3(1.0), vec3(0.95, 0.955, 0.985), cool * k);
+    alb *= 1.0 + 0.035 * (vnoise(q * 2.3 + 4.4) - 0.5) * k * (1.0 - smoothstep(0.01, 0.025, gm));   // (a fine mottle, near)
+    // the warm patches' edge: a broken pen line along it, near and in the middle distance
+    float brk = smoothstep(0.32, 0.5, vnoise(q * 0.7 + 8.3));
+    ink = max(ink, inkLine(abs(v1 - 0.6) / f1, 0.9) * brk * 0.65 * k * (1.0 - smoothstep(0.03, 0.08, gm)));
+    // a crackled net of small cells in the warm patches (the sheet's dried crust), near
+    float C = uRockTop.x, cpx = C / gm, kC = smoothstep(8.0, 16.0, cpx) * smoothstep(0.35, 0.8, warm);
+    if (kC > 0.0) {
+      float gaps = smoothstep(0.42, 0.62, vnoise(q * 0.9 + 2.2)) * smoothstep(0.45, 0.85, warm * (0.6 + 0.8 * vnoise(q * 0.3 + 5.1)));
+      float reach = (0.45 * uPixelRatio + 0.6) / cpx * 1.01;
+      float d = voronoiBorder(q / C, reach) * cpx;
+      ink = max(ink, inkLine(d, 0.7) * gaps * kC * 0.45 * k);
+    }
+    // long fissures across the rock, jagged, in runs, out to the middle distance
+    float run = smoothstep(0.52, 0.64, vnoise(q * 0.04 + 9.9));
+    ink = max(ink, inkLine(abs(v3 - 0.5) / f3, 1.0) * run * 0.75 * k * (1.0 - smoothstep(0.05, 0.14, gm)));
+    // pebbles and stones with their shadows (castK 1: a top is in the sun)
+    if (uRockTop.y > 0.0 && gm < 0.25) {
+      ink = max(ink, pebbleField(q, gm, s2, len, 1.0, 1.1, uRockTop.y * 0.55, vec2(0.04, 0.11), 63.0) * up);
+      ink = max(ink, pebbleField(q, gm, s2, len, 1.0, 4.0, uRockTop.y * 0.6, vec2(0.1, 0.26), 87.0) * up);
+    }
+    return ink;
+  }
+`;
+
 /** Every module's GLSL in one (the Unity port's SurfaceMarks.hlsl is made from this). */
-export const MARKS_GLSL = [INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL];
+export const MARKS_GLSL = [INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL];
