@@ -1,10 +1,11 @@
-// The surface marks of issues #669 and #677 (src/surface-marks.js): interiors, sheet-metal walls, worked timber and the
-// ground's middle distance; sea walls, pale stone, the buried city, panelled domes and water channels: each option as its
-// uniforms, each compiled only where asked (and issue #685's rock tops) (its S_* define), and the Unity port's copy of the GLSL current and wired.
+// The surface marks of issues #669, #677, #685 and #686 (src/surface-marks.js): interiors, sheet-metal walls, worked timber and the
+// ground's middle distance; sea walls, pale stone, the buried city, panelled domes and water channels; rock tops; Lorn's crystals: each
+// option as its uniforms, each compiled only where asked (its S_* define), and the Unity port's copy of the GLSL current and wired.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { INTERIOR, SEA_WALL, PALE_STONE, BURIED_CITY, DOMES, CHANNEL, ROCK_TOP, interiorOf, sheetOf, timberOf, groundMidOf, seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, MARKS_GLSL } from '../src/surface-marks.js';
+import * as THREE from 'three';
+import { INTERIOR, SEA_WALL, PALE_STONE, BURIED_CITY, DOMES, CHANNEL, ROCK_TOP, interiorOf, sheetOf, timberOf, groundMidOf, seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, crystalFacetsOf, facetUV, MARKS_GLSL } from '../src/surface-marks.js';
 import { makeMaterial, surfaceDefines, MODE_TERRAIN, MODE_WATER } from '../src/materials.js';
 import { marksHlsl, MARKS_HLSL_PATH } from '../scripts/unity-export/marks-hlsl.mjs';
 import { inkSpec } from '../engine/ink-spec.js';
@@ -49,8 +50,9 @@ test('each mark compiled only into the materials that ask for it, its uniforms s
 
 test('the marks reach the Unity port: SurfaceMarks.hlsl made from the GLSL, the uniforms in the material\'s record', () => {
   assert.equal(readFileSync(MARKS_HLSL_PATH, 'utf8'), marksHlsl(), 'SurfaceMarks.hlsl is out of date: node scripts/unity-export/marks-hlsl.mjs');
-  assert.ok(!/\b(vec[234]|mix|fract|uInterior\w*|uSheet|uTimber|uGroundMid|uSeaWall|uPaleStone|uBuried|uDomes\w*|uChannel|uRockTop)\b/.test(marksHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
-  assert.equal(MARKS_GLSL.length, 10);
+  assert.ok(!/\b(vec[234]|mix|fract|uInterior\w*|uSheet|uTimber|uGroundMid|uSeaWall|uPaleStone|uBuried|uDomes\w*|uChannel|uRockTop|uFacetMarks)\b/.test(marksHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
+  assert.ok(!/\b(vec[234]|mix|fract|uInterior\w*|uSheet|uTimber|uGroundMid|uSeaWall|uPaleStone|uBuried|uDomes\w*|uChannel)\b/.test(marksHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
+  assert.equal(MARKS_GLSL.length, 11);
   const p = portMaterial(inkSpec(makeMaterial({ color: '#c0c0c0', sheet: true, timber: true, interior: true })), 5);
   assert.deepEqual(p.sheet, [1.6, 1.25, 1, 1]);
   assert.deepEqual(p.timber, [0.24, 1, 0.1, 1]);
@@ -130,4 +132,49 @@ test('issue #685: a rock\'s walked top as its uniform, compiled only where asked
   assert.ok(readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs', import.meta.url), 'utf8').includes('("rockTop", "_RockTop", Vector4.zero)'));
   assert.ok(readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs', import.meta.url), 'utf8').includes('V(m, "_RockTop")'), 'keeps a material off the plain variant');
   assert.ok(marksHlsl().includes('float rockTop(float3 p, float3 fw, float3 n, float2 s2, float len, inout float3 alb)'));
+});
+
+test('issue #686: Lorn\'s crystals faceted, as their uniforms, on lights too (they glow), never on glass, people, ground or water', () => {
+  assert.deepEqual(crystalFacetsOf({ crystalFacets: true, glow: 0.55, flat: true }), [1, 1, 1, 1]);
+  assert.deepEqual(crystalFacetsOf({ crystalFacets: { rim: 0.5, glow: 3, marks: 0 } }), [0.5, 2, 0, 1]);
+  for (const o of [{}, { glass: true }, { figure: true }, { mode: MODE_TERRAIN }, { mode: MODE_WATER }]) assert.equal(crystalFacetsOf({ crystalFacets: !!Object.keys(o).length, ...o })[3], 0);
+  assert.ok(!('S_CRYSTAL' in surfaceDefines({ color: '#fff', glow: 0.55, flat: true })));
+  assert.ok('S_CRYSTAL' in surfaceDefines({ color: '#fff', glow: 0.55, flat: true, crystalFacets: true }));
+  const m = makeMaterial({ color: '#a99be0', flat: true, glow: 0.55, crystalFacets: true });
+  assert.deepEqual(m.uniforms.uFacetMarks.value.toArray(), [1, 1, 1, 1]);
+  assert.match(m.fragmentShader, /float crystalFacets\(vec2 fu, vec3 fw, vec3 n, vec3 vd, vec3 sun, vec3 p, float mpp, inout vec3 alb, inout float emit\)/);
+  assert.deepEqual(portMaterial(inkSpec(m), 8).facetMarks, [1, 1, 1, 1]);
+  // (the same values on every grove's colour: their materials still differ only in what a static batch varies)
+  assert.deepEqual(makeMaterial({ color: '#62c3c9', flat: true, glow: 0.55, crystalFacets: true }).uniforms.uFacetMarks.value.toArray(), [1, 1, 1, 1]);
+});
+
+test('issue #686: facetUV lays a pointed prism\'s facets out in its uv (edges on whole u and u - v), its caps and prisms plain', () => {
+  const g = facetUV(new THREE.CylinderGeometry(0, 1, 4, 5, 1), 5), P = g.attributes.position, U = g.attributes.uv, I = g.index;
+  const cap = g.groups.find((q) => q.materialIndex > 0);
+  for (let t = 0; t < g.groups[0].count; t += 3) {
+    // each side triangle: (x, 0), (x + 1, 0), (x + 1, 1) in uv, its point at v 1
+    const c = [0, 1, 2].map((k) => I.getX(g.groups[0].start + t + k)).map((i) => [U.getX(i), U.getY(i), P.getY(i)]);
+    const x = Math.min(...c.map((q) => q[0]));
+    assert.ok(Number.isInteger(Math.round(x * 1e6) / 1e6) && x >= 0 && x <= 4, `facet ${x}`);
+    const sorted = c.map(([u, v]) => `${Math.round((u - x) * 1e4) / 1e4},${v}`).sort();
+    assert.deepEqual(sorted, ['0,0', '1,0', '1,1']);
+    for (const [, v, y] of c) assert.equal(v, y > 0 ? 1 : 0, 'v up from the root');
+  }
+  for (let t = cap.start; t < cap.start + cap.count; t++) assert.equal(g.attributes.uv.getY(I.getX(t)), -1, 'the cap: no facet frame');
+  const col = facetUV(new THREE.CylinderGeometry(1, 1, 2, 6).toNonIndexed(), 0);
+  for (let i = 0; i < col.attributes.uv.count; i++) assert.equal(col.attributes.uv.getY(i), -1, 'a column: its tone only');
+});
+
+test('issue #686: Lorn\'s crystals take it, and the port draws it (the uv in the form\'s slot, off the plain and slim variants)', () => {
+  const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
+  for (const f of ['levels/perdide.js', 'levels/perdide2.js', 'lorn-veins.js']) assert.match(src(f), /crystalFacets: true/, f);
+  assert.equal((src('levels/perdide.js').match(/facetUV\(/g) ?? []).length, 3, 'the groves, the Great Crystal, the cave');
+  assert.match(src('lorn-ways.js'), /facetUV\(p, 0\)/, 'Wendel\'s columns: tone only');
+  const shader = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader', import.meta.url), 'utf8');
+  assert.match(shader, /if \(_FacetMarks\.w > 0\.0\) O_FORM = float4\(v\.uv, 0, 0\)/);
+  assert.ok(shader.includes('crystalFacets(cfu, cFw, n,'));
+  const loader = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs', import.meta.url), 'utf8');
+  assert.ok(loader.includes('("facetMarks", "_FacetMarks", Vector4.zero)'));
+  const bridge = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs', import.meta.url), 'utf8');
+  assert.equal((bridge.match(/V\(m, "_FacetMarks"\)\.w <= 0f/g) ?? []).length, 2, 'off the plain variant and the slim one');
 });

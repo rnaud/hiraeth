@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { createNoise2D, mulberry32, smoothstep } from './noise.js';
-import { Bucket } from './lorn-kit.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { facetUV } from './surface-marks.js';
 
 // The roots of the crystal (issue #188, the author's pick of Lorn's explorations, `crystal-roots`:
 // references/levels/Lorn/environment/explorations/crystal-roots/). The Great Crystal is the tip of something huge: its
@@ -144,22 +145,24 @@ export function buildCrystalVeins(scene, terrain, { great = { x: 120, z: -150 },
   bind();
 
   // ---------------------------------------------------------- the ringing groves, where the veins meet
-  const groveMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.55, lornGrove: true });
+  const groveMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.55, lornGrove: true, crystalFacets: true });   // (faceted: surface-marks.js, issue #686)
   const groves = [];
   const GROVES = [[-32, -282], [-158, -132], [58, -152]];
-  const spikes = new Bucket();
+  const spikes = [];   // (their uv kept: the facets' frame, facetUV)
   GROVES.forEach(([x, z]) => {
     const g0 = terrain.heightAt(x, z);
     for (let i = 0; i < 9; i++) {
       const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * 3.2, h = R(3, 9) * (i ? 1 : 1.4), r = R(0.4, 0.95);
-      const c = new THREE.CylinderGeometry(0, r, h, 5, 1).translate(0, h / 2, 0).rotateX(R(-0.3, 0.3)).rotateZ(R(-0.3, 0.3));
-      spikes.add('grove', c.translate(x + Math.cos(a) * d, g0 - 0.4, z + Math.sin(a) * d));
+      const c = facetUV(new THREE.CylinderGeometry(0, r, h, 5, 1), 5).translate(0, h / 2, 0).rotateX(R(-0.3, 0.3)).rotateZ(R(-0.3, 0.3));
+      spikes.push(c.translate(x + Math.cos(a) * d, g0 - 0.4, z + Math.sin(a) * d).toNonIndexed());
     }
     groves.push({ at: V(x, Math.max(g0, 0), z), ring: 0 });
   });
   const g = new THREE.Group();
   g.name = 'The roots of the crystal';
-  for (const m of spikes.meshes({ grove: groveMat }, { name: 'The ringing groves' })) g.add(m);
+  const spikeMesh = new THREE.Mesh(mergeGeometries(spikes), groveMat);
+  spikeMesh.name = 'The ringing groves (grove)';
+  g.add(spikeMesh);
   scene.add(g);
   const lights = groves.map((G) => new THREE.Vector4(G.at.x, 2.5, G.at.z, 14));
   const sights = groves.map((G, k) => ({ name: ['the ringing grove by the stakes', 'the ringing grove in the reeds', 'the ringing grove under the Crystal'][k], at: G.at.clone().setY(G.at.y + 1) }));

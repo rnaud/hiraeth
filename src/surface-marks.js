@@ -35,6 +35,12 @@
 //   S_ROCKTOP (rockTop) references/surfaces/open-ground/sheet-1.jpg, its rock version: on a rock's upward faces (its sides
 //            keep their strata), broad soft patches of a warmer and a cooler tone, a crackled net in the warm ones with a
 //            broken line along their edge, long fissures across the rock in runs, pebbles with their shadows.
+// Part 4 (issue #686), the same way:
+//   S_CRYSTAL (crystalFacets) references/surfaces/crystals/sheet-1.jpg: Lorn's crystals, each facet a clean flat tone of its
+//            own colour (lighter toward the sky and the sun, deeper and cooler in shade), a soft inner glow brighter toward
+//            the root, a pale rim along the facets' edges, now and then a facet split in two by a fine line, and near, sparse
+//            pale fracture lines and tiny bright inclusions. In the facets' own frame: the geometry's uv as facetUV leaves it
+//            (u in facets round the crystal, v up it from the root), so any pointed prism made by CylinderGeometry(0, r, h, n).
 // Every mark goes by its size on screen, as each sheet's distance strip: the fine marks first, the joints and bands
 // next, the tones last; far off a flat colour.
 
@@ -60,6 +66,11 @@ export const DOMES = { rings: 5, panels: 22, tower: [4, 10], scour: 1.8, odd: 0.
 export const ROCK_TOP = { cell: 1.4, pebbles: 0.5, amount: 1 };
 /** A water channel: its half width (m), the current's speed (m/s). */
 export const CHANNEL = { half: 0.35, flow: 0.25 };
+
+/** Lorn's crystals: the facets' tones (sky, sun, each its own), the shade's cooler tint, how high up (of its length) the
+ *  root's glow reaches, the rim's lift, the share of split facets, the fractures' cell (m) and share, the inclusions'. */
+export const CRYSTAL_FACETS = { sky: 0.26, sun: 0.18, tone: 0.3, shade: [0.76, 0.78, 0.98], root: 0.38, emit: 0.06, rim: 0.75, split: 0.55,
+  crack: [1.3, 0.4], dots: [0.32, 0.14] };
 
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 const hex = (c) => {
@@ -142,6 +153,30 @@ export function rockTopOf(o) {
   if (!o.rockTop || excluded(o) || o.mode === 1) return [0, 0, 0, 0];
   const r = { ...ROCK_TOP, ...(typeof o.rockTop === 'object' ? o.rockTop : {}) };
   return [Math.max(r.cell, 0.3), clamp(r.pebbles, 0, 1), clamp(r.amount, 0, 2), 1];
+}
+/** crystalFacets: true or { rim, glow (the root's), marks (fractures and inclusions) } → [rim, glow, marks, 1] (zeros: none).
+ *  Lights may have it (the crystals glow); glass, people, the ground and water never. */
+export function crystalFacetsOf(o) {
+  if (!o.crystalFacets || o.glass || o.figure || o.facePart || o.eye || o.mode === 1 || o.mode === 3) return [0, 0, 0, 0];
+  const c = typeof o.crystalFacets === 'object' ? o.crystalFacets : {};
+  return [clamp(c.rim ?? 1, 0, 2), clamp(c.glow ?? 1, 0, 2), clamp(c.marks ?? 1, 0, 2), 1];
+}
+/**
+ * A crystal's geometry made ready for S_CRYSTAL: a CylinderGeometry(0, r, h, sides, 1)'s uv has u round it (0..1) and v up
+ * it; u becomes facets (0..sides), so a facet's edges lie where u and u - v are whole numbers. Its caps, and with sides 0
+ * the whole of it (a prism, a column: no facet frame), get v = -1: their tone only. Before toNonIndexed or a merge (its groups).
+ */
+export function facetUV(geo, sides) {
+  const uv = geo.attributes.uv;
+  if (!uv) return geo;
+  const caps = new Set();
+  if (sides > 0) for (const g of geo.groups ?? []) if (g.materialIndex > 0) for (let i = g.start; i < g.start + g.count; i++) caps.add(geo.index ? geo.index.getX(i) : i);
+  for (let i = 0; i < uv.count; i++) {
+    if (sides > 0 && !caps.has(i)) uv.setX(i, uv.getX(i) * sides);
+    else uv.setXY(i, 0, -1);
+  }
+  uv.needsUpdate = true;
+  return geo;
 }
 
 const f = (v) => (Number.isInteger(v) ? `${v}.0` : `${+v.toFixed(5)}`);
@@ -630,5 +665,78 @@ export const ROCK_TOP_GLSL = /* glsl */ `
   }
 `;
 
+const CF = CRYSTAL_FACETS;
+
+export const CRYSTAL_FACETS_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- Lorn's crystals (src/surface-marks.js CRYSTAL_FACETS)
+  // how far x is from the nearest whole number
+  float crystalWhole(float x) { return abs(x - floor(x + 0.5)); }
+  float crystalMax(vec3 c) { return max(max(c.r, c.g), max(c.b, 1e-3)); }
+  // A crystal at fu (its uv by facetUV: u in facets round it, v up it from the root; v < 0 a face with no facet frame), fw
+  // the per px of u, u - v and v, n its world normal (flat), vd the way to the eye, sun the sun's, p the point (world), mpp
+  // its metres per px: each facet's tone, the root's glow, the rim, a split, fractures and inclusions into alb and emit
+  // (the glow); the split's ink.
+  float crystalFacets(vec2 fu, vec3 fw, vec3 n, vec3 vd, vec3 sun, vec3 p, float mpp, inout vec3 alb, inout float emit) {
+    // each facet one flat tone: lighter toward the sky and the sun, its own a little (a seed from its flat normal, steady
+    // over the face and different on the next crystal's), deeper and cooler in shade
+    float sunK = dot(n, sun), seed = fract(dot(n, vec3(17.31, 31.73, 23.17)));
+    alb *= (1.0 + ${f(CF.sky)} * n.y + ${f(CF.sun)} * sunK + ${f(CF.tone)} * (seed - 0.5)) * mix(vec3(${CF.shade.map(f).join(', ')}), vec3(1.0), smoothstep(-0.35, 0.25, sunK));
+    // (an albedo channel over ~0.9 is printed as a grain of specks, not a flat light: each tone scaled down whole under a
+    //  ceiling, its hue kept, the facets under 0.72 so the glow and the rim have room over them)
+    alb *= min(1.0, 0.72 / crystalMax(alb));
+    if (fu.y < -0.5) return 0.0;
+    // the inner glow, brighter toward the root and where you look into the facet: paler, and glowing a little more
+    // (in three flat steps up from the root, each under post.js's colour-edge threshold: a smooth ramp there is printed
+    //  as a dithered grain, never flat colour)
+    float v = clamp(fu.y, 0.0, 1.0), vpx = max(fw.z, 1e-5), root = 0.0;
+    for (int k = 1; k <= 3; k++) root += 1.0 - smoothstep(-1.0, 1.0, (v - ${f(CF.root)} * float(k) / 3.0) / vpx);
+    root /= 3.0;
+    float gk = root * (0.6 + 0.4 * clamp(dot(n, vd), 0.0, 1.0)) * uFacetMarks.y;
+    vec3 warm = alb + vec3(0.16, 0.1, 0.13);   // (a warm pale light, as the sheet's)
+    alb = mix(alb, warm * (0.88 / crystalMax(warm)), gk * 0.9);
+    emit = max(emit, min(uGlow + ${f(CF.emit)} * gk, 0.95));
+    // the facet: which one (its triangle runs (x, 0), (x + 1, 0), (x + 1, 1) in uv) and how big on screen
+    float x = floor(fu.x - 0.5 * fu.y), a = fu.x - x;
+    float fpx = 1.0 / max(fw.x, 1e-5), ink = 0.0;
+    float h = fract(seed * 13.7 + x * 0.618);
+    // a pale rim along its two long edges, soft inward (never a colour edge post.js inks: its crease is the line)
+    float d = min(crystalWhole(fu.x) / max(fw.x, 1e-5), crystalWhole(fu.x - fu.y) / max(fw.y, 1e-5));
+    float rw = clamp(fpx * 0.06, 2.5, 7.0) * uPixelRatio;
+    vec3 pale = alb + 0.2;
+    alb = mix(alb, pale * (0.88 / crystalMax(pale)), (1.0 - smoothstep(0.0, rw, d)) * smoothstep(5.0, 14.0, fpx) * ${f(CF.rim)} * uFacetMarks.x);
+    // now and then a facet split in two from its point down to its root, the two halves a shade apart, a fine line between
+    if (h < ${f(CF.split)}) {
+      float a0 = 0.25 + 0.5 * fract(h * 7.31), s = a - a0 - (1.0 - a0) * v;
+      float sp = abs(s) / max(fw.x + (1.0 - a0) * fw.z, 1e-5);
+      alb *= 1.0 + 0.07 * (smoothstep(-1.5, 1.5, s / max(fw.x, 1e-5)) - 0.5) * smoothstep(10.0, 20.0, fpx);
+      ink = max(ink, inkLine(sp, 0.5) * 0.8 * smoothstep(16.0, 40.0, fpx));
+    }
+    alb *= min(1.0, 0.88 / crystalMax(alb));
+    // near: sparse fractures and tiny inclusions, in the facet's own plane (metres)
+    float kN = (1.0 - smoothstep(0.012, 0.03, mpp)) * uFacetMarks.z;
+    if (kN > 0.0 && uWearLite < 0.5) {
+      vec3 t1 = normalize(abs(n.y) < 0.95 ? cross(n, vec3(0.0, 1.0, 0.0)) : vec3(1.0, 0.0, 0.0)), t2 = cross(n, t1);
+      vec2 q = vec2(dot(p, t1), dot(p, t2)) + seed * 37.0;
+      // a fracture: a pale hairline at its own slant across a cell, wavering
+      vec2 cc = floor(q / ${f(CF.crack[0])});
+      if (hash(cc + 4.7) < ${f(CF.crack[1])}) {
+        float an = 0.6 + 1.9 * hash(cc + 1.3);
+        vec2 dir = vec2(cos(an), sin(an)), o = (cc + 0.25 + 0.5 * hash2(cc + 9.1)) * ${f(CF.crack[0])}, r = q - o;
+        float along = dot(r, dir), off = dot(r, vec2(-dir.y, dir.x)) - 0.025 * (vnoise(vec2(along * 7.0, cc.x + cc.y * 3.1)) - 0.5);
+        float reach = ${f(CF.crack[0])} * (0.3 + 0.35 * hash(cc + 6.2));
+        float on = 1.0 - smoothstep(reach * 0.6, reach, abs(along)), dp = abs(off) / mpp;
+        // (pale as a light, through the glow: a paler albedo there would be a colour edge post.js breaks into specks)
+        emit = max(emit, (1.0 - smoothstep(0.4, 1.4, dp)) * on * kN * 0.86);
+      }
+      // inclusions: tiny bright specks, a few a facet
+      vec2 dq = q / ${f(CF.dots[0])}, dc = floor(dq);
+      float dd = length((fract(dq) - 0.2 - 0.6 * hash2(dc + 21.0)) * ${f(CF.dots[0])}) / mpp, dr = max(0.012 / mpp, 0.8 * uPixelRatio);
+      float dot1 = (1.0 - smoothstep(dr - 0.5, dr + 0.5, dd)) * step(hash(dc + 5.5), ${f(CF.dots[1])}) * kN;
+      emit = max(emit, dot1 * 0.92);
+    }
+    return ink;
+  }
+`;
+
 /** Every module's GLSL in one (the Unity port's SurfaceMarks.hlsl is made from this). */
-export const MARKS_GLSL = [INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL];
+export const MARKS_GLSL = [INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL, CRYSTAL_FACETS_GLSL];

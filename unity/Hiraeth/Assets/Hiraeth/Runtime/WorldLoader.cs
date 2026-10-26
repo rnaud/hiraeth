@@ -206,7 +206,9 @@ namespace Hiraeth
                 ("seaWall", "_SeaWall", Vector4.zero), ("paleStone", "_PaleStone", Vector4.zero), ("buried", "_Buried", Vector4.zero),
                 ("domes", "_Domes", Vector4.zero), ("domesBand", "_DomesBand", Vector4.zero), ("channel", "_Channel", Vector4.zero),
                 // (issue #685: a rock's walked top: crack cell, pebbles, amount, w on)
-                ("rockTop", "_RockTop", Vector4.zero) })
+                ("rockTop", "_RockTop", Vector4.zero),
+                // (issue #686: Lorn's crystals, faceted: rim, the root's glow, near marks, on)
+                ("facetMarks", "_FacetMarks", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

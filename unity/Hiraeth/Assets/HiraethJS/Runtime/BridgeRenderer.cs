@@ -704,7 +704,8 @@ namespace Hiraeth.Bridge
                 && V(m, "_Stone").w <= 0.5f   // (and a landmark's cut stone, issue #538)
                 && V(m, "_Paving").x <= 0f   // (and paving's flagstones, issue #669)
                 && V(m, "_Interior").x <= 0f && V(m, "_Sheet").x <= 0f && V(m, "_Timber").w <= 0f && V(m, "_RockTop").w <= 0f   // (a room's tiles, sheet metal, timber: #669; a rock's top: #685)
-                && V(m, "_SeaWall").x <= 0f && V(m, "_PaleStone").x <= 0f && V(m, "_Buried").x <= 0f && V(m, "_Domes").w <= 0f && V(m, "_Channel").w <= 0f;   // (#677's)
+                && V(m, "_SeaWall").x <= 0f && V(m, "_PaleStone").x <= 0f && V(m, "_Buried").x <= 0f && V(m, "_Domes").w <= 0f && V(m, "_Channel").w <= 0f   // (#677's)
+                && V(m, "_FacetMarks").w <= 0f;   // (and Lorn's faceted crystals, #686)
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
             // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
             // always plain, so the plain lean materials' only)
@@ -753,7 +754,7 @@ namespace Hiraeth.Bridge
 #endif
         /// <summary>No person (an outfit or eyes, creases, folds), no picture and no hatching that follows its form, not a crowd's.</summary>
         static bool Slim(Material m, int mode) => mode != 4 && mode != 6 && F(m, "_Folds") <= 0 && F(m, "_Creases") <= 0
-            && F(m, "_MapOn") <= 0.5f && F(m, "_FormOn") <= 0.5f && F(m, "_DuneOn") <= 0.5f && F(m, "_NightOn") <= 0.5f && !m.IsKeywordEnabled("HIRAETH_CROWD")
+            && F(m, "_MapOn") <= 0.5f && F(m, "_FormOn") <= 0.5f && F(m, "_DuneOn") <= 0.5f && F(m, "_NightOn") <= 0.5f && V(m, "_FacetMarks").w <= 0f && !m.IsKeywordEnabled("HIRAETH_CROWD")   // (a faceted crystal's uv rides in the form's slot, #686)
             && (slimNot == null || System.Array.TrueForAll(slimNot, k => !(k.StartsWith("mode") ? mode.ToString() == k.Substring(4) : m.IsKeywordEnabled(k))));
         // (the copies made for the GPU instances, the grass and the crowds leave the slim variant: on them it faults the Adreno's GPU,
         // round 7; tests: -slim-copies keeps it on them, -slim-on-plain gives it with HIRAETH_PLAIN too, -slim-not KW,KW,mode1 leaves

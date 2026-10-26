@@ -5,8 +5,8 @@ import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { PAVING_GLSL, pavingOf } from './paving-shader.js';
-import { INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL, interiorOf, sheetOf, timberOf, groundMidOf,
-  seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf } from './surface-marks.js';
+import { INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL, CRYSTAL_FACETS_GLSL, interiorOf, sheetOf, timberOf, groundMidOf,
+  seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, crystalFacetsOf } from './surface-marks.js';
 import { OPENINGS, OPENINGS_GLSL } from './wall-openings.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL, GROUND, PEBBLES } from './ground-ink.js';
@@ -353,7 +353,8 @@ export function setEnvGround(color) {
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
   'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP', 'S_PAVING', 'S_INTERIOR', 'S_SHEET', 'S_TIMBER', 'S_GROUNDMID',
-  'S_SEAWALL', 'S_PALESTONE', 'S_BURIED', 'S_DOMES', 'S_CHANNEL', 'S_ROCKTOP'];
+  'S_SEAWALL', 'S_PALESTONE', 'S_BURIED', 'S_DOMES', 'S_CHANNEL', 'S_ROCKTOP',
+  'S_CRYSTAL'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -503,6 +504,7 @@ export function surfaceFeatures(o) {
   on('S_DOMES', domesOf(o)[0][3] > 0);   // (the desert's panelled domes)
   on('S_CHANNEL', channelOf(o)[3] > 0);   // (a water channel)
   on('S_ROCKTOP', rockTopOf(o)[3] > 0);   // (issue #685: a rock's walked top)
+  on('S_CRYSTAL', crystalFacetsOf(o)[3] > 0);   // (issue #686: Lorn's crystals, faceted)
   on('S_WEATHER', weatheredOf(o) > 0);
   on('S_DETAIL', detailOf(o)[0] > 0);
   on('S_FORM', formOf(o));
@@ -1030,6 +1032,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uDomesBand; // their painted rings: colour, share
   uniform vec4 uChannel;   // a water channel (CHANNEL): half width (m), 0 along x / 1 along z, flow (m/s), 1
   uniform vec4 uRockTop;   // a rock's walked top (ROCK_TOP, issue #685): crack cell (m), pebbles, amount, 1
+  uniform vec4 uFacetMarks; // Lorn's crystals (CRYSTAL_FACETS, issue #686): rim, the root's glow, near marks, 1
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
@@ -1783,6 +1786,9 @@ ${SHADOW_GLSL}
   #ifdef S_CHANNEL
   ${CHANNEL_GLSL}
   #endif
+  #ifdef S_CRYSTAL
+  ${CRYSTAL_FACETS_GLSL}
+  #endif
 
   float segDist(vec2 p, vec2 a, vec2 b) {
     vec2 ab = b - a;
@@ -2347,6 +2353,11 @@ ${SHADOW_GLSL}
     vec3 markFw = vec3(length(vec2(dFdx(vWorldPos.x), dFdy(vWorldPos.x))), length(vec2(dFdx(vWorldPos.y), dFdy(vWorldPos.y))), length(vec2(dFdx(vWorldPos.z), dFdy(vWorldPos.z))));
     vec3 markOFw = vec3(length(vec2(dFdx(vObjPos.x), dFdy(vObjPos.x))), length(vec2(dFdx(vObjPos.y), dFdy(vObjPos.y))), length(vec2(dFdx(vObjPos.z), dFdy(vObjPos.z))));
     #endif
+    #ifdef S_CRYSTAL
+    // a crystal's facets (src/surface-marks.js, issue #686): its uv as facetUV left it, per px (in uniform flow)
+    vec3 cryFw = vec3(fwidth(vTextureUV.x), fwidth(vTextureUV.x - vTextureUV.y), fwidth(vTextureUV.y));
+    float cryMpp = length(fwidth(vWorldPos)) * 0.577;
+    #endif
     #ifdef S_DOMES
     // a dome's azimuth and ring per px (the azimuth's own seam left out: its other branch's derivative there)
     float domPhi = atan(vObjPos.z, vObjPos.x) / 6.28318;
@@ -2598,6 +2609,9 @@ ${SHADOW_GLSL}
     #ifdef S_ROCKTOP
     // a rock's walked top (src/surface-marks.js, issue #685): patches, cracks, fissures, pebbles; its sides keep their strata
     if (uRockTop.w > 0.0) patInk = max(patInk, rockTop(vWorldPos, markFw, n, uSunDir.xz / max(length(uSunDir.xz), 1e-3), pebbleShadow(uSunDir.y), albedo));
+    #endif
+    #ifdef S_CRYSTAL
+    if (uFacetMarks.w > 0.0) patInk = max(patInk, crystalFacets(vTextureUV, cryFw, n, normalize(cameraPosition - vWorldPos), uSunDir, vWorldPos, cryMpp, albedo, emit));
     #endif
     albedo *= instColor;
     #ifdef FOE_SURFACE
@@ -3220,6 +3234,7 @@ export function makeMaterial(o) {
       ...(() => { const [d, b] = domesOf(o); return { uDomes: { value: new THREE.Vector4(...d) }, uDomesBand: { value: new THREE.Vector4(...b) } }; })(),
       uChannel: { value: new THREE.Vector4(...channelOf(o)) },
       uRockTop: { value: new THREE.Vector4(...rockTopOf(o)) },
+      uFacetMarks: { value: new THREE.Vector4(...crystalFacetsOf(o)) },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
       uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },

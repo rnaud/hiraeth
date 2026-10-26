@@ -3,6 +3,9 @@
 // distance; issue #677: sea walls, pale stone, the buried city, panelled domes, water channels; issue #685: a rock's walked top) for Surface.shader: the
 // web's GLSL in HLSL, three's frame throughout, the material's _Interior, _InteriorDado, _InteriorSkirt, _Sheet, _Timber,
 // _GroundMid, _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel and _RockTop.
+// distance; issue #677: sea walls, pale stone, the buried city, panelled domes, water channels; issue #686: Lorn's crystals)
+// for Surface.shader: the web's GLSL in HLSL, three's frame throughout, the material's _Interior, _InteriorDado,
+// _InteriorSkirt, _Sheet, _Timber, _GroundMid, _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel and _FacetMarks.
 #ifndef HIRAETH_SURFACE_MARKS_INCLUDED
 #define HIRAETH_SURFACE_MARKS_INCLUDED
 
@@ -471,6 +474,76 @@
     if (_RockTop.y > 0.0 && gm < 0.25) {
       ink = max(ink, pebbleField(q, gm, s2, len, 1.0, 1.1, _RockTop.y * 0.55, float2(0.04, 0.11), 63.0) * up);
       ink = max(ink, pebbleField(q, gm, s2, len, 1.0, 4.0, _RockTop.y * 0.6, float2(0.1, 0.26), 87.0) * up);
+    }
+    return ink;
+  }
+
+
+  // ---------------------------------------------------------------- Lorn's crystals (src/surface-marks.js CRYSTAL_FACETS)
+  // how far x is from the nearest whole number
+  float crystalWhole(float x) { return abs(x - floor(x + 0.5)); }
+  float crystalMax(float3 c) { return max(max(c.r, c.g), max(c.b, 1e-3)); }
+  // A crystal at fu (its uv by facetUV: u in facets round it, v up it from the root; v < 0 a face with no facet frame), fw
+  // the per px of u, u - v and v, n its world normal (flat), vd the way to the eye, sun the sun's, p the point (world), mpp
+  // its metres per px: each facet's tone, the root's glow, the rim, a split, fractures and inclusions into alb and emit
+  // (the glow); the split's ink.
+  float crystalFacets(float2 fu, float3 fw, float3 n, float3 vd, float3 sun, float3 p, float mpp, inout float3 alb, inout float emit) {
+    // each facet one flat tone: lighter toward the sky and the sun, its own a little (a seed from its flat normal, steady
+    // over the face and different on the next crystal's), deeper and cooler in shade
+    float sunK = dot(n, sun), seed = frac(dot(n, float3(17.31, 31.73, 23.17)));
+    alb *= (1.0 + 0.26 * n.y + 0.18 * sunK + 0.3 * (seed - 0.5)) * lerp(float3(0.76, 0.78, 0.98), ((float3)(1.0)), smoothstep(-0.35, 0.25, sunK));
+    // (an albedo channel over ~0.9 is printed as a grain of specks, not a flat light: each tone scaled down whole under a
+    //  ceiling, its hue kept, the facets under 0.72 so the glow and the rim have room over them)
+    alb *= min(1.0, 0.72 / crystalMax(alb));
+    if (fu.y < -0.5) return 0.0;
+    // the inner glow, brighter toward the root and where you look into the facet: paler, and glowing a little more
+    // (in three flat steps up from the root, each under post.js's colour-edge threshold: a smooth ramp there is printed
+    //  as a dithered grain, never flat colour)
+    float v = clamp(fu.y, 0.0, 1.0), vpx = max(fw.z, 1e-5), root = 0.0;
+    for (int k = 1; k <= 3; k++) root += 1.0 - smoothstep(-1.0, 1.0, (v - 0.38 * float(k) / 3.0) / vpx);
+    root /= 3.0;
+    float gk = root * (0.6 + 0.4 * clamp(dot(n, vd), 0.0, 1.0)) * _FacetMarks.y;
+    float3 warm = alb + float3(0.16, 0.1, 0.13);   // (a warm pale light, as the sheet's)
+    alb = lerp(alb, warm * (0.88 / crystalMax(warm)), gk * 0.9);
+    emit = max(emit, min(_Glow + 0.06 * gk, 0.95));
+    // the facet: which one (its triangle runs (x, 0), (x + 1, 0), (x + 1, 1) in uv) and how big on screen
+    float x = floor(fu.x - 0.5 * fu.y), a = fu.x - x;
+    float fpx = 1.0 / max(fw.x, 1e-5), ink = 0.0;
+    float h = frac(seed * 13.7 + x * 0.618);
+    // a pale rim along its two long edges, soft inward (never a colour edge post.js inks: its crease is the line)
+    float d = min(crystalWhole(fu.x) / max(fw.x, 1e-5), crystalWhole(fu.x - fu.y) / max(fw.y, 1e-5));
+    float rw = clamp(fpx * 0.06, 2.5, 7.0) * _PixelRatio;
+    float3 pale = alb + 0.2;
+    alb = lerp(alb, pale * (0.88 / crystalMax(pale)), (1.0 - smoothstep(0.0, rw, d)) * smoothstep(5.0, 14.0, fpx) * 0.75 * _FacetMarks.x);
+    // now and then a facet split in two from its point down to its root, the two halves a shade apart, a fine line between
+    if (h < 0.55) {
+      float a0 = 0.25 + 0.5 * frac(h * 7.31), s = a - a0 - (1.0 - a0) * v;
+      float sp = abs(s) / max(fw.x + (1.0 - a0) * fw.z, 1e-5);
+      alb *= 1.0 + 0.07 * (smoothstep(-1.5, 1.5, s / max(fw.x, 1e-5)) - 0.5) * smoothstep(10.0, 20.0, fpx);
+      ink = max(ink, inkLine(sp, 0.5) * 0.8 * smoothstep(16.0, 40.0, fpx));
+    }
+    alb *= min(1.0, 0.88 / crystalMax(alb));
+    // near: sparse fractures and tiny inclusions, in the facet's own plane (metres)
+    float kN = (1.0 - smoothstep(0.012, 0.03, mpp)) * _FacetMarks.z;
+    if (kN > 0.0 && _WearLite < 0.5) {
+      float3 t1 = normalize(abs(n.y) < 0.95 ? cross(n, float3(0.0, 1.0, 0.0)) : float3(1.0, 0.0, 0.0)), t2 = cross(n, t1);
+      float2 q = float2(dot(p, t1), dot(p, t2)) + seed * 37.0;
+      // a fracture: a pale hairline at its own slant across a cell, wavering
+      float2 cc = floor(q / 1.3);
+      if (hash(cc + 4.7) < 0.4) {
+        float an = 0.6 + 1.9 * hash(cc + 1.3);
+        float2 dir = float2(cos(an), sin(an)), o = (cc + 0.25 + 0.5 * hash2(cc + 9.1)) * 1.3, r = q - o;
+        float along = dot(r, dir), off = dot(r, float2(-dir.y, dir.x)) - 0.025 * (vnoise(float2(along * 7.0, cc.x + cc.y * 3.1)) - 0.5);
+        float reach = 1.3 * (0.3 + 0.35 * hash(cc + 6.2));
+        float on = 1.0 - smoothstep(reach * 0.6, reach, abs(along)), dp = abs(off) / mpp;
+        // (pale as a light, through the glow: a paler albedo there would be a colour edge post.js breaks into specks)
+        emit = max(emit, (1.0 - smoothstep(0.4, 1.4, dp)) * on * kN * 0.86);
+      }
+      // inclusions: tiny bright specks, a few a facet
+      float2 dq = q / 0.32, dc = floor(dq);
+      float dd = length((frac(dq) - 0.2 - 0.6 * hash2(dc + 21.0)) * 0.32) / mpp, dr = max(0.012 / mpp, 0.8 * _PixelRatio);
+      float dot1 = (1.0 - smoothstep(dr - 0.5, dr + 0.5, dd)) * step(hash(dc + 5.5), 0.14) * kN;
+      emit = max(emit, dot1 * 0.92);
     }
     return ink;
   }

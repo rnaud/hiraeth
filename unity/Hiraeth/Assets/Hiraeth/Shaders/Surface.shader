@@ -81,6 +81,7 @@ Shader "Hiraeth/Surface"
     _Domes ("Panelled domes: rings (a tower's: m), panels, scour (m), 1 dome / 2 tower", Vector) = (0, 0, 0, 0)
     _DomesBand ("Their painted rings: colour, share", Vector) = (0, 0, 0, 0)
     _Channel ("A water channel: half width (m), axis (0 x, 1 z), flow (m/s), on", Vector) = (0, 0, 0, 0)
+    _FacetMarks ("Lorn's crystals faceted: rim, the root's glow, near marks, on (src/surface-marks.js, issue #686)", Vector) = (0, 0, 0, 0)
     _VGlyph ("A merged mesh's glyph cells per vertex, the grid's (materials.js S_VGLYPH: the banners)", Float) = 0
     _LineFar ("A lighter line from afar: its step, from, to (m); w 1 on (materials.js LINE_FAR)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
@@ -237,6 +238,7 @@ Shader "Hiraeth/Surface"
     float4 _Interior, _InteriorDado, _InteriorSkirt, _Sheet, _Timber, _GroundMid;   // (src/surface-marks.js, issue #669)
     float4 _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel;   // (src/surface-marks.js, issue #677)
     float4 _RockTop;       // (src/surface-marks.js rockTop, issue #685)
+    float4 _FacetMarks;    // Lorn's crystals (src/surface-marks.js crystalFacets, issue #686): rim, root glow, near marks, w 1 on; the uv in form.xy
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -702,6 +704,7 @@ Shader "Hiraeth/Surface"
         O_FORM = 0;
         // (a picture's uv where the form's point would be: a material with a map has no S_FORM; w 0 keeps the form's hatching off)
         if (_MapOn > 0.5 || _FallOn > 0.5) O_FORM = float4(v.uv, 0, 0);   // (a fall's uv in metres too: Fall.hlsl)
+        if (_FacetMarks.w > 0.0) O_FORM = float4(v.uv, 0, 0);   // (a crystal's facet frame, surface-marks.js facetUV: issue #686)
         #if defined(HIRAETH_VMAT)
           // (each merged object's own frame: materials.js S_VMAT; the camera in its frame, its turn about y undone)
           o.vm1 = v.vm1; o.vm2 = v.vm2; o.vm3 = v.vm3;
@@ -1540,6 +1543,14 @@ Shader "Hiraeth/Surface"
           float domPhi = atan2(i.objPos.z, i.objPos.x) / 6.28318;
           float domFphi = min(fwidth(domPhi), fwidth(frac(domPhi + 0.5))), domFrc = fwidth(domesRing(i.objPos)), domMpp = length(fwidth(i.objPos)) * 0.577;
           patInk = max(patInk, domes(i.objPos, domFphi, domFrc, domMpp, albedo));
+        }
+        // and issue #686's: Lorn's crystals, faceted (their uv in the form's slot: never on the slim variant, BridgeRenderer.Slim)
+        UNITY_BRANCH if (WALLK && _FacetMarks.w > 0.0)
+        {
+          float2 cfu = I_FORM.xy;
+          float3 cFw = float3(fwidth(cfu.x), fwidth(cfu.x - cfu.y), fwidth(cfu.y));
+          float cMpp = length(fwidth(i.worldPos)) * 0.577;
+          patInk = max(patInk, crystalFacets(cfu, cFw, n, normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), _SunDir.xyz, i.worldPos, cMpp, albedo, emit));
         }
         if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, SafeNormalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         // the fluid sword's living blade, the guard's shield: their currents (blade-shader.js bladeFluid, fluid kind 6)

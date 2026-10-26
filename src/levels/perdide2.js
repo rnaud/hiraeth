@@ -8,6 +8,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis } from '../form.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
+import { facetUV } from '../surface-marks.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
 import { KEEPERS } from '../story/perdide2-data.js';
@@ -437,7 +438,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   yield;
   {
     const reed = new THREE.ConeGeometry(0.22, 1, 3).translate(0, 0.5, 0);
-    const shard = new THREE.CylinderGeometry(0, 1, 1, 6).translate(0, 0.5, 0);
+    const shard = facetUV(new THREE.CylinderGeometry(0, 1, 1, 6), 6).translate(0, 0.5, 0);   // (its facets' frame: S_CRYSTAL)
     const reeds = [], shards = [], bare = kitBare('perdide');   // (the Deep Wood is Lorn's part: its runs in Lorn's coordinates)
     const stand = (cx, cz, n, spread) => {
       for (let i = 0; i < n; i++) {
@@ -471,7 +472,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       if (c % 4 === 0) lights.push(new THREE.Vector4(cx, H(cx, cz) + 3, cz, 9));
     }
     inst(reed, makeMaterial({ color: '#ffffff', flat: true, glow: 0.3, line: 0.45, lineTint: 1 }), reeds);   // (pale lavender blades in a thin violet line of their own: materials.js LINE; less self-lit, so they read lavender, not white)
-    inst(shard, makeMaterial({ color: '#ffffff', flat: true, glow: 0.45 }), shards);
+    inst(shard, makeMaterial({ color: '#ffffff', flat: true, glow: 0.45, crystalFacets: true }), shards);
   }
 
   // ---------------------------------------------------------- glowing eggs and light pools

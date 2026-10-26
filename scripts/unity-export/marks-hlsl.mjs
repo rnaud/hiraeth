@@ -1,7 +1,9 @@
 // The surface marks of issues #669 and #677 for the Unity port's Surface shader: src/surface-marks.js (interiors, sheet-metal
-// walls, worked timber, the ground's middle distance; sea walls, pale stone, the buried city, panelled domes, water channels), the very GLSL the web draws, turned into HLSL and written to
+// walls, worked timber, the ground's middle distance; sea walls, pale stone, the buried city, panelled domes, water channels;
+// Lorn's crystals), the very GLSL the web draws, turned into HLSL and written to
 // unity/Hiraeth/Assets/Hiraeth/Shaders/SurfaceMarks.hlsl, which Surface.shader includes and calls in uniform branches on
 // the material's _Interior, _Sheet, _Timber, _GroundMid, _SeaWall, _PaleStone, _Buried, _Domes, _Channel and _RockTop (issue #685: a rock's walked top). tests/surface-marks.test.js checks it is current.
+// the material's _Interior, _Sheet, _Timber, _GroundMid, _SeaWall, _PaleStone, _Buried, _Domes, _Channel and _FacetMarks. tests/surface-marks.test.js checks it is current.
 //   node scripts/unity-export/marks-hlsl.mjs          (writes it)
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +14,7 @@ export const MARKS_HLSL_PATH = fileURLToPath(new URL('../../unity/Hiraeth/Assets
 
 const HOST = { uInteriorDado: '_InteriorDado', uInteriorSkirt: '_InteriorSkirt', uInterior: '_Interior', uSheet: '_Sheet', uTimber: '_Timber', uGroundMid: '_GroundMid',
   uSeaWall: '_SeaWall', uPaleStone: '_PaleStone', uBuried: '_Buried', uDomesBand: '_DomesBand', uDomes: '_Domes', uChannel: '_Channel', uRockTop: '_RockTop',
-  uPixelRatio: '_PixelRatio', uWearLite: '_WearLite' };
+  uFacetMarks: '_FacetMarks', uGlow: '_Glow', uPixelRatio: '_PixelRatio', uWearLite: '_WearLite' };
 
 /** MARKS_GLSL in HLSL. */
 export function marksHlsl(chunks = MARKS_GLSL) {
@@ -22,6 +24,9 @@ export function marksHlsl(chunks = MARKS_GLSL) {
 // distance; issue #677: sea walls, pale stone, the buried city, panelled domes, water channels; issue #685: a rock's walked top) for Surface.shader: the
 // web's GLSL in HLSL, three's frame throughout, the material's _Interior, _InteriorDado, _InteriorSkirt, _Sheet, _Timber,
 // _GroundMid, _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel and _RockTop.
+// distance; issue #677: sea walls, pale stone, the buried city, panelled domes, water channels; issue #686: Lorn's crystals)
+// for Surface.shader: the web's GLSL in HLSL, three's frame throughout, the material's _Interior, _InteriorDado,
+// _InteriorSkirt, _Sheet, _Timber, _GroundMid, _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel and _FacetMarks.
 #ifndef HIRAETH_SURFACE_MARKS_INCLUDED
 #define HIRAETH_SURFACE_MARKS_INCLUDED
 ${s}

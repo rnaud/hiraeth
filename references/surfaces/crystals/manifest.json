@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the humming crystals of a misty swamp planet: tall clustered crystal prisms of soft lavender, violet and aqua growing from dark roots, each crystal cut in a few large clean facets with crisp pen edges, flat facets of slightly different tones of one colour, a lighter facet facing the sky and a deeper one in shade, a soft inner glow brighter toward the base, a few fine internal fracture lines and tiny bright inclusions, a pale rim light along the edges, faint frost-like growth rings near the root. Three panels side by side: a large close view of one crystal cluster showing the facets and inner glow; a grove of these crystals in the swamp seen from a walker's height with a small figure for scale and the huge Great Crystal far behind; a strip showing the marks simplifying with distance, facets and glow staying, fractures and inclusions gone far. Calm, luminous, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, lavender, violet, aqua and mint over dark teal swamp, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, sparkles, lens flare, gemstones, jewelry.",
+      "from": "docs/design/surface-prompts.md#crystals",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-26-13-46-42-5220",
+      "candidate": "openai/1",
+      "sha256": "a1414cdfadfd7f174d13adf638504f11a5efd7fabbe28863cb3fc6e5f559096b",
+      "bytes": 262612,
+      "costUSD": 0.041
+    }
+  ]
+}

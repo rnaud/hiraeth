@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
+import { facetUV } from '../surface-marks.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike, buildSocket } from '../bike.js';
 import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
@@ -298,7 +299,7 @@ export function* buildPerdide(scene) {
     for (let i = 0; i < count; i++) {
       const x = cx + (rng() - 0.5) * spread, z = cz + (rng() - 0.5) * spread;
       const h0 = (6 + rng() * rng() * 40) * scale, h = cap ? cap(x, z, h0, terrain.heightAt(x, z) - 0.5) : h0, r = (0.8 + rng() * 2.5) * scale;
-      const g = new THREE.CylinderGeometry(0, r, h, 5, 1);
+      const g = facetUV(new THREE.CylinderGeometry(0, r, h, 5, 1), 5);   // (its facets' frame: S_CRYSTAL)
       g.translate(0, h / 2, 0);
       g.rotateX((rng() - 0.5) * 0.5).rotateZ((rng() - 0.5) * 0.5);
       g.translate(x, terrain.heightAt(x, z) - 0.5, z);
@@ -308,7 +309,7 @@ export function* buildPerdide(scene) {
     }
     if (skip) return;   // (its draws taken all the same: the rest of the swamp grows where it always did)
     for (const [c, list] of Object.entries(parts))
-      scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55 })));
+      scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55, crystalFacets: true })));   // (faceted, glowing from the root: surface-marks.js, issue #686)
   }
   // (the landing island's grove, with a notch in it on the line from Saba's stone to the cave's crown: src/lorn-ways.js)
   crystals(40, -70, 60, 50, 1, crownWindow(CAVE));
@@ -403,7 +404,7 @@ export function* buildPerdide(scene) {
     const parts = [], spires = [];
     for (let i = 0; i < 9; i++) {
       const h = 35 + rng() * 60, r = 5 + rng() * 7;
-      const g = new THREE.CylinderGeometry(0, r, h, 6).translate(0, h / 2, 0);
+      const g = facetUV(new THREE.CylinderGeometry(0, r, h, 6), 6).translate(0, h / 2, 0);
       const rx = (rng() - 0.5) * 0.6, rz = (rng() - 0.5) * 0.6;
       g.rotateX(rx).rotateZ(rz);
       const tx = (rng() - 0.5) * 16, tz = (rng() - 0.5) * 16;
@@ -414,7 +415,7 @@ export function* buildPerdide(scene) {
       for (const k of [0.12, 0.3, 0.5]) spires.push({ pos: new THREE.Vector3(0, k * h, 0).applyMatrix4(R).add(new THREE.Vector3(gx + tx, base - 2, gz + tz)), r: r * (1 - k) + 1.2 });
     }
     // its own material: the story brightens it while it sings
-    const crMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8, greatCrystal: true });
+    const crMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8, greatCrystal: true, crystalFacets: true });
     const cr = new THREE.Mesh(mergeGeometries(parts), crMat);
     cr.userData.castShadow = true;   // it glows, but it is a 95 m spire of solid crystal: it stands in the sun (shadows.js selfLitSkips)
     cr.position.set(gx, base, gz);
@@ -467,13 +468,13 @@ export function* buildPerdide(scene) {
     for (let i = 0; i < 46; i++) {
       const zz = (rng() - 0.5) * CAVE.len * 0.9, a = 0.15 + rng() * (Math.PI - 0.3);
       const h = 2 + rng() * 5;
-      const g = new THREE.CylinderGeometry(0, 0.4 + rng() * 0.8, h, 5).translate(0, h / 2, 0);
+      const g = facetUV(new THREE.CylinderGeometry(0, 0.4 + rng() * 0.8, h, 5), 5).translate(0, h / 2, 0);
       const nx = Math.cos(a), ny = Math.sin(a);
       g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-nx, -ny, 0)));
       g.translate(nx * CAVE.r * 0.97, ny * CAVE.r * 0.97, zz);
       inside.push(g.toNonIndexed());
     }
-    caveMat = makeMaterial({ color: '#7fe0d0', flat: true, glow: 1, caveCrystals: true });   // its own: they answer the splinter
+    caveMat = makeMaterial({ color: '#7fe0d0', flat: true, glow: 1, caveCrystals: true, crystalFacets: true });   // its own: they answer the splinter
     grp.add(new THREE.Mesh(mergeGeometries(inside), caveMat));
     scene.add(grp);
   }

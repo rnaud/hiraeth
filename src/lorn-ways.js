@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { facetUV } from './surface-marks.js';
 import { steppedColumns } from './lookouts.js';
 
 // Lorn's way home and the crystal cave's crown (level design audit, fourth round: the walk back from the cave to the
@@ -31,7 +32,7 @@ export function buildCaveCrown(scene, cave, mat) {
   const ridge = cave.y + cave.r + 7;   // (the outer vault's crown: src/levels/perdide.js, its wall 7 m thick)
   const c = Math.cos(cave.rot), s = Math.sin(cave.rot);
   const parts = SPIRES.map(([u, v, h, r, lx, lz]) => {
-    const g = new THREE.CylinderGeometry(0, r, h, 6).translate(0, h / 2, 0).rotateX(lx).rotateZ(lz);
+    const g = facetUV(new THREE.CylinderGeometry(0, r, h, 6), 6).translate(0, h / 2, 0).rotateX(lx).rotateZ(lz);
     // (u along the tunnel's axis, v across it; sunk 3 m into the rock)
     return g.translate(cave.x + s * u + c * v, ridge - 3, cave.z + c * u - s * v).toNonIndexed();
   });
@@ -118,15 +119,15 @@ export function buildLookout(scene, terrain, mat) {
   const { x, z, r, step } = LOOKOUT;
   // the ring climbs anticlockwise from the side that faces the landing (src/lookouts.js)
   const S = steppedColumns({ x, z, r, step, sides: 6, ground: (px, pz) => terrain.heightAt(px, pz), face: Math.PI * 0.75 });
-  const parts = [...S.parts];
+  const parts = S.parts.map((p) => facetUV(p, 0));   // (the columns: the crystal's tone, no facet frame: S_CRYSTAL)
   // two short pointed crystals where the ring is open, and a thin spire up from the middle's back edge
   for (const [[ox, oz], h] of [[S.open[0], 4.5], [S.open[1], 3.2]]) {
     const k = (S.d - 0.6) / S.d, cx = x + (ox - x) * k, cz = z + (oz - z) * k, f = terrain.heightAt(cx, cz) - 0.8;
-    parts.push(new THREE.CylinderGeometry(0, 1.6, h + 0.8, 6).translate(cx, f + (h + 0.8) / 2, cz).toNonIndexed());
+    parts.push(facetUV(new THREE.CylinderGeometry(0, 1.6, h + 0.8, 6), 6).translate(cx, f + (h + 0.8) / 2, cz).toNonIndexed());
   }
   {
     const a = Math.PI * 0.75 + Math.PI * 1.5, cx = x + Math.cos(a) * (S.ap - 0.7), cz = z + Math.sin(a) * (S.ap - 0.7);
-    parts.push(new THREE.CylinderGeometry(0, 0.75, 8, 6).translate(cx, S.top.y - 0.5 + 4, cz).toNonIndexed());
+    parts.push(facetUV(new THREE.CylinderGeometry(0, 0.75, 8, 6), 6).translate(cx, S.top.y - 0.5 + 4, cz).toNonIndexed());
   }
   const m = new THREE.Mesh(mergeGeometries(parts), mat);
   m.name = 'Wendel’s lookout';

@@ -15,6 +15,8 @@ export const MATERIAL_GAPS = [
       where: 'port-format.js chimeshade → Hiraeth/ChimeShade (BridgeRenderer.cs): the page\'s G-buffer decal, the albedo blended toward its tint by its strength (the instance\'s, InstMats), the light term kept, faded by uFar; no discard' },
     { pattern: /^(define:S_THIN|uniform:uThinPx)$/, what: 'thin bars (masts\' struts, wires, vines) kept a pixel or two wide far off (src/thin.js)', status: 'handled',
       where: 'port-format.js thinPx; aThin in the form\'s slot (pack.js, backend.js); Surface.shader vert pushes the vertex out from its axis point by the web\'s least width (a perspective view only); never in a static batch (BridgeRenderer.NeedsOrigin)' },
+    { pattern: /^define:S_CRYSTAL$/, what: 'Lorn\'s crystals faceted: each facet its tone, the root\'s glow, a pale rim, splits, fractures and inclusions near (src/surface-marks.js CRYSTAL_FACETS, issue #686)', status: 'handled',
+      where: 'port-format.js facetMarks → _FacetMarks: Surface.shader vert puts the uv (facetUV\'s facet frame) in the form\'s slot, frag the web\'s marks in a uniform branch (SurfaceMarks.hlsl); never on the plain or slim variants (BridgeRenderer.Lean, Slim)' },
     { pattern: /^define:S_CHANNEL$/, what: 'a water channel\'s flow lines, edge light and wet lip (src/surface-marks.js CHANNEL: Viridel\'s runnels, made with the terraces\' story)', status: 'handled',
       where: 'port-format.js channel → _Channel: Surface.shader frag, the web\'s marks in a uniform branch (SurfaceMarks.hlsl), never on the plain variant (BridgeRenderer.Lean)' },
     { pattern: /^define:S_VGLYPH$/, what: 'the banners\' glyph cells per vertex (life.js BannerSet: the City-Shaft\'s banners)', status: 'handled',

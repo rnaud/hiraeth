@@ -411,6 +411,38 @@ plateau, the floating island, the rock arch and the stepping stones by the great
   (the plateau's top fills the screen): High 8.9 → 9.5 and 8.4 → 10.0, Handheld 6.5 → 6.1 and 8.8 → 9.5; their other
   views and Vael's plain within the noise (load average 6–9 in the first pair, 7–16 in the second). Draw calls unchanged,
   four programs more.
+## Lorn's crystals, faceted (issue #686, `src/surface-marks.js`)
+
+Part 3, after the author's pick (`references/surfaces/crystals/sheet-1.jpg`), the same way as #669's and #677's: its own
+define (`S_CRYSTAL`), the GLSL in `SurfaceMarks.hlsl` for Unity, `port-format.js` and `WorldLoader.cs` carrying the
+uniform, BridgeRenderer keeping it off the plain and the slim variants.
+
+- **`crystalFacets`** (`S_CRYSTAL`, `uFacetMarks`: rim, the root's glow, near marks, 1; `CRYSTAL_FACETS` its tuning). Unlike
+  the walls' marks it is allowed on lights (the crystals glow); never on glass, people, ground or water. On Lorn's grove
+  crystals (four colours, still one static batch: the uniform is the same on all), the Great Crystal, the cave's crystals
+  with the cave's crown and Wendel's lookout (one material, `caveMat`), the ringing groves (`lorn-veins.js`, their spikes
+  merged with their uv now, not through `Bucket`) and the Deep Wood's crystal clusters (instanced).
+- **The facets' frame is the geometry's uv.** `facetUV(geo, sides)` turns a `CylinderGeometry(0, r, h, sides, 1)`'s u into
+  facets (0..sides), so each side triangle runs (x, 0), (x + 1, 0), (x + 1, 1) in uv: its long edges lie where u and u − v
+  are whole numbers, v runs from the root (0) to the point (1). Caps, and with `sides` 0 a whole part (Wendel's columns),
+  get v = −1: their tone only. Call it before `toNonIndexed` or a merge (it reads the groups). Unity reads the uv in the
+  form's slot (`O_FORM = float4(v.uv, 0, 0)`), which the slim variants do not have.
+- **What it draws**, by size on screen as the sheet's strip: each facet one flat tone (×(1 + 0.26 n.y + 0.18 n·sun + 0.3
+  of its own), a seed from its flat normal; deeper and cooler in shade), always, so a crystal reads as a light, a mid and a
+  deep face at play distance; a warm pale glow over the lower 38 % toward the root, in three flat steps (a smooth ramp there
+  is printed as a grain), the glow term +0.06; a pale rim inside each long edge, soft over 2.5–7 px (the crease is the
+  line), once a facet is over ~10 px wide; half the facets split from the point to the root, the halves a shade apart with
+  a fine pen line, once over ~16–40 px; near (under ~1–3 cm a pixel, not on the handheld) sparse fractures and tiny
+  inclusions in the facet's own plane, drawn as light through the glow term (a paler albedo there broke into specks).
+- **Ceilings**: an albedo channel over ~0.9 is printed by `post.js` as a grain of specks, not a flat light, so each tone
+  is scaled down whole (its hue kept) under 0.72 after the facets' tones and under 0.88 after the glow and rim: the
+  crystals are a step deeper and more saturated than their flat colour was, the glow and rims the light over them.
+  (A per-channel clamp went grey-white on the lavender ones.)
+- **Cost**: M4 Pro, 1280 × 720, the shipped bundle, `.claude/skills/perf-audit/fps.mjs --worlds perdide --root` (base
+  280a6d97c against this change), Lorn's four benchmark views, median frame ms. Handheld (load 19–23): 7.1 → 7.1, 6.8 → 6.6,
+  5.3 → 5.5, 5.1 → 5.2. High, two alternating pairs (load 20–34, contended): within ±0.3 ms of each other in every view
+  (e.g. 9.5/9.6/8.4/8.5 base against 9.8/9.9/8.2/8.6). Draw calls unchanged (the views' own ±3), three programs more
+  (the crystals' variants). To re-measure on a quiet machine.
 
 ## Faceted normals near the camera
 

@@ -1606,7 +1606,33 @@ export const CHANGELOG_MEDIA = {
           ]
         }
       ]
-    }
+    },
+  {
+    "match": "Lorn’s crystals are cut in clean facets",
+    "shots": [
+      {
+        "name": "crystal-grove",
+        "caption": "The landing’s grove: each face of a crystal its own shade (a light one toward the sky, a mid one, a deep one in shade), pale rims along the edges, paler bands toward the root, where each crystal was one flat colour",
+        "from": "Issue #686: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own; before: origin/main at 280a6d97c, after: this change; 26 October; cwebp -q 72",
+        "view": "In the landing’s grove, looking toward the Great Crystal (a pinned camera, the same in both). The after is the stronger second pass (coordinator review of 26 October): before origin/main at 280a6d97c, after this change rebased on bab042d7f; Lorn is the same in both bases.",
+        "size": [1280, 720]
+      },
+      {
+        "name": "crystal-great",
+        "caption": "The Great Crystal: its spires’ faces in light, mid and deep lavender with pale rims, its foot paler, in place of one pale pink",
+        "from": "Issue #686: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own; before: origin/main at 280a6d97c, after: this change; 26 October; cwebp -q 72",
+        "view": "From the ford west of the island (a pinned camera, the same in both). The clouds move between loads.",
+        "size": [1280, 720]
+      },
+      {
+        "name": "crystal-cave",
+        "caption": "The crystal cave: each crystal growing from the vault in a pale and a deeper aqua face, paler at its root, its edges rimmed",
+        "from": "Issue #686: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own; before: origin/main at 280a6d97c, after: this change; 26 October; cwebp -q 72",
+        "view": "Inside the cave near its south mouth, looking up at the vault (a pinned camera, the same in both). The cave’s crystals are lights, so they stay paler than the groves’.",
+        "size": [1280, 720]
+      }
+    ]
+  }
   ],
   '2.29': [
 {
