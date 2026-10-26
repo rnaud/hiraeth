@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 // The Garden of Spheres' shapes (src/levels/garden-kit.js; docs/systems/references.md, "The Garden of Spheres'
 // sheets"): foliage in leaf masses, spheres printed in two tones, the sculpted rock, the arcades, the robot, the
 // hedges' fruit, the plaza's paving; and the shader's branching veins and dense hatching (src/materials.js).
@@ -92,7 +93,7 @@ test('the views’ still lakes carry a printed reflection of what stands beyond 
   const { GARDEN_VIEWS } = await import('../src/levels/reference-spheres.js');
   const lakes = GARDEN_VIEWS.filter((v) => /lake: \{ x0/.test(String(v.build)));
   assert.ok(lakes.length >= 4, `views with a lake: ${lakes.length}`);
-  const src = await import('node:fs').then((fs) => fs.readFileSync(new URL('../src/levels/reference-spheres.js', import.meta.url), 'utf8'));
+  const src = readFileSync(new URL('../src/levels/reference-spheres.js', import.meta.url), 'utf8');
   assert.match(src, /if \(o\.lake\) mirror\(kit, M, v, o\.lake\)/);
   assert.match(src, /waterPrint: true/);
 });

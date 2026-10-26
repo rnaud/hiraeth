@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sheetSrc, SHEET_SITE } from '../src/levels/reference-sheets.js';
-import { SHEET_FILE, SITE } from '../scripts/web-update.mjs';
+import { SHEET_FILE, SITE } from '../scripts/content-policy.mjs';
 
 // The reference sheets stay out of the over-the-air zip (it passed Workers' 25 MiB a file with them):
 // bundled games read them from the site

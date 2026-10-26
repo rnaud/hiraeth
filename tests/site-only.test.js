@@ -59,3 +59,11 @@ test('the APK and the Deck package strip them before packing', () => {
   // a bundled game still finds them, on the site (src/levels/reference-sheets.js)
   assert.match(read('src/levels/reference-sheets.js'), /export function sheetSrc/);
 });
+
+test('publishing and device stripping share the same packaging policy objects',async()=>{
+  const policy=await import('../scripts/content-policy.mjs');
+  const publisher=await import('../scripts/web-update.mjs');
+  const stripping=await import('../scripts/site-only.mjs');
+  for(const name of ['SITE','UPDATES','MAX_FILE','MAX_FILES','UPDATE_PART','SHEET_FILE','MEDIA_FILE','AUDIT_FILE','REFERENCE_FILE','LORE_FILE','SITE_CONFIG','onDemand'])assert.equal(publisher[name],policy[name],name);
+  for(const name of ['siteOnly','fetchedOnDemand','leftOff'])assert.equal(stripping[name],policy[name],name);
+});

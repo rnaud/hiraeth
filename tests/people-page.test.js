@@ -1,3 +1,5 @@
+import { loadStoryFile } from './story-data-modules.js';
+import { loadStoryPeopleFile } from './story-people-modules.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -31,7 +33,7 @@ async function peopleOf(world) {
   // promoted in v1.40 are their people's files)
   const out = new Map();
   for (const part of partsOf(world)) {
-    const m = await import(PEOPLE_FILE.includes(part) ? `../src/story/${part}-people.js` : `../src/story/${part}-data.js`);
+    const m = await (PEOPLE_FILE.includes(part) ? loadStoryPeopleFile(`${part}-people.js`) : loadStoryFile(`${part}-data.js`));
     // (and the keepers of the world's shops: src/story/shop-data.js, placed by src/story/shops.js)
     const keepers = Object.values(SHOPS).filter((s) => s.world === part).map((s) => SHOPKEEPERS[s.keeper]);
     // (and the fellow traveller, listed where the route first puts her: src/story/fellow-data.js)

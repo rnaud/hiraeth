@@ -148,3 +148,31 @@ test('single-game definitions do not reach sibling games through pure registry h
   assert.deepEqual(selection(other,consumer),[witness],consumer+' excludes '+other);
  }
 });
+
+test('focused quest, presentation and packaging consumers exclude HUD but retain actual inputs',()=>{
+ const cases=[
+  ['tests/quest-needs.test.js',['src/story/quest-needs.js','src/story/desert-data.js','src/story/glassdunes-people.js','tests/story-people-modules.js']],
+  ['tests/quest-skip.test.js',['src/story/quests.js','src/story/incal-data.js']],
+  ['tests/people-page.test.js',['src/story/people-book.js','src/story/glassdunes-people.js']],
+  ['tests/prominence.test.js',['src/costumes.js','src/story/bazaar-data.js']],
+  ['tests/minigames-qa.test.js',['src/minigames/gallery.js','src/minigames/kit/registry.js']],
+  ['tests/garden-kit.test.js',['src/levels/reference-spheres.js']],
+  ['tests/dialogue-playtest.test.js',['src/npc.js','src/story/dialogue.js']],
+  ['tests/dialogue-instructions-626.test.js',['src/temples/buried-data.js','tests/fixtures/dialogue-instructions-626.json']],
+  ['tests/teasel-briony-guidance.test.js',['src/temples/perdide-data.js','tests/fixtures/teasel-briony-guidance-626.json']],
+  ['tests/changelog.test.js',['src/changelog.js','changelog.md']],
+  ['tests/reference-sheets.test.js',['scripts/content-policy.mjs','src/levels/reference-sheets.js']],
+ ];
+ for(const [consumer,inputs] of cases){
+  assert.deepEqual(selection('src/hud.js',consumer),[witness],consumer+' excludes HUD');
+  for(const input of inputs)assert.ok(selection(input,consumer).includes(consumer),consumer+' tracks '+input);
+ }
+});
+
+test('packaging predicates have no dependency on publishing, stripping or game bundle code',()=>{
+ const policy=dependenciesOf('scripts/content-policy.mjs',read('scripts/content-policy.mjs'));
+ assert.equal(policy.unknown,false);
+ assert.deepEqual(policy.imports,['src/music-store.js']);
+ const consumer='tests/reference-sheets.test.js';
+ for(const file of ['scripts/web-update.mjs','scripts/site-only.mjs','scripts/engine-bundle.mjs'])assert.deepEqual(selection(file,consumer),[witness],file);
+});

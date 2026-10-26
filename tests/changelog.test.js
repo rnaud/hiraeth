@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { changelogMarkdown, CHANGELOG_MD } from '../scripts/changelog-md.mjs';
 import { CHANGELOG } from '../src/changelog.js';
 
 test('changelog.md is generated from src/changelog.js and up to date (node scripts/changelog-md.mjs)', () => {
-  assert.equal(readFileSync(CHANGELOG_MD, 'utf8'), changelogMarkdown(), 'run: node scripts/changelog-md.mjs');
+  assert.equal(CHANGELOG_MD, fileURLToPath(new URL('../changelog.md', import.meta.url)));
+  assert.equal(readFileSync(new URL('../changelog.md', import.meta.url), 'utf8'), changelogMarkdown(), 'run: node scripts/changelog-md.mjs');
 });
 
 test('versions are newest first and unique', () => {

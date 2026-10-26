@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 // The dialogue notes from the playtest of 2026-10-08 (TODO.md "Dialogue"): the traveller calm while he
 // talks, his eyes on the speaker, Nour's answers to "stand in water", the camp fire kept out of Ama's
 // shot, and who gets a balloon over their head. (The answer no longer said back: tests/convo-closeup.test.js;
@@ -158,7 +159,7 @@ test('balloons: only for someone with something for you', () => {
 });
 
 test('balloons: the NPC keeps its balloon down when quiet, a shout still shows', async () => {
-  const src = await import('node:fs').then((fs) => fs.readFileSync(new URL('../src/npc.js', import.meta.url), 'utf8'));
+  const src = readFileSync(new URL('../src/npc.js', import.meta.url), 'utf8');
   assert.match(src, /!this\.hush && !this\.quiet && this\.greeted/, 'a greeting waits for something to say');
   assert.match(src, /if \(this\.shout && this\.time < this\.shout\.until\) this\.talking = true;/, 'a shout always shows');
   assert.match(src, /\(dist < 6 && !this\.quiet\) \|\| now < \(p\.shoutUntil/, 'a crowd person too');
