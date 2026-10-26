@@ -17,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, copyFileSyn
 import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SEQUENCES, webQuery, compareStreams, listedDiff } from '../../engine/sequences.js';
-import { STREAM_DIFFS } from '../../engine/bridge-gaps.js';
+import { STREAM_DIFFS } from '../../engine/bridge-stream-gaps.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const FIXTURE = join(ROOT, 'tests/sequences-web.json');
@@ -210,7 +210,7 @@ async function sheet() {
   await sharp({ create: { width: OW, height: OH, channels: 3, background: '#161616' } }).composite(comp).jpeg({ quality: 70 }).toFile(join(OUT, 'overview.jpg'));
   // the report
   const L = [`# Sequences, the web against Unity (${sha})`, '', `Overview: ${relative(OUT, join(OUT, 'overview.jpg'))}; a sheet a sequence in sheets/. SSIM of each beat's pictures (grey, 256 × 144; 1 the same).`,
-    'The streams: what the screen shows as data (engine/sequences.js probe), the web\'s against Unity\'s and against the engines\' bundle in node; differences named in engine/bridge-gaps.js STREAM_DIFFS are marked.', ''];
+    'The streams: what the screen shows as data (engine/sequences.js probe), the web\'s against Unity\'s and against the engines\' bundle in node; differences named in engine/bridge-stream-gaps.js STREAM_DIFFS are marked.', ''];
   L.push('| sequence | beats (web / Unity / node) | lowest SSIM | unlisted differences (Unity) | errors |', '|---|---|---|---|---|');
   for (const seq of SEQUENCES) {
     if (!scores[seq.id]) continue;

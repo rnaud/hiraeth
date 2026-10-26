@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SEQUENCES, glob as sequencePattern } from '../engine/sequences.js';
-import { STREAM_DIFFS } from '../engine/bridge-gaps.js';
+import { STREAM_DIFFS } from '../engine/bridge-stream-gaps.js';
 import { FIGHTS } from './sequences-fights.js';
 import { playPartition } from './sequences-play-groups.js';
 

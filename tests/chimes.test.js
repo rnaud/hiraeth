@@ -13,7 +13,7 @@ import { Resources, CHIMES } from '../src/resources.js';
 import { GameState } from '../src/game-state.js';
 import { Foes, FOES } from '../src/foes.js';
 import { ARCHETYPES, BUILT } from '../src/enemies/archetypes.js';
-import { walletTick, healthHud, Fader } from '../src/hud.js';
+import { walletTick, healthHud, Fader } from '../src/hud-state.js';
 import { itemsPanel } from '../src/game-menu.js';
 import { firstPurse } from '../src/trials/index.js';
 

@@ -14,7 +14,7 @@ import { Cinema } from '../src/ship/cinema.js';
 import { screen } from '../src/platform.js';
 import { hudShows, sceneHolds } from '../src/hud-shows.js';
 import { wireHealth } from '../src/host/game-host.js';
-import { keysHud } from '../src/hud.js';
+import { keysHud } from '../src/hud-state.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const quiet = (f) => { const e = console.error, w = console.warn; console.error = console.warn = () => {}; try { return f(); } finally { console.error = e; console.warn = w; } };

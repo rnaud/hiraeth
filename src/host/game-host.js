@@ -76,7 +76,7 @@ import { FLURRY, nextFlurry } from '../flurry.js';
 import { rumblePlay } from '../rumble.js';
 import { lockLesson } from '../hook-foes.js';
 import { items } from '../items.js';
-import { Fader, healthHud, walletTick } from '../hud.js';
+import { Fader, healthHud, walletTick } from '../hud-state.js';
 import * as shipSfx from '../ship/sfx.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from '../ambush.js';
 

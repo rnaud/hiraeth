@@ -10,8 +10,8 @@ import { join } from 'node:path';
 import { GADGETS } from './register-gadgets.js';
 import { ITEMS } from '../src/items.js';
 import { itemsData } from '../src/game-menu-data.js';
-import { bundle } from '../scripts/engine-bundle.mjs';
-import { loadBundle } from '../engine/vm-run.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
+import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);

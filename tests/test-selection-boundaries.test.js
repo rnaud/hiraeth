@@ -190,6 +190,6 @@ test('map chest save/reload audit stays selected for world and chest changes, no
 
 test('transport HUD tests do not drag unrelated city rides and hull audits into a HUD edit',()=>{
  for(const consumer of ['tests/cab-ride.test.js','tests/ship.test.js'])assert.deepEqual(selection('src/hud.js',consumer),[witness],consumer);
- for(const consumer of ['tests/cab-hud.test.js','tests/ship-hud.test.js'])assert.ok(selection('src/hud.js',consumer).includes(consumer),consumer);
+ for(const consumer of ['tests/cab-hud.test.js','tests/ship-hud.test.js']){assert.ok(selection('src/hud-state.js',consumer).includes(consumer),consumer);assert.deepEqual(selection('src/hud-view.js',consumer),[witness],consumer+' excludes browser presentation');}
  for(const [consumer,input] of [['tests/cab-ride.test.js','src/taxi.js'],['tests/ship.test.js','src/ship/ship.js'],['tests/ship-hud.test.js','src/ship/ship.js']])assert.ok(selection(input,consumer).includes(consumer),input);
 });

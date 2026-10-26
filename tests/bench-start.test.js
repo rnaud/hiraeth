@@ -10,8 +10,8 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as THREE from 'three';
-import { bundle } from '../scripts/engine-bundle.mjs';
-import { loadBundle } from '../engine/vm-run.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
+import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
 // as the game (main.js): colours are display values, not converted to linear

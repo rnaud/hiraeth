@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { bundle } from '../scripts/engine-bundle.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 import { driver } from '../scripts/sound-qc/drive.mjs';
 import { SCENARIOS } from '../scripts/sound-qc/scenarios.mjs';

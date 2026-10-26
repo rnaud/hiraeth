@@ -60,3 +60,10 @@ test('a material the port has no shader for is a recorded gap, said once, not a 
 test('docs/systems/bridge-gaps.md is the list\'s (node scripts/bridge-gaps.mjs)', () => {
   assert.equal(readFileSync(join(ROOT, REPORT), 'utf8'), reportMarkdown());
 });
+
+
+test('the bridge facade preserves the exact narrow sequence parity contracts', async () => {
+  const facade = await import('../engine/bridge-gaps.js');
+  const stream = await import('../engine/bridge-stream-gaps.js');
+  for (const key of ['STATUSES', 'STREAM_DIFFS', 'PICTURE_DIFFS']) assert.equal(facade[key], stream[key], key);
+});

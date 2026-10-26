@@ -132,7 +132,7 @@ import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES, partsOf } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
-import { cueText, Cue, PlaceName, staminaHud, keysHud, findSummary } from '../src/hud.js';
+import { cueText, CueState as Cue, PlaceName, staminaHud, keysHud, findSummary } from '../src/hud-state.js';
 import { toastSeconds, Story, Relics } from '../src/quest.js';
 import { EngineStarMap } from './starmap.js';
 import { homecomingKind, HOME_ID, roadDone, ROAD } from '../src/story/ending.js';

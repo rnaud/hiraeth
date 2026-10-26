@@ -323,7 +323,7 @@ test('i18n: the language\'s words, English where it lacks them, the key where En
 
 test('the Controls page and the HUD speak the language', async () => {
   const { controlsList } = await import('../src/ui.js');
-  const { cueText } = await import('../src/hud.js');
+  const { cueText } = await import('../src/hud-state.js');
   i18n.setLanguage('fr');
   try {
     const L = controlsList('A / ×', 'B / ○');

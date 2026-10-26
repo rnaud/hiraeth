@@ -9,8 +9,8 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { bundle } from '../scripts/engine-bundle.mjs';
-import { loadBundle } from '../engine/vm-run.mjs';
+import { bundle } from '../engine/game-test-runtime.mjs';
+import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
 // a backend that takes every op and keeps nothing (its flags and hooks left unset)

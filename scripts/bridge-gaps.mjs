@@ -119,7 +119,7 @@ export function gatherHost() {
   };
   const main = code(read('src/main.js'));
   // (not this list: it names them all)
-  const engineFiles = ['engine', 'engine/unity'].flatMap((d) => readdirSync(join(ROOT, d)).filter((f) => f.endsWith('.js') && f !== 'bridge-gaps.js').map((f) => `${d}/${f}`));
+  const engineFiles = ['engine', 'engine/unity'].flatMap((d) => readdirSync(join(ROOT, d)).filter((f) => f.endsWith('.js') && !['bridge-gaps.js', 'bridge-stream-gaps.js'].includes(f)).map((f) => `${d}/${f}`));
   // (a function of main.js's is there when the engines name it, in a comment too: their way is "as main.js armTool")
   const engine = engineFiles.map((f) => read(f)).join('\n');
   const engineImports = new Set(engineFiles.flatMap((f) => imports(code(read(f)), dirname(f))));

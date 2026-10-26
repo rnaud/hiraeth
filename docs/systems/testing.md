@@ -370,6 +370,37 @@ The timing table was refreshed from actual GitHub run40190711316. New and change
 use measured local durations scaled by the existing `RUNNER_PER_MAC` factor; these are planning
 estimates, not measurements of GitHub elapsed time. The unchanged timing-budget regression must pass.
 
+### Bounded whole-game test loading
+
+Whole-game tests that compile exactly `engine/game.js` use
+`engine/game-test-runtime.mjs`. Compilation is shared with production through
+`engine-bundle-core.mjs`; packaging and release helpers stay outside that compiler.
+The adapter executes only the bytes it compiled in this process and limits its
+standard asset reader to `public/` and `data/`, rejecting traversal and symlink
+escapes. Generic VM/bundler callers retain conservative dependency selection.
+Sequence parity contracts live in `engine/bridge-stream-gaps.js`, separate from
+source-audit paths; the original `bridge-gaps.js` re-exports them for compatibility.
+Sequence helpers accept the file returned by `buildBundle()` in the same process;
+use `engine/vm-run.mjs` for arbitrary prebuilt bundles.
+
+The selector reads `scripts/test-loader-contract.json` from the same commit/index
+snapshot as the code. Exact fingerprints cover the adapter, compiler, VM and two
+host asset shims. It still traverses every real import from `engine/game.js`,
+including executable globs, and retains the whole two asset directories. Unknown
+or missing game imports, a missing/malformed contract, or a changed fingerprint
+fail closed. The contract is not an exclusion list and does not make all HUD edits
+cosmetic: shared HUD behavior in `hud-state.js` still reaches gameplay tests.
+Browser markup and icons in `hud-view.js` do not. `hud.js` remains the compatible
+browser facade, while the engine and shared game host import state directly.
+
+When one of the fingerprinted helpers changes, review its executable inputs and
+runtime file-reading bounds before deliberately updating the fingerprint. Never
+refresh fingerprints automatically in the hook or CI. Contract/analyzer edits run
+the full suite. Regressions verify compiled-byte equivalence, runtime read bounds,
+positive/negative selection, stale helper fallback, and committed/index snapshots
+independent of working files. Syntax caching is keyed by path, explanation mode
+and exact source bytes; contract validity is recalculated for each snapshot.
+
 ### Keeping the edit loop narrow
 
 Dependency selection is a maintained architecture contract, not a list of tests to skip.
