@@ -439,3 +439,26 @@ The reference-path guard enumerates the documentation tree from its explicit roo
 intersects it with the same repository inventory. It asserts that no inventoried document
 was lost, including nested files. This gives documentation edits a real owning check
 without marking arbitrary unknown inputs safe or excluding other opaque consumers.
+
+
+### Keep tool wrappers out of measurement tests
+
+Tests of an algorithm import its core, while a small compatibility test exercises the public
+wrapper and the real command. `score-features-core.mjs`, the Tripo GLB `*-core.mjs` modules,
+and `level-design/measure.mjs` retain the same calculations; the original command paths still
+handle arguments, files and output. The level core returns its report, views and maps so tests
+can inspect the same artifacts without launching a subprocess. `tool-core-contracts.test.js`
+checks re-export identity, audio PCM parity and real score/level CLI behavior.
+
+The sound-QC renderer follows the same boundary: `render-core.mjs` accepts explicit decoded
+sample/theme providers; `render.mjs` supplies the filesystem decoder. Procedural sound tests
+use the core and keep their original acoustic assertions. Disk-decoding tests still exercise
+real packaged audio and remain conservative. Pure PCM measures, synthesis and source wiring
+are separate test files so unrelated edits do not inherit the synthesis cost.
+
+Guardian and costume audits use literal lazy catalogues (`tests/temple-modules.js` and
+`scripts/costume-people.mjs`). `audit-module-inputs.test.js` compares these against the original
+directory discovery rules, including every source scanned for guardian notices. Adding a
+matching file without registering it fails that contract; it cannot silently disappear from
+the audit. Positive and negative assertions in `test-selection-boundaries.test.js` protect
+both exclusion of unrelated HUD/docs edits and inclusion of each real input.

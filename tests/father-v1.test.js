@@ -71,8 +71,8 @@ test('stationary father lower body cannot tear between coat and trouser weights'
 });
 
 test('shipped father stays within its recording budget and retains every visible source attribute',async()=>{
-  const {trimFather,FATHER_BUDGET}=await import('../scripts/tripo/slim-father.mjs');
-  const {readGlb}=await import('../scripts/tripo/slim-traveller.mjs');
+  const {trimFather,FATHER_BUDGET}=await import('../scripts/tripo/slim-father-core.mjs');
+  const {readGlb}=await import('../scripts/tripo/slim-traveller-core.mjs');
   const sharp=(await import('sharp')).default;
   const {json:g,bin}=readGlb(bytes),p=g.meshes[0].primitives[0];
   assert.ok(bytes.length<FATHER_BUDGET.maxBytes);

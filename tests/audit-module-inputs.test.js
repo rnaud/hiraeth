@@ -35,3 +35,20 @@ test('fight-only imports cover both original fight discovery sets',()=>{
  assert.deepEqual(names,actual.filter(f=>/^fight-.*\.js$/.test(f)).sort());
  assert.deepEqual(names,actual.filter(f=>/^fight-\w+\.js$/.test(f)).sort());
 });
+
+
+test('guardian and costume catalogs retain the complete original filesystem discovery', async()=>{
+ const templeSource=readFileSync(new URL('./temple-modules.js',import.meta.url),'utf8');
+ const templeNames=catalog(templeSource,'../src/temples/');
+ assert.deepEqual(templeNames,readdirSync(new URL('../src/temples/',import.meta.url)).filter(f=>f.endsWith('.js')&&!/-data|boss|hints|index|kit|logic|migrate|pieces|runtime|guardian/.test(f)).sort());
+ const {templeSources}=await import('./temple-modules.js');
+ const sources=templeSources();
+ assert.deepEqual([...sources.keys()],templeNames,'source scan and executable imports cover the same temples');
+ for(const file of templeNames)assert.equal(sources.get(file),readFileSync(new URL('../src/temples/'+file,import.meta.url),'utf8'));
+ const people=catalog(readFileSync(new URL('../scripts/costume-people.mjs',import.meta.url),'utf8'),'../src/');
+ const discovered=[];
+ for(const dir of ['story','temples'])for(const file of readdirSync(new URL('../src/'+dir+'/',import.meta.url)).sort()){
+  if(/-(data|people)\.js$/.test(file)&&!['aliens-data.js','hosts-data.js','shop-data.js','fellow-data.js','scientist-data.js','home-data.js','lantern-data.js'].includes(file))discovered.push(dir+'/'+file);
+ }
+ assert.deepEqual(people,discovered);
+});

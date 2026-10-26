@@ -199,9 +199,9 @@ test('the sounds (issue #494): the game\'s own vocabulary, short, none ringing o
 });
 
 test('the sounds rendered (in memory, silent): the bolts and a hit short and under the explosions, a fight never clipping', async () => {
-  const { renderer } = await import('../scripts/sound-qc/render.mjs');
+  const { renderAudio } = await import('../scripts/sound-qc/render-core.mjs');
   const { measure } = await import('../scripts/sound-qc/lib.mjs');
-  const R = await renderer({ samples: false });
+  const R = await renderAudio();
   try {
     const one = async (fn) => { const r = await R.render((s) => fn(pirateSounds(s)), { secs: 1.5 }); return measure(r.pcm, r.rate, { bed: r.bed }); };
     const shot = await one((p) => p.shot()), hit = await one((p) => p.hit()), boom = await one((p) => p.boom(1)), lock = await one((p) => p.lock()), tally = await one((p) => p.tally(2));

@@ -5,7 +5,7 @@
 // crowd's pooled bodies wear the look of the crowd person they stand in for) — dressed as the game dresses them
 // (src/npc.js, src/crowd.js). `capeCensus()` → { worlds: { world: { people, capes, capelets, who, caped } }, all }.
 // Run it (`node scripts/cape-census.mjs`) for the table; tests/cape-share.test.js holds the shares down.
-import { readdirSync } from 'node:fs';
+import {files as peopleFiles, loadPeopleFile} from './costume-people.mjs';
 
 /** The worlds people live in (their costume's world: COSTUMES), and the sample of each one's crowd. */
 export const CROWD_SAMPLE = 240;
@@ -66,13 +66,12 @@ export async function capeCensus({ sample = CROWD_SAMPLE } = {}) {
   // the levels' people (their spawn lists: story people and walkers)
   for (const [w, c] of Object.entries(CONTENT)) if (live.includes(w)) for (const n of c?.npcs ?? []) person(w, n);
   // the story's and the temples' people lists
-  for (const dir of ['story', 'temples']) {
-    for (const f of readdirSync(new URL(`../src/${dir}/`, import.meta.url)).filter((x) => /-(data|people)\.js$/.test(x) && !['aliens-data.js', 'hosts-data.js', 'shop-data.js', 'fellow-data.js', 'scientist-data.js', 'home-data.js', 'lantern-data.js'].includes(x))) {
-      const world = f.replace(/-(data|people)\.js$/, '').replace('night-train', 'overnighttrain');
-      if (!live.includes(world)) continue;
-      const m = await import(`../src/${dir}/${f}`);
-      for (const d of peopleIn(m)) person(world, d);
-    }
+  for (const file of peopleFiles) {
+    const f = file.split('/')[1];
+    const world = f.replace(/-(data|people)\.js$/, '').replace('night-train', 'overnighttrain');
+    if (!live.includes(world)) continue;
+    const m = await loadPeopleFile(file);
+    for (const d of peopleIn(m)) person(world, d);
   }
   for (const h of Object.values(HOSTS)) if (live.includes(h.world)) person(h.world, h);
   for (const shop of Object.values(SHOPS)) { const k = SHOPKEEPERS[shop.keeper]; if (k && live.includes(shop.world)) person(shop.world, k); }
