@@ -2,7 +2,8 @@
 // pinned frame with the relief off and on (the shared uRelief switched in the page: one build, one load, nothing else
 // differs) and what it costs a frame on High and on the Handheld preset, written to tools/relief-review/ (webp pictures
 // and data.json) for tools/relief-review.html. A muted headless Chrome on the real GPU (ANGLE on Metal) and a Vite of its own.
-//   node tools/relief-shots.mjs [--port 5453] [--cdp 9792] [--only name,name] [--perf 0] [--pairs 6]
+//   node tools/relief-shots.mjs [--port 5453] [--cdp 9792] [--only name,name] [--perf 0] [--pairs 6] [--preset high] [--out dir]
+// (--preset medium: the pictures at render scale 1, as the Unity port draws; High draws at 1.5 and scales down, issue #700)
 // Frame time: 24 renderFrame() closed by a readPixels, the median of five, off and on in turns (`pairs` times each), so a
 // drift hits both alike; the machine's load is recorded with each (the numbers mean little over ~12).
 import { spawn, execFileSync } from 'node:child_process';
@@ -17,7 +18,7 @@ const A = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, all) => (x.s
 const PORT = +(A.port ?? 5453), CDP = +(A.cdp ?? 9792), W = 1280, H = 720;
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server');
 const OUT = resolve(ROOT, A.out ?? 'tools/relief-review');
-const views = JSON.parse(readFileSync(join(OUT, 'views.json'), 'utf8'));
+const views = JSON.parse(readFileSync(existsSync(join(OUT, 'views.json')) ? join(OUT, 'views.json') : join(ROOT, 'tools/relief-review/views.json'), 'utf8'));
 const only = A.only ? new Set(A.only.split(',')) : null;
 const perf = A.perf !== '0', pairs = +(A.pairs ?? 6);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -91,7 +92,7 @@ for (const v of views) {
   if (only && !only.has(v.name)) continue;
   const row = (data.views[v.name] ??= {});
   console.log('view', v.name);
-  await boot(v, 'high');
+  await boot(v, A.preset ?? 'high');
   if (!data.gpu) data.gpu = await ev(`(() => { const gl = window.renderer.getContext(), d = gl.getExtension('WEBGL_debug_renderer_info'); return d ? gl.getParameter(d.UNMASKED_RENDERER_WEBGL) : null; })()`);
   for (const on of [false, true]) {
     await relief(on); await sleep(1200);

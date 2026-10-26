@@ -472,7 +472,18 @@ frame), so they agree with the cast shadows. Still flat colour: the darker band 
 - Each band fades with the mark's size on screen, as the mark's own ink does; a face turned from the sun has none.
 - **Not on timber**: tried, and lost in Lorn's dark planks, their grain and hatching (the review page's verdict).
 - **Review**: `tools/relief-review.html` (open on any dev server), its pictures and frame times made by
-  `node tools/relief-shots.mjs` (fixed views in `tools/relief-review/views.json`).
+  `node tools/relief-shots.mjs` (fixed views in `tools/relief-review/views.json`; `--preset medium --out <dir>` shoots
+  them at render scale 1, as the Unity port and the web's Medium, Deck, Xbox and handheld presets draw).
+- **Inked beside a joint at render scale 1** (issue #700, open): across a joint the lit band (+) and the shaded one (−)
+  sit on either side, so post.js's colour-edge test, whose kernel reaches `inW × uPixelRatio` px (about 1.5–2) and
+  straddles the joint, sees both at once (up to 2 × 0.065 a channel, ≈ 0.2 in RGB length on Lorn's purple stone)
+  and inks a dashed line just past the joint's own; the 2 px ramps only keep *neighbouring* pixels under its
+  threshold. Web High draws at render scale 1.5 and averages it down to faint dashes; every preset at scale 1 (web
+  Medium, Deck, Xbox; the Unity port, which never supersamples) shows them crisp. The Unity port is not at fault: at
+  the same render scale its albedo and final picture match the web's within a level or two of 255 (shop floor, Lorn's
+  stone, the Glass Dunes drum, the City-Shaft paving, the Foundry walls). A fix belongs in `src/relief.js` (both
+  renderers): a smaller cap, bands that start past the kernel's reach, or the relief kept out of what the colour-edge
+  test reads.
 
 ## Faceted normals near the camera
 
