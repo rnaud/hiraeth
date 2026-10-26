@@ -149,8 +149,8 @@ let BUNDLE = null;
 /** The engines' bundle (engine/game.js), made once for the tests here. */
 async function engine() {
   if (BUNDLE) return BUNDLE;
-  const { bundle } = await import('../scripts/engine-bundle.mjs');
-  const { loadBundle } = await import('../engine/vm-run.mjs');
+  const { bundle } = await import('../engine/game-test-runtime.mjs');
+  const { loadBundle } = await import('../engine/game-test-runtime.mjs');
   const { tempPath } = await import('../scripts/temp-dirs.mjs');
   const { EngineMenus } = await import('../engine/menus.js');
   const file = tempPath(join(tmpdir(), `hiraeth-engine-lens-vault-${process.pid}.js`));

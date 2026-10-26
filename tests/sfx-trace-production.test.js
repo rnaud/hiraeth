@@ -48,8 +48,8 @@ test('unavailable assigned ship loops never create a procedural substitute',asyn
 
 
 test('the real engine developer toggle is safe when the host has no audio system', async () => {
- const {bundle}=await import('../scripts/engine-bundle.mjs');
- const {loadBundle}=await import('../engine/vm-run.mjs');
+ const {bundle}=await import('../engine/game-test-runtime.mjs');
+ const {loadBundle}=await import('../engine/game-test-runtime.mjs');
  const {tempPath}=await import('../scripts/temp-dirs.mjs');
  const {tmpdir}=await import('node:os');
  const {join}=await import('node:path');

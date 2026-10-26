@@ -88,8 +88,8 @@ const pad = (pressed = []) => ({ id: 'test pad', index: 0, connected: true, mapp
 let B = null;
 async function load() {
   if (B) return B;
-  const { bundle } = await import('../scripts/engine-bundle.mjs');
-  const { loadBundle } = await import('../engine/vm-run.mjs');
+  const { bundle } = await import('../engine/game-test-runtime.mjs');
+  const { loadBundle } = await import('../engine/game-test-runtime.mjs');
   const { tempPath } = await import('../scripts/temp-dirs.mjs');
   const file = tempPath(join(tmpdir(), `hiraeth-hud-buttons-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });

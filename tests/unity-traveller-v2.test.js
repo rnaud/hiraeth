@@ -1,4 +1,4 @@
-import { relevantUnityInput } from '../scripts/unity-release-plan.mjs';
+import { relevantUnityInput } from '../scripts/unity-release-inputs.mjs';
 // Issue #493: the v2 traveller (the Blender rebuild, data/characters/traveller-v2/) in the engines. The page dresses him
 // behind its switch (src/characters/traveller-v2.js); the engines' host (engine/game.js) does the same when asked
 // (createGame({ traveller }): the Unity bridge's -traveller v2 -outfit <id>) or when the device keeps the switch on

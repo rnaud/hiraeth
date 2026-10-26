@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GAPS } from '../engine/bridge-gaps.js';
 import { LEVELS } from '../src/levels/index.js';
 import { isDiscarded } from '../src/levels/names.js';
-import { compare } from '../scripts/bridge-gaps.mjs';
+import { compareEntries } from '../scripts/bridge-gap-compare.mjs';
+import { MATERIAL_GAPS } from '../engine/bridge-material-gaps.js';
 import { REQUIRED_MATERIAL_KEYS, materialScopes, partitionComparison } from './bridge-materials.js';
 
 test('material stale witnesses cover every explicit gap key exactly once and retain the global size guard', () => {
-  const expected = GAPS.materials.flatMap(entry => entry.keys ?? []);
+  const expected = MATERIAL_GAPS.flatMap(entry => entry.keys ?? []);
   const assigned = Object.values(REQUIRED_MATERIAL_KEYS).flat();
   assert.equal(new Set(expected).size, expected.length, 'listed material keys are unique');
   assert.equal(new Set(assigned).size, assigned.length, 'one owner per stale witness');
@@ -33,7 +33,7 @@ test('a missing assigned material still fails stale detection and all other gap 
     assert.ok(keys.length, id + ' has actual stale witnesses');
     const found = new Map(keys.map(key => [key, { n: 1 }]));
     found.set('shader:unlisted-partition-regression', { n: 1 });
-    const full = compare('materials', found), scoped = partitionComparison(id, found);
+    const full = compareEntries(MATERIAL_GAPS, found), scoped = partitionComparison(id, found);
     assert.deepEqual(scoped.stale, []);
     for (const kind of ['unlisted', 'counts', 'bad']) assert.deepEqual(scoped[kind], full[kind], kind + ' is not filtered');
     assert.ok(scoped.unlisted.some(entry => entry.key === 'shader:unlisted-partition-regression'));

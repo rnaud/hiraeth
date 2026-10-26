@@ -67,3 +67,13 @@ test('the bridge facade preserves the exact narrow sequence parity contracts', a
   const stream = await import('../engine/bridge-stream-gaps.js');
   for (const key of ['STATUSES', 'STREAM_DIFFS', 'PICTURE_DIFFS']) assert.equal(facade[key], stream[key], key);
 });
+
+
+test('the material facade preserves contracts and comparison results', async () => {
+  const { GAPS } = await import('../engine/bridge-gaps.js');
+  const { MATERIAL_GAPS } = await import('../engine/bridge-material-gaps.js');
+  const { compareEntries } = await import('../scripts/bridge-gap-compare.mjs');
+  assert.equal(GAPS.materials, MATERIAL_GAPS);
+  const found = new Map([['shader:unlisted-boundary-witness', { n: 1 }]]);
+  assert.deepEqual(compare('materials', found), compareEntries(MATERIAL_GAPS, found));
+});
