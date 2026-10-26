@@ -93,6 +93,32 @@ export function resultActions(r = {}, links = null, fails = 0) {   // eslint-dis
 }
 
 /**
+ * The button that answers a card's prompt (issue #695: each prompt is its button's glyph and its word, BotW's "Inventory
+ * (+)", no box; the line of keys under them went): 'ok' the main one (Enter, A / ×), 'back' Quit where back quits (Esc,
+ * B / ○; on the pause back resumes), 'menu' a Retry not the main one on the results (R, Menu: the pad's start retries
+ * there), 'r' a Retry on the pause (R only: no pad button), 'lb' / 'rb' a link a step away (the Arcade's game before
+ * and after: [ ], LB / RB); null: none of its own (clicked, tapped, or picked and pressed).
+ */
+export function promptRole(b, { paused = false, links = null } = {}) {
+  if (b.main) return 'ok';
+  if (b.act === 'quit') return paused ? null : 'back';
+  if (b.act === 'retry') return paused ? 'r' : 'menu';
+  if (b.act?.startsWith('link:')) {
+    const step = (links?.extra ?? []).find((l) => `link:${l.id}` === b.act)?.step;
+    return step === -1 ? 'lb' : step === 1 ? 'rb' : null;
+  }
+  return null;
+}
+/** A role's key with the keys and its button with a pad (Xbox / PlayStation form: the engines draw it; native-pad.js names it). */
+export const PROMPT_KEYS = { ok: 'Enter', back: 'Esc', menu: 'R', r: 'R', lb: '[', rb: ']' };
+export const PROMPT_PAD = { menu: 'Menu', lb: 'LB / L1', rb: 'RB / R1' };
+export function promptKey(role, kind = 'keys', { ok = 'A / ×', back = 'B / ○' } = {}) {
+  if (!role || kind === 'touch') return '';
+  if (kind !== 'pad') return PROMPT_KEYS[role] ?? '';
+  return role === 'ok' ? ok : role === 'back' ? back : PROMPT_PAD[role] ?? '';
+}
+
+/**
  * The controls' hint row while a game runs (def.hints, issue #326: "make the button hints much smaller and minimal"):
  * one small dark strip at the bottom right (src/hint-look.js's look), a glyph and one word a button. The whole row shows
  * for `show` s of play, then fades; each button's word fades `used` s after the game says it was used (ctx.hintUsed),

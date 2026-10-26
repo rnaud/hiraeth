@@ -43,11 +43,33 @@ export const enamelKicker = () => `color: ${en('brassInk')}; font-weight: 700; l
 export const enamelTrim = (sel, { tab = true } = {}) => `${sel}::before { content: ''; position: absolute; inset: 3px; border: 1px solid ${en('frame')}; border-radius: 4px; pointer-events: none; }
 ${tab ? `${sel}::after { content: ''; position: absolute; left: -3px; top: 50%; width: 4px; height: 14px; transform: translateY(-50%); background: ${en('accent')}; border-radius: 2px; pointer-events: none; }` : ''}`;
 
-/** A button on a card: a quiet frame; the main one (what Enter does) the turquoise tab; the focused one ivory with dark letters. */
-export const enamelButtons = (sel) => `${sel} { color: ${en('ink')}; background: rgba(247, 236, 210, 0.08); border: 1px solid rgba(247, 236, 210, 0.35); border-radius: 5px; box-shadow: none; }
-${sel}:hover { background: rgba(247, 236, 210, 0.16); outline: none; }
-${sel}:focus, ${sel}:focus-visible { background: ${en('ink')}; color: ${en('keyInk')}; border-color: ${en('brass')}; outline: none; transform: none; box-shadow: none; }
-${sel}:active { transform: translateY(1px); box-shadow: none; }`;
+/**
+ * A button's prompt on a card (issue #695, the author: "I don't like the extra padding, border and different color for the
+ * button, just show me the button and what it does next to it", Breath of the Wild's "Inventory (+)"): the button's glyph
+ * (src/pad-glyphs.js: the pad's, the key's, nothing on touch) and the word, in the card's own ink, small, set at the card's
+ * bottom right; no fill, no border, no padding. It stays a <button> (a click or a tap, the focus). On a pad the glyph is
+ * the button's own, an ivory disc with its letter (BotW's light disc); with the keys its key's outline. Where a card has
+ * several (a game's start, pause and results), the pad's focused one is underlined, the one mark (issue #507; with the keys
+ * Enter is always the main one's).
+ */
+export const PROMPT = Object.freeze({ size: '0.92em', gap: '0.45em', pad: ['ok', 'back', 'x', 'y'] });
+export const enamelPrompt = (sel) => `${sel} { display: inline-flex; align-items: center; gap: ${PROMPT.gap}; margin: 0; padding: 0; min-height: 1.9em; font: 600 ${PROMPT.size}/1.2 var(--face); letter-spacing: 0.04em; text-transform: none; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; transform: none; }
+${sel}:hover, ${sel}:focus, ${sel}:focus-visible, ${sel}:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
+body.controller ${sel}:not(:only-of-type):focus > .lbl, ${sel}:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
+${sel} > .glyph { margin: 0; }
+body.controller ${sel} > .glyph { background: ${en('ink')}; }
+body.controller ${sel} > .glyph:not(${PROMPT.pad.map((r) => `[data-glyph="${r}"]`).join(', ')}) { color: ${en('keyInk')}; }
+body.controller ${sel} > .glyph.keys-only { display: none; }`;
+
+/** The item pictures' paper (src/item-icons.js ICON_PAPER): the box card's picture sits in a disc of it (issue #695). */
+export const PIC_PAPER = '#f3e7cc';
+
+/** The prompts on the cards (tests/hud-look.test.js: each written with enamelPrompt, none boxed). */
+export const HUD_PROMPTS = Object.freeze([
+  { id: 'box', file: 'src/hud-styles/box-card.js', sel: '#boxcard .go', what: 'a box\'s Continue' },
+  { id: 'restart', file: 'index.html', sel: '#restart button', what: 'the knock-out\'s Restart' },
+  { id: 'mg', file: 'src/minigames/kit/minigames.css', sel: '#minigame .sheet .buttons button', what: 'a game\'s Start, Resume, Retry, Quit' },
+]);
 
 /**
  * Every message the screen shows and where its look is written (tests/hud-look.test.js reads each: it must use the

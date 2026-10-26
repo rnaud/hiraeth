@@ -630,7 +630,7 @@ namespace Hiraeth.Bridge
         RectTransform lockRoot;
         readonly List<(RectTransform rt, Image ring, Image paper, Image tone)> warnChips = new();
         Image edgeLow, edgeFlurry, edgeBlind;
-        Ui.Box restartBox, restartButton; Label restartText, restartKey; Image restartDim; float restartT;
+        Ui.Box restartBox; Label restartText; CardPromptParts restartGo; Image restartDim; float restartT;
         static readonly Color Gold = Ui.Hex("#f2c54b"), Light = Ui.Hex("#fff6dc");
 
         /// <summary>An arrowhead pointing down, its tip at the sprite's bottom centre (the pivot): filled, or its outline.</summary>
@@ -707,13 +707,11 @@ namespace Hiraeth.Bridge
             // (0.78 here: Unity blends in its linear target, the page in display values, where 0.6 of ink over the sand darkens it as much)
             restartDim = Ui.Fill(root, new Color(EnScrim.r, EnScrim.g, EnScrim.b, 0.7f), 0, "restart dim");   // (the enamel's scrim: issue #687)
             restartDim.gameObject.SetActive(false);
-            restartBox = EnamelCard(root, "restart");   // (the enamel card, an ivory button: issue #687)
+            restartBox = EnamelCard(root, "restart");   // (the enamel card: issue #687)
             restartText = Ui.Label(restartBox.rt, "text", mono, 20, HintInk0, TextAnchor.UpperCenter);
             Ui.Space(restartText, 0.04f);
-            // (its button: the page's gold button in an ink line on a small hard shadow)
-            restartButton = Ui.Panel(restartBox.rt, "button", HintInk0, EnBrass, 1, 0, 0, 5);
-            restartKey = Ui.Label(restartButton.rt, "key", mono, 20, EnKeyInk, TextAnchor.MiddleCenter, FontStyle.Bold);
-            Ui.Space(restartKey, 0.14f);
+            // (its Restart: the button's badge and the word at the bottom right, no box; issue #695)
+            restartGo = MakeCardPrompt(restartBox.rt, "restart prompt", 17);
             restartBox.Show(false);
         }
 
@@ -786,14 +784,14 @@ namespace Hiraeth.Bridge
             Ui.Place(restartDim.rectTransform, 0, 0, W, H);
             Ui.Alpha(restartDim.rectTransform, a); Ui.Alpha(restartBox.rt, a);
             var s = Ui.Set(restartText, r.S("text") ?? "", 520);
-            var ks = Ui.Set(restartKey, $"{r.S("key") ?? ""}  {r.S("label") ?? ""}".Trim(), 520);
-            float bw = ks.x + 44, bh = ks.y + 20;
-            float w = Mathf.Max(Mathf.Max(s.x, bw) + 52, 13 * 21), h = 18 + s.y + 12 + bh + 18;
-            Ui.Place(restartText.rectTransform, (w - s.x) / 2, 18, s.x, s.y);
-            Ui.Place(restartButton.rt, (w - bw) / 2, 18 + s.y + 12, bw, bh);
-            Ui.Place(restartKey.rectTransform, 0, 0, bw, bh);
+            // (the page's: its words, then the prompt at the bottom right, the button's glyph and the word, no box: issue #695)
+            var ink = solid ? Color.white : HintInk0;
+            var ps = CardPrompt(restartGo, r.S("key") ?? "", r.S("label") ?? "", 0, 0, false, null, ink);
+            float w = Mathf.Max(Mathf.Max(s.x, ps.x) + 64, 13 * 21), h = 20 + s.y + 10 + ps.y + 16;   // (the page's padding: 20 32 16)
+            Ui.Place(restartText.rectTransform, (w - s.x) / 2, 20, s.x, s.y);
+            CardPrompt(restartGo, r.S("key") ?? "", r.S("label") ?? "", w - 32 - ps.x, 20 + s.y + 10, false, null, ink);
             Ui.Place(restartBox.rt, (W - w) / 2, H * 0.16f, w, h);
-            EnamelPaint(restartBox); restartText.color = solid ? Color.white : HintInk0;
+            EnamelPaint(restartBox); restartText.color = ink;
         }
 
         // ---------------------------------------------------------------- a trial's or a game's HUD (screen 'minigame')
@@ -1315,13 +1313,17 @@ namespace Hiraeth.Bridge
         int popSeen;   // (the last pop's id drawn: one gone stays gone)
 
         // ---------------------------------------------------------------- a makers' box's card (issue #345; src/boxes/card.js)
-        // as the web's #boxcard: a low cream strip along the foot of the screen, in the letterbox's bottom band, so the item
-        // the scene holds up stays clear above it; the name first and largest, after the makers' star, one line under it
-        // (what it does, or the found line), then the button to go on, gold, its key's badge before its word. While the
-        // scene plays and before the card, the skip's tag under the top bar
-        Ui.Box bCard, bGo, bSkip; Label bName, bName2, bText, bGoKey, bGoText, bSkipKey, bSkipText; Image bGoBadge, bSkipBadge; Sketch bStar;
+        // as the web's #boxcard: a low enamel card along the foot of the screen, in the letterbox's bottom band, so the item
+        // the scene holds up stays clear above it; since issue #695 as Breath of the Wild's item card: the item's picture at the
+        // left in a paper disc (BridgeMenu.Picture, the Items panel's; the makers' star before the name where there is none),
+        // its name, a brass hairline, its one line (what it does, or the found line), and at the bottom right the prompt, the
+        // button's badge and its word, no box. While the scene plays and before the card, the skip's tag under the top bar
+        Ui.Box bCard, bSkip; Label bName, bName2, bText, bSkipKey, bSkipText; Image bSkipBadge, bRule; Sketch bStar;
+        CardPromptParts bGo; Disc bPic;
         float bCardT;
         const int CardBody = 15, CardName = 26;
+        const float CardPic = 6f * CardBody;   // (the page's .pic: 6em)
+        static readonly Color PicPaper = Ui.Hex("#f3e7cc");   // (src/item-icons.js ICON_PAPER: the pictures' own paper)
         const float CardStar = 0.7f * CardName, CardStarGap = 0.35f * CardName;   // (the page's h2 .star: 0.7em, 0.35em after it)
 
         // the father's charge lettered low in the lower third (src/story/charge.js showChargeCard, the page's #charge-card;
@@ -1386,12 +1388,11 @@ namespace Hiraeth.Bridge
                 bStar.Tri(mid, new Vector2(ax * CardStar, -ay * CardStar), new Vector2(bx * CardStar, -by * CardStar), navy);
             }
             bName = Ui.Label(bCard.rt, "name", Ui.Heavy, CardName, HintInk0, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(bName, 0.04f);
-            bName2 = Ui.Label(bCard.rt, "name 2", Ui.Heavy, CardName, HintInk0, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(bName2, 0.04f);
-            bText = Ui.Label(bCard.rt, "text", mono, CardBody, HintInk0, TextAnchor.UpperCenter, lineSpacing: 1.3f);
-            bGo = Ui.Panel(bCard.rt, "go", HintInk0, EnBrass, 1, 0, 0, 5);   // (ivory, dark letters, a brass edge: the conversation's confirm badge)
-            bGoBadge = Ui.Rect(bGo.rt, Ui.Ink, 4, "badge");
-            bGoKey = Ui.Label(bGoBadge.rectTransform, "key", mono, 12, Cream, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bGoKey.rectTransform);
-            bGoText = Ui.Label(bGo.rt, "label", mono, 14, EnKeyInk, TextAnchor.MiddleLeft, FontStyle.Bold); Ui.Space(bGoText, 0.08f);
+            bName2 = Ui.Label(bCard.rt, "name 2", Ui.Heavy, CardName, HintInk0, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(bName2, 0.04f);
+            bText = Ui.Label(bCard.rt, "text", mono, CardBody, HintInk0, TextAnchor.UpperLeft, lineSpacing: 1.2f);   // (Unity's 1.2 over the face's own height reads as the page's 1.45)
+            bRule = Ui.Rect(bCard.rt, new Color(EnBrass.r, EnBrass.g, EnBrass.b, 0.45f), 0, "rule");
+            bPic = MakeDisc(bCard.rt, "picture", mono, 20);
+            bGo = MakeCardPrompt(bCard.rt, "go", 14);
             bSkip = EnamelStrip(root, "box skip");
             bSkipBadge = Ui.Rect(bSkip.rt, HintInk0, 4, "badge");
             bSkipKey = Ui.Label(bSkipBadge.rectTransform, "key", mono, 11, EnKeyInk, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bSkipKey.rectTransform);
@@ -1424,29 +1425,35 @@ namespace Hiraeth.Bridge
             bCardT = card ? bCardT + Time.unscaledDeltaTime : 0;
             bCard.Show(card);
             if (!card) return;
-            // (no wider than 44 of its letters (the page's 44ch: 0.53 of the body's size in its face), centred; the name first and
-            // largest, as written (the page's h2: no capitals; issue #569), the star before its first line, its lines centred;
-            // then its line, then the button)
-            float most = Mathf.Min(44 * CardBody * 0.53f, W - 24), padX = 1.2f * CardBody, padY = 0.6f * CardBody, nameMax = most - 2 * padX;
+            // (centred on the screen; the picture at the left, then the name, as written (no capitals; issue #569), its lines
+            // left-aligned, a brass hairline, its line, the prompt at the bottom right: issue #695)
+            var pic = BridgeMenu.Picture(b.S("id"));
+            // (issue #695, the author: "Why is it so narrow and with so little padding?": the page's width: min(46vw, 720px),
+            // min-width 26em, never past the screen less 24; padding 1.2em 1.6em, 1.2em between the picture and the words)
+            float padL = 1.6f * CardBody, padR = padL, padT = 1.2f * CardBody, padB = padT, gap = 1.2f * CardBody;
+            float picW = pic ? CardPic + gap : 0, star = pic ? 0 : CardStar + CardStarGap;
+            float w = Mathf.Min(Mathf.Max(Mathf.Min(0.46f * W, 720), 26 * CardBody), W - 24), nameMax = w - padL - padR - picW;
             var words = Text.Plain(b.S("name") ?? "").Split(' ');
             int nw = words.Length;
-            while (nw > 1 && Ui.Measure(bName, string.Join(" ", words, 0, nw)).x + CardStar + CardStarGap > nameMax) nw--;
+            while (nw > 1 && Ui.Measure(bName, string.Join(" ", words, 0, nw)).x + star > nameMax) nw--;
             string rest = string.Join(" ", words, nw, words.Length - nw);
             var ns = Ui.Set(bName, string.Join(" ", words, 0, nw));
             var rs = rest.Length > 0 ? Ui.Set(bName2, rest, nameMax) : Vector2.zero;
             Show(bName2, rest.Length > 0);
             var ts = Ui.Set(bText, Text.Plain(b.S("text") ?? ""), nameMax);
-            float gh = 32, gw = LayButton(bGoBadge, bGoKey, bGoText, b.S("ok") ?? "", b.S("okLabel") ?? "Continue", 10, gh);
-            float first = CardStar + CardStarGap + ns.x;
-            float inner = Mathf.Max(Mathf.Max(first, rs.x), Mathf.Max(ts.x, gw)), w = inner + 2 * padX;
-            float y = padY;
-            float nameX = w / 2 - first / 2;
-            Ui.Place(bStar.rectTransform, nameX, y + ns.y / 2 - CardStar / 2 + 1, CardStar, CardStar);
-            Ui.Place(bName.rectTransform, nameX + CardStar + CardStarGap, y, ns.x, ns.y); y += ns.y;
-            if (rest.Length > 0) { Ui.Place(bName2.rectTransform, w / 2 - rs.x / 2, y, rs.x, rs.y); y += rs.y; }
-            y += 4;
-            Ui.Place(bText.rectTransform, w / 2 - ts.x / 2, y, ts.x, ts.y); y += ts.y + 0.5f * CardBody;
-            Ui.Place(bGo.rt, w / 2 - gw / 2, y, gw, gh); y += gh + padY + 2;
+            var gs = CardPrompt(bGo, b.S("ok") ?? "", b.S("okLabel") ?? "Continue", 0, 0);
+            float inner = nameMax;
+            float y = padT, x0 = padL + picW;
+            Show(bStar, !pic);
+            if (!pic) Ui.Place(bStar.rectTransform, x0, y + ns.y / 2 - CardStar / 2 + 1, CardStar, CardStar);
+            Ui.Place(bName.rectTransform, x0 + star, y, ns.x, ns.y); y += ns.y;
+            if (rest.Length > 0) { Ui.Place(bName2.rectTransform, x0, y, rs.x, rs.y); y += rs.y; }
+            y += 0.4f * CardName;
+            Ui.Place(bRule.rectTransform, x0, y, inner, 1); y += 1 + 0.5f * CardBody;
+            Ui.Place(bText.rectTransform, x0, y, ts.x, ts.y); y += ts.y + 0.6f * CardBody;
+            CardPrompt(bGo, b.S("ok") ?? "", b.S("okLabel") ?? "Continue", w - padR - gs.x, y); y += gs.y + padB;
+            bPic.rt.gameObject.SetActive(pic);
+            if (pic) { float ph = Mathf.Max(y, CardPic + padT + padB); y = ph; LayDisc(bPic, padL, ph / 2 - CardPic / 2, CardPic, 1.5f, 0, PicPaper, pic, null); bPic.ink.color = EnBrass; }
             // (it slides up a little and fades in, as the page's transition)
             float k = Mathf.Clamp01(bCardT / 0.4f), e = 1 - (1 - k) * (1 - k);
             float bottom = Mathf.Max(6, H * 0.055f - 34);

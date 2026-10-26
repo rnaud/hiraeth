@@ -1607,6 +1607,131 @@ export const CHANGELOG_MEDIA = {
         }
       ]
     },
+    {
+      "match": "The buttons on the HUD’s cards are plain now",
+      "shots": [
+        {
+          "name": "prompt-box-lift",
+          "title": "A box: the lift valve",
+          "caption": "Before: a narrow card, the name centred over its line and a cream “Enter Continue” pill. After: about half the screen wide with room inside, the valve’s picture at the left, the name, a brass hairline, its line, and “Enter Continue” small at the bottom right with no box.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            700,
+            320
+          ]
+        },
+        {
+          "name": "prompt-box-gun",
+          "title": "A box: the fluid gun",
+          "caption": "A longer line: the picture keeps its place at the left, the words wrap beside it, the prompt at the bottom right.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            700,
+            320
+          ]
+        },
+        {
+          "name": "prompt-box-blade",
+          "title": "A box: the Givers’ blade",
+          "caption": "The blade’s own picture from the Items page in its paper disc.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            700,
+            320
+          ]
+        },
+        {
+          "name": "prompt-box-map",
+          "title": "A find with no picture",
+          "caption": "A temple’s map has no item picture: no picture is invented, the makers’ star stays before the name.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            700,
+            320
+          ]
+        },
+        {
+          "name": "prompt-box-pad",
+          "title": "A box with a pad",
+          "caption": "With a pad in hand the prompt is the A button’s disc and the word.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            700,
+            320
+          ]
+        },
+        {
+          "name": "prompt-restart",
+          "title": "Knocked out",
+          "caption": "The Restart button: an ivory box before, the key and the word at the card’s bottom right after.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            600,
+            300
+          ]
+        },
+        {
+          "name": "prompt-restart-pad",
+          "title": "Knocked out, with a pad",
+          "caption": "The same with a pad: A and Restart.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            600,
+            300
+          ]
+        },
+        {
+          "name": "prompt-game-start",
+          "title": "A game’s start card",
+          "caption": "Start and Quit were boxes with a line of keys under them; now each is its key and its word at the bottom right, the line gone.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "prompt-game-paused",
+          "title": "A game paused",
+          "caption": "Resume (Enter), Retry (R) and Quit, no boxes.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "prompt-game-results",
+          "title": "A game’s results",
+          "caption": "Retry (Enter) and Quit (Esc) at the bottom right.",
+          "from": "Issue #695: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5452), ?level=desert at 10 h (or ?game=rings), each card put up through the game’s own renderers (BoxCard.show with the item, the restart card, the minigame runner’s start, pause and results); a pad staged by holding body.controller on; before: origin/main at 26b565197, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "prompt-box-unity",
+          "title": "A box (Unity)",
+          "caption": "The Unity version: about half the screen wide, the picture at the left, the name, a brass hairline, the line, and A Continue at the bottom right with no ivory box.",
+          "from": "Issue #695: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -level desert -mute -ui boxcard,restart: engine/ui-poses.js puts the card on the screen’s state as the game does), 1280 × 720; before: origin/main’s BridgeHud (the picture issue #687 took of it), whose box-card pose was a name with no line; after: this change, its pose the real Spring boots with their line; 26 October; cwebp -q 72",
+          "size": [
+            700,
+            320
+          ]
+        },
+        {
+          "name": "prompt-restart-unity",
+          "title": "Knocked out (Unity)",
+          "caption": "The Unity version’s Restart: A and the word at the card’s bottom right.",
+          "from": "Issue #695: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -level desert -mute -ui boxcard,restart: engine/ui-poses.js puts the card on the screen’s state as the game does), 1280 × 720; before: origin/main’s BridgeHud (the picture issue #687 took of it), whose box-card pose was a name with no line; after: this change, its pose the real Spring boots with their line; 26 October; cwebp -q 72",
+          "size": [
+            600,
+            300
+          ]
+        }
+      ]
+    },
   {
     "match": "Lorn’s crystals are cut in clean facets",
     "shots": [

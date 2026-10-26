@@ -151,14 +151,19 @@
         opacity: 0; visibility: hidden; transition: opacity .9s, visibility 0s .9s; }
       #restart.open { opacity: 1; visibility: visible; transition: opacity .9s; }
       /* the enamel card (issue #687, src/hud-look.js enamelCard): the dark panel, one brass hairline */
-      #restart .sheet { padding: 16px 24px 14px; background: var(--en-panel); color: var(--en-ink); border: 1.5px solid var(--en-brass); border-radius: var(--en-radius);
+      #restart .sheet { padding: 20px 32px 16px; background: var(--en-panel); color: var(--en-ink); border: 1.5px solid var(--en-brass); border-radius: var(--en-radius);
         box-shadow: var(--en-shadow); transform: none; font: var(--type)/1.5 var(--face); text-align: center; min-width: 13em; max-width: calc(100vw - 32px); box-sizing: border-box; }
-      #restart p { margin: 0 0 12px; letter-spacing: 0.04em; }
-      #restart button { font: 700 calc(var(--type) * 1.05)/1 var(--face); letter-spacing: 0.1em; color: var(--en-key-ink); background: var(--en-ink);
-        border: 1px solid var(--en-brass); box-shadow: none; padding: 9px 20px; cursor: pointer; border-radius: 5px; }
-      #restart button:focus-visible, #restart button:hover { background: #fffaf0; outline: none; }
-      #restart button:active { transform: translateY(1px); }
-      #restart button { display: inline-flex; align-items: center; }   /* (the confirm glyph inside it: src/pad-glyphs.js) */
+      #restart p { margin: 0 0 10px; letter-spacing: 0.04em; }
+      /* its Restart: the button's glyph and the word, small, at the card's bottom right, no box (issue #695, src/hud-look.js enamelPrompt) */
+      #restart .sheet { display: flex; flex-direction: column; }
+      #restart button { align-self: flex-end; }
+      #restart button { display: inline-flex; align-items: center; gap: 0.45em; margin: 0; padding: 0; min-height: 1.9em; font: 600 0.92em/1.2 var(--face); letter-spacing: 0.04em; text-transform: none; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; transform: none; }
+      #restart button:hover, #restart button:focus, #restart button:focus-visible, #restart button:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
+      body.controller #restart button:not(:only-of-type):focus > .lbl, #restart button:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
+      #restart button > .glyph { margin: 0; }
+      body.controller #restart button > .glyph { background: var(--en-ink, #f7ecd2); }
+      body.controller #restart button > .glyph:not([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { color: var(--en-key-ink, #18201f); }
+      body.controller #restart button > .glyph.keys-only { display: none; }
       /* photo mode's keys: a hint like the others (issue #306), the dark strip at the top centre */
       #photo {
         position: fixed; left: 50%; top: var(--hint-top); transform: translateX(-50%); display: none; z-index: 60;
@@ -635,7 +640,7 @@
       <circle r="15" fill="none" stroke="#2b211f" stroke-width="0.8" stroke-dasharray="1.6 2.4" opacity="0.5" />
       <circle r="6.6" fill="#f7ecd2" stroke="#2b211f" stroke-width="1.6" />
     </svg></div>
-    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button"><span class="glyph" data-glyph="ok" data-key="Enter" aria-hidden="true"></span><span data-t="restart.button">Restart</span></button></div></div>
+    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button"><span class="glyph" data-glyph="ok" data-key="Enter" aria-hidden="true"></span><span class="lbl" data-t="restart.button">Restart</span></button></div></div>
     <script type="module" src="/src/boot.js"></script>
   </body>
 </html>

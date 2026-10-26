@@ -237,7 +237,7 @@ export class BoxScene {
     }
     if (phase === 'dissolve') { s?.boxOpen?.(); this.model.visible = true; this.sparkles.visible = true; }
     if (phase === 'reveal') { s?.fanfare?.(); this.fanfared = true; this.revealFrom = this.model.position.clone(); }
-    if (phase === 'card') { this.card?.show(this.def, { found: this.box?.place?.found ?? null }); this.cardT = 0; }
+    if (phase === 'card') { this.card?.show(this.def, { found: this.box?.place?.found ?? null, item: this.item }); this.cardT = 0; }
     if (phase === 'beat') {
       this.card?.hide();
       // granted now: the star is on his lapel for the look at it worn

@@ -26,9 +26,10 @@ import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { awardOutfit, rewardFor, prizeRule } from './rewards.js';
 import { inputKind, escapeHtml, keyText, hasKeys } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
+import { glyph } from '../../pad-glyphs.js';
 import { stripTone } from '../../story/tone.js';
 import { screen } from '../../platform.js';
-import { COUNT, FINISH_WAIT, countNumeral, controlsFor, hintRow, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
+import { COUNT, FINISH_WAIT, countNumeral, controlsFor, hintRow, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions, promptRole, promptKey, PROMPT_KEYS } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -262,7 +263,19 @@ export class MinigameRunner {
     return this.mandatory ? extra : [...extra, { act: 'quit', label: this.host.links?.quit?.label ?? 'Quit' }];
   }
   /** Buttons as the card's html. */
-  buttonsHtml(list) { return list.map((b) => `<button data-act="${h(b.act)}"${b.main ? ' class="main"' : ''}>${h(b.label)}${b.sub ? `<small>${h(b.sub)}</small>` : ''}</button>`).join(''); }
+  // (each a prompt, issue #695: its button's glyph and its word, no box; a button of none its pad's A while it has the focus)
+  buttonsHtml(list) {
+    return list.map((b) => {
+      const role = promptRole(b, { paused: this.paused, links: this.host.links });
+      const g = !role ? glyph('ok', { focus: true }) : role === 'r' ? `<span class="glyph keys-only" data-glyph="r" data-key="R" aria-hidden="true"></span>` : glyph(role, { key: PROMPT_KEYS[role] });
+      return `<button data-act="${h(b.act)}"${b.main ? ' class="main"' : ''}>${g}<span class="lbl">${h(b.label)}${b.sub ? `<small>${h(b.sub)}</small>` : ''}</span></button>`;
+    }).join('');
+  }
+  /** The buttons as the engines' card has them: each its key or pad button for the input in hand (issue #695). */
+  cardButtons(list) {
+    const kind = inputKind();
+    return list.map((b) => ({ ...b, key: promptKey(promptRole(b, { paused: this.paused, links: this.host.links }), kind, { ok: confirmKey(), back: backKey() }) }));
+  }
   /** The cards' buttons out: the host's links, then Quit (under its label). */
   outButtons() { return this.buttonsHtml(this.outList()); }
   /** The results card's buttons (kit/flow.js resultActions: a host's links.win, Skip first after failures). */
@@ -292,11 +305,10 @@ export class MinigameRunner {
     if (on) {
       const best = this.def.score?.kind === 'time' ? `Time so far ${formatTime(this.clock + this.penalty)}` : `Score so far ${formatScore(this.def, this.points)}`;
       const buttons = [{ act: 'resume', label: 'Resume', main: true }, { act: 'retry', label: 'Retry' }, ...this.outList()];
-      this.setCard({ kind: 'paused', kicker: this.def.name, title: 'Paused', best, buttons, hint: this.hint('resume', 'quit') });
+      this.setCard({ kind: 'paused', kicker: this.def.name, title: 'Paused', best, buttons: this.cardButtons(buttons), hint: this.hint('resume', 'quit') });
       this.openCard(`<p class="kicker">${h(this.def.name)}</p><h1>Paused</h1>
       <p class="best">${best}</p>
-      <div class="buttons">${this.buttonsHtml(buttons)}</div>
-      <small>${this.hint('resume', 'quit')}</small>`, true);
+      <div class="buttons">${this.buttonsHtml(buttons)}</div>`, true);
     } else this.closeCard();
     this.publish();
   }
@@ -460,12 +472,11 @@ export class MinigameRunner {
         const v = optionValue(d, S, o.id);
         return { id: o.id, label: o.label, hint: o.hint ?? '', ...(o.choices ? { choices: o.choices.map(([cv, label]) => ({ label, on: cv === v })) } : { text: optionText(o, v) }) };
       }),
-      best: bestLine, buttons, hint: this.hint('start', 'quit') });
+      best: bestLine, buttons: this.cardButtons(buttons), hint: this.hint('start', 'quit') });
     this.openCard(`<p class="kicker">${h(I?.kicker ?? 'A game')}</p><h1>${h(d.name)}</h1>${lead}<p>${h(d.blurb)}</p><p class="rules">${h(rules)}</p>
       ${rows ? `<dl>${rows}</dl>` : ''}${opts ? `<div class="opts">${opts}</div>` : ''}
       <p class="best">${h(bestLine)}</p>
-      <div class="buttons">${this.buttonsHtml(buttons)}</div>
-      <small>${this.hint('start', 'quit')}</small>`);
+      <div class="buttons">${this.buttonsHtml(buttons)}</div>`);
   }
   showResults() {
     const d = this.def, r = this.result;
@@ -480,13 +491,12 @@ export class MinigameRunner {
     const actions = resultActions(r, this.host.links, this.fails ?? 0);
     const hint = this.hint(actions[0].act === 'win' ? this.host.links.win.hint ?? 'fly on' : 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
     this.setCard({ kind: 'results', kicker: d.name, title: label, big: showValue ? formatScore(d, r.value) : '', stamp: !!r.isNew, lines: (r.lines ?? []).map((l) => keyText(l, { kind, teach: true })), extra: plainHtml(r.html),
-      best: bestLine, buttons: actions.map((b) => ({ act: b.act, label: b.label, sub: b.sub ?? '', main: !!b.main })), hint, wide: !!r.wide });
+      best: bestLine, buttons: this.cardButtons(actions.map((b) => ({ act: b.act, label: b.label, sub: b.sub ?? '', main: !!b.main }))), hint, wide: !!r.wide });
     this.openCard(`<p class="kicker">${h(d.name)}</p><h1>${h(label)}</h1>
       ${showValue ? `<div class="big">${h(formatScore(d, r.value))}</div>` : ''}${r.isNew ? '<div class="stamp">New best!</div>' : ''}
       ${lines ? `<ul class="lines">${lines}</ul>` : ''}${r.html ?? ''}
       <p class="best">${h(bestLine)}</p>
-      <div class="buttons">${this.resultButtons(r)}</div>
-      <small>${hint}</small>`);
+      <div class="buttons">${this.resultButtons(r)}</div>`);
     this.publish();
     this.sheet.classList.toggle('wide', !!r.wide);
   }

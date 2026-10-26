@@ -1167,3 +1167,25 @@ built from the tokens or still on cream paper with a hard offset shadow. Unity d
 skip, the warp's title, the knock-out card, the box card and its skip, the balloons, the chips, a game's clock, score,
 flashes, 3-2-1, words and tags, the drums, the sketch hunt and the fishing, and the game card in `BridgeMenu.cs`.
 `engine/ui-poses.js` has `charge`, `voicemail`, `restart`, `boxcard`, `chips` and `toast` for `-ui` pictures.
+
+### A card's prompts and the item card (issue #695)
+
+The author, on the box card's cream "[Enter] Continue" pill: "I don't like the extra padding, border and different color
+for the button, just show me the button and what it does next to it", with Breath of the Wild's item card for reference.
+A button on a card is now a prompt: the button's glyph (`src/pad-glyphs.js`: the pad's own as an ivory disc with its
+letter, the key's outline, nothing on touch) and the word after it, in the card's own ink, small, at the card's bottom
+right, with no fill, border or padding. It stays a `<button>` (a click, a tap, the focus). `enamelPrompt(sel)` in
+`src/hud-look.js` writes the style; `HUD_PROMPTS` lists the box card's Continue, the knock-out's Restart and a game's
+Start / Resume / Retry / Quit / links, and `tests/hud-look.test.js` fails on one boxed again. A game's buttons carry the
+button that answers each (`promptRole` in `src/minigames/kit/flow.js`: Enter / A the main one, Esc / B Quit where back
+quits, R / Menu Retry on the results, [ ] / LB RB the Arcade's links); the line of keys under them went. Where a card has
+several, the one a pad is on is underlined (issue #507's one mark), and a pad on another button hides the main one's A.
+
+The box card follows the BotW card: the item's picture at the left in a paper disc with a brass ring (the Items page's
+own, `public/item-pictures/<id>.webp`, `itemPicture(id)`; none rather than an invented one for a find without one, a
+temple's map, where the makers' star stays before the name), its name, a brass hairline, its one line (`itemLine`), and
+the prompt at the bottom right. Like BotW's it is about half the screen wide (`min(46vw, 720px)`, never past the screen
+less 24 px; the author: "Why is it so narrow and with so little padding?") with generous margins (1.2em 1.6em, a 6em
+picture, 1.2em between it and the words), its CSS in `src/hud-styles/box-card.js`. It keeps the enamel panel of every other card. `cardState` carries the item's `id`;
+Unity draws the picture from `BridgeMenu.Picture(id)`, the prompts with `BridgeHud.CardPrompt` (BridgeHud.Hints.cs) on
+the box card, the knock-out and the game card (BridgeMenu.cs).

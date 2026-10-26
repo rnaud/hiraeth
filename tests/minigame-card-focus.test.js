@@ -1,4 +1,4 @@
-// Issue #507: "During minigames menus the first button is always yellow? So it's not clear which one is selected."
+// Issue #507 (and #695: the buttons are prompts since): "During minigames menus the first button is always yellow? So it's not clear which one is selected."
 // A game's cards (the start card, the pause, the results: src/minigames/kit/runner.js) mark their main button (what
 // Enter does) only by a red edge at its left, and the focused one (the pad's, the arrows') is the one highlight, filled
 // red: the main menus' look (src/menus.css .fullmenu .menu-nav). The engines draw the same (engine/menus.js cardView,
@@ -19,21 +19,41 @@ function rule(css, sel) {
 }
 const bg = (decl) => decl?.match(/background(?:-color)?:\s*([^;]+)/)?.[1].trim() ?? null;
 
-test('the card\'s main button is no longer filled: only an edge marks it (turquoise, the enamel\'s tab since issue #687)', () => {
+// (since issue #695 the buttons are prompts, the button's glyph and its word, no box: src/hud-look.js enamelPrompt)
+test('the card\'s buttons are prompts: none filled, the main one marked only by its glyph (Enter, A / ×)', () => {
   const css = read('src/minigames/kit/minigames.css');
-  const main = rule(css, '#minigame .sheet button.main');
-  assert.ok(main, 'a rule for the main button');
-  assert.equal(bg(main), null, 'the main button keeps the paper of the others');
-  assert.match(main, /border-left:\s*\d+px solid var\(--en-accent\)/, 'a turquoise edge at its left');
+  const base = rule(css, '#minigame .sheet .buttons button');
+  assert.ok(base, 'a rule for the buttons');
+  assert.equal(bg(base), 'none', 'no fill');
+  assert.equal(rule(css, '#minigame .sheet button.main'), null, 'no edge for the main one');
+  const runner = readFileSync(new URL('../src/minigames/kit/runner.js', import.meta.url), 'utf8');
+  assert.match(runner, /promptRole\(b, \{ paused: this\.paused, links: this\.host\.links \}\)/, 'each its button\'s glyph');
 });
 
-test('the focused button is the one filled, in a colour no other button has', () => {
+test('the focused button is the one underlined; no other mark', () => {
   const css = read('src/minigames/kit/minigames.css');
-  const focus = rule(css, '#minigame .sheet button:focus');
-  assert.ok(focus);
-  assert.equal(bg(focus), 'var(--en-ink)', 'filled ivory, as the conversation\'s confirm badge (issue #687; red before)');
-  assert.notEqual(bg(rule(css, '#minigame .sheet button:hover')), bg(focus), 'the mouse over another button is not drawn as the focus');
-  assert.notEqual(bg(rule(css, '#minigame .sheet button')), bg(focus));
+  assert.match(css, /#minigame \.sheet \.buttons button:not\(:only-of-type\):focus > \.lbl[^{]*\{ text-decoration: underline/);
+  const focus = rule(css, '#minigame .sheet .buttons button:focus');
+  assert.equal(bg(focus), 'none', 'not filled');
+  // (the pad on another button: the main one's A goes, the other's shows: A presses the focused one)
+  assert.match(css, /body\.controller #minigame \.sheet \.buttons:has\(button:not\(\.main\):focus\) button\.main > \.glyph\[data-glyph="ok"\] \{ visibility: hidden; \}/);
+});
+
+test('the prompts\' buttons: Enter / A the main one, Esc / B Quit where back quits, R / Menu Retry, [ ] / LB RB the links', async () => {
+  const { promptRole, promptKey } = await import('../src/minigames/kit/flow.js');
+  const links = { extra: [{ id: 'prev', step: -1 }, { id: 'next', step: 1 }] };
+  assert.equal(promptRole({ act: 'start', main: true }), 'ok');
+  assert.equal(promptRole({ act: 'quit' }), 'back');
+  assert.equal(promptRole({ act: 'quit' }, { paused: true }), null, 'on the pause back resumes');
+  assert.equal(promptRole({ act: 'retry' }), 'menu');
+  assert.equal(promptRole({ act: 'retry' }, { paused: true }), 'r');
+  assert.equal(promptRole({ act: 'link:prev' }, { links }), 'lb');
+  assert.equal(promptRole({ act: 'link:next' }, { links }), 'rb');
+  assert.equal(promptKey('ok', 'keys'), 'Enter');
+  assert.equal(promptKey('back', 'pad'), 'B / ○');
+  assert.equal(promptKey('menu', 'pad'), 'Menu');
+  assert.equal(promptKey('r', 'pad'), '');
+  assert.equal(promptKey('ok', 'touch'), '');
 });
 
 test('the engines\' card: one button on, wherever the pad is; the main one still says it is main', () => {
@@ -52,12 +72,10 @@ test('the engines\' card: one button on, wherever the pad is; the main one still
   assert.equal(b[0].main, true);
 });
 
-test('Unity draws the pad\'s button filled and the main one only edged (BridgeMenu.cs BuildCard)', () => {
+test('Unity draws them as prompts: the badge and the word, the pad\'s one underlined (BridgeMenu.cs DrawCard)', () => {
   const cs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs', import.meta.url), 'utf8');
-  const build = cs.slice(cs.indexOf('void BuildCard('), cs.indexOf('// ------------------------------------------------------------------ the Arena'));
-  // (red follows the pad alone; the mouse over another only its :hover's paler paper, issue #574)
-  assert.match(build, /cb\.box\.SetFill\(on \? CardInk : over \? CardButtonHover : CardButtonFill\)/, 'the fill follows the pad alone');
-  assert.match(build, /bool over = !on && HoverOn\(b\.S\("pt"\)\);/);
-  assert.doesNotMatch(build, /main \? Ui\.Gold/, 'no gold main button');
-  assert.match(build, /Show\(cb\.accent, main\)/, 'the main one\'s red edge');
+  const draw = cs.slice(cs.indexOf('void DrawCard('), cs.indexOf('// ------------------------------------------------------------------ the Arena'));
+  assert.match(draw, /BridgeHud\.CardPrompt\(cp, KeyOf\(b\), b\.S\("label"\) \?\? "", bx, y, on \|\| over/, 'underlined where the pad is (or the mouse)');
+  assert.doesNotMatch(draw, /SetFill\(on \? CardInk/, 'no filled button');
+  assert.match(draw, /Show\(cHint, false\)/, 'no line of keys under them');
 });

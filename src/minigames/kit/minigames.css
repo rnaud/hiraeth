@@ -81,23 +81,30 @@ body.controller #minigame .mg-pause { display: none; }
 #minigame .sheet .stamp { position: absolute; right: 18px; top: 18px; padding: 4px 10px; border: 2px solid var(--en-gold); border-radius: 5px; color: var(--en-gold); font: 900 1.15em/1 var(--face);
   letter-spacing: 0.12em; transform: none; animation: mgstamp .5s .3s ease-out both; }
 @keyframes mgstamp { 0% { transform: scale(2.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-#minigame .sheet .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+#minigame .sheet .buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 1.4em; margin-top: 8px; }
 /* a prize won (issue #668, kit/rewards.js): the outfit, stamped in on the results */
 #minigame .sheet .mg-prize { margin: 0 0 12px; padding: 8px 12px; background: rgba(247, 236, 210, 0.06); border: 1px solid var(--en-gold); border-radius: 5px; animation: mgstamp .5s .5s ease-out both; }
 #minigame .sheet .mg-prize p { margin: 0; font-size: 0.92em; color: var(--en-soft); }
 #minigame .sheet .mg-prize .kicker { color: var(--en-gold); font-weight: 900; }
 #minigame .sheet .mg-prize .name { font: 900 1.38em/1.15 var(--face-title); letter-spacing: 0.08em; text-transform: uppercase; color: var(--en-ink); }
-#minigame .sheet .buttons button small { display: block; margin-top: 4px; font-size: 0.72em; font-weight: 400; letter-spacing: 0.04em; opacity: 0.7; }   /* (a link's game: the Arcade's next / previous) */
-#minigame .sheet button { font: 700 1.08em/1 var(--face); letter-spacing: 0.12em; color: var(--en-ink); background: rgba(247, 236, 210, 0.08); border: 1px solid rgba(247, 236, 210, 0.35);
+#minigame .sheet .buttons button small { display: block; margin-top: 2px; font-size: 0.78em; font-weight: 400; letter-spacing: 0.04em; opacity: 0.7; text-align: left; }   /* (a link's game: the Arcade's next / previous) */
+/* the buttons: prompts, each its button's glyph and its word at the card's bottom right, no box (issue #695, src/hud-look.js
+   enamelPrompt); the focused one (the pad's, the arrows') underlined, the one mark (issue #507); a button of no key of its own
+   shows the pad's A while it has the focus, and the main one's A goes while another has it */
+#minigame .sheet .buttons button { display: inline-flex; align-items: center; gap: 0.45em; margin: 0; padding: 0; min-height: 1.9em; font: 600 0.92em/1.2 var(--face); letter-spacing: 0.04em; text-transform: none; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; transform: none; }
+#minigame .sheet .buttons button:hover, #minigame .sheet .buttons button:focus, #minigame .sheet .buttons button:focus-visible, #minigame .sheet .buttons button:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
+body.controller #minigame .sheet .buttons button:not(:only-of-type):focus > .lbl, #minigame .sheet .buttons button:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
+#minigame .sheet .buttons button > .glyph { margin: 0; }
+body.controller #minigame .sheet .buttons button > .glyph { background: var(--en-ink, #f7ecd2); }
+body.controller #minigame .sheet .buttons button > .glyph:not([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { color: var(--en-key-ink, #18201f); }
+body.controller #minigame .sheet .buttons button > .glyph.keys-only { display: none; }
+body.controller #minigame .sheet .buttons:has(button:not(.main):focus) button.main > .glyph[data-glyph="ok"] { visibility: hidden; }
+/* an option's choices and steppers: small quiet frames, the chosen one turquoise, the focused one ivory */
+#minigame .sheet .opt button { font: 700 1.08em/1 var(--face); letter-spacing: 0.12em; color: var(--en-ink); background: rgba(247, 236, 210, 0.08); border: 1px solid rgba(247, 236, 210, 0.35);
   box-shadow: none; padding: 9px 18px; cursor: pointer; border-radius: 5px; }
-/* the main button (Retry, Start, Resume: what Enter does) only marked by a red edge at its left, and the focused one (the
-   pad's, the arrows') the one highlight, filled ivory with dark letters as the conversation's confirm badge (issue #507:
-   the main one drawn yellow looked chosen wherever the focus was; the enamel since issue #687: the main one's tab turquoise) */
-#minigame .sheet button.main { border-left: 4px solid var(--en-accent); }
-#minigame .sheet button:hover { background: rgba(247, 236, 210, 0.16); outline: none; }
-#minigame .sheet button:focus-visible, #minigame .sheet button:focus { background: var(--en-ink); color: var(--en-key-ink); border-color: var(--en-brass); outline: none; transform: none; box-shadow: none; }
-#minigame .sheet button.main:focus { border-left-color: var(--en-accent); }
-#minigame .sheet button:active { transform: translateY(1px); box-shadow: none; }
+#minigame .sheet .opt button:hover { background: rgba(247, 236, 210, 0.16); outline: none; }
+#minigame .sheet .opt button:focus-visible, #minigame .sheet .opt button:focus { background: var(--en-ink); color: var(--en-key-ink); border-color: var(--en-brass); outline: none; transform: none; box-shadow: none; }
+#minigame .sheet .opt button:active { transform: translateY(1px); box-shadow: none; }
 #minigame .sheet small { display: block; margin-top: 10px; color: var(--en-soft); font-size: 0.85em; }
 
 /* speed: ink streaks at the edges of the screen (a game sets --speed 0..1 on #minigame) */

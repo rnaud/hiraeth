@@ -563,8 +563,7 @@ namespace Hiraeth.Bridge
         // marked by a red edge at its left, the pad's filled red, lifted, its words in paper: the main menus' look, issue #507),
         // the keys' hint at the foot
         Ui.Box cSheet, cRules, cStamp; Sketch cRulesDash; Label cKicker, cTitle, cLead, cText, cRulesText, cBig, cStampText, cLines, cExtra, cBest, cHint;
-        class CardButton { public Ui.Box box; public Label text, sub; public Image accent; }
-        readonly List<CardButton> cButtons = new();
+        readonly List<BridgeHud.CardPromptParts> cButtons = new();   // (the buttons as prompts: issue #695)
         readonly List<(Label k, Label v)> cRows = new();
         readonly List<(Ui.Box box, Label label, Label val, Label hint)> cOpts = new();
         // (the enamel of every message since issue #687, src/hud-look.js ENAMEL: D's dark panel, one brass hairline, brass
@@ -694,48 +693,51 @@ namespace Hiraeth.Bridge
             y = CardPut(cExtra, c.S("extra"), px, y, iw);
             if (!string.IsNullOrEmpty(c.S("extra"))) y += 10;
             y = CardPut(cBest, c.S("best"), px, y, iw) + 8;
-            // the buttons in a row (wrapped), each its label (and a link's game under it)
+            // the buttons as prompts (issue #695, src/hud-look.js enamelPrompt): each its button's badge and its word (a link's game
+            // under it), no box, in rows at the card's bottom right; the pad's one underlined, the one mark (issue #507); a button
+            // of no key of its own shows the pad's A while the pad is on it. No line of keys under them: each names its own.
             var buttons = c.L("buttons") ?? new List<object>();
-            float bx = px, bh = 36, rowH = bh;
+            while (cButtons.Count < buttons.Count) cButtons.Add(BridgeHud.MakeCardPrompt(cSheet.rt, "button" + cButtons.Count, 16));
+            var sizes = new List<Vector2>();
+            bool pickedOther = buttons.OfType<Dictionary<string, object>>().Any(x => B(x, "on") && !B(x, "main"));
+            string mainKey = buttons.OfType<Dictionary<string, object>>().FirstOrDefault(x => B(x, "main"))?.S("key") ?? "";
+            bool pad = mainKey.Length > 0 && mainKey != "Enter";   // (with the keys Enter is the main one's wherever the pick is)
+            string KeyOf(Dictionary<string, object> b)
+            {
+                string k = b.S("key") ?? "";
+                if (!pad) return k;
+                if (B(b, "main") && pickedOther) return "";   // (the pad on another: A presses that one)
+                return k.Length == 0 && B(b, "on") ? mainKey : k;
+            }
             for (int i = 0; i < buttons.Count; i++)
             {
-                if (i >= cButtons.Count)
-                {
-                    var nb = new CardButton { box = Ui.Panel(cSheet.rt, "button" + i, CardButtonFill, CardButtonEdge, 1, 0, 0, 5) };
-                    nb.text = Ui.Label(nb.box.rt, "text", mono, 17, CardInk, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
-                    nb.sub = Ui.Label(nb.box.rt, "sub", mono, 11, CardMuted, TextAnchor.UpperCenter);
-                    nb.accent = Ui.Rect(nb.box.rt, CardRed, 0, "edge");
-                    cButtons.Add(nb);
-                }
                 var b = buttons[i] as Dictionary<string, object>;
-                var cb = cButtons[i];
-                cb.box.Show(true);
-                bool on = B(b, "on"), main = B(b, "main");
-                string label = b.S("label") ?? "", under = b.S("sub") ?? "";   // (the page's words as they are, spaced, not in capitals)
-                var ls = Ui.Measure(cb.text, label);
-                float us = under.Length > 0 ? Ui.Measure(cb.sub, under).x : 0, bw = Mathf.Max(ls.x, us) + 36, h = under.Length > 0 ? bh + 14 : bh;
-                if (bx + bw > px + iw && bx > px) { bx = px; y += rowH + 10; rowH = bh; }
-                rowH = Mathf.Max(rowH, h);
-                cb.text.text = label; Ui.Place(cb.text.rectTransform, 0, 9, bw, ls.y);
-                Show(cb.sub, under.Length > 0);
-                if (under.Length > 0) { cb.sub.text = under; Ui.Place(cb.sub.rectTransform, 0, 9 + ls.y + 2, bw, 14); }
-                // (the pad's the one highlight, filled red; the main one only a red edge at its left: issue #507; the mouse over
-                // another its :hover, a lighter paper, the focus staying where it was: minigames.css .sheet button:hover, #574)
-                bool over = !on && HoverOn(b.S("pt"));
-                cb.box.SetFill(on ? CardInk : over ? CardButtonHover : CardButtonFill);
-                cb.box.border.color = on ? CardBrass : CardButtonEdge;
-                cb.box.SetShadow(0, 0);
-                cb.text.color = on ? CardOnInk : CardInk;
-                cb.sub.color = on ? CardOnInk : CardMuted;
-                Show(cb.accent, main);
-                if (main) { cb.accent.color = CardRed; Ui.Place(cb.accent.rectTransform, 0, 0, 4, h); }
-                Ui.Place(cb.box.rt, bx, y, bw, h);
-                Hit(cb.box.rt, b.S("pt"));
-                bx += bw + 10;
+                sizes.Add(BridgeHud.CardPromptSize(cButtons[i], KeyOf(b), b.S("label") ?? "", b.S("sub")));
             }
-            for (int i = buttons.Count; i < cButtons.Count; i++) cButtons[i].box.Show(false);
-            y += rowH + 6;
-            y = CardPut(cHint, c.S("hint"), px, y + 4, iw) + 16;
+            const float gapX = 22, gapY = 8;
+            y += 4;
+            for (int i = 0; i < buttons.Count;)
+            {
+                // (a row: as many as fit, set from the right edge)
+                int j = i; float rw = 0, rh = 0;
+                while (j < buttons.Count && (j == i || rw + gapX + sizes[j].x <= iw)) { rw += (j == i ? 0 : gapX) + sizes[j].x; rh = Mathf.Max(rh, sizes[j].y); j++; }
+                float bx = px + iw - rw;
+                for (int q = i; q < j; q++)
+                {
+                    var b = buttons[q] as Dictionary<string, object>;
+                    bool on = B(b, "on"), over = !on && HoverOn(b.S("pt"));
+                    var cp = cButtons[q];
+                    cp.rt.gameObject.SetActive(true);
+                    BridgeHud.CardPrompt(cp, KeyOf(b), b.S("label") ?? "", bx, y, on || over, b.S("sub"), CardInk);
+                    Hit(cp.rt, b.S("pt"));
+                    bx += sizes[q].x + gapX;
+                }
+                y += rh + gapY;
+                i = j;
+            }
+            for (int i = buttons.Count; i < cButtons.Count; i++) cButtons[i].rt.gameObject.SetActive(false);
+            Show(cHint, false);
+            y += 10;
             // (no taller than the screen: a long start card scaled down to fit, centred)
             float k = Mathf.Min(1, (H - 24) / y);
             cSheet.rt.localScale = new Vector3(k, k, 1);

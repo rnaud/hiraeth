@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { ENAMEL, ENAMEL_VARS, ENAMEL_ENGINE, HUD_MESSAGES, en, enamelCard, enamelStrip } from '../src/hud-look.js';
+import { ENAMEL, ENAMEL_VARS, ENAMEL_ENGINE, HUD_MESSAGES, HUD_PROMPTS, en, enamelCard, enamelStrip, enamelPrompt } from '../src/hud-look.js';
 import { HINT } from '../src/hint-look.js';
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
@@ -57,4 +57,46 @@ test('Unity draws the same: the palette, and each message built as an enamel car
   assert.doesNotMatch(hud, /ChargePaper|SubPaper/, 'no paper band left');
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Parts.cs'), /EnamelCard\(balloonRoot, "balloon"\)/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /Ui\.Panel\(root, "game card", CardPanel, CardBrass/);
+});
+
+// issue #695, the author on the box card's "[Enter] Continue" pill: "I don't like the extra padding, border and different
+// color for the button, just show me the button and what it does next to it" (BotW's "Inventory (+)")
+test('a card\'s prompts are the button\'s glyph and its word, no box: no fill, no border, no padding, the card\'s own ink', () => {
+  const p = enamelPrompt('#x button');
+  const first = p.split('\n')[0];
+  assert.match(first, /background: none; border: 0; border-radius: 0; box-shadow: none;/);
+  assert.match(first, /padding: 0;/);
+  assert.match(first, /color: inherit;/, 'the card\'s own ink, not a colour of its own');
+  for (const line of p.split('\n')) {
+    assert.doesNotMatch(line, /background: (?!none|var\(--en-ink)/, 'no fill (the pad\'s glyph is its ivory disc alone)');
+    assert.doesNotMatch(line, /border: (?!0)/, 'no border');
+  }
+  assert.ok(HUD_PROMPTS.length >= 3);
+  const BOXED = /background(-color)?:\s*(?![\s;]|none|transparent)|border(-left)?:\s*[1-9]|padding:\s*[\d.]+(px|em)?\s+[\d.]*[1-9]/;
+  for (const q of HUD_PROMPTS) {
+    const src = read(q.file);
+    const written = q.file.endsWith('.js') ? src.includes(`enamelPrompt('${q.sel}')`) : enamelPrompt(q.sel).split('\n').every((l) => src.includes(l));
+    assert.ok(written, `${q.id} (${q.what}): written with enamelPrompt('${q.sel}') in ${q.file}`);
+    // (no rule of its own boxing it again)
+    for (const m of cssOf(q.file).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sels = m[1].split(',').map((x) => x.trim().split('\n').pop().trim());
+      if (sels.some((x) => x === q.sel || x.startsWith(`${q.sel}:`) || x.startsWith(`${q.sel}.`))) assert.doesNotMatch(m[2], BOXED, `${q.id}: ${m[1].trim()} boxes it`);
+    }
+  }
+});
+
+test('the prompts carry their button\'s glyph: the box card\'s Continue, the knock-out\'s Restart, a game\'s buttons', () => {
+  assert.match(read('src/boxes/card.js'), /<button class="go" type="button">\$\{glyph\('ok'\)\}<span class="lbl">/);
+  assert.match(read('index.html'), /<div id="restart"[^]*?<button type="button"><span class="glyph" data-glyph="ok"[^>]*><\/span><span class="lbl"/);
+  assert.match(read('src/minigames/kit/runner.js'), /glyph\(role, \{ key: PROMPT_KEYS\[role\] \}\)/);
+  assert.doesNotMatch(read('src/minigames/kit/runner.js'), /<small>\$\{(this\.hint\(|hint\})/, 'no line of keys under them: each prompt names its own');
+});
+
+test('Unity draws the prompts the same: the badge and the word, no panel round them', () => {
+  const hud = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
+  assert.doesNotMatch(hud, /bGo = Ui\.Panel\(bCard\.rt, "go", HintInk0/, 'the box card\'s Continue: no ivory pill');
+  assert.doesNotMatch(hud, /restartButton = Ui\.Panel\(restartBox\.rt, "button", HintInk0/, 'the Restart: no ivory pill');
+  assert.match(hud, /CardPrompt\(/);
+  const menu = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs');
+  assert.doesNotMatch(menu, /cb\.box\.SetFill\(on \? CardInk/, 'a game\'s buttons: no filled box');
 });

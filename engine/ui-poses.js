@@ -36,10 +36,12 @@ import { resources } from '../src/resources.js';
 import { screen } from '../src/platform.js';
 import { CHARGE, chargeCardLine } from '../src/story/charge.js';
 import { cardState } from '../src/boxes/card.js';
+import springs from '../src/gadgets/springs.js';
+import { ITEMS } from '../src/items.js';   // (the box card's pose: a real item, its line and its picture: issue #695)
 
 export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', credits: 'desert', breath: 'underwater', arcade: 'arcade', shop: 'desert', shopask: 'desert',
   magic: 'desert', magicshort: 'desert', magicfull: 'desert', magicempty: 'desert', mode: 'desert', aim: 'desert', jump: 'desert',
-  charge: 'desert', voicemail: 'desert', restart: 'desert', boxcard: 'desert', chips: 'desert', toast: 'desert',
+  charge: 'desert', voicemail: 'desert', restart: 'desert', boxcard: 'desert', boxcardlong: 'desert', chips: 'desert', toast: 'desert',
   hearts0: 'desert', hearts1: 'desert', hearts2: 'desert', hearts3: 'desert', hearts4: 'desert', heartslow: 'desert', potions: 'desert', potionsnone: 'desert' };
 /** The pieces a host poses by holding a key while they are up: the aim (KeyR, src/bindings.js KEYS.aim). */
 export const UI_KEYS = { aim: 'KeyR' };
@@ -112,7 +114,8 @@ export function uiPose(ctx, piece) {
     return 'up';
   }
   if (piece === 'restart') { screen.set('restart', { text: 'That was too far a fall.', key: 'A / ×', label: 'Restart' }); undo = () => screen.set('restart', null); return 'up'; }
-  if (piece === 'boxcard') { screen.set('boxCard', cardState({ def: { name: 'Spring boots', id: 'doublejump' }, kind: 'pad' })); undo = () => screen.set('boxCard', null); return 'up'; }
+  if (piece === 'boxcardlong') { screen.set('boxCard', cardState({ def: ITEMS.gun, item: 'gun', kind: 'pad' })); undo = () => screen.set('boxCard', null); return 'up'; }   // (a long line: issue #695)
+  if (piece === 'boxcard') { screen.set('boxCard', cardState({ def: springs, item: 'springs', kind: 'pad' })); undo = () => screen.set('boxCard', null); return 'up'; }
   if (piece === 'chips') {
     screen.set('gadget', { id: 'bomb', name: 'Bomb', glyph: '●', k: 0.67, empty: false });
     screen.set('spell', { id: 'gust', name: 'Gust', glyph: '✺', color: '#3f8fd0', k: 0.4, left: 3, ready: false, active: 0 });
