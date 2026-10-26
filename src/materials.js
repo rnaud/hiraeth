@@ -5,6 +5,7 @@ import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { PAVING_GLSL, pavingOf } from './paving-shader.js';
+import { INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, interiorOf, sheetOf, timberOf, groundMidOf } from './surface-marks.js';
 import { OPENINGS, OPENINGS_GLSL } from './wall-openings.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL, GROUND, PEBBLES } from './ground-ink.js';
@@ -350,7 +351,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP', 'S_PAVING'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP', 'S_PAVING', 'S_INTERIOR', 'S_SHEET', 'S_TIMBER', 'S_GROUNDMID'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -490,6 +491,10 @@ export function surfaceFeatures(o) {
   on('S_GRID', o.grid || o.plates);
   on('S_PLATES', o.plates);
   on('S_PAVING', pavingOf(o)[0] > 0);   // (flagstones on its upward faces: src/paving-shader.js)
+  on('S_INTERIOR', interiorOf(o)[0][0] > 0);      // (a shop's or room's tiles, dado and skirting: src/surface-marks.js)
+  on('S_SHEET', sheetOf(o)[0] > 0);       // (riveted sheet-metal walls)
+  on('S_TIMBER', timberOf(o)[3] > 0);     // (worked timber)
+  on('S_GROUNDMID', groundMidOf(o)[3] > 0);   // (the ground's middle distance)
   on('S_WEATHER', weatheredOf(o) > 0);
   on('S_DETAIL', detailOf(o)[0] > 0);
   on('S_FORM', formOf(o));
@@ -1004,6 +1009,12 @@ const fragmentShader = /* glsl */ `
   uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec4 uPaving;    // paving (src/paving-shader.js): course (m), wear, tone, turn; x 0: none
+  uniform vec4 uInterior;      // a room (src/surface-marks.js ROOM): tile (m), dado top, skirting top (m over the floor), odd tiles' share
+  uniform vec4 uInteriorDado;  // its dado band's colour, how much of it
+  uniform vec4 uInteriorSkirt; // its skirting's colour, how much of it
+  uniform vec4 uSheet;     // sheet-metal walls (SHEET): panel width, course (m), rust, repaint
+  uniform vec4 uTimber;    // timber (TIMBER): plank (m; 0 a post), the grain's axis, painted share, 1 (2: a post)
+  uniform vec4 uGroundMid; // the ground's middle distance (GROUND_MID): contour (m), stones, amount, 1
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
@@ -1733,6 +1744,15 @@ ${SHADOW_GLSL}
   #ifdef S_PAVING
   ${PAVING_GLSL}
   #endif
+  #ifdef S_INTERIOR
+  ${INTERIOR_GLSL}
+  #endif
+  #ifdef S_SHEET
+  ${SHEET_GLSL}
+  #endif
+  #ifdef S_TIMBER
+  ${TIMBER_GLSL}
+  #endif
 
   float segDist(vec2 p, vec2 a, vec2 b) {
     vec2 ab = b - a;
@@ -1782,6 +1802,9 @@ ${SHADOW_GLSL}
   #endif
 
   ${GROUND_GLSL}
+  #ifdef S_GROUNDMID
+  ${GROUND_MID_GLSL}
+  #endif
 
   // Sparse, surface-anchored pen strokes. Their physical length stays fixed;
   // fade subpixel strokes away instead of enlarging them into screen-space dots.
@@ -2282,6 +2305,16 @@ ${SHADOW_GLSL}
     vec2 paveFw = vec2(length(vec2(dFdx(vWorldPos.x), dFdy(vWorldPos.x))), length(vec2(dFdx(vWorldPos.z), dFdy(vWorldPos.z))));
     float paveUp = uPaving.x > 0.0 ? smoothstep(0.7, 0.85, n.y) : 0.0;
     #endif
+    #if defined(S_INTERIOR) || defined(S_TIMBER)
+    // a room's and timber's own frame (src/surface-marks.js): metres per px along the object's x, y, z
+    vec3 objFw = vec3(length(vec2(dFdx(vObjPos.x), dFdy(vObjPos.x))), length(vec2(dFdx(vObjPos.y), dFdy(vObjPos.y))), length(vec2(dFdx(vObjPos.z), dFdy(vObjPos.z))));
+    #endif
+    #ifdef S_SHEET
+    vec3 sheetFw = vec3(length(vec2(dFdx(vWorldPos.x), dFdy(vWorldPos.x))), length(vec2(dFdx(vWorldPos.y), dFdy(vWorldPos.y))), length(vec2(dFdx(vWorldPos.z), dFdy(vWorldPos.z))));
+    #endif
+    #ifdef S_GROUNDMID
+    float gmYfw = fwidth(vWorldPos.y);
+    #endif
 
     #ifdef WATER
       WaterLook wl = waterLook(vWorldPos, gl_FrontFacing);   // (water-shader.js; derivatives here, in uniform flow)
@@ -2332,6 +2365,9 @@ ${SHADOW_GLSL}
                 max(blobs(vWorldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0),
                     blobs(vWorldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
       if (uSandInk < 0.5) albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
+      #ifdef S_GROUNDMID
+      if (uGroundMid.w > 0.0) albedo *= groundMidTone(vWorldPos.xz);   // (broad soft patches: src/surface-marks.js)
+      #endif
     }
     #endif
     #ifdef S_STRATA
@@ -2473,6 +2509,31 @@ ${SHADOW_GLSL}
       float pi = paving(vWorldPos.xz, paveFw, pa);
       albedo = mix(albedo, pa, paveUp);
       patInk = max(patInk, pi * paveUp);
+    }
+    #endif
+    #ifdef S_INTERIOR
+    // a room (src/surface-marks.js): its floor's tiles, its walls' skirting, dado and plaster, in its own frame
+    if (uInterior.x > 0.0) {
+      vec3 ron = abs(normalize(on));
+      if (n.y > 0.7) patInk = max(patInk, interiorFloor(vObjPos.xz, objFw.xz, albedo));
+      else if (abs(n.y) < 0.3) patInk = max(patInk, ron.x > ron.z ? interiorWall(vObjPos.z, vObjPos.y, objFw.zy, albedo) : interiorWall(vObjPos.x, vObjPos.y, objFw.xy, albedo));
+    }
+    #endif
+    #ifdef S_SHEET
+    // riveted sheet-metal walls (src/surface-marks.js): along the wall's dominant axis, as the pen detail's
+    if (uSheet.x > 0.0 && abs(n.y) < 0.55) {
+      bool sx = abs(n.x) > abs(n.z);
+      float sSeed = floor(hash(floor(vWorldPos.xz / 9.0) + 23.0) * 47.0) + (sx ? 31.0 : 0.0);
+      float si = sheetWall(sx ? vWorldPos.zy : vWorldPos.xy, sx ? sheetFw.zy : sheetFw.xy, sSeed, albedo);
+      patInk = max(patInk, si * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
+    }
+    #endif
+    #ifdef S_TIMBER
+    // worked timber (src/surface-marks.js), in the object's own frame
+    if (uTimber.w > 0.0) {
+      vec3 ta = abs(normalize(on));
+      int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
+      patInk = max(patInk, timber(vObjPos, tFace, objFw, n.y, albedo));
     }
     #endif
     albedo *= instColor;
@@ -2674,6 +2735,9 @@ ${SHADOW_GLSL}
       #ifdef S_PAVING
       detail *= 1.0 - paveUp;   // (a paved top: its flagstones instead)
       #endif
+      #ifdef S_INTERIOR
+      if (uInterior.x > 0.0) detail = 0.0;   // (a room: its tiles and bands instead of a ruled grid)
+      #endif
     }
     #endif
     detail = max(detail, carve.z * 0.62);
@@ -2726,6 +2790,13 @@ ${SHADOW_GLSL}
       #endif
       #ifdef S_SANDINK
       if (uSandInk > 0.5) detail = max(detail, sandScuffs(vWorldPos.xz) * (1.0 - bw.y));
+      #endif
+      #ifdef S_GROUNDMID
+      if (uGroundMid.w > 0.0) {
+        // the middle distance (src/surface-marks.js): long lines along the slopes, stones that still read
+        vec2 gs2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);
+        detail = max(detail, groundMid(gp, vWorldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(uSunDir.y), smoothstep(uToon - 0.02, uToon + 0.12, L)) * (1.0 - bw.y));
+      }
       #endif
       float rocky = 0.0;
       #ifdef S_CRACKS
@@ -3076,6 +3147,10 @@ export function makeMaterial(o) {
       uPatch: { value: patchesOf(o) },
       uDrift: { value: o.drift ? 1 : 0 },
       uPaving: { value: new THREE.Vector4(...pavingOf(o)) },
+      ...(() => { const [r, d, k] = interiorOf(o); return { uInterior: { value: new THREE.Vector4(...r) }, uInteriorDado: { value: new THREE.Vector4(...d) }, uInteriorSkirt: { value: new THREE.Vector4(...k) } }; })(),
+      uSheet: { value: new THREE.Vector4(...sheetOf(o)) },
+      uTimber: { value: new THREE.Vector4(...timberOf(o)) },
+      uGroundMid: { value: new THREE.Vector4(...groundMidOf(o)) },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
       uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },

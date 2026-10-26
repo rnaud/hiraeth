@@ -49,7 +49,7 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
     stone2: makeMaterial({ color: '#d9c3a0', flat: true }),
     kerb: makeMaterial({ color: '#d9c3a0', flat: true }),
     dark: makeMaterial({ color: '#3b3340', flat: true }),
-    wood: makeMaterial({ color: '#8a6a4a', flat: true }),
+    wood: makeMaterial({ color: '#8a6a4a', flat: true, timber: true }),
     cloth: makeMaterial({ color: '#f3ead8', flat: true, side: THREE.DoubleSide }),
     dune: driftMaterial(makeMaterial, terrain.materialOptions),
   };

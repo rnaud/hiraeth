@@ -9,6 +9,17 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.29', date: '2026-10-26',
+    items: [
+      "The shops and rooms look lived in: their floors are hand-laid tiles with a few of another pastel colour, and their walls are painted plaster over a darker band at waist height and a tiled skirting, in place of ruled grids. In every world’s shop and every room.",
+      "The Moon Foundry’s machinery and block houses are riveted sheet metal now: panels in courses with rows of rivets along the seams, a few repainted another colour, thin rust streaks running down from the bolts.",
+      "Worked timber looks like wood: planks with grain, knots and nail holes, sun-bleached on top and darker underneath, now and then a faded teal plank. On the desert’s wells, camps and landmarks, the City-Shaft’s quarters, the Moon Foundry’s stairs, the Underwater City’s posts and Lorn’s walkways.",
+      "Open ground holds up further off: soft drifts of a paler ochre, long pen lines along the slopes and stones with their little shadows still read out to a couple of hundred metres. In Vael, the Glass Dunes, the Buried Machine and at home.",
+      "Viridel’s tea terraces, on the white builders’ steps, are paved in clean flagstones like the cities’ plazas.",
+    ],
+  },
+
+  {
     v: '2.28', date: '2026-10-25',
     items: [
       { text: "The Hush-House has a new side room off the Choir’s floor: splash the eye on its pedestal and the lamps set in the floor light the way round a stone screen to a vault door, then go out one by one from the eye, ticking faster near the end. Reach the door before they do; miss it and just splash the eye again.", see: "In the Hush-House’s Choir, take the doorway low in the west wall. Listen as it runs: a tick each second, quicker in the last three, a clack when it stops. Once the vault’s coffer is open, its door stays open." },

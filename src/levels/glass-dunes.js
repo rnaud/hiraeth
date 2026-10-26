@@ -132,7 +132,7 @@ export const GLASS_ARCHES = [[237, -20, -Math.PI / 2, 9, 12], [-70, -222, 0, 10,
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildGlassDunes(scene) {
-  const sandMat = { color: SAND[0], color2: SAND[1], color3: SAND[2], mode: MODE_TERRAIN, ripples: true, sandInk: true, shadeFlat: GLASS_FLAT, dunePool: true };
+  const sandMat = { color: SAND[0], color2: SAND[1], color3: SAND[2], mode: MODE_TERRAIN, ripples: true, sandInk: true, shadeFlat: GLASS_FLAT, dunePool: true, groundMid: { stones: 0.2 } };
   const terrain = yield* Terrain.make({ size: GLASS_SIZE, seg: 375, height: glassHeight, material: sandMat });
   scene.add(terrain.mesh);
   yield;

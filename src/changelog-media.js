@@ -1349,6 +1349,108 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.29': [
+  {
+    "match": "The shops and rooms look lived in",
+    "shots": [
+      {
+        "name": "shop-market",
+        "caption": "The Signal Market’s shop: the wall’s ruled tiles become painted plaster over a darker dado band and a tiled skirting; the floor’s tiles uneven, a few mint or pale blue",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras and the follow camera just inside each way in) on a Vite of its own (port 5436); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "The follow camera just inside the shop’s door, the same staged spot in both. The keeper and motes move between loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "shop-spacecity",
+        "caption": "The City Floating in Space’s shop: the dado band shows above the counter, the floor has its odd tiles",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras and the follow camera just inside each way in) on a Vite of its own (port 5436); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "Just inside the shop’s door, the same staged spot in both.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "shop-qanat",
+        "caption": "Qanat’s shop (the desert): the strata bands give way to plaster, a dado band and the floor’s tiles",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras and the follow camera just inside each way in) on a Vite of its own (port 5436); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "Just inside the shop’s door, the same staged spot in both.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The Moon Foundry’s machinery and block houses are riveted",
+    "shots": [
+      {
+        "name": "sheet-foundry",
+        "caption": "The Foundry’s block houses: riveted panels in courses where a few scattered pen boxes were",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras and the follow camera just inside each way in) on a Vite of its own (port 5436); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "The Moon Foundry’s ‘crowd’ benchmark view, the same pinned camera in both. The tank on the left takes the panels on its curve too. People move between loads.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "Worked timber looks like wood",
+    "shots": [
+      {
+        "name": "timber-stair",
+        "caption": "The Moon Foundry’s stair: each tread a plank with its grain, one painted a faded teal",
+        "from": "Issue #669: muted headless Chrome (High, 1280 × 720, noon, the HUD hidden) on a Vite of its own (port 5436), the same pinned camera on a piece of the material in both (found by its material in the scene); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "A pinned camera at the stair by the yard (eye 21, 4.5, 19), the same in both.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "timber-lorn",
+        "caption": "Lorn’s walkway by the keepers’ canopy: planks with grain and knots where rock cracks were drawn",
+        "from": "Issue #669: muted headless Chrome (High, 1280 × 720, noon, the HUD hidden) on a Vite of its own (port 5436), the same pinned camera on a piece of the material in both (found by its material in the scene); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "A pinned camera at the walkway’s foot (eye 28, 3.5, −741), the same in both. Lorn’s light and motes differ slightly between loads.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "Open ground holds up further off",
+    "shots": [
+      {
+        "name": "ground-dunes",
+        "caption": "The Glass Dunes: a soft paler drift and stones with shadows in the middle distance",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras and the follow camera just inside each way in) on a Vite of its own (port 5436); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "The Glass Dunes’ ‘crowd’ benchmark view, the same pinned camera in both. Subtle at this size: look past the frog, round the stall.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "ground-vael",
+        "caption": "Vael’s slopes: stones with their shadows and a few long lines along the fall of the ground",
+        "from": "Issue #669: the visual audit's views (.claude/skills/visual-audit/views.mjs --hours 12: muted headless Chrome on the real GPU, High, 1280 × 720, noon, enemies off, the HUD hidden, the benchmark views' pinned cameras and the follow camera just inside each way in) on a Vite of its own (port 5436); before: origin/main at 5600ee196, after: this change; 26 October; cwebp -q 72",
+        "view": "Vael’s ‘crowd’ benchmark view, the same pinned camera in both. Subtle at this size.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  }
+  ],
   '2.28': [
   {
     "match": "Plumb and 32 other characters now speak plainly",

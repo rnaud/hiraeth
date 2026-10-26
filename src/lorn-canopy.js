@@ -42,8 +42,8 @@ export function buildKeepersCanopy(scene, terrain, { veils = null } = {}) {
   const T = CANOPY.trunks, S = CANOPY.square;
   const ground = (x, z) => terrain.heightAt(x, z);
   const mats = {
-    plank: makeMaterial({ color: '#7a5e52', flat: true, pattern: 'cracks' }),
-    beam: makeMaterial({ color: '#4a3c3a', flat: true }),
+    plank: makeMaterial({ color: '#7a5e52', flat: true, timber: { axis: 'x' } }),
+    beam: makeMaterial({ color: '#4a3c3a', flat: true, timber: { plank: 0, post: true } }),
     rope: makeMaterial({ color: '#5a4a44', flat: true }),
     hut: makeMaterial({ color: '#9e8f96', flat: true, grid: 1.6 }),
     roof: makeMaterial({ color: '#b39ea2', flat: true }),

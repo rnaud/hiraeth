@@ -132,7 +132,7 @@ export function uwMats(kit, { shadeFlat = 0.82 } = {}) {
     streetPale: kit.mat({ color: UW_PAL.streetPale, flat: true, ...P }),
     pier: kit.mat({ color: '#5e9aa0', flat: true, weathered: 0.3, ...P }),
     lamp: kit.mat({ color: UW_PAL.lamp, glow: 0.95, flat: true, spot: 0 }),
-    post: kit.mat({ color: UW_PAL.post, flat: true }),
+    post: kit.mat({ color: UW_PAL.post, flat: true, timber: { plank: 0, post: true } }),
     leaf: UW_PAL.leaf.map((c) => kit.mat({ color: c, flat: true, line: 0.6, lineTint: 0.6 })),
     kelp: kit.mat({ color: UW_PAL.kelp, flat: true, side: THREE.DoubleSide, line: 0.6, lineTint: 0.6 }),
     manta: kit.mat({ color: UW_PAL.manta, flat: true, side: THREE.DoubleSide }),

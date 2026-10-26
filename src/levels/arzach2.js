@@ -191,7 +191,7 @@ export const SKY_STONES = { PLAIN_Y, PLAIN_EDGE, plainEdge, TOWER, AQ2, START, M
 
 // ---------------------------------------------------------------- the level
 /** The ground's look: the peach plain, its fissures' walls red-brown (printed flat, as the rock). */
-export const SKY_STONES_GROUND = { color: '#eda584', color2: '#f2b48f', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes, shadeFlat: SKY_STONES_FLAT };
+export const SKY_STONES_GROUND = { color: '#eda584', color2: '#f2b48f', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes, shadeFlat: SKY_STONES_FLAT, groundMid: true };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 // The sky stones on their own (their tests); the game plays them as part of Vael (src/levels/arzach.js).

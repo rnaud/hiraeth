@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.29 — 2026-10-26
+
+- Viridel’s tea terraces, on the white builders’ steps, are paved in clean flagstones like the cities’ plazas.
+- Open ground holds up further off: soft drifts of a paler ochre, long pen lines along the slopes and stones with their little shadows still read out to a couple of hundred metres. In Vael, the Glass Dunes, the Buried Machine and at home.
+- Worked timber looks like wood: planks with grain, knots and nail holes, sun-bleached on top and darker underneath, now and then a faded teal plank. On the desert’s wells, camps and landmarks, the City-Shaft’s quarters, the Moon Foundry’s stairs, the Underwater City’s posts and Lorn’s walkways.
+- The Moon Foundry’s machinery and block houses are riveted sheet metal now: panels in courses with rows of rivets along the seams, a few repainted another colour, thin rust streaks running down from the bolts.
+- The shops and rooms look lived in: their floors are hand-laid tiles with a few of another pastel colour, and their walls are painted plaster over a darker band at waist height and a tiled skirting, in place of ruled grids. In every world’s shop and every room.
+
 ## v2.28 — 2026-10-25
 
 - The makers’ houses look machined: every wall panel and floor plate has its own tone, some panels sit set back in shadow, and floor plates carry an engraved border a hand in from their joints, small round sockets and, up close, fine machining marks. In twelve of the thirteen houses (the Rose House keeps its red stone).

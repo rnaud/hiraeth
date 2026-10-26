@@ -221,7 +221,7 @@ export function* buildMoonFoundry(scene) {
   const DS = THREE.DoubleSide;
   // two surfaces drawn by tone (vertex-material.js): the moons' ivory and the machinery's and homes' oranges
   // (v0.95: the shade lifted less, so a moon turns from the light in a clear terminator and the rust goes dark, as the sheets)
-  const IVORY = { shade: 0.24, hatch: 0.25, line: 0.85 }, METAL = { shade: 0.18, hatch: 0.38, detail: 'built', detailDensity: 0.4 };
+  const IVORY = { shade: 0.24, hatch: 0.25, line: 0.85 }, METAL = { shade: 0.18, hatch: 0.38, sheet: true };   // (riveted, repainted sheet metal: src/surface-marks.js SHEET, issue #669)
   const M = {
     ivory: Object.fromEntries(['ivory', 'ivory2', 'crater', 'edge', 'wall3'].map((k) => [k, mat({ color: T[k], ...IVORY })])),
     metal: Object.fromEntries(['rust', 'rust2', 'rust3', 'wall', 'wall2', 'roofing'].map((k) => [k, mat({ color: T[k], ...METAL })])),
@@ -233,7 +233,7 @@ export function* buildMoonFoundry(scene) {
     ceiling: mat({ color: T.ceiling, shade: 0.5, hatch: 0.2, grid: 2.4, side: DS }),
     strut: mat({ color: T.strut, flat: true, thin: THIN }),
     rail: mat({ color: T.strut, flat: true, thin: THIN }),
-    plank: mat({ color: T.plank, flat: true }),
+    plank: mat({ color: T.plank, flat: true, timber: { axis: 'x' } }),
     glow: mat({ color: T.glow, glow: 0.62, flat: true, side: DS }),
     lamp: mat({ color: '#ffe2a0', glow: 0.95, flat: true }),
     hot: mat({ color: T.molten2, glow: 0.9, flat: true, side: DS }),

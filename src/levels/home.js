@@ -280,7 +280,7 @@ function buildTomb(scene, mat) {
 export function* buildHome(scene) {
   const terrain = yield* Terrain.make({
     size: 1800, seg: 225, height,
-    material: { color: '#eebd8e', color2: '#e3a97c', color3: '#c99a7c', mode: MODE_TERRAIN, ticks: true },
+    material: { color: '#eebd8e', color2: '#e3a97c', color3: '#c99a7c', mode: MODE_TERRAIN, ticks: true, groundMid: true },
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);

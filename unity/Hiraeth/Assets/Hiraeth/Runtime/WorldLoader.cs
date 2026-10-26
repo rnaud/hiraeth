@@ -198,7 +198,10 @@ namespace Hiraeth
                 // (issue #538: a temple landmark's cut stone, landmark-materials.js stone(): course, width, wear, w on)
                 ("stone", "_Stone", Vector4.zero),
                 // (issue #669: paving, src/paving-shader.js: course, wear, tone, turn)
-                ("paving", "_Paving", Vector4.zero) })
+                ("paving", "_Paving", Vector4.zero),
+                // (issue #669: src/surface-marks.js: a room's tiles and bands, sheet-metal walls, timber, the ground's middle distance)
+                ("interior", "_Interior", Vector4.zero), ("interiorDado", "_InteriorDado", Vector4.zero), ("interiorSkirt", "_InteriorSkirt", Vector4.zero),
+                ("sheet", "_Sheet", Vector4.zero), ("timber", "_Timber", Vector4.zero), ("groundMid", "_GroundMid", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

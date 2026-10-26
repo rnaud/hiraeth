@@ -211,7 +211,7 @@ export function buildDesertLandmarks(scene, terrain) {
     creamSmooth: makeMaterial({ color: '#f1e8d6', grid: 3 }),
     rust: makeMaterial({ color: '#c9774f', flat: true, metal: 'iron', refl: 0.15 }),
     rope: makeMaterial({ color: '#716c70', flat: true, metal: 'iron' }),
-    wood: makeMaterial({ color: '#a8835f', flat: true }),
+    wood: makeMaterial({ color: '#a8835f', flat: true, timber: true }),
     petalA: makeMaterial({ color: '#efc29b', side: THREE.DoubleSide }),
     petalB: makeMaterial({ color: '#f4e4cc', side: THREE.DoubleSide }),
     pale: makeMaterial({ color: '#eef0ea', grid: 3 }),

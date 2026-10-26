@@ -224,7 +224,7 @@ export function* buildBuried(scene) {
 
   const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
-    material: { color: '#f6e5c0', color2: '#efdcb4', color3: '#e0c79c', mode: MODE_TERRAIN, ripples: true },   // (the sheets' warm cream)
+    material: { color: '#f6e5c0', color2: '#efdcb4', color3: '#e0c79c', mode: MODE_TERRAIN, ripples: true, groundMid: true },   // (the sheets' warm cream)
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);

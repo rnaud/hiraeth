@@ -106,7 +106,7 @@ export function buildShaftQuarters(scene, { terraces, R = 260, clear = [] } = {}
     cab: mat({ color: '#f2c54b' }),
     cab2: mat({ color: '#f3ead8' }),
     glass: mat({ color: '#9fd0d8' }),
-    wood: mat({ color: '#8a5a3c' }),
+    wood: mat({ color: '#8a5a3c', timber: true }),
     copper: mat({ color: '#5fa58e' }),
     bronze: mat({ color: '#c99436', metal: 'brass' }),
     lacquer: mat({ color: '#b8403a', side: THREE.DoubleSide }),

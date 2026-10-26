@@ -170,6 +170,12 @@ export function portMaterial(spec, id = 0) {
   if (spec.defines?.S_VGLYPH) e.vglyph = 1;
   // paving's flagstones (src/paving-shader.js, issue #669): course, wear, tone, turn
   if (Array.isArray(u.uPaving) && u.uPaving[0] > 0) e.paving = u.uPaving.slice(0, 4).map(r5);
+  // the surface marks (src/surface-marks.js, issue #669): a room's tiles and bands, sheet-metal walls, timber, the ground's middle distance
+  const iDado = u.uInteriorDado, iSkirt = u.uInteriorSkirt;   // (read either way: their material's whole record)
+  if (Array.isArray(u.uInterior) && u.uInterior[0] > 0) Object.assign(e, { interior: u.uInterior.slice(0, 4).map(r5), interiorDado: (iDado ?? [0, 0, 0, 0]).slice(0, 4).map(r5), interiorSkirt: (iSkirt ?? [0, 0, 0, 0]).slice(0, 4).map(r5) });
+  if (Array.isArray(u.uSheet) && u.uSheet[0] > 0) e.sheet = u.uSheet.slice(0, 4).map(r5);
+  if (Array.isArray(u.uTimber) && u.uTimber[3] > 0) e.timber = u.uTimber.slice(0, 4).map(r5);
+  if (Array.isArray(u.uGroundMid) && u.uGroundMid[3] > 0) e.groundMid = u.uGroundMid.slice(0, 4).map(r5);
   if (typeof u.uFarNear === 'number' && typeof u.uFarScale === 'number') e.farDepth = [r5(u.uFarNear), r5(u.uFarScale), 0, 0];
   if (spec.defines?.S_THIN && v('uThinPx') > 0) e.thinPx = r5(v('uThinPx'));
   if (spec.defines?.LINE_FAR && Array.isArray(u.uLineFar)) e.lineFar = [...u.uLineFar.slice(0, 3).map(r5), 1];

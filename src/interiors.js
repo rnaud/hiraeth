@@ -78,9 +78,11 @@ export function buildRoom(scene, {
     C.push(new THREE.BoxGeometry(w / 2 - o, 0.3, oculus).translate((w / 2 + o) / 2, h + 0.15, 0));
     C.push(new THREE.BoxGeometry(w / 2 - o, 0.3, oculus).translate(-(w / 2 + o) / 2, h + 0.15, 0));
   } else C.push(new THREE.BoxGeometry(w + t, 0.3, d + t).translate(0, h + 0.15, 0));
-  const wallMat = wall.mode ? makeMaterial(wall) : makeMaterial({ color: wall.color, color2: wall.color2 ?? wall.color, color3: wall.color3 ?? '#e6cfae', mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: wall.grid ?? 1.0, glyphs: wall.glyphs });
+  // (painted plaster over a dado band and a tiled skirting, a floor of hand-laid tiles: src/surface-marks.js INTERIOR, issue #669;
+  // a wall with a mode of its own keeps it, the room's bands over it)
+  const wallMat = wall.mode ? makeMaterial({ ...wall, interior: wall.interior ?? true }) : makeMaterial({ color: wall.color, flat: true, glyphs: wall.glyphs, interior: wall.interior ?? true });
   grp.add(new THREE.Mesh(mergeGeometries(W), wallMat));
-  grp.add(new THREE.Mesh(mergeGeometries(F), makeMaterial({ color: floor, grid: 0.8, flat: true })));
+  grp.add(new THREE.Mesh(mergeGeometries(F), makeMaterial({ color: floor, grid: 0.8, flat: true, interior: true })));
   grp.add(new THREE.Mesh(mergeGeometries(C), ceiling ? makeMaterial({ color: ceiling, flat: true }) : wallMat));
   // furniture: [type, x, z, rotY, colour]
   const byColor = new Map();

@@ -286,6 +286,43 @@ top's grid gives way):
   +0.7..+1.3 ms (8.9 → 9.8 at its start), its shop (no paving) +0.3 (the drift between the runs); the temples' views
   (the machined finish) +0.1..+0.4. A few dozen hashes a near pixel, none past the fades.
 
+## Interiors, sheet metal, timber and the ground's middle distance (issue #669, `src/surface-marks.js`)
+
+The rest of the surface audit's materials (docs/audits/surfaces-v2.27.md), each after its picked sheet in
+`references/surfaces/`, each its own define so a material without it pays nothing, the GLSL shared with Unity
+(`scripts/unity-export/marks-hlsl.mjs` writes `Shaders/SurfaceMarks.hlsl`; Surface.shader calls each in a uniform branch;
+port-format.js and WorldLoader.cs carry the uniforms; BridgeRenderer.Lean keeps them off the plain variant).
+
+- **Interiors** (`interior`, `S_INTERIOR`, `uInterior`, `uInteriorDado`, `uInteriorSkirt`; on every room of
+  `src/interiors.js buildRoom`, so every world's shop and the rooms): in the room's own frame (floor at y = 0). The floor
+  hand-laid tiles (0.6 m), each grout line moved a few millimetres its own way, a tone a tile and one in eleven a mint or
+  pale blue one; the walls painted plaster with soft repainted patches (a few percent, soft: never a colour edge) over a
+  dado band (to 1.2 m, the wall's colour × 0.74 unless a room names one) and a tiled skirting (to 0.32 m, the wall's colour
+  toward cream, a joint every 0.42 m), their edges inked. The walls' strata bands and ruled grid are gone (the audit's
+  "ruled tiles, flat plaster"). `o.room` is the ship's rooms' key light (ROOM_LIGHT): this one is `interior`.
+- **Sheet-metal walls** (`sheet`, `S_SHEET`, `uSheet`; the Moon Foundry's machinery and block houses, in place of their
+  built pen detail): panels in courses (1.6 × 1.25 m, each course its own widths, staggered), rivets in rows along every
+  seam, a panel and its neighbour now and then repainted bluer, rustier or creamier (≤ 7.5 %), a rust streak run down from
+  a rivet under the top seam of three panels in ten. Rivets and streaks go first with distance, then the seams; the
+  repaints stay to the far strip, as the sheet's.
+- **Worked timber** (`timber`, `S_TIMBER`, `uTimber`; the desert's wells, dunes and landmarks' wood, the City-Shaft
+  quarters', the Moon Foundry's planks, the Underwater City's posts, Lorn's canopy planks and beams): in the object's frame,
+  planks across the grain (0.24 m, each its tone, one in ten painted a faded teal and flaking), grain strokes in long
+  runs and knots near, nail holes; sun-bleached tops, darker undersides; a post (`post`) shows its end grain darker, a
+  board's face across the grain takes it along x or z.
+- **The ground's middle distance** (`groundMid`, terrain only, `S_GROUNDMID`, `uGroundMid`; Vael, the Glass Dunes, the
+  Buried Machine, home): what `ground-ink.js` hands over to past ~15 m: broad soft drifts of a paler, ochre tone, long pen
+  lines along the fall of rolling slopes (the height's 3 m contours, in long runs, only on gentle slopes), and stones with
+  their shadows (`pebbleField`, 4.5 m cells) that still read out to ~200 m.
+- Viridel's terraces (the white builders' steps under the tea terraces, `src/story/terraces.js`) are paved
+  (`paving`, clean: little wear, little tone).
+- `tests/surface-marks.test.js`: the options, the defines, the port's records and the HLSL being current.
+- **Cost**: M4 Pro, 1280 × 720, the shipped bundle, .claude/skills/perf-audit/fps.mjs back to back (base 5600ee196 against
+  this change; load average 3–4, a quiet machine), median frame ms: Handheld within ±0.2 everywhere (the Moon Foundry,
+  the Glass Dunes, Vael, Lorn, the City Floating in Space; their shops 2.1–3.2 → 2.1–3.2); High the Moon Foundry ±0.1,
+  the Glass Dunes 0..+0.3, Vael's slopes +0.1..+0.6 (the ground's middle distance), the shops +0.1..+0.5, Lorn +0.1..+0.6
+  (the walkways' timber, and a drift: its temple, unchanged, +0.2). Draw calls unchanged.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

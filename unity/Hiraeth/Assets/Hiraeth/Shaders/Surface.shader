@@ -68,6 +68,12 @@ Shader "Hiraeth/Surface"
     _ShellCenter ("A temple landmark's shell: its centre (three, world); w 1 on (landmark-materials.js nacre)", Vector) = (0, 0, 0, 0)
     _Stone ("A temple landmark's cut stone: course, block width (m), wear; w 1 on (landmark-materials.js stone)", Vector) = (0, 0, 0, 0)
     _Paving ("Paving: course (m), wear, tone, turn; x 0 none (src/paving-shader.js)", Vector) = (0, 0, 0, 0)
+    _Interior ("A room's tiles: tile (m), dado top, skirting top, odd tiles (src/surface-marks.js)", Vector) = (0, 0, 0, 0)
+    _InteriorDado ("A room's dado colour, its share", Vector) = (0, 0, 0, 0)
+    _InteriorSkirt ("A room's skirting colour, its share", Vector) = (0, 0, 0, 0)
+    _Sheet ("Sheet-metal walls: panel, course (m), rust, repaint", Vector) = (0, 0, 0, 0)
+    _Timber ("Timber: plank (m), grain axis, painted share, on (2 a post)", Vector) = (0, 0, 0, 0)
+    _GroundMid ("The ground's middle distance: contour (m), stones, amount, on", Vector) = (0, 0, 0, 0)
     _VGlyph ("A merged mesh's glyph cells per vertex, the grid's (materials.js S_VGLYPH: the banners)", Float) = 0
     _LineFar ("A lighter line from afar: its step, from, to (m); w 1 on (materials.js LINE_FAR)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
@@ -221,6 +227,7 @@ Shader "Hiraeth/Surface"
     float4 _ShellCenter;   // a temple landmark's shell (src/temples/landmark-materials.js nacre, uShellCenter): its centre, w 1 on
     float4 _Stone;         // a temple landmark's cut stone (landmark-materials.js stone(), no uniform on the web): course, width, wear, w 1 on
     float4 _Paving;        // paving (src/paving-shader.js uPaving, issue #669): course (m), wear, tone, turn; x 0: none
+    float4 _Interior, _InteriorDado, _InteriorSkirt, _Sheet, _Timber, _GroundMid;   // (src/surface-marks.js, issue #669)
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -252,6 +259,7 @@ Shader "Hiraeth/Surface"
     #include "Figure.hlsl"
     #include "Marks.hlsl"
     #include "Paving.hlsl"
+    #include "SurfaceMarks.hlsl"
     #include "TripoFace.hlsl"
     #include "Fall.hlsl"
     #include "PortraitFace.hlsl"
@@ -1383,6 +1391,7 @@ Shader "Hiraeth/Surface"
             float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
             albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
           }
+          if (_GroundMid.w > 0.0) albedo *= groundMidTone(i.worldPos.xz);   // (src/surface-marks.js, issue #669)
         } else if (mode == MODE_STRATA) {
           albedo = strata(_StrataObject > 0.5 ? i.objPos : i.worldPos);   // (in its uniform branch: strata() takes derivatives)
         } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
@@ -1471,6 +1480,34 @@ Shader "Hiraeth/Surface"
             albedo = lerp(albedo, pa, paveUp);
             patInk = max(patInk, pInk * paveUp);
           }
+        }
+        // the surface marks of issue #669 (src/surface-marks.js, generated: SurfaceMarks.hlsl), each in its uniform branch
+        float interiorOn = 0.0;
+        UNITY_BRANCH if (WALLK && _Interior.x > 0.0)
+        {
+          interiorOn = 1.0;
+          float3 oFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
+          float3 ron = abs(SafeNormalize(on));
+          if (n.y > 0.7) patInk = max(patInk, interiorFloor(i.objPos.xz, oFw.xz, albedo));
+          else if (abs(n.y) < 0.3) patInk = max(patInk, ron.x > ron.z ? interiorWall(i.objPos.z, i.objPos.y, oFw.zy, albedo) : interiorWall(i.objPos.x, i.objPos.y, oFw.xy, albedo));
+        }
+        UNITY_BRANCH if (WALLK && _Sheet.x > 0.0)
+        {
+          float3 sFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
+          if (abs(n.y) < 0.55)
+          {
+            bool sx = abs(n.x) > abs(n.z);
+            float sSeed = floor(hash(floor(i.worldPos.xz / 9.0) + 23.0) * 47.0) + (sx ? 31.0 : 0.0);
+            float si = sheetWall(sx ? i.worldPos.zy : i.worldPos.xy, sx ? sFw.zy : sFw.xy, sSeed, albedo);
+            patInk = max(patInk, si * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
+          }
+        }
+        UNITY_BRANCH if (WALLK && _Timber.w > 0.0)
+        {
+          float3 tFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
+          float3 ta = abs(SafeNormalize(on));
+          int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
+          patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, albedo));
         }
         if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, SafeNormalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         // the fluid sword's living blade, the guard's shield: their currents (blade-shader.js bladeFluid, fluid kind 6)
@@ -1676,7 +1713,7 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if (_Grid > 0.0)
         {
           float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(SafeNormalize(on)), 6.0); gw /= max(gw.x + gw.y + gw.z, 1e-6);
-          if (_Grid > 0.0) detail = (_Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw)) * (1.0 - paveUp);   // (a paved top: its flagstones instead)
+          if (_Grid > 0.0) detail = (_Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw)) * (1.0 - paveUp) * (1.0 - interiorOn);   // (a paved top: its flagstones; a room: its tiles and bands)
         }
         detail = max(detail, carve.z * 0.62);   // (the carved inscriptions' outline: above)
         float2 gp = i.worldPos.xz;
@@ -1711,6 +1748,13 @@ Shader "Hiraeth/Surface"
           float2 fwp = fwidth(gp);
           if (_Ticks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(gp, fwp) * 0.8);
           UNITY_BRANCH if (_SandInk > 0.5) detail = max(detail, sandScuffs(gp) * (1.0 - bw.y));
+          // the middle distance (src/surface-marks.js groundMid, issue #669): long lines along the slopes, stones that still read
+          UNITY_BRANCH if (_GroundMid.w > 0.0)
+          {
+            float gmYfw = fwidth(i.worldPos.y);
+            float2 gs2 = _SunDir.xz / max(length(_SunDir.xz), 1e-3);
+            detail = max(detail, groundMid(gp, i.worldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(_SunDir.y), smoothstep(_Toon - 0.02, _Toon + 0.12, L)) * (1.0 - bw.y));
+          }
         } else if (mode == MODE_WATER) {
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);
         } else if (mode == MODE_STRATA) {

@@ -74,8 +74,8 @@ export function buildWaterMemory(scene, terrain) {
   const mats = {
     salt: (() => { const m = makeMaterial({ color: '#f1ece0', color2: '#e3dccb', flat: true, pattern: 'cracks' }); m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; return m; })(),
     stain: (() => { const m = makeMaterial({ color: '#efe6d3', flat: true }); m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; return m; })(),
-    wood: makeMaterial({ color: '#8a6a4a', flat: true }),
-    wood2: makeMaterial({ color: '#a88a64', flat: true }),
+    wood: makeMaterial({ color: '#8a6a4a', flat: true, timber: true }),
+    wood2: makeMaterial({ color: '#a88a64', flat: true, timber: true }),
     stone: makeMaterial({ color: '#cdb38f', color2: '#bfa27c', flat: true }),
     stone2: makeMaterial({ color: '#d9c3a0', flat: true }),
     clay: makeMaterial({ color: '#b86a43', flat: true }),
