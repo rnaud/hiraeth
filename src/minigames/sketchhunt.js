@@ -16,6 +16,7 @@ import { BRIDGES } from '../levels/bazaar.js';
 import { inputKind, escapeHtml } from '../prompt-keys.js';
 import { promptText } from '../native-pad.js';
 import { screen } from '../platform.js';
+import { enamelCard, enamelStrip, enamelKicker, en } from '../hud-look.js';   // the list and the reading in the enamel of every message (issue #687)
 
 export const HUNT = { seconds: 180, n: 6, fov: { min: 18, max: 62, start: 46 } };
 const INK = '#2b211f', PAPER = '#f7ecd2';
@@ -110,17 +111,16 @@ async function toSketch(url, w = 360, hgt = 240) {
 
 // ------------------------------------------------------------------ the screens: the list, the viewfinder
 const CSS = `
-#hunt-list { position: fixed; left: 14px; top: 64px; z-index: 79; width: 248px; padding: 10px 12px 8px; background: ${PAPER}; color: ${INK};
-  border: 2px solid ${INK}; box-shadow: 4px 4px 0 ${INK}; transform: none; font: var(--type-s)/1.35 var(--face); pointer-events: none; transition: opacity .25s; }
-#hunt-list h2 { margin: 0 0 6px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #8a5a3c; }
+#hunt-list { position: fixed; left: 14px; top: 64px; z-index: 79; width: 248px; padding: 10px 12px 8px; ${enamelCard()} transform: none; font: var(--type-s)/1.35 var(--face); pointer-events: none; transition: opacity .25s; }
+#hunt-list h2 { margin: 0 0 6px; font-size: 11px; ${enamelKicker()} }
 #hunt-list li { list-style: none; margin: 0 0 5px; padding-left: 20px; position: relative; }
 #hunt-list ol { margin: 0; padding: 0; }
-#hunt-list li::before { content: ''; position: absolute; left: 0; top: 1px; width: 11px; height: 11px; border: 1.5px solid ${INK}; background: #fbf4e2; }
-#hunt-list li.done::before { background: #71d7cf; }
-#hunt-list li.done::after { content: '✓'; position: absolute; left: 1px; top: -3px; font-weight: 900; font-size: 14px; }
+#hunt-list li::before { content: ''; position: absolute; left: 0; top: 1px; width: 11px; height: 11px; border: 1.5px solid ${en('frame')}; border-radius: 2px; background: none; }
+#hunt-list li.done::before { background: ${en('accent')}; border-color: ${en('accent')}; }
+#hunt-list li.done::after { content: '✓'; position: absolute; left: 1px; top: -3px; font-weight: 900; font-size: 14px; color: ${en('keyInk')}; }
 #hunt-list li b { display: block; font-weight: 700; }
-#hunt-list li small { color: #6b5a4e; font-size: 10.5px; }
-#hunt-list li .st { color: #d9643a; letter-spacing: .1em; }
+#hunt-list li small { color: ${en('soft')}; font-size: 10.5px; }
+#hunt-list li .st { color: ${en('gold')}; letter-spacing: .1em; }
 @media (max-height: 560px) {   /* a phone held sideways: the list small, the hints left off (the names say enough) */
   #hunt-list { top: 54px; width: 180px; padding: 6px 8px 4px; font-size: 10.5px; }
   #hunt-list li { margin-bottom: 2px; }
@@ -139,12 +139,12 @@ const CSS = `
 #hunt-view .third { position: absolute; border: 0 dashed rgba(43,33,31,.25); }
 #hunt-view .tv { top: 30px; bottom: 30px; border-left-width: 1.5px; }
 #hunt-view .th { left: 30px; right: 30px; border-top-width: 1.5px; }
-#hunt-view .read { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); min-width: 300px; padding: 6px 14px 7px; background: ${PAPER};
-  border: 2px solid ${INK}; box-shadow: 3px 3px 0 ${INK}; color: ${INK}; font: 700 var(--type-s)/1.35 var(--face); text-align: center; }
-#hunt-view .read small { display: block; font-weight: 400; font-size: 11px; color: #6b5a4e; }
-#hunt-view .meter { height: 7px; margin: 4px 0 1px; border: 1.5px solid ${INK}; background: #fbf4e2; }
-#hunt-view .meter i { display: block; height: 100%; background: #71d7cf; }
-#hunt-view .zoom { position: absolute; right: 52px; top: 50%; transform: translateY(-50%); font: 700 11px/1 var(--face); color: ${INK}; background: ${PAPER}; border: 2px solid ${INK}; padding: 4px 6px; }
+#hunt-view .read { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); min-width: min(300px, calc(100vw - 32px)); max-width: calc(100vw - 32px); box-sizing: border-box; padding: 6px 14px 7px;
+  ${enamelStrip()} font: 700 var(--type-s)/1.35 var(--face); text-align: center; }
+#hunt-view .read small { display: block; font-weight: 400; font-size: 11px; color: ${en('soft')}; }
+#hunt-view .meter { height: 7px; margin: 4px 0 1px; border: 1px solid ${en('frame')}; border-radius: 4px; overflow: hidden; background: none; }
+#hunt-view .meter i { display: block; height: 100%; background: ${en('accent')}; }
+#hunt-view .zoom { position: absolute; right: 52px; top: 50%; transform: translateY(-50%); font: 700 11px/1 var(--face); ${enamelStrip()} padding: 4px 6px; }
 #hunt-flash { position: fixed; inset: 0; z-index: 81; pointer-events: none; background: ${PAPER}; opacity: 0; }
 #hunt-flash.go { animation: huntflash .45s ease-out; }
 @keyframes huntflash { 0% { opacity: .9; } 100% { opacity: 0; } }

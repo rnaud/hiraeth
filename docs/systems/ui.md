@@ -1144,3 +1144,26 @@ not earned quest or traversal outcomes. The approved concept is design provenanc
 actual browser and Unity pictures are the release evidence.
 
 The enamel C panels separate the existing quest mark or controller badge from left-aligned words with a fine divider. Quest panels have a modest brass rivet, a capped horizontal minimum width and growing height for wrapped text; no title is invented for the scout’s one-line result. Unity uses the same column layout with normal-weight local hint text. Plain solid, place and glyph modes retain their existing exceptions. These are presentation choices, not completion-state inference or additional automatic advice.
+
+### One look for every message (issue #687)
+
+The author: "I would expect all HUDs to be matching our new in-game HUD design." Every message the screen shows uses the
+enamel of directions C (the hint strips) and D (the conversation panel): `src/hud-look.js` holds the tokens (`ENAMEL`:
+C's charcoal strip, D's dark panel, ivory words, a brass hairline and brass labels, ivory key badges with dark letters,
+turquoise for the main button's tab and good news) and index.html's `:root` carries them as `--en-*` (`ENAMEL_VARS`).
+Modules whose CSS is written in JavaScript build their boxes with `enamelCard()` (a card: the father's charge after the
+voicemail, the subtitles, a makers' box's card, the warp's title, a game's words over a person, the fishing catch and
+journal, the sketch hunt's list) and `enamelStrip()` (a strip: the skip tags, a game's tags, the fishing prompt, the
+sketch hunt's reading, the drums' socket keys, the gadget wheel's name); index.html (the knock-out card, the balloons)
+and `src/minigames/kit/minigames.css` (the start, pause and results cards, the clock and score, the flashes, the 3-2-1)
+use the variables. The charge keeps its single line (issue #222) with the ✦ in a column of its own behind a fine divider;
+the plain speech setting keeps black and white. Gauges (the fishing meter, the hearts, the magic bar, the stamina wheel),
+the region's name lettered on the land (C's own exception), the sketch hunt's viewfinder and full-screen menus are not
+messages and keep their looks.
+
+`HUD_MESSAGES` lists each message, its file and selector; `tests/hud-look.test.js` reads each rule and fails on one not
+built from the tokens or still on cream paper with a hard offset shadow. Unity draws the same from
+`BridgeHud.Hints.cs` (`EnamelCard`, `EnamelStrip`, `EnamelPaint`, the `En*` colours): the charge, the subtitles, the
+skip, the warp's title, the knock-out card, the box card and its skip, the balloons, the chips, a game's clock, score,
+flashes, 3-2-1, words and tags, the drums, the sketch hunt and the fishing, and the game card in `BridgeMenu.cs`.
+`engine/ui-poses.js` has `charge`, `voicemail`, `restart`, `boxcard`, `chips` and `toast` for `-ui` pictures.

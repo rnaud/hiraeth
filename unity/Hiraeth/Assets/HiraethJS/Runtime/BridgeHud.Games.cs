@@ -117,9 +117,9 @@ namespace Hiraeth.Bridge
             drSk = MakeSketch(drRoot, "ring");
             for (int i = 0; i < 4; i++)
             {
-                var b = Ui.Panel(drRoot, "socket key", GPage, GInk, 2, 2, 2);
-                var t = Ui.Label(b.rt, "text", Ui.Sans, 12, GInk, TextAnchor.MiddleLeft, FontStyle.Bold, 1f); Ui.Space(t, 0.06f);
-                var t2 = Ui.Label(b.rt, "more", Ui.Sans, 12, GInk, TextAnchor.MiddleLeft, FontStyle.Bold, 1f); Ui.Space(t2, 0.06f);
+                var b = EnamelStrip(drRoot, "socket key", 5);   // (the hints' strip: issue #687)
+                var t = Ui.Label(b.rt, "text", Ui.Sans, 12, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold, 1f); Ui.Space(t, 0.06f);
+                var t2 = Ui.Label(b.rt, "more", Ui.Sans, 12, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold, 1f); Ui.Space(t2, 0.06f);
                 drTags.Add((b, t, t2));
             }
             for (int i = 0; i < 4; i++) drWord[i] = Stroked(drRoot, "word", Title, 20, GPage, 1.3f);
@@ -303,7 +303,7 @@ namespace Hiraeth.Bridge
         readonly List<(Ui.Box box, Label tick, Label name, Label sub)> huItems = new();
         Sketch huSk; Ui.Box huZoom, huRead, huMeter, huHint; Label huZoomText, huReadText, huReadSub, huHintText; Image huMeterFill, huFlash;
         int huFlashN = -1; float huFlashT = 9;
-        static readonly Color HuTitle = Ui.Hex("#8a5a3c"), HuSub = Ui.Hex("#6b5a4e");
+        static readonly Color HuTitle = Ui.Hex("#edbc76"), HuSub = Ui.Hex("#f7ecd2", .72f);   // (the enamel's brass label and soft ivory: issue #687)
         int TypeS => Mathf.RoundToInt(Mathf.Clamp(H * 0.019f, 13, 28) * ts);   // (the page's --type-s)
 
         void BuildHunt()
@@ -311,17 +311,17 @@ namespace Hiraeth.Bridge
             huRoot = Ui.Node("hunt", gamesRoot); Ui.Stretch(huRoot);
             huView = Ui.Node("viewfinder", huRoot); Ui.Stretch(huView);
             huSk = MakeSketch(huView, "frame");
-            huZoom = Ui.Panel(huView, "zoom", GPage, GInk, 2);
-            huZoomText = Ui.Label(huZoom.rt, "text", Ui.Sans, 11, GInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
-            huRead = Ui.Panel(huView, "read", GPage, GInk, 2, 3, 3);
-            huReadText = Ui.Label(huRead.rt, "text", Ui.Sans, 14, GInk, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f);
-            huMeter = Ui.Panel(huRead.rt, "meter", GCard, GInk, 1.5f);
-            huMeterFill = Ui.Rect(huMeter.fill.rectTransform, GTeal, 0, "fill");
+            huZoom = EnamelStrip(huView, "zoom", 4);
+            huZoomText = Ui.Label(huZoom.rt, "text", Ui.Sans, 11, HintInk0, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+            huRead = EnamelStrip(huView, "read");
+            huReadText = Ui.Label(huRead.rt, "text", Ui.Sans, 14, HintInk0, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f);
+            huMeter = Ui.Panel(huRead.rt, "meter", Color.clear, Ui.Hex("#f7ecd2", .65f), 1, 0, 0, 4);
+            huMeterFill = Ui.Rect(huMeter.fill.rectTransform, HintAccent, 0, "fill");
             huReadSub = Ui.Label(huRead.rt, "sub", Ui.Sans, 11, HuSub, TextAnchor.UpperCenter, FontStyle.Normal, 1.2f);
-            huList = Ui.Panel(huRoot, "list", GPage, GInk, 2, 4, 4);
+            huList = EnamelCard(huRoot, "list");
             huTitle = Ui.Label(huList.rt, "title", Ui.Sans, 11, HuTitle, TextAnchor.UpperLeft, FontStyle.Bold, 1.2f); Ui.Space(huTitle, 0.16f);
-            huHint = Ui.Panel(huRoot, "hint", Al(GPage, 0.85f), GInk, 1.5f);
-            huHintText = Ui.Label(huHint.rt, "text", Ui.Sans, 12, GInk, TextAnchor.MiddleCenter, FontStyle.Normal, 1.2f);
+            huHint = EnamelStrip(huRoot, "hint");
+            huHintText = Ui.Label(huHint.rt, "text", Ui.Sans, 12, HintInk0, TextAnchor.MiddleCenter, FontStyle.Normal, 1.2f);
             huFlash = Ui.Fill(huRoot, Al(GPage, 0), 0, "flash");
             huRoot.gameObject.SetActive(false);
         }
@@ -345,9 +345,9 @@ namespace Hiraeth.Bridge
             y += ts0.y + 6;
             while (huItems.Count < items.Count)
             {
-                var box = Ui.Panel(huList.rt, "tick box", GCard, GInk, 1.5f);
-                var tick = Ui.Label(huList.rt, "tick", Ui.Sans, 14, GInk, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
-                var name = Ui.Label(huList.rt, "name", Ui.Sans, 14, GInk, TextAnchor.UpperLeft, FontStyle.Bold, 1.15f);
+                var box = Ui.Panel(huList.rt, "tick box", Color.clear, Ui.Hex("#f7ecd2", .65f), 1.5f, 0, 0, 2);
+                var tick = Ui.Label(huList.rt, "tick", Ui.Sans, 14, EnKeyInk, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
+                var name = Ui.Label(huList.rt, "name", Ui.Sans, 14, HintInk0, TextAnchor.UpperLeft, FontStyle.Bold, 1.15f);
                 var sub = Ui.Label(huList.rt, "sub", Ui.Sans, 11, HuSub, TextAnchor.UpperLeft, FontStyle.Normal, 1.15f);
                 huItems.Add((box, tick, name, sub));
             }
@@ -361,7 +361,7 @@ namespace Hiraeth.Bridge
                 bool done = it.Get("done") is bool dn && dn;
                 float x = 2 + padX, tw = inner - 20;
                 Ui.Place(box.rt, x, y + 1, 14, 14);   // (11 px and its 1.5 px border each side)
-                box.SetFill(done ? GTeal : GCard);
+                box.SetFill(done ? HintAccent : Color.clear);
                 Show(tick, done);
                 if (done) { tick.text = "✓"; Ui.Place(tick.rectTransform, x + 1, y - 3, 16, 18); }
                 name.fontSize = typeS;
@@ -467,7 +467,7 @@ namespace Hiraeth.Bridge
         Image fiFill, fiFillEdge; RawImage fiHatch; Image fiNow;
         readonly List<(Label name, Label kg)> fiRows = new();
         float fiHintT = 9, fiCatchT = 9; bool fiHintNow, fiCatchOn;
-        static readonly Color FiText = Ui.Hex("#4a3b33"), FiNo = Ui.Hex("#a8988a"), FiTension = Ui.Hex("#9fd08a"), FiHot = Ui.Hex("#ef5a3a");
+        static readonly Color FiText = Ui.Hex("#f7ecd2"), FiNo = Ui.Hex("#f7ecd2", .5f), FiTension = Ui.Hex("#9fd08a"), FiHot = Ui.Hex("#ef5a3a");
         static Texture2D hatch;
 
         static Texture2D Hatch()
@@ -484,9 +484,10 @@ namespace Hiraeth.Bridge
         void BuildFishing()
         {
             fiRoot = Ui.Node("fishing", gamesRoot); Ui.Stretch(fiRoot);
-            fiJournal = Ui.Panel(fiRoot, "journal", Al(GPage, 0.92f), GInk, 2, 4, 4);
-            fiNow = Ui.Rect(fiJournal.rt, GTeal, 0, "now");
-            fiTitle = Ui.Label(fiJournal.rt, "title", Ui.Sans, 11, GInk, TextAnchor.UpperLeft, FontStyle.Bold, 1.2f); Ui.Space(fiTitle, 0.16f);
+            // (the journal and the catch on the enamel card, the prompt on the hints' strip: issue #687)
+            fiJournal = EnamelCard(fiRoot, "journal");
+            fiNow = Ui.Rect(fiJournal.rt, Al(HintAccent, 0.25f), 0, "now");
+            fiTitle = Ui.Label(fiJournal.rt, "title", Ui.Sans, 11, EnBrassInk, TextAnchor.UpperLeft, FontStyle.Bold, 1.2f); Ui.Space(fiTitle, 0.16f);
             fiPull = Stroked(fiRoot, "pull", Title, 27, GGold, 1);
             fiMeter = Ui.Panel(fiRoot, "meter", GCard, GInk, 2, 3, 3);
             fiFill = Ui.Rect(fiMeter.fill.rectTransform, GTeal, 0, "fill");
@@ -495,13 +496,13 @@ namespace Hiraeth.Bridge
             fiHatch.rectTransform.SetParent(fiMeter.fill.rectTransform, false); fiHatch.raycastTarget = false;
             fiHatch.texture = hatch ??= Hatch();
             fiMeterText = Ui.Label(fiMeter.fill.rectTransform, "label", Ui.Sans, 11, GInk, TextAnchor.UpperLeft, FontStyle.Bold, 1.2f); Ui.Space(fiMeterText, 0.1f);
-            fiHint = Ui.Panel(fiRoot, "hint", GPage, GInk, 2, 3, 3);
-            fiHintText = Ui.Label(fiHint.rt, "text", Ui.Sans, 14, GInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
-            fiCatch = Ui.Panel(fiRoot, "catch", GPage, GInk, 2, 6, 6);
-            fiName = Ui.Label(fiCatch.rt, "name", Ui.Sans, 20, GInk, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f); Ui.Space(fiName, 0.1f);
-            fiKg = Ui.Label(fiCatch.rt, "kg", Title, 31, GInk, TextAnchor.UpperCenter, FontStyle.Bold, 1.05f);
-            fiTag = Ui.Panel(fiCatch.rt, "tag", Al(GPage, 0), GCoral, 2);
-            fiTagText = Ui.Label(fiTag.rt, "text", Ui.Sans, 14, GCoral, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f); Ui.Space(fiTagText, 0.12f);
+            fiHint = EnamelStrip(fiRoot, "hint");
+            fiHintText = Ui.Label(fiHint.rt, "text", Ui.Sans, 14, HintInk0, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
+            fiCatch = EnamelCard(fiRoot, "catch");
+            fiName = Ui.Label(fiCatch.rt, "name", Ui.Sans, 20, EnBrassInk, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f); Ui.Space(fiName, 0.1f);
+            fiKg = Ui.Label(fiCatch.rt, "kg", Title, 31, HintInk0, TextAnchor.UpperCenter, FontStyle.Bold, 1.05f);
+            fiTag = Ui.Panel(fiCatch.rt, "tag", Color.clear, GGold, 1.5f, 0, 0, 4);
+            fiTagText = Ui.Label(fiTag.rt, "text", Ui.Sans, 14, GGold, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f); Ui.Space(fiTagText, 0.12f);
             fiNote = Ui.Label(fiCatch.rt, "note", Ui.Sans, 11, FiText, TextAnchor.UpperCenter, FontStyle.Normal, 1.3f);
             fiRoot.gameObject.SetActive(false);
         }
@@ -555,7 +556,7 @@ namespace Hiraeth.Bridge
                 if (now && !fiHintNow) fiHintT = 0;
                 fiHintT += dt;
                 fiHintText.fontSize = now ? Mathf.RoundToInt(22 * ts) : typeS;
-                fiHint.SetFill(now ? GGold : GPage);
+                fiHint.SetFill(HintBg0); fiHintText.color = now ? GGold : HintInk0;   // (the strip stays; its words gold when it is time)
                 var hs = CssSet(fiHintText, hint, 4000, 1.4f);
                 float bw = hs.x + 24 + 4, bh = hs.y + 8 + 4;
                 Ui.Place(fiHintText.rectTransform, 0, 0, bw, bh);

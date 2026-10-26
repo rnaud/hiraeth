@@ -22,6 +22,8 @@
         /* every hint and announcement: one look (a near-black strip, cream letters, gold for a button's name), one place
            (the top centre, stacked by src/ship/cinema.js layoutCinema): issue #306, src/hint-look.js HINT */
         --hint-bg: rgba(22, 23, 23, 0.96); --hint-ink: #f7ecd2; --hint-accent: #79c9c0; --hint-radius: 7px; --hint-top: calc(12px + var(--safe-top, 0px));
+        /* every other message in the same enamel (issue #687, src/hud-look.js ENAMEL): C's strip, D's dark panel and brass */
+        --en-strip: rgba(22, 23, 23, 0.96); --en-panel: rgba(22, 29, 29, 0.97); --en-ink: #f7ecd2; --en-soft: rgba(247, 236, 210, 0.72); --en-accent: #79c9c0; --en-brass: #d9b575; --en-brass-ink: #edbc76; --en-frame: rgba(247, 236, 210, 0.65); --en-key-ink: #18201f; --en-radius: 7px; --en-shadow: 0 2px 5px rgba(0, 0, 0, 0.33); --en-scrim: rgba(12, 15, 15, 0.55); --en-gold: #f2c54b; --en-bad: #e0775f;
         /* the game's type (docs/systems/ui.md "Type", src/typefaces.js; issue #128): one face for everything a player reads,
            the title face for names and headings, the mono for the debug and dev panels alone. Numbers are in the face too,
            with figures of one width (tabular-nums) where they count. Sizes follow the screen's height, as the conversation
@@ -145,16 +147,17 @@
       @keyframes stpulse { 50% { stroke: #f2c54b; } }
       body.talking #stamina { opacity: 0; }
       /* knocked out (a fatal fall): the screen dims and asks to restart (src/main.js) */
-      #restart { position: fixed; inset: 0; z-index: 85; display: grid; place-items: start center; padding-top: 16vh; background: rgba(43, 33, 31, 0.6);
+      #restart { position: fixed; inset: 0; z-index: 85; display: grid; place-items: start center; padding-top: 16vh; background: var(--en-scrim);
         opacity: 0; visibility: hidden; transition: opacity .9s, visibility 0s .9s; }
       #restart.open { opacity: 1; visibility: visible; transition: opacity .9s; }
-      #restart .sheet { padding: 18px 26px 14px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; transform: none;
-        font: var(--type)/1.5 var(--face); color: #2b211f; text-align: center; min-width: 13em; }
+      /* the enamel card (issue #687, src/hud-look.js enamelCard): the dark panel, one brass hairline */
+      #restart .sheet { padding: 16px 24px 14px; background: var(--en-panel); color: var(--en-ink); border: 1.5px solid var(--en-brass); border-radius: var(--en-radius);
+        box-shadow: var(--en-shadow); transform: none; font: var(--type)/1.5 var(--face); text-align: center; min-width: 13em; max-width: calc(100vw - 32px); box-sizing: border-box; }
       #restart p { margin: 0 0 12px; letter-spacing: 0.04em; }
-      #restart button { font: 800 calc(var(--type) * 1.15)/1 var(--face); letter-spacing: 0.14em; color: #2b211f; background: #f2c54b;
-        border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; padding: 10px 22px; cursor: pointer; border-radius: 4px; }
-      #restart button:focus-visible, #restart button:hover { background: #ffd866; outline: none; }
-      #restart button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2b211f; }
+      #restart button { font: 700 calc(var(--type) * 1.05)/1 var(--face); letter-spacing: 0.1em; color: var(--en-key-ink); background: var(--en-ink);
+        border: 1px solid var(--en-brass); box-shadow: none; padding: 9px 20px; cursor: pointer; border-radius: 5px; }
+      #restart button:focus-visible, #restart button:hover { background: #fffaf0; outline: none; }
+      #restart button:active { transform: translateY(1px); }
       #restart button { display: inline-flex; align-items: center; }   /* (the confirm glyph inside it: src/pad-glyphs.js) */
       /* photo mode's keys: a hint like the others (issue #306), the dark strip at the top centre */
       #photo {
@@ -238,14 +241,15 @@
       #loading .why { margin-top: -8px; min-height: 1.4em; max-width: min(30em, 86vw); text-align: center; font-size: 0.85em; opacity: 0.72; }
       @keyframes spin { to { transform: rotate(360deg); } }
 
+      /* what people say in passing: the conversation's dark panel (issue #687, src/hud-look.js), its tail in the brass */
       .balloon {
-        position: fixed; left: 0; top: 0; z-index: 40; will-change: transform; max-width: 17em; padding: 0.5em 0.85em;
-        font: var(--type-s)/1.35 var(--face); color: #2b211f; background: #fffaf0;
-        border: 2px solid #2b211f; border-radius: 16px; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+        position: fixed; left: 0; top: 0; z-index: 40; will-change: transform; max-width: 17em; padding: 0.45em 0.8em;
+        font: var(--type-s)/1.35 var(--face); color: var(--en-ink); background: var(--en-panel);
+        border: 1.5px solid var(--en-brass); border-radius: var(--en-radius); box-shadow: var(--en-shadow); pointer-events: none; opacity: 0; transition: opacity 0.25s;
       }
       .balloon::after {
-        content: ''; position: absolute; left: 22px; bottom: -11px; border: 10px solid transparent;
-        border-top-color: #2b211f; border-bottom: 0; border-left: 0;
+        content: ''; position: absolute; left: 22px; bottom: -9px; border: 8px solid transparent;
+        border-top-color: var(--en-brass); border-bottom: 0; border-left: 0;
       }
       .balloon.show { opacity: 1; }
       /* nobody else's chatter while you talk to someone: it landed on top of the choices */
@@ -522,11 +526,16 @@
       html.speech-solid #dialogue .dlg-tag { color: #000; }
       html.speech-solid #dialogue .dlg-panel { border-color: #000; box-shadow: none; }
       html.speech-solid #dialogue .dlg-key { color: #000; }
-      #dialogue .dlg-text em, #dialogue .dlg-choices em { color: #edbc76; background: none; }
+      #dialogue .dlg-text em, #dialogue .dlg-choices em, .balloon em { color: #edbc76; background: none; }
+      #dialogue .dlg-text em.value, #dialogue .dlg-choices em.value, .balloon em.value { color: var(--en-gold); border-bottom-color: var(--en-brass); }   /* (the key phrase on the dark panel: issue #687) */
+      html.speech-solid #dialogue .dlg-text em.value, html.speech-solid #dialogue .dlg-choices em.value, html.speech-solid .balloon em.value { color: #704000; }
       html.speech-solid #dialogue .dlg-text em, html.speech-solid #dialogue .dlg-choices em { color: #704000; }
       html.speech-solid #dialogue .dlg-text.player { color: #1c2440; }
       html.speech-solid #dialogue .dlg-choices button { color: #000000; }
-      html.speech-solid .balloon { background: #ffffff; color: #000000; border-width: 2.5px; }
+      html.speech-solid .balloon { background: #ffffff; color: #000000; border-color: #000000; border-width: 2.5px; box-shadow: none; }
+      html.speech-solid .balloon::after { border-top-color: #000000; }
+      html.speech-solid .balloon em { color: #704000; }
+      html.speech-solid #restart .sheet { background: #000000; color: #ffffff; border-color: #ffffff; }
       html.speech-solid #cue, html.speech-solid #prompt:not(.glyph), html.speech-solid #photo, html.speech-solid #controller-hint { background: #000000; color: #ffffff; }
       html.speech-solid #toast, html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
       html.speech-solid #cue.place span { background: #ffffff; color: #000000; padding: 2px 8px; }

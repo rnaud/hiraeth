@@ -1,7 +1,8 @@
 import { screen } from '../platform.js';
+import { en } from '../hud-look.js';   // the chips in the enamel of every message (issue #687)
 
-// The spell on the screen (docs/systems/spells.md): a round chip under the gadget's in the top right corner, paper and
-// ink as the rest of the HUD. Ready: the spell's glyph in its colour, a full ring round it. Recovering: the seconds
+// The spell on the screen (docs/systems/spells.md): a round chip under the gadget's in the top right corner, the enamel
+// of the rest of the HUD (issue #687). Ready: the spell's glyph in its colour, a full ring round it. Recovering: the seconds
 // left in the middle and the ring filling round as it comes back (a pale chip); ready again, a gold flash. While a
 // spell is working, the ring is its colour and empties as it runs out. On a touch screen, the ✺ button casts it.
 // The screen's state too (src/platform.js screen 'spell'), which an engine draws where there is no page (BridgeHud.cs).
@@ -12,20 +13,20 @@ import { screen } from '../platform.js';
 const CSS = `
 #spell-chip { position: fixed; isolation: isolate; right: calc(14px + var(--safe-right, 0px)); top: calc(26px + clamp(30px, 6vh, 42px) + var(--safe-top, 0px)); z-index: 30;
   display: none; place-items: center; width: clamp(30px, 6vh, 42px); height: clamp(30px, 6vh, 42px); box-sizing: border-box; padding: 0;
-  background: rgba(255, 250, 240, 0.92); border: 1.5px solid #2b211f; border-radius: 50%; box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6);
-  font: calc(clamp(30px, 6vh, 42px) * 0.55)/1 var(--face); color: var(--spell, #2b211f); pointer-events: none; transition: opacity 0.2s, background 0.2s; }
+  background: ${en('strip')}; border: 1.5px solid ${en('brass')}; border-radius: 50%; box-shadow: ${en('shadow')};
+  font: calc(clamp(30px, 6vh, 42px) * 0.55)/1 var(--face); color: var(--spell, ${en('ink')}); pointer-events: none; transition: opacity 0.2s, background 0.2s; }
 #spell-chip.on { display: grid; }
 #spell-chip::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; pointer-events: none;
-  background: conic-gradient(var(--ring, #2b211f) calc(var(--k, 1) * 360deg), rgba(43, 33, 31, 0.18) 0);
+  background: conic-gradient(var(--ring, ${en('brass')}) calc(var(--k, 1) * 360deg), rgba(22, 23, 23, 0.35) 0);
   -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
-#spell-chip .g { text-shadow: 0 0 1px #2b211f; }
-#spell-chip.wait { background: rgba(232, 222, 202, 0.82); color: #2b211f; }
+#spell-chip .g { text-shadow: none; }
+#spell-chip.wait { background: ${en('strip')}; color: ${en('soft')}; }
 #spell-chip.wait .g { font: bold calc(clamp(30px, 6vh, 42px) * 0.36)/1 var(--face); text-shadow: none; }
 #spell-chip.flash { animation: schip 0.7s ease-out; }
-@keyframes schip { 0% { transform: scale(1.35); box-shadow: 0 0 0 6px #f2c54b; } 100% { transform: scale(1); box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
+@keyframes schip { 0% { transform: scale(1.35); box-shadow: 0 0 0 6px #f2c54b; } 100% { transform: scale(1); box-shadow: ${en('shadow')}; } }
 @media (prefers-reduced-motion: reduce) { #spell-chip.flash { animation: schip-still 0.7s ease-out; } }
 html.reduce-motion #spell-chip.flash { animation: schip-still 0.7s ease-out; }
-@keyframes schip-still { 0% { box-shadow: 0 0 0 6px #f2c54b; } 100% { box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
+@keyframes schip-still { 0% { box-shadow: 0 0 0 6px #f2c54b; } 100% { box-shadow: ${en('shadow')}; } }
 body:not(.nofps) #fps:not(:empty) ~ #spell-chip { top: calc(62px + clamp(30px, 6vh, 42px) + var(--safe-top, 0px)); }
 body.touch #spell-chip { right: calc(56px + var(--safe-right, 0px)); }
 body.minigame #spell-chip, body.talking #spell-chip, body.photo #spell-chip { display: none !important; }

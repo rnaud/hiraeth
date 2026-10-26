@@ -567,24 +567,28 @@ namespace Hiraeth.Bridge
         readonly List<CardButton> cButtons = new();
         readonly List<(Label k, Label v)> cRows = new();
         readonly List<(Ui.Box box, Label label, Label val, Label hint)> cOpts = new();
-        static readonly Color CardKicker = Ui.Hex("#8a5a3c"), CardDd = Ui.Hex("#4a3b33"), CardMuted = Ui.Hex("#6b5a4e"), CardStamp = Ui.Hex("#d9643a"),
-            CardRed = Ui.Hex("#c8483a"), CardOnInk = Ui.Hex("#fff6dc");
+        // (the enamel of every message since issue #687, src/hud-look.js ENAMEL: D's dark panel, one brass hairline, brass
+        // capitals for its kicker and keys, ivory words, the soft ivory for the rest; the focused button ivory with dark
+        // letters, the main one a turquoise tab at its left)
+        static readonly Color CardKicker = Ui.Hex("#edbc76"), CardDd = Ui.Hex("#f7ecd2", .72f), CardMuted = Ui.Hex("#f7ecd2", .72f), CardStamp = Ui.Hex("#f2c54b"),
+            CardRed = Ui.Hex("#79c9c0"), CardOnInk = Ui.Hex("#18201f"), CardInk = Ui.Hex("#f7ecd2"), CardPanel = Ui.Hex("#161d1d", .97f), CardBrass = Ui.Hex("#d9b575"),
+            CardButtonFill = Ui.Hex("#f7ecd2", .08f), CardButtonEdge = Ui.Hex("#f7ecd2", .35f), CardButtonHover = Ui.Hex("#f7ecd2", .16f);
 
         void BuildCard(Font mono)
         {
-            cSheet = Ui.Panel(root, "game card", Ui.Page, Ui.Ink, 2, 7, 7);
+            cSheet = Ui.Panel(root, "game card", CardPanel, CardBrass, 1.5f, 0, 0, 10);
             cKicker = Ui.Label(cSheet.rt, "kicker", mono, 13, CardKicker); Ui.Space(cKicker, 0.18f);
-            cTitle = Ui.Label(cSheet.rt, "title", Ui.Heavy, 27, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1.1f); Ui.Space(cTitle, 0.12f);
-            cLead = Ui.Label(cSheet.rt, "lead", mono, 15, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.05f);   // (the page's line 1.4 over the face's own 1.35)
-            cText = Ui.Label(cSheet.rt, "text", mono, 15, Ui.Ink, lineSpacing: 1.05f);
-            cRules = Ui.Panel(cSheet.rt, "rules", Ui.Hex("#fbf4e2"), Ui.Ink, 0);
+            cTitle = Ui.Label(cSheet.rt, "title", Ui.Heavy, 27, CardInk, TextAnchor.UpperLeft, FontStyle.Bold, 1.1f); Ui.Space(cTitle, 0.12f);
+            cLead = Ui.Label(cSheet.rt, "lead", mono, 15, CardInk, TextAnchor.UpperLeft, FontStyle.Italic, 1.05f);   // (the page's line 1.4 over the face's own 1.35)
+            cText = Ui.Label(cSheet.rt, "text", mono, 15, CardInk, lineSpacing: 1.05f);
+            cRules = Ui.Panel(cSheet.rt, "rules", Color.clear, Ui.Ink, 0);   // (no box: a turquoise rule at its left, the page's .rules)
             cRulesDash = Ui.Node("dashed line", cRules.rt).gameObject.AddComponent<Sketch>(); cRulesDash.raycastTarget = false;   // (.rules: 1.5px dashed)
-            cRulesText = Ui.Label(cRules.rt, "text", mono, 15, Ui.Ink, lineSpacing: 1.05f);
-            cBig = Ui.Label(cSheet.rt, "big", Ui.Heavy, 48, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
-            cStamp = Ui.Panel(cSheet.rt, "stamp", Ui.Page, CardStamp, 3);
+            cRulesText = Ui.Label(cRules.rt, "text", mono, 15, CardInk, lineSpacing: 1.05f);
+            cBig = Ui.Label(cSheet.rt, "big", Ui.Heavy, 48, CardInk, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
+            cStamp = Ui.Panel(cSheet.rt, "stamp", Color.clear, CardStamp, 2, 0, 0, 5);
             cStampText = Ui.Label(cStamp.rt, "text", mono, 15, CardStamp, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Space(cStampText, 0.12f); Ui.Stretch(cStampText.rectTransform);
             cLines = Ui.Label(cSheet.rt, "lines", mono, 14, CardDd, lineSpacing: 1.05f);
-            cExtra = Ui.Label(cSheet.rt, "extra", mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.05f);
+            cExtra = Ui.Label(cSheet.rt, "extra", mono, 14, CardInk, TextAnchor.UpperLeft, FontStyle.Italic, 1.05f);
             cBest = Ui.Label(cSheet.rt, "best", mono, 14, CardMuted);
             cHint = Ui.Label(cSheet.rt, "hint", mono, 13, CardMuted);
             cSheet.Show(false);
@@ -607,7 +611,7 @@ namespace Hiraeth.Bridge
             if (c == null) return;
             var mono = Ui.Sans;
             // (the pause over the world held, barely dimmed, as the page's .mg-card.clear; the start and the results darker)
-            dim.color = c.S("kind") == "paused" ? Ui.Hex("#2b211f", 0.12f) : Ui.Hex("#2b211f", 0.42f);
+            dim.color = c.S("kind") == "paused" ? Ui.Hex("#0c0f0f", 0.15f) : Ui.Hex("#0c0f0f", 0.55f);
             sheet.Show(false);
             cSheet.Show(true);
             cSheet.rt.SetAsLastSibling();
@@ -628,14 +632,14 @@ namespace Hiraeth.Bridge
                 Ui.Place(cRules.rt, px, y, iw, rs.y + 14);
                 float rh = rs.y + 14;
                 cRulesDash.Clear();
-                cRulesDash.Path(new[] { new Vector2(0.75f, -0.75f), new Vector2(iw - 0.75f, -0.75f), new Vector2(iw - 0.75f, -rh + 0.75f), new Vector2(0.75f, -rh + 0.75f) }, 1.5f, Ui.Ink, true, 4, 3);
+                cRulesDash.Path(new[] { new Vector2(1, -2), new Vector2(1, -rh + 2) }, 2, CardRed, false);
                 Ui.Place(cRulesDash.rectTransform, 0, 0, iw, rh);
                 y += rs.y + 14 + 10;
             }
             // the controls: what to press, then what it does (the page's dl: dt bold, dd in brown ink)
             var rows = c.L("rows") ?? new List<object>();
             float kw = 0;
-            while (cRows.Count < rows.Count) cRows.Add((Ui.Label(cSheet.rt, "key" + cRows.Count, mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold), Ui.Label(cSheet.rt, "does" + cRows.Count, mono, 14, CardDd)));
+            while (cRows.Count < rows.Count) cRows.Add((Ui.Label(cSheet.rt, "key" + cRows.Count, mono, 14, CardKicker, TextAnchor.UpperLeft, FontStyle.Bold), Ui.Label(cSheet.rt, "does" + cRows.Count, mono, 14, CardDd)));
             for (int i = 0; i < rows.Count; i++) kw = Mathf.Max(kw, Ui.Measure(cRows[i].k, (rows[i] as List<object>)?[0] as string ?? "", iw * 0.45f).x);
             for (int i = 0; i < cRows.Count; i++)
             {
@@ -655,7 +659,7 @@ namespace Hiraeth.Bridge
             while (cOpts.Count < opts.Count)
             {
                 var b = Ui.Panel(cSheet.rt, "opt" + cOpts.Count, Color.clear, Ui.Ink, 0);
-                cOpts.Add((b, Ui.Label(b.rt, "label", mono, 12, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold), Ui.Label(b.rt, "val", mono, 13, Ui.Ink, TextAnchor.MiddleLeft), Ui.Label(cSheet.rt, "hint", mono, 12, CardMuted)));
+                cOpts.Add((b, Ui.Label(b.rt, "label", mono, 12, CardInk, TextAnchor.MiddleLeft, FontStyle.Bold), Ui.Label(b.rt, "val", mono, 13, CardInk, TextAnchor.MiddleLeft), Ui.Label(cSheet.rt, "hint", mono, 12, CardMuted)));
             }
             for (int i = 0; i < cOpts.Count; i++)
             {
@@ -666,9 +670,9 @@ namespace Hiraeth.Bridge
                 var o = opts[i] as Dictionary<string, object>;
                 bool on = B(o, "on");
                 string v = o.L("choices") is List<object> ch
-                    ? string.Join("   ", ch.OfType<Dictionary<string, object>>().Select(x => B(x, "on") ? $"<b><color=#277e86>◀ {x.S("label")} ▶</color></b>" : x.S("label")))
+                    ? string.Join("   ", ch.OfType<Dictionary<string, object>>().Select(x => B(x, "on") ? $"<b><color=#79c9c0>◀ {x.S("label")} ▶</color></b>" : x.S("label")))
                     : $"◀ <b>{o.S("text")}</b> ▶";
-                box.SetFill(on ? Band : Color.clear);
+                box.SetFill(on ? CardButtonHover : Color.clear);
                 Ui.Set(label, Ui.Upper(o.S("label")), 130); Ui.Place(label.rectTransform, 8, 0, 130, 28);
                 Ui.Set(val, v, iw - 150); Ui.Place(val.rectTransform, 144, 0, iw - 150, 28);
                 Ui.Place(box.rt, px - 8, y, iw + 16, 28);
@@ -683,7 +687,7 @@ namespace Hiraeth.Bridge
             if (!string.IsNullOrEmpty(big)) y += 10;
             bool stamp = B(c, "stamp");
             cStamp.Show(stamp);
-            if (stamp) { var ss = Ui.Measure(cStampText, "NEW BEST!"); cStampText.text = "NEW BEST!"; Ui.Place(cStamp.rt, sw - 18 - (ss.x + 24), 18, ss.x + 24, 30); cStamp.rt.localEulerAngles = new Vector3(0, 0, 6); }
+            if (stamp) { var ss = Ui.Measure(cStampText, "NEW BEST!"); cStampText.text = "NEW BEST!"; Ui.Place(cStamp.rt, sw - 18 - (ss.x + 24), 18, ss.x + 24, 30); cStamp.rt.localEulerAngles = Vector3.zero; }
             var lines = c.L("lines")?.OfType<string>().ToList() ?? new List<string>();
             y = CardPut(cLines, string.Join("\n", lines), px, y, iw);
             if (lines.Count > 0) y += 10;
@@ -697,8 +701,8 @@ namespace Hiraeth.Bridge
             {
                 if (i >= cButtons.Count)
                 {
-                    var nb = new CardButton { box = Ui.Panel(cSheet.rt, "button" + i, Ui.CardC, Ui.Ink, 2, 3, 3, 4) };
-                    nb.text = Ui.Label(nb.box.rt, "text", mono, 17, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
+                    var nb = new CardButton { box = Ui.Panel(cSheet.rt, "button" + i, CardButtonFill, CardButtonEdge, 1, 0, 0, 5) };
+                    nb.text = Ui.Label(nb.box.rt, "text", mono, 17, CardInk, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
                     nb.sub = Ui.Label(nb.box.rt, "sub", mono, 11, CardMuted, TextAnchor.UpperCenter);
                     nb.accent = Ui.Rect(nb.box.rt, CardRed, 0, "edge");
                     cButtons.Add(nb);
@@ -718,14 +722,14 @@ namespace Hiraeth.Bridge
                 // (the pad's the one highlight, filled red; the main one only a red edge at its left: issue #507; the mouse over
                 // another its :hover, a lighter paper, the focus staying where it was: minigames.css .sheet button:hover, #574)
                 bool over = !on && HoverOn(b.S("pt"));
-                cb.box.SetFill(on ? CardRed : over ? CardHover : Ui.CardC);
-                cb.box.border.color = Ui.Ink;
-                cb.box.SetShadow(on ? 5 : 3, on ? 5 : 3);
-                cb.text.color = on ? CardOnInk : Ui.Ink;
+                cb.box.SetFill(on ? CardInk : over ? CardButtonHover : CardButtonFill);
+                cb.box.border.color = on ? CardBrass : CardButtonEdge;
+                cb.box.SetShadow(0, 0);
+                cb.text.color = on ? CardOnInk : CardInk;
                 cb.sub.color = on ? CardOnInk : CardMuted;
                 Show(cb.accent, main);
-                if (main) { cb.accent.color = on ? Ui.Ink : CardRed; Ui.Place(cb.accent.rectTransform, 0, 0, 7, h); }
-                Ui.Place(cb.box.rt, bx - (on ? 2 : 0), y - (on ? 2 : 0), bw, h);
+                if (main) { cb.accent.color = CardRed; Ui.Place(cb.accent.rectTransform, 0, 0, 4, h); }
+                Ui.Place(cb.box.rt, bx, y, bw, h);
                 Hit(cb.box.rt, b.S("pt"));
                 bx += bw + 10;
             }

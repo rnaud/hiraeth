@@ -163,7 +163,7 @@ namespace Hiraeth.Bridge
         Ui.Box subBox, cineHint, skipBox; Label subText, cineHintText, skipText; Image skipTrack, skipFill;
         float fadeA, barH, redA; int subId = -1; float subT;
         float barFrom, barTo, barT = 1;   // (the letterbox's way in or out: from, to, its share of the 1.1 s done)
-        static readonly Color CineInk = Ui.Hex("#2b211f"), CinePaper = Ui.Hex("#fff6dc"), SubPaper = new Color(247 / 255f, 236 / 255f, 210 / 255f, 0.95f);
+        static readonly Color CineInk = Ui.Hex("#2b211f"), CinePaper = Ui.Hex("#fff6dc");
         const int SubSize = 21;
 
         void BuildCine(Font mono)
@@ -173,11 +173,12 @@ namespace Hiraeth.Bridge
             barTop = Ui.Rect(root, CineInk, 0, "cine bar top"); barBot = Ui.Rect(root, CineInk, 0, "cine bar bottom");
             cineHint = Ui.Panel(root, "cine hint", HintBg0, HintBg0, 0, 0, 0, 7);
             cineHintText = Ui.Label(cineHint.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);
-            subBox = Ui.Panel(root, "cine sub", SubPaper, CineInk, 2, 3, 3);
-            subText = Ui.Label(subBox.rt, "text", mono, SubSize, CineInk, TextAnchor.UpperCenter, lineSpacing: 1.25f);
-            skipBox = Ui.Panel(root, "cine skip", new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.82f), Color.clear, 0);
+            // (the subtitles in the conversation's dark panel, the skip on the hints' strip: issue #687, src/hud-look.js)
+            subBox = EnamelCard(root, "cine sub");
+            subText = Ui.Label(subBox.rt, "text", mono, SubSize, HintInk0, TextAnchor.UpperCenter, lineSpacing: 1.25f);
+            skipBox = EnamelStrip(root, "cine skip");
             skipText = Ui.Label(skipBox.rt, "text", mono, 12, HintInk0, TextAnchor.MiddleLeft);
-            skipTrack = Ui.Rect(skipBox.rt, HintInk, 0, "track"); skipFill = Ui.Rect(skipTrack.rectTransform, Ui.Gold, 0, "fill");
+            skipTrack = Ui.Rect(skipBox.rt, Ui.Hex("#f7ecd2", .25f), 0, "track"); skipFill = Ui.Rect(skipTrack.rectTransform, HintAccent, 0, "fill");
         }
 
         const float BarSecs = 1.1f;   // (src/ship/cinema.js: #cine .bar's transition)
@@ -248,10 +249,11 @@ namespace Hiraeth.Bridge
             if (sub != null)
             {
                 string who = sub.S("who") ?? "", cls = sub.S("cls") ?? "";
-                string col = cls == "father" ? "#7a3a35" : cls == "mother" ? "#277e86" : cls == "plumb" ? "#c8483a" : "#2b211f";
-                var body = (who.Length > 0 ? $"<b><color={col}>{who}</color></b>  " : "") + Ui.Rich(Text.Plain(sub.S("text") ?? ""));
+                // (the speaker's name in brass capitals, or their own colour lightened for the dark panel: the page's #cine .sub b)
+                string col = solid ? "#ffffff" : cls == "father" ? "#eaa58f" : cls == "mother" ? "#79c9c0" : cls == "plumb" ? "#f2897a" : "#edbc76";
+                var body = (who.Length > 0 ? $"<size={Mathf.RoundToInt(Sz(SubSize) * 0.8f)}><b><color={col}>{who}</color></b></size>  " : "") + Ui.Rich(Text.Plain(sub.S("text") ?? "")).Replace("<color=#b23a2c>", solid ? "<color=#ffffff>" : "<color=#edbc76>");
                 subText.fontSize = Sz(SubSize);
-                subBox.SetFill(solid ? Color.white : SubPaper); subText.color = solid ? Color.black : CineInk;
+                EnamelPaint(subBox); subText.color = solid ? Color.white : HintInk0;
                 var s = Ui.Set(subText, body, Mathf.Min(46 * Sz(SubSize), W - 64));
                 Ui.Place(subText.rectTransform, 12, 5, s.x, s.y);
                 float w = s.x + 24, h = s.y + 11;
@@ -271,6 +273,7 @@ namespace Hiraeth.Bridge
                 if (!press) { Ui.Place(skipTrack.rectTransform, 8 + s.x + 8, 9, 60, 6); Ui.Place(skipFill.rectTransform, 0, 0, 60 * Mathf.Clamp01(skip.F("k")), 6); }
                 float w = s.x + 16 + tw;
                 Ui.Place(skipBox.rt, W - 22 - w, H - H * 0.055f - 14, w, 24);
+                skipBox.SetFill(HintBg);
             }
         }
 
@@ -490,8 +493,8 @@ namespace Hiraeth.Bridge
             warpRoot = Ui.Node("warp", root);
             warpSketch = Ui.Node("space", warpRoot).gameObject.AddComponent<Sketch>();
             warpSketch.raycastTarget = false;
-            warpCard = Ui.Panel(warpRoot, "title", WarpPaper, WarpInk, 2, 6, 6);
-            warpCardText = Ui.Label(warpCard.rt, "text", Ui.Heavy, 30, WarpInk, TextAnchor.MiddleCenter, FontStyle.Bold);
+            warpCard = EnamelCard(warpRoot, "title");   // (the enamel card: issue #687)
+            warpCardText = Ui.Label(warpCard.rt, "text", Ui.Sans, 28, HintInk0, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Space(warpCardText, 0.24f);
             var rnd = new System.Random(7);
             float R() => (float)rnd.NextDouble();
@@ -557,8 +560,9 @@ namespace Hiraeth.Bridge
             if (card)
             {
                 var sz = Ui.Set(warpCardText, warpCardText.text, W - 80);
-                Ui.Place(warpCardText.rectTransform, 22, 10, sz.x, sz.y);
-                Ui.Place(warpCard.rt, W / 2 - (sz.x + 44) / 2, H / 2 - (sz.y + 20) / 2, sz.x + 44, sz.y + 20);
+                Ui.Place(warpCardText.rectTransform, 30, 12, sz.x, sz.y);
+                Ui.Place(warpCard.rt, W / 2 - (sz.x + 60) / 2, H / 2 - (sz.y + 24) / 2, sz.x + 60, sz.y + 24);
+                EnamelPaint(warpCard); warpCardText.color = solid ? Color.white : HintInk0;
                 Ui.Group(warpCard.rt).alpha = warpCardA;
             }
         }
@@ -701,14 +705,14 @@ namespace Hiraeth.Bridge
             lockRoot.gameObject.SetActive(false);
             // (the world dimmed under the card, as the page's #restart: rgba(43, 33, 31, 0.6), faded in over 0.9 s; issue #449)
             // (0.78 here: Unity blends in its linear target, the page in display values, where 0.6 of ink over the sand darkens it as much)
-            restartDim = Ui.Fill(root, new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.78f), 0, "restart dim");
+            restartDim = Ui.Fill(root, new Color(EnScrim.r, EnScrim.g, EnScrim.b, 0.7f), 0, "restart dim");   // (the enamel's scrim: issue #687)
             restartDim.gameObject.SetActive(false);
-            restartBox = Ui.Panel(root, "restart", Ui.Hex("#f7ecd2"), Ui.Ink, 2, 6, 6);
-            restartText = Ui.Label(restartBox.rt, "text", mono, 20, Ui.Ink, TextAnchor.UpperCenter);
+            restartBox = EnamelCard(root, "restart");   // (the enamel card, an ivory button: issue #687)
+            restartText = Ui.Label(restartBox.rt, "text", mono, 20, HintInk0, TextAnchor.UpperCenter);
             Ui.Space(restartText, 0.04f);
             // (its button: the page's gold button in an ink line on a small hard shadow)
-            restartButton = Ui.Panel(restartBox.rt, "button", Ui.Hex("#f2c54b"), Ui.Ink, 2, 3, 3, 4);
-            restartKey = Ui.Label(restartButton.rt, "key", mono, 20, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            restartButton = Ui.Panel(restartBox.rt, "button", HintInk0, EnBrass, 1, 0, 0, 5);
+            restartKey = Ui.Label(restartButton.rt, "key", mono, 20, EnKeyInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Space(restartKey, 0.14f);
             restartBox.Show(false);
         }
@@ -789,6 +793,7 @@ namespace Hiraeth.Bridge
             Ui.Place(restartButton.rt, (w - bw) / 2, 18 + s.y + 12, bw, bh);
             Ui.Place(restartKey.rectTransform, 0, 0, bw, bh);
             Ui.Place(restartBox.rt, (W - w) / 2, H * 0.16f, w, h);
+            EnamelPaint(restartBox); restartText.color = solid ? Color.white : HintInk0;
         }
 
         // ---------------------------------------------------------------- a trial's or a game's HUD (screen 'minigame')
@@ -808,15 +813,16 @@ namespace Hiraeth.Bridge
             // (the speed lines first, under the run's HUD: the page's canvas under #minigame)
             mgSpeed = Ui.Node("mg speed", root).gameObject.AddComponent<Sketch>();
             mgSpeed.raycastTarget = false;
-            mgTimer = Ui.Panel(root, "mg timer", Ui.Page, Ui.Ink, 2, 4, 4);
-            mgTimerText = Ui.Label(mgTimer.rt, "text", mono, 26, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f); Ui.Space(mgTimerText, 0.06f);
-            mgPenalty = Ui.Label(mgTimer.rt, "penalty", mono, 11, Ui.Faint, TextAnchor.UpperCenter); Ui.Space(mgPenalty, 0.14f);
-            mgScore = Ui.Panel(root, "mg score", Ui.Page, Ui.Ink, 2, 4, 4);
-            mgScoreText = Ui.Label(mgScore.rt, "text", mono, 19, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold, 1.2f);
+            // (the clock and the score on the hints' charcoal strip, the 3-2-1 in ivory, the flashes strips: issue #687)
+            mgTimer = EnamelStrip(root, "mg timer");
+            mgTimerText = Ui.Label(mgTimer.rt, "text", mono, 26, HintInk0, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f); Ui.Space(mgTimerText, 0.06f);
+            mgPenalty = Ui.Label(mgTimer.rt, "penalty", mono, 11, EnBrassInk, TextAnchor.UpperCenter); Ui.Space(mgPenalty, 0.14f);
+            mgScore = EnamelStrip(root, "mg score");
+            mgScoreText = Ui.Label(mgScore.rt, "text", mono, 19, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold, 1.2f);
             mgLives = Ui.Node("mg lives", root);
-            mgCount = Ui.Label(root, "mg count", Ui.Heavy, 140, MgGold, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
-            var o = mgCount.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Ink; o.effectDistance = new Vector2(3, -3);
-            var sh = mgCount.gameObject.AddComponent<Shadow>(); sh.effectColor = Ui.Ink; sh.effectDistance = new Vector2(7, -7);
+            mgCount = Ui.Label(root, "mg count", Ui.Heavy, 140, HintInk0, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+            var o = mgCount.gameObject.AddComponent<Outline>(); o.effectColor = HintBg0; o.effectDistance = new Vector2(3, -3);
+            var sh = mgCount.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0, 0, 0, 0.35f); sh.effectDistance = new Vector2(0, -4);
             mgHints = Ui.Panel(root, "mg hints", HintBg0, HintBg0, 0, 0, 0, 4);
             mgHintsText = Ui.Label(mgHints.rt, "text", mono, 11, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold);
             // (the game's line beside the row in a box of its own: the page's .mg-hints p, heavier and spaced; issue #569)
@@ -931,7 +937,7 @@ namespace Hiraeth.Bridge
                 float u = Mathf.Clamp01(mgCountT / 0.8f), s = u < 0.18f ? Mathf.Lerp(1.9f, 1, u / 0.18f) : Mathf.Lerp(1, 0.86f, (u - 0.18f) / 0.82f);
                 float a = u < 0.18f ? u / 0.18f : u < 0.75f || go ? 1 : 1 - (u - 0.75f) / 0.25f;
                 mgCount.text = cn.S("text");
-                mgCount.color = go ? MgTeal : MgGold;
+                mgCount.color = go ? HintAccent : HintInk0;
                 mgCount.fontSize = go ? 72 : 84;   // (the page's 9.85em and 8.62em of Futura: the condensed face here stands taller, 140 was two thirds too big, issue #264)
                 Ui.PlaceC(mgCount.rectTransform, 0, H * 0.38f - 100, W, 200);
                 mgCount.rectTransform.localScale = new Vector3(s, s, 1);
@@ -945,9 +951,13 @@ namespace Hiraeth.Bridge
             {
                 if (mgFlash.Any(x => x.id == f.I("id"))) continue;
                 var kind = f.S("kind") ?? "";
-                var box = Ui.Panel(root, "mg flash", kind.Contains("bad") ? MgBad : kind.Contains("good") ? MgTeal : Ui.Page, Ui.Ink, 2, 3, 3);
+                var box = EnamelStrip(root, "mg flash");
+                var tone = kind.Contains("bad") ? EnBad : kind.Contains("good") ? HintAccent : EnBrass;
                 // (in the page's face, minigames.css .mg-flash: the monospace before, issue #556: the pirates' place names in it)
-                var text = Ui.Label(box.rt, "text", Ui.Sans, kind.Contains("big") ? 27 : 16, kind.Contains("bad") ? MgCard : Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
+                var text = Ui.Label(box.rt, "text", Ui.Sans, kind.Contains("big") ? 27 : 16, kind.Contains("bad") || kind.Contains("good") ? tone : HintInk0, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
+                // (C's tab at its left: turquoise good news, red bad, brass the rest; the words in the same colour: issue #687)
+                var tab = Ui.Rect(box.rt, tone, 2, "tab"); tab.rectTransform.anchorMin = tab.rectTransform.anchorMax = new Vector2(0, 0.5f); tab.rectTransform.pivot = new Vector2(0, 0.5f);
+                tab.rectTransform.anchoredPosition = new Vector2(-3, 0); tab.rectTransform.sizeDelta = new Vector2(4, 14);
                 Ui.Space(text, 0.06f);
                 text.text = f.S("text");
                 mgFlash.Add((box, text, f.I("id"), 0, Mathf.Max(0.3f, f.F("secs", 1.2f))));
@@ -1044,12 +1054,12 @@ namespace Hiraeth.Bridge
             gChip = MakeDisc(root, "gadget chip", mono, 22);
             gWheel = Ui.Node("gadget wheel", root);
             gWheelBack = Round(gWheel, Ui.Hex("#f7ecd2", 0.35f), "ring");
-            gWheelName = Ui.Panel(gWheel, "name", Cream, Ui.Ink, 1.5f);
-            gWheelNameText = Ui.Label(gWheelName.rt, "text", mono, 14, Ui.Ink, TextAnchor.MiddleCenter); Ui.Space(gWheelNameText, 0.08f);
+            gWheelName = EnamelStrip(gWheel, "name");
+            gWheelNameText = Ui.Label(gWheelName.rt, "text", mono, 14, HintInk0, TextAnchor.MiddleCenter); Ui.Space(gWheelNameText, 0.08f);
             ret = Ui.Panel(root, "reticle", Color.clear, Ui.Ink, 2.5f, 0, 0, 17);
             retH = Ui.Rect(ret.rt, Ui.Ink, 0, "h"); retV = Ui.Rect(ret.rt, Ui.Ink, 0, "v");
-            retTag = Ui.Panel(root, "reticle tag", Ui.Hex("#f7ecd2", 0.85f), Ui.Ink, 1);
-            retText = Ui.Label(retTag.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleCenter);
+            retTag = EnamelStrip(root, "reticle tag", 4);
+            retText = Ui.Label(retTag.rt, "text", mono, 12, HintInk0, TextAnchor.MiddleCenter);
         }
 
         void DrawGadget(Dictionary<string, object> g)
@@ -1074,7 +1084,9 @@ namespace Hiraeth.Bridge
             float f = Mathf.Clamp01(1 - gFlashT / 0.6f), grow = 1 + 0.35f * f * f;
             if (f > 0) { Show(gFlash, true); gFlash.color = new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, f); float r = d * grow + 10; Ui.Place(gFlash.rectTransform, x + d / 2 - r / 2, y + d / 2 - r / 2, r, r); }
             float s = d * grow;
-            LayDisc(gChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 2, Ui.Hex("#fffaf0", 0.92f), BridgeMenu.Picture(id), g.S("glyph"));
+            // (the enamel chip: the hints' charcoal, a brass hairline, no hard shadow; issue #687)
+            LayDisc(gChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 0, HintBg0, BridgeMenu.Picture(id), g.S("glyph"));
+            gChip.ink.color = EnBrass; gChip.glyph.color = HintInk0;
             Ui.Group(gChip.rt).alpha = empty ? 0.5f : 1;
         }
 
@@ -1110,8 +1122,9 @@ namespace Hiraeth.Bridge
             if (f > 0) { Show(sFlash, true); sFlash.color = new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, f); float rr = d * grow + 12; Ui.Place(sFlash.rectTransform, x + d / 2 - rr / 2, y + d / 2 - rr / 2, rr, rr); }
             float s = d * grow;
             var left = g.Get("left") is double l ? ((int)l).ToString() : "";
-            LayDisc(sChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 2, wait ? Ui.Hex("#e8deca", 0.82f) : Ui.Hex("#fffaf0", 0.92f), null, wait ? left : g.S("glyph"));
-            sChip.glyph.color = wait ? Ui.Ink : col;
+            LayDisc(sChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 0, HintBg0, null, wait ? left : g.S("glyph"));   // (the enamel chip: issue #687)
+            sChip.ink.color = EnBrass;
+            sChip.glyph.color = wait ? EnSoft : col;
             sChip.glyph.fontSize = wait ? 15 : 22;
         }
 
@@ -1248,10 +1261,10 @@ namespace Hiraeth.Bridge
             var sl = (w?.L("says") ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
             while (says.Count < sl.Count)
             {
-                var box = Ui.Panel(wordsRoot, "say", WordCream, Ui.Ink, 2, 3, 3, 14);
-                var text = Ui.Label(box.rt, "text", Ui.Sans, Sz(13), Ui.Ink, TextAnchor.UpperLeft, FontStyle.Normal, 1.2f);
-                // (its tail: an ink corner at the foot, 24 px in from the left)
-                var tail = Ui.Rect(box.rt, Ui.Ink, 0, "tail"); tail.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+                var box = EnamelCard(wordsRoot, "say");   // (the balloons' enamel: issue #687)
+                var text = Ui.Label(box.rt, "text", Ui.Sans, Sz(13), HintInk0, TextAnchor.UpperLeft, FontStyle.Normal, 1.2f);
+                // (its tail: a brass corner at the foot, 24 px in from the left)
+                var tail = Ui.Rect(box.rt, EnBrass, 0, "tail"); tail.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
                 tail.rectTransform.SetSiblingIndex(0);   // (under the paper: only its point shows below the edge)
                 says.Add((box, text, tail));
             }
@@ -1274,9 +1287,9 @@ namespace Hiraeth.Bridge
             var tl = (w?.L("tags") ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
             while (tags.Count < tl.Count)
             {
-                var box = Ui.Panel(wordsRoot, "tag", Ui.Page, Ui.Ink, 2, 3, 3);
-                var title = Ui.Label(box.rt, "title", Ui.Sans, 13, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f); Ui.Space(title, 0.08f);
-                var text = Ui.Label(box.rt, "text", Ui.Sans, Sz(11), Ui.Ink, TextAnchor.UpperCenter, FontStyle.Normal, 1.2f);
+                var box = EnamelStrip(wordsRoot, "tag");   // (the hints' strip, its title in brass capitals: issue #687)
+                var title = Ui.Label(box.rt, "title", Ui.Sans, 13, EnBrassInk, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f); Ui.Space(title, 0.08f);
+                var text = Ui.Label(box.rt, "text", Ui.Sans, Sz(11), HintInk0, TextAnchor.UpperCenter, FontStyle.Normal, 1.2f);
                 tags.Add((box, title, text));
             }
             for (int i = 0; i < tags.Count; i++)
@@ -1312,34 +1325,21 @@ namespace Hiraeth.Bridge
         const float CardStar = 0.7f * CardName, CardStarGap = 0.35f * CardName;   // (the page's h2 .star: 0.7em, 0.35em after it)
 
         // the father's charge lettered low in the lower third (src/story/charge.js showChargeCard, the page's #charge-card;
-        // issue #394: Unity showed nothing as the dust cleared): a band of paper fading out at its ends, the gold mark and
-        // the airy capitals closing up as it comes in, an ink line under them with a gold dot; in over 0.8 s, out over 1.1 s
-        RectTransform charge; Image chargeBand, chargeEdgeL, chargeEdgeR, chargeLine, chargeDot; Label chargeText;
+        // issue #394: Unity showed nothing as the dust cleared): the enamel card of every message since issue #687 (the dark
+        // panel, its brass hairline), the gold ✦ in a column of its own behind a fine divider, the ivory capitals closing up
+        // as it comes in, a brass pen line drawn under them; in over 0.8 s, out over 1.1 s
+        RectTransform charge; Ui.Box chargeBox; Image chargeDivider, chargeLine; Label chargeText, chargeMark;
         int chargeId = -1; float chargeT;
-        static readonly Color ChargePaper = Ui.Hex("#fff6dc", 0.95f);
         void BuildCharge()
         {
             charge = Ui.Node("charge card", root);
-            chargeBand = Ui.Rect(charge, ChargePaper, 0, "band");
-            chargeEdgeL = Ui.Rect(charge, ChargePaper, 0, "edge l"); chargeEdgeR = Ui.Rect(charge, ChargePaper, 0, "edge r");
-            foreach (var e in new[] { chargeEdgeL, chargeEdgeR }) { e.sprite = Fade(); e.type = Image.Type.Simple; }
-            chargeEdgeR.rectTransform.localScale = new Vector3(-1, 1, 1);
-            chargeText = Ui.Label(charge, "text", Ui.Sans, 25, Ui.Ink, TextAnchor.MiddleCenter);
-            chargeText.supportRichText = true;
-            Ui.Space(chargeText, 0.42f);
-            chargeLine = Ui.Rect(charge, Ui.Ink, 0, "line");
-            chargeDot = Ui.Rect(charge, Ui.Hex("#f2c54b"), 5, "dot");
+            chargeBox = EnamelCard(charge, "card");
+            chargeMark = Ui.Label(chargeBox.rt, "mark", Ui.Sans, 22, EnGold, TextAnchor.MiddleCenter);
+            chargeDivider = Ui.Rect(chargeBox.rt, Ui.Hex("#f7ecd2", .65f), 0, "divider");
+            chargeText = Ui.Label(chargeBox.rt, "text", Ui.Sans, 22, HintInk0, TextAnchor.MiddleLeft);
+            Ui.Space(chargeText, 0.3f);
+            chargeLine = Ui.Rect(chargeBox.rt, EnBrass, 0, "line");
             charge.gameObject.SetActive(false);
-        }
-        static Sprite fade;
-        /// <summary>A strip from clear to opaque, left to right (the band's soft ends, the page's linear-gradient).</summary>
-        static Sprite Fade()
-        {
-            if (fade) return fade;
-            var t = new Texture2D(32, 1, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
-            for (int x = 0; x < 32; x++) t.SetPixel(x, 0, new Color(1, 1, 1, x / 31f));
-            t.Apply();
-            return fade = Sprite.Create(t, new Rect(0, 0, 32, 1), new Vector2(0.5f, 0.5f));
         }
         void DrawCharge(Dictionary<string, object> c)
         {
@@ -1351,47 +1351,51 @@ namespace Hiraeth.Bridge
             chargeT += Time.unscaledDeltaTime;
             float ms = c.F("ms", 5000) / 1000f, t = chargeT;
             float a = t < 0.8f ? t / 0.8f : t > ms - 1.3f ? Mathf.Clamp01(1 - (t - (ms - 1.3f)) / 1.1f) : 1;
-            float k = 1 - Mathf.Pow(1 - Mathf.Clamp01(t / 1.8f), 3);   // (the letters closing up, .42 em to .22)
-            Ui.Space(chargeText, Mathf.Round(Mathf.Lerp(0.42f, 0.22f, k) * 100) / 100);
-            chargeText.fontSize = Mathf.RoundToInt(Mathf.Clamp(H * 0.025f * 16 / 9, 16, 27) * ts);
-            var text = $"<color=#f2c54b>{c.S("mark")}</color>  {c.S("text")}";
-            var s = Ui.Set(chargeText, text, W);
-            float bw = Mathf.Min(Mathf.Max(640, s.x + 120), W * 0.88f), bh = s.y + 40, y = H - H * 0.06f - bh - 8 * (1 - k);
+            float k = 1 - Mathf.Pow(1 - Mathf.Clamp01(t / 1.8f), 3);   // (the letters closing up, .3 em to .18)
+            Ui.Space(chargeText, Mathf.Round(Mathf.Lerp(0.3f, 0.18f, k) * 100) / 100);
+            chargeText.fontSize = Mathf.RoundToInt(Mathf.Clamp(H * 0.021f * 16 / 9, 15, 23) * ts);
+            chargeMark.fontSize = Mathf.RoundToInt(chargeText.fontSize * 1.05f);
+            chargeMark.text = c.S("mark"); chargeMark.color = solid ? Color.white : EnGold;
+            float col = chargeText.fontSize * 2.2f, padR = chargeText.fontSize * 2.7f;   // (the words 1.1 em after the divider, 1.6 em before the edge)
+            var s = Ui.Set(chargeText, c.S("text"), W - 32 - col - padR);
+            float bw = col + s.x + padR, bh = s.y + chargeText.fontSize * 1.4f + 8, y = H - H * 0.06f - bh - 8 * (1 - k);
             Ui.Place(charge, 0, 0, W, H);
-            float ex = bw * 0.18f, x0 = W / 2 - bw / 2;
-            Ui.Place(chargeEdgeL.rectTransform, x0, y, ex, bh); Ui.Place(chargeBand.rectTransform, x0 + ex, y, bw - 2 * ex, bh); Ui.Place(chargeEdgeR.rectTransform, x0 + bw - ex, y, ex, bh);
-            Ui.Place(chargeText.rectTransform, W / 2 - s.x / 2, y + 8, s.x, s.y);
-            float lw = Mathf.Min(300, W * 0.6f) * Mathf.Clamp01((t - 0.5f) / 1.2f);
-            Ui.Place(chargeLine.rectTransform, W / 2 - lw / 2, y + 12 + s.y, lw, 2);
-            float d = 10 * Mathf.Clamp01((t - 1.5f) / 0.5f);
-            Ui.Place(chargeDot.rectTransform, W / 2 - d / 2, y + 13 + s.y - d / 2, d, d);
-            foreach (var g in new Graphic[] { chargeBand, chargeEdgeL, chargeEdgeR, chargeText, chargeLine, chargeDot }) { var col = g.color; col.a = (g == chargeBand || g == chargeEdgeL || g == chargeEdgeR ? 0.95f : 1) * a; g.color = col; }
+            Ui.Place(chargeBox.rt, W / 2 - bw / 2, y, bw, bh);
+            float ty = (bh - s.y) / 2 - 4, tx = col + chargeText.fontSize * 1.1f;
+            Ui.Place(chargeMark.rectTransform, 0, ty, col - 1, s.y);
+            Ui.Place(chargeDivider.rectTransform, col - 1, 10, 1, bh - 20);
+            Ui.Place(chargeText.rectTransform, tx, ty, s.x, s.y);
+            float lw = Mathf.Min(220, W * 0.4f) * Mathf.Clamp01((t - 0.5f) / 1.2f);
+            Ui.Place(chargeLine.rectTransform, tx, ty + s.y + 4, lw, 1.5f);
+            EnamelPaint(chargeBox); chargeText.color = solid ? Color.white : HintInk0;
+            chargeDivider.enabled = chargeLine.enabled = !solid;
+            Ui.Group(chargeBox.rt).alpha = a;
         }
 
         void BuildBoxCard(Font mono)
         {
-            bCard = Ui.Panel(root, "box card", Ui.Cream, Ui.Ink, 2, 4, 4);
+            bCard = EnamelCard(root, "box card");   // (the enamel card: issue #687; cream paper before)
             // (the page's h2 .star: a four-pointed star in the makers' blue, clip-path polygon(50% 0, 61% 39%, 100% 50%, 61% 61%,
             // 50% 100%, 39% 61%, 0 50%, 39% 39%), inline before the name's first line; issue #569)
             bStar = Ui.Node("star", bCard.rt).gameObject.AddComponent<Sketch>(); bStar.raycastTarget = false;
             var sp = new[] { (0.5f, 0f), (0.61f, 0.39f), (1f, 0.5f), (0.61f, 0.61f), (0.5f, 1f), (0.39f, 0.61f), (0f, 0.5f), (0.39f, 0.39f) };
-            var navy = Ui.Hex("#25386c"); var mid = new Vector2(CardStar / 2, -CardStar / 2);
+            var navy = EnBrass; var mid = new Vector2(CardStar / 2, -CardStar / 2);
             for (int i = 0; i < sp.Length; i++)
             {
                 var (ax, ay) = sp[i]; var (bx, by) = sp[(i + 1) % sp.Length];
                 bStar.Tri(mid, new Vector2(ax * CardStar, -ay * CardStar), new Vector2(bx * CardStar, -by * CardStar), navy);
             }
-            bName = Ui.Label(bCard.rt, "name", Ui.Heavy, CardName, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(bName, 0.04f);
-            bName2 = Ui.Label(bCard.rt, "name 2", Ui.Heavy, CardName, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(bName2, 0.04f);
-            bText = Ui.Label(bCard.rt, "text", mono, CardBody, Ui.Ink, TextAnchor.UpperCenter, lineSpacing: 1.3f);
-            bGo = Ui.Panel(bCard.rt, "go", Ui.Gold, Ui.Ink, 1.5f, 2, 2);
+            bName = Ui.Label(bCard.rt, "name", Ui.Heavy, CardName, HintInk0, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(bName, 0.04f);
+            bName2 = Ui.Label(bCard.rt, "name 2", Ui.Heavy, CardName, HintInk0, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(bName2, 0.04f);
+            bText = Ui.Label(bCard.rt, "text", mono, CardBody, HintInk0, TextAnchor.UpperCenter, lineSpacing: 1.3f);
+            bGo = Ui.Panel(bCard.rt, "go", HintInk0, EnBrass, 1, 0, 0, 5);   // (ivory, dark letters, a brass edge: the conversation's confirm badge)
             bGoBadge = Ui.Rect(bGo.rt, Ui.Ink, 4, "badge");
             bGoKey = Ui.Label(bGoBadge.rectTransform, "key", mono, 12, Cream, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bGoKey.rectTransform);
-            bGoText = Ui.Label(bGo.rt, "label", mono, 14, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold); Ui.Space(bGoText, 0.08f);
-            bSkip = Ui.Panel(root, "box skip", Ui.Hex("#fff6dc", 0.9f), Ui.Ink, 1.5f);
-            bSkipBadge = Ui.Rect(bSkip.rt, Ui.Ink, 4, "badge");
-            bSkipKey = Ui.Label(bSkipBadge.rectTransform, "key", mono, 11, Cream, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bSkipKey.rectTransform);
-            bSkipText = Ui.Label(bSkip.rt, "label", mono, 13, Ui.Ink, TextAnchor.MiddleLeft); Ui.Space(bSkipText, 0.08f);
+            bGoText = Ui.Label(bGo.rt, "label", mono, 14, EnKeyInk, TextAnchor.MiddleLeft, FontStyle.Bold); Ui.Space(bGoText, 0.08f);
+            bSkip = EnamelStrip(root, "box skip");
+            bSkipBadge = Ui.Rect(bSkip.rt, HintInk0, 4, "badge");
+            bSkipKey = Ui.Label(bSkipBadge.rectTransform, "key", mono, 11, EnKeyInk, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bSkipKey.rectTransform);
+            bSkipText = Ui.Label(bSkip.rt, "label", mono, 13, HintInk0, TextAnchor.MiddleLeft); Ui.Space(bSkipText, 0.08f);
             bCard.Show(false); bSkip.Show(false);
         }
 
@@ -1447,6 +1451,7 @@ namespace Hiraeth.Bridge
             float k = Mathf.Clamp01(bCardT / 0.4f), e = 1 - (1 - k) * (1 - k);
             float bottom = Mathf.Max(6, H * 0.055f - 34);
             Ui.Place(bCard.rt, W / 2 - w / 2, H - bottom - y + 16 * (1 - e), w, y);
+            EnamelPaint(bCard);
             Ui.Alpha(bCard.rt, Mathf.Clamp01(bCardT / 0.35f));
         }
 

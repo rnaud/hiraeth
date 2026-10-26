@@ -26,6 +26,7 @@
 import { ENDING_WORLDS, endingUnlocked, homeOpen, finaleOpen, TOWER } from './ending.js';
 import { escapeHtml } from '../prompt-keys.js';
 import { screen } from '../platform.js';
+import { enamelCard, en } from '../hud-look.js';
 
 export const CHARGE = {
   title: 'Something of Value',
@@ -92,33 +93,35 @@ export function chargeJournalHtml(st) {
 
 // ---------------------------------------------------------------------------
 // The title card: the father's words lettered over the landing site, the way a comic opens its
-// first chapter: one line of airy capitals like the title screen's (src/title.js LOGO) on a band of paper, "✦ BRING BACK
+// first chapter: one line of airy capitals like the title screen's (src/title.js LOGO) on the enamel panel (issue #687; a band of paper until v2.29), "✦ BRING BACK
 // SOMETHING OF VALUE", a pen line drawn under it (issue #222: one line, it was three). It asks nothing of you and
 // leaves by itself.
 
 // It sits low in the lower third, under the new world and the traveller (the arrival is for looking at), well
 // clear of the toasts at the top and the subtitles at the bottom, and goes in five seconds.
 const CARD_MS = 5000;
+// The enamel look of every message (issue #687, src/hud-look.js): the dark panel with its brass hairline, the ✦ in the
+// charge's gold in a column of its own beside the words (C's icon column), the words in ivory capitals.
 const CSS = `
 #charge-card { position: fixed; left: 0; right: 0; bottom: calc(6vh + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); z-index: 8050; pointer-events: none;
   display: flex; justify-content: center; opacity: 0; transition: opacity .8s; }
 #charge-card.on { opacity: 1; }
 #charge-card.off { opacity: 0; transition: opacity 1.1s; }
-#charge-card .sheet { box-sizing: border-box; width: min(max(640px, 44em), 88vw); text-align: center; color: #2b211f; padding: 10px 4vw 10px;
-  background: linear-gradient(90deg, rgba(255, 246, 220, 0), rgba(255, 246, 220, .95) 18%, rgba(255, 246, 220, .95) 82%, rgba(255, 246, 220, 0));
-  transform: translateY(8px); transition: transform 1.4s cubic-bezier(.2,.7,.2,1); }
+#charge-card .sheet { position: relative; box-sizing: border-box; max-width: calc(100vw - 32px); display: flex; align-items: center; gap: 0;
+  padding: .7em 1.6em .7em 0; ${enamelCard()} transform: translateY(8px); transition: transform 1.4s cubic-bezier(.2,.7,.2,1); }
 #charge-card.on .sheet { transform: none; }
-#charge-card h1 { margin: 0; font: 400 clamp(16px, 2.5vw, 27px)/1.1 var(--face); white-space: nowrap;
-  letter-spacing: .42em; margin-right: -.42em; color: #2b211f;
-  transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin 1.8s cubic-bezier(.2,.7,.2,1); }
-#charge-card.on h1 { letter-spacing: .22em; margin-right: -.22em; }
-#charge-card h1 i { font-style: normal; color: #f2c54b; -webkit-text-stroke: .8px #2b211f; margin-right: .35em; }
-#charge-card svg { display: block; width: min(300px, 60vw); height: 16px; margin: 3px auto 0; overflow: visible; }
-#charge-card svg path { fill: none; stroke: #2b211f; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; transition: stroke-dashoffset 1.2s .5s ease-in-out; }
+#charge-card .mark { flex: 0 0 auto; align-self: stretch; display: grid; place-items: center; padding: 0 .95em 0 1.05em; margin-right: 1.1em;
+  border-right: 1px solid ${en('frame')}; font: 400 clamp(16px, 2.3vw, 24px)/1 var(--face); color: ${en('gold')}; }
+#charge-card h1 { margin: 0; font: 500 clamp(15px, 2.1vw, 23px)/1.25 var(--face); white-space: nowrap; text-wrap: balance; color: ${en('ink')};
+  letter-spacing: .3em; margin-right: -.3em; transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin 1.8s cubic-bezier(.2,.7,.2,1); }
+#charge-card.on h1 { letter-spacing: .18em; margin-right: -.18em; }
+#charge-card .words { display: grid; justify-items: start; gap: 2px; }
+#charge-card svg { display: block; width: min(220px, 40vw); height: 10px; margin: 3px 0 0; overflow: visible; }
+#charge-card svg path { fill: none; stroke: ${en('brass')}; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; transition: stroke-dashoffset 1.2s .5s ease-in-out; }
 #charge-card.on svg path { stroke-dashoffset: 0; }
-#charge-card svg circle { fill: #f2c54b; stroke: #2b211f; stroke-width: 1.4; transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .5s 1.5s cubic-bezier(.3,1.6,.5,1); }
-#charge-card.on svg circle { transform: scale(1); }
-@media (max-width: 600px) { #charge-card .sheet { background: rgba(255, 246, 220, .95); } #charge-card h1 { white-space: normal; } #charge-card.on h1 { letter-spacing: .14em; margin-right: -.14em; } }
+@media (max-width: 600px) { #charge-card h1 { white-space: normal; } #charge-card.on h1 { letter-spacing: .1em; margin-right: -.1em; } }
+html.speech-solid #charge-card .sheet { background: #000; color: #fff; border-color: #fff; box-shadow: none; }
+html.speech-solid #charge-card .mark { border-color: #fff; }
 `;
 
 /** The title card's one line: the charge, in capitals, no full stop. */
@@ -144,8 +147,8 @@ export function showChargeCard({ sound = null, doc = typeof document !== 'undefi
   el.setAttribute('role', 'status');
   // one line, the charge itself (issue #222: "your father's charge, something of value, bring back something of value":
   // the same words three times over; it was a kicker, a title and the quote)
-  el.innerHTML = `<div class="sheet"><h1 aria-label="${CHARGE.from}: ${CHARGE.words}"><i>${CHARGE.mark}</i>${chargeCardLine()}</h1>
-    <svg viewBox="0 0 520 26" aria-hidden="true"><path d="M14 15 C120 6 230 20 330 12 S470 9 506 14"/><circle cx="260" cy="15" r="5"/></svg></div>`;
+  el.innerHTML = `<div class="sheet"><span class="mark" aria-hidden="true">${CHARGE.mark}</span><div class="words"><h1 aria-label="${CHARGE.from}: ${CHARGE.words}">${chargeCardLine()}</h1>
+    <svg viewBox="0 0 520 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 10 C120 4 230 15 330 9 S470 7 516 10"/></svg></div></div>`;
   doc.body.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');

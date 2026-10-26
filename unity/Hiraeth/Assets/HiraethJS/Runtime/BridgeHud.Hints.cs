@@ -6,6 +6,20 @@ namespace Hiraeth.Bridge
 {
     public partial class BridgeHud
     {
+        // The enamel of every other message (issue #687, src/hud-look.js ENAMEL_ENGINE): D's dark panel with one brass
+        // hairline for a card (the charge, a box's find, the knock-out, a game's cards, the subtitles, the balloons), C's
+        // charcoal strip for a tag or a flash; brass capitals for a card's label, ivory badges with dark letters.
+        static readonly Color EnPanel = Ui.Hex("#161d1d", .97f), EnBrass = Ui.Hex("#d9b575"), EnBrassInk = Ui.Hex("#edbc76"),
+            EnGold = Ui.Hex("#f2c54b"), EnKeyInk = Ui.Hex("#18201f"), EnSoft = Ui.Hex("#f7ecd2", .72f), EnScrim = new Color(12 / 255f, 15 / 255f, 15 / 255f, .55f),
+            EnBad = Ui.Hex("#e0775f");
+        static Ui.Box EnamelCard(Transform parent, string name, int radius = 10) => Ui.Panel(parent, name, EnPanel, EnBrass, 1.5f, 0, 0, radius);
+        static Ui.Box EnamelStrip(Transform parent, string name, int radius = 7) => Ui.Panel(parent, name, HintBg0, HintBg0, 0, 0, 0, radius);
+        /// <summary>A card's colours now (the plain speech setting: black, a white hairline, white words).</summary>
+        void EnamelPaint(Ui.Box box, bool card = true)
+        {
+            box.SetFill(solid ? Color.black : card ? EnPanel : HintBg0);
+            if (box.border) box.border.color = solid ? Color.white : card ? EnBrass : HintBg0;
+        }
         // The shared web --hint-* frame/tab. Allocated once per panel; never a gameplay state.
         static readonly Color HintAccent = Ui.Hex("#79c9c0");
         class EnamelTrim { public Image frame, tab, divider, rivet; public UnityEngine.UI.Text mark; }

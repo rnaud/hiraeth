@@ -12,6 +12,8 @@ export const CHANGELOG = [
     v: '2.30', date: '2026-10-26',
     items: [
       "Vael’s sky stones are no longer one flat colour where you walk: the plateaus, the great table, the rose cliff, the floating island, the rock arch and the stones you hop across have soft patches of a warmer and a cooler tone, a fine crackled crust, long cracks and pebbles with their shadows, while their cliffs keep their bands. The aqueducts and the monastery’s walls are built of large pale stone blocks, the aqueducts’ decks laid in flagstones.",
+      "Your father’s charge, “Bring back something of value”, which comes up after his voicemail as you land, now sits on the same dark panel as the rest of the HUD: a thin brass edge, the gold ✦ in its own column, the words in light capitals. His voicemail’s subtitles, and every other scene’s, are on that dark panel too, the speaker’s name in brass.",
+      "The rest of the screen’s messages match the new HUD: what people say in passing, a makers’ box’s card, the knock-out card, the next world’s name on the way, the skip tags, the spell and gadget chips, and in the games the start, pause and results cards, the clock and score, the flashes, the 3-2-1, the fishing catch and journal and the sketch hunt’s list. Dark panels, brass labels, light buttons with dark letters; nothing left on cream paper with a heavy black shadow.",
     ],
   },
 

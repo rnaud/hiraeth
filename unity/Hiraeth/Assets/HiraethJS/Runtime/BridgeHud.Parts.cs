@@ -47,8 +47,8 @@ namespace Hiraeth.Bridge
             balloonA = list.Count > 0 ? Mathf.MoveTowards(balloonA, 1, Time.unscaledDeltaTime / 0.25f) : 0;   // (opacity .25 s)
             while (balloons.Count < list.Count)
             {
-                var box = Ui.Panel(balloonRoot, "balloon", BalloonPaper, Ui.Ink, 2, 0, 0, 16);
-                var text = Ui.Label(box.rt, "text", Ui.Sans, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Normal, 1.2f);
+                var box = EnamelCard(balloonRoot, "balloon");   // (the conversation's dark panel: issue #687)
+                var text = Ui.Label(box.rt, "text", Ui.Sans, 14, HintInk0, TextAnchor.UpperLeft, FontStyle.Normal, 1.2f);
                 var tail = Ui.Node("tail", box.rt).gameObject.AddComponent<Sketch>(); tail.raycastTarget = false;
                 balloons.Add((box, text, tail));
             }
@@ -61,7 +61,8 @@ namespace Hiraeth.Bridge
                 if (!at.HasValue) continue;
                 float fs = TypeS, em = fs;
                 text.fontSize = Mathf.RoundToInt(fs);
-                var said = RichMarked(m.S("text") ?? "");   // (its tone's tag already off: balloon-part.js; a {glyph} the makers' mark, issue #513)
+                var said = RichMarked(m.S("text") ?? "").Replace("<color=#b23a2c>", solid ? "<color=#704000>" : "<color=#edbc76>");   // (its tone's tag already off: balloon-part.js; a {glyph} the makers' mark, issue #513)
+                EnamelPaint(box); text.color = solid ? Color.white : HintInk0;
                 var s = Ui.Set(text, said, 17 * em - 2 * 0.85f * em);
                 float bw = s.x + 2 * 0.85f * em + 4, bh = s.y + 2 * 0.5f * em + 4;
                 bool shout = m.S("kind") == "shout";
@@ -74,7 +75,7 @@ namespace Hiraeth.Bridge
                 balloonMarks[i].Lay(text, said, s, MarkPicture(m.L("mark")));
                 // (the tail: border 10 px, its top in ink: a right-angled corner from 24 to 34 px along the foot, down 10 px)
                 Ui.Place(tail.rectTransform, 0, bh, 1, 1);
-                tail.Clear(); tail.Tri(new Vector2(24, 1), new Vector2(34, 1), new Vector2(24, -9), Ui.Ink);
+                tail.Clear(); tail.Tri(new Vector2(24, 1), new Vector2(32, 1), new Vector2(24, -7), solid ? Color.white : EnBrass);
                 Ui.Alpha(box.rt, balloonA);
             }
         }

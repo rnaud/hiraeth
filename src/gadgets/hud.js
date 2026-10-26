@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { screen } from '../platform.js';
+import { en, enamelStrip } from '../hud-look.js';   // the chips in the enamel of every message (issue #687)
 
 // The gadgets on the screen (docs/systems/gadgets.md, "On the screen"): a small round chip in the top right
 // corner with the gadget in hand (its picture alone, issue #240), a reticle on what the aim
@@ -17,20 +18,20 @@ import { screen } from '../platform.js';
 const CSS = `
 #gadget-chip { position: fixed; isolation: isolate; right: calc(14px + var(--safe-right, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
   display: none; place-items: center; width: clamp(30px, 6vh, 42px); height: clamp(30px, 6vh, 42px); box-sizing: border-box; padding: 0;
-  background: rgba(255, 250, 240, 0.92); border: 1.5px solid #2b211f; border-radius: 50%; box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6);
-  font: calc(clamp(30px, 6vh, 42px) * 0.55)/1 var(--face); color: #2b211f; pointer-events: none; transition: opacity 0.2s; }
+  background: ${en('strip')}; border: 1.5px solid ${en('brass')}; border-radius: 50%; box-shadow: ${en('shadow')};
+  font: calc(clamp(30px, 6vh, 42px) * 0.55)/1 var(--face); color: ${en('ink')}; pointer-events: none; transition: opacity 0.2s; }
 #gadget-chip.on { display: grid; }
 body.minigame #gadget-chip, body.minigame #gadget-reticle, body.minigame #gadget-wheel { display: none !important; }   /* (a game takes the buttons: src/minigames/) */
 #gadget-chip img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 #gadget-chip.gauge::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; pointer-events: none;
-  background: conic-gradient(#2f7f86 calc(var(--k, 1) * 360deg), rgba(43, 33, 31, 0.18) 0);
+  background: conic-gradient(${en('accent')} calc(var(--k, 1) * 360deg), rgba(22, 23, 23, 0.35) 0);
   -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
 #gadget-chip.empty { opacity: 0.5; }   /* (none left: the bombs thrown, the shell's song spent) */
 #gadget-chip.flash { animation: gchip 0.6s ease-out; }
-@keyframes gchip { 0% { transform: scale(1.35); box-shadow: 0 0 0 5px #f2c54b; } 100% { transform: scale(1); box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
+@keyframes gchip { 0% { transform: scale(1.35); box-shadow: 0 0 0 5px #f2c54b; } 100% { transform: scale(1); box-shadow: ${en('shadow')}; } }
 @media (prefers-reduced-motion: reduce) { #gadget-chip.flash { animation: gchip-still 0.6s ease-out; } }
 html.reduce-motion #gadget-chip.flash { animation: gchip-still 0.6s ease-out; }
-@keyframes gchip-still { 0% { box-shadow: 0 0 0 5px #f2c54b; } 100% { box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
+@keyframes gchip-still { 0% { box-shadow: 0 0 0 5px #f2c54b; } 100% { box-shadow: ${en('shadow')}; } }
 body:not(.nofps) #fps:not(:empty) ~ #gadget-chip { top: calc(48px + var(--safe-top, 0px)); }   /* (the frame readout, when asked for, keeps the corner) */
 body.touch #gadget-chip { pointer-events: auto; right: calc(56px + var(--safe-right, 0px)); }   /* (beside the menu's button; tapped: the next gadget) */
 body.talking #gadget-chip, body.photo #gadget-chip, body.photo #gadget-reticle, body.photo #gadget-wheel, body.photo #gadget-marks { display: none; }
@@ -48,7 +49,7 @@ body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wh
 #gadget-reticle.nohold .r::before { width: 16px; margin-left: -8px; }
 #gadget-reticle.nohold .r::after { height: 16px; margin-top: -8px; }
 #gadget-reticle span { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 5px;
-  font: calc(var(--type-s) * 0.8)/1.5 var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
+  font: calc(var(--type-s) * 0.8)/1.5 var(--face); ${enamelStrip()} }
 #gadget-marks { position: fixed; inset: 0; z-index: 31; pointer-events: none; }
 #gadget-marks .m { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
 #gadget-marks .m::before { content: ''; position: absolute; inset: 3px; border: 2.5px solid #c8483a; background: rgba(247, 236, 210, 0.75); transform: rotate(45deg); box-shadow: 0 0 0 1.5px #2b211f; }
@@ -64,8 +65,8 @@ body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wh
 #gadget-wheel .slot { overflow: hidden; }
 #gadget-wheel .slot.none { font-size: 11px; font-family: var(--face); }
 #gadget-wheel .slot.hi { transform: scale(1.25); background: #f2c54b; }
-#gadget-wheel .name { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 3px 8px; background: #f7ecd2; border: 1.5px solid #2b211f;
-  font: var(--type-s)/1.4 var(--face); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #2b211f; }
+#gadget-wheel .name { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 3px 9px; ${enamelStrip()}
+  font: var(--type-s)/1.4 var(--face); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
 #touch .b-gadget { display: none; }   /* (its place and size: src/touch-layout.js, set by ui.js TouchControls) */
 body.gadget-on #touch .b-gadget { display: block; }
 body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !important; }   /* (a game, a conversation: nothing to use it on) */

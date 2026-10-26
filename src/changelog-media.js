@@ -1476,7 +1476,137 @@ export const CHANGELOG_MEDIA = {
       "note": "The rock top costs most where a plateau’s top fills the screen (+0.6..+1.6 ms on High); elsewhere within the machine’s noise. Draw calls unchanged; four shader programs more."
     }
   ]
-}
+},
+    {
+      "match": "Your father’s charge, “Bring back something of value”",
+      "shots": [
+        {
+          "name": "charge-card",
+          "title": "The charge (web)",
+          "caption": "The father’s charge as you land: a cream band before, the dark enamel panel with its brass edge and the ✦ in its own column after.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "voicemail-subtitle",
+          "title": "His voicemail’s subtitle",
+          "caption": "The father’s line in the letterbox: cream paper with a hard black shadow before, the conversation’s dark panel and a brass name after.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            200
+          ]
+        },
+        {
+          "name": "charge-unity",
+          "title": "The charge (Unity)",
+          "caption": "The same charge in the Unity version: a paper band before, the enamel panel after.",
+          "from": "Issue #687: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -level desert -mute -ui charge,voicemail: engine/ui-poses.js puts the charge and the father’s line on the screen’s state as the game does), 1280 × 720; before: the original BridgeHud C#, after: this change; the pen line under the charge is still drawing at the moment of the picture; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "voicemail-unity",
+          "title": "The subtitle (Unity)",
+          "caption": "The father’s line in the Unity version, on the dark panel.",
+          "from": "Issue #687: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -level desert -mute -ui charge,voicemail: engine/ui-poses.js puts the charge and the father’s line on the screen’s state as the game does), 1280 × 720; before: the original BridgeHud C#, after: this change; the pen line under the charge is still drawing at the moment of the picture; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        }
+      ]
+    },
+    {
+      "match": "The rest of the screen’s messages match the new HUD",
+      "shots": [
+        {
+          "name": "restart",
+          "title": "Knocked out",
+          "caption": "The knock-out card: the dark panel and an ivory Restart button.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            600,
+            300
+          ]
+        },
+        {
+          "name": "box-card",
+          "title": "A makers’ box",
+          "caption": "A box’s find on the dark panel, its star in brass.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            600,
+            250
+          ]
+        },
+        {
+          "name": "balloon",
+          "title": "In passing",
+          "caption": "A passer-by’s words on the dark panel with a brass tail.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            460,
+            160
+          ]
+        },
+        {
+          "name": "warp-title",
+          "title": "On the way",
+          "caption": "The next world’s name on the enamel card over the warp.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            900,
+            280
+          ]
+        },
+        {
+          "name": "chips",
+          "title": "Spell and gadget",
+          "caption": "The gadget and spell chips, dark with a brass ring edge; the cooldown’s seconds in soft ivory.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            280,
+            200
+          ]
+        },
+        {
+          "name": "game-card",
+          "title": "A game’s start card",
+          "caption": "The Ring Race’s start card: brass labels and keys, a turquoise rule beside the rules, the focused button ivory.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "game-results",
+          "title": "A game’s results",
+          "caption": "The results with a new best and an outfit won, on the same panel.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        {
+          "name": "fish-catch",
+          "title": "Fishing",
+          "caption": "The catch card and the journal on the dark panel, the prompt on the hints’ strip.",
+          "from": "Issue #687: the web game in muted headless Chrome (sound muted at construction, Chrome --mute-audio), High, 1280 × 720, a Vite of its own (port 5448), ?level=desert at 10 h (or ?game=rings / ?game=fishing), each message put up through the game’s own renderers (showChargeCard, Cinema.say/skip, BoxCard, Warp, SpellHud/GadgetHud, the restart card, the minigame runner’s cards); before: origin/main at 280a6d97c, after: this change; staged presentation, not earned play; 26 October; cwebp -q 72",
+          "size": [
+            1280,
+            720
+          ]
+        }
+      ]
+    }
   ],
   '2.29': [
 {

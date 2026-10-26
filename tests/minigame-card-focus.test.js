@@ -19,19 +19,19 @@ function rule(css, sel) {
 }
 const bg = (decl) => decl?.match(/background(?:-color)?:\s*([^;]+)/)?.[1].trim() ?? null;
 
-test('the card\'s main button is no longer filled: only a red edge marks it', () => {
+test('the card\'s main button is no longer filled: only an edge marks it (turquoise, the enamel\'s tab since issue #687)', () => {
   const css = read('src/minigames/kit/minigames.css');
   const main = rule(css, '#minigame .sheet button.main');
   assert.ok(main, 'a rule for the main button');
   assert.equal(bg(main), null, 'the main button keeps the paper of the others');
-  assert.match(main, /border-left:\s*\d+px solid #c8483a/, 'a red edge at its left');
+  assert.match(main, /border-left:\s*\d+px solid var\(--en-accent\)/, 'a turquoise edge at its left');
 });
 
 test('the focused button is the one filled, in a colour no other button has', () => {
   const css = read('src/minigames/kit/minigames.css');
   const focus = rule(css, '#minigame .sheet button:focus');
   assert.ok(focus);
-  assert.equal(bg(focus), '#c8483a', 'filled red, as the Start menu\'s');
+  assert.equal(bg(focus), 'var(--en-ink)', 'filled ivory, as the conversation\'s confirm badge (issue #687; red before)');
   assert.notEqual(bg(rule(css, '#minigame .sheet button:hover')), bg(focus), 'the mouse over another button is not drawn as the focus');
   assert.notEqual(bg(rule(css, '#minigame .sheet button')), bg(focus));
 });
@@ -56,7 +56,7 @@ test('Unity draws the pad\'s button filled and the main one only edged (BridgeMe
   const cs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs', import.meta.url), 'utf8');
   const build = cs.slice(cs.indexOf('void BuildCard('), cs.indexOf('// ------------------------------------------------------------------ the Arena'));
   // (red follows the pad alone; the mouse over another only its :hover's paler paper, issue #574)
-  assert.match(build, /cb\.box\.SetFill\(on \? CardRed : over \? CardHover : Ui\.CardC\)/, 'the fill follows the pad alone');
+  assert.match(build, /cb\.box\.SetFill\(on \? CardInk : over \? CardButtonHover : CardButtonFill\)/, 'the fill follows the pad alone');
   assert.match(build, /bool over = !on && HoverOn\(b\.S\("pt"\)\);/);
   assert.doesNotMatch(build, /main \? Ui\.Gold/, 'no gold main button');
   assert.match(build, /Show\(cb\.accent, main\)/, 'the main one\'s red edge');

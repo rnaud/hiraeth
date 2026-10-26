@@ -27,7 +27,7 @@ test('small, round, in the top right corner, clear of the frame readout and the 
 });
 
 test('a count is a ring round it, none left fades it, and a change of gadget pops it with a gold ring (still with Reduce motion)', () => {
-  assert.match(css, /#gadget-chip\.gauge::before \{[^}]*conic-gradient\(#2f7f86 calc\(var\(--k, 1\) \* 360deg\)/);
+  assert.match(css, /#gadget-chip\.gauge::before \{[^}]*conic-gradient\(\$\{en\('accent'\)\} calc\(var\(--k, 1\) \* 360deg\)/);   // (the enamel's turquoise: issue #687)
   assert.match(css, /#gadget-chip\.empty \{ opacity: 0\.5; \}/);
   assert.match(css, /@keyframes gchip \{ 0% \{ transform: scale\(1\.35\); box-shadow: 0 0 0 5px #f2c54b; \}/);
   assert.match(css, /html\.reduce-motion #gadget-chip\.flash \{ animation: gchip-still/);
