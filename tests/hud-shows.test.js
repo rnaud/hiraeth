@@ -9,7 +9,7 @@ const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
 /** The page's rules that hide a HUD piece under a body class: [{ state, part }] (`body.talking #prompt { visibility: hidden }`). */
 function cssHides() {
-  const css = [read('index.html'), read('src/gadgets/hud.js'), read('src/minigames/kit/minigames.css')].join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  const css = [read('index.html'), read('src/hud-styles/gadget.js'), read('src/minigames/kit/minigames.css')].join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
   const out = [];
   for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const decl = m[2];

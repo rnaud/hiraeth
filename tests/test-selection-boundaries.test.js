@@ -226,3 +226,14 @@ test('key presentation and Unity input policy do not select unrelated expensive 
  for(const input of ['src/hud-view.js','scripts/unity-release-plan.mjs'])assert.deepEqual(selection(input,consumer),[witness],input);
  for(const input of ['scripts/unity-release-inputs.mjs','src/characters/traveller-v2.js','engine/game.js'])assert.ok(selection(input,consumer).includes(consumer),input);
 });
+
+test('browser theme changes exclude gameplay journeys while actual behavior still reaches them', () => {
+  for (const consumer of ['tests/sequences-opening.test.js', 'tests/sequences-play.test.js', 'tests/engine-finishable.test.js']) {
+    for (const presentation of ['src/hud-look.js', 'src/hud-styles/cinema.js', 'src/hud-styles/box-card.js']) {
+      assert.deepEqual(selection(presentation, consumer), [witness], consumer + ' excludes ' + presentation);
+    }
+    assert.ok(selection('src/ship/cinema.js', consumer).includes(consumer), consumer + ' retains cinema behavior');
+  }
+  assert.ok(selection('src/hud-look.js', 'tests/ui-style-registry.test.js').includes('tests/ui-style-registry.test.js'));
+  assert.ok(selection('src/hud-styles/cinema.js', 'tests/unity-letterbox.test.js').includes('tests/unity-letterbox.test.js'));
+});

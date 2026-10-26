@@ -6,7 +6,7 @@ import { OBSTACLES } from '../src/ship/cinema.js';
 
 // Issue #240: "The UI showing the currently equipped gadget should be smaller and at the top right corner of the
 // screen. Just show the gadget itself, no text."
-const css = readFileSync(new URL('../src/gadgets/hud.js', import.meta.url), 'utf8');
+const css = readFileSync(new URL('../src/gadgets/hud.js', import.meta.url), 'utf8') + '\n' + readFileSync(new URL('../src/hud-styles/gadget.js', import.meta.url), 'utf8');
 const rule = css.slice(css.indexOf('#gadget-chip { position'), css.indexOf('}', css.indexOf('#gadget-chip { position')));
 
 test('the chip is the gadget\'s picture alone: no name, no count, no button', () => {

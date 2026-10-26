@@ -1,3 +1,4 @@
+import './hud-styles.js';
 if (new URLSearchParams(location.search).has('markReview')) {
   const { seedMarkReview } = await import('./makers-mark/runtime.js');
   await seedMarkReview();

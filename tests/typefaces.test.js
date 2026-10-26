@@ -64,7 +64,7 @@ test('the core screens are set in the game’s face and sized from the screen’
   assert.match(rule(html, '#dialogue'), /var\(--dlg\)\/1\.4 var\(--face\)/, 'the compact conversation retains screen-relative sizing and the game face');
   assert.match(rule(read('src/minigames/kit/minigames.css'), '#minigame'), /var\(--type-s\)\/1\.45 var\(--face\)/, 'the minigames');
   assert.match(read('src/menus.css'), /\.fullmenu \{[^}]*var\(--type-s\)\/1\.45 var\(--face\)/, 'the settings');
-  assert.match(read('src/boxes/card.js'), /#boxcard \{[^}]*var\(--type-s\)\/1\.4 var\(--face\)/, 'the item card');
+  assert.match(read('src/hud-styles/box-card.js'), /#boxcard \{[^}]*var\(--type-s\)\/1\.4 var\(--face\)/, 'the item card');
 });
 
 test('a script’s word is as wide as its English in the panel’s face (measured), 1ch a letter where nothing measures', () => {

@@ -8,7 +8,7 @@ import { HINT, HINT_ENGINE, HINT_KINDS, HINT_VARS } from '../src/hint-look.js';
 import { layoutCinema, OBSTACLES } from '../src/ship/cinema.js';
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
-const html = src('index.html'), cine = src('src/ship/cinema.js');
+const html = src('index.html'), cine = src('src/ship/cinema.js') + '\n' + src('src/hud-styles/cinema.js');
 // (cinema.js's CSS with HINT's values put in, as the page gets it)
 const cineCss = cine.replace(/\$\{HINT\.(\w+)\}/g, (_, k) => HINT[k]);
 const css = html + '\n' + cineCss;
