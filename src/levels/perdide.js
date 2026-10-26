@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
-import { facetUV } from '../surface-marks.js';
+import { crystalCluster, crystalCollider, crystalPrism, crystalRand } from '../crystal-forms.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike, buildSocket } from '../bike.js';
 import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
@@ -222,7 +222,7 @@ export const SKIFF_HULL = [
   [1.05, 0.8, 0.22], [1.05, -0.6, 0.22],                                // its two arms, between it and the hull
 ];
 
-export const CRYSTAL = ['#a99be0', '#62c3c9', '#c7a6f2', '#7fe0d0'];
+export const CRYSTAL = ['#a29bc6', '#98bab5', '#b8b1d2', '#a6c6bb', '#9a94c0'];   // (the sheet's soft lavenders and aqua-mints: issue #693)
 
 // the level's content (levels/content.js): the story is a quest (src/story/perdide-data.js),
 // so the page opens on the first visit and closes when the splinter sings in the cave
@@ -299,17 +299,34 @@ export function* buildPerdide(scene) {
     for (let i = 0; i < count; i++) {
       const x = cx + (rng() - 0.5) * spread, z = cz + (rng() - 0.5) * spread;
       const h0 = (6 + rng() * rng() * 40) * scale, h = cap ? cap(x, z, h0, terrain.heightAt(x, z) - 0.5) : h0, r = (0.8 + rng() * 2.5) * scale;
-      const g = facetUV(new THREE.CylinderGeometry(0, r, h, 5, 1), 5);   // (its facets' frame: S_CRYSTAL)
-      g.translate(0, h / 2, 0);
-      g.rotateX((rng() - 0.5) * 0.5).rotateZ((rng() - 0.5) * 0.5);
-      g.translate(x, terrain.heightAt(x, z) - 0.5, z);
-      const c = pick(CRYSTAL);
-      if (!hushVista(x, z, r + h * .2)) (parts[c] ??= []).push(g.toNonIndexed());
-      else g.dispose();
+      // a cluster as the sheet's (src/crystal-forms.js, issue #693): a six-sided prism with its point, chipped, a few
+      // smaller ones leaning out round its foot, in its own dice (the world's are drawn as they always were)
+      const cr = crystalRand(x, z), rr = Math.max(r * 0.55, h / 13);
+      const cl = crystalCluster({ r: rr, h }, cr);
+      const rx = (rng() - 0.5) * 0.5, rz = (rng() - 0.5) * 0.5, gy = terrain.heightAt(x, z) - 0.5;
+      const c = pick(CRYSTAL), other = CRYSTAL[(CRYSTAL.indexOf(c) + 1 + Math.floor(cr() * 3)) % CRYSTAL.length];
+      const keep = !hushVista(x, z, rr * 2 + h * .2);
+      for (const { geo, main } of cl) {
+        geo.rotateX(rx).rotateZ(rz).translate(x, gy, z);
+        if (keep) (parts[main || cr() < 0.6 ? c : other] ??= []).push(geo);
+        else geo.dispose();
+      }
     }
     if (skip) return;   // (its draws taken all the same: the rest of the swamp grows where it always did)
-    for (const [c, list] of Object.entries(parts))
-      scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55, crystalFacets: true })));   // (faceted, glowing from the root: surface-marks.js, issue #686)
+    const solid = [];
+    for (const [c, list] of Object.entries(parts)) {
+      const m = new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55, crystalFacets: true }));   // (faceted, glowing from the root: surface-marks.js, issue #686)
+      m.userData.noCollide = true;   // (solid all the same: through the grove's collider below)
+      solid.push(crystalCollider(m.geometry));
+      scene.add(m);
+    }
+    // the grove's collision: the same crystals, each face once (the drawn ones are fans round each face's middle, for
+    // their facets' frame: twice the triangles to bake, issue #693), invisible
+    if (solid.length) {
+      const col = new THREE.Mesh(mergeGeometries(solid), new THREE.MeshBasicMaterial());
+      col.visible = false; col.name = 'A crystal grove (its collision)';
+      scene.add(col);
+    }
   }
   // (the landing island's grove, with a notch in it on the line from Saba's stone to the cave's crown: src/lorn-ways.js)
   crystals(40, -70, 60, 50, 1, crownWindow(CAVE));
@@ -402,20 +419,32 @@ export function* buildPerdide(scene) {
   {
     const gx = GREAT.x, gz = GREAT.z, base = terrain.heightAt(gx, gz);
     const parts = [], spires = [];
+    const gr = crystalRand(gx, gz, 1);
     for (let i = 0; i < 9; i++) {
-      const h = 35 + rng() * 60, r = 5 + rng() * 7;
-      const g = facetUV(new THREE.CylinderGeometry(0, r, h, 6), 6).translate(0, h / 2, 0);
+      // a long six-sided spire with its point, chipped (src/crystal-forms.js, issue #693), as wide as the old cone a third up
+      const h = 35 + rng() * 60, r = 5 + rng() * 7, rr = r * 0.62, tip = Math.min(rr * (1.3 + gr() * 0.5), h * 0.4);
+      const g = crystalPrism({ r: rr, h, tip, chips: 3 + Math.floor(gr() * 3), broken: 0.12 }, gr);
       const rx = (rng() - 0.5) * 0.6, rz = (rng() - 0.5) * 0.6;
       g.rotateX(rx).rotateZ(rz);
       const tx = (rng() - 0.5) * 16, tz = (rng() - 0.5) * 16;
       g.translate(tx, -2, tz);
-      parts.push(g.toNonIndexed());
+      parts.push(g);
       // where the fluid can splash it: a few points up its axis, each as wide as the spire there
       const R = new THREE.Matrix4().makeRotationZ(rz).multiply(new THREE.Matrix4().makeRotationX(rx));
-      for (const k of [0.12, 0.3, 0.5]) spires.push({ pos: new THREE.Vector3(0, k * h, 0).applyMatrix4(R).add(new THREE.Vector3(gx + tx, base - 2, gz + tz)), r: r * (1 - k) + 1.2 });
+      for (const k of [0.12, 0.3, 0.5]) spires.push({ pos: new THREE.Vector3(0, k * h, 0).applyMatrix4(R).add(new THREE.Vector3(gx + tx, base - 2, gz + tz)), r: rr * Math.min(1, (h - k * h) / tip) + 1.2 });
+    }
+    // and a ring of smaller crystals leaning out round its foot, as the sheet's
+    // (none on the side toward the Hush-House: its crown crystal is seen from the fallen splinter over the island, issue #476)
+    const toHouse = Math.atan2(HUSH_HOUSE.z - gz, HUSH_HOUSE.x - gx);
+    for (let i = 0; i < 7; i++) {
+      const a = (i + gr() * 0.6) * Math.PI * 2 / 7, d = 13 + gr() * 7, h = 9 + gr() * 16, rr = 1.8 + gr() * 2.2;
+      if (Math.abs(Math.atan2(Math.sin(a - toHouse), Math.cos(a - toHouse))) < 0.75) continue;
+      const g = crystalPrism({ r: rr, h, chips: 2 + Math.floor(gr() * 2) }, gr).translate(0, -rr * 0.5, 0);
+      g.applyMatrix4(new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(Math.sin(a), 0, -Math.cos(a)), 0.3 + gr() * 0.35));
+      parts.push(g.translate(Math.cos(a) * d, -2, Math.sin(a) * d));
     }
     // its own material: the story brightens it while it sings
-    const crMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.8, greatCrystal: true, crystalFacets: true });
+    const crMat = makeMaterial({ color: '#a79cd0', flat: true, glow: 0.8, greatCrystal: true, crystalFacets: true });
     const cr = new THREE.Mesh(mergeGeometries(parts), crMat);
     cr.userData.castShadow = true;   // it glows, but it is a 95 m spire of solid crystal: it stands in the sun (shadows.js selfLitSkips)
     cr.position.set(gx, base, gz);
@@ -468,13 +497,11 @@ export function* buildPerdide(scene) {
     for (let i = 0; i < 46; i++) {
       const zz = (rng() - 0.5) * CAVE.len * 0.9, a = 0.15 + rng() * (Math.PI - 0.3);
       const h = 2 + rng() * 5;
-      const g = facetUV(new THREE.CylinderGeometry(0, 0.4 + rng() * 0.8, h, 5), 5).translate(0, h / 2, 0);
-      const nx = Math.cos(a), ny = Math.sin(a);
-      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-nx, -ny, 0)));
-      g.translate(nx * CAVE.r * 0.97, ny * CAVE.r * 0.97, zz);
-      inside.push(g.toNonIndexed());
+      // a small cluster out of the rock (src/crystal-forms.js, issue #693), in its own dice
+      const r = 0.4 + rng() * 0.8, nx = Math.cos(a), ny = Math.sin(a), q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-nx, -ny, 0));
+      for (const { geo } of crystalCluster({ r: r * 0.6, h, companions: h > 4 ? 2 : 1 }, crystalRand(zz, a, 2))) inside.push(geo.translate(0, -0.3, 0).applyQuaternion(q).translate(nx * CAVE.r * 0.97, ny * CAVE.r * 0.97, zz));
     }
-    caveMat = makeMaterial({ color: '#7fe0d0', flat: true, glow: 1, caveCrystals: true, crystalFacets: true });   // its own: they answer the splinter
+    caveMat = makeMaterial({ color: '#93c9c0', flat: true, glow: 1, caveCrystals: true, crystalFacets: true });   // its own: they answer the splinter
     grp.add(new THREE.Mesh(mergeGeometries(inside), caveMat));
     scene.add(grp);
   }

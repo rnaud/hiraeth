@@ -1351,6 +1351,50 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 const RELIEF696 = 'Issue #696: the review page’s captures (tools/relief-shots.mjs): a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera; one load of one build (26b565197 with this change), the shared painted-relief switch flipped between the two pictures (before: off, the flat marks as they were; after: on); 26 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '2.31': [
+  {
+    "match": "Lorn’s crystals now grow as in their drawing",
+    "numbers": [
+      { "title": "Lorn, Handheld: frame time (ms, median)", "unit": "ms", "better": "lower", "device": "M4 Pro, Chrome on Metal, 1280 × 720", "rows": [
+        { "where": "start", "before": 6.4, "after": 5.6 }, { "where": "crowd", "before": 5.9, "after": 5.2 }, { "where": "crowd2", "before": 4.8, "after": 4.3 }, { "where": "wide", "before": 4.7, "after": 4.2 }], "source": "Issue #693: .claude/skills/perf-audit/fps.mjs --worlds perdide --root (the shipped bundle), M4 Pro, 1280 × 720, Lorn's four benchmark views, median frame ms; base origin/main at 26b565197 (dist built from its git archive) against this change, back to back. Handheld on a quiet machine (load 8); High in three alternating pairs at load 10–19, the spread shown. Load: scripts/load-breakdown.mjs, two runs each, alternating (load 7–8).", "note": "Within the noise of the machine: no cost found." },
+      { "title": "Lorn, High: frame time (ms, median, three pairs)", "unit": "ms", "better": "lower", "device": "M4 Pro, Chrome on Metal, 1280 × 720", "rows": [
+        { "where": "start", "before": "6.8–12.2", "after": "9.6–11.3" }, { "where": "crowd", "before": "8.8–9.8", "after": "8.2–9.9" }, { "where": "crowd2", "before": "6.5–9.4", "after": "7.0–8.5" }, { "where": "wide", "before": "6.8–10.8", "after": "6.5–8.5" }], "source": "Issue #693: .claude/skills/perf-audit/fps.mjs --worlds perdide --root (the shipped bundle), M4 Pro, 1280 × 720, Lorn's four benchmark views, median frame ms; base origin/main at 26b565197 (dist built from its git archive) against this change, back to back. Handheld on a quiet machine (load 8); High in three alternating pairs at load 10–19, the spread shown. Load: scripts/load-breakdown.mjs, two runs each, alternating (load 7–8).", "note": "Contended (load 10–19): the pairs overlap in every view." },
+      { "title": "Lorn, High: triangles a frame (thousands, median frame)", "unit": "k", "better": "lower", "device": "M4 Pro, Chrome on Metal, 1280 × 720", "rows": [
+        { "where": "start", "before": 1707, "after": 1737 }, { "where": "crowd", "before": 1571, "after": 1590 }, { "where": "crowd2", "before": 671, "after": 785 }, { "where": "wide", "before": 927, "after": 1005 }], "source": "Issue #693: .claude/skills/perf-audit/fps.mjs --worlds perdide --root (the shipped bundle), M4 Pro, 1280 × 720, Lorn's four benchmark views, median frame ms; base origin/main at 26b565197 (dist built from its git archive) against this change, back to back. Handheld on a quiet machine (load 8); High in three alternating pairs at load 10–19, the spread shown. Load: scripts/load-breakdown.mjs, two runs each, alternating (load 7–8).", "note": "Draw calls unchanged (429, 363, 202–207, 286–295 both ways): the crystals stay one static batch a colour a grove." },
+      { "title": "Lorn: first playable frame (ms, High)", "unit": "ms", "better": "lower", "device": "M4 Pro, Chrome on Metal, 1280 × 720", "rows": [
+        { "where": "first playable", "before": "5063–5144", "after": "5356–5614" }, { "where": "collision bake", "before": "604–612", "after": "761–928" }], "source": "Issue #693: .claude/skills/perf-audit/fps.mjs --worlds perdide --root (the shipped bundle), M4 Pro, 1280 × 720, Lorn's four benchmark views, median frame ms; base origin/main at 26b565197 (dist built from its git archive) against this change, back to back. Handheld on a quiet machine (load 8); High in three alternating pairs at load 10–19, the spread shown. Load: scripts/load-breakdown.mjs, two runs each, alternating (load 7–8).", "note": "The groves collide through a collider of each face once (half the drawn triangles); the rest of the load unchanged." }
+    ],
+    "shots": [
+      {
+        "name": "crystal-shape-grove",
+        "caption": "The landing’s grove: clusters of long six-sided crystals with pointed tips, chipped corners and a few broken tips, in soft lavenders and pale aqua-mints, where plain pyramids of bright cyan and purple stood",
+        "from": "Issue #693: a muted headless Chrome on the Mac's GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the same as #686's), a Vite of its own (port 5451); before: origin/main at 26b565197 (with #686's facets), after: this change; 26 October; cwebp -q 72",
+        "view": "In the landing’s grove, looking toward the Great Crystal (a pinned camera, the same in both).",
+        "size": [1280, 720],
+        "reference": { "sheet": "references/surfaces/crystals/sheet-1.jpg", "caption": "The author’s pick (#686), the shapes and colours drawn to; its roots are not taken (the author: a bad reference)" }
+      },
+      {
+        "name": "crystal-shape-near",
+        "caption": "Close by: a crystal’s worn shoulders, a bevelled edge, a broken top; the companions lean out round the main one’s foot",
+        "from": "Issue #693: a muted headless Chrome on the Mac's GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the same as #686's), a Vite of its own (port 5451); before: origin/main at 26b565197 (with #686's facets), after: this change; 26 October; cwebp -q 72",
+        "view": "Among the landing’s crystals, looking south-east (a pinned camera, the same in both).",
+        "size": [1280, 720]
+      },
+      {
+        "name": "crystal-shape-great",
+        "caption": "The Great Crystal: nine long spires with their points, chipped, in a pale lavender, a ring of smaller crystals leaning out round its foot",
+        "from": "Issue #693: a muted headless Chrome on the Mac's GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the same as #686's), a Vite of its own (port 5451); before: origin/main at 26b565197 (with #686's facets), after: this change; 26 October; cwebp -q 72",
+        "view": "From the ford west of the island (a pinned camera, the same in both). The clouds move between loads.",
+        "size": [1280, 720]
+      },
+      {
+        "name": "crystal-shape-cave",
+        "caption": "The crystal cave: small clusters of pale mint prisms growing out of the vault, where single spikes were",
+        "from": "Issue #693: a muted headless Chrome on the Mac's GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras (the same as #686's), a Vite of its own (port 5451); before: origin/main at 26b565197 (with #686's facets), after: this change; 26 October; cwebp -q 72",
+        "view": "Inside the cave near its south mouth, looking up at the vault (a pinned camera, the same in both).",
+        "size": [1280, 720]
+      }
+    ]
+  },
 {
   match: 'Paving, stone blocks, shop tiles, metal plates and carved bands now look raised',
   shots: [
@@ -1981,7 +2025,7 @@ export const CHANGELOG_MEDIA = {
         "size": [1280, 720]
       }
     ]
-  }
+  },
   ],
   '2.29': [
 {

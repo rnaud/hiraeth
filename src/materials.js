@@ -2368,7 +2368,7 @@ ${SHADOW_GLSL}
     vec3 markOFw = vec3(length(vec2(dFdx(vObjPos.x), dFdy(vObjPos.x))), length(vec2(dFdx(vObjPos.y), dFdy(vObjPos.y))), length(vec2(dFdx(vObjPos.z), dFdy(vObjPos.z))));
     #endif
     #ifdef S_CRYSTAL
-    // a crystal's facets (src/surface-marks.js, issue #686): its uv as facetUV left it, per px (in uniform flow)
+    // a crystal's facets (src/surface-marks.js, issues #686, #693): its uv as src/crystal-forms.js lays it out, per px (in uniform flow)
     vec3 cryFw = vec3(fwidth(vTextureUV.x), fwidth(vTextureUV.x - vTextureUV.y), fwidth(vTextureUV.y));
     float cryMpp = length(fwidth(vWorldPos)) * 0.577;
     #endif

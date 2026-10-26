@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { createNoise2D, mulberry32, smoothstep } from './noise.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { facetUV } from './surface-marks.js';
+import { crystalPrism, crystalRand } from './crystal-forms.js';
 
 // The roots of the crystal (issue #188, the author's pick of Lorn's explorations, `crystal-roots`:
 // references/levels/Lorn/environment/explorations/crystal-roots/). The Great Crystal is the tip of something huge: its
@@ -145,16 +145,18 @@ export function buildCrystalVeins(scene, terrain, { great = { x: 120, z: -150 },
   bind();
 
   // ---------------------------------------------------------- the ringing groves, where the veins meet
-  const groveMat = makeMaterial({ color: '#c7a6f2', flat: true, glow: 0.55, lornGrove: true, crystalFacets: true });   // (faceted: surface-marks.js, issue #686)
+  const groveMat = makeMaterial({ color: '#b4afd0', flat: true, glow: 0.55, lornGrove: true, crystalFacets: true });   // (faceted: surface-marks.js, issue #686)
   const groves = [];
   const GROVES = [[-32, -282], [-158, -132], [58, -152]];
-  const spikes = [];   // (their uv kept: the facets' frame, facetUV)
+  const spikes = [];   // (their uv kept: the facets' frame, src/crystal-forms.js)
   GROVES.forEach(([x, z]) => {
     const g0 = terrain.heightAt(x, z);
     for (let i = 0; i < 9; i++) {
       const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * 3.2, h = R(3, 9) * (i ? 1 : 1.4), r = R(0.4, 0.95);
-      const c = facetUV(new THREE.CylinderGeometry(0, r, h, 5, 1), 5).translate(0, h / 2, 0).rotateX(R(-0.3, 0.3)).rotateZ(R(-0.3, 0.3));
-      spikes.push(c.translate(x + Math.cos(a) * d, g0 - 0.4, z + Math.sin(a) * d).toNonIndexed());
+      // a six-sided prism with its point, chipped (src/crystal-forms.js, issue #693), in its own dice
+      const px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d;
+      const c = crystalPrism({ r: r * 0.62, h }, crystalRand(px, pz, 3)).rotateX(R(-0.3, 0.3)).rotateZ(R(-0.3, 0.3));
+      spikes.push(c.translate(px, g0 - 0.4, pz));
     }
     groves.push({ at: V(x, Math.max(g0, 0), z), ring: 0 });
   });

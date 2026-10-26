@@ -8,7 +8,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis } from '../form.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
-import { facetUV } from '../surface-marks.js';
+import { crystalPrism, crystalRand } from '../crystal-forms.js';
 import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
 import { KEEPERS } from '../story/perdide2-data.js';
@@ -438,7 +438,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   yield;
   {
     const reed = new THREE.ConeGeometry(0.22, 1, 3).translate(0, 0.5, 0);
-    const shard = facetUV(new THREE.CylinderGeometry(0, 1, 1, 6), 6).translate(0, 0.5, 0);   // (its facets' frame: S_CRYSTAL)
+    const shard = crystalPrism({ r: 0.62, h: 1, tip: 0.18, chips: 3, broken: 0 }, crystalRand(0, 0, 7));   // (a six-sided prism, chipped: src/crystal-forms.js, issue #693)
     const reeds = [], shards = [], bare = kitBare('perdide');   // (the Deep Wood is Lorn's part: its runs in Lorn's coordinates)
     const stand = (cx, cz, n, spread) => {
       for (let i = 0; i < n; i++) {
@@ -466,7 +466,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       if (!clear(cx, cz, 2)) continue;
       for (let i = 0; i < 5 + rng() * 9; i++) {
         const x = cx + R(-2.5, 2.5), z = cz + R(-2.5, 2.5), h = R(3, 11), r = R(0.3, 0.8);
-        const shard = [place(x, H(x, z) - 0.4, z, r, h, r, R(-0.25, 0.25), rng() * 6, R(-0.25, 0.25)), pick(['#c9c3ea', '#e0c8e8', '#d4cdf2'])];
+        const shard = [place(x, H(x, z) - 0.4, z, r, h, r, R(-0.25, 0.25), rng() * 6, R(-0.25, 0.25)), pick(['#c2bce0', '#b9d6d0', '#cdc4e4'])];
         if (!bare(x, z, r + 0.8)) shards.push(shard);
       }
       if (c % 4 === 0) lights.push(new THREE.Vector4(cx, H(cx, cz) + 3, cz, 9));

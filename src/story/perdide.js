@@ -151,6 +151,8 @@ export function setupPerdide(ctx) {
     return m;
   });
   const baseColor = new THREE.Color(CRYSTAL_TONE), songColor = new THREE.Color('#f4eeff');
+  // (the Great Crystal's and the cave's own colours, as the level made them: issue #693's paler palette)
+  const greatColor = C.mat.uniforms.uColor.value.clone(), caveColor = level.caveMat?.uniforms.uColor.value.clone();
 
   // ---------------------------------------------------------------- the splinter
   let splinter = null;
@@ -354,7 +356,7 @@ export function setupPerdide(ctx) {
     st.flash = Math.max(0, (st.flash ?? 0) - dt * 1.5);
     level.silence = st.k;
     const pulse = 0.5 + 0.5 * Math.sin(st.clock * 5.2);
-    C.mat.uniforms.uColor.value.copy(baseColor).lerp(songColor, Math.min(0.6, st.k * (0.2 + 0.35 * pulse) + st.flash * 0.4));
+    C.mat.uniforms.uColor.value.copy(greatColor).lerp(songColor, Math.min(0.6, st.k * (0.2 + 0.35 * pulse) + st.flash * 0.4));
     C.mat.uniforms.uGlow.value = 0.8 + 0.2 * Math.min(1, st.k + st.flash);
     C.light.w = 60 + 110 * st.k + 30 * st.flash;
     const ringsOn = st.k > 0.04 && camPos.distanceToSquared(C.center) < 700 * 700;
@@ -372,7 +374,7 @@ export function setupPerdide(ctx) {
     caveSong.k += ((caveSong.t > 0 ? 1 : game.flag('perdide.heart.rung') ? 0.35 : 0) - caveSong.k) * (1 - Math.exp(-1.5 * dt));
     if (level.caveMat && flat(camPos, CAVE) < 200) {
       const cp = 0.5 + 0.5 * Math.sin(st.clock * 4);
-      level.caveMat.uniforms.uColor.value.set('#7fe0d0').lerp(songColor, caveSong.k * (caveSong.t > 0 ? 0.3 + 0.5 * cp : 0.15));
+      level.caveMat.uniforms.uColor.value.copy(caveColor).lerp(songColor, caveSong.k * (caveSong.t > 0 ? 0.3 + 0.5 * cp : 0.15));
       heartMat.uniforms.uColor.value.set('#5a6f7a').lerp(baseColor, Math.min(1, caveSong.k * 1.8));
       heartMat.uniforms.uGlow.value = 0.15 + 0.85 * Math.min(1, caveSong.k * 2);
       heartLight.w = 18 * Math.min(1, caveSong.k * 2) * (0.85 + 0.15 * cp);

@@ -148,28 +148,20 @@ test('issue #686: Lorn\'s crystals faceted, as their uniforms, on lights too (th
   assert.deepEqual(makeMaterial({ color: '#62c3c9', flat: true, glow: 0.55, crystalFacets: true }).uniforms.uFacetMarks.value.toArray(), [1, 1, 1, 1]);
 });
 
-test('issue #686: facetUV lays a pointed prism\'s facets out in its uv (edges on whole u and u - v), its caps and prisms plain', () => {
-  const g = facetUV(new THREE.CylinderGeometry(0, 1, 4, 5, 1), 5), P = g.attributes.position, U = g.attributes.uv, I = g.index;
-  const cap = g.groups.find((q) => q.materialIndex > 0);
-  for (let t = 0; t < g.groups[0].count; t += 3) {
-    // each side triangle: (x, 0), (x + 1, 0), (x + 1, 1) in uv, its point at v 1
-    const c = [0, 1, 2].map((k) => I.getX(g.groups[0].start + t + k)).map((i) => [U.getX(i), U.getY(i), P.getY(i)]);
-    const x = Math.min(...c.map((q) => q[0]));
-    assert.ok(Number.isInteger(Math.round(x * 1e6) / 1e6) && x >= 0 && x <= 4, `facet ${x}`);
-    const sorted = c.map(([u, v]) => `${Math.round((u - x) * 1e4) / 1e4},${v}`).sort();
-    assert.deepEqual(sorted, ['0,0', '1,0', '1,1']);
-    for (const [, v, y] of c) assert.equal(v, y > 0 ? 1 : 0, 'v up from the root');
-  }
-  for (let t = cap.start; t < cap.start + cap.count; t++) assert.equal(g.attributes.uv.getY(I.getX(t)), -1, 'the cap: no facet frame');
-  const col = facetUV(new THREE.CylinderGeometry(1, 1, 2, 6).toNonIndexed(), 0);
+test('issue #693: facetUV leaves a crystal-coloured part without a facet frame (v -1: its tone only)', () => {
+  const col = facetUV(new THREE.CylinderGeometry(1, 1, 2, 6).toNonIndexed());
   for (let i = 0; i < col.attributes.uv.count; i++) assert.equal(col.attributes.uv.getY(i), -1, 'a column: its tone only');
 });
 
 test('issue #686: Lorn\'s crystals take it, and the port draws it (the uv in the form\'s slot, off the plain and slim variants)', () => {
   const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
   for (const f of ['levels/perdide.js', 'levels/perdide2.js', 'lorn-veins.js']) assert.match(src(f), /crystalFacets: true/, f);
-  assert.equal((src('levels/perdide.js').match(/facetUV\(/g) ?? []).length, 3, 'the groves, the Great Crystal, the cave');
-  assert.match(src('lorn-ways.js'), /facetUV\(p, 0\)/, 'Wendel\'s columns: tone only');
+  // (issue #693: the crystals' shapes and their facet frame from src/crystal-forms.js; no cone left)
+  for (const f of ['levels/perdide.js', 'levels/perdide2.js', 'lorn-veins.js', 'lorn-ways.js']) {
+    assert.match(src(f), /crystal(Prism|Cluster)\(/, f);
+    assert.doesNotMatch(src(f), /CylinderGeometry\(0, [^)]*\), \d\)|facetUV\(new/, f);
+  }
+  assert.match(src('lorn-ways.js'), /facetUV\(p\)/, 'Wendel\'s columns: tone only');
   const shader = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader', import.meta.url), 'utf8');
   assert.match(shader, /if \(_FacetMarks\.w > 0\.0\) O_FORM = float4\(v\.uv, 0, 0\)/);
   assert.ok(shader.includes('crystalFacets(cfu, cFw, n,'));

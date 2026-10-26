@@ -31,11 +31,12 @@ test('Lorn (issue #135): the Great Crystal shows over the landing’s grove from
   globalThis.location = { search: '?level=perdide' };
   const W = A.loadWorld('perdide');
   try {
-    // the crystal: its tip aimed at from Wendel, what stops the ray is the crystal itself (its outer spires), or nothing
+    // the crystal: its tip aimed at from Wendel, what stops the ray is the crystal itself (its outer spires, prisms since
+    // issue #693: their bodies lean out further than the cones' did), or nothing
     const wendel = A.objectiveAt(W, 'wendel'), gc = beaconOf(W.level, 'the Great Crystal');
     assert.ok(gc && gc.height > 60, 'the Great Crystal stands as a landmark over 60 m tall');
     const hit = blocker(W, eyeAt(wendel), aimOf(gc));
-    assert.ok(!hit || flat(hit, V(GREAT.x, 0, GREAT.z)) < 24, `from Wendel the crystal is hidden by something at ${hit?.toArray().map((v) => v.toFixed(0))}`);
+    assert.ok(!hit || flat(hit, V(GREAT.x, 0, GREAT.z)) < 32, `from Wendel the crystal is hidden by something at ${hit?.toArray().map((v) => v.toFixed(0))}`);
 
     // the stakes: from the cave's heart to the shallows off Hollin's island, past the keepers' light
     const S = W.level.crossing.stakes.stakes, heart = A.objectiveAt(W, 'heart'), hollin = A.objectiveAt(W, 'hollin');

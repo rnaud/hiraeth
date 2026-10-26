@@ -422,17 +422,19 @@ uniform, BridgeRenderer keeping it off the plain and the slim variants.
   crystals (four colours, still one static batch: the uniform is the same on all), the Great Crystal, the cave's crystals
   with the cave's crown and Wendel's lookout (one material, `caveMat`), the ringing groves (`lorn-veins.js`, their spikes
   merged with their uv now, not through `Bucket`) and the Deep Wood's crystal clusters (instanced).
-- **The facets' frame is the geometry's uv.** `facetUV(geo, sides)` turns a `CylinderGeometry(0, r, h, sides, 1)`'s u into
-  facets (0..sides), so each side triangle runs (x, 0), (x + 1, 0), (x + 1, 1) in uv: its long edges lie where u and u − v
-  are whole numbers, v runs from the root (0) to the point (1). Caps, and with `sides` 0 a whole part (Wendel's columns),
-  get v = −1: their tone only. Call it before `toNonIndexed` or a merge (it reads the groups). Unity reads the uv in the
-  form's slot (`O_FORM = float4(v.uv, 0, 0)`), which the slim variants do not have.
+- **The facets' frame is the geometry's uv** (issue #693: `src/crystal-forms.js`). Each face is drawn as a fan round its
+  middle: u is 0 on the face's edges and 1 in its middle, so u / fwidth(u) is how many pixels a point lies from the
+  nearest edge (the rim and the chips go by it, on every edge: the long ones, the shoulder, the chips' own), and 2 /
+  fwidth(u) about how wide the face is on screen; v runs up the crystal from its root (0) to where its point is (1, even
+  when the tip is broken). The buried foot, and `facetUV(geo)` (Wendel's columns), get v = −1: their tone only.
+  Unity reads the uv in the form's slot (`O_FORM = float4(v.uv, 0, 0)`), which the slim variants do not have.
 - **What it draws**, by size on screen as the sheet's strip: each facet one flat tone (×(1 + 0.26 n.y + 0.18 n·sun + 0.3
   of its own), a seed from its flat normal; deeper and cooler in shade), always, so a crystal reads as a light, a mid and a
   deep face at play distance; a warm pale glow over the lower 38 % toward the root, in three flat steps (a smooth ramp there
   is printed as a grain), the glow term +0.06; a pale rim inside each long edge, soft over 2.5–7 px (the crease is the
-  line), once a facet is over ~10 px wide; half the facets split from the point to the root, the halves a shade apart with
-  a fine pen line, once over ~16–40 px; near (under ~1–3 cm a pixel, not on the handheld) sparse fractures and tiny
+  line), once a facet is over ~10 px wide; chips bitten out along the edges here and there (up to 0.24 m, their own
+  noise in the facet's plane, soft across the bite), drawn as light through the glow term once over ~3–8 px (as a paler
+  albedo they were printed as a dark grain: issue #693); near (under ~1–3 cm a pixel, not on the handheld) sparse fractures and tiny
   inclusions in the facet's own plane, drawn as light through the glow term (a paler albedo there broke into specks).
 - **Ceilings**: an albedo channel over ~0.9 is printed by `post.js` as a grain of specks, not a flat light, so each tone
   is scaled down whole (its hue kept) under 0.72 after the facets' tones and under 0.88 after the glow and rim: the
@@ -550,6 +552,37 @@ After the author's two picks of the census (`references/surfaces/garden-beds/she
   joints in long runs (`ROSE_SKIN.joints`: 40 % of the joint lines, 75 % of a lit line's plates), emissive and breathing
   as its circuits, which are amber now. Never organic. The engraved bands of the pick are the friezes the house already
   has. It ports as every skin's pattern (`SkinPatterns.hlsl`, regenerated).
+### Their shapes (issue #693, `src/crystal-forms.js`)
+
+After the author's second look at the sheet ("the crystals in the references have a bit rougher edges, like they have
+been chipped over time"; no roots: those were the reference's, not the crystals'):
+
+- **`crystalPrism({ r, h, sides, tip, taper, chips, broken, base }, rand)`**: a six-sided prism (its cross-section a
+  little irregular, `CRYSTAL_FORM.wobble`), narrowing by `taper` to its shoulder, a pointed tip 1.1–1.7 × r long with its
+  point a little off the axis. Worn by convex cuts (`clipSolid`: a plane through the solid, its cut a new face): a
+  shoulder's corner chipped off, an edge bevelled from part way up to the shoulder, the point blunted, and with
+  `CRYSTAL_FORM.broken` (18 %) the tip broken off at a slant. A cut that would reach past its anchor's neighbourhood is
+  left out, so a crystal never loses more than a corner; it stays closed and every face flat. About 60 triangles.
+- **`crystalCluster({ r, h, companions }, rand)`**: the main crystal and one to three smaller ones (0.3–0.68 of its
+  height) leaning out round its foot, sunk so their feet stay under the ground.
+- **Their own dice** (`crystalRand(x, z, k)`, a seed from the place): the world's `rng` is drawn exactly as before, so
+  nothing else in Lorn moves.
+- **Where**: the groves (each crystal a cluster, the main as tall as the old cone, its girth max(0.55 r, h / 13); the
+  companions take another of the palette's colours 40 % of the time, still one static batch a colour a grove), the Great
+  Crystal (nine spires at 0.62 of the old cone's radius, their splash points as wide as the spire there, and a ring of
+  seven smaller ones leaning out round its foot), the cave's (each a small cluster out of the vault), the cave's crown
+  and Wendel's lookout (unbroken: their tops are landmarks), the ringing groves and the Deep Wood's (one chipped prism,
+  instanced).
+- **Colour**: the sheet's soft lavenders and aqua-mints, paler and greyer than the cyan and purple before
+  (`CRYSTAL` in `src/levels/perdide.js`: three lavenders, two aqua-mints; the Great Crystal `#a79cd0`, the cave
+  `#93c9c0`). The story's song brightens each from the colour its level gave it, not a constant.
+- **Collision**: the drawn crystals are fans round each face's middle (for the facet frame), twice the triangles a solid
+  needs, so a grove's meshes are `noCollide` and an invisible collider (`crystalCollider`: each face once as a plain fan,
+  the buried feet left out) stands in for them: the same solid. The other crystals collide as drawn (few).
+- **Cost** (M4 Pro, 1280 × 720, the shipped bundle, base 26b565197): draw calls unchanged; triangles a frame +2–17 %
+  by view (High: start 1707k → 1737k, crowd2 671k → 785k); frame times within the noise (Handheld on a quiet machine
+  6.4/5.9/4.8/4.7 → 5.6/5.2/4.3/4.2 ms; High three contended pairs overlapping); the load's collision bake 604–612 →
+  761–928 ms, the first playable frame +0.2–0.5 s (`scripts/load-breakdown.mjs`).
 
 ## Faceted normals near the camera
 
