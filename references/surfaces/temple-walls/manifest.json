@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the inner walls of an ancient high-tech shrine built by a vanished civilisation: tall monolithic panels of dark slate and blue-grey stone-like composite, set at slightly different depths so each casts a thin shadow on the next, every panel its own close tone, crisp chamfered edges catching a pale highlight, recessed seams, thin inlaid lines of soft warm light running along the courses and turning at right angles, a band of engraved geometric signs, sparse fine machining marks and a few tiny circular sockets. Clean, precise, timeless, futuristic. Three panels side by side: a large square-on swatch of the wall; a tall hall of these walls seen from a walker's height with a small figure for scale; a strip showing the detail simplifying with distance, panels and light lines staying, fine marks gone far. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, slate grey, blue-grey, a single peach or cyan light accent, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, moss, vines, roots, organic, rot, ruins.",
+      "from": "docs/design/surface-prompts.md#temple-walls",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-25-18-05-41-4773",
+      "candidate": "openai/1",
+      "sha256": "008cd6f2d62350626b25e0588192238f066a6fe1b7d51c750415623c1959acda",
+      "bytes": 226408,
+      "costUSD": 0.041
+    }
+  ]
+}

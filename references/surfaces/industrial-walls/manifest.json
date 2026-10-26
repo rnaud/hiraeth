@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the walls of the work buildings of a foundry town under a vast iron shed: painted sheet-metal panels with rows of rivets, rendered concrete blocks with formwork lines, faded paint and repainted rectangles of a slightly different colour, thin rust streaks running down from bolts and ledges, soot gathered under eaves and round vents, a few dents, blank riveted plates. Three panels side by side: a large square-on swatch of the wall; a block of these work buildings seen from a walker's height with a small figure for scale; a strip showing the marks simplifying with distance, panels and repaints staying, rivets and streaks gone far. Lived-in and worn but calm, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust orange, burnt sienna, slate blue and sand, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, graffiti.",
+      "from": "docs/design/surface-prompts.md#industrial-walls",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-25-18-07-03-28c5",
+      "candidate": "openai/1",
+      "sha256": "76bbf859e9aa67bab46880a82c6251a4c382c38ccc367907f65485586c8f6cfd",
+      "bytes": 241664,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the open ground of a desert planet seen from a walker's height to the horizon: salmon and ochre sand and packed earth, soft wind ripples gathered in drifts, scattered pebbles each with a tiny shadow, cracked dry patches, faint tracks, larger soft patches of a slightly different tone, a few long pen lines following the fall of the slopes. Three panels side by side: a large swatch of the ground seen from above at close range; a wide view across rolling ground with a small figure for scale, the marks thinning with distance; a strip showing the marks simplifying with distance, dense near, broad tone patches and a few long lines in the middle distance, flat colour far. Big calm shapes, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, salmon, ochre, pale sand and lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, grass.",
+      "from": "docs/design/surface-prompts.md#open-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-25-18-07-31-8fce",
+      "candidate": "openai/1",
+      "sha256": "c99d4b37a8a9ac0522d580ba0630e0c8a383390dee46df4c7d5cfa4585d872f9",
+      "bytes": 246729,
+      "costUSD": 0.041
+    }
+  ]
+}
