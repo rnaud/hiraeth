@@ -154,8 +154,10 @@ try {
   await sleep(1000);
   check(await ev(`window.ship.playing`), 'the dash plays it');
   await shot('voicemail');
-  for (let k = 0; k < 40 && (await ev('window.ship.playing')); k++) { await key('Escape'); await sleep(1600); await key('Escape', 'keyUp'); await sleep(300); }
-  await until('!window.ship.playing', 60, 'the message to end');
+  // Recordings use the same simulated hold threshold as the prologue. Releasing
+  // every 1.6 seconds can prevent a slow software renderer from ever reaching it.
+  await holdUntil({ press: () => key('Escape'), release: () => key('Escape', 'keyUp'),
+    done: () => ev('!window.ship.playing'), label: 'the message to end' });
   check(await ev(`window.game.flag('calls.2') === true`), 'message 2 heard');
   check(await ev(`window.ship.waitingCall() === null`), 'nothing more waiting');
   // the holo table: the map, charting the new route
