@@ -558,3 +558,24 @@ history and CLI IO. Compatibility exports and actual input-selection checks rema
 The ending subtitle has a bounded three-minute wall-time observation window: slow
 software frames can leave prior speech queued beyond a minute. The assertion still
 requires an actual authored stone line in the rendered subtitle.
+
+### Packaged audio tests have their own input boundary
+
+`scripts/sound-qc/test-runtime.mjs` keeps the real packaged-audio decoder while
+restricting reads to `public/sfx` and `public/music`. Names must be single audio
+filenames; asset and cache symlinks cannot escape their roots, and caches must be
+outside the repository under the temporary directory. The generic QC tools keep
+`render.mjs` and its conservative dependency analysis.
+
+`scripts/test-audio-contract.json` fingerprints both the guarded wrapper and the
+actual decoder. The selector still follows their source imports (audio code,
+sound manifests, synthesis helpers), includes both asset directories, and fails
+closed on stale/missing fingerprints or any newly unresolved source dependency.
+Review these bounds before updating a fingerprint; never refresh hashes in hooks
+or CI. Contract changes run the full gate.
+
+The engine-sound scenarios use `drive-test.mjs`, a fixed game loader plus the real
+decoder; the CLI and tests share the unchanged scenario body in `drive-core.mjs`.
+This avoids pulling generic bundle/VM tools into the tests. HUD markup and unrelated
+world edits no longer select standalone audio playback tests; gameplay edits still
+select the engine-sound scenarios. No sound checks were dropped or made nightly-only.

@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { bundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
-import { driver } from '../scripts/sound-qc/drive.mjs';
+import { driver } from '../scripts/sound-qc/drive-test.mjs';
 import { SCENARIOS } from '../scripts/sound-qc/scenarios.mjs';
 import { uiKind, wrapMenus, menusHeard } from '../src/ui-sound.js';
 
