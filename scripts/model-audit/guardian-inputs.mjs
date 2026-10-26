@@ -2,14 +2,13 @@
 // dependency graph exact; the completeness test rejects newly unlisted skins.
 import { readFileSync, existsSync } from 'node:fs';
 import { readKeeperSkin } from './keeper-input.mjs';
+import { readElderSkin } from './elder-input.mjs';
 const readers = {
   'keeper-v1': readKeeperSkin,
   'elder-v1': () => readFileSync(existsSync(new URL('../../public/guardians/elder-v1/model.glb', import.meta.url))
     ? new URL('../../public/guardians/elder-v1/model.glb', import.meta.url)
     : new URL('../../data/guardians/elder-v1/model.glb', import.meta.url)),
-  'elder-v3': () => readFileSync(existsSync(new URL('../../public/guardians/elder-v3/model.glb', import.meta.url))
-    ? new URL('../../public/guardians/elder-v3/model.glb', import.meta.url)
-    : new URL('../../data/guardians/elder-v3/model.glb', import.meta.url)),
+  'elder-v3': readElderSkin,
 };
 export const GUARDIAN_SKIN_INPUTS = Object.freeze(Object.keys(readers));
 export function readGuardianSkin(name) {

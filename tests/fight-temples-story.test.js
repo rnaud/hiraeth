@@ -4,7 +4,7 @@
 // place's own (`quiet`, naming its host), and its title says the house is quiet, not cleared.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { loadFightModules } from './fight-modules.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES, parseLine } from '../src/story/tone.js';
 import { fightTempleGame } from '../src/fight-temples/index.js';
@@ -13,8 +13,7 @@ import { PEOPLE as DESERT_PEOPLE } from '../src/temples/desert-data.js';
 import { PEOPLE as LORN_PEOPLE } from '../src/temples/perdide-data.js';
 import { DRONE_LINES, ONCE } from '../src/companion.js';
 
-const dir = new URL('../src/minigames/', import.meta.url);
-const GAMES = await Promise.all(readdirSync(dir).filter((f) => /^fight-\w+\.js$/.test(f)).map(async (f) => (await import(new URL(f, dir))).default));
+const GAMES = await loadFightModules();
 
 test('twelve fight temples, one a main world', () => {
   assert.equal(GAMES.length, 12);

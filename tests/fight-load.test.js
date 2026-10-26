@@ -4,15 +4,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { readdirSync } from 'node:fs';
+import { loadFightModules } from './fight-modules.js';
 import { FOES } from '../src/foes.js';
 import { fightKinds } from '../src/fight-temples/rules.js';
 import { buildHall } from '../src/fight-temples/rooms.js';
 import { drawRun } from '../src/fight-temples/generate.js';
 import { runSteps } from '../src/load-steps.js';
 
-const dir = new URL('../src/minigames/', import.meta.url);
-const temples = await Promise.all(readdirSync(dir).filter((f) => /^fight-.*\.js$/.test(f)).map(async (f) => (await import(new URL(f, dir))).default));
+const temples = await loadFightModules();
 
 test('every fight temple: the warm names the run\'s kinds, each a foe, every kind its waves bring, far fewer than all', () => {
   assert.ok(temples.length >= 12, `${temples.length} fight temples`);

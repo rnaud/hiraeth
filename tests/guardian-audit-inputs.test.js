@@ -1,3 +1,4 @@
+import {readElderModelUrl} from '../scripts/model-audit/elder-input.mjs';
 import test from 'node:test';
 import {readKeeperModelUrl} from '../scripts/model-audit/keeper-input.mjs';
 import assert from 'node:assert/strict';
@@ -26,4 +27,9 @@ test('audit model readers reject arbitrary paths instead of silently widening de
 test('Keeper-only audit reader preserves its bytes and rejects sibling models',()=>{
  assert.deepEqual(readKeeperModelUrl('guardians/keeper-v1/model.glb'),readGuardianSkin('keeper-v1'));
  for(const url of ['guardians/elder-v1/model.glb','guardians/elder-v3/model.glb','../src/hud.js'])assert.throws(()=>readKeeperModelUrl(url),/Undeclared/);
+});
+
+test('Elder-only audit reader preserves its bytes and rejects sibling models',()=>{
+ assert.deepEqual(readElderModelUrl('guardians/elder-v3/model.glb'),readGuardianSkin('elder-v3'));
+ for(const url of ['guardians/keeper-v1/model.glb','guardians/elder-v1/model.glb','../src/hud.js','guardians/elder-v3/../keeper-v1/model.glb'])assert.throws(()=>readElderModelUrl(url),/Undeclared Elder/);
 });
