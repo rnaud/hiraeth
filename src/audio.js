@@ -23,7 +23,7 @@ import { travellerVoice } from './traveller-voice.js';
 import { templeAudio } from './temples/sfx.js';
 import { nextActionAudio } from './next-action-audio.js';
 import { selectedWorldAudio } from './selected-world-audio.js';
-import { voiceOf, voiceLength, GLANCE, CUES, BALL_VOICES } from './foe-voices.js';
+import { voiceOf, voiceLength, pitched, GLANCE, CUES, BALL_VOICES } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
 import { lightThemeNotes, lightBeat } from './story/light-theme.js';
@@ -165,6 +165,18 @@ export const GRUNTS = {
 };
 /** The music under a conversation's or a call's voice (x its level: -4.4 dB, issue #379; eased in 0.3 s, out over 0.8 s). */
 export const TALK_DUCK = 0.6;
+/**
+ * The outdoor ambience under the same voice (issue #638): the wind's, the storm's, the rain's and the falls' beds x this
+ * (-6 dB, eased with the layers' own 0.15 s), and the bed's occasional events (a horn, a piston, a croak) held back, so
+ * a line spoken in a storm stays clearly over the world. Footsteps and actions are not touched.
+ */
+export const AMBIENCE_TALK_DUCK = 0.5;
+/**
+ * A contact that answers one blow, not one foe (issue #638): the guard's clang and the cut on armour, called once per foe
+ * the swing met, play once within this many seconds (three guarded foes in one swing: one clang, not three stacked);
+ * a combo's next swing (0.25 s and more later) clangs again, each take a little apart in pitch (vary).
+ */
+export const CONTACT_GAP = 0.07;
 /** The menus' sounds (Sound.ui): their bus straight to the master (the world is hushed under a menu), x the effects volume. */
 export const UI_LEVEL = 1.6;
 export const KEY_GET = { notes: [0, 2, 4, 7], great: [0, 4, 7, 9, 11], step: 0.075, vol: 0.06 };
@@ -853,6 +865,7 @@ export class Sound {
   // ------------------------------------------------------------------ ambience beds
   ambienceTick(t, spb) {
     if (this.houseBed === 'recorded') return;
+    if ((this._duckUntil ?? 0) > t) return;   // (a voice has the floor: no horn or croak over it, AMBIENCE_TALK_DUCK)
     if (this.houseBed && this.houseTick(this.houseBed, t, spb)) return;   // (inside a makers' house: its own, src/temples/air.js)
     const A = this.voice.ambience, R = Math.random();
     if (A === 'birds' && R < 0.35) {                     // little chirps, in twos and threes
@@ -2139,9 +2152,9 @@ export class Sound {
   /** Picking something up: a hand on it, the bag. */
   // ------------------------------------------------------------------ the fragments of the singing light (src/fragments.js)
   /** A fragment singing to itself, faint, from where it is: three soft notes of the light's theme (k 0..1: how near). */
-  fragmentSong(pos, k = 1) {
+  fragmentSong(pos, k = 1, reach = 30) {   // (`reach`: one whose song carries further, src/fragments-data.js FRAGMENT_CARRY)
     if (!this.ctx || this.muted) return;
-    const out = this.spot(pos, { vol: 0.5 + 0.5 * k, reach: 30, room: 0.8, until: 4 });
+    const out = this.spot(pos, { vol: 0.5 + 0.5 * k, reach, room: 0.8, until: 4 });
     if (!out) return;
     const t = this.ctx.currentTime, root = 293.66 * 2;   // (the theme an octave up: src/story/light-theme.js, D lydian)
     [[12, 0], [14, 0.32], [18, 0.64]].forEach(([s, at]) => this.sweep(t + at, root * 2 ** ((s - 0.5) / 12), root * 2 ** (s / 12), 0.9, 0.018, 'sine', out));
@@ -2605,9 +2618,17 @@ export class Sound {
   }
 
   /** A blow that does nothing (a shot on armour, a cut off a shell or the bronze): a spark's bright tick over a dull thunk. */
-  foeGlance() {
-    if (!this.ctx) return;
-    this.foeVoice(GLANCE);
+  foeGlance(pos = null) {
+    if (!this.ctx || !this.contactFree('_glanceT')) return false;
+    this.foeVoice(pitched(GLANCE, this.vary(0.06)), this.ctx.currentTime, this.foeSpot(pos, { until: 0.6 }));
+    return true;
+  }
+  /** Is a once-per-blow contact (CONTACT_GAP) free to sound now? Marks it taken. */
+  contactFree(key) {
+    const t = this.ctx.currentTime;
+    if (t - (this[key] ?? -Infinity) < CONTACT_GAP) return false;
+    this[key] = t;
+    return true;
   }
 
   /** A foe voice's layers (src/foe-voices.js), synthesised from now: filtered noise, gliding tones, struck partials, ticks. */
@@ -2651,10 +2672,11 @@ export class Sound {
 
   /** A cut that lands and doesn't stop the foe (src/foes.js armour): a dull, short thunk, a knock on a door. */
   foeArmour() {
-    if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    this.sweep(t, 230, 170, 0.12, 0.12, 'triangle');
-    this.burst(t, { dur: 0.07, type: 'bandpass', freq: 520, q: 2.5, vol: 0.18, rate: 0.5 });
+    if (!this.ctx || !this.contactFree('_armourT')) return false;
+    const t = this.ctx.currentTime, v = this.vary(0.06);
+    this.sweep(t, 230 * v, 170 * v, 0.12, 0.12, 'triangle');
+    this.burst(t, { dur: 0.07, type: 'bandpass', freq: 520 * v, q: 2.5, vol: 0.18, rate: 0.5 });
+    return true;
   }
 
   /** A foe is done: its archetype's own (src/foe-voices.js: the crab's dome cracking, the bell cracked, the strings snapping…). */
@@ -3107,13 +3129,15 @@ export class Sound {
     const k = Math.min(s.speed / 11, 1.5);
     // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
     // (sat on a bench the wind steps back under the swelling music: SEATED_SWELL)
-    const W = (s.house ? 0 : AMBIENT_WIND) * (1 - SEATED_SWELL.duck * (this._sitK ?? 0));
+    // (and under a conversation's or a call's voice: AMBIENCE_TALK_DUCK, issue #638)
+    const talk = (this._duckUntil ?? 0) > this.ctx.currentTime ? AMBIENCE_TALK_DUCK : 1;
+    const W = (s.house ? 0 : AMBIENT_WIND) * (1 - SEATED_SWELL.duck * (this._sitK ?? 0)) * talk;
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
     // (a storm rises well over the calm, but stays a darker roar under the world: not the hiss it was)
     this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
     this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.07 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 380 + s.gust * 220 + s.storm * 240);
-    this.set('rain', s.rain * 0.07);
-    this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
+    this.set('rain', s.rain * 0.07 * talk);
+    this.set('rainRoof', (s.rainRoof ?? 0) * 0.11 * talk);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
     this.set('jet', s.thrusting ? 0.32 * (0.45 + 0.55 * Math.min(1, s.jetPower ?? 1)) : 0);   // (the throttle's roar: a light squeeze hums)
     // One approved ambience loop for every makers' house; the outdoor bed returns on exit.
@@ -3121,8 +3145,8 @@ export class Sound {
     // The shared recording replaces the house's hum/roar/ticks; outdoor beds are unchanged.
     this.houseBed = s.house ? 'recorded' : null;
     const roar = Math.min(1, Math.max(0, s.house ? 0 : s.roar ?? 0)) * (1 - 0.6 * (s.indoor ?? 0));
-    this.set('roar', roar * 0.2, 300 + roar * 260);
-    this.set('hiss', roar * roar * 0.035);
+    this.set('roar', roar * 0.2 * talk, 300 + roar * 260);
+    this.set('hiss', roar * roar * 0.035 * talk);
     const e = this.engine, t = this.ctx.currentTime;
     const hum = Math.min(1, Math.max(0, s.house ? 0 : s.hum ?? 0)) * (1 - 0.5 * (s.indoor ?? 0));
     const humF = 98;

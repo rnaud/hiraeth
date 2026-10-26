@@ -34,7 +34,7 @@ export const PLUMBING = {
   noiseLayer: 'the continuous layers (Ambience)', set: 'the continuous layers', update: 'the continuous layers (Ambience: hold)', follow: 'the score\'s activity',
   railsUpdate: 'the rails layer (Ambience: update with rails)', ambienceTick: 'each world\'s ambience bed (Songs: "with its ambience")',
   houseTick: 'legacy house texture helpers; gameplay uses the shared recorded temple ambience',
-  placeAt: 'placing a sound', spot: 'placing a sound', foeEar: 'placing a foe\'s sound', foeSpot: 'placing a foe\'s sound', moveFoeSpots: 'placing a foe\'s sound',
+  contactFree: 'one contact per blow (CONTACT_GAP: foeGlance, foeArmour)', placeAt: 'placing a sound', spot: 'placing a sound', foeEar: 'placing a foe\'s sound', foeSpot: 'placing a foe\'s sound', moveFoeSpots: 'placing a foe\'s sound',
   listen: 'the listener (the page calls it every frame)', seated: 'a bench\'s swell (src/benches.js)', seatedK: 'a bench\'s swell', musicLevel: 'the music bus\'s level', _humVoice: 'the hum (makersHum)', _humOut: 'the hum (makersHum)',
   setBands: 'the musicians (Songs)', makeBands: 'the musicians', band: 'the musicians', setBandMode: 'the musicians', bandBeat: 'the musicians',
   soloPhrase: 'the ney solo (Songs)', soloDrone: 'the ney solo', rand: 'a random number', vocal: 'the traveller\'s voice takes (Recorded takes)',

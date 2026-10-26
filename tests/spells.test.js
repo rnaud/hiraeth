@@ -271,3 +271,13 @@ test('the game menu: the spells won are in Items, the chosen one in use; A / × 
   book.select('tide');
   assert.deepEqual(spellMenu(g).map((x) => x.inUse), [false, true]);
 });
+
+test('the shards\' ring cutting a crowd at once sounds one slash, not one per foe (issue #638)', () => {
+  const S = rig({ selected: 'shards' });
+  const r = SPELLS.shards.tune.r;
+  const f = (a) => ({ alive: true, dead: undefined, pos: new THREE.Vector3(Math.sin(a) * r, 0, Math.cos(a) * r), def: { radius: 0.5, height: 1 }, chest: new THREE.Vector3(Math.sin(a) * r, 0.8, Math.cos(a) * r) });
+  S.foes.list = [0, 1.6, 3.1, 4.7].map(f);
+  S.step(1, { PadSpell: true }); S.step(1);
+  assert.equal(S.hurts.length, 4, 'all four cut in the same frame');
+  assert.equal(S.sounds.filter((k) => k === 'fluidSlashHit').length, 1, 'one slash for the pass');
+});

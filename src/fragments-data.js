@@ -373,6 +373,16 @@ export const FRAGMENTS = {
 };
 
 /**
+ * Fragments whose song carries further than FRAGMENT.sing (src/fragments.js), in metres, by world and slot (issue #638,
+ * the exploration-pacing review: docs/audits/mix-pacing-v2.28.md). The Desert's two by the ship: the first sang only
+ * within 26 m, and it lies 31 m from the ramp's foot and 42 m from Marrow, where the traveller asks "What's that singing
+ * out on the sand?" over silence; the second lies 39 m on along the pilgrims' road from the first's cairn. Carried 48 m,
+ * the first is a faint call behind you as you step out (the city's tree ahead: a choice), and taking it lets the next
+ * one call from further down the road: a short trail of song, no marker.
+ */
+export const FRAGMENT_CARRY = { desert: { 5: 48, 6: 48 } };
+
+/**
  * Where each lies (issue #550, the author: "fragment of lights should be in a place that makes sense, like the top of a
  * building, or the center of a point of interest, right now they feel like a bit of random placement"): the place of
  * interest it stands on or in, one a slot, as tests/fragments-reach.js pointsOfInterest names it (a sight of the level, a

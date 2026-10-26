@@ -2571,7 +2571,7 @@ export class Foes {
     const r = f.hit(mode, dir, info);
     if (!r) return false;
     if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
-    if (r === 'glance') { if (info) info.dull = true; this.sound?.foeGlance?.(); this.sparks(f, point ?? f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
+    if (r === 'glance') { if (info) info.dull = true; this.sound?.foeGlance?.(point ?? f.chest); this.sparks(f, point ?? f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
     if (r === 'guarded') { this.guarded(f, mode, dir, info, point); return true; }       // (off its guard: src/foe-guard.js)
     if (r === 'guardbreak') { this.guardBroken(f, mode, dir, info, point); return true; }  // (its guard broken: it reels, open)
     if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
@@ -3155,7 +3155,7 @@ export class Foes {
    */
   guarded(f, mode, dir, info, point) {
     if (info) info.dull = true;
-    this.sound?.foeGlance?.(); this.sparks(f, point ?? f.chest);
+    this.sound?.foeGlance?.(point ?? f.chest); this.sparks(f, point ?? f.chest);
     this.react(f, 'guard', dir, { reel: 'shrug', flash: false });
     const G = f.def.guard, flag = `foes.guard.${f.kind}`;
     if (G?.hint && !this.game.flag(flag) && hintsFor('tip')) { this.game.set(flag, true); this.notice?.(G.hint); }

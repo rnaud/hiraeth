@@ -1196,3 +1196,31 @@ is in `public/sfx/manifest.json`. Strict readiness loads the added five files wi
 the rest of the game's assets before gameplay.
 
 The five approved 22 October revisions occupy exactly 2,145,244 runtime bytes (mono 44.1 kHz PCM); together with the prior 6,433,852-byte bank the package is 8,579,096 bytes. The payload regression keeps the original bank and any future assets within 7 MiB, and permits at most 2.1 MiB separately for only these five named takes. Existing source hashes, PCM format, duration, peak and per-file limits still apply. This preserves the accepted loop boundaries without re-encoding the selected recordings.
+
+## The mix's hierarchy and repeated contacts (v2.28, issue #638)
+
+Rendered offline (`node scripts/sound-qc/mix-638.mjs`: the sound QC's renderer, recorded takes decoded, K-weighted
+loudest 50 ms in dBFS; nothing played out loud). The full numbers and the reasoning are in
+`docs/audits/mix-pacing-v2.28.md`.
+
+- **One contact per blow** (`CONTACT_GAP`, 0.07 s): the guard's clang (`Sound.foeGlance`) and the cut on armour
+  (`Sound.foeArmour`) are called once per foe a swing meets; within the gap they play once. Three guarded foes in one
+  swing stacked to −6.8 dB, louder than a clean hit (−8.4); now −16.7, as one. A combo's next swing (≥ 0.25 s) clangs
+  again. Each take is pitched ±6 % (`pitched()` in `src/foe-voices.js`, `Sound.vary`), the clang placed where it struck
+  (`foeSpot`): its six takes' brightness spread 2.1 % → 6 %, the armour's 6.3 % → 10.3 %.
+- **The shards' ring** (`SpellCaster.shardsCut`): one `fluidSlashHit` for every foe it cut in a frame stacked four to
+  −3.1 dB; now one slash a pass (−8.4), each foe still answering with its own cry (`Foes.hurt`).
+- **The weather under a voice** (`AMBIENCE_TALK_DUCK`, ×0.5): while a conversation's or a call's line holds the floor
+  (`_duckUntil`, the same window as the music's `TALK_DUCK`), the wind, howl, rain, rain on a roof and a waterfall's roar
+  and hiss step back 6 dB (eased with the layers' 0.15 s), and `ambienceTick`'s occasional events (a horn, a piston, a
+  croak, the masts' static) wait. A full storm's wind: −38.0 → −44.1 dB RMS under a line; the voice now 22 dB over it
+  (16 before). Footsteps, actions and contacts are not ducked: they answer the player.
+- **Two repeats trimmed** (`src/action-sfx.js`): his soft-landing breath (`vox-land-soft`, every hop) stood 0.9 dB over
+  the foley band and its takes were alike: 1.5 dB down (.13 → .11) with ±2.5 % rate and ±12 % level (−7.1 → −9.3
+  against the music; spread 0 dB / 1.3 % → 1.9 dB / 70.9 %). The pickup (`small-pickup`) stood 0.5 dB over the cue band,
+  alike: .2 → .19 with ±3 % rate and ±6 % level (+4.5 → +4.0; 0 dB / 0.4 % → 0.3 dB / 2.3 %).
+- **Left as they are, measured:** the temple clock (`templeTick`, issue #660) at −23.8 dB (tick) and −24.2 dB (its last
+  seconds), in the warning band between footsteps (−28.1 walking, −26.5 sprinting) and the voice (−14.9); one call a
+  second, two in its last seconds, never stacked (one clock per room). The spells reuse the shield's, the hum's, the
+  riposte's and the whoosh's sounds, one call per cast. Foe entrances and attack trails have no sound of their own.
+- `tests/sound-mix.test.js` (the gap, the stack, the ambience duck) and `tests/spells.test.js` (the shards' one slash).
