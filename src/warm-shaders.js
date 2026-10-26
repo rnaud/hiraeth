@@ -40,9 +40,10 @@ export function oneAtATime(gpu, search = '') {
  * wears for the pass (the shadow maps' depth-only one). Then waits up to `wait` ms for the driver
  * (KHR_parallel_shader_compile), polling. slice: a slicer (src/load-steps.js); pace: a gpuPacer, or nothing.
  * `one` (ms, 0: off; oneAtATime): each new program waited for (at most that long) before the next is asked for.
+ * `kinds`: a Set the kinds warmed are added to (lateMeshes).
  * Returns how many kinds it compiled.
  */
-export async function warmShadersSliced(renderer, targetScene, targetCamera, { target = null, wear = null, slice, pace = null, wait = 2000, one = 0 } = {}) {
+export async function warmShadersSliced(renderer, targetScene, targetCamera, { target = null, wear = null, slice, pace = null, wait = 2000, one = 0, kinds = null } = {}) {
   const reps = new Map();
   targetScene.traverse((o) => {
     if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
@@ -53,6 +54,7 @@ export async function warmShadersSliced(renderer, targetScene, targetCamera, { t
     if (o.geometry && !o.isSprite && !o.geometry.attributes?.position) return;
     for (const m of [wear ?? o.material].flat()) { const k = programKind(o, m); if (!reps.has(k)) reps.set(k, o); }
   });
+  if (kinds) for (const k of reps.keys()) kinds.add(k);   // (what was warmed: lateMeshes finds what wasn't)
   const prev = renderer.getRenderTarget(), mats = new Set();
   try {
     for (const o of reps.values()) {
@@ -97,4 +99,16 @@ export async function firstUse(renderer, slice, { wait = 60000 } = {}) {
     while (p.isReady && !p.isReady() && performance.now() - t0 < wait) await new Promise((r) => setTimeout(r, 10));
     p.getUniforms?.(); await slice();
   }
+}
+
+/**
+ * The meshes of `list` of a kind of program (programKind: the material, instanced or not, its attributes) not among
+ * `warmed` (the kinds the load's warm-up compiled: warmShadersSliced's `kinds`): built after it (a world's trials and
+ * makers' runs, the arcade's signs, the hosts' posts are made once the world is up), so their programs would be
+ * compiled at first sight, mid-play: a 40-60 ms frame turning towards the desert's Wind hall, 325-609 ms towards Vael's
+ * fight-temple door and its Bell crossing (docs/audits/technical-v2.28.md, finding 1). A material already drawn
+ * plainly but now instanced (a run's pieces batched: src/part-batch.js) is a new kind, and listed.
+ */
+export function lateMeshes(list, warmed) {
+  return list.filter((o) => [o.material].flat().some((m) => m && !warmed.has(programKind(o, m))));
 }

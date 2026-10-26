@@ -6418,3 +6418,56 @@ Unity batch membership, source geometry and shadow/material preservation. With
 triangle total. This is a correctness repair to optimization eligibility, not a
 measured frame-rate claim: Retroid was unavailable, and issue #404 remains open
 until fresh device measurements verify the target views and prior 60 fps views.
+
+## The technical audit: programs compiled mid-play, batches sent whole again (#671, 2026-10-25)
+
+docs/audits/technical-v2.28.md is a Digital Foundry-style pass over the web build (our own, not DF's). Its tool,
+`scripts/tech-audit/` (`play.mjs`, `stats.mjs`, `graph.mjs`, `ab.mjs`; `tests/tech-audit-stats.test.js`), plays a
+minute in each route world and Home with real keys (standing, running with the camera swinging, a full turn of the
+camera, night, the world's weather, the menus, a few blows) and records every frame with what the GPU process was asked
+for in it: programs linked, the wait on them, texture and buffer bytes. Two hitches it found are fixed here; both are
+the page's own (web only: the engines have neither three's programs nor the still meshes' batches, engine/bridge-gaps.js).
+
+**What was built after the warm-up compiled at first sight.** The load compiles a program for every kind of surface in
+the scene (src/warm-shaders.js), then draws the ways through ahead (WarmDraw). A world's trials, makers' runs, arcade
+signs and hosts' posts are made after both (main.js: `createChallenges`, `placeGameMarker`, `storyRt.host`), so a
+material first seen there, or one already drawn plainly but now drawn instanced (a run's pieces in one draw,
+src/part-batch.js), was compiled when it first came into view: turning round at the desert's landing towards the Wind
+hall, at Vael's towards its fight temple's door and the Bell crossing, at the Glass Dunes' towards the Disc run, the
+Buried Machine's Furnace steps, the Garden's Sphere court, the Market's Echo relay, the Underwater City's fight door.
+Seven of thirteen worlds linked one or two programs in the audit's minute of play, 40–610 ms frames on this Mac. Now the load notes each
+kind it warmed (`warmShadersSliced`'s `kinds`), and once everything is built compiles and draws once whatever is of a
+kind it did not (`lateMeshes`, within `PASSAGE.loadBudget`), behind the loading screen: 59–163 meshes and 0–3 programs
+a world, 15–100 ms more load on this Mac. No program is linked in play in any world after it.
+
+**The first level of detail copied into a batch sent the whole batch again.** The still meshes are drawn by batches
+(src/static-batch.js), and a level of detail swapped in is copied into its batch the first time it is drawn. three
+sends a new buffer whole (`bufferData`) but keeps the ranges `addGeometry` marked on it while it was built; the next
+update merged them with the new copy's into one range from 0 to the end, so the first copy into each batch sent all of
+it again: in the first second after the loading screen, and again turning round (Vael's shadow batch: 55 MB of
+positions and 26 MB of indices in a frame, 100 MB in its worst; 10–160 MB a world in the minute). `sent()` drops those
+ranges once the batch is built (and after it grows: new buffers again); now a copy sends only itself. A batch that
+outgrows its room still makes new buffers (`setGeometrySize`): 0–4 times a minute a world, up to 31 MB (the desert's),
+the next thing to look at.
+
+Measured (the Mac M4 Pro, headless Chrome on ANGLE Metal, muted, High, 1280 × 720, uncapped; the shipped bundle of
+`8d9d0cd6d` against the same with both fixes, interleaved, two runs each, every run started with the load under 10):
+
+| world | worst frame, ms, before → after | programs linked in play |
+|---|---|---|
+| Vael | 325–337 → 63–82 (its turn by frames: 535–609 → 188–191) | 2 → 0 |
+| The Buried Machine | 251–260 → 32–45 | 1 → 0 |
+| The Underwater City | 172–240 → 29–50 (four runs) | 1 → 0 |
+| The Glass Dunes | 205–207 → 40–43 | 1 → 0 |
+| The Signal Market | 44–162 → 45–47 | 1 → 0 |
+| The Garden of Spheres | 115–149 → 28–30 | 1 → 0 |
+| The Desert | 46–58 → 33–34 | 1 → 0 |
+
+The other six worlds had neither hitch's worst frame; their numbers moved within the runs' noise. The steady cost (the
+camera held at twelve headings) is the same before and after. All of it: docs/audits/technical-v2.28.md.
+
+```sh
+PORT=5425 node scripts/tech-audit/play.mjs [--worlds desert,arzach] [--dist dir] [--who 1] [--cpuprof 1] [--eval probe.js] [--sweep 12] [--shots dir]
+PORT=5425 node scripts/tech-audit/ab.mjs --a before=<dist> --b after=<dist> --out <dir> [--runs 2] [--max-load 10]
+node scripts/tech-audit/graph.mjs <after.json> [--before <before.json>] [--run 1] [--metric buf] [--out dir]
+```

@@ -12,7 +12,7 @@ export const LOAD_PLAN = [
   { stage: 'sketching', steps: [['world', 900], ['openings', 15]] },
   { stage: 'inking', steps: [['bake', 180], ['level init', 3], ['water', 2], ['buried flora', 2], ['ship', 85], ['reactive', 40], ['tiling', 80]] },
   { stage: 'waking', steps: [['player', 3], ['assets wait', 25], ['traveller', 200], ['sound, tool', 170], ['npcs', 100], ['crowd', 40], ['crowd pool', 35], ['story', 300], ['flora', 130], ['grass', 5], ['wildlife, foes', 10], ['rest', 40]] },
-  { stage: 'mixing', steps: [['near detail', 30], ['batches', 250], ['surfaces', 450], ['post', 30], ['water', 20], ['shadows', 30], ['first use', 20], ['passage', 350]] },
+  { stage: 'mixing', steps: [['near detail', 30], ['batches', 250], ['surfaces', 450], ['post', 30], ['water', 20], ['shadows', 30], ['first use', 20], ['passage', 350], ['late surfaces', 40]] },
 ];
 
 /** Why a step takes its time, in the game's words: short, lower case, as the stage's line. */

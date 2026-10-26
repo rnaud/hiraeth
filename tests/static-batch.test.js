@@ -128,6 +128,27 @@ test('a level of detail swapped in is copied into the batch at the next frame\'s
   assert.equal(b._geometryInfo.length, before + 1, 'once');
 });
 
+test('a level of detail copied in later sends only its own range, not the whole batch again (technical audit v2.28)', () => {
+  // (three's first upload of a buffer sends all of it but kept the ranges addGeometry had marked; the next update merged
+  // them with the new one, 0 to the end: Vael's shadow batch sent 55 MB of positions again turning round at its landing)
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  const b = S.view[0], cam = camera();
+  for (const g of [b.geometry, S.shadow.geometry]) {
+    for (const [k, a] of Object.entries(g.attributes)) assert.equal(a.updateRanges.length, 0, `${k}: nothing marked left over from building it`);
+    assert.equal(g.index?.updateRanges.length ?? 0, 0, 'nor on its index');
+  }
+  W.scene.updateMatrixWorld(true);
+  b.onBeforeRender(null, W.scene, cam);
+  W.meshes[0].geometry = new THREE.BoxGeometry(2, 1, 1);   // (a level of the same size: room for it, no growing)
+  b.onBeforeRender(null, W.scene, cam);
+  S.update();
+  const info = b._geometryInfo.at(-1), pos = b.geometry.attributes.position;
+  assert.equal(pos.updateRanges.length, 1, 'one range: the new copy');
+  assert.equal(pos.updateRanges[0].start, info.vertexStart * 3, 'starting where it was copied, not at 0');
+  assert.ok(pos.updateRanges[0].count < pos.array.length / 2, 'its own size, not the batch\'s');
+});
+
 test('a level of detail that outgrows the batch\'s room grows it at the update, not in a pass (issue #111)', () => {
   const W = world();
   const S = new StaticBatches(W.scene, { keep: [W.mover] });
@@ -140,6 +161,7 @@ test('a level of detail that outgrows the batch\'s room grows it at the update, 
   assert.equal(b.geometry, geometry, 'no new geometry in the pass');
   S.update();
   assert.notEqual(b.geometry, geometry, 'grown before the passes');
+  for (const a of Object.values(b.geometry.attributes)) assert.equal(a.updateRanges.length, 0, 'new buffers: sent whole once, no ranges kept to send again');
   b.onBeforeRender(null, W.scene, cam);
   const it = b.items.find((x) => x.e.o === W.meshes[0]);
   assert.equal(it.cur, it.geo.get(W.meshes[0].geometry), 'drawn in the new level, copied into the grown batch');

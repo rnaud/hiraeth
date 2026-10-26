@@ -2,7 +2,7 @@
 // the Steam Deck's loading pen stopped 0.1-1.1 s while the GPU process built a dozen big programs asked for at once).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { warmShadersSliced, oneAtATime } from '../src/warm-shaders.js';
+import { warmShadersSliced, oneAtATime, lateMeshes, programKind } from '../src/warm-shaders.js';
 
 test('one program at a time on ANGLE over OpenGL only, and ?serial= sets it', () => {
   assert.equal(oneAtATime('ANGLE (AMD, AMD Custom GPU 0932 (radeonsi vangogh ACO), OpenGL 4.6)'), 300);
@@ -72,4 +72,21 @@ test('a program already built (a kind sharing it) is not waited for', async () =
   assert.equal(await warmShadersSliced(r, { traverse: (f) => kids.forEach(f) }, {}, { slice, one: 300 }), 2);
   assert.equal(r.info.programs.length, 1);
   assert.ok(Date.now() - t0 < 50 + 40, 'only the one new program waited for');
+});
+
+test('what is built after the warm-up is found by its kind of program, an instanced copy of a warmed material too (technical audit v2.28)', async () => {
+  // (the trials and makers' runs are made once the world is up: the Wind hall's walls, Vael's fight-temple door and its
+  // Bell crossing's pieces, batched as instances of a material already drawn plainly, compiled at first sight mid-play)
+  const r = fakeRenderer(0);
+  const mesh = (material, extra = {}) => ({ isMesh: true, material, geometry: { attributes: { position: {} }, morphAttributes: {} }, ...extra });
+  const wall = { id: 1 }, stone = { id: 2 };
+  const world = [mesh(wall), mesh(stone)];
+  const kinds = new Set();
+  await warmShadersSliced(r, { traverse: (f) => world.forEach(f) }, {}, { slice, kinds });
+  assert.equal(kinds.size, 2);
+  assert.deepEqual(lateMeshes(world, kinds), [], 'nothing late in what was warmed');
+  const hall = mesh({ id: 3 }), pieces = mesh(stone, { isInstancedMesh: true }), again = mesh(wall);
+  assert.deepEqual(lateMeshes([...world, hall, pieces, again], kinds), [hall, pieces], 'a new material, and a warmed one drawn instanced; not a second mesh of a warmed kind');
+  kinds.add(programKind(hall, hall.material));
+  assert.deepEqual(lateMeshes([hall, pieces], kinds), [pieces]);
 });

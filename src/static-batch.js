@@ -35,6 +35,19 @@ import { VERTEX_UNIFORMS } from './vertex-material.js';
 // surface's own features (a sway, a crowd, the fluid's march, face keys…) or hooks of their own are left out.
 // ---------------------------------------------------------------------------
 
+/**
+ * A batch's geometry whose buffers have not been made yet: the ranges addGeometry marked to send are dropped. three's
+ * first upload of a buffer sends all of it (bufferData) but keeps those ranges, and the next update merged them into
+ * one from 0 to the last: the first level of detail copied in later sent the whole batch again, in one frame (Vael's
+ * shadow batch: 55 MB of positions and 26 MB of indices in one frame; 10-160 MB a world in its first minute, most in
+ * the first second after the load; docs/audits/technical-v2.28.md, finding 2). Only for buffers not made yet: the first
+ * upload sends the ranges' contents anyway.
+ */
+export function sent(geometry) {
+  for (const a of Object.values(geometry.attributes)) a.clearUpdateRanges?.();
+  geometry.index?.clearUpdateRanges?.();
+}
+
 /** The surface's own defines (materials.js surfaceFeatures): a material with any other is left out. */
 const SURFACE_DEFINE = /^(SURFACE_SPEC|S_[A-Z_]+|METAL|METAL_BRUSHED|LAMP_TINT|NIGHT_PAINT)$/;
 /** The uniforms read per mesh in a view batch (materials.js S_BATCH, as S_VMAT's: vertex-material.js). */
@@ -274,6 +287,7 @@ class StillBatch extends THREE.BatchedMesh {
     this.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 0);
     this.items = entries.map((e) => ({ e, geo: new Map() }));
     for (const it of this.items) this.geometryFor(it);
+    sent(this.geometry);
     this.list = [];
     this.drawn = 0;
   }
@@ -292,11 +306,13 @@ class StillBatch extends THREE.BatchedMesh {
     if (gid !== undefined) return gid;
     if (later) { (this.later ??= new Set()).add(it); return -2; }
     const nv = vertsOf(g, this.indexed);
+    let grown = false;
     if (nv > this.unusedVertexCount || indicesOf(g) > this.unusedIndexCount) {
       // (the levels of detail outgrew the room left for them: half as much again, copied over: one upload)
-      try { this.setGeometrySize(Math.ceil(this._maxVertexCount * 1.5) + nv, Math.ceil(this._maxIndexCount * 1.5) + indicesOf(g)); } catch { return -1; }
+      try { this.setGeometrySize(Math.ceil(this._maxVertexCount * 1.5) + nv, Math.ceil(this._maxIndexCount * 1.5) + indicesOf(g)); grown = true; } catch { return -1; }
     }
     try { gid = this.addGeometry(batchCopy(g, it.e.id, this.names, this.indexed)); } catch { return -1; }
+    if (grown) sent(this.geometry);   // (new buffers: their first upload sends all of it)
     it.geo.set(g, gid);
     return gid;
   }

@@ -137,7 +137,7 @@ import { DoorWalk } from './door-walk.js';
 import { Veils } from './veil.js';
 import { slicer, gatedSlicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
 import { loadProgress } from './load-page.js';
-import { warmShadersSliced as warmSliced, firstUse, settle, programKind, oneAtATime } from './warm-shaders.js';
+import { warmShadersSliced as warmSliced, firstUse, settle, programKind, oneAtATime, lateMeshes } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -2610,8 +2610,9 @@ const pacerKey = `hiraeth.pacerOff.${gpuName}`;
 const gpuPace = gpuPacer(renderer.getContext(), { memory: { get: () => { try { return localStorage.getItem(pacerKey) === '1'; } catch { return false; } }, set: () => { try { localStorage.setItem(pacerKey, '1'); } catch { /* private mode */ } } } });
 // (ANGLE on OpenGL, the Steam Deck: one program at a time, so the loading pen keeps turning; src/warm-shaders.js)
 const compileOne = oneAtATime(gpuName, location.search);
-const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
-  warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace, one: compileOne });
+const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null, kinds = null } = {}) =>
+  warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace, one: compileOne, kinds });
+const warmedKinds = new Set();   // (the surfaces' kinds of program compiled at load: what is built after is warmed below, lateMeshes)
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 // the distant detail queued while building (src/deferred.js): what is near where the first frame looks from, the ship
 // and the ways through is done now; the rest after the first frame, nearest first
@@ -2643,7 +2644,7 @@ if (foeWarm) { foeWarm.group.position.set(0, -1e4, 0); scene.add(foeWarm.group);
 {
   const t0 = performance.now();
   setStep('surfaces');
-  const n = await warmShadersSliced(scene, camera, gbuffer);
+  const n = await warmShadersSliced(scene, camera, gbuffer, { kinds: warmedKinds });
   console.info(`shaders: ${n} kinds of surface, ${renderer.info.programs.length} programs, ${(performance.now() - t0).toFixed(0)} ms`);
 }
 setStep('post');
@@ -2768,6 +2769,26 @@ trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, leve
 window.trials = trialsRt;
 // the hosts of this world's games, trials and makers' runs (issue #248): each sign's person, or its post, offers it
 for (const spot of takeHosts()) if (!minigameDef) { try { storyRt.host(spot); } catch (e) { console.warn(e); } }
+// What was built after the warm-ups above (this world's trials and makers' runs, the arcade's signs, the hosts'
+// posts): compiled and drawn once now, behind the loading screen, as the ways through were (src/warm-shaders.js
+// lateMeshes; docs/audits/technical-v2.28.md: their programs had been compiled at first sight, mid-play, a 40-60 ms frame
+// turning towards the desert's Wind hall, 300 ms and more towards Vael's fight-temple door). Within PASSAGE.loadBudget.
+{
+  const t0 = performance.now(), late = lateMeshes(warmDraw.of(scene), warmedKinds);   // (walked afresh: what was added under a group too)
+  if (late.length) {
+    setStep('late surfaces');
+    const before = renderer.info.programs.length;
+    let i = 0;
+    for (; i < late.length && performance.now() - t0 < PASSAGE.loadBudget; i += 8) {
+      const batch = late.slice(i, i + 8);
+      await settle(renderer, warmDraw.compile(batch), PASSAGE.loadBudget);
+      warmDraw.draw(batch); await slice(); await gpuPace();
+      for (const o of batch) for (const m of [o.material].flat()) warmedKinds.add(programKind(o, m));
+    }
+    await firstUse(renderer, slice);
+    console.info(`late surfaces: ${Math.min(i, late.length)} of ${late.length} meshes, ${renderer.info.programs.length - before} programs, ${(performance.now() - t0).toFixed(0)} ms`);
+  }
+}
 // walked on through a doorway, and in off it on the far side (issue #389, src/door-walk.js)
 const doorWalk = new DoorWalk({ player, physics, rig });
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); },   // (the far side's detail finished, under the paper)

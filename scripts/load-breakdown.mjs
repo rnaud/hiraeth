@@ -163,7 +163,7 @@ const KIND = {
   player: 'characters', traveller: 'characters', npcs: 'characters', crowd: 'characters', 'crowd pool': 'characters', 'wildlife, foes': 'characters',
   'assets wait': 'assets',
   surfaces: 'shaders', post: 'shaders', shadows: 'shaders', 'first use': 'shaders',
-  passage: 'gpu warm-up',
+  passage: 'gpu warm-up', 'late surfaces': 'shaders',
   'near detail': 'world',
 };
 const SHADER_STAGE = /^mixing/;
