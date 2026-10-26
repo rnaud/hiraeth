@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.29 — 2026-10-26
 
+- In conversations people stand up straight: nodding along or talking with their hands, nobody leans far back with their face to the sky any more. The traveller listening to Plumb looks at it, not over it.
 - Viridel’s tea terraces, on the white builders’ steps, are paved in clean flagstones like the cities’ plazas.
 - Open ground holds up further off: soft drifts of a paler ochre, long pen lines along the slopes and stones with their little shadows still read out to a couple of hundred metres. In Vael, the Glass Dunes, the Buried Machine and at home.
 - Worked timber looks like wood: planks with grain, knots and nail holes, sun-bleached on top and darker underneath, now and then a faded teal plank. On the desert’s wells, camps and landmarks, the City-Shaft’s quarters, the Moon Foundry’s stairs, the Underwater City’s posts and Lorn’s walkways.

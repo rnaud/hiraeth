@@ -12,7 +12,7 @@ const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: (
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 globalThis.window ??= { innerWidth: 1200, innerHeight: 800 };
 const { TONES } = await import('../src/story/tone.js');
-const { GESTURE_CLIPS, TONE_GESTURES, INTENTS, ACK, GESTURE, TalkGesture, talkGestures, pickGesture, gestureChoices, intentOf } = await import('../src/talk-gesture.js');
+const { GESTURE_CLIPS, TONE_GESTURES, INTENTS, ACK, GESTURE, GESTURE_POSE, TalkGesture, talkGestures, pickGesture, gestureChoices, intentOf, heldPitch } = await import('../src/talk-gesture.js');
 const { course, traveller, loadAssets } = await import('./gait-sim.js');
 const { NPC } = await import('../src/npc.js');
 const { Physics } = await import('../src/physics.js');
@@ -51,6 +51,21 @@ test('every tone has gestures, every gesture is in gestures.glb, and the file is
   assert.equal(FILE.clips.length, ALL.length, 'nothing in the file the layer does not know');
   const bytes = readFileSync('public/anim/gestures.glb').length;
   assert.ok(bytes < 260 * 1024, `gestures.glb ${(bytes / 1024).toFixed(0)} KB`);
+});
+
+test('a gesture\'s lean back and lifted face are held softly: as they are up to half the most, never past it (issue #678)', () => {
+  for (const most of [GESTURE_POSE.back, GESTURE_POSE.up]) {
+    assert.ok(most > 0 && most < 0.3, 'a few degrees');
+    for (const x of [-0.5, -0.01, 0, most / 4, most / 2]) assert.equal(heldPitch(x, most), x, 'up to the knee, as it is (forward, down: the gesture\'s own)');
+    let last = -Infinity;
+    for (let x = 0; x < 1.2; x += 0.005) {
+      const h = heldPitch(x, most);
+      assert.ok(h >= last - 1e-12 && h <= x + 1e-12 && h <= most, `${x.toFixed(3)} → ${h.toFixed(4)}: monotonic, never more, never past ${most}`);
+      if (x > 0) assert.ok(h - last < 0.005 + 1e-9, 'no jump');
+      last = h;
+    }
+    assert.ok(heldPitch(0.5, most) > most * 0.99, 'far past it, nearly all of it');
+  }
 });
 
 test('a loop comes round seamlessly: its last frame is its first', () => {
@@ -157,7 +172,8 @@ const wp = (o) => o.getWorldPosition(new THREE.Vector3());
 function play(body, A, B, step, id, secs, seated = false) {
   const info = { speaking: true, key: 'line', tone: 'neutral', text: '', seated };
   if (id) { talkGestures.drive(A, info); A.talkGesture.start(id, A, seated ? GESTURE.seated : 1, 0, !seated); A.talkGesture.key = 'line'; A.talkGesture.last = id; }
-  const r = { feet: 0, inside: Infinity, face: 0, finite: true, played: 0 };
+  const r = { feet: 0, inside: Infinity, face: 0, finite: true, played: 0, lean: Infinity, up: -Infinity };
+  const fwd = () => V(0, 0, 1).applyQuaternion(body.object.getWorldQuaternion(new THREE.Quaternion())).setY(0).normalize();
   const balls = [wp(B.ball_l), wp(B.ball_r)];
   const R = body.humanoid.rest, turn = (b) => b.getWorldQuaternion(new THREE.Quaternion()).multiply(R.get(b).q.clone().invert());
   for (let i = 0; i < secs * 60; i++) {
@@ -175,6 +191,12 @@ function play(body, A, B, step, id, secs, seated = false) {
     // the face's way from the chest's (deg): on the shoulders, not round behind them
     const c = new THREE.Vector3(0, 0, 1).applyQuaternion(turn(B.Head)).applyQuaternion(turn(B.spine_03).invert());
     r.face = Math.max(r.face, Math.acos(THREE.MathUtils.clamp(c.z, -1, 1)) * 180 / Math.PI);
+    // (issue #678) the trunk's lean (deg, forward +: hips to neck along the way he faces) and the face's pitch (deg, up +)
+    if (i >= 20) {
+      const f = fwd(), sp = neck.clone().sub(pel).normalize();
+      r.lean = Math.min(r.lean, Math.atan2(sp.dot(f), sp.y) * 180 / Math.PI);
+      r.up = Math.max(r.up, Math.asin(THREE.MathUtils.clamp(f.clone().applyQuaternion(turn(B.Head)).y, -1, 1)) * 180 / Math.PI);
+    }
   }
   return r;
 }
@@ -229,7 +251,15 @@ for (const [name, make, clips, clear = 0.085] of [
       assert.ok(r.finite, `${name} / ${id}: finite`);
       assert.ok(r.played > 20, `${name} / ${id}: played (${r.played} frames at full weight)`);
       assert.ok(r.feet < still.feet + 0.01, `${name} / ${id}: the feet move ${(r.feet * 100).toFixed(1)} cm (standing still ${(still.feet * 100).toFixed(1)})`);
-      assert.ok(r.inside > clear, `${name} / ${id}: a hand ${(r.inside * 100).toFixed(1)} cm from the trunk's line`);
+      // (Thinking's hand rests on the small of his back: upright since issue #678, not leaning back off it, the back comes
+      // to it; in the studio's pictures it lies on the shirt)
+      assert.ok(r.inside > (id === 'thinking' ? Math.min(clear, 0.055) : clear), `${name} / ${id}: a hand ${(r.inside * 100).toFixed(1)} cm from the trunk's line`);
+      // (issue #678: Mixamo's talkers stand back with their faces up; laid over his idle every clip leaned him 7-25° back
+      // and lifted his face 15-30° over it, and a nod at Plumb before his face stared at the sky)
+      if (name === 'the traveller') {
+        assert.ok(r.lean > still.lean - 8, `${name} / ${id}: leans back to ${r.lean.toFixed(1)}° (standing ${still.lean.toFixed(1)}°)`);
+        assert.ok(r.up < still.up + 10, `${name} / ${id}: the face up to ${r.up.toFixed(1)}° (standing ${still.up.toFixed(1)}°)`);
+      }
       assert.ok(r.face < 95, `${name} / ${id}: the face ${r.face.toFixed(0)}° from the chest's way`);
     }
   });

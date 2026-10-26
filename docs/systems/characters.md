@@ -1221,6 +1221,18 @@ line, their body above the hips takes a gesture in the line's tone, from Mixamo'
   each frame counting 1/250 s at the least so a stopped clock is caught; `src/air-moves.js` `AIR.stuck`: a jump's or a
   drop's move still on 1.2 s after the ground, dropped). A real landing never reaches either. `tests/pose-guards.test.js`.
   If it happens again, the pose report says which layer held it (F8, `docs/systems/dev-tools.md`).
+- **Upright, the face on the other** (issue #678: listening to Plumb before his face, the traveller nodded with his
+  back leaned far back and his face to the sky). Mixamo's talkers stand back with their faces 15–25° up, and the idle's
+  hips under the layer are tipped back from their rest, while `gestures.glb` folds each clip's hips into `spine_01` for
+  hips at rest: laid on, every clip leaned him 7–25° back. Three things in `Animator.layTalk` hold it: `spine_01` is
+  laid on over the hips as captured (the idle's hips' turn from their rest taken back off it); each clip's own mean lean
+  back and lift of the face (`pitchBase`, from its tracks, once a clip) are taken out by its weight, so a nod nods about
+  the idle's face; and what is left is held within `GESTURE_POSE` past the idle's pose under it, measured before the
+  layer (the back 3° back at most, the face 8° up: `holdTalkPitch`, softly from half way: `heldPitch`). Leaning forward
+  and looking down are the gestures' own and kept (a sigh, Sad Idle's eyes on the ground). Nothing aims his head at a
+  speaker; his eyes find their face (`updateEyes`) and his body turns to them (`faceToward`, flat), so a speaker high up
+  (a balcony, the drone) is looked at with the eyes alone. Tests: `tests/talk-gesture.test.js` (on the traveller, every
+  clip within 8° of his standing lean and 10° of his standing face; `heldPitch`).
 - **The tone map** (`TONE_GESTURES`; every tone of `src/story/tone.js` has two clips at least):
 
   | Tone | Clips |

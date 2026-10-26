@@ -70,6 +70,26 @@ export const GESTURE = {
 /** The one listening: now and then a nod, a little after the other's line starts. */
 export const ACK = { chance: 0.4, after: [0.5, 1.2], w: 0.8, clips: ['acknowledging', 'head_nod_yes', 'lengthy_head_nod'] };
 
+/**
+ * How far a gesture may tip the body back from the idle under it (rad; issue #678). Mixamo's actors stand a little
+ * back as they talk and nod with the face well up: laid over the game's idle, every clip leaned the trunk back 7-15°
+ * and lifted the face 15-25° above it, and a listener's nod at someone at eye height (Plumb before his face) read as
+ * staring at the sky. `back`: the trunk (the spine's line, hips to neck) leaning back past the idle's; `up`: the face
+ * lifted above the idle's. Both approached softly from half way (heldPitch); leaning forward and looking down are the
+ * gestures' own (a sigh, a bow, Sad Idle's eyes on the ground) and kept.
+ */
+export const GESTURE_POSE = { back: 0.05, up: 0.14 };
+
+/**
+ * A pitch past the idle's (`over`, rad, positive the way it is limited) as it is kept: as it is up to half of `most`,
+ * then bent softly so it never quite reaches `most` (monotonic, the slope 1 at the knee: no flat top to a nod).
+ */
+export function heldPitch(over, most) {
+  if (!(over > most / 2)) return over;
+  const k = most / 2;
+  return k + k * Math.tanh((over - k) / k);
+}
+
 const clipName = (id) => `gesture_${id}`;
 const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const rand = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };

@@ -1351,6 +1351,21 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 export const CHANGELOG_MEDIA = {
   '2.29': [
   {
+    "match": "In conversations people stand up straight",
+    "shots": [
+      {
+        "name": "plumb-nod",
+        "caption": "Plumb’s lost talk, the traveller nodding as it speaks: before, his back leaned far back and his face up at the sky; after, upright, his face on Plumb before it",
+        "from": "Issue #678: the recorded sequence plumb-talk (engine/sequences.js) played beat by beat in muted headless Chrome (1280 × 720, High) on a Vite of its own (port 5440), its lostTalk beat; the listener's nod forced so it is in the frame both times (talk-gesture.js ACK: chance 1, Lengthy Head Nod; otherwise it comes on four lines in ten); before: origin/main at e87f10816, after: this change; 26 October; cwebp -q 72",
+        "view": "The same beat, camera and nod in both. Plumb is the small white drone just before his face. Every conversation gesture, on everyone, was held the same way; only this one is pictured.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
     "match": "The shops and rooms look lived in",
     "shots": [
       {
@@ -1459,7 +1474,7 @@ export const CHANGELOG_MEDIA = {
         "name": "plumb-plain",
         "only": "after",
         "caption": "Plumb’s lost talk in plain words: “Going in circles.”, then it flies off to show the way — after only",
-        "from": "Muted headless Chrome (1280 × 720), Vite on port 5422, the issue #626 branch (192353d4f, now on 8d9d0cd6d) plus the clarity rewrites, 25 October 2026: the recorded sequence plumb-talk (node scripts/unity-compare/sequences.mjs web plumb-talk), its lostTalk beat; cwebp -q 72.",
+        "from": "Muted headless Chrome (1280 × 720), the recorded sequence plumb-talk (node scripts/unity-compare/sequences.mjs web plumb-talk), its lostTalk beat; cwebp -q 72. Shot again on 26 October (issue #678, Vite on port 5440, on e87f10816 with the fix): the first shot, of 25 October (the issue #626 branch), had caught the traveller in a listener's nod leaning far back, face to the sky.",
         "view": "Full frame of a scripted sequence (the traveller walked in a small circle by the ship until Plumb came with its mark, then its talk opened). The old line here was “That rock again.”; no before picture is claimed. Text-only change: one page of one talk shown, the guardian hints and the ship's lines are not pictured.",
         "size": [
           1280,

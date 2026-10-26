@@ -3,6 +3,7 @@ import { worldPos, worldQuat, updateChain } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import { MotionMatcher, MATCH, mirrorClip } from './motion-match.js';
+import { GESTURE_POSE, heldPitch } from './talk-gesture.js';
 
 // Motion from Quaternius' Universal Animation Library (CC0, public/anim/),
 // retargeted onto our hand-built rider rig.
@@ -317,6 +318,36 @@ const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _qp = new THREE
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _r = new THREE.Vector3();
 const _m = new THREE.Matrix4(), _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3();
 const DOWN = new THREE.Vector3(0, -1, 0), UP = new THREE.Vector3(0, 1, 0), FWD = new THREE.Vector3(0, 0, 1);
+const TRUNK = ['spine_01', 'spine_02', 'spine_03', 'neck_01', 'Head'];
+const _tp0 = { p0: new THREE.Quaternion(), pH: new THREE.Quaternion() }, _tp1 = { p0: new THREE.Quaternion(), pH: new THREE.Quaternion() };
+const _tq = new THREE.Quaternion(), _tq2 = new THREE.Quaternion(), _tv = new THREE.Vector3(), _tv2 = new THREE.Vector3(), _tv3 = new THREE.Vector3();
+/**
+ * The back's lean and the face's pitch from the chain's own numbers (no matrices: the walk at the end of the frame makes
+ * them, src/matrix-cache.js): `R` the rest chain (Animator.restChain), `pelvis` the hips' local turn, `local(i)` /
+ * `pos(i)` TRUNK[i]'s. Into `out`: lean (rad, forward +: spine_01 to neck_01 about the body's side; the library skeleton
+ * faces +Z, y up), up (rad, the face's pitch, up +, from its rest), fx, fz (the face's way), p0 and pH (the world turns
+ * of spine_01's parent and of the head's).
+ */
+function trunkPitch(R, pelvis, local, pos, restHead, out) {
+  const q = _tq.copy(R.root).multiply(pelvis), at = _tv.set(0, 0, 0), neck = _tv2.set(0, 0, 0);
+  out.p0.copy(q);
+  for (let i = 0; i < TRUNK.length; i++) {
+    if (i > 0) at.add(_tv3.copy(pos(i)).applyQuaternion(q));
+    if (i === 4) out.pH.copy(q);
+    q.multiply(local(i));
+    if (i === 3) neck.copy(at);
+  }
+  out.lean = Math.atan2(neck.z, neck.y);
+  const f = _tv3.copy(FWD).applyQuaternion(q.multiply(_tq2.copy(restHead).invert()));
+  out.up = Math.asin(THREE.MathUtils.clamp(f.y, -1, 1));
+  out.fx = f.x; out.fz = f.z;
+  return out;
+}
+/** Turn `bone` by `angle` about `axis` (world), its parent's world turn `pw`: its local turn, the matrices left to the walk. */
+function turnInWorld(bone, pw, axis, angle) {
+  _tq2.setFromAxisAngle(axis, angle);
+  bone.quaternion.premultiply(_tq.copy(pw).invert().multiply(_tq2).multiply(pw));
+}
 
 export class Animator {
   /** @param lib result of loadAnimationLibrary(); @param char a buildCharacter() rig */
@@ -375,6 +406,10 @@ export class Animator {
     this.restHips = this.hips.getWorldPosition(new THREE.Vector3());
     this.restAnkleY = this.bone('foot_l').getWorldPosition(new THREE.Vector3()).y;   // (the clips' floor: a standing ankle's height)
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
+    // (the back's chain at rest, the hips' parent in the world: each gesture's own lean and lift of the face, pitchBase)
+    this.restChain = { root: this.hips.parent ? worldQuat(this.hips.parent, new THREE.Quaternion()) : new THREE.Quaternion(), pelvis: this.hips.quaternion.clone(),
+      bones: TRUNK.map((n) => { const b = this.bone(n); return b ? { name: n, b, q: b.quaternion.clone(), p: b.position.clone() } : null; }) };
+    if (this.restChain.bones.some((x) => !x) || !this.restHead) this.restChain = null;
     for (const a of Object.values(this.actions)) a.play();
     this.phase = 0;
     this.w = { idle: 1, walk: 0, jog: 0, sprint: 0, air: 0, jumpStart: 0, drive: 0, talk: 0, jumpLand: 0, look: 0, ledge: 0, climbIdle: 0, climbUp: 0, climbDown: 0, climbLeft: 0, climbRight: 0 };
@@ -771,14 +806,76 @@ export class Animator {
     const free = s.onGround && !(s.speed > 0.6) && !s.steering && (s.mode === 'ground' || s.mode === 'talk' || s.mode == null) && !(this.move && this.move.legs !== false);
     const list = G.update(dt, free ? info : null, this);
     this.talkW = 0;   // (this frame's most: a seated body's arms come off its lap by it, NPC.posture)
+    const idle = list.length && this.restChain ? this.talkPitch(_tp0) : null;   // (the idle's lean and face, under the gestures)
     for (const g of list) {
       const clip = this.moveClip(g.name);
       if (!clip || !(g.w > 0.001)) continue;
-      this.overlayMove(Object.assign(this._talkM ??= {}, { clip, t: g.t, w: g.w, spine: g.spine }));
+      this.overlayMove(Object.assign(this._talkM ??= {}, { clip, t: g.t, w: g.w, spine: g.spine, talk: true }));
       this.headW = Math.max(this.headW, g.w);
       this.talkW = Math.max(this.talkW, g.w);
     }
+    if (idle && this.talkW > 0) {
+      // (each clip's own lean back and face lifted taken out by its weight, issue #678: its nods and bows kept as they go)
+      let back = 0, up = 0;
+      for (const g of list) {
+        const clip = this.moveClip(g.name), b = clip && g.w > 0.001 ? this.pitchBase(clip) : null;
+        if (!b) continue;
+        // (the face's own lift on the back's: a clip leaning back lifts the face with it; seated, the back is the seat's)
+        if (g.spine !== false) back += g.w * Math.max(0, b.back);
+        up += g.w * Math.max(0, b.up - Math.max(0, b.back));
+      }
+      const B = this.restChain.bones;
+      if (back > 1e-4) turnInWorld(B[0].b, this.talkPitch(_tp1).p0, _x.set(1, 0, 0), back);
+      if (up > 1e-4) { const f = this.talkPitch(_tp1), l = Math.hypot(f.fx, f.fz); if (l > 1e-4) turnInWorld(B[4].b, f.pH, _x.set(f.fz / l, 0, -f.fx / l), up); }
+      this.holdTalkPitch(idle);
+    }
     if (!info && G.idle) { this.talkGesture = null; this.talkW = 0; }
+  }
+
+  /** The source skeleton's back and face as they are posed now (trunkPitch), into `out`. */
+  talkPitch(out) {
+    const B = this.restChain.bones;
+    return trunkPitch(this.restChain, this.hips.quaternion, (i) => B[i].b.quaternion, (i) => B[i].b.position, this.restHead, out);
+  }
+
+  /**
+   * A gesture clip's own standing lean back and lift of the face (rad, the mean over the clip, the hips at rest; negative:
+   * it leans forward, looks down), from its tracks: { back, up }, once a clip. Mixamo's talkers stand some 5-10° back
+   * with their faces 15-25° up; taken out, a nod nods about the idle's own face, not the sky.
+   */
+  pitchBase(clip) {
+    const cache = (this._pitchBase ??= new Map());
+    let b = cache.get(clip);
+    if (b) return b;
+    const R = this.restChain, ip = R.bones.map((x) => clip.tracks.find((t) => t.name === `${x.name}.quaternion`)?.createInterpolant());
+    const o = { p0: new THREE.Quaternion(), pH: new THREE.Quaternion() }, at = (i) => R.bones[i].p;
+    const { lean: lean0, up: up0 } = trunkPitch(R, R.pelvis, (i) => R.bones[i].q, at, this.restHead, o);
+    let back = 0, up = 0, n = 0, t = 0;
+    const N = Math.max(2, Math.ceil(clip.duration * 10)), qs = R.bones.map(() => new THREE.Quaternion());
+    const local = (i) => (ip[i] ? qs[i].fromArray(ip[i].evaluate(t)) : R.bones[i].q);
+    for (let k = 0; k < N; k++) {
+      t = (k / (N - 1)) * clip.duration;
+      trunkPitch(R, R.pelvis, local, at, this.restHead, o);
+      back += lean0 - o.lean; up += o.up - up0; n++;
+    }
+    b = { back: back / n, up: up / n };
+    cache.set(clip, b);
+    return b;
+  }
+
+  /**
+   * The gestures laid on, the trunk leaning back no further than GESTURE_POSE.back past the idle's under them and the
+   * face lifted no higher than GESTURE_POSE.up over it (softly: heldPitch), issue #678: Mixamo's talkers lean back and
+   * nod with their faces well up, and a listener's nod at Plumb, at eye height before his face, looked at the sky.
+   * The excess is turned forward at the spine's first joint (the whole back with it), then at the head.
+   */
+  holdTalkPitch(idle) {
+    const B = this.restChain.bones;
+    let now = this.talkPitch(_tp1);
+    const back = idle.lean - now.lean, keep = heldPitch(back, GESTURE_POSE.back);
+    if (back > keep + 1e-4) { turnInWorld(B[0].b, now.p0, _x.set(1, 0, 0), back - keep); now = this.talkPitch(_tp1); }
+    const up = now.up - idle.up, held = heldPitch(up, GESTURE_POSE.up), l = Math.hypot(now.fx, now.fz);
+    if (up > held + 1e-4 && l > 1e-4) turnInWorld(B[4].b, now.pH, _x.set(now.fz / l, 0, -now.fx / l), up - held);   // (about the face's side: down)
   }
 
   /**
@@ -797,7 +894,13 @@ export class Animator {
       const b = (u.b ??= new Map()).get(this) ?? (u.b.set(this, this.bone(u.bone)), u.b.get(this));
       if (!b) continue;
       const v = u.ip.evaluate(M.t);
-      if (u.prop === 'quaternion') b.quaternion.slerp(_q.fromArray(v), M.w);
+      if (u.prop === 'quaternion') {
+        _q.fromArray(v);
+        // (a gesture's back on the hips as they were captured, issue #678: gestures.glb folds the clip's hips into
+        // spine_01 for hips at rest, and the idle's hips under it are tipped back from their rest: the chest went with them)
+        if (M.talk && u.bone === 'spine_01' && this.restChain) _q.premultiply(_q2.copy(this.hips.quaternion).invert().multiply(this.restChain.pelvis));
+        b.quaternion.slerp(_q, M.w);
+      }
       else if (u.prop === 'position') b.position.lerp(_a.fromArray(v), M.w);
     }
   }

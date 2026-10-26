@@ -16,6 +16,7 @@ export const CHANGELOG = [
       "Worked timber looks like wood: planks with grain, knots and nail holes, sun-bleached on top and darker underneath, now and then a faded teal plank. On the desert’s wells, camps and landmarks, the City-Shaft’s quarters, the Moon Foundry’s stairs, the Underwater City’s posts and Lorn’s walkways.",
       "Open ground holds up further off: soft drifts of a paler ochre, long pen lines along the slopes and stones with their little shadows still read out to a couple of hundred metres. In Vael, the Glass Dunes, the Buried Machine and at home.",
       "Viridel’s tea terraces, on the white builders’ steps, are paved in clean flagstones like the cities’ plazas.",
+      { text: "In conversations people stand up straight: nodding along or talking with their hands, nobody leans far back with their face to the sky any more. The traveller listening to Plumb looks at it, not over it.", see: "Walk in circles in the desert until Plumb comes, press its button and watch him while it talks; or talk to anyone and watch them nod." },
     ],
   },
 
