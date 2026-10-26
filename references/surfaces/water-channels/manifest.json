@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the narrow irrigation channels that run between white stepped tea terraces: clear teal water in stone-lined channels, its surface drawn with a few calm flowing pen lines along the current, a pale line of light along each edge, small ripples where the water drops over a lip, the stone lip wet and darker, a little cream foam gathered at the corners, a faint reflection of the white steps. Three panels side by side: a large swatch of the channel seen from above; terraces with many channels seen from a walker's height with a small figure for scale; a strip showing the marks simplifying with distance, edge lights staying, flow lines and ripples gone far. Calm and readable, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, teal, white stone, cream and a touch of leaf green, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels, fish, boats.",
+      "from": "docs/design/surface-prompts.md#water-channels",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-26-10-38-28-2497",
+      "candidate": "openai/1",
+      "sha256": "8eb0b860d252d1f503c5e2e6711485bbb285d5696480ec9dc05eac55747f4e68",
+      "bytes": 231727,
+      "costUSD": 0.041
+    }
+  ]
+}

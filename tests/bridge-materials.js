@@ -31,6 +31,7 @@ export const REQUIRED_MATERIAL_KEYS = {
     "define:S_SHEET",
     "define:S_TIMBER",
     "define:S_GROUNDMID",
+    "define:S_DOMES",
     "define:S_WEATHER",
     "define:S_EYE",
     "define:S_TILES",
@@ -44,6 +45,9 @@ export const REQUIRED_MATERIAL_KEYS = {
     "uniform:uGrassLod"
   ],
   "worlds-b": [
+    "define:S_SEAWALL",
+    "define:S_PALESTONE",
+    "define:S_BURIED",
     "uniform:uPortraitFaceAmount",
     "uniform:uExpression",
     "uniform:uHeadBall",

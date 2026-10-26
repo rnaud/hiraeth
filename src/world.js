@@ -495,10 +495,11 @@ export function buildWorld(scene, terrain) {
 
   // ---------------------------------------------------------- dome city
   function domeCity(x, z) {
-    const white = makeMaterial({ color: '#f6efe0', grid: 4 });
-    const teal = makeMaterial({ color: '#5fb7ad', grid: 4 });
-    const orange = makeMaterial({ color: '#e6875f', grid: 4 });
-    const mats = [white, white, teal, orange];
+    // (issue #677: curved panels in rings, src/surface-marks.js DOMES, after references/surfaces/desert-domes/sheet-1.jpg: a
+    //  white dome banded in teal or orange now and then; the towers ringed every few metres)
+    const domeMats = [makeMaterial({ color: '#f6efe0', domes: { band: '#5fb7ad', share: 0.2 } }), makeMaterial({ color: '#f6efe0', domes: { band: '#e6875f', share: 0.2 } }),
+      makeMaterial({ color: '#5fb7ad', domes: { band: '#f6efe0', share: 0.15 } }), makeMaterial({ color: '#e6875f', domes: { band: '#f6efe0', share: 0.15 } })];
+    const towerMats = ['#f6efe0', '#f6efe0', '#5fb7ad', '#e6875f'].map((color) => makeMaterial({ color, domes: { tower: true } }));
     for (let i = 0; i < 26; i++) {
       const a = rng() * Math.PI * 2, d = rng() * 110;
       const px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d;
@@ -506,7 +507,7 @@ export function buildWorld(scene, terrain) {
       if (kind < 0.5) {
         const r = 8 + rng() * 20;
         const g = new THREE.SphereGeometry(r, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2);
-        const m = new THREE.Mesh(g, mats[Math.floor(rng() * mats.length)]);
+        const m = new THREE.Mesh(g, domeMats[Math.floor(rng() * domeMats.length)]);
         m.position.set(px, terrain.baseAt(px, pz, r) - 1, pz);
         m.scale.y = 0.6 + rng() * 0.6;
         scene.add(m);
@@ -519,7 +520,7 @@ export function buildWorld(scene, terrain) {
         bulb.scale(1, 0.7, 1);
         parts.push(bulb.translate(0, h, 0));
         parts.push(new THREE.CylinderGeometry(0.25, 0.25, 14, 4).translate(0, h + 10, 0));
-        const m = new THREE.Mesh(mergeGeometries(parts), mats[Math.floor(rng() * mats.length)]);
+        const m = new THREE.Mesh(mergeGeometries(parts), towerMats[Math.floor(rng() * towerMats.length)]);
         m.position.set(px, terrain.baseAt(px, pz, r) - 1, pz);
         scene.add(m);
         footprints.push({ x: px, z: pz, r: r + 0.5 });

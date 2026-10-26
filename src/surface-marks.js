@@ -16,6 +16,21 @@
 //   S_GROUNDMID (makeMaterial({ groundMid }), on terrain) references/surfaces/open-ground/sheet-1.jpg: the ground ink's
 //            middle distance (ground-ink.js draws the near): broad soft patches of another tone, a few long pen lines
 //            along the fall of the slopes, and stones that still read 20–200 m off.
+// Part 2 (issue #677), the same way:
+//   S_SEAWALL (makeMaterial({ seaWall })) references/surfaces/sea-walls/sheet-1.jpg: the Underwater City's render, white salt
+//            bloom at the foot and under ledges, a few tide lines a shade darker, green growth stains and barnacle dots in
+//            the shaded foot, repaired patches of a fresher pink. In the world's frame (the foot a world height).
+//   S_PALESTONE (paleStone) references/surfaces/pale-stone/sheet-1.jpg: large soft-edged blocks in courses, each its tone,
+//            now and then a warmer one, worn round arrises, rain streaks hanging from a course's top, a darker damp band at
+//            the foot, hairline cracks and pits near.
+//   S_BURIED (buriedCity) references/surfaces/buried-city/sheet-1.jpg: the Glass Dunes' sandstone, banded and scoured by
+//            the wind (soft bands, broken lines along them, lighter runs), wind-worn tops, a few sand-blasted lighter blocks,
+//            and the line where the sand meets the stone.
+//   S_DOMES  (domes) references/surfaces/desert-domes/sheet-1.jpg: shell domes of curved panels set in rings that follow
+//            the dome (in the object's frame, its foot at the origin), raised seams, a few odd-tone panels, now and then a
+//            ring painted another colour, small round vents, a band of sand-scour at the ground.
+//   S_CHANNEL (channel) references/surfaces/water-channels/sheet-1.jpg: a narrow water channel along its object's x or z
+//            (its middle at 0): calm flow lines along the current, a pale line of light along each edge, a darker wet lip.
 // Every mark goes by its size on screen, as each sheet's distance strip: the fine marks first, the joints and bands
 // next, the tones last; far off a flat colour.
 
@@ -28,6 +43,17 @@ export const SHEET = { panel: [1.6, 1.25], rivet: { step: 0.2, inset: 0.06, r: 0
 export const TIMBER = { plank: 0.24, grain: 0.045, knot: 0.22, paint: 0.1, paintColor: [0.55, 0.73, 0.7] };
 /** The ground's middle distance: contour spacing (m of height), the stones' density, how strong. */
 export const GROUND_MID = { contour: 3.0, stones: 0.45, amount: 1 };
+
+/** The sea walls: tide lines' spacing (m) and how many over the foot, the share of the repaired patches and their cell (m). */
+export const SEA_WALL = { tide: 1.15, lines: 4, foot: 0, patch: 0.22, cell: [2.6, 1.7], salt: [0.15, 1.1] };
+/** Lorn's pale stone: a course and a block's length (m), the damp band's height (m), the warmer blocks' share. */
+export const PALE_STONE = { course: 0.9, block: 1.8, damp: 0.75, warm: 0.07, streaks: 0.3, crack: 0.1 };
+/** The buried city: the wind's bands (m), the sand's line over the foot (m; 0 none), its colour. */
+export const BURIED_CITY = { band: 0.55, sand: 0.4, sandColor: [0.91, 0.77, 0.55], blasted: 0.12 };
+/** The desert's domes: rings over a hemisphere (or a tower's ring, m), panels round the equator (or a tower), the scour band (m over the foot). */
+export const DOMES = { rings: 5, panels: 22, tower: [4, 10], scour: 1.8, odd: 0.16, vent: 0.12, band: 0.22 };
+/** A water channel: its half width (m), the current's speed (m/s). */
+export const CHANNEL = { half: 0.35, flow: 0.25 };
 
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 const hex = (c) => {
@@ -68,6 +94,41 @@ export function groundMidOf(o) {
   if (!o.groundMid || o.mode !== 1) return [0, 0, 0, 0];
   const g = { ...GROUND_MID, ...(typeof o.groundMid === 'object' ? o.groundMid : {}) };
   return [Math.max(g.contour, 0.5), clamp(g.stones, 0, 1), clamp(g.amount, 0, 2), 1];
+}
+
+/** seaWall: true or { foot (world y), tide (m), salt, growth } → [tide, foot, salt, growth] (zeros: none). */
+export function seaWallOf(o) {
+  if (!o.seaWall || excluded(o) || o.mode === 1) return [0, 0, 0, 0];
+  const w = typeof o.seaWall === 'object' ? o.seaWall : {};
+  return [Math.max(w.tide ?? SEA_WALL.tide, 0.3), w.foot ?? SEA_WALL.foot, clamp(w.salt ?? 1, 0, 2), clamp(w.growth ?? 1, 0, 2)];
+}
+/** paleStone: true or { course, block, foot (world y), wear } → [course, block, foot, wear] (zeros: none). */
+export function paleStoneOf(o) {
+  if (!o.paleStone || excluded(o) || o.mode === 1) return [0, 0, 0, 0];
+  const p = typeof o.paleStone === 'object' ? o.paleStone : {};
+  return [Math.max(p.course ?? PALE_STONE.course, 0.2), Math.max(p.block ?? PALE_STONE.block, 0.3), p.foot ?? 0, clamp(p.wear ?? 1, 0, 2)];
+}
+/** buriedCity: true or { band, foot (world y), sand (m over the foot, 0: no sand line), scour } → [band, foot, sand, scour]. */
+export function buriedCityOf(o) {
+  if (!o.buriedCity || excluded(o) || o.mode === 1) return [0, 0, 0, 0];
+  const b = typeof o.buriedCity === 'object' ? o.buriedCity : {};
+  return [Math.max(b.band ?? BURIED_CITY.band, 0.1), b.foot ?? 0, Math.max(b.sand ?? BURIED_CITY.sand, 0), clamp(b.scour ?? 1, 0, 2)];
+}
+/** domes: true or { rings, panels, scour, tower (a tower: rings every DOMES.tower[0] m), band: colour, share } →
+ *  [[rings (a tower's: m), panels, scour (m), 1 a dome / 2 a tower], [band r, g, b, share]] (zeros: none). */
+export function domesOf(o) {
+  const z = [[0, 0, 0, 0], [0, 0, 0, 0]];
+  if (!o.domes || excluded(o) || o.mode === 1) return z;
+  const d = typeof o.domes === 'object' ? o.domes : {};
+  const tower = !!d.tower;
+  const band = d.band ? [...hex(d.band), clamp(d.share ?? DOMES.band, 0, 1)] : [0, 0, 0, 0];
+  return [[Math.max(d.rings ?? (tower ? DOMES.tower[0] : DOMES.rings), 1), Math.max(Math.round(d.panels ?? (tower ? DOMES.tower[1] : DOMES.panels)), 3), Math.max(d.scour ?? DOMES.scour, 0), tower ? 2 : 1], band];
+}
+/** channel: true or { half (m), axis: 'x' | 'z' (along its object's), flow (m/s) } → [half, 0 along x / 1 along z, flow, 1]. */
+export function channelOf(o) {
+  if (!o.channel || o.glass || o.glow || o.figure) return [0, 0, 0, 0];
+  const c = typeof o.channel === 'object' ? o.channel : {};
+  return [Math.max(c.half ?? CHANNEL.half, 0.05), c.axis === 'x' ? 0 : 1, c.flow ?? CHANNEL.flow, 1];
 }
 
 const f = (v) => (Number.isInteger(v) ? `${v}.0` : `${+v.toFixed(5)}`);
@@ -225,17 +286,44 @@ export const TIMBER_GLSL = /* glsl */ `
 
 export const GROUND_MID_GLSL = /* glsl */ `
   // ---------------------------------------------------------------- the ground's middle distance (src/surface-marks.js GROUND_MID)
-  // The ground at p (m, x z) and height y, gm its metres per px, yfw the height's per px, slope 1 - n.y, s2 the sun's way
-  // across the ground, len its shadows' length, castK how lit: long lines along the fall of the slopes and stones that
-  // still read off in the middle distance: their ink.
-  // broad soft patches of another tone, a few percent (soft: never a colour edge): the albedo's factor
-  vec3 groundMidTone(vec2 p) {
-    float v = vnoise(p * 0.0045 + 5.3) * 0.6 + vnoise(p * 0.017 + 1.7) * 0.4;
-    float k = smoothstep(0.5, 0.64, v) * uGroundMid.z;
-    return mix(vec3(1.0), vec3(1.09, 1.07, 0.9), k);   // (paler, toward ochre: the sheet's soft drifts of another tone)
+  // (issue 677, the author: "the ground in Vael is fully a flat color": stronger, after the open-ground sheet's panels:
+  //  patches of a paler ochre with a crackled, broken border, a few rosier ones, pebbles with their shadows near as well
+  //  as far, short wind dashes near, the long lines along the slopes; flat colour far)
+  // the paler patches' field (its border at 0.58, jagged by a fine octave) and the rosier ones' (under 0.3)
+  float groundMidPale(vec2 p) { return vnoise(p * 0.018 + 5.3) * 0.6 + vnoise(p * 0.07 + 1.7) * 0.3 + vnoise(p * 0.55 + 3.1) * 0.1; }
+  float groundMidRose(vec2 p) { return vnoise(p * 0.03 + 11.1) * 0.7 + vnoise(p * 0.11 + 4.2) * 0.3; }
+  // the patches' tone into the albedo: soft over at least a few pixels, so never a colour edge post.js inks
+  vec3 groundMidTone(vec2 p, vec3 alb) {
+    float v1 = groundMidPale(p), v2 = groundMidRose(p);
+    float w1 = max(0.012, 4.0 * fwidth(v1)), w2 = max(0.012, 4.0 * fwidth(v2));
+    float k = uGroundMid.z;
+    float pale = smoothstep(0.58 - w1, 0.58 + w1, v1) * k, rose = (1.0 - smoothstep(0.3 - w2, 0.3 + w2, v2)) * k;
+    alb = mix(alb, vec3(0.97, 0.85, 0.64), pale * 0.42);   // (a paler sandy ochre, as the sheet's patches)
+    return alb * mix(vec3(1.0), vec3(0.965, 0.935, 0.945), rose);
   }
-  float groundMid(vec2 p, float y, float gm, float yfw, float slope, vec2 s2, float len, float castK) {
+  // The ground at p (m, x z) and height y, gm its metres per px, yfw the height's per px, slope 1 - n.y, s2 the sun's way
+  // across the ground, len its shadows' length, castK how lit, nearStones 1 where the ground has no print pebbles of its
+  // own (uDots): the patches' broken border, wind dashes, lines along the slopes and stones near and far: their ink.
+  float groundMid(vec2 p, float y, float gm, float yfw, float slope, vec2 s2, float len, float castK, float nearStones) {
     float k = uGroundMid.z, ink = 0.0;
+    float flatK = 1.0 - smoothstep(0.35, 0.6, slope);
+    // the paler patches' crackled border: a broken pen line along it, near and in the middle distance
+    float v1 = groundMidPale(p), f1 = max(fwidth(v1), 1e-5);
+    float brk = smoothstep(0.32, 0.5, vnoise(p * 0.7 + 8.3));
+    ink = max(ink, inkLine(abs(v1 - 0.58) / f1, 0.9) * brk * 0.7 * k * flatK * (1.0 - smoothstep(0.03, 0.08, gm)));
+    // short wind dashes, near
+    float kD = 1.0 - smoothstep(0.012, 0.03, gm);
+    if (kD > 0.0) {
+      vec2 dw = vec2(0.8, 0.6), dn = vec2(-0.6, 0.8);
+      vec2 q = vec2(dot(p, dw), dot(p, dn)) / vec2(1.6, 0.7), c = floor(q);
+      if (hash(c + 17.3) < 0.3) {
+        vec2 o = (c + 0.2 + 0.6 * vec2(hash(c + 3.1), hash(c + 5.9))) * vec2(1.6, 0.7);
+        vec2 r = vec2(dot(p, dw), dot(p, dn)) - o;
+        float hl = 0.16 + 0.2 * hash(c + 9.7);
+        float d = length(vec2(max(abs(r.x) - hl, 0.0), r.y)) / max(gm, 1e-6);
+        ink = max(ink, inkLine(d, 0.6) * kD * 0.5 * k * flatK);
+      }
+    }
     // long pen lines along the fall of the slopes: the height's contours on rolling ground, in long runs, from ~15 m out
     float mid = smoothstep(0.012, 0.04, gm);
     float S = uGroundMid.x, cpx = S / max(yfw, 1e-6);
@@ -245,11 +333,241 @@ export const GROUND_MID_GLSL = /* glsl */ `
       float d = abs(fract(y / S + 0.5) - 0.5) * cpx;
       ink = max(ink, inkLine(d, 0.8) * run * onSlope * mid * smoothstep(6.0, 14.0, cpx) * 0.6 * k);
     }
-    // stones that still read in the middle distance (the near pebbles are ground-ink.js's)
-    if (uGroundMid.y > 0.0 && gm < 0.25) ink = max(ink, pebbleField(p, gm, s2, len, castK, 4.5, uGroundMid.y, vec2(0.12, 0.3), 91.0) * mid);
+    // stones with their shadows: small pebbles near (where the ground has none of its own), stones out to ~200 m
+    if (uGroundMid.y > 0.0 && gm < 0.25) {
+      ink = max(ink, pebbleField(p, gm, s2, len, castK, 4.5, uGroundMid.y, vec2(0.12, 0.3), 91.0) * max(mid, nearStones) * flatK);
+      if (nearStones > 0.0) ink = max(ink, pebbleField(p, gm, s2, len, castK, 1.1, min(uGroundMid.y * 0.9, 0.6), vec2(0.045, 0.12), 57.0) * nearStones * flatK);
+    }
+    return ink;
+  }
+`;
+
+
+const W = SEA_WALL, P = PALE_STONE, B = BURIED_CITY, D = DOMES;
+
+export const SEA_WALL_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- the Underwater City's walls (src/surface-marks.js SEA_WALL)
+  // a soft noise over a wall in the world's frame, any way it faces (no seam round a dome)
+  float seaN(vec3 p, float s) { return vnoise(p.xz * s + p.y * s * vec2(0.37, -0.61)); }
+  // A sea-weathered wall at p (world), fw its metres per px along x, y, z, n its world normal, sun the sun's way across the
+  // ground: salt, tide lines, growth stains and repaired patches into alb; the tide lines', barnacles' and patches' ink.
+  float seaWall(vec3 p, vec3 fw, vec3 n, vec2 sun, inout vec3 alb) {
+    float h = p.y - uSeaWall.y, fy = max(fw.y, 1e-6), fm = max(max(fw.x, fw.z), fy), ink = 0.0;
+    float up = 1.0 - smoothstep(0.55, 0.8, abs(n.y));
+    // tide lines: a few over the foot, each its own height, in long runs, a shade darker, a fine line on top near
+    float T = uSeaWall.x, k = floor(h / T + 0.5);
+    if (k >= 1.0 && k <= ${f(W.lines)}) {
+      float y0 = (k + 0.3 * (hash(vec2(k, 4.1)) - 0.5)) * T + 0.18 * (seaN(p + k * 3.1, 0.35) - 0.5);
+      float run = smoothstep(0.22, 0.4, seaN(p + vec3(k * 5.7, 0.0, 1.3), 0.21));
+      float bw = 0.07 + 0.07 * seaN(p + k, 1.3), d = h - y0;
+      float on = (1.0 - smoothstep(bw * 0.5, bw, abs(d))) * run * up;
+      alb *= mix(vec3(1.0), vec3(0.86, 0.82, 0.78), on * smoothstep(0.6, 2.0, bw / fy) * (1.1 - 0.15 * k));
+      ink = max(ink, inkLine(abs(d - bw) / fy, 0.7) * run * up * 0.6 * (1.0 - smoothstep(0.02, 0.05, fy)));
+    }
+    // white salt bloom gathered at the foot and under the ledges, mottled; gone far
+    float above = step(-0.4, h);
+    float salt = (1.0 - smoothstep(${f(W.salt[0])}, ${f(W.salt[1])} + 0.5 * seaN(p, 0.6), h)) * above;
+    salt = max(salt, smoothstep(-0.25, -0.65, n.y) * 0.7);
+    float mott = smoothstep(0.3, 0.72, seaN(p + 2.7, 2.3));
+    alb = mix(alb, vec3(0.97, 0.96, 0.92), salt * mott * 0.5 * uSeaWall.z * (1.0 - smoothstep(0.025, 0.07, fm)));
+    // green growth stains in the shaded foot, and barnacle dots in them near
+    float away = smoothstep(0.1, -0.45, dot(normalize(n.xz + vec2(1e-5)), sun));
+    float g = (1.0 - smoothstep(0.3, 2.0, h)) * above * away * up * smoothstep(0.52, 0.74, seaN(p + 9.1, 0.8)) * uSeaWall.w;
+    alb = mix(alb, alb * vec3(0.8, 0.98, 0.78), g * 0.75);
+    if (g > 0.02 && fm < 0.008 && uWearLite < 0.5) {
+      vec3 c = floor(p / 0.07);
+      vec3 r = (p / 0.07 - c - 0.5 - 0.6 * (vec3(hash(c.xy + c.z * 7.1), hash(c.yz + c.x * 3.3), hash(c.zx + c.y * 5.9)) - 0.5)) * 0.07;
+      float rr = uPixelRatio * (0.7 + 0.5 * hash(c.xz + 1.9));
+      ink = max(ink, (1.0 - smoothstep(rr - 0.6, rr + 0.6, length(r) / fm)) * step(hash(c.xz + c.y * 11.3), 0.35) * g * 0.6 * (1.0 - smoothstep(0.004, 0.008, fm)));
+    }
+    // repaired patches of a fresher render, along the wall's dominant axis (faded where it turns: no seam on a dome)
+    bool sx = abs(n.x) > abs(n.z);
+    vec2 w = sx ? p.zy : p.xy, wf = max(sx ? vec2(fw.z, fy) : vec2(fw.x, fy), vec2(1e-6));
+    float axisK = smoothstep(0.12, 0.3, abs(abs(n.x) - abs(n.z))) * up;
+    vec2 cs = vec2(${f(W.cell[0])}, ${f(W.cell[1])}), cc = floor(w / cs) + (sx ? 17.0 : 3.0);
+    if (axisK > 0.0 && hash(cc) < ${f(W.patch)}) {
+      vec2 lo = (floor(w / cs) + 0.08 + 0.3 * vec2(hash(cc + 1.1), hash(cc + 2.2))) * cs;
+      vec2 hi = (floor(w / cs) + 0.62 + 0.3 * vec2(hash(cc + 3.3), hash(cc + 4.4))) * cs;
+      vec2 dd = min(w - lo, hi - w);
+      vec2 spx = (hi - lo) / wf;
+      if (min(dd.x, dd.y) > 0.0) {
+        alb *= mix(vec3(1.0), vec3(1.1, 0.97, 0.95), axisK * smoothstep(2.0, 6.0, min(spx.x, spx.y)));
+        ink = max(ink, inkLine(min(dd.x / wf.x, dd.y / wf.y), 0.8) * axisK * 0.65 * smoothstep(8.0, 16.0, min(spx.x, spx.y)));
+      }
+    }
+    return ink;
+  }
+`;
+
+export const PALE_STONE_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- Lorn's pale stone (src/surface-marks.js PALE_STONE)
+  // A wall of pale stone at p (world), fw its metres per px along x, y, z, n its world normal: each block's tone, the worn
+  // arrises, rain streaks, the damp foot into alb; the joints', streaks', cracks' and pits' ink.
+  float paleStone(vec3 p, vec3 fw, vec3 n, inout vec3 alb) {
+    float ink = 0.0, wear = uPaleStone.w;
+    // the damp band at the foot: darker, its top wavering
+    float hf = p.y - uPaleStone.z, dtop = ${f(P.damp)} * (0.75 + 0.5 * vnoise(p.xz * 0.45 + 3.7));
+    float damp = (1.0 - smoothstep(dtop - 0.06, dtop + 0.06, hf)) * step(-1.5, hf) * (1.0 - smoothstep(0.6, 0.8, abs(n.y)));
+    alb *= mix(vec3(1.0), vec3(0.84, 0.84, 0.89), damp * min(wear, 1.0));
+    // (a top: its flagstones in the same blocks, laid along x; no streaks, no damp)
+    bool sx = abs(n.x) > abs(n.z), top = n.y > 0.75;
+    vec2 q = top ? p.xz : sx ? p.zy : p.xy, fq = max(top ? vec2(fw.x, fw.z) : sx ? vec2(fw.z, fw.y) : vec2(fw.x, fw.y), vec2(1e-6));
+    float fm = max(fq.x, fq.y), sd = top ? 57.0 : sx ? 31.0 : 0.0;
+    float C = uPaleStone.x, row = floor(q.y / C);
+    float L = uPaleStone.y * (0.75 + 0.5 * hash(vec2(row, 5.1 + sd)));
+    float u = q.x / L + hash(vec2(row, 2.7 + sd)), col = floor(u);
+    vec2 id = vec2(col, row) + sd;
+    float lx = (u - col) * L, ly = q.y - row * C;
+    float pW = L / fq.x, pH = C / fq.y;
+    if (n.y < -0.75 || (abs(n.y) > 0.6 && !top) || min(pW, pH) < 2.0) return 0.0;
+    float kT = smoothstep(3.0, 8.0, min(pW, pH));
+    // each block its tone, a mottle in it, now and then a warmer block put in
+    vec3 m = vec3(1.0 + 0.08 * (hash(id + 0.3) - 0.5) + 0.03 * (vnoise(q * 1.6 + id) - 0.5));
+    if (hash(id + 7.7) < ${f(P.warm)}) m *= vec3(1.045, 1.0, 0.92);
+    alb *= mix(vec3(1.0), m, kT);
+    // its outline: soft round corners; its upper arris worn and catching the light
+    float ex = min(lx, L - lx), ey = min(ly, C - ly), rc = 0.07 * C;
+    float dpx = ex < rc && ey < rc ? max(rc - length(vec2(rc - ex, rc - ey)), 0.0) / fm : min(ex / fq.x, ey / fq.y);
+    ink = max(ink, inkLine(dpx, 0.9) * smoothstep(5.0, 10.0, min(pW, pH)) * 0.7);
+    float arris = (C - ly) / fq.y;
+    alb *= 1.0 + (top ? 0.0 : 0.05) * smoothstep(1.0, 1.8, arris) * (1.0 - smoothstep(1.8, 4.0, arris)) * smoothstep(8.0, 14.0, pH);
+    // fine rain streaks hanging from a course's top, darker, tapering down
+    if (!top && hash(vec2(row, 9.9 + sd)) < ${f(P.streaks)} * wear) {
+      float sw = 0.11, sc = floor(lx / sw);
+      vec2 sid = id + vec2(sc * 0.37, 4.4);
+      float len = C * (0.25 + 0.6 * hash(sid + 1.3)), s = C - ly;
+      if (hash(sid) < 0.35 && s < len) {
+        float k = 1.0 - s / len, xs = (sc + 0.5) * sw + 0.02 * (vnoise(vec2(q.y * 6.0, sc)) - 0.5);
+        float wd = mix(0.003, 0.01, k), dx = abs(lx - xs);
+        float on = 1.0 - smoothstep(wd, wd + fq.x, dx);
+        alb *= 1.0 - 0.08 * on * k * smoothstep(1.0, 3.0, 0.01 / fq.x);
+        ink = max(ink, inkLine(dx / fq.x, 0.5) * k * 0.4 * (1.0 - smoothstep(0.004, 0.01, fm)));
+      }
+    }
+    // near: a hairline crack across the odd block, sparse pits
+    float kN = 1.0 - smoothstep(0.006, 0.014, fm);
+    if (kN > 0.0 && uWearLite < 0.5) {
+      if (hash(id + 3.9) < ${f(P.crack)} * wear) {
+        float an = (hash(id + 5.3) - 0.5) * 1.4 + 0.8;
+        vec2 dir = vec2(cos(an), sin(an)), o = vec2(hash(id + 6.6) * L, hash(id + 8.8) * C);
+        vec2 r = vec2(lx, ly) - o;
+        float s = dot(r, dir), off = dot(r, vec2(-dir.y, dir.x)) - 0.03 * C * (vnoise(vec2(s * 9.0, id.x)) - 0.5);
+        float reach = C * (0.25 + 0.4 * hash(id + 2.4));
+        ink = max(ink, inkLine(abs(off) / fm, 0.45) * (1.0 - smoothstep(reach * 0.6, reach, abs(s))) * step(1.5, dpx) * kN * 0.65);
+      }
+      vec2 pc = q / 0.21, pq = floor(pc);
+      vec2 pd = (fract(pc) - 0.2 - 0.6 * hash2(pq + 47.0)) * 0.21 / fq;
+      float pr = 0.9 * uPixelRatio * (0.6 + 0.8 * hash(pq + 3.0));
+      ink = max(ink, (1.0 - smoothstep(pr - 0.6, pr + 0.6, length(pd))) * step(hash(pq + 8.0), 0.1 * wear) * step(1.0, dpx) * kN * 0.5);
+    }
+    return ink;
+  }
+`;
+
+export const BURIED_CITY_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- the Glass Dunes' buried city (src/surface-marks.js BURIED_CITY)
+  // Sandstone at p (world), fw its metres per px along x, y, z, n its world normal: the wind's bands and scoured runs, worn
+  // tops, sand-blasted blocks, the sand against its foot into alb; the bands' and the sand line's ink.
+  float buriedCity(vec3 p, vec3 fw, vec3 n, inout vec3 alb) {
+    float fy = max(fw.y, 1e-6), fm = max(max(fw.x, fw.z), fy), ink = 0.0;
+    vec2 q = p.xz;
+    float up = 1.0 - smoothstep(0.55, 0.8, abs(n.y));
+    // the wind's bands: soft, each its tone, wavering along the wall; broken lines between them
+    float Bh = uBuried.x, yb = p.y / Bh + 0.6 * (vnoise(q * 0.07 + 2.3) - 0.5), bi = floor(yb);
+    float kB = smoothstep(2.0, 6.0, Bh / fy) * up;
+    alb *= 1.0 + (hash(vec2(bi, 6.1)) - 0.5) * 0.11 * kB * uBuried.w;
+    float run = smoothstep(0.48, 0.62, vnoise(q * 0.3 + bi * 1.7));
+    ink = max(ink, inkLine(abs(fract(yb + 0.5) - 0.5) * Bh / fy, 0.6) * run * 0.55 * smoothstep(7.0, 14.0, Bh / fy) * up);
+    // scoured lighter runs along the bands
+    float st = 0.5 * (vnoise(vec2(q.x * 0.22, p.y * 6.0)) + vnoise(vec2(q.y * 0.22, p.y * 6.0 + 5.0)));
+    alb *= 1.0 + 0.08 * smoothstep(0.6, 0.78, st) * smoothstep(1.0, 3.0, 0.16 / fy) * up * uBuried.w;
+    // wind-worn tops, and a few blocks sand-blasted lighter (soft: never a colour edge)
+    alb *= 1.0 + 0.05 * smoothstep(0.5, 0.85, n.y);
+    vec3 c = floor(p / vec3(2.2, 1.1, 2.2));
+    if (hash(c.xz + c.y * 13.7) < ${f(B.blasted)}) alb *= 1.0 + 0.045 * up;
+    // the sand against the foot: its line wavering, sand-coloured below, a faint stain over it
+    if (uBuried.z > 0.0) {
+      float h = p.y - uBuried.y, sl = uBuried.z * (0.55 + 0.9 * vnoise(q * 0.4 + 7.7));
+      if (h > -3.0 && h < sl + 0.6) {
+        float below = 1.0 - smoothstep(sl - 0.025, sl + 0.025, h);
+        alb = mix(alb, vec3(${B.sandColor.map(f).join(', ')}), below * 0.7 * up);
+        alb *= 1.0 - 0.07 * (1.0 - smoothstep(0.0, 0.35, h - sl)) * step(sl, h) * up;
+        ink = max(ink, inkLine(abs(h - sl) / fy, 0.8) * 0.7 * up * (1.0 - smoothstep(0.02, 0.05, fy)));
+      }
+    }
+    return ink;
+  }
+`;
+
+export const DOMES_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- the desert's domes (src/surface-marks.js DOMES)
+  // A dome (or a tower) at p (object space: its foot's middle at the origin), fphi the metres-free px of its azimuth (a
+  // turn's share per px), frc its ring coordinate's per px, mpp its metres per px: the panels' tones, painted rings, the
+  // raised seams' light, the scour into alb; the seams' and vents' ink.
+  float domesRing(vec3 p) {
+    if (uDomes.w > 1.5) return p.y / uDomes.x;
+    return atan(p.y, max(length(p.xz), 1e-4)) / 1.5708 * uDomes.x;
+  }
+  float domes(vec3 p, float fphi, float frc, float mpp, inout vec3 alb) {
+    bool tower = uDomes.w > 1.5;
+    float rc = domesRing(p), ri = floor(rc), ink = 0.0;
+    float N = tower ? uDomes.y : (ri >= uDomes.x - 1.0 ? 0.0 : max(3.0, floor(uDomes.y * cos((ri + 0.5) / uDomes.x * 1.5708) + 0.5)));
+    float phi = atan(p.z, p.x) / 6.28318;
+    float u = phi * N + hash(vec2(ri, 3.3)), pj = floor(u);
+    float pR = 1.0 / max(frc, 1e-6), pA = N > 0.0 ? 1.0 / max(fphi * N, 1e-6) : 1e4;
+    vec2 id = vec2(ri, N > 0.0 ? pj - N * floor(pj / N) : 0.0);
+    // a ring painted another colour now and then (the sheet's bands), a few panels of another tone
+    float rOdd = ri - 2.0 * floor(ri * 0.5);
+    if (uDomesBand.a > 0.0 && rOdd > 0.5 && (tower || ri < uDomes.x - 1.0) && hash(vec2(ri, 11.3)) < uDomesBand.a * 2.0) alb = uDomesBand.rgb;
+    float ho = hash(id + 7.1);
+    if (ho < ${f(D.odd)}) alb *= mix(vec3(1.0), ho < ${f(D.odd / 2)} ? vec3(0.94, 0.955, 0.965) : vec3(1.04, 1.02, 0.975), smoothstep(3.0, 8.0, min(pR, pA)));
+    // wind-polished top, sand-scoured foot
+    if (!tower) alb *= 1.0 + 0.035 * smoothstep(0.65, 0.9, rc / uDomes.x);
+    float sc = 1.0 - smoothstep(0.3, uDomes.z, p.y + 0.8 * (vnoise(p.xz * 0.6) - 0.5));
+    alb = mix(alb, alb * vec3(1.03, 0.95, 0.84), sc * 0.55);
+    // the seams: rings (staying far) and the joints round them (going first), each with a light line over it: raised
+    float dR = abs(fract(rc + 0.5) - 0.5) * pR, dA = abs(fract(u + 0.5) - 0.5) * pA;
+    float kR = smoothstep(3.0, 7.0, pR), kA = smoothstep(6.0, 12.0, pA) * kR;
+    ink = max(ink, max(inkLine(dR, 0.8) * kR, inkLine(dA, 0.7) * kA) * 0.7);
+    float e = fract(rc) * pR;
+    alb *= 1.0 + 0.08 * smoothstep(0.9, 1.6, e) * (1.0 - smoothstep(1.6, 3.0, e)) * smoothstep(8.0, 14.0, pR);
+    // a small round vent in the odd panel, near
+    float rv = 0.16 / max(mpp, 1e-6);
+    if (N > 0.0 && rv > 1.5 && hash(id + 2.9) < ${f(D.vent)}) {
+      vec2 v = vec2((fract(u) - 0.5) * pA, (fract(rc) - 0.55) * pR);
+      float dv = length(v);
+      alb *= 1.0 - 0.35 * (1.0 - smoothstep(rv * 0.7, rv * 0.8, dv));
+      ink = max(ink, inkLine(abs(dv - rv), 0.8) * smoothstep(1.5, 3.0, rv) * 0.8);
+    }
+    return ink;
+  }
+`;
+
+export const CHANNEL_GLSL = /* glsl */ `
+  // ---------------------------------------------------------------- a water channel (src/surface-marks.js CHANNEL)
+  // A channel's water at p (object space: along x or z, its middle at 0), fw its metres per px along x, y, z, t the time:
+  // the light along its edges and the wet lip into alb; the flow lines' ink.
+  float channel(vec3 p, vec3 fw, float t, inout vec3 alb) {
+    bool az = uChannel.y > 0.5;
+    float a = az ? p.z : p.x, cr = az ? p.x : p.z;
+    float fc = max(az ? fw.x : fw.z, 1e-6), hw = uChannel.x, e = hw - abs(cr);
+    // the darker wet lip at its very edge, a pale line of light a little in from it
+    float lipW = max(0.02, 1.2 * fc), e0 = max(0.055, 2.6 * fc), lw = max(0.016, 1.1 * fc);
+    alb = mix(alb, alb * 0.7, 1.0 - smoothstep(lipW * 0.6, lipW, e));
+    alb = mix(alb, vec3(0.95, 0.98, 0.92), (1.0 - smoothstep(lw * 0.5, lw, abs(e - e0))) * 0.9);
+    // calm flow lines along the current, wavering, in long runs, carried down it; gone far
+    float kF = smoothstep(5.0, 10.0, 0.5 * hw / fc), ink = 0.0;
+    if (kF > 0.0) {
+      float s = a - t * uChannel.z;
+      for (int k = 0; k < 3; k++) {
+        float fk = float(k), c0 = hw * (fk - 1.0) * 0.5 + hw * 0.36 * (vnoise(vec2(s * 0.8, fk * 7.3)) - 0.5);
+        float run = smoothstep(0.42, 0.56, vnoise(vec2(s * 0.35, fk * 3.1 + 9.0)));
+        ink = max(ink, inkLine(abs(cr - c0) / fc, 0.7) * run * kF * 0.65);
+      }
+    }
     return ink;
   }
 `;
 
 /** Every module's GLSL in one (the Unity port's SurfaceMarks.hlsl is made from this). */
-export const MARKS_GLSL = [INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL];
+export const MARKS_GLSL = [INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL];

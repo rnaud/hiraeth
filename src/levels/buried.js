@@ -238,7 +238,7 @@ export function* buildBuried(scene) {
     rustGrid: strata('#c8643f', '#d9825a', '#b35a3a', 3, { grid: 3.5, form: true }),
     rustDark: makeMaterial({ color: '#9a4a30', flat: true, metal: 'iron', refl: 0.15 }),
     rustWall: strata('#c0603e', '#b35a3a', '#cf7450', 6, { pattern: 'cracks', detail: 'built' }),
-    rustFloor: makeMaterial({ color: '#d9825a', color2: '#cf7650', color3: '#b35a3a', mode: MODE_TERRAIN }),
+    rustFloor: makeMaterial({ color: '#d9825a', color2: '#cf7650', color3: '#b35a3a', mode: MODE_TERRAIN, groundMid: true }),   // (the ground's middle distance on the canyon's floor: issue #677)
     steel: strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { metal: 'steel', refl: 0.4, form: true }),
     steelFlat: makeMaterial({ color: '#7f93a3', flat: true, metal: 'steel' }),
     pipe: makeMaterial({ color: '#d8dcc8', metal: 'painted' }),

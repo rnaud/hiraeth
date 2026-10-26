@@ -323,6 +323,60 @@ port-format.js and WorldLoader.cs carry the uniforms; BridgeRenderer.Lean keeps 
   the Glass Dunes 0..+0.3, Vael's slopes +0.1..+0.6 (the ground's middle distance), the shops +0.1..+0.5, Lorn +0.1..+0.6
   (the walkways' timber, and a drift: its temple, unchanged, +0.2). Draw calls unchanged.
 
+## Sea walls, pale stone, the buried city, panelled domes and water channels (issue #677, `src/surface-marks.js`)
+
+Part 2 of the surface work: five more materials after the author's picks in `references/surfaces/`, the same way as
+#669's (each its own define, so a material without it pays nothing; the GLSL in `SurfaceMarks.hlsl` for Unity through
+`scripts/unity-export/marks-hlsl.mjs`; port-format.js and WorldLoader.cs carry the uniforms; BridgeRenderer.Lean keeps
+them off the plain variant). Every mark fades by its size on screen, the finest first.
+
+- **Sea walls** (`seaWall`, `S_SEAWALL`, `uSeaWall`: tide spacing, the foot's world height, salt, growth; the Underwater
+  City's towers, domes, rims, benches and pods' undersides, `underwater-kit.js uwMats`): in the world's frame, so a dome
+  has no seam. Up to four tide lines over the foot (1.15 m apart, each its own height, in long runs, a shade darker, a
+  fine line on top near), white salt bloom at the foot and under ledges (gone far), green growth stains and barnacle
+  dots in the shaded foot (the face turned from the sun), and repaired patches of a fresher pink with a fine outline
+  along the wall's dominant axis, faded where it turns (no seam round a dome). The towers' weathering is halved.
+- **Pale stone** (`paleStone`, `S_PALESTONE`, `uPaleStone`: course, block, foot, wear; `landmark-materials.js
+  paleStone()`, Lorn's Hush-House terrace, drum and columns and the Lamp-House, in place of their cut stone): large
+  soft-edged blocks in courses (each course its own block length), each its tone, one in fourteen a warmer stone, a worn
+  upper arris catching the light, fine rain streaks hanging from a course's top, a darker damp band at the foot (its
+  top wavering), hairline cracks and pits near; tops laid as flagstones of the same blocks. Never inside the temples
+  (their machined finish).
+- **The buried city** (`buriedCity`, `S_BURIED`, `uBuried`: band, foot, the sand line over it, scour; the Glass Dunes'
+  city under the sand and what each window in the sand shows, `glass-dunes-city.js`): soft wind bands (0.55 m, each its
+  tone, wavering), broken lines between them, lighter scoured runs, wind-worn tops, a few sand-blasted blocks, and in the
+  city a wavering sand line at the walls' foot (sand-coloured below, a faint stain over it). The windows' glimpses have
+  no sand line (each lies at its own depth).
+- **Panelled domes** (`domes`, `S_DOMES`, `uDomes`, `uDomesBand`; the Desert's far dome city, `world.js domeCity`, in
+  place of its 4 m grid): in the object's frame (the dome's foot at the origin): rings by the angle up the dome (five a
+  hemisphere, the top a cap), panels round each ring as many as fit its circle, a light line over each seam (raised),
+  a few panels of another tone, now and then a ring painted the band colour (white domes in teal or orange, the coloured
+  ones in white), small round vents near, a sand-scour band at the ground; the rings stay furthest, the joints go first.
+  The towers (`domes: { tower: true }`) take rings every 4 m. Not on the spired city on the horizon (one merged mesh:
+  no dome has its own frame there).
+- **Water channels** (`channel`, `S_CHANNEL`, `uChannel`: half width, axis, flow; Viridel's terraces' runnels,
+  `story/terraces.js`, each length's middle at its object's x = 0): calm flow lines carried down the current, a pale line
+  of light along each edge, a darker wet lip. (The audit's "teal channels ×252" are the great trees' canopy discs,
+  `edena.js canopy`; the runnels are Viridel's only channels.)
+- **The ground's middle distance, stronger** (the author: "the ground in Vael is fully a flat color"): `groundMidTone`
+  now lays patches of a paler sandy ochre (mixed toward it, not multiplied: on Vael's salmon a factor went orange) and a
+  few rosier ones, each soft over at least four pixels (never a colour edge post.js would ink), with a broken pen line
+  along the pale patches' edge near and in the middle distance; `groundMid` adds short wind dashes near, small pebbles
+  with their shadows near where the ground has no print pebbles of its own (`uDots` 0: Vael, home), and the 4.5 m stones
+  from the foot of the view, not only past 15 m. Vael, the Glass Dunes, the Buried Machine and home. Vael's "pale paving"
+  in the audit is the fallen colossus's and the tower's strata stone (`arzach.js`): no paving there, left as it is.
+- Two of #669's leftovers: the Moon Foundry's polishing drum (the round tank) is drawn with its metal's pen detail
+  (the riveted panels broke up on its curve), and the Buried Machine's canyon floor (`rustFloor`, terrain) takes the
+  ground's middle distance.
+- `tests/surface-marks.test.js`: the options, the defines, the port's records, the Unity wiring and the HLSL being current.
+- **Cost**: M4 Pro, 1280 × 720, the shipped bundle, .claude/skills/perf-audit/fps.mjs with `--root` (base 93a03bb04 against this
+  change), the worlds' benchmark views, median frame ms. The five materials, Handheld (load average 4–5): −0.2..+0.4 everywhere
+  (the Underwater City's start +0.4, Lorn +0.2..+0.3). High was not read cleanly: in one pair the change's run shared the
+  machine with a test run (Viridel, unchanged in its views, +0.4..+0.8; the Underwater City +0.6..+1.0), in the other the
+  base's run did (load 8–12). The stronger ground (Vael, the Glass Dunes, home), High, two alternating pairs at load 8–12:
+  −0.7..+1.8, mostly +0.1..+1.1 (the patches' fields and their edge are paid on every pixel of ground). Draw calls unchanged;
+  the Underwater City compiles four programs more. To re-measure on a quiet machine.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

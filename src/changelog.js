@@ -19,6 +19,13 @@ export const CHANGELOG = [
       { text: "In conversations people stand up straight: nodding along or talking with their hands, nobody leans far back with their face to the sky any more. The traveller listening to Plumb looks at it, not over it.", see: "Walk in circles in the desert until Plumb comes, press its button and watch him while it talks; or talk to anyone and watch them nod." },
       "Eight of the new outfits look more like their drawings: the storm courier’s cream collar and rolled cuffs, a bigger hood and grey trousers; the furnace mechanic’s narrower bib, longer sleeves and a bigger tool apron; the frost surveyor’s softer quilting and coral ends at the throat; the observatory apprentice’s strap across the chest to the telescope and clean cream cuffs; the festival traveller’s large patches and broad sash; the gravity ranger’s and void navigator’s lighter trousers; the void navigator’s plain harness and grey knee panels; the star archive keeper’s gold inlays.",
       "His own clothes, the coral shirt, are calmer, like the other outfits: broad light and shade where many small blotches and specks were, and plain colour on the shirt, tee and trousers. Same cut, same colours.",
+      "The Underwater City’s walls show the sea: white salt at their foot and under the ledges, a few tide lines a shade darker, green stains low on the shaded side, and patches of a fresher pink where they were mended.",
+      "Lorn’s Hush-House and Lamp-House are built of large soft-edged stone blocks, each its own shade, with fine rain streaks and a darker damp band at the foot; the Hush-House’s terrace is laid in flagstones of the same stone.",
+      "The city under the Glass Dunes is banded and scoured by the wind, with a line of sand along the foot of its walls.",
+      "The Desert’s far dome city is built of curved panels set in rings that follow each dome, with raised seams, a few panels of another shade, small round vents, a band of teal or orange round some domes and sand-scour near the ground.",
+      "Viridel’s runnels, once you clear them, look like the builders’ channels: calm flow lines along the water, a pale line of light along each edge and a darker wet lip.",
+      "The open ground in Vael, the Glass Dunes and at home is no longer one flat colour: patches of a paler sandy ochre with a fine broken edge, a few rosier ones, small pebbles with their shadows and short wind dashes near you, stones further off, and still a calm flat colour toward the horizon.",
+      "The Moon Foundry’s old polishing drum loses the riveted grid that broke up on its curve, and the Buried Machine’s canyon floor keeps its soft drifts and stones further off.",
     ],
   },
 

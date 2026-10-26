@@ -5,6 +5,14 @@ import { makeMaterial } from '../materials.js';
 // glazing. Keep these in the game's ink/flat-reflection pipeline; the glass wash
 // is composed after the ink, so objects behind a window remain visible.
 const stones = new Map();
+const paleStones = new Map();
+/** Lorn's pale stone (issue #677: src/surface-marks.js PALE_STONE, references/surfaces/pale-stone/sheet-1.jpg): large soft-edged
+ *  blocks in courses, each its tone, rain streaks, the damp band at `foot` (world y), cracks and pits near. */
+export function paleStone(color, { course = 1.4, block = 2.8, foot = 0, wear = 1 } = {}) {
+  const key = `${color}/${course}/${block}/${foot.toFixed(2)}/${wear}`;
+  if (!paleStones.has(key)) paleStones.set(key, makeMaterial({ color, paleStone: { course, block, foot, wear }, shadeFlat: 0, shade: .22, hatch: .45, key: `landmark.pale.${key}` }));
+  return paleStones.get(key);
+}
 /** Cut stone in metres: staggered joints, slight differences between blocks and worn edges.
  * Kept in the existing ink shader, with pixel-filtered joints rather than a repeating image. */
 export function stone(color, { course = 2.8, width = 6.4, wear = .3 } = {}) {

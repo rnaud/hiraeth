@@ -176,6 +176,13 @@ export function portMaterial(spec, id = 0) {
   if (Array.isArray(u.uSheet) && u.uSheet[0] > 0) e.sheet = u.uSheet.slice(0, 4).map(r5);
   if (Array.isArray(u.uTimber) && u.uTimber[3] > 0) e.timber = u.uTimber.slice(0, 4).map(r5);
   if (Array.isArray(u.uGroundMid) && u.uGroundMid[3] > 0) e.groundMid = u.uGroundMid.slice(0, 4).map(r5);
+  // and issue #677's: sea walls, pale stone, the buried city, panelled domes (and their painted rings), a water channel
+  if (Array.isArray(u.uSeaWall) && u.uSeaWall[0] > 0) e.seaWall = u.uSeaWall.slice(0, 4).map(r5);
+  if (Array.isArray(u.uPaleStone) && u.uPaleStone[0] > 0) e.paleStone = u.uPaleStone.slice(0, 4).map(r5);
+  if (Array.isArray(u.uBuried) && u.uBuried[0] > 0) e.buried = u.uBuried.slice(0, 4).map(r5);
+  const dBand = u.uDomesBand;   // (read either way: its material's whole record)
+  if (Array.isArray(u.uDomes) && u.uDomes[3] > 0) Object.assign(e, { domes: u.uDomes.slice(0, 4).map(r5), domesBand: (dBand ?? [0, 0, 0, 0]).slice(0, 4).map(r5) });
+  if (Array.isArray(u.uChannel) && u.uChannel[3] > 0) e.channel = u.uChannel.slice(0, 4).map(r5);
   if (typeof u.uFarNear === 'number' && typeof u.uFarScale === 'number') e.farDepth = [r5(u.uFarNear), r5(u.uFarScale), 0, 0];
   if (spec.defines?.S_THIN && v('uThinPx') > 0) e.thinPx = r5(v('uThinPx'));
   if (spec.defines?.LINE_FAR && Array.isArray(u.uLineFar)) e.lineFar = [...u.uLineFar.slice(0, 3).map(r5), 1];

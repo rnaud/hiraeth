@@ -142,6 +142,8 @@ export function setupTerraces(ctx) {
   const mudMat = makeMaterial({ color: '#7d5c3c', color2: '#8f6c46', color3: '#6f8a4f', mode: MODE_TERRAIN, ticks: true });
   const waterMat = makeMaterial({ color: '#7fc4d0', color2: '#9ad3d9', mode: MODE_WATER });
   const muddyMat = makeMaterial({ color: '#a88c64', color2: '#c2a983', mode: MODE_WATER });
+  // (issue #677: the runnels drawn as the builders' channels, src/surface-marks.js CHANNEL: flow lines, the light on the edges, a wet lip)
+  const runnelMat = makeMaterial({ color: '#7fc4d0', color2: '#9ad3d9', mode: MODE_WATER, channel: { half: 0.35, axis: 'z', flow: 0.3 } });
   const bushMat = makeMaterial({ color: '#5f8f4f', color2: '#86a35a', flat: true });
   const deadMat = makeMaterial({ color: '#8a7a4a', color2: '#6f5a3a', flat: true });
   const rootMat = makeMaterial({ color: '#6f9a5a', flat: true });
@@ -193,9 +195,10 @@ export function setupTerraces(ctx) {
   const runnels = [0, 1, 2].map((k) => {
     const s = L.steps[k], x = s.xu - 1.1, top = (xx, zz) => L.topAt(k, zz) - 0.12;
     // the runnel's water in three lengths: the middle one goes with the lane
-    const strip = new THREE.Group(), lanePart = new THREE.Mesh(stripGeometry(top, [[x, T.lane.z0], [x, T.lane.z1]], 0.7, 0.03), waterMat);
-    strip.add(new THREE.Mesh(stripGeometry(top, [[x, T.z0 + 1], [x, T.lane.z0]], 0.7, 0.03), waterMat), lanePart,
-      new THREE.Mesh(stripGeometry(top, [[x, T.lane.z1], [x, T.z1 - 3]], 0.7, 0.03), waterMat));
+    // (each length's middle at its object's x = 0: the channel's marks go across it from there)
+    const run = (z0, z1) => { const m = new THREE.Mesh(stripGeometry(top, [[x, z0], [x, z1]], 0.7, 0.03).translate(-x, 0, 0), runnelMat); m.position.x = x; return m; };
+    const strip = new THREE.Group(), lanePart = run(T.lane.z0, T.lane.z1);
+    strip.add(run(T.z0 + 1, T.lane.z0), lanePart, run(T.lane.z1, T.z1 - 3));
     strip.traverse((o) => { o.userData.noCollide = true; });
     strip.visible = !!game.flag(`edena.runnel.${k}`) || flooded();
     strip.userData.lanePart = lanePart;

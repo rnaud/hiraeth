@@ -104,16 +104,17 @@ export function seaSurface(kit, { y = 60, size = 4000, x = 0, z = 0, sea = SEA_D
 
 /** The city's materials (one per option set, shared by the kit). shadeFlat: how flat its shade is printed. */
 export function uwMats(kit, { shadeFlat = 0.82 } = {}) {
-  const P = shadeFlat ? { shadeFlat } : {};
+  const P = shadeFlat ? { shadeFlat } : {}, SEA = { foot: 0 };
   return {
     // (the towers keep their salmon in the shade: the sheets turn a tower's far side a dusky rose, not grey)
     // (v0.95: and lifted a third of the way to their lit coral, so a tower stays pink all round as the plates' glow)
-    tower: UW_PAL.tower.map((c) => kit.mat({ color: c, weathered: 0.25, shadeHue: 0.5, shade: 0.35 })),
-    shell: { teal: kit.mat({ color: '#4a8790', flat: true, weathered: 0.2, ...P }), pink: kit.mat({ color: '#f0aa98', flat: true, weathered: 0.2, shadeHue: 0.5 }) },
+    // (issue #677: the sea's weathering, src/surface-marks.js SEA_WALL: salt at the foot, tide lines, growth in the shade, patches)
+    tower: UW_PAL.tower.map((c) => kit.mat({ color: c, weathered: 0.12, seaWall: SEA, shadeHue: 0.5, shade: 0.35 })),
+    shell: { teal: kit.mat({ color: '#4a8790', flat: true, weathered: 0.1, seaWall: SEA, ...P }), pink: kit.mat({ color: '#f0aa98', flat: true, weathered: 0.1, seaWall: SEA, shadeHue: 0.5 }) },
     // a shell's inside, seen through its windows and from within: warm plaster, lit
     lining: kit.mat({ color: '#e0905e', glow: 0.5, shade: 0.9, flat: true, spot: 0, side: THREE.BackSide }),
-    rim: kit.mat({ color: UW_PAL.rim, flat: true, ...P }),
-    under: kit.mat({ color: UW_PAL.under, flat: true, ...P }),
+    rim: kit.mat({ color: UW_PAL.rim, flat: true, seaWall: SEA, ...P }),
+    under: kit.mat({ color: UW_PAL.under, flat: true, seaWall: SEA, ...P }),
     // (lit from within: self-lit under the bloom's threshold, so no halo, and their shade lifted to their own colour)
     glass: kit.mat({ color: UW_PAL.glass, glow: 0.58, shade: 0.9, flat: true, spot: 0 }),
     glassDim: kit.mat({ color: UW_PAL.glassDim, glow: 0.5, shade: 0.8, flat: true, spot: 0 }),

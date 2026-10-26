@@ -241,6 +241,8 @@ export function* buildMoonFoundry(scene) {
     trunk: mat({ color: T.trunk, flat: true, thin: THIN }),
     floor: mat({ color: T.floor, shade: 0.25, hatch: 0.15, grid: 9, paving: { size: 3, wear: 0.5, tone: 0.7 } }),   // (the slabs: no terrain ink, no pebbles: the sheets' floor is clean)
     line: mat({ color: '#9a8f7c', flat: true }),
+    // the polishing drum lying on its side: its metal's pen detail, not the sheet's flat panels, which broke up on its curve (issue #677)
+    tank: mat({ color: T.rust2, shade: 0.18, hatch: 0.38, detail: 'built', detailDensity: 0.4 }),
   };
   const FLORA = new Set([...M.leaf, M.trunk]);
   // a merged-by-tone surface: kept per cell and solid flag, merged at the end with its material values per vertex
@@ -279,6 +281,7 @@ export function* buildMoonFoundry(scene) {
           case 'gMetal': addVM(C, M.metal.rust3, g, solid, false); break;
           case 'gDark': k.add(M.gDark, g, { solid, shadow: false }); break;
           case 'gPale': addVM(C, M.metal.rust2, g, solid, false); break;
+          case 'tank': addVM(C, M.tank, g, solid, shadow); break;
           default: break;
         }
       }
@@ -523,7 +526,7 @@ export function* buildMoonFoundry(scene) {
     // a great old polishing drum lying on its side, made a home: windows and a door cut in it
     {
       const x = Q.x - 10, z = Q.z - 14, r = 5.2, L = 13;
-      put(x, z, { rust2: [new THREE.CylinderGeometry(r, r, L, 26).rotateZ(Math.PI / 2).translate(x, r - 0.4, z)] }, { tones: { rust2: 'rust2' } });
+      put(x, z, { tank: [new THREE.CylinderGeometry(r, r, L, 26).rotateZ(Math.PI / 2).translate(x, r - 0.4, z)] });   // (no riveted grid on its curve: issue #677)
       for (const e of [-1, 1]) put(x, z, { dark: [new THREE.CylinderGeometry(r * 1.06, r * 1.06, 0.5, 26).rotateZ(Math.PI / 2).translate(x + e * (L / 2 - 0.3), r - 0.4, z)] });
       const k = kitAt(x, z).kit;
       for (const dx of [-4, -1.5, 1.5, 4]) k.add(M.glow, new THREE.PlaneGeometry(1, 1.1).translate(x + dx, r - 0.4, z + r + 0.03), LOOSE_NS);

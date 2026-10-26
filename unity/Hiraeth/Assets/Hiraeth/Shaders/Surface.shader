@@ -74,6 +74,12 @@ Shader "Hiraeth/Surface"
     _Sheet ("Sheet-metal walls: panel, course (m), rust, repaint", Vector) = (0, 0, 0, 0)
     _Timber ("Timber: plank (m), grain axis, painted share, on (2 a post)", Vector) = (0, 0, 0, 0)
     _GroundMid ("The ground's middle distance: contour (m), stones, amount, on", Vector) = (0, 0, 0, 0)
+    _SeaWall ("Sea walls: tide spacing (m), foot (world y), salt, growth (src/surface-marks.js, issue #677)", Vector) = (0, 0, 0, 0)
+    _PaleStone ("Pale stone: course, block (m), foot (world y), wear", Vector) = (0, 0, 0, 0)
+    _Buried ("The buried city: band (m), foot (world y), sand line (m), scour", Vector) = (0, 0, 0, 0)
+    _Domes ("Panelled domes: rings (a tower's: m), panels, scour (m), 1 dome / 2 tower", Vector) = (0, 0, 0, 0)
+    _DomesBand ("Their painted rings: colour, share", Vector) = (0, 0, 0, 0)
+    _Channel ("A water channel: half width (m), axis (0 x, 1 z), flow (m/s), on", Vector) = (0, 0, 0, 0)
     _VGlyph ("A merged mesh's glyph cells per vertex, the grid's (materials.js S_VGLYPH: the banners)", Float) = 0
     _LineFar ("A lighter line from afar: its step, from, to (m); w 1 on (materials.js LINE_FAR)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
@@ -228,6 +234,7 @@ Shader "Hiraeth/Surface"
     float4 _Stone;         // a temple landmark's cut stone (landmark-materials.js stone(), no uniform on the web): course, width, wear, w 1 on
     float4 _Paving;        // paving (src/paving-shader.js uPaving, issue #669): course (m), wear, tone, turn; x 0: none
     float4 _Interior, _InteriorDado, _InteriorSkirt, _Sheet, _Timber, _GroundMid;   // (src/surface-marks.js, issue #669)
+    float4 _SeaWall, _PaleStone, _Buried, _Domes, _DomesBand, _Channel;   // (src/surface-marks.js, issue #677)
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -1391,7 +1398,7 @@ Shader "Hiraeth/Surface"
             float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
             albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
           }
-          if (_GroundMid.w > 0.0) albedo *= groundMidTone(i.worldPos.xz);   // (src/surface-marks.js, issue #669)
+          if (_GroundMid.w > 0.0) albedo = groundMidTone(i.worldPos.xz, albedo);   // (src/surface-marks.js, issue #669)
         } else if (mode == MODE_STRATA) {
           albedo = strata(_StrataObject > 0.5 ? i.objPos : i.worldPos);   // (in its uniform branch: strata() takes derivatives)
         } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
@@ -1508,6 +1515,23 @@ Shader "Hiraeth/Surface"
           float3 ta = abs(SafeNormalize(on));
           int tFace = ta.x > ta.y && ta.x > ta.z ? 0 : (ta.y > ta.z ? 1 : 2);
           patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, albedo));
+        }
+        // and issue #677's (sea walls, pale stone, the buried city, a water channel, panelled domes), each in its uniform branch
+        UNITY_BRANCH if (WALLK && (_SeaWall.x > 0.0 || _PaleStone.x > 0.0 || _Buried.x > 0.0 || _Channel.w > 0.0))
+        {
+          float3 mFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
+          float3 mOFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
+          UNITY_BRANCH if (_SeaWall.x > 0.0) patInk = max(patInk, seaWall(i.worldPos, mFw, n, _SunDir.xz / max(length(_SunDir.xz), 1e-3), albedo));
+          UNITY_BRANCH if (_PaleStone.x > 0.0) patInk = max(patInk, paleStone(i.worldPos, mFw, n, albedo));
+          UNITY_BRANCH if (_Buried.x > 0.0) patInk = max(patInk, buriedCity(i.worldPos, mFw, n, albedo));
+          UNITY_BRANCH if (_Channel.w > 0.0) patInk = max(patInk, channel(i.objPos, mOFw, _MTime, albedo));
+        }
+        UNITY_BRANCH if (WALLK && _Domes.w > 0.0)
+        {
+          // (a dome's azimuth per px, its own seam left out: the other branch's derivative there)
+          float domPhi = atan2(i.objPos.z, i.objPos.x) / 6.28318;
+          float domFphi = min(fwidth(domPhi), fwidth(frac(domPhi + 0.5))), domFrc = fwidth(domesRing(i.objPos)), domMpp = length(fwidth(i.objPos)) * 0.577;
+          patInk = max(patInk, domes(i.objPos, domFphi, domFrc, domMpp, albedo));
         }
         if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, SafeNormalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         // the fluid sword's living blade, the guard's shield: their currents (blade-shader.js bladeFluid, fluid kind 6)
@@ -1753,7 +1777,7 @@ Shader "Hiraeth/Surface"
           {
             float gmYfw = fwidth(i.worldPos.y);
             float2 gs2 = _SunDir.xz / max(length(_SunDir.xz), 1e-3);
-            detail = max(detail, groundMid(gp, i.worldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(_SunDir.y), smoothstep(_Toon - 0.02, _Toon + 0.12, L)) * (1.0 - bw.y));
+            detail = max(detail, groundMid(gp, i.worldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(_SunDir.y), smoothstep(_Toon - 0.02, _Toon + 0.12, L), _Dots > 0.0 ? 0.0 : 1.0) * (1.0 - bw.y));
           }
         } else if (mode == MODE_WATER) {
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);

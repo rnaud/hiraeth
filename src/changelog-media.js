@@ -1604,6 +1604,181 @@ export const CHANGELOG_MEDIA = {
         ]
       }
     ]
+  },
+  {
+    "match": "The Underwater City’s walls show the sea",
+    "shots": [
+      {
+        "name": "sea-street",
+        "caption": "A café dome by the street: patches of a fresher pink with a fine outline, a tide line a shade darker across it",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "From the street east of the city’s middle, looking at the dome and the towers beyond (a pinned camera, the same in both). The sea’s light on the floor moves between loads; most of the dome’s marks are in the shade’s flat teal there, as the city’s look prints it.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "Lorn’s Hush-House and Lamp-House are built",
+    "shots": [
+      {
+        "name": "pale-hush",
+        "caption": "The Hush-House’s drum: large blocks in courses, each its own shade, in place of long cut-stone joints; the terrace laid in flagstones",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "In front of the Hush-House’s door (a pinned camera, the same in both). Its keepers move between loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "pale-terrace",
+        "caption": "The terrace from above: flagstones of the same stone where the floor was one tone, the drum’s blocks under the porch",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "Lorn’s ‘crowd2’ benchmark view, the same pinned camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "pale-lamp",
+        "caption": "The Lamp-House’s slate: shorter blocks in even courses, each its own shade, the damp band at its foot in the shallows",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "On the causeway to the Lamp-House’s door (a pinned camera, the same in both). A quiet change at this distance: the courses read more than the shades.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The city under the Glass Dunes is banded",
+    "shots": [
+      {
+        "name": "buried-tower",
+        "caption": "The city’s tower and the wall behind it: soft wind bands with broken lines between them",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "Inside the city under the sand, near the dry fountain (a pinned camera, the same in both).",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The Desert’s far dome city is built of curved panels",
+    "shots": [
+      {
+        "name": "domes-far",
+        "caption": "The dome city: panels in rings round each dome where a square grid was, a ring of teal or orange on some",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "From the dunes west of the dome city (a pinned camera, the same in both).",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "domes-near",
+        "caption": "Close by: the rings follow the dome’s curve, the panels narrow toward the top, a band of orange, a vent or two",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "Among the domes (a pinned camera, the same in both).",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "Viridel’s runnels, once you clear them",
+    "shots": [
+      {
+        "name": "channel-runnel",
+        "caption": "The top runnel: flow lines along the water, a pale line of light along each edge, a darker lip",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "Beside the highest runnel, looking down it, the three runnels cleared in the save (edena.runnel.0–2); a pinned camera, the same in both. The flow lines drift with the current.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The Moon Foundry’s old polishing drum loses",
+    "shots": [
+      {
+        "name": "tank-foundry",
+        "caption": "The drum lying on its side (behind the tree): its sheet’s small square panels gone, its metal’s pen marks back",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 72",
+        "view": "The Moon Foundry’s ‘crowd’ benchmark view, the same pinned camera in both. People move between loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "canyon-floor",
+        "caption": "The Buried Machine’s canyon floor: a little paler in soft drifts and a few more stones toward the gate; small at this size",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04, after: this change; 26 October; cwebp -q 58",
+        "view": "The Buried Machine’s ‘keepers’ benchmark view, the same pinned camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The open ground in Vael, the Glass Dunes and at home",
+    "shots": [
+      {
+        "name": "ground2-vael",
+        "caption": "Vael’s slopes: paler ochre patches with their broken edge, a rosier one, where the salmon was one tone",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04 (#669’s middle distance already on), after: this change; 26 October; cwebp -q 70",
+        "view": "Vael’s ‘crowd’ benchmark view (the audit’s), the same pinned camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "ground2-vael-wide",
+        "caption": "Vael from above: the patches across the plain, stones and dashes near the path",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04 (#669’s middle distance already on), after: this change; 26 October; cwebp -q 70",
+        "view": "Vael’s ‘wide’ benchmark view, the same pinned camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "ground2-dunes",
+        "caption": "The Glass Dunes: a soft rosier drift across the sand by the stalls",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04 (#669’s middle distance already on), after: this change; 26 October; cwebp -q 70",
+        "view": "The Glass Dunes’ ‘crowd’ benchmark view, the same pinned camera in both. People move between loads.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "ground2-home",
+        "caption": "Home from above: paler and rosier patches on the mesa’s ground round the garden",
+        "from": "Issue #677: a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, pinned cameras, on a Vite of its own (port 5441); before: origin/main at 93a03bb04 (#669’s middle distance already on), after: this change; 26 October; cwebp -q 70",
+        "view": "Home’s ‘wide’ benchmark view, the same pinned camera in both.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
   }
   ],
   '2.28': [

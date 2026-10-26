@@ -4,7 +4,7 @@
 // new structural shells, in the same TempleKit frame. Every structural surface is solid as drawn.
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
-import { stone, ceramic, metal, pearl, nacre, glazing } from './landmark-materials.js';
+import { stone, paleStone, ceramic, metal, pearl, nacre, glazing } from './landmark-materials.js';
 import { T, box, lathe, paint, annulus } from './kit.js';
 import { candidateGeometry, activeMark } from '../makers-mark/candidates.js';
 
@@ -174,14 +174,16 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       return y+78;
     }
     case 'perdide': {
-      const lavender=ceramic('#c9b8de'), shadow=stone('#9686b2');
+      // (issue #677: Lorn's pale stone, its damp band at the terrace's foot)
+      const foot=K.world(0,y,0).y, lavender=ceramic('#c9b8de'), shadow=paleStone('#9686b2',{course:1.5,block:3,foot});
+      const columns=paleStone('#f4ecd9',{course:1.2,block:3,foot,wear:.6});
       terrace(K,shadow,R+22,R+14,0,y);
       drum(K,shadow,R-.5,y,7);
       // A broad, shallow peristyle under the choir, with open bays at its foot.
       terrace(K,lavender,R+25,R+16,y+7.2,1);
       for(let i=0;i<24;i++){
         const a=i*TAU/24; if(Math.abs(Math.sin(a))<.18 && Math.cos(a)>0)continue;
-        K.both(ivory,new THREE.CylinderGeometry(.3,.45,7.1,10).translate(Math.sin(a)*(R+22),y+3.55,Math.cos(a)*(R+13)));
+        K.both(columns,new THREE.CylinderGeometry(.3,.45,7.1,10).translate(Math.sin(a)*(R+22),y+3.55,Math.cos(a)*(R+13)));
       }
       const central=[['M',-21,3],['Q',-11,6,-9,22],['L',-7,83],['L',-3.4,86],['L',3.4,86],['L',7,83],['L',9,22],['Q',11,6,21,3]];
       volume(K,lavender,central,{y,z:0,depth:15,bevel:.6,holes:[slot(0,25,84.5,5.4)]});
@@ -195,7 +197,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       return y+87;
     }
     case 'perdide2': {
-      const slate=stone('#465a78',{course:2.4,width:4.8,wear:.55}), crown=y+LAMP_CROWN_LIFT;
+      const slate=paleStone('#465a78',{course:1.6,block:3.2,foot:K.world(0,0,0).y,wear:1.2}), crown=y+LAMP_CROWN_LIFT;   // (issue #677: Lorn's stone, its damp foot in the shallows)
       drum(K,slate,R+1,-1,y+1);
       K.both(slate,lathe([[R,y],[7,y+8],[4.5,crown+31],[4.5,crown+36]],40));
       const buttress=[['M',4,-4.4],['L',25,-4.4],['L',25,-1.8],['Q',11,15,5.5,38],['L',4.2,38]];

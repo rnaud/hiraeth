@@ -213,8 +213,9 @@ function buildCity(scene, M, veils) {
   const kit = new RoomKit({ group, ground: null, centre, seed: 5166 });
   const L = CITY_LOOK;
   const mat = {
-    stone: kit.mat({ color: L.stone, flat: true, hatch: 0.45, line: 0.6, shade: 0.5 }),
-    stone2: kit.mat({ color: L.stone2, flat: true, hatch: 0.4, line: 0.6, shade: 0.5 }),
+    // (issue #677: the wind's bands and the sand against the walls, src/surface-marks.js BURIED_CITY; the floor at the city's own height)
+    stone: kit.mat({ color: L.stone, flat: true, hatch: 0.45, line: 0.6, shade: 0.5, buriedCity: { foot: CITY.at[1] } }),
+    stone2: kit.mat({ color: L.stone2, flat: true, hatch: 0.4, line: 0.6, shade: 0.5, buriedCity: { foot: CITY.at[1] } }),
     floor: kit.mat({ color: L.floor, flat: true, hatch: 0.3, line: 0.4 }),
     glass: kit.mat({ color: L.glass, flat: true, glow: 0.35, line: 0.4, lineTint: 0.8, spot: 0 }),
     lit: kit.mat({ color: L.lit, flat: true, glow: 0.9, line: 0.2 }),
@@ -319,8 +320,9 @@ export function buildSandCity(scene, M, { ground, veils = null } = {}) {
   const kit = new RoomKit({ group, ground, centre: V(), seed: 5167 });
   const L = CITY_LOOK;
   const mat = {
-    stone: kit.mat({ color: L.stone, flat: true, hatch: 0.45, line: 0.6, shade: 0.5 }),
-    stone2: kit.mat({ color: L.stone2, flat: true, hatch: 0.4, line: 0.6, shade: 0.5 }),
+    // (issue #677: the wind's bands, no sand line: what each window shows lies at its own depth)
+    stone: kit.mat({ color: L.stone, flat: true, hatch: 0.45, line: 0.6, shade: 0.5, buriedCity: { sand: 0 } }),
+    stone2: kit.mat({ color: L.stone2, flat: true, hatch: 0.4, line: 0.6, shade: 0.5, buriedCity: { sand: 0 } }),
     floor: kit.mat({ color: L.floor, flat: true, hatch: 0.3, line: 0.4 }),
     glass: kit.mat({ color: L.glass, flat: true, glow: 0.4, line: 0.4, lineTint: 0.8, spot: 0 }),
     lit: kit.mat({ color: L.lit, flat: true, glow: 0.9, line: 0.2 }),
