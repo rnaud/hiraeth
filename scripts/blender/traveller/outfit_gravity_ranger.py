@@ -1,4 +1,5 @@
-"""Gravity ranger (#590): cropped olive flight jacket, coral stand collar, gravity hardware."""
+"""Gravity ranger (#590): cropped olive flight jacket, coral stand collar, gravity hardware (#684: drawn to its Tripo
+figure's shape, the pockets and pack plate where the figure has them, painted flat)."""
 import math
 import bmesh
 import bpy
@@ -15,15 +16,29 @@ ID='gravity-ranger'
 ATLAS_SIZE=1024
 NAME='Gravity ranger'
 SHEET='references/characters/traveller-outfits/gravity-ranger/approved-reference.png'
-PAL=dict(olive=(124,132,106), coral=(209,115,91), cuff=(74,77,69), trouser=(94,93,92),
-         cream=(224,219,194), metal=(83,91,82), cyan=(118,211,213), boot=(139,122,149), ink=(36,40,35))
+# (#684) every colour is the sheet's own flat area (its median, sampled away from line work and shading)
+PAL=dict(olive=(162,157,128), coral=(237,134,107), cuff=(80,75,70), trouser=(100,93,87), pocket=(150,145,118),
+         cream=(237,227,205), metal=(70,66,58), cyan=(118,211,213), boot=(166,149,163), sole=(65,54,50), ink=(36,40,35))
 BOOTS='GravityBoots'
+PAINT_BOOTS=True       # (#684: his boots painted flat in the sheet's colours, not the base atlas's shading)
+# (#684) the shape target: the #682 Tripo figure of this sheet (shape_target.py), placed on him and unposed; its
+# colours only say which garment is where. The jacket, trousers and boots are drawn to the shell where it is their
+# colour; the details are built crisp where its colour map has them (shape_views.py's renders on a 5 cm grid).
+SHAPE=dict(target='data/characters/tripo-outfits/gravity-ranger/preview.glb',
+           colours=dict(olive=PAL['olive'],coral=PAL['coral'],cuff=PAL['cuff'],trouser=PAL['trouser'],
+                        pocket=PAL['pocket'],cream=PAL['cream'],metal=PAL['metal'],cyan=PAL['cyan'],boot=PAL['boot'],
+                        sole=PAL['sole'],skin=(218,150,112),hair=(10,9,9)),
+           pieces={'GravityJacket':dict(accept=['olive','pocket','coral','cuff'],out=.05,inward=.03,sigma=.032),
+                   'GravityTrousers':dict(accept=['trouser','pocket','cuff','sole'],out=.045,inward=.03,sigma=.028),
+                   'GravityBoots':dict(accept=['boot','sole','metal','cyan'],out=.035,inward=.01,sigma=.012)})
 PIECES={'GravityTrousers':A.piece(covers=['GravityJacket']),
         'GravityJacket':A.piece(2,outside=['GravityTrousers'],gap=0.008)}
 ZONES={'GravityTrousers':['trouser'],'GravityJacket':['olive','coral','cuff'],
        'GravityShoulder':['cream','metal','cyan'],'GravityPack':['cream','metal','cyan'],
        'GravityBelt':['cuff','metal'],'GravityCuffs':['metal','cyan'],
        'GravityLapels':['olive','cuff'],'GravityBootPanels':['boot','metal','cyan'],BOOTS:['boot']}
+# (#684: the shape target's cargo pockets, on the outer side of each thigh, their flaps above)
+POCKETS=[(s,(s*.165,.035,.80)) for s in (-1,1)]
 
 
 def panel(bm,ob,outline,mat=0,offset=.010,n=4):
@@ -161,6 +176,10 @@ def pack(ctx):
         points=[surface(c,s*(0.072+0.035*math.cos(t)),1.345+0.09*math.sin(t),True,0.044) for t in np.linspace(-1.2,1.2,19)]
         T.ribbon(bm,points,lambda p:(0,1,0),0.018,thick=0.008,mat=0)
         disc(bm,surface(c,s*0.085,1.345,True,0.055),(0,1,0),0.018)
+    # (#684) the dark pack plate between the crescents, as the shape target's back has it
+    for k,(x0,x1,z0,z1) in enumerate([(-.07,.07,1.325,1.41)]):
+        pts=[surface(c,x0,z0,True,.040),surface(c,x1,z0,True,.040),surface(c,x1,z1,True,.040),surface(c,x0,z1,True,.040)]
+        K.box(bm,sum(pts,Vector())/4,(x1-x0,.010,z1-z0),bevel=.004,mat=1)
     return bm
 
 
@@ -232,24 +251,30 @@ PROPS={'GravityShoulder':dict(build=shoulder,layer=3,hem=None),
        'GravityBootPanels':dict(build=boot_panels,layer=3,hem=None)}
 RELIEF={'GravityJacket':[cloth_relief('shirt'),T.raised(T.strap((-.13,0,1.08),(-.07,0,1.17),(0,-1,0),.008),height=.003,facing=(0,-1,0)),
                          T.raised(T.strap((.13,0,1.08),(.07,0,1.17),(0,-1,0),.008),height=.003,facing=(0,-1,0))],
-        'GravityTrousers':[cloth_relief('trousers'),T.raised(T.rect((-.14,0,.84),(1,0,0),(0,0,1),.045,.07),height=.004,facing=(0,-1,0)),
-                           T.raised(T.rect((.14,0,.84),(1,0,0),(0,0,1),.045,.07),height=.004,facing=(0,-1,0))]}
+        'GravityTrousers':[cloth_relief('trousers')]+
+        [T.raised(T.rect(c,(0,1,0),(0,0,1),.045,.075),height=.005,facing=(s,0,0),where=lambda P,s=s:(s*P[:,0]>.1)*1.0) for s,c in POCKETS]+
+        [T.raised(T.rect((c[0],c[1],c[2]+.088),(0,1,0),(0,0,1),.048,.016),height=.007,facing=(s,0,0),where=lambda P,s=s:(s*P[:,0]>.1)*1.0) for s,c in POCKETS]}
 SHADE={name:None for name in ZONES}
 SKIN_CUT=[]
 KEEP_AREAS=['neck']
 
 
 def paint(piece,zone,P,N,J):
-    out=A.seam_paint(PAL,ZONES,piece,zone,P,N,J);x,y,z=P.T
-    front=np.clip(-N[:,1]*3,0,1)
+    """Flat colour zones in the sheet's colours (no light, no shade, no grain): the game's ink and light shade them."""
+    cols=np.array([PAL[k] for k in ZONES[piece]],dtype=float)/255
+    out=cols[np.clip(zone.astype(int),0,len(cols)-1)]
+    x,y,z=P.T
+    put=lambda mask,key:out.__setitem__(mask,np.array(PAL[key])/255)
+    front=N[:,1]<-.2
     if piece=='GravityJacket':
-        zipline=K.band_mask(x-(1.42-z)*0.055,.0015,.0007)*front*(z<1.46)*(z>1.03)
-        out=out*(1-zipline[:,None]*.85)+np.array(PAL['metal'])/255*zipline[:,None]*.85
-        brace=(np.abs(x)>.52)*(z>1.25)
-        out=out*(1-brace[:,None])+np.array(PAL['cuff'])/255*brace[:,None]
-        # Rib-knit cuffs and waistband, without broad baked shadow.
-        ribs=(zone==2)*(0.5+0.5*np.sin((x+z)*530))*.09;out*=1-ribs[:,None]
+        put((np.abs(x)>.52)&(z>1.25),'cuff')                                    # the dark knit forearms
+        put((np.abs(x-(1.42-z)*.055)<.0015)&front&(z<1.46)&(z>1.07),'metal')    # the slanted zip
     if piece=='GravityTrousers':
-        patch=(np.abs(x)>.11)*(np.abs(x)<.19)*(z>.845+np.abs(np.abs(x)-.15)*.35)*(z<.90)*front
-        out=out*(1-patch[:,None]) + np.array(PAL['olive'])/255*patch[:,None]
+        for s,c in POCKETS:
+            for (cz,hv) in ((c[2],.075),(c[2]+.088,.016)):
+                sdf,_=T.rect((c[0],c[1],cz),(0,1,0),(0,0,1),.048,hv)
+                put((sdf(P)<0)&(s*N[:,0]>.25)&(s*x>.1),'pocket')
+    if piece==BOOTS:
+        out[:]=np.array(PAL['boot'])/255
+        put(z<.032,'sole')                                                      # the dark sole and its rand
     return out

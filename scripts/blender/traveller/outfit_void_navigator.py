@@ -1,4 +1,4 @@
-"""Void navigator (#590): close-cut navy jacket and articulated ivory navigation harness."""
+"""Void navigator (#590; #684: drawn to its Tripo figure's shape, its harness rebuilt where the figure has it, painted flat)."""
 import math
 import bpy
 import numpy as np
@@ -6,119 +6,151 @@ from mathutils import Vector
 import outfit_approved_kit as A
 import outfit_kit as K
 import tailor as T
-from outfit_sea_tailoring import cloth_relief, projected, strap_on, triangle_on, surface_weights, hug_band
-from outfit_gravity_ranger import tailored_jacket, tailored_trousers, surface, strap, disc, boot_panels, garment_weights, arm_cuffs, panel
+from outfit_sea_tailoring import cloth_relief, projected, strap_on, hug_band
+from outfit_gravity_ranger import tailored_jacket, tailored_trousers, disc, garment_weights, arm_cuffs, panel
 
 ID='void-navigator'
 ATLAS_SIZE=1024
 NAME='Void navigator'
 SHEET='references/characters/traveller-outfits/void-navigator/approved-reference.png'
-PAL=dict(navy=(53,65,91),black=(47,49,48),trouser=(86,86,88),cream=(227,219,197),
-         metal=(82,91,91),cyan=(112,218,225),boot=(222,216,198),ink=(31,35,41))
+# (#684) every colour is the sheet's own flat area (its median, sampled away from line work and shading); the
+# game's ink and light do the shading
+PAL=dict(navy=(78,79,96),black=(61,57,51),trouser=(89,82,76),knee=(121,112,102),cream=(237,218,194),
+         metal=(118,115,104),cyan=(129,210,211),boot=(238,232,211),sole=(67,62,56),ink=(31,35,41))
 BOOTS='NavigatorBoots'
 PIECES={'NavigatorTrousers':A.piece(covers=['NavigatorJacket']),
         'NavigatorJacket':A.piece(2,outside=['NavigatorTrousers'],gap=0.007)}
 ZONES={'NavigatorTrousers':['trouser'],'NavigatorJacket':['navy','navy','navy'],
-       'NavigationHarness':['cream','metal','cyan'],'NavigationBelt':['cream','metal','cyan'],
-       'NavigationBootPanels':['cream','metal','cyan'],'NavigationCuffs':['navy','cyan'],   # (#680: forearm plates in the sleeve's navy, as the sheet)
-       BOOTS:['boot']}
+       'NavigationHarness':['cream','metal','cyan','black'],'NavigationBelt':['cream','metal','cyan','black'],
+       'NavigationCuffs':['navy','cyan'],BOOTS:['boot']}
+PAINT_BOOTS=True       # (#684: his boots painted flat in the sheet's colours, not the base atlas's shading)
+# (#684) the shape target: the #682 Tripo figure of this sheet (shape_target.py), placed on him and unposed. Its
+# colours only say which garment is where (classified against the sheet's colours); its paint, face and hair are
+# never used. The jacket, trousers and boots are drawn to the shell where it is their colour. The details below are
+# built crisp where the shell's colour map has them (read off shape_views.py's class-map renders on a 5 cm grid).
+SHAPE=dict(target='data/characters/tripo-outfits/void-navigator/preview.glb',
+           colours=dict(navy=PAL['navy'],black=PAL['black'],trouser=PAL['trouser'],knee=PAL['knee'],
+                        cream=PAL['cream'],boot=PAL['boot'],sole=PAL['sole'],metal=PAL['metal'],cyan=PAL['cyan'],
+                        skin=(224,153,112),hair=(10,9,9)),
+           pieces={'NavigatorJacket':dict(accept=['navy','black'],out=.045,inward=.03,sigma=.032),
+                   'NavigatorTrousers':dict(accept=['trouser','knee','black','sole'],out=.04,inward=.03,sigma=.028),
+                   BOOTS:dict(accept=['boot','cream','sole','metal','cyan','black'],out=.035,inward=.01,sigma=.012)})
 BUILDERS={'NavigatorTrousers':lambda c,j:tailored_trousers(c,j,0.006),
-          'NavigatorJacket':lambda c,j:tailored_jacket(c,j,0.009,1.065)}
+          'NavigatorJacket':lambda c,j:tailored_jacket(c,j,0.009,1.098)}
 
 
-def segments(bm,coat,cage,a,b,back=False,width=0.023):
-    # Separate hard segments joined by dark flexures, so it reads as fitted equipment rather than painted straps.
-    aa=np.array(a);bb=np.array(b)
-    direction=bb-aa;cross=np.array([-direction[1],direction[0]])
-    cross=cross/np.linalg.norm(cross)*width*.87
-    outline=[surface(cage,float(q[0]),float(q[1]),back) for q in [aa-cross,aa+cross,bb+cross,bb-cross]]
-    panel(bm,coat,outline,mat=1,offset=.006,n=4)
-    # (#680: one continuous ivory strap a run, as the sheet's, its studs at the ends: no dark flexures between)
-    for t0,t1 in [(0,1)]:
-        p0=aa*(1-t0)+bb*t0;p1=aa*(1-t1)+bb*t1
-        direction=p1-p0;cross=np.array([-direction[1],direction[0]])
-        cross=cross/np.linalg.norm(cross)*width
-        corners=[p0-cross*.88,p0+cross*.88,p1+cross,p1-cross]
-        outline=[surface(cage,float(q[0]),float(q[1]),back) for q in corners]
-        panel(bm,coat,outline,offset=.017,n=4 if t1==1 else 2)
-        for t in [.05,.95]:
-            x=p0[0]*(1-t)+p1[0]*t;z=p0[1]*(1-t)+p1[1]*t
-            p,n=projected(coat,surface(cage,x,z,back),.022)
-            T.lathe(bm,p,n,[(0,.0025),(.0015,.0025)],segments=10,mat=1)
+def plate(bm,coat,pts,back=False,mat=0,offset=.011,n=4):
+    """A hard plate on the jacket: a polygon (x, z) seen from the front (or the back), projected and closed."""
+    panel(bm,coat,[_on(coat,x,z,back) for x,z in pts],mat=mat,offset=offset,n=n)
+
+
+def _on(ob,x,z,back):
+    """The garment's surface at (x, z), seen from the front or the back: a ray along y."""
+    o=Vector((x,1.0 if back else -1.0,z))
+    ok,p,_,_=ob.ray_cast(o,Vector((0,-1 if back else 1,0)))
+    if not ok:       # (over the shoulder's top the ray passes above it: the nearest point of the cloth)
+        ok,p,_,_=ob.closest_point_on_mesh(Vector((x,.07 if back else -.03,z)))
+    return p
+
+
+def bar(bm,coat,a,b,width,back=False,mat=0,offset=.011,cut=0.0):
+    """A strap plate from a to b (x, z), `width` wide; its ends cut square or (cut) bevelled."""
+    a=np.array(a);b=np.array(b);d=b-a;d/=np.linalg.norm(d);s=np.array([-d[1],d[0]])*width/2
+    pts=[a-s+d*cut,a+s,b+s,b-s-d*cut] if cut else [a-s,a+s,b+s,b-s]
+    plate(bm,coat,[tuple(p) for p in pts],back,mat,offset)
+
+
+def window(bm,coat,x,z0,z1,back=False):
+    """A slim cyan status window, standing on the cloth."""
+    strap_on(bm,coat,[_on(coat,x,z0,back),_on(coat,x,z1,back)],width=.007,mat=2)
 
 
 def harness(ctx):
-    bm=A.empty();c=ctx['cage'];coat=ctx['made']['NavigatorJacket']
-    for s in [-1,1]:
-        segments(bm,coat,c,(s*.115,1.445),(s*.019,1.292))
-        segments(bm,coat,c,(s*.019,1.255),(s*.115,1.10))
-        segments(bm,coat,c,(s*.115,1.445),(s*.018,1.285),True)
-        front=surface(c,s*.115,1.445,False,.039);back=surface(c,s*.115,1.445,True,.039)
-        pts=[front,Vector((s*.115,front.y*.4,1.475)),Vector((s*.115,0.02,1.48)),Vector((s*.115,back.y*.7,1.465)),back]
-        strap_on(bm,coat,pts,width=.040,mat=0)
-        # Raised seam down the outer edge of each shoulder strap.
-        pts2=[p+Vector((s*.015,0,.005)) for p in pts]
-        strap_on(bm,coat,pts2,width=.0024,mat=1)
-    segments(bm,coat,c,(0,1.255),(0,1.08),True,width=.018)
-    p,n=projected(coat,surface(c,0,1.275,False),.012)
-    disc(bm,p,n,.032)
-    p,n=projected(coat,surface(c,0,1.275,True),.012)
-    disc(bm,p,n,.025)
-    # Slim status windows secured on the chest and between the shoulder blades.
-    for x,z,back in [(.082,1.403,False),(0,1.405,True)]:
-        pts=[surface(c,x,z-.027,back,.026),surface(c,x,z+.027,back,.026)]
-        strap_on(bm,coat,pts,width=.006,mat=2)
+    """The harness as the shell has it (#684): an X of broad ivory plates over the chest from the shoulder pads to a
+    large disc on the sternum, his right lower arm to his side, his left down by the inset to the hem; over the
+    shoulders broad straps with pads; on the back a Y to a smaller disc and a long tail plate cut to a point."""
+    bm=A.empty();coat=ctx['made']['NavigatorJacket']
+    for s in (-1,1):
+        bar(bm,coat,(s*.122,1.425),(s*.032,1.302),.046,cut=.008)               # the X's upper arms
+        bar(bm,coat,(s*.122,1.44),(s*.03,1.322),.042,True,cut=.008)          # the back's Y
+        # the shoulder strap over the top, its pad front and back
+        front=_on(coat,s*.135,1.455,False);back=_on(coat,s*.135,1.455,True)
+        pts=[front,Vector((s*.135,front.y*.45,1.488)),Vector((s*.135,.03,1.494)),Vector((s*.135,back.y*.7,1.48)),back]
+        strap_on(bm,coat,pts,width=.056,mat=0)
+    bar(bm,coat,(-.03,1.268),(-.142,1.162),.042,cut=.008)                     # his right lower arm, to his side
+    bar(bm,coat,(.038,1.27),(.074,1.105),.036,cut=.006)                       # his left, down by the inset
+    plate(bm,coat,[(-.03,1.292),(.03,1.292),(.032,1.15),(.013,1.112),(-.013,1.112),(-.032,1.15)],True)  # the tail
+    for back,z,r in ((False,1.288,.040),(True,1.31,.027)):
+        p,n=projected(coat,_on(coat,.008 if not back else 0,z,back),.017)
+        disc(bm,p,n,r)
+    window(bm,coat,.078,1.37,1.44)
+    window(bm,coat,.105,1.255,1.30)
+    window(bm,coat,0,1.38,1.445,True)
     return bm,garment_weights(bm,ctx,coat)
 
 
 def belt(ctx):
-    bm=A.empty();c=ctx['cage']
-    K.band(bm,c,A.PART['torso'],.985,1.018,.03,n=56,thick=.005,mat=0)
-    hug_band(bm,[ctx['made']['NavigatorJacket'],ctx['made']['NavigatorTrousers']])
-    p=surface(c,-.09,1.0,False,.043)
-    disc(bm,p,(0,-1,0),.035)
-    # A compact side module and the belt's fastening tongue, resting on the belt rather than floating off it.
-    p=surface(c,.10,1.0,False,.039)
-    K.box(bm,p,(.045,.009,.028),bevel=.004,mat=1)
-    K.box(bm,p+Vector((0,-.006,0)),(.033,.004,.018),bevel=.002,mat=0)
-    return bm,garment_weights(bm,ctx,ctx['made']['NavigatorJacket'])
+    """A broad ivory belt under the cropped jacket, its big navigation disc at his left front, a pouch module at his
+    right hip, and the holster strap down his right thigh."""
+    bm=A.empty();c=ctx['cage'];tr=ctx['made']['NavigatorTrousers']
+    K.band(bm,c,A.PART['torso'],1.0,1.048,.03,n=64,thick=.006,mat=0)
+    hug_band(bm,[tr])
+    p,n=projected(tr,_on(tr,.098,1.026,False),.02)
+    disc(bm,p,n,.046)
+    for x in (-.03,.03):                                                       # the buckle's two plates
+        K.box(bm,_on(tr,x,1.024,False)+Vector((0,-.012,0)),(.034,.008,.034),bevel=.003,mat=0)
+    q=_on(tr,-.115,1.022,False)
+    K.box(bm,q+Vector((0,-.014,0)),(.05,.016,.042),bevel=.004,mat=1)          # the pouch module
+    K.box(bm,q+Vector((0,-.023,-.002)),(.036,.004,.026),bevel=.002,mat=0)
+    strap_on(bm,tr,[_on(tr,-.118,1.008,False),_on(tr,-.14,.93,False),_on(tr,-.152,.86,False)],width=.013,mat=0)
+    return bm,garment_weights(bm,ctx,tr)
 
 PROPS={'NavigationCuffs':dict(build=lambda c:arm_cuffs(c,'NavigatorJacket'),layer=3,hem=None),
        'NavigationHarness':dict(build=harness,layer=3,hem=None),
-       'NavigationBelt':dict(build=belt,layer=3,hem=None),
-       'NavigationBootPanels':dict(build=boot_panels,layer=3,hem=None)}
-RELIEF={'NavigatorJacket':[cloth_relief('shirt'),
-    T.raised(T.strap((-.125,0,1.08),(-.075,0,1.14),(0,-1,0),.005),height=.003,facing=(0,-1,0)),
-    T.raised(T.strap((.125,0,1.08),(.075,0,1.14),(0,-1,0),.005),height=.003,facing=(0,-1,0))],
-    'NavigatorTrousers':[cloth_relief('trousers'),
-    T.raised(T.rect((-.145,0,.825),(1,0,0),(0,0,1),.027,.075),height=.0025,facing=(0,-1,0)),
-    T.raised(T.rect((.145,0,.825),(1,0,0),(0,0,1),.027,.075),height=.0025,facing=(0,-1,0))]}
+       'NavigationBelt':dict(build=belt,layer=3,hem=None)}
+# the knee bands and shin panels raised on the trousers as the shell has them: each knee's band rising to the outside
+KNEE=[(s,(s*.205,0,.628),(s*.045,0,.532)) for s in (-1,1)]
+SHIN=[(s,(s*.172,0,.392)) for s in (-1,1)]
+RELIEF={'NavigatorJacket':[cloth_relief('shirt')],
+        'NavigatorTrousers':[cloth_relief('trousers')]+
+        [T.raised(T.strap(a,b,(0,-1,0),.024),height=.0035,facing=(0,-1,0)) for s,a,b in KNEE]+
+        [T.raised(T.strap(a,b,(0,1,0),.024),height=.0035,facing=(0,1,0)) for s,a,b in KNEE]+
+        [T.raised(T.rect(c,(0,1,0),(0,0,1),.03,.065),height=.003,facing=(s,0,0),where=lambda P,s=s:(s*P[:,0]>.1)*1.0) for s,c in SHIN]+
+        [T.raised(T.strap((.158,0,.40),(.158,0,.47),(1,0,0),.009),height=.004,facing=(1,0,0),where=lambda P:(P[:,0]>.1)*1.0)]}
 SHADE={name:None for name in ZONES}
 SKIN_CUT=[]
 KEEP_AREAS=['neck']
 
 
 def paint(piece,zone,P,N,J):
-    out=A.seam_paint(PAL,ZONES,piece,zone,P,N,J);x,y,z=P.T
-    front=np.clip(-N[:,1]*3,0,1)
+    """Flat colour zones in the sheet's colours (no light, no shade, no grain): the game's ink and light shade them."""
+    cols=np.array([PAL[k] for k in ZONES[piece]],dtype=float)/255
+    out=cols[np.clip(zone.astype(int),0,len(cols)-1)]
+    x,y,z=P.T
+    put=lambda mask,key:out.__setitem__(mask,np.array(PAL[key])/255)
+    front=N[:,1]<-.2
     if piece=='NavigatorJacket':
-        # (#680: the sheet's sleeves navy to a narrow ivory band at the wrist)
-        brace=(np.abs(x)>.595)*(z>1.25)
-        out=out*(1-brace[:,None])+np.array(PAL['cream'])/255*brace[:,None]
-        # The dark front inset and zip are narrow, backed by the continuous jacket.
-        inset=(np.abs(x)<.040)*(z>1.045)*(z<1.46)*front
-        out=out*(1-inset[:,None])+np.array(PAL['black'])/255*inset[:,None]
-        zipline=K.band_mask(x,.001,.0006)*front*(z>1.045)*(z<1.47)
-        out=out*(1-zipline[:,None]) + np.array(PAL['metal'])/255*zipline[:,None]
-        stitch=(K.band_mask(np.abs(x)-.064,.0008,.0005)+K.band_mask(np.abs(x)-.14,.0008,.0005))*front*(z>1.05)*(z<1.3)
-        out*=1-np.clip(stitch,0,1)[:,None]*.35
+        put((np.abs(x)>.595)&(z>1.25),'cream')                                   # the ivory band at each wrist
+        put((x>-.036)&(x<.062)&(z>1.07)&front&(np.abs(x)<.2),'black')           # the dark inset, a little to his left
+        put((np.abs(x-.013)<.0012)&(z>1.07)&(z<1.47)&front,'metal')              # its zip
+        for sx in (-1,1):                                                        # ivory bars on the upper sleeves
+            put((np.abs(np.abs(x)-.30)<.035)&(z>1.43)&(sx*x>0),'cream')
     if piece=='NavigatorTrousers':
-        # Narrow cyan inset at each secured thigh pocket; angular reinforced knees stay dark.
-        line=K.band_mask(np.abs(x)-.145,.0018,.0007)*(z>.81)*(z<.88)*front
-        out=out*(1-line[:,None])+np.array(PAL['cyan'])/255*line[:,None]
-        # (#680: the sheet's lighter grey knee panels, angled, and its cyan strip down the thigh)
-        knee=(z>.42+.25*np.abs(np.abs(x)-.12))*(z<.60-.2*np.abs(np.abs(x)-.12))*front
-        out=out*(1-knee[:,None]*.6)+np.array((128,128,128))/255*knee[:,None]*.6
-        strip=K.band_mask(np.abs(x)-.165,.002,.0008)*(z>.62)*(z<.78)*front
-        out=out*(1-strip[:,None])+np.array(PAL['cyan'])/255*strip[:,None]
+        for s,a,b in KNEE:
+            for nrm in ((0,-1,0),(0,1,0)):
+                sdf,_=T.strap(a,b,nrm,.024)
+                put((sdf(P)<0)&((N@np.array(nrm))>.25),'knee')
+        for s,c in SHIN:
+            sdf,_=T.rect(c,(0,1,0),(0,0,1),.03,.065)
+            put((sdf(P)<0)&(s*N[:,0]>.25)&(s*x>.1),'knee')
+        sdf,_=T.strap((-.165,.02,.77),(-.165,.02,.835),(-1,0,0),.0045)           # the cyan strip down his right thigh
+        put((sdf(P)<0)&(N[:,0]<-.3)&(x<-.1),'cyan')
+        sdf,_=T.strap((.158,0,.40),(.158,0,.47),(1,0,0),.009)                    # the ivory strap on his left shin
+        put((sdf(P)<0)&(N[:,0]>.3)&(x>.1),'cream')
+    if piece==BOOTS:
+        out[:]=np.array(PAL['boot'])/255
+        put(z<.032,'sole')                                                       # the dark sole and its rand
+        put(z>.19,'sole')                                                        # the dark collar at the top
+        side=np.abs(x)-np.abs(J['foot_l'].x)
+        put((side>.035)&(z>.07)&(z<.15)&(np.abs(y-.0)<.012),'cyan')               # the cyan panel on each outer side
     return out

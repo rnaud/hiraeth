@@ -1,6 +1,8 @@
-// Tripo outfit trial (#682): tools/tripo-outfits-review.html. Side by side, same height, same angle, same finish:
-//   left   the Blender outfit (data/characters/traveller-v2) worn by the game's own traveller as the outfits gallery
-//          dresses him (Player's rig, the Animator's standing blend, B3's skeleton, the portrait head, its ink material)
+// Tripo outfit trial (#682, #684): tools/tripo-outfits-review.html. Side by side, same height, same angle, same finish:
+//   left   the Blender outfit as #680 left it (data/characters/tripo-outfits/<id>/blender-680/, kept for this page)
+//   middle the Blender outfit the game wears (data/characters/traveller-v2): since #684 drawn to the Tripo figure's
+//          shape and repainted in flat colour. Both worn by the game's own traveller as the outfits gallery dresses him
+//          (Player's rig, the Animator's standing blend, B3's skeleton, the portrait head, its ink material)
 //   right  the Tripo model (data/characters/tripo-outfits/<id>/preview.glb), untouched apart from 1024² textures,
 //          turned to face the same way and scaled to his height, given the ink material the wardrobe gives a garment
 //          (characters/tripo-material.js makeReviewInkMaterial)
@@ -24,7 +26,7 @@ const other = id === 'void-navigator' ? 'gravity-ranger' : 'void-navigator';
 const TRIPO = `${BASE}data/characters/tripo-outfits/${id}/`;
 /** The camera's angle round the figures: 0 their fronts, π/2 their left sides (the sheet's side view). */
 const ANGLES = { front: 0, quarter: 0.65, left: Math.PI / 2, right: -Math.PI / 2, back: Math.PI };
-const GAP = 0.6;   // (each figure's distance from the middle, m)
+const GAP = 1.05;   // (the side figures' distance from the middle, m)
 
 for (const [k, v] of [['outfit', id], ['angle', q.get('angle')], ['finish', q.get('finish')]]) if (v && [...$(k).options].some((o) => o.value === v)) $(k).value = v;
 $('turn').checked = q.get('turn') !== '0';
@@ -48,11 +50,13 @@ const tri = (g) => (g.index?.count ?? g.attributes.position.count) / 3;
 const shown = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
 
 /** The Blender outfit on the game's traveller, dressed as the outfits gallery dresses him. */
-async function dressBlender() {
-  const [list, baseManifest, lib, asset] = await Promise.all([
+async function dressBlender(which) {
+  const [game, baseManifest, lib, asset] = await Promise.all([
     json(V2_ROOT + 'outfits.json'), json(V2_ROOT + 'manifest.json'),
     loadAnimationLibrary(`${BASE}anim/ual.glb`), loadTraveller(BASE, { v2: { on: false } }),
   ]);
+  // (#680's outfit from its kept copy, the game's from its own list)
+  const list = which === '680' ? { ...game, outfits: game.outfits.map((o) => (o.id === id ? { ...o, dir: `../tripo-outfits/${id}/blender-680/` } : o)) } : game;
   const char = buildCharacter();
   if (char.jetpack) char.jetpack.visible = false;
   const character = createTraveller(char, asset);
@@ -101,11 +105,11 @@ class PairViewer extends ItemViewer {
 }
 
 try {
-  const [blenderRig, tripo, inventory] = await Promise.all([
-    dressBlender(), new GLTFLoader().loadAsync(`${TRIPO}preview.glb`), fetch(`${TRIPO}inventory.json`).then((r) => r.json()),
+  const [oldRig, blenderRig, tripo, inventory] = await Promise.all([
+    dressBlender('680'), dressBlender('game'), new GLTFLoader().loadAsync(`${TRIPO}preview.glb`), fetch(`${TRIPO}inventory.json`).then((r) => r.json()),
   ]);
-  for (let i = 0; i < 90; i++) poseIdle(blenderRig, 1 / 30);   // (settled into his standing pose)
-  const blender = blenderRig.char.root;
+  for (let i = 0; i < 90; i++) { poseIdle(oldRig, 1 / 30); poseIdle(blenderRig, 1 / 30); }   // (settled into his standing pose)
+  const blender = blenderRig.char.root, oldBlender = oldRig.char.root;
   const tripoFig = new T.Group();
   tripo.scene.traverse((o) => { if (o.isMesh) tripoFig.add(new T.Mesh(o.geometry, o.material)); });
   const sizeOf = (o) => { o.updateMatrixWorld(true); const b = new T.Box3(); o.traverse((m) => { if (m.isMesh && shown(m)) b.expandByObject(m, true); }); return b; };
@@ -120,23 +124,24 @@ try {
   const tb2 = sizeOf(tripoInner), tc = tb2.getCenter(new T.Vector3());
   tripoInner.position.set(-tc.x, -tb2.min.y, -tc.z);
   blender.position.y -= bb.min.y;
-  const left = new T.Group(), right = new T.Group(), pair = new T.Group();
-  left.add(blender); right.add(tripoPlaced);
+  oldBlender.position.y -= sizeOf(oldBlender).min.y;
+  const left = new T.Group(), middle = new T.Group(), right = new T.Group(), pair = new T.Group();
+  left.add(oldBlender); middle.add(blender); right.add(tripoPlaced);
   left.position.x = -GAP; right.position.x = GAP;
-  pair.add(left, right);
+  pair.add(left, middle, right);
 
   // ---- the finishes
   const meshes = [], own = new Map(), ink = new Map(), unlit = new Map(), matte = new Map();
   const clay = new T.MeshStandardMaterial({ color: '#b9ac96', roughness: 1, metalness: 0, side: T.DoubleSide });
-  const stats = { blender: 0, tripo: 0 };
-  for (const [fig, key] of [[blender, 'blender'], [tripoFig, 'tripo']]) fig.traverse((o) => {
+  const stats = { old: 0, blender: 0, tripo: 0 };
+  for (const [fig, key] of [[oldBlender, 'old'], [blender, 'blender'], [tripoFig, 'tripo']]) fig.traverse((o) => {
     if (!o.isMesh || !shown(o)) return;
     const src = Array.isArray(o.material) ? o.material[0] : o.material;
     const map = src.map ?? src.uniforms?.uMap?.value ?? null;
     const color = src.isMaterial && src.color?.isColor ? src.color : new T.Color(0xffffff);
     if (key === 'tripo') o.userData.inkShade = { hatch: 0.2 };   // (as the wardrobe inks a garment)
     own.set(o, src);
-    ink.set(o, key === 'blender' ? src : makeReviewInkMaterial(o));
+    ink.set(o, key === 'tripo' ? makeReviewInkMaterial(o) : src);
     matte.set(o, new T.MeshStandardMaterial({ map, color, side: T.DoubleSide, roughness: 1, metalness: 0 }));
     unlit.set(o, new T.MeshBasicMaterial({ map, color, side: T.DoubleSide }));
     meshes.push(o);
@@ -157,7 +162,7 @@ try {
   const plainCamera = new T.PerspectiveCamera(28, 1, 0.01, 200);
 
   // ---- the controls: the camera keeps its place, the figures turn (each on its own spot, as in the gallery)
-  const ZOOM = 0.72;   // (head to sole filling the panel, as the gallery's single-outfit framing)
+  const ZOOM = 0.6;   // (head to sole filling the panel for three figures)
   const view = { yaw: 0, pitch: 0.08, zoom: ZOOM };
   let turn = 0;
   const frameView = () => { turn = 0; view.yaw = ANGLES[$('angle').value] ?? 0; view.pitch = 0.08; view.zoom = ZOOM; remember(); };
@@ -195,7 +200,8 @@ try {
   };
 
   const src = inventory.source;
-  $('cap-blender').textContent = `Blender outfit (#680) · the game's traveller, standing · ${Math.round(stats.blender).toLocaleString()} triangles drawn`;
+  $('cap-old').textContent = `Blender outfit before (#680) · ${Math.round(stats.old).toLocaleString()} triangles drawn`;
+  $('cap-blender').textContent = `Blender outfit now (#684): Tripo's shape, flat paint · the game's · ${Math.round(stats.blender).toLocaleString()} triangles drawn`;
   $('cap-tripo').textContent = `Tripo H3.1 smart mesh · whole figure, one mesh · ${src.triangles.toLocaleString()} triangles`;
   $('status').textContent = `Tripo task ${inventory.tripo.task} · ${inventory.tripo.credits} credits · untouched export ${(src.bytes / 1e6).toFixed(1)} MB, three ${src.images[0].width}² textures (colour, metal-rough, normal; ${Math.round(src.decodedTextureMiB)} MiB decoded) · shown here at 1024²`;
   $('links').innerHTML = `<a href="${inventory.tripo.studio}" target="_blank" rel="noopener">Tripo task</a><a href="${BASE}outfits-gallery.html?only=${id}&amp;motion=idle" target="_blank">Outfits gallery: ${OUTFITS[id]}</a><a href="?outfit=${other}">${OUTFITS[other]}</a>`;
@@ -208,8 +214,9 @@ try {
     viewer.time += dt;
     if ($('turn').checked) turn += dt * 0.5;
     for (const m of meshes) m.material = own.get(m);   // (his head sets its face's uniforms on its own material)
+    poseIdle(oldRig, dt);
     poseIdle(blenderRig, dt);
-    left.rotation.y = right.rotation.y = -(view.yaw + turn);
+    left.rotation.y = middle.rotation.y = right.rotation.y = -(view.yaw + turn);
     const finish = $('finish').value, inked = finish === 'ink';
     inkCanvas.style.display = inked ? 'block' : 'none';
     plainCanvas.style.display = inked ? 'none' : 'block';
@@ -233,7 +240,7 @@ try {
       plain.render(plainScene, plainCamera);
     }
     showRef();
-    window.__tripoOutfits = { ready: true, id, turn, yaw: view.yaw, finish, reference: refShown, triangles: { blender: Math.round(stats.blender), tripo: src.triangles } };
+    window.__tripoOutfits = { ready: true, id, turn, yaw: view.yaw, finish, reference: refShown, triangles: { old: Math.round(stats.old), blender: Math.round(stats.blender), tripo: src.triangles } };
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

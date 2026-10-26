@@ -2662,3 +2662,84 @@ outfit would be a whole traveller); the portrait head and its face rig grafted o
 head-v3 was), and his hands; the textures cut to 1–2 k and the baked shading painted out to suit the ink; LODs; and
 Unity parity for a second kind of traveller. A cheaper middle road: use the Tripo textures as paint references for the
 Blender atlases. Not rigged here: the review shows Tripo's static A-pose.
+
+### The Tripo shape in the Blender outfits (#684)
+
+The author's call after the trial: keep the Blender outfits and their wiring, but take the Tripo figures' shape and
+detail into them, and paint them ourselves in truly unlit flat colour (Tripo's textures carry baked light). Piloted on
+the void navigator and the gravity ranger; same ids, files, Wardrobe and prizes.
+
+**The shape target** (`scripts/blender/traveller/shape_target.py`, an outfit's optional `SHAPE`). The Tripo export
+(`data/characters/tripo-outfits/<id>/preview.glb`, committed: the full-resolution export is the same mesh) is one fused
+shell of body, clothes and hair, used only as a shape:
+
+1. **Placed** (`place`): turned from +X to face -Y, scaled so its narrowest neck section sits at his (1.528 m; the
+   navigator's figure ×1.814, the ranger's ×1.761), soles on the ground, centred on his trunk in plan.
+2. **Unposed** (`arm_pose`, `unpose`): the figure stands in an A-pose (its hands found as the lowest tenth of what
+   lies outside the trunk: arms ~76–78° down from his T-pose). His rig is posed to it, each shell vertex is given to
+   an arm or to the rest of him by the nearest posed body surface (the rest by a 5 mm margin, the labels voted over
+   the shell's edges: a hand hangs beside the thigh), takes that group's nearest weights (smoothed within the group)
+   and is unskinned by the inverse of its blended bone matrix. Faces stretched past 2.5× (the fused arm-to-torso
+   faces) and islands under 400 faces go.
+3. **Straightened** (`straighten`): above the crotch each 1 cm section's front-to-back centre is moved onto his
+   body's, below it each leg's section centre onto his leg's, smoothed over the height (the figure leans; moves up to
+   13 cm at the feet).
+4. **Its colours as a map** (`Target.class_map`): every texel of its texture classified against the outfit's sheet
+   colours (`SHAPE['colours']`; chroma counted twice, the baked light moves lightness more than hue) and cleaned by a
+   5 × 5 vote twice in its own UV space (ink lines and specks of light go). It says only which garment is where.
+
+**Drawn to it** (`conform`, run by `outfit.py` after a piece's `fit_outside`, before its RELIEF; `SHAPE['pieces']`):
+each vert's ray along its normal averaged over 2 cm (the sewn gathers' tilted normals bunch verts into stripes
+otherwise) meets the shell within `out` / `inward`; it counts where the map there is one of the piece's `accept`
+colours (the jacket never takes the harness's or the hair's shape) and the shell faces the same way. The distances
+are low-passed in space (a Gaussian of `sigma` over hits facing the same way: 3.2 cm on the jackets, 2.8 on the
+trousers, 1.2 on the boots; at 2 cm Tripo's sculpted lumps still blotched the game's light on the ranger's back), faded
+where hits are few, applied along the averaged normals, eased (three Taubin passes) and fitted outside what lies under
+it again. The kept boots are drawn too (`SHAPE['pieces'][BOOTS]`). The manifest records
+`shapeTarget` (scale, arm angles, stance move) and each piece's `fit.<piece>.shape` (share of verts that hit, mean
+and largest moves).
+
+Automatic lifting of the details off the shell (the map's mark on the jacket cut out and raised to the shell's height)
+and painting each texel from the map were tried and dropped: at the garments' 1–1.5 cm vertex spacing the outlines
+came out as soft blobs, and the map's light grey and metal classes followed Tripo's baked highlights (streaks on the
+trousers read as knee panels). **Details are built crisp, where the map has them**: `shape_views.py --outfit <id>
+--out <folder>` renders the placed, unposed shell in its cleaned map's flat colours, front, side and back, with a line
+every 5 cm (torso and legs), and the positions are read off and written into the outfit's module with the kit's crisp
+pieces (`panel` plates, `strap_on`, `disc`, `K.band`, `K.box`, tailor's `raised` straps and rects; their paint the
+same shapes' signed distances).
+
+**Painted flat** (`paint()`): each zone the sheet's own flat colour (the median of a flat patch, sampled away from
+line work: `PAL`), no occlusion, valley, fold or grain; small details (the cyan windows and strips, the zip, the
+knee bands, the wrist bands) as flat colour. `PAINT_BOOTS = True` paints the kept boots by `paint()` too (sole, collar,
+side panel) instead of recolouring the base atlas's shaded boots. The game's ink and light do all the shading.
+
+- **Void navigator:** the jacket fuller over the chest, shoulders and sleeves and cropped higher (hem 1.098: the belt
+  shows under it, as the sheet), the trousers slimmer at the thigh and tapered to a gathered cuff, the boots bulkier.
+  The harness rebuilt from the map: an X of broad plates (4.6 cm) from the shoulder straps to a 4 cm disc on the
+  sternum, his right lower arm to his side, his left down by the inset to the hem; broad straps over the shoulders;
+  on the back a Y to a smaller disc and a long tail plate cut to a point; three cyan windows. The belt broad (1.0–1.05
+  m) under the hem, its 4.6 cm disc at his left front (the #680 build had it at his right: the sheet's is on his left),
+  the buckle's two plates, a pouch module at his right hip and the holster strap down his right thigh. Raised knee
+  bands rising to the outside front and back, outer shin panels, the cyan strip down his right thigh, an ivory strap on
+  his left shin. The #680 boot panels (the ranger's) are gone: the boots take the figure's shape. 45.2 k triangles
+  (47.9 k before).
+- **Gravity ranger:** the jacket fuller with the figure's balloon sleeves, the jogger trousers' volume, the boots
+  bulkier; the cargo pockets moved to the outer thighs where the figure has them (raised, with flaps); the dark pack
+  plate between the back's crescents; the sheet's flat colours (the olive, coral, trousers and lilac boots all lighter
+  than #680's). Its other details (shoulder crown, crescents, dials, lapels, cuffs) were already where the map has
+  them and stay. 45.8 k triangles (45.7 k before).
+- Nothing comes through anything in the lowered pose or the game's idle, jog-a, jog-b or sprint (both outfits: 0 mm);
+  `tests/traveller-outfits.test.js` checks the shape target's record.
+- **Review:** `tools/tripo-outfits-review.html` shows the #680 build (kept in `data/characters/tripo-outfits/<id>/
+  blender-680/` for this page only), the game's build and the Tripo figure side by side.
+
+**Repeating it for another outfit** (each needs one Tripo generation: 50 credits; none made beyond these two):
+
+1. `node scripts/tripo/crop-outfit-sheets.mjs`, `node scripts/tripo/generate-outfits.mjs <id>`,
+   `node scripts/tripo/prepare-tripo-outfits.mjs` (the trial's tools) for `data/characters/tripo-outfits/<id>/preview.glb`.
+2. Sample the sheet's flat colours into the module's `PAL` (medians of flat patches; avoid lines and shade).
+3. Add `SHAPE = dict(target=..., colours=..., pieces={piece: dict(accept=[...], out=, inward=)})`; build with
+   `outfit.sh <id>` and look at the pieces in clay: if a piece barely moves, its `accept` colours miss the map
+   (the ranger's olive classified as the pocket olive: both are accepted).
+4. `shape_views.py --outfit <id>` and place the details from its grid; paint them flat; `PAINT_BOOTS = True`.
+5. Check pokes (the test's 1.5 cm in every pose), the gallery and the Wardrobe.

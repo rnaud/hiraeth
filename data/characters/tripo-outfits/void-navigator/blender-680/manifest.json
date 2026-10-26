@@ -1,0 +1,350 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit void-navigator (issue #540)",
+ "id": "void-navigator",
+ "name": "Void navigator",
+ "reference": "references/characters/traveller-outfits/void-navigator/approved-reference.png",
+ "glb": "void-navigator.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "NavigatorTrousers": {
+   "kind": "garment",
+   "triangles": 14512,
+   "vertices": 7359,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   }
+  },
+  "NavigatorJacket": {
+   "kind": "garment",
+   "triangles": 18355,
+   "vertices": 9327,
+   "hides": [
+    "belly",
+    "chest",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   }
+  },
+  "NavigationCuffs": {
+   "kind": "garment",
+   "triangles": 1326,
+   "vertices": 676,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "NavigationHarness": {
+   "kind": "garment",
+   "triangles": 4368,
+   "vertices": 2260,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "NavigationBelt": {
+   "kind": "garment",
+   "triangles": 1216,
+   "vertices": 616,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "NavigationBootPanels": {
+   "kind": "garment",
+   "triangles": 1736,
+   "vertices": 932,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "NavigatorBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_void-navigator": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "NavigatorTrousers",
+   "NavigatorJacket",
+   "NavigationCuffs",
+   "NavigationHarness",
+   "NavigationBelt",
+   "NavigationBootPanels",
+   "NavigatorBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 460,
+  "swatches": {
+   "NavigatorTrousers.inside": [
+    39,
+    39,
+    40
+   ],
+   "NavigatorJacket.inside": [
+    24,
+    29,
+    41
+   ],
+   "NavigatorBoots.inside": [
+    100,
+    97,
+    89
+   ]
+  },
+  "palette": {
+   "navy": [
+    53,
+    65,
+    91
+   ],
+   "black": [
+    47,
+    49,
+    48
+   ],
+   "trouser": [
+    86,
+    86,
+    88
+   ],
+   "cream": [
+    227,
+    219,
+    197
+   ],
+   "metal": [
+    82,
+    91,
+    91
+   ],
+   "cyan": [
+    112,
+    218,
+    225
+   ],
+   "boot": [
+    222,
+    216,
+    198
+   ],
+   "ink": [
+    31,
+    35,
+    41
+   ]
+  }
+ },
+ "triangles": 47919,
+ "fit": {
+  "NavigatorTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "op": {
+     "shapedVertices": 4192
+    },
+    "raised": {
+     "cuts": 124,
+     "raised": 93
+    },
+    "raised2": {
+     "cuts": 124,
+     "raised": 93
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "NavigatorJacket": {
+   "fitLeft": 211,
+   "relief": {
+    "op": {
+     "shapedVertices": 3434
+    },
+    "raised": {
+     "cuts": 87,
+     "raised": 16
+    },
+    "raised2": {
+     "cuts": 87,
+     "raised": 18
+    }
+   },
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 1233,
+    "lips": 272
+   }
+  },
+  "NavigationCuffs": {
+   "prop": "weighted"
+  },
+  "NavigationHarness": {
+   "prop": "weighted"
+  },
+  "NavigationBelt": {
+   "prop": "weighted"
+  },
+  "NavigationBootPanels": {
+   "prop": "weighted"
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>NavigatorTrousers": 0,
+   "Skin>NavigatorJacket": 0,
+   "NavigatorTrousers>NavigatorJacket": 384
+  },
+  "posed": {
+   "lowered": {
+    "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "NavigatorTrousers>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "NavigatorTrousers>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "NavigatorTrousers>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "NavigatorTrousers>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>NavigatorTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "NavigatorTrousers>NavigatorJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

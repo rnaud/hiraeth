@@ -1,15 +1,15 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tripo outfit trial</title>
 <!-- Tripo outfit trial (issue #682, docs/systems/characters.md "Tripo outfit trial (#682)"): the void navigator and the
-     gravity ranger as Tripo H3.1 smart-mesh models beside the Blender outfits and their picked sheets. Review only:
-     nothing here is in the game. Dev server only (the models live in data/). Creates no audio.
+     gravity ranger as Tripo H3.1 smart-mesh models beside the Blender outfits (before #684 and now) and their picked
+     sheets. Review only: the Tripo models are not in the game. Dev server only (the models live in data/). Creates no audio.
      ?outfit=void-navigator|gravity-ranger  ?angle=front|quarter|left|right|back  ?finish=ink|unlit|clay|matte  ?turn=0 -->
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eee9de;color:#302b26;font:15px system-ui;height:100dvh;display:flex;flex-direction:column}
 header{padding:12px 20px;display:flex;gap:12px 16px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #cfc5b5}h1{font-size:19px;margin:0}
 button,select,a{font:inherit;color:inherit}button,select{border:1px solid #b9ae9c;background:#f8f4eb;border-radius:5px;padding:6px 10px}
 main{display:flex;flex:1;min-height:0}
-figure{margin:0;width:26%;min-width:0;display:flex;flex-direction:column;border-right:1px solid #cfc5b5;background:#fcf2df}
+figure{margin:0;width:20%;min-width:0;display:flex;flex-direction:column;border-right:1px solid #cfc5b5;background:#fcf2df}
 figcaption,.cap{padding:10px 16px;font-size:14px}figure img{width:100%;height:0;flex:1;object-fit:contain;min-height:0}
 .preview{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .caps{display:flex}.caps .cap{flex:1;text-align:center}
@@ -28,10 +28,10 @@ footer{border-top:1px solid #cfc5b5;padding:8px 20px;font-size:13px;line-height:
 </header>
 <main>
 <figure><figcaption id="reference-label">Picked sheet</figcaption><img id="reference" alt="The outfit's picked reference sheet, the view matching the camera"></figure>
-<div class="preview"><div class="caps"><div class="cap" id="cap-blender">Blender outfit (#680)</div><div class="cap" id="cap-tripo">Tripo H3.1 · smart mesh · untouched</div></div><canvas id="view" aria-label="The Blender outfit and the Tripo model side by side"></canvas></div>
+<div class="preview"><div class="caps"><div class="cap" id="cap-old">Blender outfit before (#680)</div><div class="cap" id="cap-blender">Blender outfit now (#684)</div><div class="cap" id="cap-tripo">Tripo H3.1 · smart mesh · untouched</div></div><canvas id="view" aria-label="The Blender outfit before and now, and the Tripo model, side by side"></canvas></div>
 <iframe id="live" title="The Blender outfit live in the outfits gallery (the game's rig, idle, the game's ink)"></iframe>
 </main>
 <footer><p id="status">Loading…</p>
-<small>Review only, not in the game. Left: the Blender outfit worn by the game's traveller as the outfits gallery dresses him (his rig, standing, the portrait head, the gallery's ink material). Right: the Tripo model as generated (whole figure, one mesh, A-pose, no skeleton). Both get the same finish: "Game ink" is the outfits gallery's own pipeline and ink material (the one the wardrobe gives a garment), the others a plain renderer. "Live in the outfits gallery" opens the gallery itself beside them. Drag to turn; scroll to zoom. No sound.</small><br>
+<small>Review only: the Tripo model is not in the game. Left: the Blender outfit as #680 left it; middle: the one the game wears since #684, its garments drawn to the Tripo figure's shape and its details built where the figure has them, painted in the sheet's flat colours; both worn by the game's traveller as the outfits gallery dresses him (his rig, standing, the portrait head, the gallery's ink material). Right: the Tripo model as generated (whole figure, one mesh, A-pose, no skeleton). Both get the same finish: "Game ink" is the outfits gallery's own pipeline and ink material (the one the wardrobe gives a garment), the others a plain renderer. "Live in the outfits gallery" opens the gallery itself beside them. Drag to turn; scroll to zoom. No sound.</small><br>
 <span id="links"></span></footer>
 <script type="module" src="./tripo-outfits-review.js"></script></body></html>

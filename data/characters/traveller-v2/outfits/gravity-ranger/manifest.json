@@ -14,8 +14,8 @@
  "parts": {
   "GravityTrousers": {
    "kind": "garment",
-   "triangles": 14456,
-   "vertices": 7331,
+   "triangles": 14740,
+   "vertices": 7473,
    "hides": [
     "hips",
     "knee.L",
@@ -32,8 +32,8 @@
   },
   "GravityJacket": {
    "kind": "garment",
-   "triangles": 18337,
-   "vertices": 9314,
+   "triangles": 17745,
+   "vertices": 9035,
    "hides": [
     "belly",
     "chest",
@@ -60,8 +60,8 @@
   },
   "GravityPack": {
    "kind": "garment",
-   "triangles": 1584,
-   "vertices": 808,
+   "triangles": 1692,
+   "vertices": 864,
    "hides": [],
    "layer": 3,
    "materials": {
@@ -82,8 +82,8 @@
   },
   "GravityCuffs": {
    "kind": "garment",
-   "triangles": 1240,
-   "vertices": 636,
+   "triangles": 1406,
+   "vertices": 716,
    "hides": [],
    "layer": 3,
    "materials": {
@@ -171,54 +171,59 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 473,
+  "texelsPerMetre": 455,
   "swatches": {
    "GravityTrousers.inside": [
+    45,
     42,
-    42,
-    41
+    39
    ],
    "GravityJacket.inside": [
-    56,
-    59,
-    48
+    73,
+    71,
+    58
    ],
    "GravityBoots.inside": [
-    63,
-    55,
-    67
+    75,
+    67,
+    73
    ]
   },
   "palette": {
    "olive": [
-    124,
-    132,
-    106
+    162,
+    157,
+    128
    ],
    "coral": [
-    209,
-    115,
-    91
+    237,
+    134,
+    107
    ],
    "cuff": [
-    74,
-    77,
-    69
+    80,
+    75,
+    70
    ],
    "trouser": [
-    94,
+    100,
     93,
-    92
+    87
+   ],
+   "pocket": [
+    150,
+    145,
+    118
    ],
    "cream": [
-    224,
-    219,
-    194
+    237,
+    227,
+    205
    ],
    "metal": [
-    83,
-    91,
-    82
+    70,
+    66,
+    58
    ],
    "cyan": [
     118,
@@ -226,9 +231,14 @@
     213
    ],
    "boot": [
-    139,
-    122,
-    149
+    166,
+    149,
+    163
+   ],
+   "sole": [
+    65,
+    54,
+    50
    ],
    "ink": [
     36,
@@ -237,21 +247,35 @@
    ]
   }
  },
- "triangles": 45739,
+ "triangles": 45705,
  "fit": {
   "GravityTrousers": {
-   "fitLeft": 0,
+   "fitLeft": 2,
+   "shape": {
+    "hit": 0.723,
+    "meanMm": 6.2,
+    "outMm": 31.8,
+    "inMm": 25.8
+   },
    "relief": {
     "op": {
-     "shapedVertices": 4186
+     "shapedVertices": 4200
     },
     "raised": {
-     "cuts": 128,
-     "raised": 138
+     "cuts": 142,
+     "raised": 147
     },
     "raised2": {
-     "cuts": 128,
-     "raised": 138
+     "cuts": 125,
+     "raised": 126
+    },
+    "raised3": {
+     "cuts": 136,
+     "raised": 47
+    },
+    "raised4": {
+     "cuts": 109,
+     "raised": 38
     }
    },
    "hem": {
@@ -262,24 +286,30 @@
    }
   },
   "GravityJacket": {
-   "fitLeft": 185,
+   "fitLeft": 250,
+   "shape": {
+    "hit": 0.36,
+    "meanMm": 14.7,
+    "outMm": 42.2,
+    "inMm": 26.5
+   },
    "relief": {
     "op": {
-     "shapedVertices": 3490
+     "shapedVertices": 3462
     },
     "raised": {
-     "cuts": 105,
-     "raised": 35
+     "cuts": 107,
+     "raised": 33
     },
     "raised2": {
-     "cuts": 103,
-     "raised": 33
+     "cuts": 116,
+     "raised": 37
     }
    },
    "hem": {
     "open": 272,
     "covered": 0,
-    "band": 1194,
+    "band": 897,
     "lips": 272
    }
   },
@@ -300,7 +330,38 @@
   },
   "GravityBootPanels": {
    "prop": "weighted"
+  },
+  "GravityBoots": {
+   "shape": {
+    "hit": 0.588,
+    "meanMm": 8.4,
+    "outMm": 28.7,
+    "inMm": 7.5
+   }
   }
+ },
+ "shapeTarget": {
+  "source": "data/characters/tripo-outfits/gravity-ranger/preview.glb",
+  "scale": 1.7608,
+  "armDown": {
+   "l": -77.1,
+   "r": -78.1
+  },
+  "hands": {
+   "l": [
+    0.258,
+    0.004,
+    0.735
+   ],
+   "r": [
+    -0.246,
+    -0.024,
+    0.742
+   ]
+  },
+  "stance": 0.11,
+  "stretchedFaces": 406,
+  "triangles": 25225
  },
  "shading": {},
  "pokes": {

@@ -35,7 +35,7 @@ from mathutils.kdtree import KDTree
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-import garments as G, rig as R, finish as F, poses as PZ, tailor as T, inkpaint as IP
+import garments as G, rig as R, finish as F, poses as PZ, tailor as T, inkpaint as IP, shape_target as ST
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 arg = lambda n, d=None: argv[argv.index(n) + 1] if n in argv else d
@@ -290,6 +290,21 @@ def main():
     coll.objects.link(cut_skin)
     print('skin cut:', cut_skin_faces(cut_skin, getattr(S, 'SKIN_CUT', [])), 'faces')
 
+    # (#684) an outfit's shape target: a Tripo figure of it placed on him and unposed, its garments drawn to it
+    SHAPE = getattr(S, 'SHAPE', None)
+    tgt, shape_report = None, None
+    if SHAPE:
+        tgt, shape_report = ST.load(os.path.join(REPO, SHAPE['target']), J, arm, [body, skin], BONES)
+        print('shape target', json.dumps(shape_report))
+
+    def drawn_to(name, ob):
+        spec = (SHAPE or {}).get('pieces', {}).get(name)
+        if not spec:
+            return None
+        spec = dict(spec)
+        accept = spec.pop('accept')
+        return ST.conform(ob, tgt, SHAPE['colours'], accept, **spec)
+
     made = {}
     report = {}
     for name in S.BUILDERS:      # (in order: what lies under comes first)
@@ -300,11 +315,16 @@ def main():
         bm.free()
         subdivide(ob, spec['levels'])
         left = fit_outside(ob, [body, cut_skin] + [made[n] for n in spec['outside']], spec['gap'])
+        drawn = drawn_to(name, ob)
+        if drawn is not None:      # drawn to the shape target, eased, then clear of what is under it again
+            F.relax(ob, 0.4, 3)
+            left = fit_outside(ob, [body, cut_skin] + [made[n] for n in spec['outside']], spec['gap'])
+            print('drawn', name, json.dumps(drawn))
         ob['kind'] = 'garment'
         ob['layer'] = spec['layer']
         ob['outfit'] = S.ID
         made[name] = ob
-        report[name] = {'fitLeft': left}
+        report[name] = {'fitLeft': left, **({'shape': drawn} if drawn is not None else {})}
         # its volume (tailor.py: quilting, raised pockets and straps, wound turns, pile), before what goes over it
         ops = getattr(S, 'RELIEF', {}).get(name)
         if ops:
@@ -314,7 +334,8 @@ def main():
     # props (tailor.py: gloves over his hands, a rigid can on its strap): built on what is made, weighted
     # from the hand they cover or all on one bone
     prop_weights = {}
-    ctx = {'cage': cage, 'J': J, 'skin': skin, 'body': body, 'made': made, 'arm': arm, 'bones': BONES}
+    ctx = {'cage': cage, 'J': J, 'skin': skin, 'body': body, 'made': made, 'arm': arm, 'bones': BONES, 'target': tgt,
+           'colours': (SHAPE or {}).get('colours')}
     for name, spec in getattr(S, 'PROPS', {}).items():
         res = spec['build'](ctx)
         bm, w = res if isinstance(res, tuple) else (res, None)
@@ -344,6 +365,10 @@ def main():
             c.objects.unlink(boots)
         coll.objects.link(boots)
         boots['outfit'] = S.ID
+        drawn = drawn_to(S.BOOTS, boots)
+        if drawn is not None:
+            report[S.BOOTS] = {'shape': drawn}
+            print('drawn', S.BOOTS, json.dumps(drawn))
 
     # 2. weights: from the body and his skin piece (a sleeve over his forearm bends with it)
     PROPS = getattr(S, 'PROPS', {})
@@ -455,7 +480,8 @@ def main():
         m = pid == oi + 1
         if not m.any():
             continue
-        if boots and o.name == S.BOOTS:
+        # (an outfit's PAINT_BOOTS: its kept boots painted by its paint() too, flat, instead of the base atlas's)
+        if boots and o.name == S.BOOTS and not getattr(S, 'PAINT_BOOTS', False):
             src = bpx[m]
             Y = src @ np.array([0.299, 0.587, 0.114])
             lit = Y > 0.33
@@ -520,6 +546,10 @@ def main():
         for a in [a.name for a in me.attributes if a.name in ('label', 'nx', 'ny', 'nz', 'part', 'shade')]:
             me.attributes.remove(me.attributes[a])
 
+    if tgt is not None:      # (the shape target is never part of the outfit)
+        bpy.data.objects.remove(tgt.ob)
+        tgt.bm.free()
+
     # 6. the GLB: the rig and the pieces
     bpy.ops.object.select_all(action='DESELECT')
     arm.select_set(True)
@@ -563,6 +593,7 @@ def main():
         'atlas': {'size': [SIZE, SIZE], 'texelsPerMetre': texels, 'swatches': swatch, 'palette': S.PAL},
         'triangles': sum(tris(o) for o in objs),
         'fit': report,
+        **({'shapeTarget': {'source': SHAPE['target'], **shape_report}} if SHAPE else {}),
         'shading': shading,
         'pokes': {'under': {f'{i}>{o}': len(ix) for (i, o), ix in idx.items()}, 'posed': pokes},
     }

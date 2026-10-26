@@ -288,6 +288,24 @@ test('legacy garments retain their paint and compact garments exclude baked illu
   }
 });
 
+// #684: the void navigator and the gravity ranger drawn to their Tripo figures' shape, painted flat
+test('the void navigator and the gravity ranger take their Tripo figures\' shape (#684)', () => {
+  for (const [id, pieces] of [['void-navigator', ['NavigatorJacket', 'NavigatorTrousers', 'NavigatorBoots']],
+    ['gravity-ranger', ['GravityJacket', 'GravityTrousers', 'GravityBoots']]]) {
+    const m = JSON.parse(readFileSync(DIR + `outfits/${id}/manifest.json`, 'utf8'));
+    const t = m.shapeTarget;
+    assert.ok(t && statSync(t.source).size > 0, `${id}: its shape target is in the repository`);
+    assert.ok(t.scale > 1.6 && t.scale < 2.0, `${id}: the figure scaled to his neck (${t.scale})`);
+    for (const side of ['l', 'r']) assert.ok(t.armDown[side] < -60 && t.armDown[side] > -90, `${id}: its arms unposed from an A-pose`);
+    for (const p of pieces) {
+      const s = m.fit[p]?.shape;
+      assert.ok(s && s.hit > 0.3, `${id}: ${p} drawn to the figure (${JSON.stringify(s)})`);
+      assert.ok(s.outMm < 50 && s.inMm < 35, `${id}: ${p} moved within reach`);
+      assert.equal(m.shading[p], undefined, `${id}: ${p} flat, no baked light`);
+    }
+  }
+});
+
 // #545: the pearl diver, the moss gardener, the salt pilgrim
 const outfit = (id) => JSON.parse(readFileSync(DIR + `outfits/${id}/manifest.json`, 'utf8'));
 const skinClear = (m) => {

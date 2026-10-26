@@ -1476,6 +1476,43 @@ export const CHANGELOG_MEDIA = {
   ]
 },
 {
+  "match": "The void navigator’s and the gravity ranger’s outfits are cut closer to their drawings",
+  "shots": [
+    {
+      "name": "outfit-void-navigator-684",
+      "title": "Void navigator",
+      "caption": "The void navigator: a fuller, shorter jacket over a broad belt with its disc on his left; the harness in broad plates, an X to a big chest disc and a Y with a tail plate on the back; tapered trousers with raised knee bands; bulkier boots",
+      "from": "Issue #684: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5445); before: this change's base (45bdf7ac0, #680's build), after: this change rebuilt by scripts/blender/traveller/outfit.sh with the Tripo shape target; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in. The Tripo figure the shape came from is not in the game: tools/tripo-outfits-review.html shows it beside both builds.",
+      "size": [990, 715],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/void-navigator/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); its flat areas gave the colours"
+      }
+    },
+    {
+      "name": "outfit-gravity-ranger-684",
+      "title": "Gravity ranger",
+      "caption": "The gravity ranger: a fuller jacket with ballooning sleeves, jogger trousers with their cargo pockets on the sides, a dark pack plate between the crescents, the sheet’s lighter olive, coral and lilac",
+      "from": "Issue #684: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5445); before: this change's base (45bdf7ac0, #680's build), after: this change rebuilt by scripts/blender/traveller/outfit.sh with the Tripo shape target; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [990, 715],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/gravity-ranger/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); its flat areas gave the colours"
+      }
+    },
+    {
+      "name": "wardrobe-void-navigator-684",
+      "title": "In the Wardrobe",
+      "caption": "Tried on in the Wardrobe as before: the same outfit, the same line, the new cut on him",
+      "from": "Issue #684: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; 1280 × 720) on a Vite of its own (port 5445), ?level=desert&traveller=v2, a fresh save given the two outfits' prize flags, the game menu opened with J and turned to the Wardrobe with Q, the cursor moved down to the outfit with the arrows; before: this change's base (45bdf7ac0), after: this change; 26 October; cwebp -q 72",
+      "view": "Full frame; he is caught side on by the page's turntable at the same moment in both. Unity not pictured.",
+      "size": [1280, 720]
+    }
+  ]
+},
+{
   "match": "His own clothes, the coral shirt, are calmer",
   "shots": [
     {
