@@ -16,7 +16,7 @@ import { inApp } from '../src/native-app.js';
 import { bundledGame } from '../src/levels/reference-sheets.js';
 import { xboxApi as xboxApiOf, xboxDecision, webJson } from '../scripts/release-info.mjs';
 import { uwpVersion, setIdentity, checkPublisher, stageGame, leftOutOfPackage, xboxNotes, DEFAULT_PUBLISHER, XBOX_TAG } from '../scripts/xbox-package.mjs';
-import { SITE } from '../scripts/web-update.mjs';
+import { SITE } from '../scripts/content-policy.mjs';
 
 const store = (init = {}) => { const m = new Map(Object.entries(init)); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
 const EDGE_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0';

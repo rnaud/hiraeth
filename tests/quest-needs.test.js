@@ -4,7 +4,8 @@
 // giver back: no mark, no scout, no quest from their talk, one line saying where the missing thing is instead.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { files as storyFiles, loadStoryFile } from './story-data-modules.js';
+import { files as peopleFiles, loadStoryPeopleFile } from './story-people-modules.js';
 import * as THREE from 'three';
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
@@ -16,13 +17,12 @@ import { QUESTS as VAEL, PEOPLE as VAEL_PEOPLE } from '../src/story/arzach-data.
 import { QUESTS as DESERT, PEOPLE as DESERT_PEOPLE } from '../src/story/desert-data.js';
 import { QUESTS as INCAL, PEOPLE as INCAL_PEOPLE } from '../src/story/incal-data.js';
 
-const SRC = new URL('../src/story/', import.meta.url);
 
 /** Every world's quests: the story data's, and the temples' as src/temples/index.js defines them. */
 async function everyQuest() {
   const out = [];
-  for (const f of readdirSync(SRC).filter((x) => /-(data|people)\.js$/.test(x))) {
-    const m = await import(new URL(f, SRC));
+  for (const f of [...storyFiles, ...peopleFiles]) {
+    const m = await (f.endsWith('-people.js') ? loadStoryPeopleFile(f) : loadStoryFile(f));
     for (const q of m.QUESTS ?? []) out.push(q);
   }
   for (const [id, T] of Object.entries(TEMPLES)) {

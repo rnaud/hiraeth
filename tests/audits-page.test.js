@@ -11,7 +11,7 @@ import { toHtml, inline, splitRow } from '../src/audits-page/markdown.js';
 import { TABS, cardHtml, parseRoute, routeHash, sparkline, tabHtml, tabsHtml, kindChips } from '../src/audits-page/view.js';
 import { PAGES } from '../src/world-picker.js';
 import { BUILD_INPUT } from '../scripts/build-input.mjs';
-import { siteOnly } from '../scripts/site-only.mjs';
+import { siteOnly } from '../scripts/content-policy.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const { reports, index } = auditsData();

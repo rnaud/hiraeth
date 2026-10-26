@@ -60,3 +60,11 @@ test('story catalogue file lookup retains the module namespace and rejects unkno
  assert.throws(()=>loadStoryFile('../desert-data.js'),/Unknown story data/);
  assert.throws(()=>loadStoryFile('missing-data.js'),/Unknown story data/);
 });
+
+test('supplementary story people catalog covers the discovery set and rejects unknown files',async()=>{
+ const source=readFileSync(new URL('./story-people-modules.js',import.meta.url),'utf8');
+ assert.deepEqual(catalog(source,'../src/story/'),readdirSync(new URL('../src/story/',import.meta.url)).filter(f=>f.endsWith('-people.js')).sort());
+ const {loadStoryPeopleFile}=await import('./story-people-modules.js');
+ assert.equal(await loadStoryPeopleFile('glassdunes-people.js'),await import('../src/story/glassdunes-people.js'));
+ for(const name of ['missing-people.js','../glassdunes-people.js','__proto__'])assert.throws(()=>loadStoryPeopleFile(name),/Unknown story people/);
+});

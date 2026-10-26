@@ -43,10 +43,14 @@ const loudest = (s) => Math.max(...['cloak', 'cloth', 'hat', 'accent'].map((k) =
 const mean = (a) => a.reduce((t, v) => t + v, 0) / a.length;
 
 // the three busy places the author looked at: Qanat's square, the Signal Market, Lorn's crowd
-const PLACES = { desert: 'desert-data', bazaar: 'bazaar-data', perdide: 'perdide-data' };
+const PLACES = {
+  desert: () => import('../src/story/desert-data.js'),
+  bazaar: () => import('../src/story/bazaar-data.js'),
+  perdide: () => import('../src/story/perdide-data.js'),
+};
 test('in the busy places the crowd is quieter than the story’s people', async () => {
-  for (const [world, file] of Object.entries(PLACES)) {
-    const { PEOPLE } = await import(`../src/story/${file}.js`);
+  for (const [world, load] of Object.entries(PLACES)) {
+    const { PEOPLE } = await load();
     const rng = mulberry32(7), r2 = mulberry32(7);
     const crowd = Array.from({ length: 80 }, (_, i) => crowdLook(rng, { world, kind: i % 2 ? 'f' : 'm' }));
     const plain = Array.from({ length: 80 }, (_, i) => dressFor(world, r2, { kind: i % 2 ? 'f' : 'm' }));

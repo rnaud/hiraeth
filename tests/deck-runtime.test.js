@@ -7,7 +7,7 @@ import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runtimeKey, split, partName, runtimeJson, liveRuntime, writeRuntime, KEY_FILES, PART } from '../scripts/deck-runtime.mjs';
-import { MAX_FILE, SITE } from '../scripts/web-update.mjs';
+import { MAX_FILE, SITE } from '../scripts/content-policy.mjs';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');

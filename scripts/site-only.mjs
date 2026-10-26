@@ -16,14 +16,8 @@
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { AUDIT_FILE, LORE_FILE, MEDIA_FILE, REFERENCE_FILE, SHEET_FILE, SITE_CONFIG, onDemand } from './web-update.mjs';
-
-/** Is a file of dist/ (its path from dist/, with / between folders) one the devices never get? */
-export const siteOnly = (rel) => SHEET_FILE.test(rel) || MEDIA_FILE.test(rel) || AUDIT_FILE.test(rel) || REFERENCE_FILE.test(rel) || LORE_FILE.test(rel) || SITE_CONFIG.test(rel);
-/** Is it a recorded theme a device fetches from the site when it needs it (and keeps)? */
-export const fetchedOnDemand = (rel) => onDemand(rel);
-/** What the APK and the Deck package leave out: the site's own files and the themes fetched on demand. */
-export const leftOff = (rel) => siteOnly(rel) || fetchedOnDemand(rel);
+import { siteOnly, fetchedOnDemand, leftOff } from './content-policy.mjs';
+export { siteOnly, fetchedOnDemand, leftOff } from './content-policy.mjs';
 
 /** Delete what the devices leave out (leftOff, or `skip`) from a built dist/; returns { files, bytes } removed. */
 export async function stripSiteOnly(dist, skip = leftOff) {

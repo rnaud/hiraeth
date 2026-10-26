@@ -9,10 +9,14 @@ import { PEOPLE as hush } from '../src/temples/perdide-data.js';
 import { PEOPLE as lamp } from '../src/temples/perdide2-data.js';
 
 const ledger = JSON.parse(readFileSync(new URL('./fixtures/teasel-briony-guidance-626.json', import.meta.url)));
+const sources = new Map();
+for (const path of ["src/temples/perdide-data.js", "src/temples/perdide2-data.js"]) sources.set(path, readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
+assert.deepEqual([...sources.keys()].sort(), ledger.files.map(file => file.path).sort(), 'every ledger input has an explicit source reader');
+
 
 test('the two repeat hints preserve all other dialogue bytes, including tones, gates and choices', () => {
   for (const file of ledger.files) {
-    let source = readFileSync(new URL(`../${file.path}`, import.meta.url), 'utf8');
+    let source = sources.get(file.path);
     for (const { before, after } of file.replacements) {
       assert.equal(source.split(after).length - 1, 1);
       assert.equal(parseLine(after).tone, parseLine(before).tone);

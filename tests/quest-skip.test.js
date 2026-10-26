@@ -3,6 +3,13 @@ import assert from 'node:assert/strict';
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { QUESTS } from '../src/story/desert-data.js';
+const questModules = {
+  'bazaar-data.js': () => import('../src/story/bazaar-data.js'),
+  'incal-data.js': () => import('../src/story/incal-data.js'),
+  'edena-data.js': () => import('../src/story/edena-data.js'),
+  'perdide-data.js': () => import('../src/story/perdide-data.js'),
+  'night-train-data.js': () => import('../src/story/night-train-data.js'),
+};
 
 // "If I go straight to the quest to fill up my jar we should complete the quest. Here I still had to talk to Ama. All
 // quests should be solvable by just going to the end if you can" (the author's playthrough, October 2026, issue #73):
@@ -116,7 +123,7 @@ test('an opening quest whose talk never came starts past what is done (issue #85
     ['bazaar-data.js', 'bazaar.signal', { 'bazaar.kip.gave': true, 'bazaar.antenna.tuned': true }, 'play'],
   ];
   for (const [file, id, flags, want] of worlds) {
-    const { QUESTS: list } = await import(`../src/story/${file}`);
+    const { QUESTS: list } = await questModules[file]();
     const g = new GameState(memory()), q = new Quests({ game: g });
     for (const d of list) q.define(d);
     q.opensWith(id, 'someone');
@@ -128,7 +135,7 @@ test('an opening quest whose talk never came starts past what is done (issue #85
 
 test('nobody sends you to somebody else (issue #85): no talk step to one person straight after one to another', async () => {
   for (const file of ['bazaar-data.js', 'incal-data.js', 'edena-data.js', 'perdide-data.js', 'night-train-data.js']) {
-    const { QUESTS: list } = await import(`../src/story/${file}`);
+    const { QUESTS: list } = await questModules[file]();
     for (const q of list) q.stages.forEach((s, i) => {
       const prev = q.stages[i - 1];
       assert.ok(!(s.talk && prev?.talk && prev.talk !== s.talk), `${q.id}: ${prev?.talk} → ${s.talk}`);

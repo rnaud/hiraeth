@@ -21,15 +21,10 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
 import { desktopApi, gameBuild, unityJson, webJson, xboxApi } from './release-info.mjs';
-import { ON_DEVICE_THEMES } from '../src/music-store.js';
 import { sfxFiles } from '../src/sfx.js';
 
-export const SITE = 'https://hiraeth.alexandria-rnaud.workers.dev/';
-export const UPDATES = 'updates';
-/** Workers static assets: 25 MiB per file, 20,000 files per version on the free plan. */
-export const MAX_FILE = 25 * 1024 * 1024;
-export const MAX_FILES = 20000;
-export const UPDATE_PART = 20 * 1024 * 1024;
+import { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
+export { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
 
 // 2000-01-01 00:00 in MS-DOS time (zip entries carry a local date and time, not a timestamp)
 const DOS_TIME = 0, DOS_DATE = ((2000 - 1980) << 9) | (1 << 5) | 1;
@@ -132,30 +127,6 @@ export async function checkLimits(dir, { maxFile = MAX_FILE, maxFiles = MAX_FILE
   }
   return all.length;
 }
-
-/** The References level's sheets (assets/IMG_<n>-<hash>.JPG, ~18 MB) stay out of the zip: the site serves
- * them to bundled games (src/levels/reference-sheets.js), and with them the zip passed Workers' 25 MiB. */
-export const SHEET_FILE = /^assets\/(IMG_\d+|reference-\d+)-[\w-]+\.jpe?g$/i;   // (the new worlds' sheets are reference-1 … 4.jpeg)
-/** The interactive changelog's pictures (changelog-media/, docs/systems/changelog.md) are the site's alone:
- * the build never holds them (the deploy copies them in after this zip and the Deck's runtime are made),
- * and if they ever were in dist/ they would still stay out of the zip, the APK and the Deck. */
-export const MEDIA_FILE = /^changelog-media(\/|$)/;
-/** The audits page's data and the reports' pictures (dist/audits/: scripts/audits-data.mjs) are the site's alone too:
- * audits.html, small, ships with the game and reads them from the site. */
-export const AUDIT_FILE = /^audits\//;
-/** The references page's index, thumbnails and web-size copies (dist/references/: scripts/references-site.mjs,
- * ≈ 70 MB) are the site's alone: references.html, small, ships with the game and reads them from the site. */
-export const REFERENCE_FILE = /^references(\/|$)/;
-/** The lore page's pictures (public/lore-pictures/: scripts/lore-pictures.mjs, the reference picks made small) are the
- * site's alone: lore.html, small, ships with the game and shows its words without them. */
-export const LORE_FILE = /^lore-pictures(\/|$)/;
-/** The site's own configuration (public/_headers: Cloudflare's headers by path, the themes' CORS). */
-export const SITE_CONFIG = /^_headers$/;
-/** The recorded themes a device fetches from the site the first time it needs one, and keeps (src/music-store.js):
- * every music/*.mp3 but ON_DEVICE_THEMES (the desert's, the title's, the singing light's cue). The zip, the APK and the Deck leave them out (about
- * 99 MB); the site serves them. OTA_MUSIC=1 puts them back in the zip, for a hand-over update: a game that finds
- * them in its bundle keeps them (adoptBundledThemes), so an install from before keeps its soundtrack for good. */
-export const onDemand = (name) => /^music\/[^/]+\.mp3$/.test(name) && !ON_DEVICE_THEMES.includes(name.slice('music/'.length));
 
 /** Store large archives as bounded assets; the Worker streams their original zip URL. */
 export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {

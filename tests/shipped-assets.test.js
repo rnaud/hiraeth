@@ -9,7 +9,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BUILD_INPUT } from '../scripts/build-input.mjs';
-import { siteOnly } from '../scripts/site-only.mjs';
+import { siteOnly } from '../scripts/content-policy.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const posix = (p) => p.split(sep).join('/');

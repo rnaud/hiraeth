@@ -8,9 +8,13 @@ import { PEOPLE as foundry } from '../src/temples/moonfoundry-data.js';
 import { parseLine } from '../src/story/tone.js';
 
 const ledger = JSON.parse(readFileSync(new URL('./fixtures/dialogue-instructions-626.json', import.meta.url)));
+const sources = new Map();
+for (const path of ["src/temples/buried-data.js", "src/temples/moonfoundry-data.js"]) sources.set(path, readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
+assert.deepEqual([...sources.keys()].sort(), ledger.files.map(file => file.path).sort(), 'every ledger input has an explicit source reader');
+
 test('Fisk and Petra edits preserve every other source byte, including gates, effects, pages and choices', () => {
   for (const file of ledger.files) {
-    let source = readFileSync(new URL(`../${file.path}`, import.meta.url), 'utf8');
+    let source = sources.get(file.path);
     for (const { before, after } of file.replacements) {
       assert.equal(source.split(after).length - 1, 1, `one approved replacement in ${file.path}`);
       assert.equal(parseLine(after).tone, parseLine(before).tone, 'speaker tone retained');

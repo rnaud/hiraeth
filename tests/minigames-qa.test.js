@@ -15,7 +15,20 @@ import { BELLS, STAND } from '../src/minigames/gallery.js';
 import { crowdInWay, BODY } from '../src/minigames/framing.js';
 
 const IDS = ['ski', 'platformer', 'canyon', 'fishing', 'rings', 'wingdrop', 'gallery', 'waves', 'drums', 'sketchhunt', 'pirates'];
-const modules = Object.fromEntries(await Promise.all(IDS.map(async (id) => [`./${id}.js`, await import(`../src/minigames/${id}.js`)])));
+const loaders = {
+  './ski.js': () => import('../src/minigames/ski.js'),
+  './platformer.js': () => import('../src/minigames/platformer.js'),
+  './canyon.js': () => import('../src/minigames/canyon.js'),
+  './fishing.js': () => import('../src/minigames/fishing.js'),
+  './rings.js': () => import('../src/minigames/rings.js'),
+  './wingdrop.js': () => import('../src/minigames/wingdrop.js'),
+  './gallery.js': () => import('../src/minigames/gallery.js'),
+  './waves.js': () => import('../src/minigames/waves.js'),
+  './drums.js': () => import('../src/minigames/drums.js'),
+  './sketchhunt.js': () => import('../src/minigames/sketchhunt.js'),
+  './pirates.js': () => import('../src/minigames/pirates.js'),
+};
+const modules = Object.fromEntries(await Promise.all(Object.entries(loaders).map(async ([file, load]) => [file, await load()])));
 const GAMES = collectGames(modules, (m) => { throw new Error(m); });
 
 test('all eleven games, each in its own place in the Games row', () => {

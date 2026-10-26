@@ -15,8 +15,8 @@ import { ITEMS } from '../src/items.js';
 import { BUILD_INPUT } from '../scripts/build-input.mjs';
 import { PAGES } from '../src/world-picker.js';
 import { handleIssues, SOURCES as FOOTERS } from '../worker/issues.js';
-import { LORE_FILE } from '../scripts/web-update.mjs';
-import { siteOnly } from '../scripts/site-only.mjs';
+import { LORE_FILE } from '../scripts/content-policy.mjs';
+import { siteOnly } from '../scripts/content-policy.mjs';
 
 const lore = await buildLore();
 const { nav, main } = lorePage(lore);
