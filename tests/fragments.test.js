@@ -879,3 +879,37 @@ test('a pickup reserves the shared phrase interval for its payoff, even with ano
   assert.equal(taken.length, 1); assert.equal(events.length, 1);
   F.dispose();
 });
+
+test('issue #638: the Desert\'s first fragment is heard from the ramp and from Marrow; taken, the next calls from its cairn', async () => {
+  const { FRAGMENT_CARRY } = await import('../src/fragments-data.js');
+  const { game, items: its } = fresh();
+  const player = { pos: V() }, songs = [];
+  const F = createFragments({ levelId: 'desert', scene: new THREE.Scene(), player, game, items: its,
+    sound: { fragmentSong: (p, k, reach) => songs.push({ p, k, reach }), fragmentTaken: () => {} } });
+  const a = F.list[5], b = F.list[6];
+  // the ramp's foot (the level's spawn) and where Marrow stands: both past the ordinary song's 26 m
+  for (const [x, z, who] of [[122.6, 362.6, 'the ramp'], [136, 366, 'Marrow']]) {
+    songs.length = 0;
+    player.pos.set(x, 1.1, z);
+    const d = Math.hypot(a.pos.x - x, a.pos.z - z);
+    assert.ok(d > FRAGMENT.sing, `${who} stands ${d.toFixed(1)} m off: out of the ordinary song`);
+    F.update(FRAGMENT.singEvery + 0.1, songs.length);
+    assert.equal(songs.length, 1, `heard from ${who}`);
+    assert.equal(songs[0].p, a.pos);
+    assert.ok(songs[0].k > 0 && songs[0].k < 0.5, 'faint at that distance');
+    assert.equal(songs[0].reach, FRAGMENT_CARRY.desert[5] + 6, 'placed with the reach it carries to');
+  }
+  // taken, the second calls from the first's cairn (39 m along the pilgrims' road)
+  player.pos.copy(a.pos).add(V(0, -FRAGMENT.lift, 0));
+  songs.length = 0;
+  F.update(0.1, 50); F.update(FRAGMENT.singEvery + 0.1, 54);
+  assert.equal(a.found, true);
+  assert.equal(songs.length, 1); assert.equal(songs[0].p, b.pos, 'the next one on the road');
+  // an ordinary fragment is unchanged: silent past 26 m
+  const W = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player, game, items: its, sound: { fragmentSong: (p) => songs.push({ p }) } });
+  songs.length = 0;
+  player.pos.copy(W.list[0].pos).add(V(FRAGMENT.sing + 3, -FRAGMENT.lift, 0));
+  W.update(FRAGMENT.singEvery + 0.1, 60);
+  assert.ok(songs.every((s) => s.p !== W.list[0].pos), 'a fragment without a carry keeps its 26 m');
+  W.dispose(); F.dispose();
+});

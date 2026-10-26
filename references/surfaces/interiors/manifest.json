@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-26",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Surface design sheet for a science fiction exploration game, the walls and floors of small shop rooms in a peaceful alien town: glazed ceramic floor tiles laid by hand with slightly uneven grout lines, a few tiles of another pastel tone and one chipped corner, painted plaster walls with soft repainted patches and a darker dado band at waist height, a tiled skirting, faint scuffs near the counter and the door. Three panels side by side: a large square-on swatch of wall over floor; the inside of a small shop seen from the doorway with a shopkeeper at the counter for scale; a strip showing the marks simplifying with distance, tiles and bands staying, grout and scuffs gone far. Homely, calm, flat colour dominant, marks sparse and fine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, mint, cream, terracotta and pale blue, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, photo texture, text, watermark, lettering, labels.",
+      "from": "docs/design/surface-prompts.md#interiors",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-26",
+      "batch": "2026-10-25-18-06-32-6ea0",
+      "candidate": "openai/1",
+      "sha256": "639eaa42ee47d70404f48d6352be21ddbc2d669694aebf48536e62f3e6f38acd",
+      "bytes": 180005,
+      "costUSD": 0.041
+    }
+  ]
+}

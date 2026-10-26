@@ -220,6 +220,7 @@ export class SpellCaster {
     const F = this.foes, P = this.player, A = this.active;
     if (!F?.list) return;
     for (const [f, t] of A.cut) A.cut.set(f, t - dt);
+    let cut = 0;
     for (const f of F.list) {
       if (!f.alive || f.dead !== undefined || f.dying || !f.pos) continue;
       if ((A.cut.get(f) ?? 0) > 0) continue;
@@ -231,8 +232,11 @@ export class SpellCaster {
       const at = f.chest?.clone?.() ?? f.pos.clone();
       F.hurt?.(f, 'blade', dir, { damage: T.damage, source: 'shards' }, at);
       A.cut.set(f, T.every);
-      this.sound?.fluidSlashHit?.(true);
+      cut++;
     }
+    // (one slash for the ring's pass, however many it cut: four foes met at once stacked four, issue #638; each foe's own cry
+    // still answers its cut, Foes.hurt)
+    if (cut) this.sound?.fluidSlashHit?.(true);
   }
 
   /** The spell working now stops (its time out, its rings spent, a new cast, the world left). */

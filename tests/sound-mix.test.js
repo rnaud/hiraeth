@@ -162,3 +162,31 @@ test('placed sounds follow the slider they belong to: the hum, a fragment\'s son
   assert.ok(tune < 1, `the sphere song gone with Music at 0: +${tune.toFixed(1)} dB over the bed`);
   assert.match(fs.readFileSync(new URL('../src/audio.js', import.meta.url), 'utf8'), /spheresSong[\s\S]{0,400}bus: 'music'/);
 });
+
+test('issue #638: a guard\'s clang and a cut on armour answer the blow once, however many foes it met, each take apart', () => {
+  const s = fresh();
+  assert.equal(s.foeGlance(), true);
+  assert.equal(s.foeGlance(), false, 'a second guarded foe in the same swing: no stacked clang');
+  assert.equal(s.foeArmour(), true, 'the armour\'s own once');
+  assert.equal(s.foeArmour(), false);
+  s.ctx.render(Math.round(48000 * 0.25));   // (the combo's next swing)
+  assert.equal(s.foeGlance(), true, 'the next blow clangs again');
+  // the takes differ: three guarded foes in one frame are no louder than one
+  const one = loudest((x) => x.foeGlance(), 'desert', 1), three = loudest((x) => { x.foeGlance(); x.foeGlance(); x.foeGlance(); }, 'desert', 1);
+  assert.ok(Math.abs(three - one) < 0.5, `three at once ${three.toFixed(1)} dB, one ${one.toFixed(1)} dB`);
+});
+
+test('issue #638: the outdoor wind and its storm step back under a spoken line (AMBIENCE_TALK_DUCK), and come back after', async () => {
+  const { AMBIENCE_TALK_DUCK } = await import('../src/audio.js');
+  const STORM = { ...CALM, gust: 1, storm: 1 };
+  const bed = (talk) => seeded(() => {
+    const s = fresh();
+    s.update(STORM); s.ctx.render(48000);
+    if (talk) s._duckUntil = s.ctx.currentTime + 10;
+    for (let i = 0; i < 10; i++) { s.update(STORM); s.ctx.render(4800); }
+    return dB(peakRms(s.ctx.render(48000)));
+  });
+  const calm = bed(false), under = bed(true);
+  assert.ok(under < calm - 4, `the storm's bed ${calm.toFixed(1)} dB alone, ${under.toFixed(1)} dB under a line`);
+  assert.ok(under > calm + 20 * Math.log10(AMBIENCE_TALK_DUCK) - 2, 'stepped back, not gone');
+});

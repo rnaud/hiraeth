@@ -107,6 +107,11 @@ export const FOE_VOICES = {
 /** A shot or a cut that does nothing (armour, a shell, the bronze): a bright spark's tick over the armour's dull thunk. */
 export const GLANCE = [C(1, 0, 5200, 0.012, 0.1, { q: 3 }), R(2900, GLASS, 0.14, 0.02), T('triangle', 230, 170, 0.1, 0.1), N('bandpass', 520, 0.07, 0.14, { q: 2.5, rate: 0.5 })];
 
+/** A voice's layers with every frequency x k (a take a little apart: Sound.vary). */
+export function pitched(layers, k = 1) {
+  return layers.map((L) => ({ ...L, f: L.f * k, ...(L.f1 ? { f1: L.f1 * k } : {}) }));
+}
+
 /** A foe's voice: its kind's own; or by its def's sound ('machine'); or the ink's. */
 export function voiceOf(kind, sound = null) {
   return FOE_VOICES[kind] ?? FOE_VOICES[sound] ?? (sound === 'metal' || sound === 'slag' ? FOE_VOICES.machine : FOE_VOICES.blot);

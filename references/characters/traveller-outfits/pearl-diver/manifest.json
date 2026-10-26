@@ -41,5 +41,17 @@
       "costUSD": 0.0336,
       "why": "the same suit in five views, the three-quarters for the build (the ring's piping, the side panels from behind)"
     }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-19-18-11-36-b35b",
+      "why": "old; closed out by the author on 2026-10-25",
+      "date": "2026-10-26",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a pearl diver's working suit instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A close-fitting one-piece diving suit of deep sea-blue rubberised canvas with short sleeves and knees, pale cream stitched panels down the sides and across the chest, a low round brass collar ring at the neck, a broad cream webbing belt with two small brass-clasped pouches and a coiled line at the hip, bare forearms, rubber cuffs at the elbows, tall smooth sea-green rubber boots with a brass buckle each. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "created": "2026-10-26",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-21-01-28-53-eba1",
+      "why": "old; closed out by the author on 2026-10-25",
+      "date": "2026-10-26",
+      "mode": "3d",
+      "inputs": [
+        ".local-tools/tripo-ship/four-view-reference.png"
+      ],
+      "options": {
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": false,
+        "textureQuality": "standard",
+        "faceLimit": 100000,
+        "quad": false,
+        "rig": false
+      },
+      "providers": [
+        "tripo"
+      ]
+    }
+  ]
+}

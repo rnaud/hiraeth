@@ -55,7 +55,9 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   out in the far south and 252 m out on the western ridge) moved to the open sand round the landing: one 40 m from the
   ramp, ahead and to the right as you step out, the other up the low rise 60 m behind the ship. Both keep #228's rule
   (32 and 42 m off the route's line: the way to Qanat leaves the ramp the other way), so they are there to be found, not
-  stepped on. You hear the nearer one sing from the ramp (26 m) as you walk out. And Marrow, at your ship, has one line
+  stepped on. You hear the nearer one sing from the ramp as you walk out (since v2.28, issue #638: they had moved to the
+  controlled landing's cairns, 31 m from the ramp and 42 m from Marrow, past the 26 m an ordinary one sings over, so both
+  now carry 48 m: `FRAGMENT_CARRY`, below). And Marrow, at your ship, has one line
   for it (*"Something the light dropped when it passed, I'd say. It sings by the stone cairn beside your ship. I
   don't pick up things that sing."*: he hedges, as a witness does, in the desert's word, issue #282), asked at the
   ship (his first talk, beside the way to Qanat and the mark, and his hello; issue #279): it starts the errand
@@ -239,6 +241,10 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
   light's theme an octave up (`Sound.fragmentSong`, placed with `Sound.spot`, louder nearer). Muted with the game.
+  A few carry further (`FRAGMENT_CARRY` in `src/fragments-data.js`, metres by world and slot; their song placed with a
+  reach 6 m past it): the Desert's two by the ship (48 m, issue #638), so the first is a faint call behind you from the
+  ramp's foot and from Marrow, and once it is taken the second calls from its cairn, 39 m on down the pilgrims' road. The
+  nearest one in its own range sings; a fragment without a carry keeps its 26 m (`tests/fragments.test.js`).
 - **Taking one.** Walk within `FRAGMENT.take` (1.5 m): it is yours. The toast: *A fragment of the singing light · 12 found*
   (`fragmentToast`: never of how many, nor how many are left, v1.86, issue #519; it said *12 of 288 · 3 left in Lorn*
   before); the theme's rise (`Sound.fragmentTaken`); `game.emit('fragment', { world, i, found, total, left })`.

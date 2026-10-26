@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
-import { FRAGMENTS, fragKey, fragmentCounts, CHART_FLAG } from './fragments-data.js';
+import { FRAGMENTS, FRAGMENT_CARRY, fragKey, fragmentCounts, CHART_FLAG } from './fragments-data.js';
 import { buildFragmentMarkers } from './fragment-markers.js';
 
 // The fragments of the singing light (docs/systems/fragments.md, issue #196): small splinters of the light's song
@@ -60,6 +60,7 @@ export const fragmentToast = (found) => `A fragment of the singing light · ${fo
 /** The fragments of this world, made and hidden where they are. */
 export function createFragments({ levelId, scene, physics = null, level = null, player, sound = null, game = sharedGame, items = sharedItems, toast = () => {}, lights = null }) {
   const spots = FRAGMENTS[levelId] ?? [];
+  const carries = FRAGMENT_CARRY[levelId] ?? {};
   // (the props some stand on, where the world had no landmark left there: issue #550, src/fragment-markers.js)
   const markers = buildFragmentMarkers(scene, levelId, physics);
   const crystal = makeMaterial({ color: '#dff7ff', glow: 1, flat: true });
@@ -124,7 +125,7 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
     update(dt, t, { quiet = false } = {}) {
       clock += dt;
       const p = player?.pos;
-      let singer = null, songDistance = FRAGMENT.sing;
+      let singer = null, songDistance = Infinity, carry = FRAGMENT.sing;
       for (const f of list) {
         if (f.found) continue;
         // (out of drawing range: hidden, and nothing to turn)
@@ -140,14 +141,16 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
         // its song, faint, from where it is (three notes of the light's theme)
         const d = Math.hypot(dx, dy, dz);
         // One local phrase, from the nearest fragment. Stable list order breaks ties.
-        if (d < songDistance) { singer = f; songDistance = d; }
+        // (most sing within FRAGMENT.sing; a few carry further: FRAGMENT_CARRY, issue #638)
+        const reach = carries[f.i] ?? FRAGMENT.sing;
+        if (d < reach && d < songDistance) { singer = f; songDistance = d; carry = reach; }
       }
       // Menus/conversation stop new phrases, not collection or an already-playing tail.
       // Keep this shared deadline across nearest changes and leaving/re-entering range;
       // missed intervals never accumulate into a burst after a quiet spell.
       if (singer && !quiet && clock - sungAt > FRAGMENT.singEvery) {
         sungAt = clock;
-        sound?.fragmentSong?.(singer.pos, 1 - songDistance / FRAGMENT.sing);
+        sound?.fragmentSong?.(singer.pos, 1 - songDistance / carry, carry > FRAGMENT.sing ? carry + 6 : undefined);
       }
       // the finder: a beep, faster as the nearest comes closer
       if (finderOn() && p && !player.hidden && !quiet) {
