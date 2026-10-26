@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { CARD_MAX_SHARE, CARD_MAX_CH } from '../src/boxes/card.js';
 
-const card = readFileSync(new URL('../src/boxes/card.js', import.meta.url), 'utf8');
+const card = readFileSync(new URL('../src/boxes/card.js', import.meta.url), 'utf8') + '\n' + readFileSync(new URL('../src/hud-styles/box-card.js', import.meta.url), 'utf8');
 const rule = (sel) => card.match(new RegExp(`\\n${sel.replace(/[.#]/g, (c) => `\\${c}`)} \\{([^}]*)\\}`))?.[1] ?? '';
 
 test('the card is a low strip along the foot of the screen at every size, the item clear above it', () => {

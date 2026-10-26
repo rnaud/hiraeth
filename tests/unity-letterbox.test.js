@@ -18,7 +18,7 @@ function cssEase(x, x1, y1, x2, y2) {
 }
 
 test('the letterbox: the page\'s height and its transition, in BridgeHud', () => {
-  const css = read('src/ship/cinema.js'), hud = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
+  const css = read('src/hud-styles/cinema.js'), hud = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
   const tr = css.match(/#cine \.bar \{[^}]*transition: height ([\d.]+)s cubic-bezier\(([^)]*)\)/);
   assert.ok(tr, 'the page\'s transition');
   const secs = +tr[1], [x1, y1, x2, y2] = tr[2].split(',').map(Number);

@@ -579,3 +579,14 @@ decoder; the CLI and tests share the unchanged scenario body in `drive-core.mjs`
 This avoids pulling generic bundle/VM tools into the tests. HUD markup and unrelated
 world edits no longer select standalone audio playback tests; gameplay edits still
 select the engine-sound scenarios. No sound checks were dropped or made nightly-only.
+
+### Browser style inputs
+
+`src/boot.js` registers the pure `src/hud-styles/` strings before starting the
+browser game. Components look up these strings through `ui-style-registry.js`
+and install them at their original lazy creation points. Gameplay and native
+HUD-state consumers do not import the browser theme. The same presentation
+assertions read the extracted styles; the registry check covers bootstrap
+registration, and selection regressions retain cinema behavior coverage while
+excluding CSS-only edits from sequence and completion simulations. Native HUD
+rendering remains in its existing bridge; no native palette or state changed.

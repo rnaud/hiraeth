@@ -23,7 +23,7 @@ import { inputKind } from '../prompt-keys.js';
 import { promptText } from '../native-pad.js';
 import { arenaLevel } from './kit/world.js';
 import { screen, page } from '../platform.js';
-import { enamelStrip } from '../hud-look.js';
+import { styleText } from '../ui-style-registry.js';
 import {
   LANES, LEVELS, SONG, JUDGE, drumSong, eventsBetween, heardSongTime, newRun, judgePress, sweepMisses, runDone,
   accuracy, rank, timingAdvice, fervour, multiplier, FRAME_PATTERN,
@@ -257,7 +257,7 @@ class Overlay {
     // the buttons' names beside their sockets (DOM text: the handhelds' names are written over it, native-pad.js)
     this.labels = LANES.slice(0, lanes).map((L) => {
       const d = document.createElement('div');
-      d.style.cssText = `position:absolute;transform:translate(-50%,-50%);font:700 12px/1 var(--face);letter-spacing:.06em;${enamelStrip()}padding:3px 7px;white-space:nowrap;`;   // (the enamel of every message: issue #687)
+      d.style.cssText = styleText('drum-label');   // (the enamel of every message: issue #687)
       this.el.appendChild(d);
       return d;
     });

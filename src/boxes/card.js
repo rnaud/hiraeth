@@ -15,37 +15,11 @@ import { screen } from '../platform.js';
 import { t } from '../i18n.js';
 import { stripTone } from '../story/tone.js';
 import { itemLine } from '../items.js';
-import { enamelCard, enamelStrip, en } from '../hud-look.js';   // the enamel look of every message (issue #687)
+import { styleText } from '../ui-style-registry.js';   // the enamel look of every message (issue #687)
 
 /** The card's widest (in ch of its words, issue #329: not the screen's width, a measure easy to read), centred. */
-export const CARD_MAX_CH = 44;   // (the CSS below writes it out: tests/box-card.test.js)
+export const CARD_MAX_CH = 44;   // (the browser stylesheet writes it out: tests/box-card.test.js)
 
-const CSS = `
-#boxscene { position: fixed; inset: 0; z-index: 8100; pointer-events: none; }
-#boxscene.on { pointer-events: auto; cursor: default; }
-#boxscene .skip { position: absolute; right: 18px; top: calc(11vh + 14px); font: var(--type-s) var(--face); letter-spacing: .08em;
-  ${enamelStrip()} padding: 6px 12px; opacity: 0; transition: opacity .3s; pointer-events: none; }
-#boxscene.on .skip { opacity: .85; pointer-events: auto; }
-#boxscene.card .skip { opacity: 0; pointer-events: none; }
-#boxcard { position: absolute; left: 50%; bottom: max(6px, calc(5.5vh - 34px)); width: max-content; max-width: min(44ch, calc(100vw - 24px)); box-sizing: border-box;
-  transform: translate(-50%, 16px); opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,.9,.3,1.3); pointer-events: none;
-  font: var(--type-s)/1.4 var(--face); ${enamelCard()} padding: 0.6em 1.2em; text-align: center; }
-#boxscene.card #boxcard { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-#boxcard h2 { margin: 0; font: 900 1.75em/1.15 var(--face-title); letter-spacing: .04em; color: ${en('ink')}; }
-#boxcard h2 .star { display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.35em; vertical-align: -1px; background: ${en('brass')};
-  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
-#boxcard p.desc { margin: 4px 0 0; font-size: 1.08em; }
-#boxcard p.desc kbd.kp { color: ${en('accent')}; }
-#boxcard p { margin: 0; }
-#boxcard p.found { font-size: 1.08em; margin: 4px 0 0; opacity: 1; }
-#boxcard.found p.desc, #boxcard:not(.found) p.found { display: none; }
-#boxcard .go, #boxscene .skip { display: inline-flex; align-items: center; }
-#boxcard .go { font: 700 0.92em var(--face); letter-spacing: .08em; color: ${en('keyInk')}; background: ${en('ink')};
-  border: 1px solid ${en('brass')}; border-radius: 5px; box-shadow: none; padding: 0.35em 0.9em; cursor: pointer; }
-#boxcard .gorow { margin-top: 0.5em; }
-#boxcard .go:focus { outline: 1.5px solid ${en('brass')}; outline-offset: 2px; }
-@media (max-width: 640px) { #boxcard h2 { font-size: 1.5em; } #boxcard { padding: 6px 12px; } }
-`;
 
 /** The most of the screen's height a card takes (the longest, measured on 800 × 450): the item the scene holds up stays clear above it. */
 export const CARD_MAX_SHARE = 0.34;
@@ -69,7 +43,7 @@ export class BoxCard {
     this.shown = false;
     if (!this.dom) return;
     if (!document.getElementById('boxcard-css')) {
-      const st = document.createElement('style'); st.id = 'boxcard-css'; st.textContent = CSS; document.head.appendChild(st);
+      const st = document.createElement('style'); st.id = 'boxcard-css'; st.textContent = styleText('boxcard-css'); document.head.appendChild(st);
     }
     const el = (this.el = document.createElement('div'));
     el.id = 'boxscene';
