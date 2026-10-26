@@ -4,7 +4,8 @@ import { appendFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const relevantUnityInput = path => /^(src|public|engine|unity|scripts|data)\//.test(path) || /^(package(?:-lock)?\.json|index\.html|vite\.config\.[^/]+|\.github\/workflows\/unity-android\.yml)$/.test(path);
+import { relevantUnityInput } from './unity-release-inputs.mjs';
+export { relevantUnityInput } from './unity-release-inputs.mjs';
 export function successfulPlayers(jobs) {
   return ['android', 'linux'].every(name => jobs.some(j => j.name === name && j.status === 'completed' && j.conclusion === 'success'));
 }

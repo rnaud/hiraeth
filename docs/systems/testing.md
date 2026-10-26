@@ -520,3 +520,41 @@ prologue reports completion, with a bounded timeout and key release on success o
 failure. Fixed wall-clock presses are insufficient on software rendering because
 the game clamps each frame's simulation step; repeated releases reset hold-to-skip.
 The harness does not set completion flags or invoke the skip implementation directly.
+
+
+### Material audits and browser journey waits
+
+Material runtime sweeps import `scripts/bridge-materials.mjs`, the pure comparison
+in `scripts/bridge-gap-compare.mjs`, and `engine/bridge-material-gaps.js`. The
+original bridge audit keeps compatible exports, while DOM/source inventory scans
+stay outside runtime-only consumers. All active worlds, the prologue, all bundled
+minigames, and every assigned stale-material witness remain checked. The generic
+VM seed fixture lives separately from the expensive gameplay sequence file.
+
+With `CI=true`, the browser harness defaults to a 640×360 viewport to limit
+software-GPU raster cost; locally it defaults to 1280×720. Both accept
+`--viewport WIDTHxHEIGHT`. Both use normal
+game rendering and simulation. The browser completion harness uses elapsed wall time for polling and finite CDP
+requests. It saves `progress.json` after each assertion so a job cancellation
+retains its last result. Its route/save checks use ordinary held Escape input to
+finish travel cinematics on software-rendered CI; they still assert the arrival
+type, route, quest state, save, and ending. NPC arrival waits observe the actual
+position instead of assuming six wall-clock seconds are enough. Natural arrival and takeoff playback
+remain covered by the sequence suite. Timeout and connection failures fail the
+check; they never mark a scene complete or force a progression flag.
+
+Whole-game graphics, walking and door cases live in `engine-game-flow.test.js`;
+generic platform/VM fixtures stay in `engine-bridge.test.js`. The two ordinary
+Whale input cases use the fixed game entry in `engine-whale-input.test.js`, while
+the custom completed-save entry stays in `engine-whale-tide.test.js`. Their test
+bodies are unchanged; shared recorder/backends contain no loader imports. This
+separates expensive gameplay execution from conservatively selected generic VM
+fixtures without removing the actual gameplay dependencies.
+
+Key-counter presentation has its own `key-counter-hud.test.js`; whole-world chest
+opening and sound checks use shared HUD state directly. Native-build relevance is
+a pure `unity-release-inputs.mjs` predicate, so its consumers do not import GitHub
+history and CLI IO. Compatibility exports and actual input-selection checks remain.
+The ending subtitle has a bounded three-minute wall-time observation window: slow
+software frames can leave prior speech queued beyond a minute. The assertion still
+requires an actual authored stone line in the rendered subtitle.

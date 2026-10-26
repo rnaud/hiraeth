@@ -18,7 +18,7 @@ import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { game } from '../src/game-state.js';
 import { allInteractables } from '../src/interact.js';
-import { keysHud, KEY_SVG, GREAT_KEY_SVG } from '../src/hud.js';
+import { keysHud } from '../src/hud-state.js';
 import { screen } from '../src/platform.js';
 import { AudioContext, installAudio } from '../engine/webaudio.js';
 
@@ -116,14 +116,6 @@ test('a key chest opened, on a load: open and quiet; the great key counts in the
   assert.equal(allInteractables().find((e) => e.id === `temple.garage.${k.id}`).enabled(), false);
   assert.equal(w.rt.keyCount().big, true, 'the great key in hand');
   w.rt.dispose?.();
-});
-
-test('the counter: hud data for an engine, and its icons inked', () => {
-  assert.equal(keysHud({}), null);
-  assert.deepEqual(keysHud({ inside: true, small: 2.7, big: 1 }), { small: 2, big: true });
-  assert.deepEqual(keysHud({ inside: true, small: -1 }), { small: 0, big: false });
-  assert.ok('keys' in screen.state, 'platform.js screen carries it');
-  for (const svg of [KEY_SVG, GREAT_KEY_SVG]) assert.match(svg, /^<svg viewBox="[\d .]+" aria-hidden="true">.*stroke="#2b211f".*<\/svg>$/);
 });
 
 test('the key\'s chime is short and bright, the lock\'s click soft and shorter (rendered silently, in memory)', async () => {

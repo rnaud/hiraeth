@@ -2,7 +2,9 @@
 import assert from 'node:assert/strict';
 import { LEVELS } from '../src/levels/index.js';
 import { isDiscarded } from '../src/levels/names.js';
-import { gatherMaterials, compare } from '../scripts/bridge-gaps.mjs';
+import { gatherMaterials } from '../scripts/bridge-materials.mjs';
+import { compareEntries } from '../scripts/bridge-gap-compare.mjs';
+import { MATERIAL_GAPS } from '../engine/bridge-material-gaps.js';
 
 export function materialScopes() {
   const worlds = LEVELS.filter(level => !isDiscarded(level.id)).map(level => level.id);
@@ -95,7 +97,7 @@ export const REQUIRED_MATERIAL_KEYS = {
 
 export function partitionComparison(id, found) {
   assert.ok(Object.hasOwn(REQUIRED_MATERIAL_KEYS, id), 'known material audit partition');
-  const result = compare('materials', found);
+  const result = compareEntries(MATERIAL_GAPS, found);
   // Preserve all actual unlisted/count/bad findings. Only stale keys owned by another independently
   // checked partition are excluded here; the exact-union contract makes global stale detection complete.
   return { ...result, stale: result.stale.filter(key => REQUIRED_MATERIAL_KEYS[id].includes(key)) };

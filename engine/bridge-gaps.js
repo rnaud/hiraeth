@@ -1,3 +1,4 @@
+import { MATERIAL_GAPS } from './bridge-material-gaps.js';
 // What the web game uses that the Unity bridge doesn't carry, and what it does (issue #428, "loud gaps"): every
 // material, shader, pass, page element and piece of main.js's wiring that scripts/bridge-gaps.mjs finds is named here,
 // or tests/bridge-gaps.test.js fails. So a new one can't slip in silently, as the father's hologram (an overlay pass),
@@ -68,76 +69,7 @@ const PAGE = 'the page\'s own drawing (G-buffer, composite, shadows, batching, w
 
 export const GAPS = {
   // ------------------------------------------------------------------ materials (gathered by running every world and game)
-  materials: [
-    // known gaps, most seen first
-    { keys: ['uniform:uPortraitHairAmount', 'uniform:uPortraitFaceAmount', 'uniform:uHeadView'],
-      what: 'the traveller\'s portrait head: its pen lines and the hair\'s grey strokes (two pictures, face-ink.png and hair-ink.png), the nose\'s side line by the view',
-      status: 'gap', issue: 264, visible: 1,
-      note: 'his blink, smile, brows and open mouth cross (surfaces D: the morph targets as blend shapes, PortraitFace.hlsl); his eyes and brows are painted from their own picture at the texture\'s detail, the iris moved with his look (eye-paint.png, uHeadEye: issue #473); the rest of the paint is his vertex colours (engine/traveller-paint.js), whose darker marks stand for the pen lines' },
-    { keys: ['uniform:uPortrait', 'uniform:uExpression', 'uniform:uGaze', 'uniform:uIris', 'uniform:uHeadBall'],
-      what: 'face.js\'s portrait face (makeMaterial portrait, S_PORTRAIT: drawn eyes and lids, an iris colour, the head lit as a ball)', status: 'web-only',
-      why: 'no material in the game is made with it (face.js FaceExpression is only in its test); every surface carries the uniforms, read by nothing. People\'s eyes are Figure.hlsl\'s (their iris colour the eye\'s uColor2), the traveller\'s his portrait head\'s' },
-    // handled
-    // (issue #264, the next round: patterns, so an entry stays once the port reads its keys and the run no longer finds them)
-    { pattern: /^shader:uCore,uDark,uFar,uTint$/, what: 'the patch of shade under each chime crystal (src/chimes.js blobMaterial)', status: 'handled',
-      where: 'port-format.js chimeshade → Hiraeth/ChimeShade (BridgeRenderer.cs): the page\'s G-buffer decal, the albedo blended toward its tint by its strength (the instance\'s, InstMats), the light term kept, faded by uFar; no discard' },
-    { pattern: /^(define:S_THIN|uniform:uThinPx)$/, what: 'thin bars (masts\' struts, wires, vines) kept a pixel or two wide far off (src/thin.js)', status: 'handled',
-      where: 'port-format.js thinPx; aThin in the form\'s slot (pack.js, backend.js); Surface.shader vert pushes the vertex out from its axis point by the web\'s least width (a perspective view only); never in a static batch (BridgeRenderer.NeedsOrigin)' },
-    { pattern: /^define:S_CHANNEL$/, what: 'a water channel\'s flow lines, edge light and wet lip (src/surface-marks.js CHANNEL: Viridel\'s runnels, made with the terraces\' story)', status: 'handled',
-      where: 'port-format.js channel → _Channel: Surface.shader frag, the web\'s marks in a uniform branch (SurfaceMarks.hlsl), never on the plain variant (BridgeRenderer.Lean)' },
-    { pattern: /^define:S_VGLYPH$/, what: 'the banners\' glyph cells per vertex (life.js BannerSet: the City-Shaft\'s banners)', status: 'handled',
-      where: 'port-format.js vglyph → _VGlyph: Surface.shader HIRAETH_VMAT reads each banner\'s glyph cells from its grid per vertex (vmGlyphs); seen in a picture since #538, the pale banner under the top ring (it drew black: backend.js geometryOf sent a waved banner again without its vertex material)' },
-    { pattern: /^(define:LINE_FAR|uniform:uLineFar)$/, what: 'a lighter line from afar (the meadow\'s flowers, flora.js FAR_LINE)', status: 'handled',
-      where: 'port-format.js lineFar → _LineFar: Surface.shader vert flags a whole plant by the web\'s hashed distance (its instance\'s place), frag takes its far step; never in a static batch (BridgeRenderer.NeedsOrigin)' },
-    { pattern: /^uniform:uShellCenter$/, what: 'a temple landmark\'s shell pattern (src/temples/landmark-materials.js nacre: the Whale-House\'s nautilus)', status: 'handled',
-      where: 'port-format.js shellCenter → _ShellCenter: Surface.shader frag, the web\'s sutures and chambers (a uniform branch, not on the plain variant: BridgeRenderer.Lean)' },
-    // (issue #538: a surface whose shader text was rewritten after makeMaterial, or at compile, named by the marks its patch
-    // left in its userData (engine/ink-spec.js `patched`): what it draws is in no define or uniform, so it is listed here)
-    { keys: ['patch:fragment:landmarkStone'], what: 'a temple landmark\'s cut stone: staggered courses of blocks, a tone a block, worn veins (src/temples/landmark-materials.js stone(): the Rose House\'s red stone, the towers\' cream, ochre and slate)', status: 'handled',
-      where: 'ink-spec.js stone → port-format.js stone → _Stone: Surface.shader frag, the web\'s joints, tones and veins (a uniform branch, not on the plain variant: BridgeRenderer.Lean)' },
-    { keys: ['patch:fragment:nacre'], what: 'a temple landmark\'s shell, spliced into the surface\'s text (landmark-materials.js nacre)', status: 'handled', where: 'its uShellCenter, _ShellCenter (above)' },
-    { pattern: /^patch:fragment:\w+Skin,skinPattern$/, what: 'the temple skins\' surfaces, spliced into the surface\'s text (src/temples/skins/skin-shader.js spliceSkin)', status: 'handled',
-      where: 'skinPatternSpec: the pattern\'s number and uniforms as _SkinData; SkinPatterns.hlsl (scripts/skin-hlsl.mjs, the same GLSL in HLSL), Surface.shader HIRAETH_SKIN' },
-    { keys: ['patch:fragment:farDepth'], what: 'the smoke column\'s far depth, spliced into the surface\'s text (src/story/flames.js)', status: 'handled', where: 'its uFarNear and uFarScale, _FarDepth (below)' },
-    { keys: ['patch:fragment+vertex:splat'], what: 'the splats\' growth (src/splat-decal.js: the blob and its drops cut by their age)', status: 'handled', where: 'aSplat in the form\'s slot (pack.js), _SplatOn (surfaces B)' },
-    { pattern: /^patch:fragment(\+vertex)?:(albedoLinear,)?(lining,|portraitEyeBox,portraitEyePaint,portraitFace,)?tripoInk$/,
-      what: 'the generated characters\' ink (src/characters/tripo-material.js: their linear colours turned to display values, the trousers\' repaired band, the overshirt\'s lining; the traveller, the Keeper, the Elder)', status: 'handled',
-      where: 'engine/game.js engineColours and the guardians\' sampled colours: vertex colours (display values, or linear with albedoLinear → toDisplay), the repaired band baked in, the lining (_Lining); his face PortraitFace.hlsl' },
-    { pattern: /^uniform:uFar(Near|Scale)$/, what: 'the fires\' far depth (src/story/flames.js SmokeColumn: past uFarNear its depth written compressed)', status: 'handled',
-      where: 'port-format.js farDepth → the Surface\'s _FarDepth (as Puffs.cs had for the port\'s own column)' },
-    { keys: ['define:METAL_BRUSHED'], what: 'brushed metal: fine streaks along an axis, the sun\'s highlight stretched across them', status: 'handled',
-      where: 'Surface.shader metalAlbedo takes it from _Metal.y (port-format.js metal: uMetal, its brushed flag) with the web\'s arithmetic; the define only trims the web\'s program (the lab\'s steel, brushed and chrome side by side, #264 surfaces D)' },
-    { pattern: /^(define:FOE_SURFACE|define:FS_[A-Z0-9]+|uniform:uFs_?\w+)$/, what: 'the foes\' own surfaces: bellies, mottling, rust, grain, bands, scales, spots, rivets, drips, cracks, glow, gloss (src/foe-surface.js)', status: 'handled',
-      where: 'engine/foe-pack.js packs them (bits and slots, port-format.js; again live when a brute\'s cracks open, engine/mirror.js); Surface.shader HIRAETH_FIGHT, FoeSurface.hlsl (scripts/unity-export/foe-hlsl.mjs: the web\'s GLSL in HLSL)' },
-    { pattern: /^(define:BLADE_FLUID|define:BLADE_DISC|uniform:uBlade[BC]?)$/, what: 'the sword\'s blade and the shield: their currents, meniscus, bow along the swing, the ring a hit sends along it, their light (src/blade-shader.js)', status: 'handled',
-      where: 'port-format.js blade, bladeA..C (live: engine/mirror.js LIVE_VECTORS), aFold with the bind (pack.js); Surface.shader HIRAETH_FIGHT, BladeSurface.hlsl (scripts/unity-export/blade-hlsl.mjs: the web\'s GLSL in HLSL)' },
-    { pattern: /^(define:CHIME_CRYSTAL|uniform:uCrystal\w+)$/, what: 'the chimes\' crystals: their facets, core and seams (src/crystal-shader.js)', status: 'handled',
-      where: 'port-format.js crystal (its uniforms packed: engine/foe-pack.js CRYSTAL_LAYOUT), aCrystal in the form\'s slot (pack.js); Surface.shader HIRAETH_FIGHT _CrystalOn, CrystalSurface.hlsl (scripts/unity-export/crystal-hlsl.mjs), on the GPU instances (HIRAETH_INSTMAT); each piece\'s tier glow (aChimeGlow) does not cross. Seen at rest in the foes sequence (chimes-rest), tiny at its distance; their shade Hiraeth/ChimeShade' },
-    { pattern: /^(define:SEE_HOLE|uniform:uSeeK?)$/, what: 'the hole a wall opens round the traveller when it hides him (makeMaterial seeThrough: the fight temples)', status: 'handled',
-      where: 'port-format.js seeOn, see, seeK (uSee, uSeeK live: engine/mirror.js LIVE_VECTORS); Surface.shader\'s cut with the glass\'s (the glass\'s lean variant on the Retroid)' },
-    { pattern: /^(define:LAMP_TINT|uniform:uLampTint)$/, what: 'the lamps\' pools in their own colour (makeMaterial lampTint)', status: 'handled',
-      where: 'port-format.js lampTint; Surface.shader _LampTint, the global _LampsOn (HiraethLook, uLampsOn)' },
-    { keys: ['shader:uColor,uGlow'], what: 'a flat colour written to the G-buffer (src/ship/approach.js: the ship\'s and the worlds\' plain parts on approach)', status: 'handled',
-      where: 'port-format.js\'s Surface plain takes its uColor and uGlow, which is all it has' },
-    { keys: ['define:S_BIOMES', 'define:S_RIPPLES', 'define:S_SANDINK', 'define:S_TERRAIN', 'define:S_STRATA', 'define:S_GLYPHS', 'define:S_GRID', 'define:S_CRACKS',
-      'define:S_SCRUB', 'define:S_WATERMODE', 'define:S_PLATES', 'define:S_DETAIL', 'define:S_PATCH', 'define:S_WEATHER', 'define:S_MAP', 'define:S_FIGURE', 'define:S_EYE',
-      'define:S_FOLDS', 'define:S_TILES', 'define:S_LEAVES', 'define:S_FACADE', 'define:S_VEIL', 'define:S_GLASS', 'define:S_TICKS', 'define:S_PAVING', 'define:S_INTERIOR', 'define:S_SHEET', 'define:S_TIMBER', 'define:S_GROUNDMID',
-      'define:S_SEAWALL', 'define:S_PALESTONE', 'define:S_BURIED', 'define:S_DOMES', 'define:S_ROCKTOP'],
-    what: 'the surface\'s features, each compiled only where used (materials.js surfaceFeatures)', status: 'handled',
-    where: 'Surface.shader takes each from its uniform (uMode, uGrid, uPattern, uGlass…), which port-format.js sends; the define only trims the web\'s program' },
-    { keys: ['define:SURFACE_SPEC'], what: 'the web\'s surface compiled with only its features', status: 'web-only', why: 'a compile-time trim of the web\'s program; Surface.shader has its own variants' },
-    { keys: ['uniform:uVertexColors', 'uniform:uPalette', 'uniform:uVeins'], what: 'vertex colours, the palette, a cap\'s veins', status: 'handled',
-      where: 'port-format.js: vertexColors from the spec, the palette when uPaletteSize > 0, the veins with S_FORM (unread otherwise, as unused)' },
-    { pattern: /^uniform:u(Sk|Lh|Wh|Ut|Fp|Sea)[A-Z_]|^uniform:uSkinO$/, what: 'the temple skins\' patterns (src/temples/skins/)', status: 'handled',
-      where: 'skinPatternSpec packs them as _SkinData (engine/ink-spec.js; SkinPatterns.hlsl, Surface.shader HIRAETH_SKIN)' },
-    { keys: ['define:CROWD'], what: 'the crowds\' figures', status: 'handled', where: 'pack.js crowdInstances, Crowd.hlsl' },
-    { keys: ['define:FACE_KEYS', 'uniform:uKeyW', 'uniform:uKeyScale', 'uniform:uKeyWidth', 'define:FACE_PART'], what: 'the MakeHuman faces\' shape keys and parts', status: 'handled',
-      where: 'blend shapes (engine/unity/backend.js FaceKeys, BridgeHost.FaceKeys); the parts by their uMode' },
-    { keys: ['define:GARMENT', 'uniform:uGarmentRigid', 'uniform:uClothP', 'uniform:uClothG', 'uniform:uGarmentSim', 'uniform:uGarmentCapA', 'uniform:uGarmentCapB'],
-      what: 'the traveller\'s overshirt cloth', status: 'handled', where: 'BridgeCloth.cs (the cloth offloaded: engine/cloth.js, backend clothOffload)' },
-    { keys: ['define:SWAY'], what: 'the wind\'s sway', status: 'handled', where: 'uSway → Surface.shader _Sway' },
-    { keys: ['uniform:uGrassView', 'uniform:uGrassLod', 'uniform:uGrassLook'], what: 'the grass patch\'s centre, detail and look', status: 'handled', where: 'Surface.shader _GrassView, _GrassLod, _GrassLook, set by the bridge each frame' },
-  ],
+  materials: MATERIAL_GAPS,
 
   // ------------------------------------------------------------------ shaders (where src/ makes them)
   shaders: [

@@ -184,7 +184,7 @@ test('map chest save/reload audit stays selected for world and chest changes, no
  for(const input of ['src/temples/pieces.js','src/temples/runtime.js','src/temples/garage.js','src/temples/attachment.js','src/game-state.js']) {
   assert.ok(selection(input,consumer).includes(consumer),consumer+' tracks '+input);
  }
- assert.ok(selection('src/hud.js','tests/key-chests.test.js').includes('tests/key-chests.test.js'),'actual key-to-HUD integration remains selected');
+ assert.ok(selection('src/hud-state.js','tests/key-chests.test.js').includes('tests/key-chests.test.js'),'actual key-to-HUD behavior remains selected');
 });
 
 
@@ -192,4 +192,37 @@ test('transport HUD tests do not drag unrelated city rides and hull audits into 
  for(const consumer of ['tests/cab-ride.test.js','tests/ship.test.js'])assert.deepEqual(selection('src/hud.js',consumer),[witness],consumer);
  for(const consumer of ['tests/cab-hud.test.js','tests/ship-hud.test.js']){assert.ok(selection('src/hud-state.js',consumer).includes(consumer),consumer);assert.deepEqual(selection('src/hud-view.js',consumer),[witness],consumer+' excludes browser presentation');}
  for(const [consumer,input] of [['tests/cab-ride.test.js','src/taxi.js'],['tests/ship.test.js','src/ship/ship.js'],['tests/ship-hud.test.js','src/ship/ship.js']])assert.ok(selection(input,consumer).includes(consumer),input);
+});
+
+
+test('material runtime audits exclude presentation and source-scanning tools while retaining game inputs',()=>{
+ for(const consumer of ['tests/bridge-materials-worlds-a.test.js','tests/bridge-materials-worlds-b.test.js','tests/bridge-materials-minigames.test.js']){
+  for(const path of ['src/hud-view.js','scripts/bridge-gaps.mjs','engine/bridge-gaps.js','scripts/engine-bundle.mjs'])assert.deepEqual(selection(path,consumer),[witness],consumer+' excludes '+path);
+  for(const path of ['engine/bridge-material-gaps.js','scripts/bridge-materials.mjs','scripts/bridge-gap-compare.mjs','src/levels/desert.js','src/minigames/canyon.js','src/materials.js','engine/unity/port-format.js'])assert.ok(selection(path,consumer).includes(consumer),consumer+' tracks '+path);
+ }
+});
+
+
+test('gameplay sequences do not inherit generic VM fixture inputs',()=>{
+ const consumer='tests/sequences-play.test.js';
+ for(const path of ['src/hud-view.js','scripts/engine-bundle.mjs'])assert.deepEqual(selection(path,consumer),[witness],consumer+' excludes '+path);
+ for(const path of ['src/hud-state.js','engine/sequences.js','engine/vm-run.mjs','src/levels/desert.js'])assert.ok(selection(path,consumer).includes(consumer),consumer+' tracks '+path);
+});
+
+
+test('whole-game bridge and Whale input cases stay independent of custom VM fixtures',()=>{
+ for(const consumer of ['tests/engine-game-flow.test.js','tests/engine-whale-input.test.js']){
+  for(const path of ['src/hud-view.js','scripts/engine-bundle.mjs','tests/fixtures/whale-exit-entry.mjs'])assert.deepEqual(selection(path,consumer),[witness],consumer+' excludes '+path);
+  for(const path of ['src/hud-state.js','engine/game.js','src/temples/underwater.js'])assert.ok(selection(path,consumer).includes(consumer),consumer+' tracks '+path);
+ }
+});
+
+
+test('key presentation and Unity input policy do not select unrelated expensive fixtures',()=>{
+ assert.deepEqual(selection('src/hud-view.js','tests/key-chests.test.js'),[witness]);
+ assert.ok(selection('src/hud-view.js','tests/key-counter-hud.test.js').includes('tests/key-counter-hud.test.js'));
+ for(const input of ['src/hud-state.js','src/temples/pieces.js','src/temples/runtime.js'])assert.ok(selection(input,'tests/key-chests.test.js').includes('tests/key-chests.test.js'),input);
+ const consumer='tests/unity-traveller-v2.test.js';
+ for(const input of ['src/hud-view.js','scripts/unity-release-plan.mjs'])assert.deepEqual(selection(input,consumer),[witness],input);
+ for(const input of ['scripts/unity-release-inputs.mjs','src/characters/traveller-v2.js','engine/game.js'])assert.ok(selection(input,consumer).includes(consumer),input);
 });
