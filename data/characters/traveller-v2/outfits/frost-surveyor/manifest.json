@@ -48,8 +48,8 @@
   },
   "SurveyVest": {
    "kind": "garment",
-   "triangles": 7620,
-   "vertices": 3999,
+   "triangles": 7615,
+   "vertices": 3997,
    "hides": [],
    "layer": 2,
    "materials": {
@@ -58,8 +58,8 @@
   },
   "NeckWrap": {
    "kind": "garment",
-   "triangles": 364,
-   "vertices": 184,
+   "triangles": 472,
+   "vertices": 240,
    "hides": [],
    "layer": 3,
    "materials": {
@@ -121,12 +121,12 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 507,
+  "texelsPerMetre": 503,
   "swatches": {
    "SurveyTrousers.inside": [
-    31,
-    31,
-    29
+    41,
+    41,
+    39
    ],
    "SurveyShirt.inside": [
     37,
@@ -161,9 +161,9 @@
     88
    ],
    "trouser": [
-    69,
-    69,
-    64
+    92,
+    90,
+    87
    ],
    "boot": [
     184,
@@ -177,7 +177,7 @@
    ]
   }
  },
- "triangles": 45305,
+ "triangles": 45408,
  "fit": {
   "SurveyTrousers": {
    "fitLeft": 0,
@@ -214,19 +214,19 @@
    "relief": {
     "quilt": {
      "cuts": 302,
-     "puffed": 2191
+     "puffed": 2177
     },
     "raised": {
-     "cuts": 92,
+     "cuts": 95,
      "raised": 56
     },
     "raised2": {
-     "cuts": 101,
+     "cuts": 100,
      "raised": 30
     },
     "raised3": {
-     "cuts": 93,
-     "raised": 56
+     "cuts": 94,
+     "raised": 57
     },
     "raised4": {
      "cuts": 102,
@@ -236,7 +236,7 @@
    "hem": {
     "open": 360,
     "covered": 0,
-    "band": 515,
+    "band": 516,
     "lips": 360
    }
   },
@@ -251,7 +251,7 @@
    "Skin>SurveyShirt": 0,
    "SurveyTrousers>SurveyShirt": 415,
    "Skin>SurveyVest": 0,
-   "SurveyShirt>SurveyVest": 2991,
+   "SurveyShirt>SurveyVest": 2987,
    "SurveyTrousers>SurveyVest": 384
   },
   "posed": {

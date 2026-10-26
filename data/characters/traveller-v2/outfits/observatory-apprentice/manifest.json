@@ -79,6 +79,17 @@
    },
    "prop": "weighted"
   },
+  "ShoulderStrap": {
+   "kind": "garment",
+   "triangles": 824,
+   "vertices": 416,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   },
+   "prop": "weighted"
+  },
   "ApprenticeBoots": {
    "kind": "garment",
    "triangles": 6406,
@@ -125,6 +136,7 @@
    "Belt",
    "Instrument",
    "Lapels",
+   "ShoulderStrap",
    "ApprenticeBoots"
   ]
  },
@@ -133,7 +145,7 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 538,
+  "texelsPerMetre": 505,
   "swatches": {
    "ApprenticeTrousers.inside": [
     26,
@@ -141,9 +153,9 @@
     32
    ],
    "WrapJacket.inside": [
-    59,
-    47,
-    54
+    212,
+    197,
+    165
    ],
    "Lapels.inside": [
     104,
@@ -158,9 +170,9 @@
   },
   "palette": {
    "plum": [
-    132,
-    105,
-    119
+    146,
+    108,
+    128
    ],
    "cream": [
     230,
@@ -173,9 +185,9 @@
     70
    ],
    "leather": [
-    137,
-    98,
-    50
+    172,
+    118,
+    56
    ],
    "brass": [
     177,
@@ -194,7 +206,7 @@
    ]
   }
  },
- "triangles": 39649,
+ "triangles": 40473,
  "fit": {
   "ApprenticeTrousers": {
    "fitLeft": 0,
@@ -240,6 +252,9 @@
     "band": 78,
     "lips": 48
    }
+  },
+  "ShoulderStrap": {
+   "prop": "weighted"
   }
  },
  "shading": {},

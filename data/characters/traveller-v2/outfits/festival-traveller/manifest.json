@@ -128,12 +128,12 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 489,
+  "texelsPerMetre": 488,
   "swatches": {
    "FestivalTrousers.inside": [
-    31,
-    50,
-    45
+    32,
+    55,
+    50
    ],
    "FestivalShirt.inside": [
     104,
@@ -168,14 +168,14 @@
     83
    ],
    "teal": [
-    69,
-    110,
-    101
+    72,
+    122,
+    112
    ],
    "sash": [
-    154,
-    108,
-    77
+    166,
+    88,
+    72
    ],
    "plum": [
     141,

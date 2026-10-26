@@ -1350,6 +1350,146 @@ const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '2.29': [
+{
+  "match": "Eight of the new outfits look more like their drawings",
+  "shots": [
+    {
+      "name": "outfit-storm-courier",
+      "title": "Storm courier",
+      "caption": "The storm courier: cream collar and rolled cuffs where dark bands were, a fuller hood on the back, mid-grey trousers",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/storm-courier/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-furnace-mechanic",
+      "title": "Furnace mechanic",
+      "caption": "The furnace mechanic: a narrower bib with a small chest pocket, sleeves rolled lower, a bigger leather tool apron on the hip",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/furnace-mechanic/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-frost-surveyor",
+      "title": "Frost surveyor",
+      "caption": "The frost surveyor: the vest’s quilting soft instead of inked bars, two coral ends tucked at the throat, charcoal-grey trousers",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/frost-surveyor/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-observatory-apprentice",
+      "title": "Observatory apprentice",
+      "caption": "The observatory apprentice: the leather strap across the chest and back to the telescope, cream cuffs, a broader belt, a warmer plum",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/observatory-apprentice/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-festival-traveller",
+      "title": "Festival traveller",
+      "caption": "The festival traveller: a few large coral and mustard patches where narrow stripes were, a broader woven sash",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/festival-traveller/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-gravity-ranger",
+      "title": "Gravity ranger",
+      "caption": "The gravity ranger: charcoal-grey trousers instead of near-black, as the sheet",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/gravity-ranger/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-star-archive-keeper",
+      "title": "Star archive keeper",
+      "caption": "The star archive keeper: gold inlays down the chest, the back and the legs",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/star-archive-keeper/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    },
+    {
+      "name": "outfit-void-navigator",
+      "title": "Void navigator",
+      "caption": "The void navigator: one continuous ivory harness, navy forearms, grey knee panels and a cyan strip on the trousers",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change rebuilt by scripts/blender/traveller/outfit.sh; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both; the sheet is its own picture, never stitched in.",
+      "size": [
+        990,
+        715
+      ],
+      "reference": {
+        "sheet": "references/characters/traveller-outfits/void-navigator/approved-reference.png",
+        "caption": "The approved sheet (the author’s pick, #588/#590); the brief’s compact-cloth changes stay (no poncho, long coat or trailing scarf)"
+      }
+    }
+  ]
+},
+{
+  "match": "His own clothes, the coral shirt, are calmer",
+  "shots": [
+    {
+      "name": "outfit-default",
+      "caption": "His own clothes: the shirt’s back yoke line, the small dark specks and the blotchy shade give way to two or three broad shapes; the cut and colours stay",
+      "from": "Issue #680: the outfits gallery (outfits-gallery.html?only=<id>&turn=0&motion=idle, yaw 0, -0.7 and π: front, three-quarter, back), muted headless Chrome on the Mac's GPU, 640 × 900, a Vite of its own (port 5442); before: origin/main at 93a03bb04, after: this change the base model through scripts/blender/traveller/calm-default.mjs; 26 October; cropped round him and laid side by side, WebP q72",
+      "view": "The gallery's idle, the same yaw and framing in both.",
+      "size": [
+        990,
+        715
+      ]
+    }
+  ]
+},
   {
     "match": "In conversations people stand up straight",
     "shots": [

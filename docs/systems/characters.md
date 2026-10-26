@@ -2572,6 +2572,26 @@ idle/walk/jog/sprint cycles on the same animated skeleton. Unlit cloth keeps fla
 and narrow authored ink; the old boot atlas remains an explicit exception. These desktop checks
 do not establish handheld frame rate or memory headroom.
 
+**Closer to the sheets; the default calmed (#680, v2.29).** Eight of the ten were rebuilt with `outfit.sh` after a
+contact sheet against their approved sheets (the gallery's `?only=<id>&turn=0`, front / three-quarter / back): palettes
+lifted where the trousers read near-black (courier, surveyor, ranger, navigator), the apprentice's shoulder strap
+(`ShoulderStrap`, `strap_on` over the jacket), the courier's fuller hood, the mechanic's narrower bib and longer sleeves
+(`shirt(sleeve=, roll_from=)`; the festival traveller keeps .46 / .38, its vest's armholes clear only that), the
+surveyor's soft quilting and tucked coral ends, the festival vest's large patches, the navigator's continuous harness and
+knee panels, the archive keeper's gold inlays. A new optional `INSIDE_ZONES = {piece: (zone, light)}` in an outfit's
+module colours that piece's hem bands from one of its zones instead of the dark inside: a rolled cuff or folded collar
+turns its band out to be seen (the courier's and the apprentice's cream cuffs). The brief's compact-cloth changes stay
+(no poncho, long coat, apron skirt or trailing scarf). Left as they were: the comet pathfinder and the solar voyager
+(already close), every trouser's ankle-gathered cut (the sheets' are straighter), the kept boots' shapes.
+
+The default (the base GLB's own B3-cut garments) read busier than the outfits: B3's sculpted lumps and painted fold
+shading broke the cel light into blotches and specks. `scripts/blender/traveller/calm-default.mjs` (run by `build.sh`
+after the model; once only, `asset.extras.calm`) eases the shirt, tee, trousers and scarf: a few Taubin passes over the
+welded surface (open edges smoothed along themselves, so hems run straighter and stay where they hang), their normals
+recomputed and relaxed (80 passes: the light falls in two or three broad shapes), and their atlas texels flattened 95 %
+to each garment's median. Boots, skin, head and hair are untouched; the cut, colours and silhouette are the same.
+Unity reads the same files (engine-bridge.md, "The v2 traveller"): no port change.
+
 **Wearing one** (`src/characters/outfits.js`): `Wardrobe.wear(id)` joins the outfit's garments into one draw
 and the body (its hidden areas' triangles left out) with his skin piece (its `skinCut` left out) into
 another, takes the last outfit's draws off and puts these on; `planOutfit`, `cullByArea`, `cutByBoxes` are

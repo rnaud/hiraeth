@@ -17,6 +17,8 @@ export const CHANGELOG = [
       "Open ground holds up further off: soft drifts of a paler ochre, long pen lines along the slopes and stones with their little shadows still read out to a couple of hundred metres. In Vael, the Glass Dunes, the Buried Machine and at home.",
       "Viridel’s tea terraces, on the white builders’ steps, are paved in clean flagstones like the cities’ plazas.",
       { text: "In conversations people stand up straight: nodding along or talking with their hands, nobody leans far back with their face to the sky any more. The traveller listening to Plumb looks at it, not over it.", see: "Walk in circles in the desert until Plumb comes, press its button and watch him while it talks; or talk to anyone and watch them nod." },
+      "Eight of the new outfits look more like their drawings: the storm courier’s cream collar and rolled cuffs, a bigger hood and grey trousers; the furnace mechanic’s narrower bib, longer sleeves and a bigger tool apron; the frost surveyor’s softer quilting and coral ends at the throat; the observatory apprentice’s strap across the chest to the telescope and clean cream cuffs; the festival traveller’s large patches and broad sash; the gravity ranger’s and void navigator’s lighter trousers; the void navigator’s plain harness and grey knee panels; the star archive keeper’s gold inlays.",
+      "His own clothes, the coral shirt, are calmer, like the other outfits: broad light and shade where many small blotches and specks were, and plain colour on the shirt, tee and trousers. Same cut, same colours.",
     ],
   },
 

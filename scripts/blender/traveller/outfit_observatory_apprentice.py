@@ -5,6 +5,7 @@ import bpy
 import rig as R
 from mathutils import Vector
 import outfit_approved_kit as A
+import outfit_sea_tailoring as D
 import outfit_kit as K
 import tailor as T
 
@@ -12,20 +13,22 @@ ID='observatory-apprentice'
 ATLAS_SIZE = 1024
 NAME='Observatory apprentice'
 SHEET='references/characters/traveller-outfits/observatory-apprentice/approved-reference.png'
-PAL=dict(plum=(132,105,119),cream=(230,214,179),trouser=(57,78,70),
-         leather=(137,98,50),brass=(177,147,80),boot=(173,151,114),ink=(43,37,36))
+PAL=dict(plum=(146,108,128),cream=(230,214,179),trouser=(57,78,70),
+         leather=(172,118,56),brass=(177,147,80),boot=(173,151,114),ink=(43,37,36))
 BOOTS='ApprenticeBoots'
 PIECES={'ApprenticeTrousers':A.piece(covers=['WrapJacket']),
         'WrapJacket':A.piece(2,outside=['ApprenticeTrousers'],gap=0.008)}
+# (#680: the rolled cuffs' bands in the cuffs' cream, not a dark stripe)
+INSIDE_ZONES={'WrapJacket':('cream',0.92)}
 ZONES={'ApprenticeTrousers':['trouser'],'WrapJacket':['plum','cream'],
-       'Belt':['leather','brass'],'Instrument':['brass','leather','ink'],'Lapels':['cream'],BOOTS:['boot']}
+       'Belt':['leather','brass'],'ShoulderStrap':['leather'],'Instrument':['brass','leather','ink'],'Lapels':['cream'],BOOTS:['boot']}
 BUILDERS={'ApprenticeTrousers':lambda c,j:A.trousers(c,j,0.020),
           'WrapJacket':lambda c,j:A.shirt(c,j,sleeve=0.57,fullness=0.014,cuff_roll=0.004,cuff_return=0.016)}
 
 
 def belt(ctx):
     bm=A.empty()
-    K.band(bm,ctx['cage'],A.PART['torso'],1.005,1.035,0.035,n=40,thick=0.005)
+    K.band(bm,ctx['cage'],A.PART['torso'],1.000,1.040,0.035,n=40,thick=0.005)   # (#680: the sheet's broad sash belt)
     pts,c=K.ring_of(ctx['cage'],A.PART['torso'],1.02)
     p,d=K.on_ring(pts,c,-math.pi/2,0.043,1.02)
     K.torus(bm,p,d,0.018,0.003,seg=20,sides=6,mat=1)
@@ -66,6 +69,19 @@ def lapels(ctx):
 
 
 PROPS['Lapels']=dict(build=lapels,layer=3,hem=.003)
+
+
+def shoulder_strap(ctx):
+    # (#680: the sheet's leather strap from his right shoulder across the chest to the telescope at his left hip,
+    # and down his back the same way; sewn flat on the jacket, its weights the jacket's)
+    bm=A.empty(); ob=ctx['made']['WrapJacket']
+    D.strap_on(bm,ob,[(-.135,-.03,1.455),(-.11,-.13,1.39),(-.02,-.16,1.25),(.10,-.15,1.11),(.175,-.11,1.045)],width=.026)
+    D.strap_on(bm,ob,[(-.135,.03,1.455),(-.10,.14,1.37),(.02,.16,1.22),(.12,.14,1.09),(.18,.10,1.045)],width=.026)
+    return bm,D.garment_weights(bm,ctx,ob)
+
+
+PROPS['ShoulderStrap']=dict(build=shoulder_strap,layer=3,hem=None)
+SHADE['ShoulderStrap']=None
 SHADE['Lapels']=None
 
 

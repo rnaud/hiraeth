@@ -60,8 +60,8 @@
   },
   "NavigationHarness": {
    "kind": "garment",
-   "triangles": 6048,
-   "vertices": 3184,
+   "triangles": 4368,
+   "vertices": 2260,
    "hides": [],
    "layer": 3,
    "materials": {
@@ -147,12 +147,12 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 470,
+  "texelsPerMetre": 460,
   "swatches": {
    "NavigatorTrousers.inside": [
-    33,
-    33,
-    31
+    39,
+    39,
+    40
    ],
    "NavigatorJacket.inside": [
     24,
@@ -177,9 +177,9 @@
     48
    ],
    "trouser": [
-    74,
-    74,
-    69
+    86,
+    86,
+    88
    ],
    "cream": [
     227,
@@ -208,7 +208,7 @@
    ]
   }
  },
- "triangles": 49599,
+ "triangles": 47919,
  "fit": {
   "NavigatorTrousers": {
    "fitLeft": 0,

@@ -102,3 +102,18 @@ test('the shirt carries its thigh-lift keys, each driven by its thigh (pass 5)',
   }
   assert.equal(Object.keys(manifest.drivers).length, 2);
 });
+
+test('the default outfit is calmed once (issue #680): its clothes eased, the build runs the step, the rest untouched', () => {
+  const calm = gltf.asset.extras?.calm;
+  assert.ok(calm && calm.issue === 680, 'the GLB says it was calmed (calm-default.mjs, once only)');
+  assert.deepEqual(Object.keys(calm.garments).sort(), ['Scarf', 'Shirt', 'Tee', 'Trousers'], 'only his own clothes: not the boots, skin, head or hair');
+  assert.match(readFileSync('scripts/blender/traveller/build.sh', 'utf8'), /calm-default\.mjs/, 'a rebuild calms him again');
+  // its normals stay unit length after the relaxing
+  const bin = glb.subarray(28 + glb.readUInt32LE(12));
+  for (const name of Object.keys(calm.garments)) {
+    const prim = gltf.meshes.find((m) => m.name === name).primitives[0];
+    const a = gltf.accessors[prim.attributes.NORMAL], v = gltf.bufferViews[a.bufferView];
+    const N = new Float32Array(bin.buffer.slice(bin.byteOffset + v.byteOffset, bin.byteOffset + v.byteOffset + a.count * 12));
+    for (let i = 0; i < a.count; i += 97) assert.ok(Math.abs(Math.hypot(N[i * 3], N[i * 3 + 1], N[i * 3 + 2]) - 1) < 1e-3, `${name} normal ${i}`);
+  }
+});

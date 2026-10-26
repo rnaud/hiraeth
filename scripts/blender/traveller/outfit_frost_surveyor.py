@@ -4,6 +4,7 @@ import bpy
 import bmesh
 from mathutils import Vector
 import outfit_approved_kit as A
+import outfit_sea_tailoring as D
 import outfit_kit as K
 import tailor as T
 import rig as R
@@ -13,7 +14,7 @@ ATLAS_SIZE = 1024
 NAME = 'Frost surveyor'
 SHEET = 'references/characters/traveller-outfits/frost-surveyor/approved-reference.png'
 PAL = dict(blue=(83,108,122), cream=(229,216,185), coral=(200,115,88),
-           trouser=(69,69,64), boot=(184,162,125), ink=(44,43,37))
+           trouser=(92,90,87), boot=(184,162,125), ink=(44,43,37))
 BOOTS = 'SurveyBoots'
 PIECES = {
     'SurveyTrousers': A.piece(covers=['SurveyShirt', 'SurveyVest']),
@@ -65,12 +66,16 @@ def neck_wrap(ctx):
                           rings[(k+1)%4][(j+1)%32],rings[(k+1)%4][j]))
     bmesh.ops.recalc_face_normals(bm,faces=bm.faces)
     # A short flat end tucked into the vest.
-    K.box(bm, (0.035,-0.075,1.448), (0.042,0.010,0.050), bevel=0.004)
+    # (#680: the sheet's two coral ends down the front, tucked into the vest's opening; nothing trails)
+    vest=ctx['made']['SurveyVest']
+    for x,z,length in [(0.032,1.392,0.115),(-0.004,1.400,0.085)]:
+        p,d=D.projected(vest,(x,-0.30,z),0.007)
+        K.box(bm,p,(0.042,0.008,length),K.face_rot(d),bevel=0.004)
     return bm
 
 
 PROPS = {'NeckWrap':dict(build=neck_wrap,bone='spine_03',layer=3,hem=None)}
-RELIEF = {'SurveyVest':[T.quilt([((0,0,1),[1.01,1.10,1.19,1.28,1.37,1.46],lambda P: T.smooth01(.19,.13,np.abs(P[:,0]))*T.smooth01(1.45,1.37,P[:,2]))],puff=0.006)],
+RELIEF = {'SurveyVest':[T.quilt([((0,0,1),[1.01,1.10,1.19,1.28,1.37,1.46],lambda P: T.smooth01(.19,.13,np.abs(P[:,0]))*T.smooth01(1.45,1.37,P[:,2]))],puff=0.0035)],   # (#680: softer, as the sheet's)
           'SurveyShirt':[A.cloth_relief('shirt',0.65)],
           'SurveyTrousers':[A.cloth_relief('trousers')]}
 # Sewn lower pockets and their narrow folded mouths are part of the vest mesh.
@@ -109,8 +114,9 @@ def paint(piece,zone,P,N,J):
         baffles=np.zeros(len(P))
         for row in [1.10,1.19,1.28,1.37]:
             baffles+=K.band_mask(z-row,.0011,.0007)*T.smooth01(.17,.13,np.abs(x))
-        baffles=np.clip(baffles*np.abs(N[:,1])*0.6,0,1)[:,None]
-        out=out*(1-baffles)+np.array(PAL['ink'])/255*baffles
+        # (#680: the sheet's quilting is soft: its stitch rows in the vest's own shade, not ink)
+        baffles=np.clip(baffles*np.abs(N[:,1])*0.9,0,1)[:,None]
+        out=out*(1-baffles*.16)
     if piece == 'SurveyShirt': out=A.cloth_ink(out,P,J,PAL,'shirt')
     elif piece == 'SurveyTrousers': out=A.cloth_ink(out,P,J,PAL,'trousers')
     return out

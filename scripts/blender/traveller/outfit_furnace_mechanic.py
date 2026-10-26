@@ -32,9 +32,10 @@ BUILDERS = {
 }
 
 
-def shirt(cage,J):
+def shirt(cage,J,sleeve=.53,roll_from=.45):
+    # (#680: the mechanic's sheet rolls its sleeves at the forearm; the festival traveller keeps .46 / .38)
     bm=G.cut(cage,lambda v,p:(p==A.PART['torso'] and v.co.z>=.94)
-             or (p==A.PART['arm'] and abs(v.co.x)<=.46),
+             or (p==A.PART['arm'] and abs(v.co.x)<=sleeve),
              keep_face=lambda f:not(f.calc_center_median().y<-.02
                  and f.calc_center_median().z>1.365
                  and abs(f.calc_center_median().x)<(f.calc_center_median().z-1.365)*.5))
@@ -54,7 +55,7 @@ def shirt(cage,J):
             bmesh.ops.delete(bm,geom=front,context='FACES')
         elif abs(c.x)>.30:
             for v in bm.verts:
-                k=max(0,min(1,(abs(v.co.x)-.38)/.07))
+                k=max(0,min(1,(abs(v.co.x)-roll_from)/.07))
                 if v.co.x*c.x>0:
                     v.co.y=c.y+(v.co.y-c.y)*(1-.2*k)
                     v.co.z=c.z+(v.co.z-c.z)*(1-.2*k)
@@ -75,7 +76,7 @@ def bib(cage, J):
     gone = []
     for f in bm.faces:
         p = f.calc_center_median()
-        if p.z>1.29 or (abs(p.x)>.125 and p.z>1.12):
+        if p.z>1.29 or (abs(p.x)>.105 and p.z>1.12):   # (#680: the sheet's narrower bib)
             gone.append(f)
     bmesh.ops.delete(bm, geom=gone, context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
@@ -89,17 +90,17 @@ RELIEF = {
                         T.raised(T.rect((.13,0,.77),(1,0,0),(0,0,1),.050,.075),height=.004,facing=(0,-1,0)),
                         T.raised(T.rect((-.13,0,.77),(1,0,0),(0,0,1),.050,.075),height=.004,facing=(0,-1,0))],
     'MechanicBib': [D.cloth_relief('vest'),
-                    T.raised(T.rect((0,0,1.17),(1,0,0),(0,0,1),.067,.065),height=.004,facing=(0,-1,0)),
-                    T.raised(T.rect((0,0,1.229),(1,0,0),(0,0,1),.068,.012),height=.003,facing=(0,-1,0))],
+                    T.raised(T.rect((0,0,1.19),(1,0,0),(0,0,1),.045,.042),height=.004,facing=(0,-1,0)),
+                    T.raised(T.rect((0,0,1.227),(1,0,0),(0,0,1),.046,.010),height=.003,facing=(0,-1,0))],
 }
 
 
 def straps(ctx):
     bm=A.empty(); shirt=ctx['made']['MechanicShirt']; bib=ctx['made']['MechanicBib']
     for s in [-1,1]:
-        D.strap_on(bm,shirt,[(s*.09,-.16,1.26),(s*.14,-.13,1.38),(s*.155,-.06,1.45),
+        D.strap_on(bm,shirt,[(s*.08,-.16,1.26),(s*.14,-.13,1.38),(s*.155,-.06,1.45),
                            (s*.155,.04,1.45),(s*.13,.11,1.38),(s*.03,.15,1.20)],width=.030)
-        p,n=D.projected(bib,(s*.09,-.30,1.27),.012)
+        p,n=D.projected(bib,(s*.08,-.30,1.27),.012)
         K.torus(bm,p,n,.011,.0025,seg=16,sides=6,mat=1)
     return bm,D.garment_weights(bm,ctx,shirt)
 
@@ -125,8 +126,9 @@ def belt(ctx):
 def tools(ctx):
     bm = A.empty()
     # A close-fitting hip pouch; the tools sit inside it, supported by the belt.
-    K.box(bm,(0.195,-0.075,0.975),(0.070,0.045,0.135),bevel=0.008)
-    K.box(bm,(0.195,-0.101,0.969),(0.065,0.008,0.061),bevel=0.003)
+    # (#680: the sheet's leather tool apron, wider and longer, still close on the hip)
+    K.box(bm,(0.190,-0.072,0.950),(0.100,0.040,0.185),bevel=0.008)
+    K.box(bm,(0.190,-0.095,0.955),(0.092,0.008,0.080),bevel=0.003)
     for x,h in [(0.174,0.090),(0.197,0.115),(0.219,0.083)]:
         K.box(bm,(x,-0.086,1.005+h/2),(0.009,0.012,h),bevel=0.002,mat=1)
     # Open-ended spanner and two screwdriver grips, no hanging chains.
@@ -158,11 +160,11 @@ def paint(piece,zone,P,N,J):
     if piece == 'MechanicBib':
         # Pocket outline and two brass strap catches are graphic construction
         # details, not painted illumination.
-        pocket = ((K.band_mask(np.abs(x)-.065,.0015,.0008)*(z>1.11)*(z<1.235))
-                  + K.band_mask(z-1.112,.0015,.0008)*(np.abs(x)<.065)
-                  + K.band_mask(z-1.232,.0015,.0008)*(np.abs(x)<.065))*front
+        pocket = ((K.band_mask(np.abs(x)-.045,.0015,.0008)*(z>1.148)*(z<1.232))
+                  + K.band_mask(z-1.148,.0015,.0008)*(np.abs(x)<.045)
+                  + K.band_mask(z-1.232,.0015,.0008)*(np.abs(x)<.045))*front
         out = out*(1-pocket[:,None]*.65)+ink*pocket[:,None]*.65
-        catch = (np.abs(np.abs(x)-.09)<.012)*(np.abs(z-1.285)<.009)*front
+        catch = (np.abs(np.abs(x)-.08)<.012)*(np.abs(z-1.285)<.009)*front
         out = out*(1-catch[:,None])+np.array(PAL['brass'])/255*catch[:,None]
     if piece == 'MechanicTrousers':
         cuff = z<.275

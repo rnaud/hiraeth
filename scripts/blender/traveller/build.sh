@@ -19,6 +19,7 @@ node $HERE/export-donor.mjs "$WORK/donor.json"
 "$BLENDER" --background --factory-startup --python $HERE/build_b3.py -- --donor "$WORK/donor.json" --out $OUT \
   > "$WORK/build.log" 2>&1 || { tail -40 "$WORK/build.log"; exit 1; }
 grep -E '^(TRAVELLER|POKES|atlas:|paint)' "$WORK/build.log"
+node $HERE/calm-default.mjs $OUT/traveller.glb   # (the default's clothes as calm as the outfits': issue #680)
 
 [ "${1:-}" = "--previews" ] || exit 0
 R="$WORK/renders"

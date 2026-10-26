@@ -174,9 +174,9 @@
   "texelsPerMetre": 473,
   "swatches": {
    "GravityTrousers.inside": [
-    30,
-    30,
-    28
+    42,
+    42,
+    41
    ],
    "GravityJacket.inside": [
     56,
@@ -201,14 +201,14 @@
     91
    ],
    "cuff": [
-    67,
-    69,
-    62
+    74,
+    77,
+    69
    ],
    "trouser": [
-    66,
-    66,
-    62
+    94,
+    93,
+    92
    ],
    "cream": [
     224,

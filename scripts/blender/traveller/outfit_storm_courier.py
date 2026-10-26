@@ -14,7 +14,7 @@ ID = 'storm-courier'
 ATLAS_SIZE = 1024
 NAME = 'Storm courier'
 SHEET = 'references/characters/traveller-outfits/storm-courier/approved-reference.png'
-PAL = dict(rain=(136,164,150), cream=(226,211,177), trouser=(82,84,80),
+PAL = dict(rain=(136,164,150), cream=(226,211,177), trouser=(106,105,108),
            leather=(137,117,76), brass=(190,158,94), boot=(185,165,127), ink=(42,47,40))
 BOOTS = 'CourierBoots'
 PIECES = {'CourierTrousers':A.piece(covers=['RainJacket']),
@@ -23,7 +23,9 @@ ZONES = {'CourierTrousers':['trouser'], 'RainJacket':['rain','cream'],
          'FoldedHood':['rain'], 'CourierPouch':['leather','brass'],
          'Toggles':['leather','brass'], BOOTS:['boot']}
 BUILDERS = {'CourierTrousers':lambda c,j:A.trousers(c,j,0.020),
-            'RainJacket':lambda c,j:A.shirt(c,j,sleeve=0.48,fullness=0.019)}
+            'RainJacket':lambda c,j:A.shirt(c,j,sleeve=0.54,fullness=0.019)}
+# (#680: the sheet's cream shirt shows at the collar and in rolled sleeves under the jacket's: its bands cream)
+INSIDE_ZONES = {'RainJacket': ('cream', 0.92)}
 
 
 def hood(ctx):
@@ -34,13 +36,13 @@ def hood(ctx):
     rows=[]
     for j in range(13):
         t=j/12
-        width=.100*(1-t)+.013*t
+        width=.150*(1-t)+.020*t
         row=[]
         for k in range(17):
             u=(k/16)*2-1
-            p=Vector((u*width,.20,1.435-.140*t+.008*u*u))
+            p=Vector((u*width,.20,1.445-.200*t+.010*u*u))
             q,n=S.projected(jacket,p,.012)
-            q+=n*(.012*(1-u*u)*np.sin(np.pi*t))
+            q+=n*(.006+.034*(1-u*u)*np.sin(np.pi*min(1,.15+t*1.2)))
             row.append(bm.verts.new(q))
         rows.append(row)
     for j in range(12):
@@ -92,7 +94,8 @@ def paint(piece,zone,P,N,J):
         x,y,z=P.T
         seam=K.band_mask(x-(1.40-z)*0.48,0.0013,0.0008)*np.clip(-N[:,1]*3,0,1)*(z>1.05)*(z<1.40)
         out=out*(1-seam[:,None]*0.65)+np.array(PAL['ink'])/255*seam[:,None]*0.65
-        cuff=np.clip((np.abs(x)-0.405)/0.012,0,1)
+        # (#680: the jacket's sleeve ends at the elbow, the cream shirt's rolled sleeve below it)
+        cuff=np.clip((np.abs(x)-0.435)/0.006,0,1)
         out=out*(1-cuff[:,None])+np.array(PAL['cream'])/255*cuff[:,None]
     if piece == 'RainJacket': out=A.cloth_ink(out,P,J,PAL,'shirt')
     elif piece == 'CourierTrousers': out=A.cloth_ink(out,P,J,PAL,'trousers')

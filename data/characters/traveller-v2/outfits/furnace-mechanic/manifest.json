@@ -32,8 +32,8 @@
   },
   "MechanicShirt": {
    "kind": "garment",
-   "triangles": 15544,
-   "vertices": 7991,
+   "triangles": 16105,
+   "vertices": 8245,
    "hides": [
     "belly",
     "upperarm.L",
@@ -46,8 +46,8 @@
   },
   "MechanicBib": {
    "kind": "garment",
-   "triangles": 3328,
-   "vertices": 1784,
+   "triangles": 2954,
+   "vertices": 1597,
    "hides": [],
    "layer": 2,
    "materials": {
@@ -152,7 +152,7 @@
    1024,
    1024
   ],
-  "texelsPerMetre": 485,
+  "texelsPerMetre": 491,
   "swatches": {
    "MechanicTrousers.inside": [
     84,
@@ -213,7 +213,7 @@
    ]
   }
  },
- "triangles": 42842,
+ "triangles": 43029,
  "fit": {
   "MechanicTrousers": {
    "fitLeft": 0,
@@ -238,16 +238,16 @@
    }
   },
   "MechanicShirt": {
-   "fitLeft": 71,
+   "fitLeft": 75,
    "relief": {
     "op": {
-     "shapedVertices": 2897
+     "shapedVertices": 3097
     }
    },
    "hem": {
     "open": 310,
     "covered": 2,
-    "band": 1128,
+    "band": 1087,
     "lips": 310
    }
   },
@@ -255,21 +255,21 @@
    "fitLeft": 0,
    "relief": {
     "op": {
-     "shapedVertices": 496
+     "shapedVertices": 478
     },
     "raised": {
-     "cuts": 119,
-     "raised": 119
+     "cuts": 86,
+     "raised": 54
     },
     "raised2": {
-     "cuts": 101,
-     "raised": 65
+     "cuts": 80,
+     "raised": 36
     }
    },
    "hem": {
     "open": 240,
     "covered": 0,
-    "band": 284,
+    "band": 280,
     "lips": 240
    }
   },
@@ -297,7 +297,7 @@
    "Skin>MechanicShirt": 0,
    "MechanicTrousers>MechanicShirt": 406,
    "Skin>MechanicBib": 0,
-   "MechanicShirt>MechanicBib": 930,
+   "MechanicShirt>MechanicBib": 800,
    "MechanicTrousers>MechanicBib": 338
   },
   "posed": {

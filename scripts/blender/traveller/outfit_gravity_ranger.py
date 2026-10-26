@@ -15,7 +15,7 @@ ID='gravity-ranger'
 ATLAS_SIZE=1024
 NAME='Gravity ranger'
 SHEET='references/characters/traveller-outfits/gravity-ranger/approved-reference.png'
-PAL=dict(olive=(124,132,106), coral=(209,115,91), cuff=(67,69,62), trouser=(66,66,62),
+PAL=dict(olive=(124,132,106), coral=(209,115,91), cuff=(74,77,69), trouser=(94,93,92),
          cream=(224,219,194), metal=(83,91,82), cyan=(118,211,213), boot=(139,122,149), ink=(36,40,35))
 BOOTS='GravityBoots'
 PIECES={'GravityTrousers':A.piece(covers=['GravityJacket']),

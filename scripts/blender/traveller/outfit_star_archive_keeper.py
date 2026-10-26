@@ -18,7 +18,7 @@ ID='star-archive-keeper'
 ATLAS_SIZE = 1024
 NAME='Star archive keeper'
 SHEET='references/characters/traveller-outfits/star-archive-keeper/approved-reference.png'
-PAL=dict(plum=(115,85,117),ivory=(232,218,185),teal=(48,78,80),gold=(221,171,71),
+PAL=dict(plum=(115,85,117),ivory=(232,218,185),teal=(48,78,80),gold=(236,184,78),
          leather=(147,133,101),crystal=(161,198,207),rose=(191,153,175),boot=(210,194,159),ink=(37,32,38))
 BOOTS='ArchiveBoots'
 PIECES={'ArchiveTrousers':A.piece(covers=['ArchiveJacket']),
@@ -113,11 +113,21 @@ def paint(piece,zone,P,N,J):
         # Thin gold construction inlays follow the front wrap and sleeve panels.
         line=K.band_mask(x-(0.01+(1.38-z)*0.19),0.005,0.001)*front*(ax<.20)*(z<1.39)*(z>1.02)
         line+=K.band_mask(y-0.015,0.004,0.001)*(ax>.24)*np.clip(N[:,2]*3,0,1)
+        # (#680: the sheet's bright inlays: down each side of the chest, the back's centre and its shoulder seams)
+        back=np.clip(N[:,1]*3,0,1)
+        line+=K.band_mask(ax-(0.135+(1.38-z)*0.06),0.0075,0.0015)*front*(z>1.09)*(z<1.36)
+        line+=K.band_mask(x,0.0075,0.0015)*back*(z>1.30)*(z<1.43)
+        line+=K.band_mask(ax-(0.10+(1.40-z)*0.25),0.0075,0.0015)*back*(z>1.12)*(z<1.30)
         out=out*(1-np.clip(line,0,1)[:,None])+gold*np.clip(line,0,1)[:,None]
         cuff=(ax>.53).astype(float)
         out=out*(1-cuff[:,None])+np.array(PAL['ivory'])/255*cuff[:,None]
     elif piece=='ArchiveTrousers':
         line=K.band_mask(y-0.025,0.004,0.001)*np.clip(np.abs(N[:,0])*2,0,1)*(z>.3)*(z<.92)
+        # (#680: the sheet's slanted inlays down the front of each thigh and up each shin, and behind the knee)
+        line+=K.band_mask(ax-(0.075+(0.86-z)*0.25),0.0075,0.0015)*front*(z>.62)*(z<.86)
+        line+=K.band_mask(ax-0.145,0.0075,0.0015)*front*(z>.30)*(z<.47)
+        line+=K.band_mask(ax-(0.13-(0.62-z)*0.2),0.0075,0.0015)*np.clip(N[:,1]*3,0,1)*(z>.45)*(z<.62)
+        line=np.clip(line,0,1)
         out=out*(1-line[:,None])+gold*line[:,None]
     if piece == 'ArchiveJacket': out=A.cloth_ink(out,P,J,PAL,'shirt')
     elif piece == 'ArchiveTrousers': out=A.cloth_ink(out,P,J,PAL,'trousers')

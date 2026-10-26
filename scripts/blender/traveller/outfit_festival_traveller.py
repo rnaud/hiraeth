@@ -17,7 +17,7 @@ ID = 'festival-traveller'
 NAME = 'Festival traveller'
 SHEET = 'references/characters/traveller-outfits/festival-traveller/approved-reference.png'
 PAL = dict(cream=(231,216,184), coral=(216,129,102), ochre=(220,170,83),
-           teal=(69,110,101), sash=(154,108,77), plum=(141,121,142),
+           teal=(72,122,112), sash=(166,88,72), plum=(141,121,142),
            boot=(142,117,82), ink=(53,43,36))
 BOOTS = 'FestivalBoots'
 PIECES = {
@@ -30,7 +30,7 @@ ZONES = {'FestivalTrousers':['teal'],'FestivalShirt':['cream','cream'],
          'FestivalCollar':['cream','ochre'],BOOTS:['boot']}
 BUILDERS = {
     'FestivalTrousers':lambda c,j:A.trousers(c,j,.024),
-    'FestivalShirt':open_shirt,
+    'FestivalShirt':lambda c,j:open_shirt(c,j,sleeve=.46,roll_from=.38),   # (its vest's armholes clear this sleeve)
 }
 
 
@@ -66,7 +66,7 @@ def collar(ctx):
 
 def sash(ctx):
     bm = A.empty()
-    K.band(bm,ctx['cage'],A.PART['torso'],1.005,1.043,.060,n=48,thick=.003)
+    K.band(bm,ctx['cage'],A.PART['torso'],.990,1.058,.060,n=48,thick=.003)   # (#680: the sheet's broad woven sash)
     D.hug_band(bm,[ctx['made']['FestivalShirt'],ctx['made']['PatchworkVest'],ctx['made']['FestivalTrousers']])
     # Two short folded ends tucked into the wrap, rather than dangling ribbons.
     K.box(bm,(.13,-.123,1.014),(.026,.020,.055),bevel=.004,mat=1)
@@ -92,19 +92,23 @@ def paint(piece,zone,P,N,J):
     if piece=='PatchworkVest':
         # Large irregular panels run around the actual vest surface; fine
         # stitches cross each seam. No tone gradients are baked into the atlas.
+        # (#680: the sheet's few large patches, a coarse slanted checker of coral and mustard round the vest, its seams
+        # fine and stitched, instead of narrow diagonal stripes)
         u = np.arctan2(y,x)
-        q = (z + .65*x*np.sign(y))*8.5 + .5*(x>0)
-        panel = np.floor(q).astype(int)%2
+        qa = (z + .45*x)/.22 + .5*(y>0)
+        qb = (x - .35*(z-1.2))/.16 + .3
+        panel = (np.floor(qa).astype(int)+np.floor(qb).astype(int))%2
         out[:] = np.array([PAL['coral'],PAL['ochre']])[panel]/255
-        seam = K.band_mask(np.sin(q*np.pi),.025,.012)
-        out = out*(1-seam[:,None]*.72)+ink*seam[:,None]*.72
-        stitch = K.band_mask(np.sin(q*np.pi),.13,.02)*(np.sin(u*90)>0.55)
-        out = out*(1-stitch[:,None]*.7)+np.array(PAL['cream'])/255*stitch[:,None]*.7
+        seam = np.clip(K.band_mask(np.sin(qa*np.pi),.03,.015)+K.band_mask(np.sin(qb*np.pi),.03,.015),0,1)
+        out = out*(1-seam[:,None]*.55)+ink*seam[:,None]*.55
+        near = np.clip(K.band_mask(np.sin(qa*np.pi),.16,.02)+K.band_mask(np.sin(qb*np.pi),.16,.02),0,1)*(1-seam)
+        stitch = near*(np.sin(u*90+z*400)>0.6)
+        out = out*(1-stitch[:,None]*.5)+np.array(PAL['cream'])/255*stitch[:,None]*.5
     elif piece=='FestivalSash':
         cloth = zone==0
         u = np.arctan2(y,x)
         weave = K.band_mask(np.sin(u*25+(z-1)*100),.09,.04)*cloth
         out = out*(1-weave[:,None]*.50)+np.array(PAL['ochre'])/255*weave[:,None]*.50
-        border = (K.band_mask(z-1.001,.003,.001)+K.band_mask(z-1.044,.003,.001))*cloth
+        border = (K.band_mask(z-.992,.003,.001)+K.band_mask(z-1.056,.003,.001))*cloth
         out = out*(1-border[:,None]*.55)+ink*border[:,None]*.55
     return np.clip(out,0,1)

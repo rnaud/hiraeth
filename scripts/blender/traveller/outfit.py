@@ -480,8 +480,14 @@ def main():
             px[m, :3] = col
             base_col[o.name] = np.array(S.PAL[S.ZONES[o.name][0]]) / 255
     swatch = {}
+    # (an outfit's INSIDE_ZONES = {piece: (zone, light)}: that piece's bands in one of its zones' colours instead, where a
+    # rolled cuff or a folded collar turns its band out to be seen: the storm courier's cream cuffs, issue #680)
+    inside_zones = getattr(S, 'INSIDE_ZONES', {})
     for (name, what), (x0, y0, s) in where.items():
         c = base_col[name] * INSIDE
+        if name in inside_zones:
+            zname, light = inside_zones[name]
+            c = np.array(S.PAL[zname]) / 255 * light
         px[y0 - 2:y0 + s + 2, x0 - 2:x0 + s + 2, :3] = c
         swatch[f'{name}.{what}'] = [int(round(x * 255)) for x in c]
     img = bpy.data.images.new(f'{S.ID}-atlas', SIZE, SIZE, alpha=False)

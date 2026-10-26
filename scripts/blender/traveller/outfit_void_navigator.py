@@ -13,14 +13,14 @@ ID='void-navigator'
 ATLAS_SIZE=1024
 NAME='Void navigator'
 SHEET='references/characters/traveller-outfits/void-navigator/approved-reference.png'
-PAL=dict(navy=(53,65,91),black=(47,49,48),trouser=(74,74,69),cream=(227,219,197),
+PAL=dict(navy=(53,65,91),black=(47,49,48),trouser=(86,86,88),cream=(227,219,197),
          metal=(82,91,91),cyan=(112,218,225),boot=(222,216,198),ink=(31,35,41))
 BOOTS='NavigatorBoots'
 PIECES={'NavigatorTrousers':A.piece(covers=['NavigatorJacket']),
         'NavigatorJacket':A.piece(2,outside=['NavigatorTrousers'],gap=0.007)}
 ZONES={'NavigatorTrousers':['trouser'],'NavigatorJacket':['navy','navy','navy'],
        'NavigationHarness':['cream','metal','cyan'],'NavigationBelt':['cream','metal','cyan'],
-       'NavigationBootPanels':['cream','metal','cyan'],'NavigationCuffs':['cream','cyan'],
+       'NavigationBootPanels':['cream','metal','cyan'],'NavigationCuffs':['navy','cyan'],   # (#680: forearm plates in the sleeve's navy, as the sheet)
        BOOTS:['boot']}
 BUILDERS={'NavigatorTrousers':lambda c,j:tailored_trousers(c,j,0.006),
           'NavigatorJacket':lambda c,j:tailored_jacket(c,j,0.009,1.065)}
@@ -33,14 +33,15 @@ def segments(bm,coat,cage,a,b,back=False,width=0.023):
     cross=cross/np.linalg.norm(cross)*width*.87
     outline=[surface(cage,float(q[0]),float(q[1]),back) for q in [aa-cross,aa+cross,bb+cross,bb-cross]]
     panel(bm,coat,outline,mat=1,offset=.006,n=4)
-    for t0,t1 in [(0,.28),(.31,.62),(.65,1)]:
+    # (#680: one continuous ivory strap a run, as the sheet's, its studs at the ends: no dark flexures between)
+    for t0,t1 in [(0,1)]:
         p0=aa*(1-t0)+bb*t0;p1=aa*(1-t1)+bb*t1
         direction=p1-p0;cross=np.array([-direction[1],direction[0]])
         cross=cross/np.linalg.norm(cross)*width
         corners=[p0-cross*.88,p0+cross*.88,p1+cross,p1-cross]
         outline=[surface(cage,float(q[0]),float(q[1]),back) for q in corners]
         panel(bm,coat,outline,offset=.017,n=4 if t1==1 else 2)
-        for t in [.1,.9]:
+        for t in [.05,.95]:
             x=p0[0]*(1-t)+p1[0]*t;z=p0[1]*(1-t)+p1[1]*t
             p,n=projected(coat,surface(cage,x,z,back),.022)
             T.lathe(bm,p,n,[(0,.0025),(.0015,.0025)],segments=10,mat=1)
@@ -101,12 +102,11 @@ def paint(piece,zone,P,N,J):
     out=A.seam_paint(PAL,ZONES,piece,zone,P,N,J);x,y,z=P.T
     front=np.clip(-N[:,1]*3,0,1)
     if piece=='NavigatorJacket':
-        brace=(np.abs(x)>.52)*(z>1.25)
+        # (#680: the sheet's sleeves navy to a narrow ivory band at the wrist)
+        brace=(np.abs(x)>.595)*(z>1.25)
         out=out*(1-brace[:,None])+np.array(PAL['cream'])/255*brace[:,None]
-        joins=(K.band_mask(np.abs(x)-.55,.0015,.0007)+K.band_mask(np.abs(x)-.585,.0015,.0007))*brace
-        out=out*(1-joins[:,None])+np.array(PAL['metal'])/255*joins[:,None]
         # The dark front inset and zip are narrow, backed by the continuous jacket.
-        inset=(np.abs(x)<.024)*(z>1.045)*(z<1.46)*front
+        inset=(np.abs(x)<.040)*(z>1.045)*(z<1.46)*front
         out=out*(1-inset[:,None])+np.array(PAL['black'])/255*inset[:,None]
         zipline=K.band_mask(x,.001,.0006)*front*(z>1.045)*(z<1.47)
         out=out*(1-zipline[:,None]) + np.array(PAL['metal'])/255*zipline[:,None]
@@ -116,5 +116,9 @@ def paint(piece,zone,P,N,J):
         # Narrow cyan inset at each secured thigh pocket; angular reinforced knees stay dark.
         line=K.band_mask(np.abs(x)-.145,.0018,.0007)*(z>.81)*(z<.88)*front
         out=out*(1-line[:,None])+np.array(PAL['cyan'])/255*line[:,None]
-        knee=(z>.43)*(z<.59)*front*.18;out*=1-knee[:,None]
+        # (#680: the sheet's lighter grey knee panels, angled, and its cyan strip down the thigh)
+        knee=(z>.42+.25*np.abs(np.abs(x)-.12))*(z<.60-.2*np.abs(np.abs(x)-.12))*front
+        out=out*(1-knee[:,None]*.6)+np.array((128,128,128))/255*knee[:,None]*.6
+        strip=K.band_mask(np.abs(x)-.165,.002,.0008)*(z>.62)*(z<.78)*front
+        out=out*(1-strip[:,None])+np.array(PAL['cyan'])/255*strip[:,None]
     return out
