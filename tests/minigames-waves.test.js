@@ -7,7 +7,7 @@ import { FOES, Foes, Foe, waveWords } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { ARCHETYPE_KINDS } from '../src/enemies/archetypes.js';
 import { BLADE, EVADE, GUARD } from '../src/fluid-blade.js';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 import { mulberry32 } from '../src/noise.js';
 
 const costOf = (kinds) => kinds.reduce((a, k) => a + COST[k] / (GROUP[k] ?? 1), 0);

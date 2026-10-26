@@ -18,7 +18,7 @@ import fightUnderwater from '../src/minigames/fight-underwater.js';
 import fightGlassdunes from '../src/minigames/fight-glassdunes.js';
 import fightSpheres from '../src/minigames/fight-spheres.js';
 import fightSpacecity from '../src/minigames/fight-spacecity.js';
-import { checkGame, collectGames } from '../src/minigames/index.js';
+import { checkGame, collectGames } from '../src/minigames/kit/registry.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES } from '../src/story/tone.js';
 import {

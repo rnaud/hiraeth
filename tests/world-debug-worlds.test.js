@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import { loadWorld, ORDER } from './playthrough-agent.js';
 import { gatherPoints, groupPoints, landingSpot, questList, cinematicsFor, devTabs, keyPlaces } from '../src/world-debug.js';
-import { collectGames } from '../src/minigames/index.js';
+import { collectGames } from '../src/minigames/kit/registry.js';
 import { CONTENT } from '../src/levels/content.js';
 
 // (two worlds unlike each other for every kind, the dev menu being a developer's tool: the desert's open ground over its

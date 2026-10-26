@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import wingdrop, { WING, MESA, TARGET, DROPS, newGlider, glideStep, sinkAt, thermalLift, scoreLanding, dropPlan, dropHeight, botInput, windArrow } from '../src/minigames/wingdrop.js';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;

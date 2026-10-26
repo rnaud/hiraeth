@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { collectGames } from '../src/minigames/index.js';
+import { collectGames } from '../src/minigames/kit/registry.js';
 import { controlsFor } from '../src/minigames/kit/flow.js';
 import { disposeTree } from '../src/minigames/kit/dispose.js';
 import { gamesRow, gameBest } from '../src/world-picker.js';

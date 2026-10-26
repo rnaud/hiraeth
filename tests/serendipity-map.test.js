@@ -9,7 +9,7 @@ import './register-gadgets.js';
 import './playthrough-agent.js';   // (its little DOM: the story never needs a real page)
 import { buildWorld, mapWorlds } from '../src/serendipity-page/world.js';
 import { collectMarkers, emptiness, countByKind, walkTo, KINDS } from '../src/serendipity-page/collect.js';
-import { collectGames } from '../src/minigames/index.js';
+import { collectGames } from '../src/minigames/kit/registry.js';
 import { ORDER } from '../src/levels/names.js';
 import { FRAGMENTS } from '../src/fragments-data.js';
 import { PAGES } from '../src/world-picker.js';

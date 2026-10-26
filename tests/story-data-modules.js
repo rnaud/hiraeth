@@ -26,3 +26,8 @@ export async function loadStoryData(world) {
   const name=world+'-data.js';
   return Object.hasOwn(loaders,name)?loaders[name]():null;
 }
+
+export function loadStoryFile(file) {
+  if (!Object.hasOwn(loaders, file)) throw Error('Unknown story data: ' + file);
+  return loaders[file]();
+}

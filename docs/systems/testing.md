@@ -462,3 +462,8 @@ directory discovery rules, including every source scanned for guardian notices. 
 matching file without registering it fails that contract; it cannot silently disappear from
 the audit. Positive and negative assertions in `test-selection-boundaries.test.js` protect
 both exclusion of unrelated HUD/docs edits and inclusion of each real input.
+
+
+Audit consumers reuse completeness-checked story and minigame catalogues instead of rediscovering modules through opaque dynamic paths. The traveller's Blender-source pose check and its runtime clip/skin simulations are separate tests: parsing a Blender expression must not pull animation simulation into unrelated UI edits. Source-only menu and enemy-plan checks name their actual files, with coverage checks for each built enemy surface.
+
+The minigame catalogue is a composition boundary: `kit/registry.js` holds definition validation, collection, lookup, and link formatting; `index.js` supplies discovered games. Likewise, `kit/marker-core.js` constructs markers for an explicit game list while `kit/marker.js` supplies the application's default catalogue. Tests of one game import those shared implementations directly; the facade contract verifies default lookup and marker composition remain intact.

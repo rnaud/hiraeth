@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import fightDesert from '../src/minigames/fight-desert.js';
-import { checkGame, collectGames } from '../src/minigames/index.js';
+import { checkGame, collectGames } from '../src/minigames/kit/registry.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { DESERT_FIGHT } from '../src/fight-temples/desert.js';
 import {

@@ -12,6 +12,32 @@ import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 
 const BUILT = Object.keys(SURFACES);
+const planSources = {
+  crab: readFileSync(new URL('../src/enemies/plans/walker.js', import.meta.url), 'utf8'),
+  lizard: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
+  hound: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
+  tripod: readFileSync(new URL('../src/enemies/plans/piston.js', import.meta.url), 'utf8'),
+  blot: readFileSync(new URL('../src/enemies/plans/blob.js', import.meta.url), 'utf8'),
+  centipede: readFileSync(new URL('../src/enemies/plans/centipede.js', import.meta.url), 'utf8'),
+  worm: readFileSync(new URL('../src/enemies/plans/burrower.js', import.meta.url), 'utf8'),
+  ray: readFileSync(new URL('../src/enemies/plans/glider.js', import.meta.url), 'utf8'),
+  moth: readFileSync(new URL('../src/enemies/plans/flyer.js', import.meta.url), 'utf8'),
+  jelly: readFileSync(new URL('../src/enemies/plans/floater.js', import.meta.url), 'utf8'),
+  toad: readFileSync(new URL('../src/enemies/plans/hopper.js', import.meta.url), 'utf8'),
+  heron: readFileSync(new URL('../src/enemies/plans/stilt.js', import.meta.url), 'utf8'),
+  skitter: readFileSync(new URL('../src/enemies/plans/skitterers.js', import.meta.url), 'utf8'),
+  rootknot: readFileSync(new URL('../src/enemies/plans/tentacled.js', import.meta.url), 'utf8'),
+  brute: readFileSync(new URL('../src/enemies/plans/brute.js', import.meta.url), 'utf8'),
+  drone: readFileSync(new URL('../src/enemies/plans/hover.js', import.meta.url), 'utf8'),
+  cart: readFileSync(new URL('../src/enemies/plans/tracked.js', import.meta.url), 'utf8'),
+  bell: readFileSync(new URL('../src/enemies/plans/siege.js', import.meta.url), 'utf8'),
+  shade: readFileSync(new URL('../src/enemies/plans/humanoid.js', import.meta.url), 'utf8'),
+  roller: readFileSync(new URL('../src/enemies/plans/roller.js', import.meta.url), 'utf8'),
+  marionette: readFileSync(new URL('../src/enemies/plans/strings.js', import.meta.url), 'utf8'),
+  wisp: readFileSync(new URL('../src/enemies/plans/ember.js', import.meta.url), 'utf8'),
+  fencer: readFileSync(new URL('../src/enemies/plans/fencer.js', import.meta.url), 'utf8'),
+};
+assert.deepEqual(Object.keys(planSources).sort(), [...BUILT].sort(), 'every surface archetype has exactly one source');
 
 test('a foe surface compiles only the features it names, with their uniforms', () => {
   assert.deepEqual(foeSurfaceDefines({ spots: { color: '#fff' }, gloss: true }), { FOE_SURFACE: 1, FS_SPOTS: 1, FS_GLOSS: 1 });
@@ -62,7 +88,7 @@ test('the table’s colours: hex, a palette key, darker or paler', () => {
 test('every skin’s surfaces resolve from its palette, on parts its body really makes', () => {
   for (const a of BUILT) {
     assert.ok(SKINS[a], `${a}: an archetype with skins`);
-    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater', toad: 'hopper', heron: 'stilt', skitter: 'skitterers', rootknot: 'tentacled', brute: 'brute', drone: 'hover', cart: 'tracked', bell: 'siege', shade: 'humanoid', roller: 'roller', marionette: 'strings', wisp: 'ember', fencer: 'fencer' }[a]}.js`, import.meta.url), 'utf8');
+    const src = planSources[a];
     const parts = new Set([...src.matchAll(/M\.(?:mat|own)\([`'"]([a-z0-9]+)/g)].map((m) => m[1]));
     for (const [skin, table] of Object.entries(SURFACES[a])) {
       if (skin !== '*') assert.ok(SKINS[a][skin], `${a}: a skin ${skin}`);

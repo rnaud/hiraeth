@@ -14,7 +14,7 @@ globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
 const R = await import('../src/minigames/lens-vault-rules.js');
 const { parseLine } = await import('../src/story/tone.js');
-const { checkGame } = await import('../src/minigames/index.js');
+const { checkGame } = await import('../src/minigames/kit/registry.js');
 const game = (await import('../src/minigames/lens-vault.js')).default;
 const { readButtons, TAKEN, roomAt } = await import('../src/minigames/lens-vault.js');
 const { visorPart } = await import('../src/minigames/lens-vault-hud.js');

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FLY, BOSS, SCRIPT, KINDS, POINTS, MISSILE_POINTS, CHIME_RATE, chimesFor, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt, aimTarget } from '../src/minigames/pirates-rules.js';
 import pirates, { piratePitch, pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT, RETICLE } from '../src/minigames/pirates.js';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 import { optionValue, optionOffered } from '../src/minigames/kit/flow.js';
 import { WorldLabels } from '../src/minigames/kit/labels.js';
 import { setMotion } from '../src/feel.js';

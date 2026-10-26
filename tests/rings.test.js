@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import rings, { RACE, PAD, RING_POINTS, courseRings, courseField, courseLine, hitAt, crossRing, newRace, raceStep, newFlyer, flyStep, botInput, packGhost, unpackGhost, ghostAt, fieldHeight } from '../src/minigames/rings.js';
-import { checkGame } from '../src/minigames/index.js';
+import { checkGame } from '../src/minigames/kit/registry.js';
 import { lendItems } from '../src/minigames/kit/gear.js';
 import { JET } from '../src/player.js';
 

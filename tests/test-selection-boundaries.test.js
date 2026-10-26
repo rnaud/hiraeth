@@ -114,3 +114,37 @@ test('tool cores exclude unrelated UI, docs and CLI inputs while retaining their
   ['tests/sound-qc-synthesis.test.js','scripts/sound-qc/render.mjs'],
  ])assert.deepEqual(selection(cli,consumer),[witness],consumer+' excludes its wrapper');
 });
+
+
+test('catalogue consumers and animation checks retain their inputs without unrelated HUD or docs',()=>{
+ const cases=[
+  ['tests/arcade.test.js',['src/minigames/canyon.js','src/minigames/kit/arcade.js','tests/minigame-modules.js']],
+  ['tests/fight-entrance.test.js',['src/minigames/fight-desert.js','src/fight-temples/entrance.js','tests/fight-modules.js']],
+  ['tests/foe-surface.test.js',['src/enemies/plans/fencer.js','src/enemies/surfaces.js']],
+  ['tests/highlight.test.js',['src/story/desert-data.js','src/story/dialogue.js','tests/story-data-modules.js']],
+  ['tests/short-talks.test.js',['src/story/desert-data.js','src/story/quests.js','tests/story-data-modules.js']],
+  ['tests/menu-pointer.test.js',['unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pointer.cs','engine/menus.js']],
+  ['tests/traveller-clip-bends.test.js',['src/animator.js','src/player.js','public/anim/ual.glb','data/characters/traveller-v2/traveller.glb']],
+ ];
+ for(const [consumer,inputs] of cases){
+  for(const path of ['src/hud.js','docs/systems/testing.md'])assert.deepEqual(selection(path,consumer),[witness],consumer+' excludes '+path);
+  for(const path of inputs)assert.ok(selection(path,consumer).includes(consumer),consumer+' tracks '+path);
+ }
+ assert.deepEqual(selection('src/minigames/pirates.js','tests/fight-entrance.test.js'),[witness]);
+ assert.deepEqual(selection('scripts/blender/traveller/poses.py','tests/traveller-clip-bends.test.js'),[witness]);
+ assert.ok(selection('scripts/blender/traveller/poses.py','tests/traveller-elbows.test.js').includes('tests/traveller-elbows.test.js'));
+});
+
+
+test('single-game definitions do not reach sibling games through pure registry helpers',()=>{
+ for(const [consumer,own,other] of [
+  ['tests/minigames-gallery.test.js','src/minigames/gallery.js','src/minigames/pirates.js'],
+  ['tests/pirates.test.js','src/minigames/pirates.js','src/minigames/gallery.js'],
+  ['tests/rings.test.js','src/minigames/rings.js','src/minigames/pirates.js'],
+  ['tests/wingdrop.test.js','src/minigames/wingdrop.js','src/minigames/gallery.js'],
+ ]){
+  assert.ok(selection(own,consumer).includes(consumer),consumer+' tracks its game');
+  assert.ok(selection('src/minigames/kit/registry.js',consumer).includes(consumer),'registry validation stays relevant');
+  assert.deepEqual(selection(other,consumer),[witness],consumer+' excludes '+other);
+ }
+});

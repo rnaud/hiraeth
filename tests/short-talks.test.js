@@ -6,13 +6,12 @@
 // Lore stays for whoever asks: only the shortest way is held to the limit. A quest's last step (its ending talk) isn't.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { files as storyFiles, loadStoryFile } from './story-data-modules.js';
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { check } from '../src/story/dialogue.js';
 import { stripTone } from '../src/story/tone.js';
 
-const DIR = new URL('../src/story/', import.meta.url);
 export const MAX_PAGES = 6;      // Nour's limit
 const MAX_WORDS = 45;            // a page, as Nour's
 
@@ -43,8 +42,8 @@ function shortest(person, ctx, gives) {
 
 async function measure() {
   const out = [];
-  for (const f of readdirSync(DIR).filter((x) => x.endsWith('-data.js'))) {
-    const m = await import(new URL(f, DIR));
+  for (const f of storyFiles) {
+    const m = await loadStoryFile(f);
     const people = m.PEOPLE ?? {}, quests = m.QUESTS ?? [];
     const world = (q, stage) => {
       const game = new GameState(null), qs = new Quests({ game });

@@ -6,13 +6,16 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { entranceModel, entranceParts, ENTRANCE } from '../src/fight-temples/entrance.js';
 import { Thresholds } from '../src/thresholds.js';
-import { placeGameMarker } from '../src/minigames/kit/marker.js';
+import { placeGameMarker } from '../src/minigames/kit/marker-core.js';
 import { hostStand } from '../src/minigames/kit/hosts.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { trianglesOf, coplanarOverlaps } from '../scripts/zfight/lib.mjs';
 
+import { loadFightModules } from './fight-modules.js';
+
 const W = ['desert', 'arzach', 'perdide', 'moonfoundry', 'edena', 'incal', 'buried', 'bazaar', 'underwater', 'glassdunes', 'spheres', 'spacecity'];
-const FIGHTS = await Promise.all(W.map(async (w) => (await import(`../src/minigames/fight-${w}.js`)).default));
+const fights = await loadFightModules();
+const FIGHTS = W.map(w => { const g = fights.find(g => g.id === 'fight-' + w); assert.ok(g, w + ': original fight present'); return g; });
 const E = ENTRANCE;
 /** Hits on the gate's solid parts (not its light, not the banners) along a ray in its frame. */
 function solidHits(model, from, dir, far = 20) {
