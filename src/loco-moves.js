@@ -31,6 +31,42 @@ export const movesSetting = {
   set(on) { try { globalThis.localStorage?.setItem(this.key, on ? '1' : '0'); } catch { /* this session only */ } },
 };
 
+/**
+ * How the traveller stops from a run (issue #699, the Breath of the Wild study: docs/design/locomotion-botw-study.md): 'snap'
+ * (the default, as before: the speed falls at STOP_FEEL.snap /s, 0.34 m and a third of a second from a sprint) or 'carry'
+ * (Link's: stopped from STOP_FEEL.from m/s or faster (a jog or more: not a tap of the stick), the body carries on over a couple of braking strides, slowing by no more
+ * than STOP_FEEL.decel m/s² until the snap's own rate is the gentler, 1.9 m and 0.63 s from a sprint, 0.4 m from a jog: Link
+ * takes about 0.8 s from the last running stride to standing). Slowing at a steady rate rather than a share of the speed, it
+ * ends crisply: a long tail of creeping at under a walk's pace slid the planted feet 15-35 cm in the motion QC. A change of the
+ * controller's feel, so a switch the author decides: `?stop=carry`, the dev menu's Story tab, kept on this device.
+ */
+export const STOP_FEEL = { snap: 16, decel: 16, from: 3.2 };
+export const stopSetting = {
+  key: 'hiraeth.stopFeel',
+  get() {
+    try {
+      const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('stop') : null;
+      if (q === 'carry' || q === 'snap') return q;
+      return globalThis.localStorage?.getItem(this.key) === 'carry' ? 'carry' : 'snap';
+    } catch { return 'snap'; }
+  },
+  set(v) { try { globalThis.localStorage?.setItem(this.key, v === 'carry' ? 'carry' : 'snap'); } catch { /* this session only */ } },
+};
+/**
+ * A stop's braking this frame (the stick let go on the ground at `from` m/s, going `speed` m/s now): { k, rate }. k, the share
+ * of the speed taken off this frame (the controller's lerp toward standing); rate (1/s), the speed over the distance left to
+ * stop, which the stop's captured move is played by (LocoMoves.brake).
+ */
+export function braking(feel, from, speed, dt, out = {}) {
+  const snap = 1 - Math.exp(-STOP_FEEL.snap * dt);
+  if (feel === 'carry' && from >= STOP_FEEL.from && speed > 1e-3) {
+    out.k = Math.min(snap, STOP_FEEL.decel * dt / speed);
+    // (the distance left: v² / 2D at the steady rate, v / snap under the speed where the snap is the gentler)
+    out.rate = speed * STOP_FEEL.snap < STOP_FEEL.decel ? STOP_FEEL.snap : 2 * STOP_FEEL.decel / speed;
+  } else { out.k = snap; out.rate = STOP_FEEL.snap; }
+  return out;
+}
+
 export const MOVES = {
   blendIn: 0.1, blendOut: 0.2,
   smooth: true,   // the weight laid on eased in and out along a smoothstep of its ramp (false: the straight ramp)
@@ -94,6 +130,7 @@ export class LocoMoves {
     this.prev = null;         // last frame's { speed, steering, heading }
     this.flip = false;        // starts alternate the foot they set off on
     this.count = { start: 0, stop: 0, turn: 0, pivot: 0 };
+    this.brake = null;        // the controller's braking rate now (1/s; null: MOVES.stop.brake): the stop's clip is played by it
   }
 
   get busy() { return !!this.cur; }
@@ -160,7 +197,7 @@ export class LocoMoves {
   /** A stop from `speed`: the walk's or the run's, on the foot that is down now (the clip or its mirror), from as far as is left. */
   beginStop(speed, size, heading) {
     const S = MOVES.stop, name = speed > S.runFrom ? S.run : S.walk;
-    const left = speed / S.brake / Math.max(size, 0.3);
+    const left = speed / (this.brake ?? S.brake) / Math.max(size, 0.3);
     const down = this.A.contact.l >= this.A.contact.r ? 'l' : 'r';
     let best = null;
     for (const n of [name, `${name}_m`]) {
@@ -185,7 +222,7 @@ export class LocoMoves {
     C.turned += dh;
     let want = C.t + dt;
     if (C.kind === 'start') want = timeAt(sh.d, C.dist, sh.fps);
-    else if (C.kind === 'stop') want = speed < 0.05 ? C.t + dt : timeAt(sh.d, sh.dist - speed / MOVES.stop.brake / Math.max(C.size, 0.3), sh.fps);
+    else if (C.kind === 'stop') want = speed < 0.05 ? C.t + dt : timeAt(sh.d, sh.dist - speed / (this.brake ?? MOVES.stop.brake) / Math.max(C.size, 0.3), sh.fps);
     else if (C.kind === 'turn' || C.kind === 'pivot') {
       const k = Math.abs(C.angle) > 1e-3 ? clamp(C.turned / C.angle, 0, 1) : 1;
       want = timeAt(sh.share, k, sh.fps);

@@ -1306,6 +1306,27 @@ cm in four frames and meets the landing window only in its last frame), a settli
 3-4 cm a frame (slide p95 6-7 cm in some runs), and on the dunes the sprint's feet over the slopes (jolts 4-5 cm, 6 a
 minute).
 
+**Issue #699: Breath of the Wild's direction, no matching** (2026-10-26; the study, its sources and numbers:
+docs/design/locomotion-botw-study.md). Motion matching is set aside; the loops, the captured moves and feet.js stay. Link sets
+off as quickly as the traveller (~0.3 s to a run against 90 % of the speed in 0.28 s) and runs at the same cadence (0.83 s a
+cycle), but carries his chest well forward, and stops over two braking strides in ~0.8 s where the traveller stopped in 0.34 m.
+
+- **The chest at a run** (`LOCO.leanRun`, `LOCO.leanCarry`): setting off into a run the chest may tip to 14° (9° before), and at a
+  run it is carried 3.4° forward. The hips keep the old lean's share (`Locomotion.leanHips`): tipped from the hips, a sprint's
+  planted feet slid 8-10 cm in the game.
+- **The bank** grows from a jog to a sprint (`LOCO.bankRun`): 7.2° round a sprint's circle (5.0°); at a walk as before (a pivot
+  into a walk back popped the calf with it).
+- **The carried stop**, a switch (src/loco-moves.js `STOP_FEEL`, `braking`, `stopSetting`; `?stop=carry`, the dev menu's Story
+  tab): from 3.2 m/s or more the speed falls by at most 16 m/s², 1.9 m and 0.63 s from a sprint; the captured stop is played by the
+  distance left at that rate (`LocoMoves.brake`). Off, the controller brakes exactly as before.
+- **Tools**: `node scripts/motion-qc/feel.mjs [--carry]` (the controller's numbers: starts, stops, the reversal, the lean and the
+  bank), `node scripts/motion-qc/worlds-flat.mjs` (the worlds' course at the game's uneven frames, six seeds), the QC's way
+  `carry` (node and the browser), and `CDP_PORT` for the browser run.
+
+The node course stays 16 of 16 green with every mean as it was; the game's three worlds are within their run-to-run spread.
+Tried for the last reds and left out: a touchdown cushion, the stride warp eased, the cadence held through a reversal, a longer
+blend-in of the captured moves (the study says what each did).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
