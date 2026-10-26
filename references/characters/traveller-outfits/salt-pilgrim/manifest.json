@@ -41,5 +41,17 @@
       "costUSD": 0.0336,
       "why": "the same in five views, and the robe slit at the sides: the build keeps the slits (and one up the back) so the robe's panels follow his legs in the run"
     }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-19-18-11-36-15b3",
+      "why": "old; closed out by the author on 2026-10-25",
+      "date": "2026-10-26",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a desert pilgrim's travelling robes instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A long sleeveless white linen over-robe open at the front and reaching the shins, edged with a band of small turquoise and terracotta geometric stitching, a hood lying down flat on his back, under it a wrapped saffron tunic with long sleeves and a wide sash of faded rose tied at the waist, loose pale trousers gathered at the ankles, flat woven sandals with straps up the ankle, a string of small salt-white beads at the wrist. Game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white, saffron and turquoise, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood up, helmet, goggles, mask.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
   ]
 }
