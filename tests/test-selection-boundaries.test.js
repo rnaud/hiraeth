@@ -84,3 +84,33 @@ test('documentation edits have a real reference-scan owner; unrelated unknown in
  assert.deepEqual(affectedTests(['docs/systems/testing.md'],opts),['tests/reference-paths.test.js']);
  assert.equal(affectedTests(['unknown-build-input.config'],opts),'ALL');
 });
+
+
+test('tool cores exclude unrelated UI, docs and CLI inputs while retaining their real data and code',()=>{
+ const cases=[
+  ['tests/sound-qc-measures.test.js',['scripts/sound-qc/lib.mjs','src/soundtracks.js','src/theme-levels.js']],
+  ['tests/sound-qc-synthesis.test.js',['scripts/sound-qc/render-core.mjs','src/audio.js','src/gadgets/sfx.js']],
+  ['tests/pirates-levels.test.js',['scripts/sound-qc/render-core.mjs','src/minigames/pirates-sfx.js']],
+  ['tests/score-distinct.test.js',['scripts/score-features-core.mjs','src/score.js','src/audio.js']],
+  ['tests/father-v1.test.js',['scripts/tripo/slim-father-core.mjs','scripts/tripo/slim-traveller-core.mjs','public/characters/father-v1/model.glb']],
+  ['tests/portrait-head.test.js',['scripts/tripo/slim-traveller-core.mjs','public/characters/traveller-v1/head-v3/model.glb']],
+  ['tests/desert-lookout.test.js',['scripts/level-design/measure.mjs','src/desert-sites.js']],
+  ['tests/level-design-glass.test.js',['scripts/level-design/measure.mjs','src/levels/underwater.js']],
+  ['tests/bosses.test.js',['src/temples/arzach.js','src/temples/boss.js','tests/temple-modules.js']],
+  ['tests/cape-share.test.js',['scripts/costume-people.mjs','src/story/desert-data.js','src/costumes.js']],
+  ['tests/hat-share.test.js',['scripts/costume-people.mjs','src/costumes.js']],
+  ['tests/skirt-share.test.js',['scripts/costume-people.mjs','src/costumes.js']],
+  ['tests/body-shapes.test.js',['scripts/costume-people.mjs','src/costumes.js']],
+ ];
+ for(const [consumer,inputs] of cases){
+  for(const path of ['src/hud.js','docs/systems/testing.md'])assert.deepEqual(selection(path,consumer),[witness],consumer+' excludes '+path);
+  for(const path of inputs)assert.ok(selection(path,consumer).includes(consumer),consumer+' tracks '+path);
+ }
+ for(const [consumer,cli] of [
+  ['tests/score-distinct.test.js','scripts/score-features.mjs'],
+  ['tests/father-v1.test.js','scripts/tripo/slim-father.mjs'],
+  ['tests/portrait-head.test.js','scripts/tripo/slim-traveller.mjs'],
+  ['tests/desert-lookout.test.js','scripts/level-design/audit.mjs'],
+  ['tests/sound-qc-synthesis.test.js','scripts/sound-qc/render.mjs'],
+ ])assert.deepEqual(selection(cli,consumer),[witness],consumer+' excludes its wrapper');
+});

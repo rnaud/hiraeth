@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import * as score from '../src/score.js';
 import { TITLES } from '../src/levels/names.js';
 import { SOUNDTRACKS } from '../src/soundtracks.js';
-import { scoreFeatures, distanceParts, scoreDistance, nearestPairs, renderFeatures } from '../scripts/score-features.mjs';
+import { scoreFeatures, distanceParts, scoreDistance, nearestPairs, renderFeatures } from '../scripts/score-features-core.mjs';
 
 const { SCORES, SCORE_OF, scoreFor } = score;
 const IDS = Object.keys(SCORES);

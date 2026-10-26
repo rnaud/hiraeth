@@ -160,7 +160,17 @@ export const ACTIONS = [
  */
 export const KIT = {};
 export async function loadKit() {
-  const [g, b, m, bu, f, sp, r, l, p] = await Promise.all(['sfx', 'boomerang', 'magnet', 'bubble', 'fan', 'springs', 'recall', 'lens', 'bridge'].map((n) => import(`../../src/gadgets/${n}.js`)));
+  const [g, b, m, bu, f, sp, r, l, p] = await Promise.all([
+    import('../../src/gadgets/sfx.js'),
+    import('../../src/gadgets/boomerang.js'),
+    import('../../src/gadgets/magnet.js'),
+    import('../../src/gadgets/bubble.js'),
+    import('../../src/gadgets/fan.js'),
+    import('../../src/gadgets/springs.js'),
+    import('../../src/gadgets/recall.js'),
+    import('../../src/gadgets/lens.js'),
+    import('../../src/gadgets/bridge.js')
+  ]);
   return Object.assign(KIT, { gadget: g.sfx, boomerang: b.snd, magnet: m.snd, bubble: bu.bubbleSfx, fan: f.fanSfx, springs: sp.springSfx, recall: r.recallSfx, lens: l.lensSfx, pen: p.penSfx });
 }
 

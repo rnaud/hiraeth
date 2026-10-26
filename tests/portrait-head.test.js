@@ -9,7 +9,7 @@ import {buildCharacter} from '../src/player.js';
 import {PORTRAIT_EYES_FAR as EF} from '../src/characters/portrait-head.js';
 import {TalkFace} from '../src/talk-face.js';
 import {markHero} from '../src/materials.js';
-import {readGlb} from '../scripts/tripo/slim-traveller.mjs';
+import {readGlb} from '../scripts/tripo/slim-traveller-core.mjs';
 // (the head the game's traveller wears, B3: src/characters/traveller.js, fitted by B3_HEAD_FIT)
 const assets=await travellerB3();
 const source=assets.head.scene.children.find(o=>o.isMesh),raw=source.geometry.attributes.position;

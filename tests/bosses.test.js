@@ -16,6 +16,7 @@ import { game } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 import { readFileSync } from 'node:fs';
+import {files as templeFiles, loadTempleFile, templeSources} from './temple-modules.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -142,10 +143,6 @@ test('the warden\'s vents keep opening, fight after fight: its sides in the firs
 // screen is one line, NOTICE_CHARS at most (src/temples/boss.js says why 72): its waking, each phase's hint (said as
 // the fight starts and at each change), its openings, its weariness and its end, and every line its own fight's code
 // says (the notice( … ) calls in its temple's file).
-const TEMPLE_FILES = async () => {
-  const { readdirSync } = await import('node:fs');
-  return readdirSync(new URL('../src/temples/', import.meta.url)).filter((f) => f.endsWith('.js') && !/-data|boss|hints|index|kit|logic|migrate|pieces|runtime|guardian/.test(f));
-};
 const plain = (s) => s.replace(/\$\{[^}]*\}/g, '');
 
 test('every guardian notice is one line: its waking, its phase hints, its openings, its end (issue #120)', async () => {
@@ -153,8 +150,8 @@ test('every guardian notice is one line: its waking, its phase hints, its openin
   assert.ok(NOTICE_CHARS >= 60 && NOTICE_CHARS <= 74, 'one line of the notice at the default text size');
   let hints = 0, guardians = 0;
   const long = [];
-  for (const f of await TEMPLE_FILES()) {
-    const m = await import(new URL(`../src/temples/${f}`, import.meta.url));
+  for (const f of templeFiles) {
+    const m = await loadTempleFile(f);
     for (const [name, g] of Object.entries(m)) {
       if (!g || typeof g !== 'object' || !Array.isArray(g.phases)) continue;
       guardians++;
@@ -176,8 +173,8 @@ test('every line a guardian’s fight says on the screen is one line too (the no
   const { NOTICE_CHARS } = await import('../src/temples/boss.js');
   const long = [];
   let n = 0;
-  for (const f of await TEMPLE_FILES()) {
-    const src = readFileSync(new URL(`../src/temples/${f}`, import.meta.url), 'utf8');
+  for (const f of templeFiles) {
+    const src = templeSources().get(f);
     for (let i = src.indexOf('notice'); i >= 0; i = src.indexOf('notice', i + 6)) {
       const j = src.indexOf('(', i);
       if (j < 0 || !/^notice(\?\.)?\s*$/.test(src.slice(i, j))) continue;

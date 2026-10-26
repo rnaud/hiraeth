@@ -3,20 +3,12 @@
 // of every ray, so it scored 2 on landmarks with its great column in sight from every hall.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { readFileSync, rmSync } from 'node:fs';
-import { tempDir } from '../scripts/temp-dirs.mjs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import {measureWorlds} from '../scripts/level-design/measure.mjs';
 
-test('the Underwater City: its column and towers are seen through the glass from the landing and along the path', () => {
-  const out = tempDir('level-glass-');
-  try {
-    const r = spawnSync(process.execPath, ['scripts/level-design/audit.mjs', out, '--worlds', 'underwater'], { encoding: 'utf8', timeout: 180000 });
-    assert.equal(r.status, 0, r.stderr.slice(-400));
-    const w = JSON.parse(readFileSync(join(out, 'report.json'), 'utf8')).worlds[0];
-    assert.ok(w.metrics.landmarks.fromSpawn >= 1, `${w.metrics.landmarks.fromSpawn} landmarks from the landing`);
-    assert.ok(w.metrics.landmarks.seenShare >= 0.9, `${Math.round(w.metrics.landmarks.seenShare * 100)} % of the path sees one`);
-    assert.ok(w.scores.criteria.landmarks.score >= 4, w.scores.criteria.landmarks.from);
-  } finally { rmSync(out, { recursive: true, force: true }); }
+test('the Underwater City: its column and towers are seen through the glass from the landing and along the path', async () => {
+  const {report}=await measureWorlds({worlds:['underwater']});
+  const w=report.worlds[0];
+  assert.ok(w.metrics.landmarks.fromSpawn >= 1, `${w.metrics.landmarks.fromSpawn} landmarks from the landing`);
+  assert.ok(w.metrics.landmarks.seenShare >= 0.9, `${Math.round(w.metrics.landmarks.seenShare * 100)} % of the path sees one`);
+  assert.ok(w.scores.criteria.landmarks.score >= 4, w.scores.criteria.landmarks.from);
 });

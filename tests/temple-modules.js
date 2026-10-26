@@ -1,0 +1,68 @@
+// Lazy temple modules and literal source reads. Completeness is checked by audit-module-inputs.test.js.
+import {readFileSync} from 'node:fs';
+const loaders = {
+  'air.js': () => import('../src/temples/air.js'),
+  'arzach.js': () => import('../src/temples/arzach.js'),
+  'arzach2.js': () => import('../src/temples/arzach2.js'),
+  'attachment.js': () => import('../src/temples/attachment.js'),
+  'bazaar.js': () => import('../src/temples/bazaar.js'),
+  'buried.js': () => import('../src/temples/buried.js'),
+  'desert.js': () => import('../src/temples/desert.js'),
+  'edena.js': () => import('../src/temples/edena.js'),
+  'finale.js': () => import('../src/temples/finale.js'),
+  'garage.js': () => import('../src/temples/garage.js'),
+  'helper-cinematics.js': () => import('../src/temples/helper-cinematics.js'),
+  'helper-encounter.js': () => import('../src/temples/helper-encounter.js'),
+  'helper-threshold.js': () => import('../src/temples/helper-threshold.js'),
+  'house-plan.js': () => import('../src/temples/house-plan.js'),
+  'incal.js': () => import('../src/temples/incal.js'),
+  'landmark-materials.js': () => import('../src/temples/landmark-materials.js'),
+  'landmarks.js': () => import('../src/temples/landmarks.js'),
+  'map-display.js': () => import('../src/temples/map-display.js'),
+  'moonfoundry.js': () => import('../src/temples/moonfoundry.js'),
+  'perdide.js': () => import('../src/temples/perdide.js'),
+  'perdide2.js': () => import('../src/temples/perdide2.js'),
+  'portal.js': () => import('../src/temples/portal.js'),
+  'sfx.js': () => import('../src/temples/sfx.js'),
+  'spacecity.js': () => import('../src/temples/spacecity.js'),
+  'spheres.js': () => import('../src/temples/spheres.js'),
+  'trials.js': () => import('../src/temples/trials.js'),
+  'underwater.js': () => import('../src/temples/underwater.js'),
+  'vistas.js': () => import('../src/temples/vistas.js'),
+};
+export const files = Object.freeze(Object.keys(loaders));
+export function loadTempleFile(file) { if (!Object.hasOwn(loaders,file)) throw Error('Unknown temple: '+file); return loaders[file](); }
+const sources = new Map();
+export function templeSources() {
+  if (!sources.size) for (const file of [
+    'air.js',
+    'arzach.js',
+    'arzach2.js',
+    'attachment.js',
+    'bazaar.js',
+    'buried.js',
+    'desert.js',
+    'edena.js',
+    'finale.js',
+    'garage.js',
+    'helper-cinematics.js',
+    'helper-encounter.js',
+    'helper-threshold.js',
+    'house-plan.js',
+    'incal.js',
+    'landmark-materials.js',
+    'landmarks.js',
+    'map-display.js',
+    'moonfoundry.js',
+    'perdide.js',
+    'perdide2.js',
+    'portal.js',
+    'sfx.js',
+    'spacecity.js',
+    'spheres.js',
+    'trials.js',
+    'underwater.js',
+    'vistas.js',
+  ]) sources.set(file, readFileSync(new URL('../src/temples/'+file,import.meta.url),'utf8'));
+  return new Map(sources);
+}

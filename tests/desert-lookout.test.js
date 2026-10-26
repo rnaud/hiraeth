@@ -84,17 +84,9 @@ test('the red rag’s mast: by the hollow, in sight from the drinking roots thro
 });
 
 test('the level design audit sees the main route into the rival hollow guided by a landmark by it (issue #561)', async () => {
-  const { spawnSync } = await import('node:child_process');
-  const { readFileSync, rmSync } = await import('node:fs');
-  const { join } = await import('node:path');
-  const { tempDir } = await import('../scripts/temp-dirs.mjs');
-  const out = tempDir('level-561-');
-  try {
-    const r = spawnSync(process.execPath, ['scripts/level-design/audit.mjs', out, '--worlds', 'desert'], { encoding: 'utf8', timeout: 180000 });
-    assert.equal(r.status, 0, r.stderr.slice(-400));
-    const rep = JSON.parse(readFileSync(join(out, 'report.json'), 'utf8'));
-    const leg = rep.worlds[0].metrics.guidance.legs.find((l) => l.to === 'The race in the red-rag hollow');
-    assert.ok(leg && ['Nour, the eldest', 'The roots, drinking'].includes(leg.from), 'the incoming leg starts at the actual main-route sending point');
-    assert.ok(leg && leg.seen && leg.how !== 'blind', `the leg is guided (${leg?.how})`);
-  } finally { rmSync(out, { recursive: true, force: true }); }
+  const {measureWorlds} = await import('../scripts/level-design/measure.mjs');
+  const {report:rep}=await measureWorlds({worlds:['desert']});
+  const leg = rep.worlds[0].metrics.guidance.legs.find((l) => l.to === 'The race in the red-rag hollow');
+  assert.ok(leg && ['Nour, the eldest', 'The roots, drinking'].includes(leg.from), 'the incoming leg starts at the actual main-route sending point');
+  assert.ok(leg && leg.seen && leg.how !== 'blind', `the leg is guided (${leg?.how})`);
 });
