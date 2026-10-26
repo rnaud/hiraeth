@@ -33,7 +33,8 @@ test('the engine’s Mother Snapper, outwitted: she strikes at the jangling pend
   const stand = () => { P.teleport(spot, new V(0, 1, 0), new V(1, 0, 0)); P.vel?.set(0, 0, 0); };
   stand();
   P.opts.health = false;
-  assert.ok(run(g, 300, () => { stand(); return G.state === 'fight'; }), `she wakes and listens (${G.state})`);
+  // (her hall's introduction plays first, 7.6 s, then she wakes: src/temples/trial-flow.js, issue #655)
+  assert.ok(run(g, 600, () => { stand(); return G.state === 'fight'; }), `she wakes and listens (${G.state})`);
   assert.ok(run(g, 30 * 15, () => { stand(); return G.attack && G.heardWhy === 'jangle'; }), 'she strikes at a jangling pendulum');
   run(g, 3);
   const fill0 = S.state.guardian?.fill;

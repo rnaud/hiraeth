@@ -26,6 +26,7 @@ export const CHANGELOG = [
         { where: 'the first, at the cairn beside the ship', before: 26, after: 48 },
         { where: 'the second, further down the pilgrims’ road', before: 26, after: 48 },
       ], source: 'FRAGMENT_CARRY in the fragments’ data; tests/fragments.test.js', note: 'The first lies 31 m from the ramp’s foot and 42 m from Marrow, who is asked “What’s that singing out on the sand?”, so before this it was silent from both. Every other fragment still sings within 26 m.' }], see: 'Start a new game (or load one before the first fragment), step down the ramp with sound on and stand still: a faint three-note song comes from behind and to the right, from the stone cairn there.' },
+      { text: "The other twelve makers’ houses now end like the Rose House and the Aerie: walking through the guardian hall’s door plays a short introduction showing its guardian and what is wrong in its hall, then the guardian wakes and the challenge begins. If you are knocked out, walk back in to try again without watching it again. Leave the hall another way, or reload, and the guardian settles, with nothing lost. Winning still plays the house’s ending and changes the world.", see: "In any makers’ house except the Rose House and the Aerie, open the guardian hall’s door and walk in. Watch or skip the two-shot introduction; the guardian wakes as it ends. Get knocked out and walk back in: no introduction. Reload your save mid-fight: the guardian is asleep again, and the introduction plays when you walk back in." },
     ],
   },
 

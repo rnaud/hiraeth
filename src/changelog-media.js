@@ -1367,6 +1367,15 @@ export const CHANGELOG_MEDIA = {
     ]
   },
   {
+    "match": "The other twelve makers’ houses now end like the Rose House and the Aerie",
+    "shots": [
+      { "name": "clock-house-trial-intro", "only": "after", "caption": "The Clock-House’s introduction, first panel: the Foreman asleep in its hall", "from": "Muted headless Chrome (Metal GPU) via scripts/cinematics-qc.mjs on the review page (?cinematicReview=opening.<house>), this branch (before its rebase onto 8d9d0cd6d) on 4a92be1ba plus the #655 trial flow, 25 October 2026, High preset, 1280 × 720 resized to 960. Staged: the traveller placed just inside the guardian hall on its door’s side (as walking through it), the house’s puzzles forced open; not a fresh playthrough.", "view": "After only: before, walking in woke the guardian with a line of text and no film." },
+      { "name": "clock-house-trial-clocks", "only": "after", "caption": "Second panel: a stopped wall clock, what the house’s ending sets going again, with the task’s caption", "from": "Muted headless Chrome (Metal GPU) via scripts/cinematics-qc.mjs on the review page (?cinematicReview=opening.<house>), this branch (before its rebase onto 8d9d0cd6d) on 4a92be1ba plus the #655 trial flow, 25 October 2026, High preset, 1280 × 720 resized to 960. Staged: the traveller placed just inside the guardian hall on its door’s side (as walking through it), the house’s puzzles forced open; not a fresh playthrough.", "view": "After only." },
+      { "name": "lamp-house-trial-lamp", "only": "after", "caption": "The Lamp-House’s second panel: its dark great lamp", "from": "Muted headless Chrome (Metal GPU) via scripts/cinematics-qc.mjs on the review page (?cinematicReview=opening.<house>), this branch (before its rebase onto 8d9d0cd6d) on 4a92be1ba plus the #655 trial flow, 25 October 2026, High preset, 1280 × 720 resized to 960. Staged: the traveller placed just inside the guardian hall on its door’s side (as walking through it), the house’s puzzles forced open; not a fresh playthrough.", "view": "After only." },
+      { "name": "clock-house-trial-begins", "only": "after", "caption": "After the introduction: back behind the traveller, the Foreman awake and its bar up", "from": "Muted headless Chrome (Metal GPU) via scripts/cinematics-qc.mjs on the review page (?cinematicReview=opening.<house>), this branch (before its rebase onto 8d9d0cd6d) on 4a92be1ba plus the #655 trial flow, 25 October 2026, High preset, 1280 × 720 resized to 960. Staged: the traveller placed just inside the guardian hall on its door’s side (as walking through it), the house’s puzzles forced open; not a fresh playthrough.", "view": "After only, 1.5 s after the film ends." }
+    ]
+  },
+  {
     "match": "The Hush-House has a new side room off the Choir",
     "shots": [
       {

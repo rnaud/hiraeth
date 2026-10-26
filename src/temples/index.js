@@ -3,6 +3,7 @@ export { TEMPLE_HOME, templeWorld, addTemple, templeOf, navigationPortal, clearI
 import { helperThreshold } from './helper-threshold.js';
 import { consumeHelperReturn, HELPER_ENCOUNTERS } from './helper-encounter.js';
 import { helperInvitation, helperWorldLease } from './helper-cinematics.js';
+import { guardianTrial } from './trial-flow.js';
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { playFinale } from './finale.js';
@@ -148,6 +149,9 @@ function setupOneTemple(ctx, rt) {
     rt.canStartHelper = threshold.legacyAvailable;
     rt.offs.push(invitation.dispose, threshold.dispose);
   }
+  // the other houses' endings: the guardian's trial behind its door (src/temples/trial-flow.js, endings.js)
+  const trial = !invitation && guardianTrial(rt, { moments, live: ctx.helperLive });
+  if (trial) { rt.holdWake = trial.hold; rt.offs.push(trial.dispose, () => { if (rt.holdWake === trial.hold) rt.holdWake = null; }); }
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({
@@ -213,7 +217,7 @@ function setupOneTemple(ctx, rt) {
   const offAfter = game.on(`flag:temple.${id}.done`, (v) => { if (v) after(); });
   let byTheWay = false;   // its quest started as you passed by (not by arrival, not inside)
   return {
-    rt, people, dispose() { threshold?.dispose(); invitation?.dispose(); offAfter(); },
+    rt, people, dispose() { threshold?.dispose(); invitation?.dispose(); if (trial) { trial.dispose(); if (rt.holdWake === trial.hold) rt.holdWake = null; } offAfter(); },
     update(dt, t) {
       if (!quests?.isStarted?.(Q.id) && ((legacy && near()) || game.flag(`temple.${id}.entered`))) {
         quests.start(Q.id);
@@ -230,6 +234,7 @@ function setupOneTemple(ctx, rt) {
       });
       rt.update(dt, t);
       threshold?.update();
+      if (trial) trial.update(dt);
     },
   };
 }

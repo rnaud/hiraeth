@@ -16,7 +16,11 @@ test('review covers every registered moment, item box and destination without du
   for (const world of [...ORDER, ...SIDE, 'home', 'lantern']) assert.ok(ids.has(`arrival.${world}`));
   // every makers' house's ending, in a group of its own, played in the world the house stands in (the QC of v1.85, #490:
   // the fourteen were off the page, so never reviewed)
-  const endings = CINEMATICS.filter((e) => e.group === 'Temple endings');
+  const endings = CINEMATICS.filter((e) => e.group === 'Temple endings' && !e.opening);
+  // (and the introductions at the special doors of the twelve whose ending is the guardian's trial, #655)
+  const openings = CINEMATICS.filter((e) => e.opening);
+  assert.equal(openings.length, 12);
+  for (const e of openings) { assert.equal(e.id, `opening.${e.temple}`); assert.equal(e.group, 'Temple endings'); }
   assert.deepEqual(endings.map((e) => e.temple).sort(), Object.keys(FINALES).sort());
   assert.equal(endings.length, 14, 'the fourteen houses');
   for (const e of endings) assert.equal(e.id, `finale.${e.temple}`);
@@ -58,10 +62,12 @@ test('imported QC notes merge by date, and the last QC pass\'s notes load and na
   assert.equal(imported.trailer.text, pass.notes.trailer.text);
   const unreviewed = ['arrival.mangrove', 'arrival.waterfall', 'arrival.saltharbour', 'arrival.antennas', 'arrival.eclipse', 'arrival.fallenring', 'arrival.underside'];
   assert.deepEqual([...pass.scope.unreviewed].sort(), [...unreviewed].sort());
-  assert.deepEqual(CINEMATICS.filter(e => !imported[e.id]).map(e => e.id).sort(), [...unreviewed].sort(), 'catalogue entries outside frozen coverage remain unreviewed, never manufactured passes');
+  // (the trial introductions came after the frozen pass, #655: unreviewed there, never manufactured passes)
+  const later = CINEMATICS.filter(e => e.opening).map(e => e.id);
+  assert.deepEqual(CINEMATICS.filter(e => !imported[e.id]).map(e => e.id).sort(), [...unreviewed, ...later].sort(), 'catalogue entries outside frozen coverage remain unreviewed, never manufactured passes');
   for (const id of unreviewed) assert.equal(imported[id], undefined);
   for (const id of retired) assert.deepEqual(imported[id], pass.notes[id], 'retired film evidence survives import unchanged');
-  assert.equal(Object.keys(imported).length - retired.size + unreviewed.length, CINEMATICS.length, 'every current entry is explicitly reviewed or outside the frozen review');
+  assert.equal(Object.keys(imported).length - retired.size + unreviewed.length + later.length, CINEMATICS.length, 'every current entry is explicitly reviewed or outside the frozen review');
   const html = readFileSync(new URL('../cinematics.html', import.meta.url), 'utf8');
   const options = [...html.match(/<select id="verdict">(.*?)<\/select>/s)[1].matchAll(/<option>(.*?)<\/option>/g)].map(m => m[1]);
   assert.deepEqual(options, QC_VERDICTS, 'the review UI can display and preserve every accepted imported status');

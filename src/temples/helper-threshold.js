@@ -1,12 +1,9 @@
 import * as THREE from 'three';
 import { slots } from '../save-slots.js';
 import { HELPER_KEY } from './helper-encounter.js';
-
-// Only these two existing games replace the old guardian interaction.
-export const HELPER_ENTRANCES = {
-  desert: { door: 'd4', upstream: 'd3', needs: ['sword', 'shield', 'gun'] },
-  arzach: { door: 'd3', needs: ['gun', 'glider'] },
-};
+import { HELPER_ENTRANCES } from './endings.js';
+// The doorways of the temples whose ending is a kit minigame (endings.js).
+export { HELPER_ENTRANCES };
 const V = () => new THREE.Vector3();
 const markerKey = id => `temple.${id}.help.entry`;
 const poseOf = p => ({ pos: p.pos.toArray(), up: p.frame.up.toArray(), fwd: p.frame.dir(p.heading, V()).toArray() });

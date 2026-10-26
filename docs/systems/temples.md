@@ -3234,6 +3234,27 @@ device/listening acceptance. The Elder portrait uses current generated body
 bounds at a normal 52-degree lens, excluding unrelated room and reward effects;
 a checked room view remains the fallback if a safe portrait cannot be found.
 
+### Every house's ending: helper or trial (#655, `endings.js`, `trial-flow.js`)
+
+`src/temples/endings.js` is the one table of how each of the fourteen houses ends (design:
+`docs/design/temple-endings.md`). `kind: 'helper'` (the Rose House, the Aerie) is the flow above;
+`HELPER_ENCOUNTERS`, `HELPER_ENTRANCES` and the captions are read from it. `kind: 'trial'` (the other
+twelve) plays the guardian's own fight as the ending game, in its hall (`guardianTrial`, wired by
+`setupOneTemple`):
+
+- the door: stepping into the arena asks `rt.holdWake()` before the guardian wakes (`boss.js update`). The
+  visit's first crossing plays the introduction (`endingOpeningShots`: the guardian, then the subject its
+  completion film shows changed, `FINALES[id].sign`, as it is now; the table's two captions) and the
+  guardian sleeps through it; its end or skip wakes it and its arena door shuts. No stage: it wakes at once.
+- retry: a knock-out resets it to its phase's start (runtime.js); walking back in wakes it with no film.
+- quit: awake, the traveller more than `QUIT_AFTER` s out of the hall (12 m past its rim or behind its door,
+  or out of the house: the last mark, the ship) calls it off: asleep, its door as the puzzles left it, nothing won.
+- reload: nothing of a trial is saved; the next crossing plays the introduction again.
+- win: unchanged (`onBossResolved`: the completion film, the flag, the reward, once).
+
+`tests/temple-trial-flow.test.js` plays it in each of the twelve houses. Unity runs the same JS through the
+engine's story runtime (`engine/`), with the moment stage it uses for the other films.
+
 ## Map chest displays in three houses (#630)
 
 Rose House, Lantern Market and Aerie opt into a 1.5-scale map chest on a

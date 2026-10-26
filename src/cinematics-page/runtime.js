@@ -116,14 +116,26 @@ export async function stageCinematic(w, e) {
       if (id === way.id || id === T.def.arenaDoor || el.type !== 'door' || JSON.stringify(el.opens ?? {}).includes('resolved')) continue;
       L.force(id, true);
     }
-    FINALES[e.temple]?.stage?.(T);   // (the house as play leaves it at its guardian's end: the Engine-House's ball in the teeth, #562)
+    if (!e.opening) FINALES[e.temple]?.stage?.(T);   // (the house as play leaves it at its guardian's end: the Engine-House's ball in the teeth, #562)
     // (set open at once and silent, as they stand long after play opened them one by one: all at once, their clunks and
     // rushes at the film's first second made the Casting-House's ending, with eleven of them, the loudest of the QC, #563)
     T.applyDoors(true);
     const c = G.model.pos, door = way.piece.group.position;
     const dir = V(door.x - c.x, 0, door.z - c.z).normalize();
-    place(c.clone().addScaledVector(dir, Math.min(6, G.arena.r * 0.5)).setY(G.arena.y + 0.1));
-    w.player.heading = Math.atan2(-dir.x, -dir.z);
+    if (!e.opening) {
+      place(c.clone().addScaledVector(dir, Math.min(6, G.arena.r * 0.5)).setY(G.arena.y + 0.1));
+      w.player.heading = Math.atan2(-dir.x, -dir.z);
+    } else {
+      // its introduction (src/temples/trial-flow.js, #655): as you come through its door, just inside the hall's rim
+      // on that side, the keeper asleep; the trial's gate is asked as the guardian would ask it
+      const d = T.piece(T.def.arenaDoor)?.group?.getWorldPosition(V()) ?? door;
+      const to = V(d.x - c.x, 0, d.z - c.z).normalize();
+      place(G.arena.center.clone().addScaledVector(to, G.arena.r - 2.5).setY(G.arena.y + 0.1));
+      w.player.heading = Math.atan2(-to.x, -to.z);
+      await settle(); await settle();
+      T.holdWake?.();
+      return w.storyRt.moments.current?.id === `temple.${e.temple}.trial.opening`;
+    }
     await settle(); await settle();
     G.wake(); G.resolve();
     ok = w.storyRt.moments.current?.id === `temple.${e.temple}.finale`;

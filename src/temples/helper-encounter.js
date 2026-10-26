@@ -1,11 +1,9 @@
 import { slots } from '../save-slots.js';
-// The two helping encounters keep arcade scores separate from story completion.
+import { HELPER_ENCOUNTERS } from './endings.js';
+export { HELPER_ENCOUNTERS };
+// The helping encounters (endings.js: the temples whose ending is a kit minigame) keep arcade scores separate from story completion.
 // This record lives in GameState, hence in the selected save slot. A URL alone
 // cannot award progress: its token must match a started encounter and a goal result.
-export const HELPER_ENCOUNTERS = {
-  desert: { game: 'cistern', prompt: 'help the Keeper', returnLabel: 'Return to the Keeper' },
-  arzach: { game: 'elderflight', prompt: 'fly with the Elder', returnLabel: 'Return to the Aerie' },
-};
 export const HELPER_KEY = 'temple.helper.pending';
 const SERIAL_KEY = 'temple.helper.serial';
 const runOwners = new WeakMap();

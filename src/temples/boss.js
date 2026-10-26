@@ -773,7 +773,8 @@ export class Guardian {
     this.t += dt; this._dt = dt;
     let speed = 0;
     const inArena = P && Math.hypot(P.pos.x - A.center.x, P.pos.z - A.center.z) < A.r - 1.5 && Math.abs(P.pos.y - A.y) < 6;
-    if (this.state === 'sleep' && inArena && !P.dead) this.wake();
+    // (a temple whose ending is a trial plays its introduction first: the guardian sleeps through it, trial-flow.js)
+    if (this.state === 'sleep' && inArena && !P.dead && !this.rt.holdWake?.()) this.wake();
     if (this.state === 'wake' && this.t > (this.def.wakeTime ?? 3)) { this.enter('fight'); this.rt.notice?.(this.def.phases[0].hint); }
     if (this.state === 'shift') { if (P) this.face(dt, this.listen ?? P.pos, 1); if (this.t > (this.def.shiftTime ?? SHIFT)) this.enter('fight'); }
     if (this.state === 'fight' || this.state === 'open') speed = this.fight(dt, t, P);
