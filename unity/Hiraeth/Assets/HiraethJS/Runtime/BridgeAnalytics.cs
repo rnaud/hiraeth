@@ -15,8 +15,8 @@ namespace Hiraeth.Bridge
         static BridgeAnalytics instance;
         public static bool Allowed => !Application.isEditor && !Application.isBatchMode && !Debug.isDebugBuild && BridgeUpdates.Enabled
             && (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.LinuxPlayer);
-        [Serializable] class Message { public bool enabled, hasValue; public string build, type, status, category, name; public float value; }
-        [Serializable] class Event { public string id, type, status, category, name; public long at; public bool hasValue; public double value; }
+        [Serializable] class Message { public bool enabled, hasValue; public string build, type, status, category, name; public float value; public int model, worlds, milestones; }
+        [Serializable] class Event { public string id, type, status, category, name; public long at; public bool hasValue; public double value; public int model, worlds, milestones; }
         [Serializable] class Envelope { public int v = 1; public string installation, session, platform, build; public Event[] events; }
         sealed class Pending { public Event item; public string session, build; }
         readonly List<Pending> queue = new List<Pending>();
@@ -66,6 +66,12 @@ namespace Hiraeth.Bridge
                 e.category = message.category; e.status = message.status; e.hasValue = message.hasValue;
                 e.value = message.hasValue && !float.IsNaN(message.value) && !float.IsInfinity(message.value)
                     ? Math.Round(Math.Clamp((double)message.value, int.MinValue, int.MaxValue)) : 0;
+            }
+            else if (message.type == "progress" && Id(message.name) && message.model == 1
+                && message.worlds >= 0 && message.worlds <= 100 && message.milestones >= 0 && message.milestones <= 15)
+            {
+                // The shared server contract computes the percentage; native forwards only bounded counters.
+                e.model = message.model; e.worlds = message.worlds; e.milestones = message.milestones;
             }
             else if (message.type == "design" && message.name != null && message.name.StartsWith("Loading:World:") && Id(message.name.Substring(14))
                 && !float.IsNaN(message.value) && !float.IsInfinity(message.value) && message.value >= 0 && message.value <= 3600000) e.value = Math.Round(message.value);

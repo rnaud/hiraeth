@@ -39,7 +39,8 @@ test('reports require the real private notebook cookie; collection never grants 
   const login = await handleIssues(new Request(`${origin}/api/notes/session`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'test-only' }) }), env);
   const cookie = login.headers.get('Set-Cookie').split(';')[0];
   assert.equal((await handleAnalytics(request('report?platform=linux&days=30', null, { Cookie: cookie }), env)).status, 200);
-  assert.deepEqual(calls[0].data, { days: 30, platform: 'linux', build: '' });
+  assert.deepEqual(calls[0].data, { days: 30, platform: 'linux', build: '', playerPage: 0, playerSort: 'recent' });
+  for (const query of ['playerPage=-1', 'playerPage=NaN', 'playerPage=0.5', 'playerSort=sql']) assert.equal((await handleAnalytics(request(`report?${query}`, null, { Cookie: cookie }), env)).status, 400);
   assert.equal((await handleAnalytics(request('report?days=999', null, { Cookie: cookie }), env)).status, 400);
   assert.equal((await handleAnalytics(request('report', null, { Cookie: cookie + 'x' }), env)).status, 401);
 });

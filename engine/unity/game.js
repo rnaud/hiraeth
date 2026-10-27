@@ -506,6 +506,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     .then((game) => {
       S.game = game;
       S.analytics?.ready();
+      S.analytics?.play();
       // (built: what is left is Unity's own first frame, its pipelines for this world's look; the bar full once it has played)
       if (S.loadingWorld) host.LoadProgress?.(loadShare('mixing', 'surfaces'), LOAD_WHY.surfaces);
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)

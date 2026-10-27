@@ -1,11 +1,13 @@
 // Shared wire contract: pure and independent of worlds, UI, SDKs and storage.
 import { progression, loading } from './events.js';
+import { storyProgress } from './progress.js';
 export const ANALYTICS_ENDPOINT = 'https://hiraeth.alexandria-rnaud.workers.dev/api/analytics/events';
 export const randomId = () => crypto.randomUUID().replaceAll('-', '');
 export const validId = v => typeof v === 'string' && /^[a-f0-9]{32}$/.test(v);
 export const validBuild = v => typeof v === 'string' && /^[a-zA-Z0-9_.-]{1,48}$/.test(v);
 export function cleanEvent(e) {
   if (!e || typeof e !== 'object') return null;
+  if (e.type === 'progress') return e.model === 1 ? storyProgress(e.name, e.worlds, e.milestones, e.model) : null;
   if (e.type === 'progression') return progression(e.status, e.category, e.name, e.hasValue === false ? undefined : e.value);
   if (e.type === 'design' && typeof e.name === 'string' && e.name.startsWith('Loading:World:')) {
     return e.value <= 3600000 ? loading(e.name.slice(14), e.value) : null;
