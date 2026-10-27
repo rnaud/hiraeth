@@ -22,6 +22,10 @@ namespace Hiraeth.Bridge
     public static class BridgeHost
     {
         public static BridgeRunner Runner;
+        // Optional analytics capability. Older players lack these calls; their script adapter is a no-op.
+        public static bool AnalyticsAllowed() => Ask(() => BridgeAnalytics.Allowed);
+        public static void Analytics(string kind, string payload) => On(() => BridgeAnalytics.Receive(kind, payload));
+
         static BridgeRenderer R => (object)Runner != null ? Runner.scene : null;
 
         // ---------------------------------------------------------------- the script's thread and the main one

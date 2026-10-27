@@ -9,6 +9,7 @@ export const pads = [];
 
 globalThis.__HIRAETH_HOST__ = {
   engine: 'unity',
+  analytics: (kind, payload) => { try { H.Analytics?.(kind, payload); } catch { /* older player */ } },
   now: () => H.Now(),
   readFile: (path) => H.ReadFile(path) ?? null,
   storage: {

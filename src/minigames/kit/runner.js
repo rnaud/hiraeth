@@ -183,6 +183,7 @@ export class MinigameRunner {
 
   // ---------------------------------------------------------------- the run
   begin() {
+    this.host.state?.emit?.('minigame:attempt', { id: this.def.id, status: 'Start' });
     this.closeCard();
     this.phase = 'count';
     this.countT = COUNT.step * COUNT.from;
@@ -225,6 +226,7 @@ export class MinigameRunner {
     this.result = { value, failed, title, lines, html, wide, chimes, prize, ...kept, ...(goal ? { goal: { game: goal.game, complete: goal.complete === true } } : {}) };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
     if (failed) this.fails = (this.fails ?? 0) + 1;
     this.host.onResult?.(this.result);   // (a host that keeps more than the best: the pirates between worlds mark the trip won)
+    this.host.state?.emit?.('minigame:attempt', { id: this.def.id, status: failed ? 'Fail' : 'Complete', score: value });
     this.phase = 'finishing';
     this.doneT = FINISH_WAIT;
     if (failed) this.sfx.lose(); else this.sfx.finish();

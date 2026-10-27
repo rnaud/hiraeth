@@ -4,6 +4,8 @@
 // BridgeRunner.cs loads this bundle and calls start(args) once and frame(dt) every frame; a batch
 // run (BridgeBatch.cs, scripts/unity-export/unity-batch.sh BridgeBatch.Run) passes its plan in args.
 import { pads, host, toHost } from './host.js';
+import { trackSession } from '../../src/analytics/session.js';
+import { unityTransport } from '../../src/analytics/unity.js';
 // (the mirror's change notices, before anything is made: engine/mirror-notices.js, issue #455)
 import './notices-on.js';
 import { createGame, makeSound } from '../game.js';
@@ -145,7 +147,10 @@ export function start(argsJson) {
   // (-screen 960x720: the whole run on a screen of that shape, the Retroid's 4:3: its menus, its shots; issue #264)
   const [sw, sh] = String(args.screen ?? '').split('x').map(Number);
   if (sw > 0 && sh > 0) host.ScreenAs?.(sw, sh);
-  if (planned(args)) { launch(args); return; }
+  if (planned(args)) {
+    try { host.Analytics?.('enabled', '{"enabled":false}'); } catch { /* older player */ }
+    launch(args); return;
+  }
   // played: the title first (engine/menus.js; src/title.js on the web), the world loaded once a save is chosen; a reboot
   // (Quit to title onto another save, Travel here: BridgeRunner.Reboot) comes back with its choice made (`boot`)
   const settings = new Settings();
@@ -291,6 +296,12 @@ function begin(choice) {
     return;
   }
   S.slot = slot;
+  S.analytics?.dispose();
+  let analyticsAllowed = false;
+  try { analyticsAllowed = slots.active !== DEBUG_SLOT && host.AnalyticsAllowed?.() === true; } catch { /* older player */ }
+  if (!analyticsAllowed) { try { host.Analytics?.('enabled', '{"enabled":false}'); } catch { /* older player */ } }
+  S.analytics = trackSession({ game: gameState, settings: S.settings, world: game ? null : level, allowed: analyticsAllowed,
+    loadTransport: async () => unityTransport(globalThis.__HIRAETH_HOST__, String(VERSION)) });
   S.titleSound?.menuMusic(false);   // (the title's music fades as the world loads, as the page's does before it goes)
   launch({ ...S.args, level }, { start, arrive, via, prologue, game, came, transit, back });
 }
@@ -494,6 +505,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     traveller: args.traveller ? { on: args.traveller === 'v2', outfit: args.outfit ?? null } : null })
     .then((game) => {
       S.game = game;
+      S.analytics?.ready();
       // (built: what is left is Unity's own first frame, its pipelines for this world's look; the bar full once it has played)
       if (S.loadingWorld) host.LoadProgress?.(loadShare('mixing', 'surfaces'), LOAD_WHY.surfaces);
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)

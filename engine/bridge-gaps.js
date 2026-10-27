@@ -129,6 +129,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ page elements (HTML) the game builds
   dom: [
+    { keys: ['src/analytics-page/main.js', 'src/admin/main.js'], count: { 'src/analytics-page/main.js': 14, 'src/admin/main.js': 2 }, what: 'private administration and analytics reporting', status: 'web-only', why: 'site-only author tools; native players send to the same dataset but do not render admin pages' },
     { keys: ['src/effect-loading.js'], count: { 'src/effect-loading.js': 6 }, what: 'recoverable sound recording load failure and Retry / Back controls', status: 'handled', where: 'engine/unity/game.js catches SoundEffectsLoadError; EngineMenus.showSoundLoadFailure supplies the native title-menu Retry and Back actions before gameplay is ready' },
     { keys: ['src/sfx-trace.js'], count: { 'src/sfx-trace.js': 2 }, what: 'optional sound-effect source panel', status: 'handled', where: 'shared screen.sfxTrace state, BridgeHud.SoundSources.cs; actual muted Editor recording, procedural, loop, stop and mute views checked for #619' },
     // gaps
@@ -176,6 +177,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ host wiring: main.js against engine/game.js (also #427's list)
   host: [
+    { keys: ['import:src/analytics/start-web.js#startWebAnalytics'], what: 'optional gameplay statistics', status: 'handled', where: 'engine/unity/game.js uses the same trackSession/event vocabulary through BridgeAnalytics and the shared Hiraeth HTTPS collector; older players omit collection safely' },
     { keys: ['import:src/effect-loading.js#prepareSoundWithRetry'], what: 'strict recording preparation and recoverable loading failure', status: 'handled', where: 'engine/game.js awaits Sound.prepareEffects before building the world; engine/unity/game.js presents EngineMenus.showSoundLoadFailure and retries the complete load with retryEffects' },
     // gaps
     { keys: ['import:src/motion-match.js#loadMotionLibrary'], what: 'the traveller\'s captured moves and the people\'s own walks; motion matching\'s database (only with matching switched on)', status: 'handled',

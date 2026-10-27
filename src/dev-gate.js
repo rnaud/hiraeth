@@ -9,9 +9,9 @@
 
 export const DEV_KEY = 'hiraeth.dev';
 
-// For now (2026-10-08, the author's call) everyone sees the debug entries, the published game too.
-// Set false to hide them from players again; the switches above then decide.
-export const ALWAYS_DEV = true;
+// Public play starts clean. Admin links deliberately open developer tools with ?dev=1.
+// This is presentation gating, never authorization for private server data.
+export const ALWAYS_DEV = false;
 
 const env = () => { try { return import.meta.env ?? {}; } catch { return {}; } };
 const defaultStorage = () => { try { return globalThis.localStorage ?? null; } catch { return null; } };

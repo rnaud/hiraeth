@@ -1190,3 +1190,12 @@ less 24 px; the author: "Why is it so narrow and with so little padding?") with 
 picture, 1.2em between it and the words), its CSS in `src/hud-styles/box-card.js`. It keeps the enamel panel of every other card. `cardState` carries the item's `id`;
 Unity draws the picture from `BridgeMenu.Picture(id)`, the prompts with `BridgeHud.CardPrompt` (BridgeHud.Hints.cs) on
 the box card, the knock-out and the game card (BridgeMenu.cs).
+
+
+### Public title and administration
+
+The web title keeps play, saves, settings and fullscreen. Its changelog and Debug
+entrypoints are in `/admin/` (see `analytics.md`), protected by the notebook
+password. `src/dev-gate.js` defaults developer entries off in production; explicit
+dev mode and local builds still expose development tools. The native title already
+uses play/saves/settings and its native update control.

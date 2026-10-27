@@ -2,6 +2,8 @@ import { fileURLToPath } from 'node:url';
 
 /** The pages built (tests/studio.test.js checks the studio is one, tests/motion-page.test.js the Motion page). */
 export const BUILD_INPUT = {
+  admin: fileURLToPath(new URL('../admin/index.html', import.meta.url)),
+  analytics: fileURLToPath(new URL('../analytics.html', import.meta.url)),
   'caravan-review': fileURLToPath(new URL('../caravan-review.html', import.meta.url)),
   notes: fileURLToPath(new URL('../notes.html', import.meta.url)),
   cinematics: fileURLToPath(new URL('../cinematics.html', import.meta.url)),

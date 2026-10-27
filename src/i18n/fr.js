@@ -4,6 +4,9 @@
 // Le joueur est vouvoyé ; les menus sont à l'infinitif.
 
 export const FR = {
+  'set.analytics': 'Partager les statistiques de jeu',
+  'set.analyticsNote': 'Hiraeth reçoit la progression, les résultats, les temps de chargement et un identifiant aléatoire pour améliorer Hiraeth. Désactivez cette option pour arrêter la collecte.',
+
   // ---------------------------------------------------------------- le menu Pause
   'menu.paused': 'PAUSE',
   'menu.resume': 'Reprendre',

@@ -42,6 +42,7 @@ import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
 import { fastTravel } from './fast-travel.js';
+import { startWebAnalytics } from './analytics/start-web.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
@@ -330,6 +331,9 @@ const minigameDef = gameById(query.get('game'));
 let minigame = null;
 const meta = minigameDef ? levelMetaFor(minigameDef, levelById) : levelById(levelParam) ?? levelById(resumeId) ?? LEVELS[0];
 const levelId = meta.id;
+const analytics = startWebAnalytics({ game, settings, world: minigameDef ? null : levelId,
+  debugSlot: slots.active === DEBUG_SLOT, location, build: String(typeof __HIRAETH_BUILD__ !== 'undefined' ? __HIRAETH_BUILD__.build ?? VERSION : VERSION) });
+window.addEventListener('pagehide', () => analytics.dispose(), { once: true });
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
 // B3 or the v2 rebuild (the debug switch, characters/traveller-v2.js; not on the outfits page, which dresses him itself)
@@ -2816,6 +2820,7 @@ const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: 
   busy: () => !!blades.grass?.placing });
 loadWatch.stop();
 // loaded behind the title (src/title-hold.js): here it waits for its save to be chosen there
+analytics.ready(); // measure world construction before waiting for the player's title choice
 if (titleHold) { titleHold.arrive(); await titleHold.go; sound.startIfAllowed(); }
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {

@@ -1,4 +1,5 @@
 import { store } from './platform.js';
+import { DEFAULT_ANALYTICS } from './analytics/events.js';
 import { VERSION } from './version.js';
 import { confirmKey, backKey } from './native-pad.js';
 import { PAD, PAD_VERBS, KEYS, BUTTON_NAME, PAD_SCHEME } from './bindings.js';
@@ -33,6 +34,7 @@ export const isDeckApp = globalThis.location?.protocol === 'hiraeth:';
 export const isXboxApp = onXbox();
 
 const DEFAULTS = {
+  analytics: DEFAULT_ANALYTICS, // optional gameplay metrics; previews/tests never submit
   quality: isNativeApp ? 'handheld' : isXboxApp || isDeckApp || isTouch ? 'auto' : 'high',   // auto | handheld | deck | xbox | low | medium | high
   sensitivity: 1,
   invertY: false,
@@ -366,6 +368,8 @@ export class SettingsMenu {
           ${row(t('set.piratePitch'), opts('piratePitch', ['auto', 'dive', 'climb']), ' data-pirates hidden')}
           ${row(t('set.hints'), opts('hints', HINT_LEVELS))}
           ${row(t('set.droneHints'), opts('droneHints', DRONE_HINTS))}
+          ${row(t('set.analytics'), `<input data-k="analytics" type="checkbox">`)}
+          <p class="set-note">${t('set.analyticsNote')}</p>
           ${game ? `<div class="danger">
             <button data-a="reset">${t('set.reset')}</button>
             <div class="ask" hidden><span>${t('set.resetAsk')}</span>

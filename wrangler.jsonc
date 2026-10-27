@@ -6,19 +6,20 @@
   "workers_dev": true,
   "preview_urls": false,
   "ratelimits": [
+    { "name": "ANALYTICS_LIMITER", "namespace_id": "17291003", "simple": { "limit": 60, "period": 60 } },
     { "name": "NOTES_LOGIN_LIMITER", "namespace_id": "17291001", "simple": { "limit": 5, "period": 60 } },
     { "name": "NOTES_WRITE_LIMITER", "namespace_id": "17291002", "simple": { "limit": 30, "period": 60 } }
   ],
   // The notebook's screenshot drafts (docs/systems/notes.md "Screenshot drafts"): one SQLite Durable Object,
   // created by the deploy itself (no namespace to make by hand; the free plan has SQLite Durable Objects).
-  "durable_objects": { "bindings": [{ "name": "NOTES_DRAFTS", "class_name": "NotesDrafts" }] },
-  "migrations": [{ "tag": "notes-drafts-v1", "new_sqlite_classes": ["NotesDrafts"] }],
+  "durable_objects": { "bindings": [{ "name": "NOTES_DRAFTS", "class_name": "NotesDrafts" }, { "name": "ANALYTICS", "class_name": "HiraethAnalytics" }] },
+  "migrations": [{ "tag": "notes-drafts-v1", "new_sqlite_classes": ["NotesDrafts"] }, { "tag": "analytics-v1", "new_sqlite_classes": ["HiraethAnalytics"] }],
   // Large update archives stream from bounded assets; the game stays static.
   // Keep all three HTML entry points; missing assets must remain real 404s.
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/updates/web-*.zip", "/updates/unity-*.zip", "/api/notes/*"],
+    "run_worker_first": ["/updates/web-*.zip", "/updates/unity-*.zip", "/api/notes/*", "/api/analytics/*", "/api/admin/*"],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
   }

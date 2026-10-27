@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.32 — 2026-10-27
+
+- Gameplay statistics help us find difficult quests, minigames and slow-loading worlds. Sharing is on by default; you can turn it off in Settings. The browser version and updated Unity apps send to our own analytics service, with a random device identifier and no save contents or dialogue.
+- The web title screen is simpler: What’s changed and world-debug shortcuts now live in the password-protected admin hub. Developer entries are hidden by default.
+
 ## v2.31 — 2026-10-26
 
 - Setting off sideways just after a stop is smoother: the traveller's first stride now starts on the foot that fits how he is standing, so his back foot no longer drags along the ground and his leg no longer flicks straight as he speeds up into a jog.

@@ -8,8 +8,8 @@ import { PAGES } from '../src/world-picker.js';
 import { BUILD_INPUT } from '../scripts/build-input.mjs';
 
 const html = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
-// (the pages built besides the game itself; the worlds list's pages are among them)
-const DEBUG_PAGES = [...new Set([...PAGES.map((p) => p.href), ...Object.values(BUILD_INPUT).map((p) => p.split('/').pop()).filter((f) => f !== 'index.html')])];
+// The admin hub and analytics use their private navigation; game/debug pages retain their Debug return link.
+const DEBUG_PAGES = [...new Set([...PAGES.map((p) => p.href), ...Object.values(BUILD_INPUT).map((p) => p.split('/').pop()).filter((f) => !['index.html', 'analytics.html'].includes(f))])];
 
 test('every page the Debug menu opens carries the button back to it', () => {
   assert.ok(DEBUG_PAGES.length >= 7, DEBUG_PAGES.join(', '));
