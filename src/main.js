@@ -23,6 +23,7 @@ import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { quietOr } from './hint-level.js';
 import { Cue } from './hud.js';
 import { cueText, PlaceName, staminaHud, findSummary, keysHud } from './hud-state.js';
+import { staminaSvg } from './hud-look.js';
 import { heartsSvg, KEY_SVG, GREAT_KEY_SVG } from './hud-view.js';
 import { resources } from './resources.js';
 import { screen } from './platform.js';
@@ -493,7 +494,9 @@ window.addEventListener('keydown', (e) => {
 }, true);
 // the stamina wheel (index.html #stamina, src/stamina.js): beside the traveller, on the screen,
 // while it isn't full and a moment after; red while winded
-const stEl = document.getElementById('stamina'), stArc = stEl?.querySelector('.arc');
+const stEl = document.getElementById('stamina');
+if (stEl) stEl.innerHTML = staminaSvg();   // (the enamel ring, nothing in its middle: src/hud-look.js STAMINA_RING, issue #710)
+const stArc = stEl?.querySelector('.arc');
 let stShown = 0, stLast = -1;
 const _stP = new THREE.Vector3(), _stR = new THREE.Vector3();
 function updateStamina(dt) {

@@ -26,6 +26,8 @@
 // heartslow  three quarters of one heart left: low, the last one warmer and pulsing
 // potions    two potions in the pack (a count, not the endless stock), a heart and a half gone
 // potionsnone none left: the flask faded, 0
+// staminafull..staminawinded  the stamina wheel beside the traveller, held: all but full (0.994), part spent (0.6), low (0.2),
+//            winded (0.3, red, the "!"): its spending and resting stopped while it is up (issue #710)
 // shop       Haddu's shop in the desert (src/shop-panel.js on the page, engine/menus.js shopView in an engine), its
 //            first ware asked about after a moment (shopask)
 
@@ -42,6 +44,7 @@ import { ITEMS } from '../src/items.js';   // (the box card's pose: a real item,
 export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', credits: 'desert', breath: 'underwater', arcade: 'arcade', shop: 'desert', shopask: 'desert',
   magic: 'desert', magicshort: 'desert', magicfull: 'desert', magicempty: 'desert', mode: 'desert', aim: 'desert', jump: 'desert',
   charge: 'desert', voicemail: 'desert', restart: 'desert', boxcard: 'desert', boxcardlong: 'desert', chips: 'desert', toast: 'desert',
+  staminafull: 'desert', staminapart: 'desert', staminalow: 'desert', staminawinded: 'desert',
   hearts0: 'desert', hearts1: 'desert', hearts2: 'desert', hearts3: 'desert', hearts4: 'desert', heartslow: 'desert', potions: 'desert', potionsnone: 'desert' };
 /** The pieces a host poses by holding a key while they are up: the aim (KeyR, src/bindings.js KEYS.aim). */
 export const UI_KEYS = { aim: 'KeyR' };
@@ -51,6 +54,8 @@ const HOLD = [
   { kind: 'song', name: 'The ferryman’s tune', level: 'arzach', text: 'Four notes, the last one held.' },
   { kind: 'item', name: 'Backpack', text: 'Carries the fluid tool and whatever you find.' },
 ];
+/** The stamina wheel's poses: [stamina, winded]. */
+export const STAMINA_POSE = { staminafull: [0.994, false], staminapart: [0.6, false], staminalow: [0.2, false], staminawinded: [0.3, true] };
 let held = null, undo = null;
 
 export function uiPose(ctx, piece) {
@@ -66,6 +71,14 @@ export function uiPose(ctx, piece) {
     player.pos.copy(up);
     undo = () => { player.update = update; player.teleport?.(at, player.frame.up, player.frame.fwd); };
     return 'held up';
+  }
+  if (STAMINA_POSE[piece]) {
+    // (each frame put back where it is put after his update: nothing spends or rests it while it is up)
+    const [k, winded] = STAMINA_POSE[piece], was = { k: player.stamina, w: player.winded }, update = player.update;
+    player.update = function (...a) { const r = update.apply(this, a); this.stamina = k; this.winded = winded; this._staminaRest = -1e12; return r; };
+    player.stamina = k; player.winded = winded; player._staminaRest = -1e12;
+    undo = () => { player.update = update; player.stamina = was.k ?? 1; player.winded = !!was.w; player._staminaRest = Infinity; };
+    return `${k}${winded ? ' winded' : ''}`;
   }
   if (/^hearts[0-4]$|^heartslow$|^potions/.test(piece)) {
     // (the hearts held where they are put: their slow mending after a fall waits on hurtAt; the potions in the pack as a

@@ -1157,7 +1157,8 @@ journal, the sketch hunt's list) and `enamelStrip()` (a strip: the skip tags, a 
 sketch hunt's reading, the drums' socket keys, the gadget wheel's name); index.html (the knock-out card, the balloons)
 and `src/minigames/kit/minigames.css` (the start, pause and results cards, the clock and score, the flashes, the 3-2-1)
 use the variables. The charge keeps its single line (issue #222) with the ✦ in a column of its own behind a fine divider;
-the plain speech setting keeps black and white. Gauges (the fishing meter, the hearts, the magic bar, the stamina wheel),
+the plain speech setting keeps black and white. Gauges (the fishing meter, the hearts, the magic bar, the stamina wheel: since
+issue #710 an enamel ring of its own, `STAMINA_RING`, docs/systems/movement.md),
 the region's name lettered on the land (C's own exception), the sketch hunt's viewfinder and full-screen menus are not
 messages and keep their looks.
 

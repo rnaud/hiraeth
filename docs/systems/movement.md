@@ -474,11 +474,22 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   (`out`). Listed: the Overnight Train's porch
   ladders (`porch().ladder`), the Moon Foundry's cage ladders up its pillars (`pillar().ladders`),
   the Bazaar's antenna mast rungs (`market-air.js` `ladders`). Walls cost what they did.
-- **The stamina wheel** (`#stamina` in index.html, `updateStamina` in main.js): a small inked ring
-  beside the traveller's shoulders (projected each frame), paper and ink with an offset shadow,
-  the arc green while it fills and red, pulsing, while winded. It shows only while the stamina
+- **The stamina wheel** (`#stamina` in index.html, `updateStamina` in main.js): a small ring
+  beside the traveller's shoulders (projected each frame). It shows only while the stamina
   isn't full (and a moment after), never while riding, talking or in a scene. The HUD's text
-  gauges for climbing and stamina are gone.
+  gauges for climbing and stamina are gone. Since issue #710 ("the stamina wheel is white in the
+  middle on web but I would expect that part to be transparent? also on unity the stamina wheel
+  doesn't look the same?") it is the enamel HUD's ring with **nothing in its middle**: one spec,
+  `src/hud-look.js` `STAMINA_RING` (a 34 px box: a charcoal band from 9.5 to 15.5 px out, the hints'
+  `rgba(22, 23, 23, 0.96)`, a 1.2 px brass hairline on each side of it, the gauge 3.6 px wide at
+  12.5 px in the enamel turquoise filled clockwise from the top, winded the enamel red pulsing to
+  its gold every 0.7 s with a "!" beside it, the enamel's soft shadow as a drop-shadow). The page
+  builds its SVG from it (`staminaSvg`); Unity (BridgeHud.cs `StaminaRing`, `RingSprite`: the band
+  and hairlines, the gauge's annulus as a radially filled Image, the shadow, made as textures from
+  the same numbers) draws the same, where it drew a gold radial pie on a faint disc
+  (counter-clockwise) and no "!". `tests/stamina-ring.test.js` checks the SVG paints nothing inside
+  the band and that BridgeHud.cs holds the spec's numbers. Pictures: `-ui staminafull,staminapart,
+  staminalow,staminawinded` (engine/ui-poses.js `STAMINA_POSE`, the stamina held).
 - **The world's edge** (`src/edge.js`). Each world is held within ±`limit` m (`Player` opts, the
   level's `limit`); the old clamp left the velocity alone, so the traveller ran on the spot and
   stuttered. `keepInside` now takes the outward velocity away, so you stop or slide along the edge

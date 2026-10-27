@@ -28,7 +28,7 @@ namespace Hiraeth.Bridge
         Ui.Box prompt; Image promptKey; Label promptKeyText, promptText;
         Ui.Box health; Image healthFill, healthEdge;
         Ui.Box keys; Label keysText;
-        RectTransform wheel; Image wheelRing, wheelFill;
+        RectTransform wheel; Image wheelShadow, wheelFace, wheelFill; Label wheelBang;
         RectTransform dlg; Ui.Box dlgPanel; Sketch dlgLines, dlgMore; RectTransform chip; Image chipFill; Label chipLetter; RawImage chipPhoto;
         Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText, dlgAction; Badge dlgAdvance;
         readonly List<(Ui.Box box, Label num, Label text, Image line)> dlgChoices = new();
@@ -106,11 +106,19 @@ namespace Hiraeth.Bridge
             keysGlyph = Ui.Node("glyphs", keys.rt).gameObject.AddComponent<Sketch>(); keysGlyph.raycastTarget = false;
             keysText = Ui.Label(keys.rt, "text", Ui.Sans, 20, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             { var o = keysText.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Hex("#fffaf0"); o.effectDistance = new Vector2(1.5f, -1.5f); }   // (the page's cream glow round ×N)
+            // the stamina wheel (src/hud-look.js STAMINA_RING, issue #710): the enamel ring, its soft shadow under it, the gauge
+            // in the band, nothing in its middle; the "!" beside it while winded (index.html #stamina.winded::after)
             wheel = Ui.Node("stamina", root);
-            wheelRing = Ui.Fill(wheel, Ui.Hex("#2b211f", 0.25f), 0, "ring"); wheelRing.sprite = Ui.Round(32);
-            wheelFill = Ui.Fill(wheel, Ui.Gold, 0, "fill"); wheelFill.sprite = Ui.Round(32);
-            wheelFill.type = Image.Type.Filled; wheelFill.fillMethod = Image.FillMethod.Radial360; wheelFill.fillOrigin = (int)Image.Origin360.Top; wheelFill.fillClockwise = false;
-            Ui.Stretch(wheelFill.rectTransform, 3, 3, 3, 3);
+            wheelShadow = Ui.Rect(wheel, new Color(0, 0, 0, StaminaRing.ShadowAlpha), 0, "shadow"); wheelShadow.sprite = RingSprite("shadow");
+            wheelFace = Ui.Rect(wheel, Color.white, 0, "ring"); wheelFace.sprite = RingSprite("face");
+            wheelFill = Ui.Rect(wheel, HintAccent, 0, "gauge"); wheelFill.sprite = RingSprite("arc");
+            wheelFill.type = Image.Type.Filled; wheelFill.fillMethod = Image.FillMethod.Radial360; wheelFill.fillOrigin = (int)Image.Origin360.Top; wheelFill.fillClockwise = true;
+            { float h = StaminaRing.Size / 2, p = StaminaRing.Box / 2;
+              Ui.Place(wheelShadow.rectTransform, h - p, h - p + StaminaRing.ShadowDy, 2 * p, 2 * p);
+              Ui.Place(wheelFace.rectTransform, h - p, h - p, 2 * p, 2 * p); Ui.Place(wheelFill.rectTransform, h - p, h - p, 2 * p, 2 * p); }
+            wheelBang = Ui.Label(wheel, "winded", Ui.SansHeavy, 14, EnBad, TextAnchor.UpperLeft, Ui.SansHeavyStyle, 1f); wheelBang.text = "!";
+            { var o = wheelBang.gameObject.AddComponent<Outline>(); o.effectColor = new Color(22 / 255f, 23 / 255f, 23 / 255f, 0.9f); o.effectDistance = new Vector2(1f, -1f); }
+            Ui.Place(wheelBang.rectTransform, StaminaRing.Size + 1, -4, 14, 20);
             wordsRoot = Ui.Node("words", root);   // (a minigame's words in the world: under the conversation and the cards, as the page's #mg-words)
             Ui.Stretch(wordsRoot);
             BuildUnder(mono);     // (the balloons over people, the breath meter, the brass level: BridgeHud.Parts.cs, issue #430)
@@ -1887,10 +1895,60 @@ namespace Hiraeth.Bridge
             Show(wheel, at.HasValue);
             if (trace) traceWheel.at = null;
             if (!at.HasValue) return;
-            Ui.Place(wheel, at.Value.x - 17, at.Value.y - 17, 34, 34);
+            Ui.Place(wheel, at.Value.x - StaminaRing.Size / 2, at.Value.y - StaminaRing.Size / 2, StaminaRing.Size, StaminaRing.Size);
             if (trace) traceWheel.at = World(s.L("at"));
             wheelFill.fillAmount = Mathf.Clamp01(s.F("value", 1));
-            wheelFill.color = s.Get("winded") is bool w && w ? Ui.Red : Ui.Gold;
+            // (winded: the enamel's red pulsing to its gold and back, ease-in-out over 0.7 s, as the page's stpulse)
+            bool winded = s.Get("winded") is bool w && w;
+            float k = 0.5f - 0.5f * Mathf.Cos(2 * Mathf.PI * Time.unscaledTime / StaminaRing.PulseSecs);
+            wheelFill.color = winded ? Color.Lerp(EnBad, EnGold, k) : HintAccent;
+            Show(wheelBang.rectTransform, winded);
+        }
+
+        /// <summary>The stamina wheel's numbers, the page's src/hud-look.js STAMINA_RING (px of its 34 px box; tests/stamina-ring.test.js
+        /// holds the two the same).</summary>
+        static class StaminaRing
+        {
+            public const float Size = 34, Outer = 15.5f, Inner = 9.5f, EdgeWidth = 1.2f, ArcR = 12.5f, ArcWidth = 3.6f;
+            public const float ShadowDy = 2, ShadowBlur = 2.5f, ShadowAlpha = 0.33f, PulseSecs = 0.7f;
+            public const float Box = 48;   // (the sprites' square: the ring and two of the shadow's deviations round it)
+        }
+        static readonly Dictionary<string, Sprite> ringSprites = new();
+        /// <summary>The wheel's layers, 4 texels a px: "face" the charcoal band (the hints' 96 %) and its two brass hairlines in their
+        /// colours, "arc" the gauge's annulus in white (tinted, radially filled), "shadow" the band blurred as the page's
+        /// drop-shadow (a filter's blur is its Gaussian's deviation, not box-shadow's twice it). A px's coverage by its distance to the edges; the middle is left clear.</summary>
+        static Sprite RingSprite(string kind)
+        {
+            if (ringSprites.TryGetValue(kind, out var have)) return have;
+            const int k = 4; int n = (int)(StaminaRing.Box * k);
+            float c = n / 2f;
+            var band = new Color(22 / 255f, 23 / 255f, 23 / 255f, 0.96f);
+            float Cov(float r, float outer, float inner) => Mathf.Clamp01(outer - r + 0.5f) * Mathf.Clamp01(r - inner + 0.5f);
+            float Erf(float x) { float t = 1 / (1 + 0.3275911f * Mathf.Abs(x)); float y = 1 - (((((1.061405429f * t - 1.453152027f) * t) + 1.421413741f) * t - 0.284496736f) * t + 0.254829592f) * t * Mathf.Exp(-x * x); return x < 0 ? -y : y; }
+            float sigma = StaminaRing.ShadowBlur;
+            var t2 = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = "stamina " + kind };
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float r = new Vector2((x + 0.5f - c) / k, (y + 0.5f - c) / k).magnitude;
+                    Color col;
+                    if (kind == "arc") col = new Color(1, 1, 1, Cov(r, StaminaRing.ArcR + StaminaRing.ArcWidth / 2, StaminaRing.ArcR - StaminaRing.ArcWidth / 2));
+                    else if (kind == "shadow")
+                    {
+                        float g = 0.5f * (Erf((StaminaRing.Outer - r) / (sigma * 1.41421356f)) - Erf((StaminaRing.Inner - r) / (sigma * 1.41421356f)));
+                        col = new Color(1, 1, 1, Mathf.Clamp01(g));
+                    }
+                    else
+                    {
+                        float cb = Cov(r, StaminaRing.Outer, StaminaRing.Inner);
+                        float ce = Mathf.Max(Cov(r, StaminaRing.Outer, StaminaRing.Outer - StaminaRing.EdgeWidth), Cov(r, StaminaRing.Inner + StaminaRing.EdgeWidth, StaminaRing.Inner));
+                        col = Color.Lerp(band, EnBrass, ce); col.a = cb * Mathf.Lerp(band.a, 1, ce);
+                    }
+                    px[y * n + x] = col;
+                }
+            t2.SetPixels32(px); t2.Apply(false, true);
+            return ringSprites[kind] = Sprite.Create(t2, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
         }
 
         string DialogueRich(string text) => RichMarked(text).Replace("<color=#b23a2c>", solid ? "<color=#704000>" : "<color=#edbc76>");

@@ -96,3 +96,33 @@ export const HUD_MESSAGES = Object.freeze([
   { id: 'hunt-list', file: 'src/hud-styles/sketchhunt.js', sel: '#hunt-list', what: 'the sketch hunt\'s list' },
   { id: 'hunt-read', file: 'src/hud-styles/sketchhunt.js', sel: '#hunt-view .read', what: 'the sketch hunt\'s reading' },
 ]);
+
+/**
+ * The stamina wheel (issue #710, the author: "the stamina wheel is white in the middle on web but I would expect that part
+ * to be transparent? also on unity the stamina wheel doesn't look the same?"): an enamel ring, nothing in its middle. The
+ * gadget chip's look (src/hud-styles/gadget.js): a charcoal band edged in brass hairlines, the turquoise accent as the
+ * gauge, filled clockwise from the top; winded, the enamel's red pulsing to its gold, a "!" beside it. Sizes in px of a
+ * 34 px box centred on its point beside the traveller. The page's SVG is built from it (staminaSvg, src/main.js); the Unity
+ * bridge draws the same numbers (BridgeHud.cs StaminaRing, checked by tests/stamina-ring.test.js).
+ */
+export const STAMINA_RING = Object.freeze({
+  size: 34,
+  outer: 15.5, inner: 9.5,          // the band: from 9.5 to 15.5 px out; inside 9.5 px, nothing drawn
+  band: ENAMEL.strip,               // the hints' charcoal
+  edge: ENAMEL.brass, edgeWidth: 1.2,   // a brass hairline on each side of the band, inside it
+  arcR: 12.5, arcWidth: 3.6,        // the gauge, between the hairlines
+  fill: ENAMEL.accent, winded: ENAMEL.bad, pulse: ENAMEL.gold, pulseSecs: 0.7,
+  shadow: { dy: 2, blur: 2.5, alpha: 0.33 },   // (the enamel's soft shadow, ENAMEL.shadow's 0 2px 5px, as a ring's drop-shadow:
+                                               // a filter's blur is the deviation, box-shadow's 5px is twice it)
+});
+
+/** The wheel's SVG (index.html #stamina): the band, its two hairlines, the gauge (.arc, its dash the stamina). Nothing fills the middle. */
+export function staminaSvg(R = STAMINA_RING) {
+  const h = R.size / 2, f = (x) => +x.toFixed(2), s = R.shadow;
+  return `<svg viewBox="${-h} ${-h} ${R.size} ${R.size}" style="filter: drop-shadow(0 ${s.dy}px ${s.blur}px rgba(0, 0, 0, ${s.alpha}))">`
+    + `<circle class="band" r="${f((R.outer + R.inner) / 2)}" fill="none" stroke="${R.band}" stroke-width="${f(R.outer - R.inner)}"/>`
+    + `<circle class="edge" r="${f(R.outer - R.edgeWidth / 2)}" fill="none" stroke="${R.edge}" stroke-width="${R.edgeWidth}"/>`
+    + `<circle class="edge" r="${f(R.inner + R.edgeWidth / 2)}" fill="none" stroke="${R.edge}" stroke-width="${R.edgeWidth}"/>`
+    + `<circle class="arc" r="${R.arcR}" fill="none" stroke="${R.fill}" stroke-width="${R.arcWidth}" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90)"/>`
+    + '</svg>';
+}
