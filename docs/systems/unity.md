@@ -60,7 +60,7 @@ web deployment's Unity OTA bundle. C# / bridge changes need a requested installe
 checks must not be lowered to make an older player accept them. Builds remain serialized.
 - **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.hiraeth.unity`, named "Hiraeth
   (Unity)", the game's icon (`public/icons/icon-512.png`), landscape, immersive, sound on (paused when
-  left), the pads through the Input System; IL2CPP ARM64, Vulkan then GLES3; versionName the newest
+  left), the pads through the Input System; IL2CPP ARM64, Vulkan only (see below); versionName the newest
   version in `src/changelog.js`, versionCode the commit count (`release-info.mjs build`); signed with the
   web app's release key (alias `moebius`), so it installs **next to** the app `com.rnaud.hiraeth`, never
   over it, and every build installs over the last. Published as `hiraeth-unity.apk` on the release
@@ -150,6 +150,29 @@ checks must not be lowered to make an older player accept them. Builds remain se
   `com.rnaud.hiraeth.unity`. Android refuses an APK signed by another key over an installed one: to put
   the C# port's bench APK on a device that has the testers' APK (or the other way round), uninstall
   `com.rnaud.hiraeth.unity` first (that deletes its saves, never the web app's).
+
+### Android: Vulkan only, and the variants never asked for (issue #703)
+
+- **Vulkan only.** Android's players (the project's settings, `BridgeBuild.AndroidPlayer`, `BenchBuild.Android`)
+  carry no OpenGL ES 3 fallback since #703: its 132 Surface variants were 44 % of a cold Android build's shader
+  CPU time (docs/audits/perf-materials-v2.31.md). With Vulkan alone Unity writes
+  `<uses-feature android:name="android.hardware.vulkan.version" android:required="true" />` into the manifest
+  itself (checked in the APK with `aapt2 dump xmltree`), so a store leaves a device without Vulkan out; a sideloaded
+  APK still installs there, and Unity's player then says the device has no supported graphics API and quits. Every device the game is tested on (the Retroid, an Adreno; the Deck and the Xbox are not
+  Android) has Vulkan; the devices lost are Android phones and boxes without a Vulkan 1.0 driver (Mali-T7xx/T8xx
+  and Adreno 3xx-era GPUs, some Android 7-and-older sets, a few Android TV boxes).
+- **Combinations never asked for, left out.** On Android BridgeShaderStrip also leaves out what
+  `BridgeRenderer.Lean` cannot give there (`BridgeShaderStrip.NeverOnAndroid`): a skin (`HIRAETH_SKIN`) with a lean or
+  plain keyword (Lean returns at once for a skin, and only `WorldLoader.MakeMaterial`, before Lean, gives one),
+  `HIRAETH_PLAIN` without a lean keyword (`plainOk` needs one), and `HIRAETH_PLAIN` with `HIRAETH_LEAN_SLIM` (only
+  under the runtime test flag `-slim-on-plain`: build with `-keep-unasked` to keep them for it). 54 of the G-buffer
+  pass's 228 Vulkan variants: 174 left. `tests/unity-android-strip.test.js` derives from the C# what Lean can ask
+  for (each guard it relies on checked in the source) and fails if a rule ever matches one of them.
+- **Measured** (a cold local `BridgeBuild.Android` on the M4 Pro, 27 Oct 2026, the Surface of 591ed0aa8): the G-buffer
+  pass 448 → 174 variants after scriptable stripping, Vulkan alone (was 228 Vulkan + 132 OpenGL ES 3 = 360), the
+  shadow pass 8; 8 720 s of compiler CPU, 761 s wall (the Mac also busy). A cold CI Android build compiles about half
+  the Surface CPU it did (the skin variants left out are the biggest): from ~49 min (26 Oct, 360 variants) to an
+  expected ~25 min on the same source; the shader cache key is unchanged (each kept variant's source is the same).
 
 ### The Unity licence (the author, once)
 

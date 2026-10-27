@@ -17,7 +17,7 @@ namespace Hiraeth.EditorTools
     /// characters it loads (public/anim/*.glb, copied into StreamingAssets/hiraeth-js/public):
     ///   scripts/unity-export/unity-batch.sh BridgeBuild.Mac       IL2CPP ARM64 (-mono: Mono), Builds/bridge-macOS/Hiraeth JS.app
     ///   scripts/unity-export/unity-batch.sh BridgeBuild.Linux     the Steam Deck's: Linux x86_64, IL2CPP (-mono: Mono), Vulkan, Builds/bridge-linux/hiraeth-js.x86_64
-    ///   scripts/unity-export/unity-batch.sh BridgeBuild.Android   IL2CPP ARM64, Vulkan then GLES3, debug-signed, Builds/bridge-android/hiraeth-js.apk
+    ///   scripts/unity-export/unity-batch.sh BridgeBuild.Android   IL2CPP ARM64, Vulkan only, debug-signed, Builds/bridge-android/hiraeth-js.apk
     ///   scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp    first, once (and after a Puerts update): Puerts' IL2CPP glue into Assets/Gen
     ///                                                             (its "Minimal Bridge, Reflection Mode": the script calls C# by reflection)
     ///   BridgeBuild.AndroidRelease                                the testers' APK (scripts/unity-android-release.sh, .github/workflows/unity-android.yml):
@@ -429,7 +429,7 @@ namespace Hiraeth.EditorTools
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Android, Il2CppCompilerConfiguration.Release);
             PlayerSettings.Android.targetArchitectures = Flag("-x86_64") ? AndroidArchitecture.ARM64 | AndroidArchitecture.X86_64 : AndroidArchitecture.ARM64;
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
-            PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { GraphicsDeviceType.Vulkan, GraphicsDeviceType.OpenGLES3 });
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { GraphicsDeviceType.Vulkan });   // (Vulkan only, issue #703: Unity then writes android.hardware.vulkan.version required into the manifest)
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.Android.useCustomKeystore = false;   // (the debug key)

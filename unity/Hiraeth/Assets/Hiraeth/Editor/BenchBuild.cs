@@ -18,7 +18,7 @@ namespace Hiraeth.EditorTools
     ///   Hiraeth.EditorTools.BenchBuild.Mac       the macOS player, vSync off by the bench, frame timing on, IL2CPP
     ///                                            ARM64 as the other two (-mono: Mono; -out, default Builds/macOS-bench/Hiraeth.app)
     ///   Hiraeth.EditorTools.BenchBuild.Android   an APK for the handheld: com.rnaud.hiraeth.unity, debug-signed,
-    ///                                            IL2CPP ARM64, Vulkan then GLES3 (-out, default Builds/Android/hiraeth-unity.apk)
+    ///                                            IL2CPP ARM64, Vulkan only (-out, default Builds/Android/hiraeth-unity.apk)
     ///   Hiraeth.EditorTools.BenchBuild.WebGL     a WebGL (WebGPU) build for the browser (-out, default Builds/WebGL)
     /// Each puts scripts/bench/viewpoints.json in StreamingAssets/bench. On Android and WebGL the export
     /// can't be read in place, so the copy of StreamingAssets in the build is listed in a
@@ -121,7 +121,7 @@ namespace Hiraeth.EditorTools
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, mono ? ScriptingImplementation.Mono2x : ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = mono ? AndroidArchitecture.ARMv7 : AndroidArchitecture.ARM64;
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
-            PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { GraphicsDeviceType.Vulkan, GraphicsDeviceType.OpenGLES3 });
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { GraphicsDeviceType.Vulkan });   // (Vulkan only, issue #703: Unity then writes android.hardware.vulkan.version required into the manifest)
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.Android.useCustomKeystore = false;   // (the debug key)
