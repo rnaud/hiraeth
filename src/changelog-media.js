@@ -1363,6 +1363,20 @@ export const CHANGELOG_MEDIA = {
       { where: 'round a bend at a sprint: the bank', before: 5.0, after: 7.2 },
     ], note: 'Setting off (90 % of the speed in 0.28 s), stopping (0.34 m and 0.32 s from a sprint) and turning round (0.32 s) are as before; the motion QC’s node course is 16 of 16 green before and after, the same means.' },
   ] },
+  { match: 'Try a new sprint for the traveller', shots: [
+    { name: 'sprint-kevin-side', caption: 'One stride of a full sprint from the side, every eighth of it: the sprint as it is, and Kevin Iglesias’s with the switch on', size: [1200, 884],
+      from: 'Issue #704: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; High, 1280 × 720, 10:00, clear, enemies off) on this branch’s own Vite (port 5444), origin/main at 591ed0aa8 plus this change; the Arena’s floor (?level=arena), the stick pushed with run held from the game’s own update, the camera held 4.2 m off him; eight frames of one stride at 8.2 m/s picked by the gait’s phase, cropped round him, laid four across; before: the default sprint (?sprint=ual), after: the switch on (?sprint=kevin), each in its own load; 27 October; cwebp -q 72 (from behind -q 62)',
+      view: 'Before is not an older version: it is the default the switch leaves on. His chest at a steady sprint, pelvis to neck: 32.5° before, 44.8° after; the stride 1.9 cycles a second before, 2.3 after.' },
+    { name: 'sprint-kevin-behind', caption: 'The same stride from behind: the arms pump across and higher, the blade in his hand swinging with them', size: [1200, 884],
+      from: 'Issue #704: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; High, 1280 × 720, 10:00, clear, enemies off) on this branch’s own Vite (port 5444), origin/main at 591ed0aa8 plus this change; the Arena’s floor (?level=arena), the stick pushed with run held from the game’s own update, the camera held 4.2 m off him; eight frames of one stride at 8.2 m/s picked by the gait’s phase, cropped round him, laid four across; before: the default sprint (?sprint=ual), after: the switch on (?sprint=kevin), each in its own load; 27 October; cwebp -q 72 (from behind -q 62)',
+      view: 'The same eight moments from 4.2 m behind him; the shadow blots on the floor are the Arena’s markings.' },
+  ], numbers: [
+    { title: 'The motion QC on the sprint scenarios (pops a minute)', unit: '/min', better: 'lower', device: 'node, the game’s traveller on the gait harness’s course (60 frames a second)', source: 'node scripts/motion-qc/run.mjs --ways moves (before) and --ways kevin (after)', rows: [
+      { where: 'walk → run → 180° turn → stop', before: 1, after: 4 }, { where: 'starts and stops at a walk and a run', before: 2, after: 3 },
+      { where: 'a 180° pivot at a jog and at a sprint', before: 1, after: 0 }, { where: 'round a circle at a sprint', before: 1, after: 2 },
+      { where: 'stairs at a sprint', before: 1, after: 7 },
+    ], note: 'Foot slide over a planted step (95th percentile) 3.6–4.3 cm with the default sprint, 3.5–5.1 cm with Kevin Iglesias’s; the default is 17 of 17 scenarios green, the switch 13 of 17 (a few more flicks of the feet at touchdown, a hand at a stop’s blend-in 3.2–3.3 cm against a 3 cm limit, the stairs). Before a fix to the feet in this change, a sprint reversed with his sprint skidded a foot 29 cm; now 7.5 cm, the default unchanged.' },
+  ] },
   {
     match: 'The soft pale patches on the open ground of Vael, Home',
     shots: [

@@ -33,7 +33,7 @@ import { buildFlora, floraKeep, FLORA_WORLDS } from '../src/flora.js';
 import { buildGrass } from '../src/flora-grass.js';
 import { Player, CameraRig } from '../src/player.js';
 import { Controller, mergeControls } from '../src/controller.js';
-import { loadAnimationLibrary, Animator } from '../src/animator.js';
+import { loadAnimationLibrary, Animator, loadSprintClip, sprintSetting } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
 import { loadTraveller, createTraveller } from '../src/characters/traveller.js';
@@ -358,7 +358,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, encounter = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null, traveller = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, sprint = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, encounter = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null, traveller = null } = {}) {
   const T = {};
   // Prepare all assigned recordings before constructing a playable world. The native host keeps
   // polling decode completions while this promise is pending; explicit no-audio tools skip it.
@@ -507,6 +507,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // stay the library's: lib.motion holds the gestures alone; the matching once the database is in, main.js's)
   player.locoMoves = moves && movesSetting.get();
   player.stopFeel = stopSetting.get();   // (how he stops from a run, as main.js: the author's switch, issue #699; snap unless asked for)
+  // (his sprint as main.js has it, issue #704: the library's unless the switch, sprintSetting, or `sprint` (-js-on kevinSprint) asks
+  // for Kevin Iglesias's, public/anim/sprint-kevin.glb, waited for here so a batch's first sprint is already his)
+  const sprintAsk = sprint ?? sprintSetting.get();
+  if (player.animator && sprintAsk !== 'ual') { const c = await loadSprintClip(sprintAsk); if (c) { player.animator.useSprint(c); stamp('sprint-' + sprintAsk); log(`sprint: ${player.animator.sprintName}`); } }
   if (player.animator) player.animator.matching = !!(matchOn && lib?.motion?.db);
   const humans0 = await humansP;
   // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller

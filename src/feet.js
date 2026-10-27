@@ -68,6 +68,8 @@ export const FEET = {
                                  // to the second it widens to this (null: as on the level)
   pushOff: [4.5, 7, 0.05, 0.05, 0.03], // m/s, m/s, s, share, s: from the first speed to the second a moving held foot lets go once the hips, this far ahead
                                  // at the body's speed, would have its leg within this share of its full length (the release's spring takes the rest)
+  relockSlow: [3, 0.03, 5],      // m/s, m (x size), m/s: under this speed a foot let go out of reach (pushOff) at over the third, the contact still full,
+                                 // plants again within this of the ground (a sprint braking hard; not a walk's: a calf pop setting off)
   pushOffBrake: true,            // and the hips' lead counts the body's braking (false: its speed alone)
   pushOffBack: [2.5, 3.5, 0.05, 0.1, 0.03],   // the same walking back (o.reverse): from a slower speed, within a wider share
   toeOff: 0.7,                   // a foot let go leaves its hold along the ground as w^toeOff (1: as it rises)
@@ -453,7 +455,12 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       }
     }
     if (!F.step) {
-      if (!d.planted || still) F.released = false;
+      // (or the body slowed right down under a foot let go with the gait's contact still full, its drawn foot on the ground: down
+      // again where it is shown. A sprint reversed or stopped as a long stance's foot was pushing off (Kevin Iglesias's sprint,
+      // issue #704) let it go, and it skidded 30-45 cm with the body as it braked, the contact never falling to free it again;
+      // only a foot let go at a run's speed: a walk's, planted again as it set off, popped the calf 22 rad/s)
+      const RS = FEET.relockSlow;
+      if (!d.planted || still || (RS && F.released && (F.relV ?? 0) > RS[2] && (contact?.[s] ?? 0) > FEET.lockAt && (o.speed ?? 0) < RS[0] && d.clear < RS[1] * sc)) F.released = false;
       if (F.late && (F.locked || F.step || F.w <= FEET.lateRelease[1])) F.late = false;
       if (d.planted && !F.locked && !F.released && d.finite && !F.late) {
         F.locked = true; F.aloft = false;
@@ -506,7 +513,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         const other = S[s === 'l' ? 'r' : 'l'];
         if (pivoting && bodyV.length() < FEET.pivotStepSpeed * sc && (!other.step || other.step.t > FEET.pivotOverlap) && (S.cool <= 0 || S.lastStep !== s) && d.finite && far > H.legLen * sc * (1 - FEET.soft / 2) + Math.min(S.drop, FEET.maxDrop * sc)) {
           F.step = { from: F.pos.clone(), fromYaw: F.yaw.clone(), t: 0, quick: true }; F.locked = false;
-        } else if (!standing && (far > H.legLen * sc + Math.min((F.heldT ?? 0) < FEET.reachGrace[0] && ((o.speed ?? 0) < FEET.reachGrace[1] || _b.subVectors(rootPos, F.pos).dot(up) > FEET.reachGrace[2] * sc) ? FEET.maxDrop * sc : S.drop + 0.03 * sc, FEET.maxDrop * sc) || pushOff(far, B[`thigh_${s}`], F, d, o.speed ?? 0, sc))) { F.locked = false; F.released = true; F.dragged = d.clear < FEET.releaseMin * sc && (o.speed ?? 0) < FEET.dragSpeed; unlockNow(F); F.late = lateRel(s); }
+        } else if (!standing && (far > H.legLen * sc + Math.min((F.heldT ?? 0) < FEET.reachGrace[0] && ((o.speed ?? 0) < FEET.reachGrace[1] || _b.subVectors(rootPos, F.pos).dot(up) > FEET.reachGrace[2] * sc) ? FEET.maxDrop * sc : S.drop + 0.03 * sc, FEET.maxDrop * sc) || pushOff(far, B[`thigh_${s}`], F, d, o.speed ?? 0, sc))) { F.locked = false; F.released = true; F.relV = o.speed ?? 0; F.dragged = d.clear < FEET.releaseMin * sc && (o.speed ?? 0) < FEET.dragSpeed; unlockNow(F); F.late = lateRel(s); }
       }
     }
     const held = F.locked || !!F.step;

@@ -17,6 +17,8 @@ scripts/bench/results/raw/
 /data/mocap/raw/
 /data/mocap/mixamo/*.fbx
 /data/mocap/mixamo/*.FBX
+# (Kevin Iglesias's pack: the raw FBX out of git as well, scripts/mocap/build-sprint.mjs)
+/data/mocap/kevin-iglesias/*.fbx
 # (Mixamo's packs, as downloaded, are kept: data/mocap/packs/*.zip, docs/motion-data.md)
 /data/mocap/cache/
 /data/mocap/tmp/

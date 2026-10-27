@@ -84,7 +84,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house || a.wardrobe || a.menuPointer);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.sprintShots || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house || a.wardrobe || a.menuPointer);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -486,7 +486,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   const gq = readHref(`?${gameQ ?? ''}`), stage = gq.stage;
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, encounter: gq.encounter ?? null, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
-    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
+    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null, sprint: String(args.on ?? '').split(',').includes('kevinSprint') ? 'kevin' : null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe && !args.menuPointer, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
     onLoad: (o) => host.LoadProgress?.(o.p, o.why ?? ''),
@@ -839,6 +839,13 @@ function makePlan(args) {
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
+  }
+  if (args.sprintShots) {
+    // (-sprint-shots N: the traveller sprinting (Shift, W) for 2.5 s, then N pictures two frames apart, his sprint as asked
+    // (-js-on kevinSprint: Kevin Iglesias's, issue #704))
+    steps.push({ kind: 'key', code: 'ShiftLeft', down: true }, { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 150, secs: 2.5 });
+    for (let k = 0; k < args.sprintShots; k++) steps.push({ kind: 'wait', frames: 2 }, ...(args.out ? [{ kind: 'shot', file: `${args.out}/unity-sprint-${String(k).padStart(2, '0')}.png` }] : []));
+    steps.push({ kind: 'key', code: 'KeyW', down: false }, { kind: 'key', code: 'ShiftLeft', down: false });
   }
   if (args.tour) {
     // a fixed little tour for side-by-side pictures (the Xbox's shadow settings: -tour, LocalState\args.txt): still at

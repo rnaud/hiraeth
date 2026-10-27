@@ -1327,6 +1327,51 @@ The node course stays 16 of 16 green with every mean as it was; the game's three
 Tried for the last reds and left out: a touchdown cushion, the stride warp eased, the cadence held through a reversal, a longer
 blend-in of the captured moves (the study says what each did).
 
+**Issue #704: Kevin Iglesias's sprint, a switch** (2026-10-27). The author's try of a sprint closer to Breath of the Wild's:
+the sprint from Kevin Iglesias's *Human Basic Motions FREE* (docs/motion-data.md) in the library sprint's place, for the
+traveller only (the people keep Sprint_Loop). Over each rig's standing pose it leans 43° to the library's 32°, the hands swing
+0.78 of the body's height front to back (0.44), the elbows come up past the shoulders.
+
+- **The clip**: `node scripts/mocap/build-sprint.mjs` (scripts/mocap/kevin-sprint.js) reads the pack's FBX with the Mixamo
+  pipeline (fbx.js, the rig's map `KEVIN_MAP`: one spine bone and the chest, so spine_02 and spine_03 both take the chest),
+  retargets it onto the UAL skeleton on the spot (root `fixed`, the head's turn kept for the head nod), closes the loop (the
+  last frame the first, the drift taken out evenly: 0.1°) and writes `public/anim/sprint-kevin.glb` (33 frames at 60 a
+  second, 14 KB) with build-library's skeleton, so it binds onto the library's. No contact labels: on the spot a planted
+  ball sweeps back at the run's speed; the Animator measures its feet itself (`gaitOf`).
+- **The switch** (src/animator.js `SPRINTS`, `sprintSetting`, `loadSprintClip`, `sprintFrom`, `Animator.useSprint`):
+  `?sprint=kevin` / `?sprint=ual`, the dev menu's Story tab ("Kevin Iglesias's sprint", at once), kept on this device; the
+  engines read the same setting (`-js-on kevinSprint` in a Unity batch, `-sprint-shots 8` for eight pictures of a sprint; their dev
+  menu has no motion tab). `useSprint` swaps the loop's action, measures its
+  feet and shifts its phase so its left touchdown falls where the library sprint's does (the jog's blend into it keeps the
+  feet together). Smoothed as the library's sprint (`SMOOTH_LOOPS`), its legs a little more (0.045 s: keyed at 60 a second,
+  his foot slapped flat in a frame).
+- **The stride** (`SPRINTS.kevin.strideK` 1.1): his own stride is short (3.1 m a cycle on the library body against 5.8), so at
+  8.2 m/s he runs 2.3 cycles a second (the library's 1.9). At his own cadence (strideK 1.4) the long stance left the planted
+  foot out of reach behind him and it skidded 20-46 cm stopping; at the library's 0.75 his knees popped 20-40 times a minute.
+- **feet.js `relockSlow`**: a foot let go out of reach at a run's speed (over 5 m/s) with the contact still full plants again
+  once the body is under 3 m/s and the clip's foot within 3 cm of the ground. His sprint reversed as a long stance pushed off
+  skidded the foot 29 cm with the body (walk → run → 180°: 7.5 cm now). The default way's numbers are unchanged.
+- **The lean**: left as it is (`LOCO.leanCarry`'s 3.4° on top): the drawn chest at a steady sprint, pelvis to neck, is 44.8°
+  with his sprint, 32.5° with the library's (the Arena, side on); the author judges.
+
+The node course (17 scenarios with the new "curve at a sprint"), default against `--ways kevin`:
+
+| scenario | default: slide p95/max, pops, jolts /min, boundary | kevin |
+|---|---|---|
+| walk → run → 180° turn → stop | 3.7/3.7 cm, 1, 1, 2.8 cm | red: 4.1/7.5 cm, 4 pops, 0, 2.3 cm |
+| gaits: walk → jog → sprint → jog → walk → stop | 3.5/3.7, 0, 0, 1.0 | 3.5/3.6, 1, 0, 1.6 |
+| starts and stops, walk and run | 4.3/4.8, 2, 0, 2.2 | red: 3.5/5.7, 3, 1, 3.3 (a hand at the stop's blend-in) |
+| pivot 180° at a jog, and at a sprint | 3.8/4.4, 1, 0, 2.4 | red: 5.1/5.7, 0, 1, 3.2 (a hand) |
+| curve at a sprint | 3.6/3.8, 1, 1, 2.8 | 4.8/4.9, 2, 0, 2.3 |
+| stairs at a run | 3.6/3.6, 1, 2, 2.8 | red: 4.8/4.8, 7 pops, 4 jolts, 3.1 (the feet, 14-30 rad/s) |
+
+Default 17 of 17 green, kevin 13 of 17 (the rest identical). In the game (the skill's run, desert / bazaar / arena, both ways
+red on this machine): slide p95 4.8 / 5.4 / 4.4 cm (default 5.3 / 7.2 / 4.1), pops 6 / 4 / 5 a minute (3 / 0 / 2), jolts 2 / 0 / 2
+(8 / 2 / 2), the arena's held foot 4.3 cm (1.0). What is left: his feet flick a little more at touchdown (the clip's own
+slap, 14-16 rad/s against the 14 limit), the hands' faster swing crossing a captured stop's blend-in by 3.2-3.3 cm, and the
+stairs at a sprint. Tried and left out: more blur on the feet alone (fewer pops, more slide), strideK 1.0-1.5 and leg blur
+0.035-0.07 (a chaotic trade between the two).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

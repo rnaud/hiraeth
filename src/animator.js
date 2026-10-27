@@ -176,6 +176,49 @@ export function libraryFrom(gltf) {
   return lib;
 }
 
+/**
+ * The traveller's sprint (issue #704): the library's Sprint_Loop ('ual', the default) or Kevin Iglesias's
+ * (Human Basic Motions FREE: 'kevin', public/anim/sprint-kevin.glb, converted by scripts/mocap/build-sprint.mjs),
+ * hunched further into it, the arms pumping higher, closer to Breath of the Wild's. A switch the author tries:
+ * `?sprint=kevin` / `?sprint=ual`, the dev menu's Story tab, kept on this device. The traveller's alone (Animator.useSprint):
+ * the people keep the library's. `strideK`: the share of the loop's own stride a step covers (STRIDE_K): his loop's own
+ * stride is short (3.1 m a cycle on the library's body, the library's 5.8), so a step covers a little more than it
+ * (2.4 cycles a second at 8.2 m/s, the library's 1.9; at 1.4, his cadence, the long stance left the planted foot out of
+ * reach behind him and it slid 20-46 cm stopping, at 0.75 his knees popped 20-40 times a minute: the motion QC, issue #704).
+ * `smooth`: SMOOTH_LOOPS's blur for it (s; his legs a little more: keyed at 60 a second, his foot slapped flat in a frame).
+ */
+export const SPRINTS = { ual: null, kevin: { url: 'anim/sprint-kevin.glb', clip: 'kevin_sprint', strideK: 1.1, smooth: { blur: 0.02, legs: 0.045 } } };
+export const sprintSetting = {
+  key: 'hiraeth.sprint',
+  get() {
+    try {
+      const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('sprint') : null;
+      if (q && q in SPRINTS) return q;
+      const v = globalThis.localStorage?.getItem(this.key);
+      return v && v in SPRINTS ? v : 'ual';
+    } catch { return 'ual'; }
+  },
+  set(v) { try { globalThis.localStorage?.setItem(this.key, v in SPRINTS ? v : 'ual'); } catch { /* this session only */ } },
+};
+
+/** A parsed sprint file's loop (SPRINTS[which].clip), smoothed as the library's sprint is (SMOOTH_LOOPS), or null. */
+export function sprintFrom(gltf, which = 'kevin') {
+  const S = SPRINTS[which], raw = S && gltf?.animations?.find((a) => a.name === S.clip);
+  if (!raw) return null;
+  const b = { ...SMOOTH_LOOPS.sprint, ...S.smooth }, clip = smoothLoop(raw, SMOOTH_RATE, b.blur ?? 0, b.legs ?? b.blur ?? 0);
+  clip.userData = { ...clip.userData, sprint: which, strideK: S.strideK };
+  return clip;
+}
+
+const sprintLoads = {};
+/** The sprint `which` names (SPRINTS), loaded once: resolves to its clip, or null for the library's own (or when it fails). */
+export function loadSprintClip(which = sprintSetting.get(), base = '') {
+  const S = SPRINTS[which];
+  if (!S) return Promise.resolve(null);
+  return (sprintLoads[base + which] ??= new GLTFLoader().loadAsync(base + S.url).then((g) => sprintFrom(g, which))
+    .catch((e) => { console.warn(`${S.url} failed to load`, e); return null; }));
+}
+
 // How much of each loop's own stride a step covers in the game: the jog's stance sweeps the foot
 // back fast (it has a long flight) and the sprint's too, so their strides are shortened (Humanoid.
 // plantFeet warps the feet's swing toward the body by the same amount) and their cadence stays
@@ -563,6 +606,30 @@ export class Animator {
     const phase = own ? 0 : touchdown(feet.contact.l) - touchdown(analyseGait(this.lib).clips.walk.contact.l);
     this.gait = { ...this.gait, clips: { ...this.gait.clips, walk: { ...feet, strideK: walk.strideK ?? 1, phase } } };
     this.walkName = walk.name;
+    return this;
+  }
+
+  /**
+   * Sprint a sprint of one's own (sprintFrom: the traveller's switch, issue #704) instead of the library's: the loop takes
+   * the sprint's place in the blend, its feet measured as the library's are (gaitOf), its touchdowns put where the
+   * library's sprint has them (so the jog's blend into it keeps the feet together), its stride its own `strideK`. Null:
+   * the library's again.
+   */
+  useSprint(clip) {
+    if (!this.gait || !this.lib.clips.sprint) return this;
+    const own = !clip;
+    if (own) clip = this.lib.clips.sprint;
+    if (clip === this.clips.sprint) return this;
+    const base = analyseGait(this.lib).clips.sprint, feet = own ? base : gaitOf(this.lib, clip);
+    if (!feet) return this;
+    const old = this.actions.sprint, a = this.mixer.clipAction(clip);
+    a.enabled = true; a.setEffectiveWeight(old?.getEffectiveWeight() ?? 0); a.play();
+    if (old && old !== a) { old.setEffectiveWeight(0); old.stop(); }
+    this.actions.sprint = a;
+    this.clips.sprint = clip;
+    const phase = own ? 0 : touchdown(feet.contact.l) - touchdown(base.contact.l);
+    this.gait = { ...this.gait, clips: { ...this.gait.clips, sprint: own ? base : { ...feet, strideK: clip.userData?.strideK ?? STRIDE_K.sprint, phase } } };
+    this.sprintName = own ? null : clip.userData?.sprint ?? clip.name;
     return this;
   }
 

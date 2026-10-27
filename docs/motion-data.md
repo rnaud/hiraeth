@@ -9,6 +9,7 @@ see docs/credits.md). On top of it come motion-captured takes from two sources, 
 | `public/anim/walks.glb` | 12 walking cycles of CMU subjects: the people's own walks | 81 KB | always (after the game starts, not waited for) |
 | `public/anim/moves.glb` | the traveller's own moves: 25 Mixamo clips (get-ups, jumps, a stumble, idles, turns, a kneel, the petting, the fluid blade's three swings, its guard and block, a flinch) | 523 KB | always (after the game starts, not waited for) |
 | `public/anim/gestures.glb` | the conversation gestures: 29 Mixamo clips above the hips, keyframe-reduced (issue #197; docs/systems/characters.md, "Gestures while people talk") | 224 KB | always (after the game starts, not waited for) |
+| `public/anim/sprint-kevin.glb` | the traveller's alternative sprint: Kevin Iglesias's `HumanM@Sprint01_Forward` (0.533 s on the spot, 60 frames a second; issue #704) | 14 KB | only with the switch on (`?sprint=kevin`, the dev menu) |
 | `public/anim/locomotion.glb` | the motion-matching database: 75 CMU clips and 33 Mixamo ones (267 s; mirrored at load) | 1.39 MB | only with motion matching switched on (dev menu, `?mm=1`) and in the character studio |
 
 The raw downloads live in `data/mocap/raw/` and `data/mocap/mixamo/`, which git ignores;
@@ -77,6 +78,19 @@ machine).
   look like a walk). Subject 105 duplicates subject 91 (the site notes the same person may appear
   under more than one number), so only 91 is used. The database has no climb up a ledge with the
   hands (the CMU takes step up onto low ledges); Mixamo's list fills that.
+
+## Kevin Iglesias (Human Basic Motions FREE)
+
+- **Source:** Kevin Iglesias's *Human Basic Motions FREE* pack, version 2.4 (keviniglesias.com; the author's download of
+  October 2026). One clip is used: `Animations/Male/Movement/Sprint/HumanM@Sprint01_Forward.fbx`, his rig (`B-hips`,
+  `B-spine`, `B-chest`, `B-thighL` …: `scripts/mocap/maps.js` `KEVIN_MAP`), converted by `node scripts/mocap/build-sprint.mjs`
+  into `public/anim/sprint-kevin.glb` (the traveller's alternative sprint, issue #704; docs/systems/animation.md).
+- **Terms, as keviniglesias.com states them:** "Royalty-free assets for commercial use … you may use it in games, apps,
+  videos, movies, or other digital projects, including commercial projects, on a royalty-free basis." The pack's PDF names the
+  Standard Asset Store EULA / Fab Standard License: royalty-free, commercial use allowed, resale not allowed, attribution not
+  required. So, as with Mixamo, only the converted clip inside the game's own file ships; the FBX stays out of git
+  (`.gitignore`: `data/mocap/kevin-iglesias/*.fbx`; put it there to rebuild). The text is beside the clip,
+  `public/anim/LICENSE-KevinIglesias.txt`.
 
 ## Mixamo (Adobe)
 

@@ -32,6 +32,9 @@ export const COURSE = {
     script: [[1, none, 'idle'], [2, W, 'jog'], [1.5, S, 'pivot-jog'], [1.2, none, 'stop'], [2.5, SR, 'sprint'], [1.5, R, 'pivot-sprint'], [2, none, 'stop2']] },
   'curve: the stick round a circle at a jog': { at: [0, 0, -60], about: 'a steady turn (the stick sweeping 90°/s), then back the other way',
     script: [[1, none, 'idle'], ...Array.from({ length: 24 }, (_, i) => [0.25, stick(Math.sin(i * Math.PI / 8), Math.cos(i * Math.PI / 8)), i < 12 ? 'curve' : 'curve2']), [1.5, none, 'stop']] },
+  // (and at a sprint: the sprint's own loop through a steady turn, the lean and the bank on it, issue #704)
+  'curve at a sprint: the stick round a circle': { at: [0, 0, -60], about: 'a steady turn at a sprint (the stick sweeping 90°/s), then back the other way',
+    script: [[1, none, 'idle'], [1.5, R, 'sprint'], ...Array.from({ length: 24 }, (_, i) => [0.25, stick(Math.sin(i * Math.PI / 8), Math.cos(i * Math.PI / 8), true), i < 12 ? 'curve' : 'curve2']), [1.5, none, 'stop']] },
   'down the ramp, stop on it': { at: [-20, 0, 42], about: 'walking down the 12° ramp and stopping on the slope',
     script: [[1, none, 'idle'], [2.2, S, 'down'], [1.5, none, 'stand'], [1.5, S, 'down2']] },
   'stairs at a run': { at: [20, 0, 26], about: 'up the 18 cm stairs, over the landing and down at a run',

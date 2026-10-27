@@ -358,6 +358,7 @@ export function devTabs({ world = '', points = [], films = [], quests = [], togg
     ...(motion ? [sw('matching', 'Motion matching (CMU capture)', 'the traveller\'s walk, run, stops and turns picked from motion capture; off: the blended loops'),
       sw('moves', 'Captured starts, stops and turns', 'over the loops: setting off, stopping, turning on the spot, the pivot at a run (Mixamo\'s capture)'),
       sw('carryStop', 'Carried stop from a run', 'Breath of the Wild\'s: letting go of the stick at a run, he carries on over a couple of braking strides (1.9 m from a sprint) · off: he stops in a third of a metre, as before · ?stop=carry / snap'),
+      sw('kevinSprint', 'Kevin Iglesias\'s sprint', 'closer to Breath of the Wild\'s: hunched further into it, the arms pumping high (Human Basic Motions FREE) · off: the library\'s sprint, as before · ?sprint=kevin / ual'),
       ...(can('page') ? [{ label: 'The Motion page', hint: 'both side by side on a test ground, the matcher\'s debug, the people\'s walks (motion.html; leaves the game)', act: { do: 'page', href: 'motion.html' } }] : [])] : []),
   ] });
   if (levels.length) tabs.push({ id: 'travel', name: 'Travel', title: 'Travel', line: 'to any world, in the save being played', rows: [

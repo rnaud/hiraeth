@@ -7,6 +7,7 @@ const READERS = {
   "anim/human_m.glb": () => readFileSync(new URL("../public/anim/human_m.glb", import.meta.url)),
   "anim/locomotion.glb": () => readFileSync(new URL("../public/anim/locomotion.glb", import.meta.url)),
   "anim/moves.glb": () => readFileSync(new URL("../public/anim/moves.glb", import.meta.url)),
+  "anim/sprint-kevin.glb": () => readFileSync(new URL("../public/anim/sprint-kevin.glb", import.meta.url)),
   "anim/traveller.glb": () => readFileSync(new URL("../public/anim/traveller.glb", import.meta.url)),
   "anim/ual.glb": () => readFileSync(new URL("../public/anim/ual.glb", import.meta.url)),
   "anim/walks.glb": () => readFileSync(new URL("../public/anim/walks.glb", import.meta.url)),

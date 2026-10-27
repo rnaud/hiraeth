@@ -1,0 +1,14 @@
+sprint-kevin.glb: Kevin Iglesias, "Human Basic Motions FREE" (version 2.4), the clip HumanM@Sprint01_Forward,
+converted onto the game's clip skeleton by scripts/mocap/build-sprint.mjs (issue #704). keviniglesias.com
+
+The licence, as keviniglesias.com states it:
+
+  "Royalty-free assets for commercial use … you may use it in games, apps, videos, movies, or other digital
+  projects, including commercial projects, on a royalty-free basis."
+
+The pack's own PDF (Human Basic Motions 2.4 FREE.pdf) names the Standard Asset Store EULA / Fab Standard
+License: royalty-free and allowed for commercial use; resale not allowed; attribution not required. More
+license details: https://www.keviniglesias.com/#license
+
+Only the converted, retargeted clip inside the game's own file is shipped; the pack's FBX files are not
+redistributed (data/mocap/kevin-iglesias/*.fbx is git-ignored). See docs/motion-data.md.

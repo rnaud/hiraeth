@@ -71,7 +71,7 @@ import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.
 import { Journal, Relics, Story } from './quest.js';
 import { CONTENT, ERRANDS, RELIC_BASE } from './levels/content.js';
 import { migrateJournal } from './save-migrate.js';
-import { loadAnimationLibrary, Animator } from './animator.js';
+import { loadAnimationLibrary, Animator, loadSprintClip, sprintSetting } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { movesSetting, stopSetting } from './loco-moves.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -582,6 +582,8 @@ if (lib) {
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
   player.locoMoves = movesSetting.get();
   player.stopFeel = stopSetting.get();   // (how he stops from a run: the author's switch, issue #699)
+  // his sprint (issue #704): the library's, or Kevin Iglesias's with the author's switch (?sprint=kevin, the dev menu), not waited for
+  if (sprintSetting.get() !== 'ual') void loadSprintClip().then((c) => { if (c) player.animator?.useSprint(c); });
 }
 const humanT = await humans;
 // the people on MakeHuman bodies (each by their age, build and world); the traveller stays on his own body
@@ -1071,6 +1073,8 @@ function setTraveller(on, outfit = travellerV2.dress?.wardrobe.worn?.id ?? trave
 const devMoves = { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; } };
 // (a stop from a run carried over two strides, as Link's: src/loco-moves.js STOP_FEEL, issue #699)
 const devCarry = { get: () => player.stopFeel === 'carry', set: (on) => { stopSetting.set(on ? 'carry' : 'snap'); player.stopFeel = on ? 'carry' : 'snap'; } };
+// (Kevin Iglesias's sprint, issue #704: at once, and kept on this device)
+const devSprint = { get: () => player.animator?.sprintName === 'kevin', set: (on) => { sprintSetting.set(on ? 'kevin' : 'ual'); if (!on) player.animator?.useSprint(null); else void loadSprintClip('kevin').then((c) => { if (c) player.animator?.useSprint(c); }); } };
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story,
   world: () => ({
     world: meta.title,
@@ -1510,7 +1514,7 @@ window.addEventListener('keydown', (e) => {
 // what the dev menu's rows do in the world (src/dev-menu.js hands them here): teleport to a place, the cheats and the
 // toggles, a film, a quest's stage, the time of day, a screenshot for the Notes page
 const devToggles = () => ({ soundSources: !!sound.sfxTrace?.enabled, fps: !!settings.showFps, god: !!player.god, hitboxes: hitboxes.on, inputs: inputDisplay.on, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack'),
-  matching: !!devMatching?.get(), moves: devMoves.get(), carryStop: devCarry.get(), travellerV2: !!travellerV2.dress });
+  matching: !!devMatching?.get(), moves: devMoves.get(), carryStop: devCarry.get(), kevinSprint: devSprint.get(), travellerV2: !!travellerV2.dress });
 /**
  * God mode on or off (src/player.js GOD: fly fast, nothing hurts, through walls; never saved). Off: set down on the
  * ground under you (src/world-debug.js godLanding), or where you last stood safely when there is none.
@@ -1549,6 +1553,7 @@ function devAct(a) {
     else if (a.key === 'matching') devMatching?.set(!devMatching.get());
     else if (a.key === 'moves') devMoves.set(!devMoves.get());
     else if (a.key === 'carryStop') devCarry.set(!devCarry.get());
+    else if (a.key === 'kevinSprint') devSprint.set(!devSprint.get());
     else if (a.key === 'travellerV2') void setTraveller(!travellerV2.dress);
   }
   else if (a.do === 'traveller') void setTraveller(true, a.outfit);

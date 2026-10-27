@@ -9,7 +9,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Humanoid, prepareHuman } from '../src/humanoid.js';
 import { buildCharacter, Player } from '../src/player.js';
 import { Physics } from '../src/physics.js';
-import { libraryFrom } from '../src/animator.js';
+import { libraryFrom, sprintFrom } from '../src/animator.js';
 import { Animator } from '../src/animator.js';
 import { attachMotion } from '../src/motion-match.js';
 import { createTraveller } from '../src/characters/traveller.js';
@@ -65,14 +65,17 @@ export { course, measure, timeToFace, CAM_PLUS_Z };
  * A traveller on the course, standing at `at` facing +z (heading 0); o.matching: motion matching on,
  * or off (the loops, the game's default); o.moves: the starts, stops and turns over the loops
  * (src/loco-moves.js; the game's default) or not; o.body: 'b3' the game's traveller (src/characters/traveller.js), with
- * his own head, else the people's plain body.
+ * his own head, else the people's plain body; o.sprint: his sprint (src/animator.js SPRINTS: 'ual' the library's, the game's
+ * default, or 'kevin', issue #704).
  */
-export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false, moves = false, body = 'plain' } = {}) {
+let kevin = null;
+export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false, moves = false, body = 'plain', sprint = 'ual' } = {}) {
   const { lib, human } = await loadAssets();
   const physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });
   p.animator = new Animator(lib, p.char);
   p.animator.matching = matching;
+  if (sprint === 'kevin') p.animator.useSprint(await (kevin ??= parseAnimationAsset('sprint-kevin.glb').then((g) => sprintFrom(g, 'kevin'))));
   p.locoMoves = moves;
   if (body === 'b3') { p.character = createTraveller(p.char, await travellerB3()); p.humanoid = p.character.humanoid; }
   else p.humanoid = new Humanoid(human.m, p.char, 'm');
