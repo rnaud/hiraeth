@@ -1,3 +1,5 @@
+import { handleAnalytics } from './analytics/routes.js';
+export { HiraethAnalytics } from './analytics/store.js';
 import { handleIssues } from './issues.js';
 // (the notebook's screenshot drafts live in this Durable Object: wrangler.jsonc, worker/drafts.js)
 export { NotesDrafts } from './drafts.js';
@@ -5,6 +7,7 @@ export { NotesDrafts } from './drafts.js';
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/analytics/')) return handleAnalytics(request, env);
     if (url.pathname.startsWith('/api/notes/')) return handleIssues(request, env);
     if (!/^\/updates\/(web|unity)-\d+\.zip$/.test(url.pathname)) return env.ASSETS.fetch(request);
     if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });

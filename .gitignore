@@ -62,8 +62,3 @@ output/cinematics-qc/
 
 # the references page on the site: encoded WebPs kept between builds (scripts/references-site.mjs)
 /.cache/
-
-# Generated GameAnalytics ingestion configuration (built from CI secrets).
-/unity/Hiraeth/Assets/Resources/GameAnalytics/
-/unity/Hiraeth/Assets/Resources/GameAnalytics.meta
-/unity/Hiraeth/.gameanalytics-build.json

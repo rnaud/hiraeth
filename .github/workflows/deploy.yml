@@ -48,9 +48,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-        env:
-          VITE_GAMEANALYTICS_GAME_KEY: ${{ secrets.GAMEANALYTICS_WEB_GAME_KEY }}
-          VITE_GAMEANALYTICS_SECRET_KEY: ${{ secrets.GAMEANALYTICS_WEB_SECRET_KEY }}
       # the changelog's pictures, which changelog.html reads from the site (as cloudflare.yml does)
       - run: cp -R changelog-media dist/changelog-media
       # the references page's index, thumbnails and web-size copies (scripts/references-site.mjs, as cloudflare.yml

@@ -47,16 +47,6 @@
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
     "com.unity.cloud.gltfast": "6.14.1",
-    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity",
-    "com.gameanalytics.sdk": "8.3.1"
-  },
-  "scopedRegistries": [
-    {
-      "name": "GameAnalytics",
-      "url": "https://package.openupm.com",
-      "scopes": [
-        "com.gameanalytics"
-      ]
-    }
-  ]
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity"
+  }
 }

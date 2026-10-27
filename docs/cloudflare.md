@@ -2,7 +2,7 @@
 
 The browser game is served by a Cloudflare Worker named `hiraeth`, at
 https://hiraeth.alexandria-rnaud.workers.dev/. It publishes the Vite `dist/` build; a small Worker streams large update archives, while normal game files use static asset serving.
-No database or Cloudflare Vite plugin is needed. The game, character
+The private analytics dataset uses a SQLite Durable Object; no Cloudflare Vite plugin is needed. The game, character
 studio, Motion page, models, and other assets ship together. Only `dist/` is uploaded,
 not the repository or its history.
 
@@ -175,3 +175,11 @@ References: [Workers static assets](https://developers.cloudflare.com/workers/st
 [GitHub Actions deployment](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/),
 [HTML routing](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/),
 [limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+## Gameplay analytics
+
+The same Worker receives `/api/analytics/events` from web, Android and Linux.
+Its additive SQLite migration creates one combined dataset; `/analytics` uses
+the existing notebook login for private reports. No vendor SDK keys or new
+account are needed. See [analytics.md](systems/analytics.md) for retention,
+budgets, metric definitions and native-installer requirements.

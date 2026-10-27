@@ -11,7 +11,7 @@ export const CHANGELOG = [
   {
     v: '2.32', date: '2026-10-27',
     items: [
-      { text: 'Gameplay statistics help us find difficult quests, minigames and slow-loading worlds. Sharing is on by default; you can turn it off in Settings. The browser version and updated Unity apps use GameAnalytics, with a random device identifier and no save contents or dialogue.', see: 'Open Settings → Game → Share gameplay statistics. Turning it off stops collection and stays off after restarting. Unity collection requires an updated native app; older apps remain playable without it.' },
+      { text: 'Gameplay statistics help us find difficult quests, minigames and slow-loading worlds. Sharing is on by default; you can turn it off in Settings. The browser version and updated Unity apps send to our own analytics service, with a random device identifier and no save contents or dialogue.', see: 'Open Settings → Game → Share gameplay statistics. Turning it off stops collection and stays off after restarting. Unity collection requires an updated native app; older apps remain playable without it.' },
     ],
   },
   {

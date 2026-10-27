@@ -2820,8 +2820,8 @@ const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: 
   busy: () => !!blades.grass?.placing });
 loadWatch.stop();
 // loaded behind the title (src/title-hold.js): here it waits for its save to be chosen there
+analytics.ready(); // measure world construction before waiting for the player's title choice
 if (titleHold) { titleHold.arrive(); await titleHold.go; sound.startIfAllowed(); }
-analytics.ready();
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   renderer.domElement.style.visibility = '';

@@ -1,0 +1,91 @@
+import './style.css';
+const app = document.querySelector('#app');
+const demo = location.hash === '#demo';
+app.innerHTML = `<header><a class="brand" href="./">HIRAETH <span>/ Observatory</span></a><span class="badge">PRIVATE ANALYTICS</span></header>
+<main><div class="intro"><div class="eyebrow">UNDERSTAND THE JOURNEY</div><h1>Where players wander.<br>Where they get stuck.</h1><p>One game. Every platform. A shared view of exploration, challenges and loading.</p></div>
+<div id="notice" role="status" aria-live="polite"></div>
+<form id="login" hidden><h2>Unlock your reports</h2><p>Use your private Hiraeth notebook password.</p><label>Password<input type="password" id="password" autocomplete="current-password" required></label><button>Sign in</button></form>
+<section id="dashboard" hidden><div class="toolbar"><div class="filters"><label>Period<select id="days"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select></label><label>Platform<select id="platform"><option value="all">All platforms</option><option value="web">Web</option><option value="android">Android</option><option value="linux">Linux</option></select></label><label>Build<select id="build"><option value="">All builds</option></select></label></div><button id="refresh">Refresh</button></div>
+<div id="cards" class="cards"></div><div class="panels"><section class="panel"><div class="panel-head"><h2>Daily activity</h2><span>Distinct installations · UTC</span></div><div id="chart" class="chart"></div></section><section class="panel"><div class="panel-head"><h2>Platform mix</h2></div><div id="mix"></div><p class="small">An installation is one browser profile or native app. The same person on two devices counts twice.</p></section></div>
+<section class="panel"><div class="panel-head"><div><h2>Progress & challenges</h2><p>Event counts, not a matched-attempt funnel. Revisits, retries and opt-outs affect the totals.</p></div></div><div class="scroll"><table><thead><tr><th>Activity</th><th>Type</th><th>Starts</th><th>Completions</th><th>Failures</th><th>Installations</th></tr></thead><tbody id="progress"></tbody></table></div></section>
+<section class="panel"><div class="panel-head"><div><h2>World loading</h2><p>Entry-point setup to world-ready. P95: 95% of recorded loads finished within this time.</p></div></div><div class="scroll"><table><thead><tr><th>World</th><th>Loads</th><th>Average</th><th>P95</th></tr></thead><tbody id="loading"></tbody></table></div></section>
+<footer><span id="freshness"></span><span id="health"></span></footer><p class="small">Best-effort, opt-out telemetry; this is not a census. Events are retained for 90 days. D1 measures return on the next UTC calendar day, using only cohorts whose next day has finished; “new” means first observed within the retained history. Build filters restrict both days. Reports contain no installation identifiers.</p><button id="logout" class="quiet">Sign out</button></section></main>`;
+const $ = id => document.getElementById(id);
+const number = v => Number(v ?? 0).toLocaleString();
+const seconds = v => `${(Number(v) / 1000).toFixed(2)} s`;
+function cell(row, value, header = false) { const el = document.createElement(header ? 'th' : 'td'); el.textContent = value; row.append(el); return el; }
+function rows(target, data, columns) {
+  target.replaceChildren();
+  for (const item of data) { const row = document.createElement('tr'); columns.forEach(fn => cell(row, fn(item))); target.append(row); }
+  if (!data.length) { const row = document.createElement('tr'); const el = cell(row, 'No observations in this selection.'); el.colSpan = columns.length; target.append(row); }
+}
+function render(data) {
+  $('login').hidden = true; $('dashboard').hidden = false;
+  $('cards').replaceChildren();
+  const retention = data.retention.eligible ? `${Math.round(data.retention.returned / data.retention.eligible * 100)}%` : '—';
+  for (const [label, value, detail] of [
+    ['Active installations', number(data.totals.installations), 'Distinct browser profiles & apps'],
+    ['Sessions', number(data.totals.sessions), 'A new session after 30 minutes idle'],
+    ['Recorded events', number(data.totals.events), 'Progress, results & loading'],
+    ['Next-day return', retention, `${number(data.retention.returned)} / ${number(data.retention.eligible)} eligible installations`],
+  ]) { const card = document.createElement('article'); card.className = 'card'; for (const [tag, text] of [['span', label], ['strong', value], ['small', detail]]) { const e = document.createElement(tag); e.textContent = text; card.append(e); } $('cards').append(card); }
+  const selectedBuild = $('build').value;
+  $('build').replaceChildren(new Option('All builds', ''));
+  for (const build of data.builds) $('build').add(new Option(build, build));
+  $('build').value = selectedBuild;
+  const daily = new Map(data.daily.map(d => [d.day, d.installations])), max = Math.max(1, ...daily.values());
+  $('chart').replaceChildren();
+  for (let day = Math.floor(data.since / 86400000); day <= Math.floor(data.generatedAt / 86400000); day++) {
+    const count = daily.get(day) ?? 0, date = new Date(day * 86400000).toISOString().slice(5, 10);
+    const col = document.createElement('div'); col.className = 'column'; col.title = `${date}: ${count} installations`; col.setAttribute('aria-label', col.title);
+    const value = document.createElement('span'); value.className = 'count'; value.textContent = count;
+    const bar = document.createElement('div'); bar.className = 'bar'; bar.style.height = `${Math.max(1, count / max * 115)}px`;
+    const label = document.createElement('small'); label.textContent = date;
+    col.append(value, bar, label); $('chart').append(col);
+  }
+  $('mix').replaceChildren();
+  for (const platform of ['web', 'android', 'linux']) {
+    const p = data.platforms.find(x => x.platform === platform), count = p?.installations ?? 0;
+    const row = document.createElement('div'); row.className = 'mix-row';
+    const label = document.createElement('span'); label.textContent = platform;
+    const value = document.createElement('strong'); value.textContent = number(count);
+    row.append(label, value); $('mix').append(row);
+  }
+  rows($('progress'), data.progression, [x => x.name, x => x.category, x => number(x.starts), x => number(x.completes), x => number(x.failures), x => number(x.installations)]);
+  rows($('loading'), data.loading, [x => x.name, x => number(x.samples), x => seconds(x.averageMs), x => seconds(x.p95Ms)]);
+  $('freshness').textContent = data.totals.latest ? `Latest event · ${new Date(data.totals.latest).toLocaleString()}` : 'Waiting for the first production event';
+  $('health').textContent = `Today · ${number(data.health.todayAccepted)} / ${number(data.health.dailyLimit)} event budget`;
+}
+async function api(path, options = {}) {
+  const response = await fetch(path, { credentials: 'same-origin', ...options });
+  const body = await response.json(); if (!response.ok) throw Object.assign(new Error(body.error || 'Reports are unavailable'), { status: response.status }); return body;
+}
+let revision = 0;
+async function refresh() {
+  const current = ++revision;
+  $('notice').textContent = demo ? 'DEMONSTRATION · Illustrative data, not player activity. Filters are disabled.' : 'Loading reports…';
+  try {
+    const data = demo ? (await import('./sample.js')).sample() : await api(`/api/analytics/report?${new URLSearchParams({ days: $('days').value, platform: $('platform').value, build: $('build').value })}`);
+    if (current !== revision) return;
+    render(data); if (!demo) $('notice').textContent = data.totals.events ? '' : 'Collection is ready to receive events. No observations in this selection yet.';
+  } catch (e) {
+    if (current !== revision) return;
+    $('notice').textContent = e.message;
+    if (e.status === 401) { $('login').hidden = false; $('dashboard').hidden = true; }
+    else { $('dashboard').hidden = true; }
+  }
+}
+$('login').onsubmit = async e => {
+  e.preventDefault();
+  try { await api('/api/notes/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('password').value }) }); $('password').value = ''; await refresh(); }
+  catch (error) { $('notice').textContent = error.message; }
+};
+$('logout').onclick = async () => { try { await api('/api/notes/session', { method: 'DELETE' }); await refresh(); } catch (e) { $('notice').textContent = e.message; } };
+$('refresh').onclick = refresh;
+for (const id of ['days', 'platform', 'build']) { $(id).onchange = refresh; if (demo) $(id).disabled = true; }
+if (demo) $('logout').hidden = true;
+// Reports live on the Worker; Pages never asks for a password it cannot authenticate.
+if (!demo && location.hostname === 'rnaud.github.io') {
+  $('notice').textContent = 'Private reports are hosted on the Hiraeth server. ';
+  const link = document.createElement('a'); link.href = 'https://hiraeth.alexandria-rnaud.workers.dev/analytics'; link.textContent = 'Open analytics'; $('notice').append(link);
+} else void refresh();
