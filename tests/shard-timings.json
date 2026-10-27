@@ -556,6 +556,7 @@
   "tests/prominence.test.js": 0.2,
   "tests/prompt-pairs.test.js": 0.2,
   "tests/prompt-scale.test.js": 0.1,
+  "tests/public-model-inputs.test.js": 0.1,
   "tests/qanat-tree-ribcage-reference.test.js": 4.9,
   "tests/quality.test.js": 0.2,
   "tests/quest-givers.test.js": 0.2,
