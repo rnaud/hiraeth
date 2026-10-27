@@ -9,6 +9,8 @@
 // scripts/skin-hlsl.mjs turns the same pars, glsl and bodies into the port's HLSL (Shaders/SkinPatterns.hlsl, one
 // function a body, one switch over them in Surface.shader's HIRAETH_SKIN variant): one variant for all the skins.
 
+import { guardMk } from '../../mark-switch.js';
+
 /** The skins in their fixed order: a pattern's number is its skin's place here × 8 + its body's place + 1. */
 export const SKIN_ORDER = ['rose-house', 'wardens-well', 'founders-belfry', 'footprint', 'engine-house', 'lamp-house', 'hush-house',
   'aerie', 'clock-house', 'undertower', 'mooring-house', 'casting-house', 'whale-house', 'whale-sea', 'machined'];
@@ -73,7 +75,7 @@ export function spliceSkin(m, S, body, file = `skins/${S.id}.js`) {
   let tail = fs.slice(at).replace(ALBEDO, B);
   if (emitFrom) tail = tail.replace(emitFrom, S.emitAt === 'light' ? `emit = max(emit, ${S.emit}); ${LIGHT}` : `float emit = ${S.emit};`);
   tail = tail.replace(DETAIL, `float detail = ${S.ink};`);
-  m.fragmentShader = S.pars + S.defines + fs.slice(0, at) + S.glsl + tail;
+  m.fragmentShader = S.pars + S.defines + fs.slice(0, at) + guardMk(S.glsl) + tail;   // (guardMk: dev switches only, src/mark-switch.js)
   m.userData.skinPattern = { skin: S.id, body };
   return m;
 }

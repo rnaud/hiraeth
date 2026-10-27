@@ -1236,6 +1236,10 @@ Shader "Hiraeth/Surface"
           return d;
         }
         int mode = (int)(_Mode + 0.5);
+        // the ground's middle distance: the paler patches' field once, for the tone and the ink (src/surface-marks.js, issue #694)
+        float gmV1 = 0.0;
+        UNITY_BRANCH if (TERRAINK && _GroundMid.w > 0.0) gmV1 = groundMidPale(i.worldPos.xz);
+        float gmF1 = max(fwidth(gmV1), 1e-5);
         // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
         if (GLASSK && _Glass > 0.0 && _MSurfaceDebug < 3.5)
         {
@@ -1406,7 +1410,7 @@ Shader "Hiraeth/Surface"
             float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
             albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
           }
-          if (_GroundMid.w > 0.0) albedo = groundMidTone(i.worldPos.xz, albedo);   // (src/surface-marks.js, issue #669)
+          if (_GroundMid.w > 0.0) albedo = groundMidTone(i.worldPos.xz, gmV1, gmF1, albedo);   // (src/surface-marks.js, issue #669)
         } else if (mode == MODE_STRATA) {
           albedo = strata(_StrataObject > 0.5 ? i.objPos : i.worldPos);   // (in its uniform branch: strata() takes derivatives)
         } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
@@ -1811,7 +1815,7 @@ Shader "Hiraeth/Surface"
           {
             float gmYfw = fwidth(i.worldPos.y);
             float2 gs2 = _SunDir.xz / max(length(_SunDir.xz), 1e-3);
-            detail = max(detail, groundMid(gp, i.worldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(_SunDir.y), smoothstep(_Toon - 0.02, _Toon + 0.12, L), _Dots > 0.0 ? 0.0 : 1.0) * (1.0 - bw.y));
+            detail = max(detail, groundMid(gp, i.worldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(_SunDir.y), smoothstep(_Toon - 0.02, _Toon + 0.12, L), _Dots > 0.0 ? 0.0 : 1.0, gmV1, gmF1) * (1.0 - bw.y));
           }
         } else if (mode == MODE_WATER) {
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);

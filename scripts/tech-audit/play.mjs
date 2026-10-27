@@ -37,7 +37,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const PRESET = arg('preset', 'high'), [W, H] = arg('res', '1280x720').split('x').map(Number), PACED = arg('paced', '0') === '1';
 const SERVE = resolve(arg('root', ROOT)), SHOTS = arg('shots', null), QUERY = arg('query', ''), CPUPROF = arg('cpuprof', '0') === '1', DIST = arg('dist', 'dist'), WHO = arg('who', '0') === '1', EVAL = arg('eval', null), SWEEP = +arg('sweep', 0);
-const PORT = Number(process.env.PORT ?? 5425), CDP = PORT + 1;
+const PORT = Number(process.env.PORT ?? 5425), CDP = Number(process.env.CDP ?? PORT + 1);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 if (!existsSync(resolve(SERVE, DIST, 'index.html'))) throw new Error(`no ${SERVE}/${DIST}: run \`npx vite build\` first (--dist: another outDir, e.g. an unminified one for --cpuprof)`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

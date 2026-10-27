@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.31 — 2026-10-26
 
+- The soft pale patches on the open ground of Vael, Home, the Buried Machine and the Glass Dunes cost less to draw: the same picture on High, up to half a millisecond a frame less at 1920 × 1080 on a Mac (M4 Pro). On the Handheld preset the tiny wind dashes and pebbles right at your feet are left out; the stones further off stay.
 - Running, the traveller carries his chest a little forward, and throws it further forward as he sets off into a run or a sprint, the way Link does; at a sprint he leans into a bend more. Walking is as before, and he still sets off, stops and turns as quickly as ever.
 - Lorn’s crystals now grow as in their drawing: long six-sided crystals with pointed tips, a few to a cluster at their own heights and leans, their corners chipped, their edges worn and now and then a tip broken off, as if by time. They are the drawing’s soft lavenders and pale aqua-mints, paler than the bright purple and cyan before, still glowing toward their feet. The groves, the Great Crystal and the smaller crystals round its foot, the cave, the ringing groves and the Deep Wood’s clusters.
 - Every makers’ court is the makers’ own: its pad and the blocks round the box in their machined finish, plates on top and panels down the sides.

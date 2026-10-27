@@ -35,6 +35,7 @@ import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, createSmaa, aaOf, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, setEnvGround } from './materials.js';
+import { marksList, setMarksOff } from './mark-switch.js';
 import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
@@ -1317,6 +1318,9 @@ fBeauty.add(U.uRays, 'value', 0, 1, 0.05).name('sun rays');
 // the painted relief (src/relief.js, issue #696): on; ?relief=0 draws the marks flat for this session (a before/after)
 if (query.has('relief')) sharedUniforms.uRelief.value = query.get('relief') === '0' ? 0 : 1;
 fBeauty.add(sharedUniforms.uRelief, 'value', 0, 1, 1).name('painted relief (review)');
+// the surface patterns off and on again in the page, for measuring (issue #694, src/mark-switch.js; ?marksAb=1 lets it
+// reach the machined finish too): window.__marks('paving,relief') those off, window.__marks('') all back on
+window.__marks = (list) => { const off = marksList(list); sharedUniforms.uRelief.value = String(list ?? '').split(',').some((x) => x === 'relief' || x === 'all') ? 0 : 1; return setMarksOff(scene, off); };
 fBeauty.close();
 const fWorld = gui.addFolder('World');
 fWorld.add(world, 'wind').name('wind-blown sand');

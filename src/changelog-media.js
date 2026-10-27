@@ -1363,6 +1363,21 @@ export const CHANGELOG_MEDIA = {
     ], note: 'Setting off (90 % of the speed in 0.28 s), stopping (0.34 m and 0.32 s from a sprint) and turning round (0.32 s) are as before; the motion QC’s node course is 16 of 16 green before and after, the same means.' },
   ] },
   {
+    match: 'The soft pale patches on the open ground of Vael, Home',
+    shots: [
+      { name: 'groundmid-handheld', caption: 'Vael’s slope on the Handheld preset: the patches, their pen borders, the long lines and the stones as before; only the smallest marks at the feet are gone', from: 'Issue #694: .claude/skills/perf-audit/fps.mjs --shots, a muted headless Chrome on the Mac’s GPU (ANGLE on Metal), Handheld, 1280 × 720, hour 10, clear, the shipped bundle of dd821e458 (before) and of this change (after), each in its own load (the walker and the clouds move between loads)', view: 'Vael’s benchmark view “crowd” (scripts/bench/viewpoints-worlds.json), a pinned camera, the same in both.', size: [1280, 720] },
+    ],
+    numbers: [
+      { title: 'What the open ground’s patches cost a frame (ms, on − off in one page), High, 1920 × 1080', unit: 'ms', better: 'lower', device: 'the Mac (M4 Pro), muted headless Chrome on Metal, High, 1920 × 1080 (drawn at 2880 × 1620), the shipped bundle', rows: [
+        { where: 'Vael, wide', before: 1.6, after: 1.2 }, { where: 'Vael, crowd2', before: 1.4, after: 1.0 }, { where: 'Home, wide', before: 1.65, after: 1.15 },
+        { where: 'Buried Machine, start', before: 1.25, after: 0.95 }, { where: 'Buried Machine, wide', before: 1.3, after: 1.0 },
+      ], source: 'Issue #694: fps.mjs --ab groundmid --abreps 3 (?marksAb=1: the patches off and on again at each view), two loads of each build interleaved, the median of six pairs; load average 3–6', note: 'At 1280 × 720 the Mac’s frame is bound by its CPU and the patches cost nothing measurable, before or after. docs/audits/perf-materials-v2.31.md has every world.' },
+      { title: 'The same, Handheld, 2560 × 1440 (drawn at 1920 × 1080, about a Retroid’s pixels)', unit: 'ms', better: 'lower', device: 'the Mac (M4 Pro), muted headless Chrome on Metal, Handheld, 2560 × 1440, the shipped bundle', rows: [
+        { where: 'Buried Machine, start', before: 0.9, after: 0.6 }, { where: 'Buried Machine, crowd', before: 0.55, after: 0.3 }, { where: 'Home, start', before: 0.4, after: 0.1 }, { where: 'Vael, crowd', before: 0.35, after: 0.25 },
+      ], source: 'Issue #694: fps.mjs --ab groundmid --abreps 3, two loads of each build interleaved, the median of six pairs; load average 4–6', note: 'The Retroid was not connected: not measured on the device.' },
+    ],
+  },
+  {
     "match": "Lorn’s crystals now grow as in their drawing",
     "numbers": [
       { "title": "Lorn, Handheld: frame time (ms, median)", "unit": "ms", "better": "lower", "device": "M4 Pro, Chrome on Metal, 1280 × 720", "rows": [

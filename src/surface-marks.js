@@ -357,9 +357,11 @@ export const GROUND_MID_GLSL = /* glsl */ `
   float groundMidPale(vec2 p) { return vnoise(p * 0.018 + 5.3) * 0.6 + vnoise(p * 0.07 + 1.7) * 0.3 + vnoise(p * 0.55 + 3.1) * 0.1; }
   float groundMidRose(vec2 p) { return vnoise(p * 0.03 + 11.1) * 0.7 + vnoise(p * 0.11 + 4.2) * 0.3; }
   // the patches' tone into the albedo: soft over at least a few pixels, so never a colour edge post.js inks
-  vec3 groundMidTone(vec2 p, vec3 alb) {
-    float v1 = groundMidPale(p), v2 = groundMidRose(p);
-    float w1 = max(0.012, 4.0 * fwidth(v1)), w2 = max(0.012, 4.0 * fwidth(v2));
+  // (v1, f1: the paler field here, groundMidPale(p), and its fwidth (at least 1e-5), worked out once by the surface shader
+  //  for the tone and the ink, issue 694)
+  vec3 groundMidTone(vec2 p, float v1, float f1, vec3 alb) {
+    float v2 = groundMidRose(p);
+    float w1 = max(0.012, 4.0 * f1), w2 = max(0.012, 4.0 * fwidth(v2));
     float k = uGroundMid.z;
     float pale = smoothstep(0.58 - w1, 0.58 + w1, v1) * k, rose = (1.0 - smoothstep(0.3 - w2, 0.3 + w2, v2)) * k;
     alb = mix(alb, vec3(0.97, 0.85, 0.64), pale * 0.42);   // (a paler sandy ochre, as the sheet's patches)
@@ -367,16 +369,16 @@ export const GROUND_MID_GLSL = /* glsl */ `
   }
   // The ground at p (m, x z) and height y, gm its metres per px, yfw the height's per px, slope 1 - n.y, s2 the sun's way
   // across the ground, len its shadows' length, castK how lit, nearStones 1 where the ground has no print pebbles of its
-  // own (uDots): the patches' broken border, wind dashes, lines along the slopes and stones near and far: their ink.
-  float groundMid(vec2 p, float y, float gm, float yfw, float slope, vec2 s2, float len, float castK, float nearStones) {
-    float k = uGroundMid.z, ink = 0.0;
+  // own (uDots): the patches' broken border, wind dashes, lines along the slopes and stones near and far: their ink. v1, f1
+  // as groundMidTone's. The handheld (uWearLite) draws neither the near wind dashes nor the near pebbles (issue 694).
+  float groundMid(vec2 p, float y, float gm, float yfw, float slope, vec2 s2, float len, float castK, float nearStones, float v1, float f1) {
+    float k = uGroundMid.z, ink = 0.0, full = uWearLite > 0.5 ? 0.0 : 1.0;
     float flatK = 1.0 - smoothstep(0.35, 0.6, slope);
     // the paler patches' crackled border: a broken pen line along it, near and in the middle distance
-    float v1 = groundMidPale(p), f1 = max(fwidth(v1), 1e-5);
     float brk = smoothstep(0.32, 0.5, vnoise(p * 0.7 + 8.3));
     ink = max(ink, inkLine(abs(v1 - 0.58) / f1, 0.9) * brk * 0.7 * k * flatK * (1.0 - smoothstep(0.03, 0.08, gm)));
     // short wind dashes, near
-    float kD = 1.0 - smoothstep(0.012, 0.03, gm);
+    float kD = (1.0 - smoothstep(0.012, 0.03, gm)) * full;
     if (kD > 0.0) {
       vec2 dw = vec2(0.8, 0.6), dn = vec2(-0.6, 0.8);
       vec2 q = vec2(dot(p, dw), dot(p, dn)) / vec2(1.6, 0.7), c = floor(q);
@@ -400,7 +402,7 @@ export const GROUND_MID_GLSL = /* glsl */ `
     // stones with their shadows: small pebbles near (where the ground has none of its own), stones out to ~200 m
     if (uGroundMid.y > 0.0 && gm < 0.25) {
       ink = max(ink, pebbleField(p, gm, s2, len, castK, 4.5, uGroundMid.y, vec2(0.12, 0.3), 91.0) * max(mid, nearStones) * flatK);
-      if (nearStones > 0.0) ink = max(ink, pebbleField(p, gm, s2, len, castK, 1.1, min(uGroundMid.y * 0.9, 0.6), vec2(0.045, 0.12), 57.0) * nearStones * flatK);
+      if (nearStones * full > 0.0) ink = max(ink, pebbleField(p, gm, s2, len, castK, 1.1, min(uGroundMid.y * 0.9, 0.6), vec2(0.045, 0.12), 57.0) * nearStones * flatK);
     }
     return ink;
   }

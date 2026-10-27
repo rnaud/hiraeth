@@ -13,13 +13,18 @@
 //   node .claude/skills/perf-audit/fps.mjs [--preset high|handheld|deck|low] [--worlds desert,incal,arena] [--secs 6]
 //        [--warmup 2] [--res 1280x720] [--extras 0] [--wip 1] [--root <a checkout with its dist/ built>] [--out file.json]
 //        PORT (default 5492; Chrome's is PORT + 1)
+//        [--shots dir] [--query marks=0] [--ab 'all;paving;mk,relief' --abreps 3]
+// --query adds to each world's address (e.g. marks=0: every new surface pattern off, src/mark-switch.js). --ab: at each
+// view, the surface patterns turned off and on again in the page (window.__marks; ?marksAb=1), `;` between the variants,
+// each a comma list (every one against all on, 'on' recorded too), --abreps rounds in a rotating order: an A/B at one
+// camera, with no reload between (issue #694, docs/audits/perf-materials-v2.31.md).
 // --root measures another build (an older commit's `git archive` with its own dist/) with this checkout's views,
 // for an A/B in one session. The default worlds leave out the discarded ones (DISCARDED, src/levels/names.js):
 // --wip 1 measures them too, or name them in --worlds.
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
-import { tmpdir } from 'node:os';
+import { tmpdir, loadavg } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { INSTRUMENT } from '../../../scripts/bench/browser.mjs';
@@ -28,7 +33,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const PRESET = arg('preset', 'high'), SECS = +arg('secs', 6), WARM = +arg('warmup', 2), [W, H] = arg('res', '1280x720').split('x').map(Number);
 const EXTRAS = arg('extras', '1') !== '0', SERVE = resolve(arg('root', ROOT));
-const PORT = Number(process.env.PORT ?? 5492), CDP = PORT + 1;
+const SHOTS = arg('shots', null), QUERY = arg('query', ''), AB = arg('ab') ? ['', ...arg('ab').split(';')] : null, ABREPS = +arg('abreps', 3);
+const PORT = Number(process.env.PORT ?? 5492), CDP = Number(process.env.CDP ?? PORT + 1);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 if (!existsSync(join(SERVE, 'dist/index.html'))) throw new Error(`no ${SERVE}/dist: run \`npx vite build\` first (the audit measures the shipped bundle)`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -82,7 +88,7 @@ await send('Page.addScriptToEvaluateOnNewDocument', { source: INSTRUMENT });
 
 const pct = (a, p) => { const s = a.filter(Number.isFinite).sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null; };
 const r2 = (x) => (x == null ? null : +x.toFixed(2));
-const out = { preset: PRESET, res: `${W}x${H}`, date: new Date().toISOString(), commit: null, root: SERVE, gpu: null, timer: null, worlds: [] };
+const out = { preset: PRESET, res: `${W}x${H}`, query: QUERY || null, ab: AB, date: new Date().toISOString(), commit: null, root: SERVE, gpu: null, timer: null, worlds: [] };
 try { out.commit = (await import('node:child_process')).execSync('git rev-parse --short HEAD', { cwd: SERVE, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a checkout */ }
 
 /** Measure what is on screen now: SECS of frames after WARM of warm-up. */
@@ -92,7 +98,7 @@ async function record(name) {
   await ev('(() => { window.__bench.reset(); window.__bench.rec = true; return true; })()');
   await sleep(SECS * 1000);
   const r = await ev(`(() => { const B = window.__bench; B.rec = false; const i = window.renderer.info;
-    return { t: B.frames, cpu: B.cpu, gpu: B.gpu, callsAll: B.calls, trisAll: B.tris, programs: i.programs?.length ?? null,
+    return { t: B.frames, cpu: B.cpu, gpu: B.gpu, callsAll: B.calls, trisAll: B.tris, programs: i.programs?.length ?? null, broken: (i.programs ?? []).filter((p) => p.diagnostics && p.diagnostics.runnable === false).length,
       geometries: i.memory.geometries, textures: i.memory.textures, timer: !!B.ext }; })()`);
   await send('HeapProfiler.collectGarbage');
   const heap = await ev('performance.memory ? Math.round(performance.memory.usedJSHeapSize / 2 ** 20) : null');
@@ -103,8 +109,26 @@ async function record(name) {
    
     // (draws and triangles over the frames recorded: the median frame, and the busiest, when every shadow map is drawn again)
     calls: r?.callsAll?.length ? Math.max(...r.callsAll) : null, calls_med: pct(r?.callsAll ?? [], 0.5), tris: r?.trisAll?.length ? Math.max(...r.trisAll) : null, tris_med: pct(r?.trisAll ?? [], 0.5),
-    programs: r?.programs, new_programs: p0 != null && r?.programs != null ? r.programs - p0 : null,
-    geometries: r?.geometries, textures: r?.textures, heap_mb: heap };
+    programs: r?.programs, broken_programs: r?.broken ?? null, new_programs: p0 != null && r?.programs != null ? r.programs - p0 : null,
+    geometries: r?.geometries, textures: r?.textures, heap_mb: heap, load1: +loadavg()[0].toFixed(1) };
+}
+/** record(), or with --ab each variant in turn, ABREPS rounds (each round's order turned by one). */
+async function records(name) {
+  if (!AB) return [await record(name)];
+  // (which of the patterns this view shows: the surface meshes in the camera's frustum wearing each define)
+  const shown = await ev(`(() => { const { THREE, scene, camera } = window; camera.updateMatrixWorld(); const F = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    const n = {}; scene.traverseVisible((o) => { if (!o.isMesh || !o.geometry) return; if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); const sp = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld);
+      if (!o.isInstancedMesh && !F.intersectsSphere(sp)) return; for (const m of Array.isArray(o.material) ? o.material : [o.material]) { const d = m?.userData?.marksBase ?? m?.defines ?? {};
+        for (const k of ['S_PAVING','S_INTERIOR','S_SHEET','S_TIMBER','S_GROUNDMID','S_SEAWALL','S_PALESTONE','S_BURIED','S_DOMES','S_CHANNEL','S_ROCKTOP','S_CRYSTAL','S_BEDS']) if (d[k]) n[k] = (n[k] ?? 0) + 1;
+        if (m?.userData?.skinPattern) n.MK = (n.MK ?? 0) + 1; } }); return n; })()`);
+  const rows = [];
+  for (let r = 0; r < ABREPS; r++) for (let k = 0; k < AB.length; k++) {
+    const v = AB[(k + r) % AB.length];
+    const changed = await ev(`window.__marks(${JSON.stringify(v)})`);
+    rows.push({ ...(await record(name)), variant: v || 'on', rep: r, changed, shown });
+  }
+  await ev(`window.__marks('')`);
+  return rows;
 }
 const unpin = `delete window.camera.updateMatrixWorld;`;
 /** Put the traveller at a spot (an exact one: inside a room) with the game's own camera behind; false if there is none. */
@@ -121,7 +145,7 @@ for (const world of WORLDS) {
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   const t0 = Date.now();
-  await send('Page.navigate', { url: `${BASE}?level=${world}` });
+  await send('Page.navigate', { url: `${BASE}?level=${world}${QUERY ? `&${QUERY}` : ''}${AB ? '&marksAb=1' : ''}` });
   let load = null;
   for (let i = 0; i < 1200; i++) { if (await ev('!!window.__hiraethBooted && !!window.player && !!window.renderer')) { load = Date.now() - t0; break; } await sleep(100); }
   if (load === null) { out.worlds.push({ world, error: 'never booted', errors: errors.slice(0, 4) }); console.log(world, 'never booted'); continue; }
@@ -137,7 +161,9 @@ for (const world of WORLDS) {
       const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
       camera.updateMatrixWorld = function (f) { this.position.copy(pin.e); this.quaternion.copy(pin.q); if (this.fov !== pin.fov) { this.fov = pin.fov; this.updateProjectionMatrix(); } return base.call(this, f); };
       ${v.player ? `player.teleport?.(new THREE.Vector3(...${JSON.stringify(v.player)}), up, new THREE.Vector3(0, 0, 1)); player.heading = ${v.heading ?? 0};` : ''} return true; })()`);
-    rows.push(await record(v.name));
+    rows.push(...(await records(v.name)));
+    // (--shots dir: the view as drawn, after its frames: <world>-<view>.png)
+    if (SHOTS) { const d = await send('Page.captureScreenshot', { format: 'png' }); if (d.result?.data) { mkdirSync(SHOTS, { recursive: true }); writeFileSync(join(SHOTS, `${world}-${v.name ?? 'boot'}.png`), Buffer.from(d.result.data, 'base64')); } }
   }
   if (world === 'arena') {
     // the whole roster in rows in front of the traveller, standing and posed each frame (the Arena's waves stopped)
@@ -156,9 +182,9 @@ for (const world of WORLDS) {
     rows.push({ ...(await record('pack')), pack: made });
   } else if (EXTRAS) {
     // inside the temple's door, then its first room's mark (src/world-debug.js gatherPoints reads the same)
-    if (await stand('level.temple?.arrival')) rows.push(await record('temple'));
-    if (await stand('(() => { const m = level.temple?.marks?.[0]; return m && { pos: m.spot ?? m.pos, heading: m.heading }; })()')) rows.push(await record('temple-room'));
-    if (await stand('(() => { const s = (level.shops ?? []).find((x) => x.counter?.at); return s && { pos: s.counter.at, heading: Math.PI }; })()')) rows.push(await record('shop'));
+    if (await stand('level.temple?.arrival')) rows.push(...(await records('temple')));
+    if (await stand('(() => { const m = level.temple?.marks?.[0]; return m && { pos: m.spot ?? m.pos, heading: m.heading }; })()')) rows.push(...(await records('temple-room')));
+    if (await stand('(() => { const s = (level.shops ?? []).find((x) => x.counter?.at); return s && { pos: s.counter.at, heading: Math.PI }; })()')) rows.push(...(await records('shop')));
   }
   const row = { world, load_ms: load, views: rows, errors: errors.slice(0, 4) };
   out.worlds.push(row);

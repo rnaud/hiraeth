@@ -584,6 +584,28 @@ been chipped over time"; no roots: those were the reference's, not the crystals'
   6.4/5.9/4.8/4.7 → 5.6/5.2/4.3/4.2 ms; High three contended pairs overlapping); the load's collision bake 604–612 →
   761–928 ms, the first playable frame +0.2–0.5 s (`scripts/load-breakdown.mjs`).
 
+## What the patterns cost, and the switches to measure them (issue #694)
+
+Measured in docs/audits/perf-materials-v2.31.md: every pattern of #669–#693 together costs at most a few tenths of a
+millisecond a frame on the Mac at 1280 × 720, High or Handheld; at a fragment-bound 1920 × 1080 High (2880 × 1620
+drawn) only the ground's middle distance (`S_GROUNDMID`, 1.0–1.9 ms where the ground fills the view) and paving
+(`S_PAVING`, up to 0.8 ms) show, everything else within ±0.2 ms. No pattern adds a program (each material keeps its
+own), nor any time to a world's load.
+
+- **The switches** (`src/mark-switch.js`, web only, never in a player's game): `?marks=0` compiles every material
+  without its pattern's define (and the machined finish, `mkFinish`, returning before it draws); `?marksOff=paving,mk`
+  only those; `?marksAb=1` changes nothing but lets `window.__marks('groundmid,relief')` turn them off in the page and
+  `window.__marks('')` on again (an A/B at one camera, no reload). The painted relief keeps its own `?relief=0`.
+  `.claude/skills/perf-audit/fps.mjs --ab 'all;groundmid;paving' --abreps 3` records each view with each set off in
+  turn (and `--query`, `--shots`, the programs that failed to link).
+- **The ground's middle distance, cheaper** (#694): the paler patches' field (`groundMidPale`: three octaves of value
+  noise) was worked out twice a pixel, once for the tone and once for the crackled border's ink; the surface shader now
+  works it out once (`gmV1`, `gmF1`, in both engines) and hands it to `groundMidTone` and `groundMid`: the same
+  picture, 0.1–0.5 ms less at 1920 × 1080 High. The handheld (`uWearLite`) also leaves out the near wind dashes and
+  the near pebbles (the coarse stones stay), as it leaves out paving's grit: 0.25 → 0.1–0.3 ms at a 2560 × 1440
+  Handheld. A cheaper field on the handheld (its finest octave left out) was tried and dropped: it moved the patches
+  and softened their borders.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

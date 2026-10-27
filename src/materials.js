@@ -6,6 +6,7 @@ import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { PAVING_GLSL, pavingOf } from './paving-shader.js';
 import { RELIEF_GLSL } from './relief.js';
+import { MARKS, marksDefines } from './mark-switch.js';
 import { INTERIOR_GLSL, SHEET_GLSL, TIMBER_GLSL, GROUND_MID_GLSL, SEA_WALL_GLSL, PALE_STONE_GLSL, BURIED_CITY_GLSL, DOMES_GLSL, CHANNEL_GLSL, ROCK_TOP_GLSL, CRYSTAL_FACETS_GLSL, interiorOf, sheetOf, timberOf, groundMidOf,
   seaWallOf, paleStoneOf, buriedCityOf, domesOf, channelOf, rockTopOf, crystalFacetsOf } from './surface-marks.js';
 import { BEDS_GLSL, bedsOf } from './garden-beds-shader.js';
@@ -2382,6 +2383,8 @@ ${SHADOW_GLSL}
     #endif
     #ifdef S_GROUNDMID
     float gmYfw = fwidth(vWorldPos.y);
+    // (the paler patches' field, once for the tone and the ink: issue #694)
+    float gmV1 = uGroundMid.w > 0.0 ? groundMidPale(vWorldPos.xz) : 0.0, gmF1 = max(fwidth(gmV1), 1e-5);
     #endif
 
     #ifdef WATER
@@ -2434,7 +2437,7 @@ ${SHADOW_GLSL}
                     blobs(vWorldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
       if (uSandInk < 0.5) albedo *= mix(vec3(1.0), vec3(0.945, 0.935, 0.965), b);
       #ifdef S_GROUNDMID
-      if (uGroundMid.w > 0.0) albedo = groundMidTone(vWorldPos.xz, albedo);   // (broad soft patches: src/surface-marks.js)
+      if (uGroundMid.w > 0.0) albedo = groundMidTone(vWorldPos.xz, gmV1, gmF1, albedo);   // (broad soft patches: src/surface-marks.js)
       #endif
     }
     #endif
@@ -2899,7 +2902,7 @@ ${SHADOW_GLSL}
       if (uGroundMid.w > 0.0) {
         // the middle distance (src/surface-marks.js): long lines along the slopes, stones that still read
         vec2 gs2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);
-        detail = max(detail, groundMid(gp, vWorldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(uSunDir.y), smoothstep(uToon - 0.02, uToon + 0.12, L), uDots > 0.0 ? 0.0 : 1.0) * (1.0 - bw.y));
+        detail = max(detail, groundMid(gp, vWorldPos.y, gm, gmYfw, slope, gs2, pebbleShadow(uSunDir.y), smoothstep(uToon - 0.02, uToon + 0.12, L), uDots > 0.0 ? 0.0 : 1.0, gmV1, gmF1) * (1.0 - bw.y));
       }
       #endif
       float rocky = 0.0;
@@ -3320,6 +3323,7 @@ export function makeMaterial(o) {
   mat.vertexColors = !!o.vertexColors;
   mat.defaultAttributeValues = { ...mat.defaultAttributeValues, aFormC: [0, 0, 0, 0], aFormA: [0, 1, 0], aThin: [0, 0, 0, 0] };   // (a part with no axis: plain hatching; no bar: drawn as it is)
   mat.defines = surfaceDefines(o);   // only the features this material uses are compiled
+  if (MARKS.off.size) mat.defines = marksDefines(mat.defines, MARKS.off);   // (dev: ?marks=0, ?marksOff=…, src/mark-switch.js)
   if (o.crowd) mat.defines = { ...mat.defines, CROWD: 1 };
   if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };
   // a MakeHuman body's face keys (src/makehuman/face-keys.js sets them before each draw)
