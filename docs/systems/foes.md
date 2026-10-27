@@ -1149,6 +1149,73 @@ the engines' bundle, the blade pressed on the keys).
   that gets through costs ½ heart (spared) and knocks you back. Its first wake says so in one line: "Hold up your
   guard (LB / L1) as it fires." Broken is saved (`temple.desert.lit.sentry`).
 
+## Encounter sites (v2.33, issue #722, `src/encounters/`)
+
+The foes live somewhere now. Every world on the route has three to six **sites** (`src/encounters/sites.js` `SITES`,
+48 in all), each built from the world's own archetypes (the roster of the part it stands in, `level.foes.partAt`) on its
+own ground, and each pays when it is cleared. Before them a fight was a pack spawned on a ring round you, 35–55 s apart,
+with nothing round it.
+
+- **The kinds** (`layoutSite` lays each out round its centre, `heading` its front, the side you come from):
+  - **camp**: a fire of stones and logs, the foes sat round it facing the flames, a lookout standing off the front by
+    its post (a pole with a red rag), the coffer behind the fire, dry brush round the back.
+  - **nest**: a ring of stones, bones and straw, the foes asleep in it round the coffer.
+  - **hoard**: a coffer by a cairn and a post, its guards before it facing out, turning to look about.
+  - **ambush**: a coffer alone, the bait, and a sign before it: the sand heaving with a hiss of grit now and then
+    (`sand`), or a shadow sliding about on the ground with nothing over it (`shadow`). Step within `SITE.trigger`
+    (7.5 m) and they come up round it, at you (out of a cloud of darkness; a mound worm out of the sand). Left far
+    behind before it is cleared, it sets again.
+  - **patrol**: a coffer by a cairn, the foes walking a beat (two cairns `beat` m either side) end to end in single file.
+- **The idle** (`src/encounters/idle.js`, the foe's `f.idle`; `Foe.update`'s idle case asks it while the foe is calm):
+  `sit` (by the fire), `sleep`, `guard`, `lookout`, `patrol`, `orbit` (a flyer circles its post instead of sitting or
+  sleeping), `hidden` (an ambush's). Each notices you within its reach (`IDLE`: × its kind's own calm distance, kept
+  between `min` and `max`: one sat by the fire 4–8 m, a guard 8–12, a lookout 14–18) and in its sight; a sleeper only
+  right beside it (2.4 m) or to someone running up (6 m). **One noticing you wakes the site**, a moment apart
+  (`SITE.wake`, a sleeper slower), each through its alert beat (`Foe.noticed`: it rears and calls; and `Foes.alarm`
+  wakes any kind within 14 m); a lookout's, a guard's or a patrol's call at once. A foe left be goes home and settles
+  back into its life there.
+- **The body at rest** (`restPose`): sat or asleep, its body is lowered onto its legs (a body with no legs squashes),
+  its head down, asleep a little rolled and breathing; laid on as a hit's reaction is (`applyReact`'s `extra`, from
+  `f.restPose`), eased in as it settles and out as it wakes. Over a sleeper near you, two inked "z"s rise.
+- **The sneak strike**: a cut on a sleeper still calm lands `IDLE.sleep.sneak` (3) times over (`Foe.hit`); said once,
+  hints full. Its nest wakes through the alert beat (`Foe.noticed`) when it is hurt or you come too close.
+- **The coffer** (`props.js` `coffer`: rough stone in brass bands, the temples' Coffer's build): shut while the site's
+  foes stand; every one cut down, the site is **cleared for good** (flag `site.<world>.<id>`), a word ("The camp is
+  quiet. Its coffer is yours."), and the coffer's lamp lights. Opened (E), its lid swings back and a purse spills out:
+  `SITE_PURSE` by the world's stage, 20/25/30/40/50 chimes (game event `site:cache`, `src/chimes.js` connectDrops, once a
+  save: `res.site.<world>.<id>`), against a wandering pack's 2–20. With the Enemies setting off no foe comes out, and
+  the coffer opens at once.
+- **The prop both sides use** (B9): a camp's fire is the world's (`siteFlammables` in `src/flammable.js`'s
+  `flammableSpots`): it burns whoever is knocked into it, foe or traveller (`src/story/flames.js` fireHazard, foes
+  through `feelWorld`); an ember glob flares it and the sitters round it catch fire (`src/chemistry.js`), and the dry
+  brush round the camp carries a fire on to them. (Left: a barrel that bursts or a boulder on a slope; nothing in the
+  physics carries one cheaply yet.)
+- **At work** (`src/encounters/index.js` `Encounters`, made with the foes in `src/host/game-host.js` wireFight, so the
+  engines' too): a site's things are made within `SITE.build` (160 m), its foes come out within `SITE.near` (70 m),
+  calm, in the world's skin (`Foes.add`, `f.site`); left past `SITE.drop` they go with the packs and come back as you
+  return, the ones cut down staying down for the visit. **No wandering pack comes in within `SITE.quiet` (110 m) of a
+  site still to clear** (`Foes.packQuiet`).
+- **Where**: placed with the world's own ground and its paths, people and doors measured round them (the #722 site
+  finder: a grid round the route's line, 30–150 m off it, flat enough for the whole site, clear of what it must keep
+  clear of, then each site's pieces stood on the world), then looked at in the running game. `tests/route-worlds.test.js`
+  (`siteFaults`, `SITE_CLEAR`) checks every piece of every site on the world as the play-through builds it: on the ground
+  at the site's height, with room to stand, 12 m or more off the route's line, clear of doors (15 m), people (18 m), the
+  makers' boxes (10 m), the landing (40 m) and inside no temple; the Floating City's small platforms by smaller distances.
+  `tests/encounters.test.js`: the data, the layouts, the idles, a camp, a nest and an ambush at work.
+
+### The wandering packs, fewer and together (v2.33, issue #722)
+
+- **Fewer**: `PACK.rest` 60–95 s (35–55 before), none round a site still to clear.
+- **Together, or not at all** (`Foes.packSpots`): a centre on the ring round you (18–26 m, footing within 5 m of your
+  height, in the wilds), the lead on it and every other member within `PACK.spread` (2.4–6.5 m; a flock closer) on
+  ground within `PACK.step` (2.5 m) of the centre's, with room for its body. When no centre of `PACK.tries` (10) holds
+  the whole pack, the most of it that fits down to `PACK.trim` (60 %, never fewer than two), else it waits for a better
+  spot. Before, each member was tried on its own round the ring and whoever fitted came: in the Signal Market 28 of 185
+  wanted members, spread 6–26 m apart, lone foes in the last world.
+- **Fillers from the world's own roster** (`src/foe-worlds.js` `ROSTERS[w].fill`): every kind of its roster that may
+  join a pack (not the shade, a lead alone, nor a swarm), a pair or a trio as its group, each taking its own places
+  (`costOf`); no blot added where the world has none. The Market's five-foe packs were a lead, a crab and three blots.
+
 ## Controls and the lock-on
 
 - **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach turns the camera behind you (v1.86; Plumb has D-pad →: docs/systems/controls.md, "The wheel and Plumb's button").

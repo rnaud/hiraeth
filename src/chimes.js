@@ -31,7 +31,7 @@ export const DROP_OF = {
   ...Object.fromEntries(BUILT.map((a) => [ARCHETYPES[a].kind, ARCHETYPES[a].drop])),
 };
 /** The one-time purses: each temple's guardian resolved (and each sparring bout in the Arena's ring), a makers' run's first finish, a temple's coffer opened (its optional room's reward). */
-export const PURSE = { guardian: 40, run: 15, cache: 25 };
+export const PURSE = { guardian: 40, run: 15, cache: 25, site: 25 };   // (site: an encounter site's coffer, by stage: src/encounters/sites.js SITE_PURSE)
 /** The spread round a drop's base (±), never under one. */
 export const SPREAD = 0.25;
 
@@ -253,7 +253,8 @@ export function purseSpot(you, keeper, body = null, out = new THREE.Vector3()) {
  * The drops wired to the game's events (main.js; tests): 'foe:burst' scatters a foe's chimes where it fell (not
  * one lost out of the world or into deep water, none when the policy is 'off'); 'temple:resolved' a guardian's
  * purse, once per temple (flag res.purse.<id>); 'temple:cache' a temple coffer's (src/temples/pieces.js Coffer), once each
- * (flag res.cache.<id>.<el>); 'guardian:spar' (the Arena's ring) a purse each bout, as
+ * (flag res.cache.<id>.<el>); 'site:cache' an encounter site's coffer (src/encounters/index.js), once each (flag
+ * res.site.<world>.<id>); 'guardian:spar' (the Arena's ring) a purse each bout, as
  * training. `purseAt(pos, body)`: where a purse lands (the hosts: purseSpot, on the floor between the guardian and you,
  * short of its drawn body when the event gives it).
  * Returns a function that unhooks them.
@@ -277,6 +278,13 @@ export function connectDrops(game, field, { policy = 'on', purseAt = (pos) => po
       if (!id || !el || !pos || game.flag(k)) return;
       game.set(k, true);
       field.drop(pos, PURSE.cache); sound?.chimeScatter?.(true);
+    }),
+    // an encounter site's coffer opened (src/encounters/index.js), once a save: its purse, by the world's stage
+    game.on('site:cache', ({ world, id, pos, amount = PURSE.site } = {}) => {
+      const k = `res.site.${world}.${id}`;
+      if (!world || !id || !pos || game.flag(k)) return;
+      game.set(k, true);
+      field.drop(pos, amount); sound?.chimeScatter?.(true);
     }),
     game.on('guardian:spar', ({ pos } = {}) => {
       if (policy === 'off' || !pos) return;

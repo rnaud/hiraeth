@@ -805,6 +805,12 @@ function makePlan(args) {
       { kind: 'wisp', until: 'near', d: 3.3, secs: 3 }, { kind: 'key', code: 'KeyF', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyF', down: false },
       { kind: 'wisp', until: 'back', secs: 1 }, ...shot('3-deflect'), { kind: 'wisp', until: 'stunned', secs: 2 }, { kind: 'wait', frames: 25, secs: 0.8 }, ...shot('4-stun'), { kind: 'wisp', until: 'log' });
   }
+  // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
+  // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
+  for (const f of fights.filter((x) => x.startsWith('site:'))) {
+    steps.push({ kind: 'wait', frames: 30, secs: 1 }, { kind: 'foe', what: 'site', id: f.slice(5) }, { kind: 'wait', frames: 150, secs: 3 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-site-${f.slice(5)}.png` });
+  }
   if (fights.includes('down')) {
     // (at a quarter of a heart: the edges' heartbeat; then knocked out: the card)
     steps.push({ kind: 'foe', what: 'low' }, { kind: 'wait', frames: 20, secs: 0.4 });
@@ -1230,6 +1236,16 @@ function playFrame(dt) {
     if (!F) console.log('[unity] no foes here');
     else if (step.what === 'low') { game.player.hearts = 0.5; game.player.hurt?.(0.25, 'foe'); console.log(`[unity] hearts ${game.player.hearts}`); }
     else if (step.what === 'out') { game.player.hurt?.(1, 'foe'); console.log(`[unity] knocked out: ${!!game.player.dead}`); }
+    else if (step.what === 'site') {
+      const s = F.encounters?.sites.find((q) => q.id === step.id);
+      if (!s) console.log(`[unity] no site ${step.id} here`);
+      else {
+        const V = s.pos.constructor, h = s.heading ?? 0, at = new V(s.pos.x + Math.sin(h) * 16, s.pos.y + 0.5, s.pos.z + Math.cos(h) * 16);
+        game.player.teleport(at, new V(0, 1, 0), new V(0, 0, 1));
+        game.player.heading = h + Math.PI; game.rig.yaw = game.player.heading + Math.PI;
+        console.log(`[unity] at site ${s.id} (${s.kind})`);
+      }
+    }
     else if (step.what === 'guardian') {
       // (into the arena of the level's temple guardian, two thirds of the way out from its middle: it wakes)
       const T = (game.level.temples ?? []).find((t) => t.guardian), G = T?.guardian;

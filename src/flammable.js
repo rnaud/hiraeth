@@ -3,6 +3,7 @@ import { registerTarget } from './targets.js';
 import { Flames } from './story/flames.js';
 import { makeMaterial } from './materials.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { siteFlammables } from './encounters/index.js';
 
 // Things an ember glob (the backpack's 'fire' mode, src/items.js) sets alight.
 // Lamps light, fires flare, dry brambles burn away and grow back later; the fire
@@ -26,7 +27,7 @@ const LAMPS = new Set(['lantern', 'lamp', 'brazier', 'torch']);
 
 /** Every flammable spot a level offers (its own list, plus the desert's camp fires and the brambles by them). */
 export function flammableSpots(level) {
-  const out = [...(level?.flammables ?? [])];
+  const out = [...(level?.flammables ?? []), ...siteFlammables(level)];   // (the encounter sites' camp fires and their brush: src/encounters/index.js)
   const fires = level?.qanat?.fires ?? [];
   const H = level?.ground?.heightAt?.bind(level.ground);
   fires.forEach((f, i) => {

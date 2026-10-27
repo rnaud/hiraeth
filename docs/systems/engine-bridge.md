@@ -772,7 +772,7 @@ muted, and exits; the menu Hiraeth ▸ JS bridge rebuilds the scene.)
 
 `scripts/unity-js-run.sh <name> [BridgeBatch.Run arguments…]` does the two last in one, its log in
 `output/engine-bridge/unity-<name>.log`, the lines that say what happened printed. Its arguments:
-`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms` (`pictures` among them: each canvas the parked ship draws, close up, `unity-canvas-<n>.png`), `-fight foe,down,guardian`, `-foes [world]` (with `-level arena`), `-bench secs`, `-split` (the frame's split: the
+`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms` (`pictures` among them: each canvas the parked ship draws, close up, `unity-canvas-<n>.png`), `-fight foe,down,guardian` (and `site:<id>`: the traveller set down 16 m in front of that encounter site of the level, issue #722, its things and its foes out, `unity-site-<id>.png`; with `-store` a save that holds the sword: a fixed-view run has no fight, so no site foes), `-foes [world]` (with `-level arena`), `-bench secs`, `-split` (the frame's split: the
 mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id` (with `-talk-seq N [-talk-every frames]` N
 pictures of the first line as it is said; with `-bench secs` the frame measured while they talk, the gestures' own ms
 as `split.talkGestures`), `-through way` (a door walked into and back out of), `-play tool,drone`, and

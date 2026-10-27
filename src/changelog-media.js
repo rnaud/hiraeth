@@ -1354,6 +1354,9 @@ const FIGHT722 = 'Issue #722: the web game in muted headless Chrome (hiraeth.mut
 const FIGHT722_HIT = FIGHT722 + '. In this headless setup the swing passes over the Buried lizard’s low body (before and after alike), so the blow is dealt by the script (Foes.hurt, the charged cut’s or a combo swing’s numbers) at the swing’s hit frame';
 const SHIP706 = 'Issue #706: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; High, 1280 × 720, 10:00, clear, a pinned camera) on this branch’s own Vite (port 5442), scripts/design-qc/capture.mjs; a save with the controlled desert landing; before: origin/main at eeeddf4df, after: this change; 27 October; cwebp -q 72';
 const SHIP706S = 'Issue #706: as the desert’s, at 960 × 540 (the after downscaled from 1280 × 720 to match); the views found by tests/landing-clear.test.js, each pinned at the spot it reported; before: origin/main at eeeddf4df, after: this change; 27 October; cwebp -q 72';
+const SITES722 = 'Issue #722: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; High, 1280 × 720, 15:00, clear, a pinned camera, the HUD hidden) on this branch’s own Vite (port 5463), scripts/design-qc/capture.mjs; a save with the sword and the shield; the traveller set down 34 m in front of the site (inside the 70 m its foes come out at, outside every foe’s notice), 27 October; after only (there were no sites before); cwebp -q 72';
+const PACK722 = 'Issue #722: the web game in muted headless Chrome (as SITES722) on Vite port 5463; the traveller in the Signal Market at (-57, 0, 106), the camera pinned at (-70, 17, 95) toward (-79, 0, 120), the wandering pack the spawner sends there (Foes.spawnPack with the same seeded random numbers, seed 2, the fourth pack of the visit) laid down where it lands, held calm; before: origin/main at 124ef48f5 (a git archive of it), after: this change, 27 October; cwebp -q 72';
+const PROBE722 = 'Issue #722: node, the worlds as the play-through builds them (tests/playthrough-agent.js loadWorld, real collision): from 12 spots in the wilds of each world, packs 1, 3 and 5 of a visit with seeded random numbers, each member placed as the spawner places it (before: origin/main at 124ef48f5, each member tried alone round the ring with the old room test and the old fillers; after: Foes.packSpots, the fixed room test and the world’s own fillers); a pack with no spot for all of it waits 3 s and tries again from where you are then (counted here as none placed)';
 export const CHANGELOG_MEDIA = {
   '2.33': [
     { match: 'Sword hits now burst in amber and gold', shots: [
@@ -1375,6 +1378,40 @@ export const CHANGELOG_MEDIA = {
   ] },
   { match: 'Fights move more', shots: [
     { name: 'foe-hop', only: 'after', size: [1280, 720], caption: 'A horn lizard hops back out of the traveller’s first swing (no before: they never did)', from: FIGHT722, view: 'Buried Machine. The lizard 2.4 m ahead, its hop chance forced for the picture; 0.16 s after the swing begins.' },
+  ] },
+  { match: 'Foes now live somewhere', shots: [
+    { name: 'site-camp', only: 'after', size: [1280, 720], caption: 'A camp in the Buried Machine: two horn lizards and a ring centipede sat round their fire, a lamp tripod on the lookout by its post, the coffer behind the flames, dry brush round the back', from: SITES722, view: 'The Buried Machine, the camp at (156, 13.5, -180).' },
+    { name: 'site-hoard', only: 'after', size: [1280, 720], caption: 'A hoard in the Moon Foundry: a furnace brute and a crucible cart standing guard before their coffer, by a cairn and a post', from: SITES722, view: 'The Moon Foundry, the hoard at (-131, 0, -2).' },
+    { name: 'site-patrol', only: 'after', size: [1280, 720], caption: 'A patrol in the Garden of Spheres: two shades walking their beat by the lamps, their coffer by a cairn', from: SITES722, view: 'The Garden of Spheres, the beat at (40, 0.1, -146).' },
+  ] },
+  { match: 'A sleeping foe takes a sneak strike', shots: [
+    { name: 'site-nest', only: 'after', size: [1280, 720], caption: 'A nest in the Desert: dune skitters asleep in a ring of stones and bones round their coffer, the z’s over them', from: SITES722, view: 'The Desert, the nest at (263, 1.2, 309).' },
+  ] },
+  { match: 'An ambush gives itself away', shots: [
+    { name: 'ambush-sign', only: 'after', size: [1280, 720], caption: 'The Desert’s ambush before you step in: a lone coffer, and a mound of sand in front of it that heaves and puffs grit every few seconds once you are within 30 m (a still shows the mound, not its twitch)', from: SITES722, view: 'The Desert, the ambush at (515, 37.4, 288).' },
+    { name: 'ambush-sprung', only: 'after', size: [1280, 720], caption: 'The same ambush a moment after stepping up to the coffer: the mound worms burst up out of the sand beside you', from: SITES722, view: 'The traveller set 5 m in front of the coffer; the shot 1.5 s later.' },
+  ] },
+  { match: 'Every one of these places keeps a coffer', shots: [
+    { name: 'coffer-open', only: 'after', size: [1280, 720], caption: 'A hoard in the Desert cleared and its coffer opened: the lid swung back and its purse of chimes over it', from: SITES722, view: 'The Desert, the hoard at (354, 0.5, 456); its three foes cut down by the script (Foes.defeat), then the coffer opened as E does (Encounters.openCoffer).' },
+  ] },
+  { match: 'Wandering packs come less often', shots: [
+    { name: 'market-pack', size: [1280, 720], caption: 'The fourth pack of a visit in the Signal Market, the same random numbers: before, a bell walker alone (one of the four it wanted: a bell, a blot and two crabs); after, a bell walker, a crab and two antler hounds (dark shadows while calm) together', from: PACK722, view: 'Signal Market (-57, 0, 106).' },
+  ], numbers: [
+    { title: 'Wandering pack members placed, of those the spawner wanted', unit: '%', better: 'higher', device: 'node, the route worlds as the play-through builds them', source: PROBE722, rows: [
+      { where: 'The Signal Market (159 wanted after, 164 before)', before: 21, after: 100 },
+      { where: 'The City-Shaft', before: 50, after: 74 },
+      { where: 'The Garden of Spheres', before: 64, after: 100 },
+      { where: 'The Underwater City', before: 80, after: 100 },
+      { where: 'Viridel', before: 95, after: 100 },
+      { where: 'The Glass Dunes', before: 91, after: 90 },
+    ], note: 'Before, a short pack was whoever fitted, often one foe alone; after, a pack comes whole or (when no spot round you holds it) waits a few seconds and tries again from where you are: the City-Shaft’s 9 and the Glass Dunes’ 3 waits are counted as none placed here. Before, no squat kind (a crab, a lizard, a blot) ever had room on a floor that is a mesh: the room test reached into the floor (fixed). The Desert, Vael, Lorn, the Buried Machine and the Moon Foundry placed every member before and after; the Floating City has no wilds for packs (its fights are its sites).' },
+    { title: 'How far apart a wandering pack stands (the widest two of a pack, median)', unit: 'm', better: 'lower', device: 'node, the route worlds as the play-through builds them', source: PROBE722, rows: [
+      { where: 'The Moon Foundry', before: 22.1, after: 7.6 },
+      { where: 'The Buried Machine', before: 19.7, after: 7.2 },
+      { where: 'The Glass Dunes', before: 19.3, after: 7 },
+      { where: 'The Garden of Spheres', before: 15.8, after: 8.1 },
+      { where: 'The Signal Market', before: 8.3, after: 8.9 },
+    ], note: 'The Signal Market’s before counts only the packs that placed two or more (most placed one).' },
   ] },
   ],
   '2.32': [

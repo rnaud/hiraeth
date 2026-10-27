@@ -342,7 +342,10 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   const rng = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const [id, k] of Object.entries(signature)) {
     const packs = []; for (let n = 1; n < 240; n++) packs.push(packOf(n, id, rng));
-    assert.ok(packs.filter((p) => p[0] === k).length > packs.length * 0.25, `${id}: ${k} leads its packs`);
+    // (it leads more of them than any other kind: issue #722's fillers drew the stream differently, and a share of 25 % for
+    // a lead weighted 27 % failed one draw in four)
+    const leads = {}; for (const p of packs) leads[p[0]] = (leads[p[0]] ?? 0) + 1;
+    assert.ok(Object.entries(leads).every(([x, c]) => x === k || c < leads[k]) && leads[k] > packs.length * 0.2, `${id}: ${k} leads its packs (${JSON.stringify(leads)})`);
     assert.ok(packs.flat().every((x) => FOES[x] && !FOES[x].noWild), `${id}: only kinds that roam`);
   }
   assert.deepEqual(packOf(0, 'desert'), ['blot'], 'the very first pack the game explains: a blot');

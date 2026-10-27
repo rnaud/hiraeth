@@ -80,6 +80,8 @@ export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2 };
 export const FROM = { wisp: 1, skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
 /** A big lead takes this many of a pack's places. */
 export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
+/** The places a kind takes in a pack: a group its group's, a big lead its own, else one. */
+export const costOf = (k) => (GROUP[k] ? GROUP_COST[k] ?? GROUP[k] : COSTS[k] ?? 1);
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
 export const BUDGET = [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */
@@ -101,8 +103,11 @@ export const ROSTERS = Object.fromEntries(Object.entries(WORLDS).map(([w, T]) =>
   const wild = kindsOf(T), early = kindsOf(T, { late: true });
   const lead = spawnKindOf(T.lead) ?? Object.entries(early).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'blot';
   wild[lead] = (wild[lead] ?? 0) + 1;   // (the lead leads most often)
-  const fill = Object.fromEntries(Object.entries(early).filter(([k]) => !GROUP[k] && (COSTS[k] ?? 1) <= 1.5 && k !== 'shade'));
-  fill.blot = (fill.blot ?? 0) + 1;     // (the blot: in every world, few)
+  // (issue #722: the fillers are the world's own, every kind of its roster that may join a pack, a pair or a trio as its
+  // group (not a swarm: a flock of skitters leads its own); until then they left out the groups and the big kinds and
+  // added a blot everywhere, so the Market's five-foe packs were a lead, a crab and three tutorial blots)
+  const fill = Object.fromEntries(Object.entries(early).filter(([k]) => k !== 'shade' && !(GROUP[k] > (GROUP_COST[k] ?? GROUP[k]))));
+  if (!Object.keys(fill).length) fill[lead] = 1;
   const second = Object.entries(early).filter(([k]) => k !== lead && !GROUP[k]).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'blot';
   const late = Object.fromEntries((T.late ?? []).map((a) => [spawnKindOf(a), 2]).filter(([k]) => k));
   return [w, { wild, fill, first: lead, guards: [lead, second], temple: T.temple ?? ['machine'], shade: 0, stage: T.stage ?? 2, late, ...(T.budget ? { budget: T.budget } : {}) }];
@@ -139,11 +144,17 @@ export function packOf(n, levelId, rng = Math.random) {
   if (GROUP[lead] && (R.stage ?? 1) < 2) return Array(GROUP[lead]).fill(lead);
   const out = GROUP[lead] ? Array(GROUP[lead]).fill(lead) : [lead];
   let ranged = rangedKind(lead) ? 1 : 0;
-  for (let left = size - (GROUP[lead] ? GROUP_COST[lead] ?? GROUP[lead] : COSTS[lead] ?? 1); left >= 1 - 1e-9; left--) {
-    let k = pick(R.fill, rng);
-    if ((R.stage ?? 1) <= 1 && rangedKind(k) && ranged >= 1) k = 'blot';
+  // the places left filled from the world's own roster, each filler taking its own places (a big one two, a pair two; the
+  // last may run half a place over: a crab for the Market's last place, which has no kind of one place); early, a group
+  // never fills and at most one ranged kind comes
+  const early = (R.stage ?? 1) < 2;
+  for (let left = size - costOf(lead); left >= 1 - 1e-9;) {
+    const fits = Object.entries(R.fill).filter(([k]) => costOf(k) <= left + 0.5 + 1e-9 && !(early && GROUP[k]) && !((R.stage ?? 1) <= 1 && ranged >= 1 && rangedKind(k)) && (FROM[k] ?? 0) <= n);
+    if (!fits.length) break;
+    const k = pick(Object.fromEntries(fits), rng);
     if (rangedKind(k)) ranged++;
-    out.push(k);
+    out.push(...Array(GROUP[k] ?? 1).fill(k));
+    left -= costOf(k);
   }
   return out;
 }

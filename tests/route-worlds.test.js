@@ -37,6 +37,9 @@ const { criticalPath, pathSegments, distanceToPath } = await import('../scripts/
 const { newCountry } = await import('./fragments-reach.js');
 const { FRAGMENTS } = await import('../src/fragments-data.js');
 const { BENCHES } = await import('../src/benches-data.js');
+const { sitesOf, layoutSite, siteFootprint } = await import('../src/encounters/sites.js');
+const { BODIES } = await import('../src/encounters/index.js');
+const { worldArchetypes } = await import('../src/foe-worlds.js');
 
 /** The nearest a fragment may lie to the route's line (m). */
 export const ROUTE_CLEAR = 25;
@@ -60,8 +63,52 @@ function load(id) {
     });
     m.country = { sights, fresh, high: fresh.filter((p) => p[1] - spawnY >= 15 || ledge(p)) };
   }
+  m.sites = siteFaults(W, id, m.segs);
   measured.set(id, m);
   return W;
+}
+
+/**
+ * The encounter sites (issue #722, src/encounters/sites.js) of a world as it was loaded: what is wrong with each, as text
+ * (none: []). Every piece a site puts down (its foes, its fire, logs, nest, coffer, sign, a patrol's beat) on the world's
+ * ground at the site's height (a foe within 1.6 m, a thing within 1.0, the coffer and the fire 0.9), with room to stand
+ * (no wall or rock through it); off the route's line (SITE_CLEAR.path m), clear of every doorway and the temples' doors, the
+ * people, the crowd, the makers' boxes and the ship's landing; not inside a temple; its foes of the roster of the part it stands in.
+ * The Floating City's platforms are small: its distances are SITE_CLEAR.spacecity's.
+ */
+export const SITE_CLEAR = { path: 12, door: 15, people: 18, box: 10, ship: 40, crowd: 10, spacecity: { path: 7, door: 9, people: 12, box: 8, ship: 30, crowd: 6 } };
+function siteFaults(W, id, segs) {
+  const { level, physics } = W, C = id === 'spacecity' ? SITE_CLEAR.spacecity : SITE_CLEAR, out = [];
+  const xyz = (p) => (p?.isVector3 ? [p.x, p.y, p.z] : Array.isArray(p) ? p : p && Number.isFinite(p.x) ? [p.x, p.y ?? 0, p.z] : null);
+  const temples = level.temples ?? (level.temple ? [level.temple] : []);
+  const away = [[xyz(level.ship?.pos ?? level.spawn), C.ship, 'the landing']];
+  for (const n of W.npcs) if (!n.pooled) away.push([xyz(n.pos ?? n.object?.position), C.people, n.def?.id ?? 'someone']);
+  for (const t of temples) if (t.outside?.door) away.push([xyz(t.outside.door.at), C.door, 'a temple door']);
+  for (const pt of level.portals ?? []) if (pt.at) away.push([xyz(pt.at), C.door, pt.label ?? 'a doorway']);
+  for (const b of W.boxes.list) away.push([xyz(b.pos), C.box, `box ${b.id}`]);
+  // (and the crowd: its circles, the people leaning on its edges, its walks, src/crowd.js level.crowdSpots)
+  const crowd = level.crowdSpots?.();
+  for (const q of [...(crowd?.groups ?? []), ...(crowd?.edges ?? [])]) away.push([xyz(q.at), C.crowd, 'the crowd']);
+  for (const w of crowd?.walks ?? []) for (let i = 0; i + 1 < (w.path?.length ?? 0); i++) { const a = w.path[i], b = w.path[i + 1], n = Math.ceil(a.distanceTo(b) / 4); for (let k = 0; k <= n; k++) away.push([xyz(a.clone().lerp(b, k / n)), C.crowd, 'the crowd’s walk']); }
+  const _h = v();
+  for (const s of sitesOf(id)) {
+    const cy = s.at[1], part = level.foes?.partAt?.(s.at[0], s.at[2]) ?? id;
+    for (const a of [...s.foes, ...(s.lookout ? [s.lookout] : [])]) if (!worldArchetypes(part).includes(a)) out.push(`${id}.${s.id}: ${a} is not of ${part}`);
+    const lay = layoutSite(s, BODIES);
+    const pieces = [...siteFootprint(s, BODIES), ...lay.foes.filter((f) => f.path).flatMap((f) => Array.from({ length: 9 }, (_, k) => ({ at: [f.path[0][0] + (f.path[1][0] - f.path[0][0]) * k / 8, f.path[0][1] + (f.path[1][1] - f.path[0][1]) * k / 8], r: 0.6, what: 'its beat' })))];
+    for (const p of pieces) {
+      const [x, z] = p.at, g = physics.groundAt(x, cy + 3, z, 8), tol = p.what === 'coffer' || p.what === 'fire' ? 0.9 : / \(/.test(p.what) || p.what === 'its beat' ? 1.6 : 1.0;
+      if (!Number.isFinite(g) || Math.abs(g - cy) > tol) { out.push(`${id}.${s.id}: ${p.what} off the ground (${Number.isFinite(g) ? (g - cy).toFixed(1) : 'none'})`); continue; }
+      const push = physics.pushCapsule?.(v(x, g, z), Math.min(0.8, p.r), 0.4, 2.2, _h);
+      if (push && push.lengthSq() > 0.0025) out.push(`${id}.${s.id}: ${p.what} inside something`);
+      const at = [x, g, z];
+      if (temples.some((t) => t.inside?.(v(x, g, z)))) out.push(`${id}.${s.id}: ${p.what} inside a temple`);
+      const dp = distanceToPath(at, segs);
+      if (dp < C.path) out.push(`${id}.${s.id}: ${p.what} ${dp.toFixed(1)} m from the route`);
+      for (const [q, r, what] of away) if (q && Math.hypot(q[0] - x, q[2] - z) < r && Math.abs(q[1] - g) < 20) out.push(`${id}.${s.id}: ${p.what} ${Math.hypot(q[0] - x, q[2] - z).toFixed(1)} m from ${what}`);
+    }
+  }
+  return out;
 }
 /** The fragments' measures of world `id` (loaded for them alone when the shops' walk has not loaded it). */
 const measures = (id) => { if (!measured.has(id)) load(id).dispose(); return measured.get(id); };
@@ -198,4 +245,10 @@ test('the rebuilt worlds hide at least two in their new country, one of them hig
     if (fresh.length < 2 || !high.length) short.push(`${id}: ${fresh.length} in the new country, ${high.length} high`);
   }
   assert.deepEqual(short, []);
+});
+
+test('every encounter site stands on its world’s ground, off the route, clear of doors, people, boxes, the landing and the temples', () => {
+  const faults = [];
+  for (const id of ORDER) { assert.ok(sitesOf(id).length >= 3, `${id}: its sites`); faults.push(...measures(id).sites); }
+  assert.deepEqual(faults, []);
 });

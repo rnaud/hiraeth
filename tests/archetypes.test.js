@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spawnKindOf, archetypeOfKind, parseKind, skinned } from '../src/enemies/archetypes.js';
 import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
-import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes } from '../src/foe-worlds.js';
+import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
@@ -151,7 +151,10 @@ test('the route\'s difficulty rises to the Market: stages never fall, packs grow
   const mean = (ws) => ws.reduce((a, w) => a + size(w), 0) / ws.length;
   const early = mean(ORDER.slice(0, 5)), middle = mean(ORDER.slice(5, 8)), late = mean(ORDER.slice(8));
   assert.ok(early < middle && middle < late, `packs grow: ${early.toFixed(2)} < ${middle.toFixed(2)} < ${late.toFixed(2)} (a flock of skitters not counted)`);
-  assert.ok(ORDER.every((w) => w === 'bazaar' || size(w) < size('bazaar')), 'the Market\'s packs are the biggest on the route');
+  // (the Market's packs the heaviest: in places, a big one two, a pair two; issue #722's fillers take their own places, so
+  // a bell or a pair in a Market pack is fewer bodies than a drone's pack of four in the Floating City, and more weight)
+  const weight = (w) => { let n = 0; for (let i = 1; i <= 600; i++) { const p = packOf(i, w, rng); n += [...new Set(p)].reduce((a, k) => a + (GROUP[k] ? GROUP_COST[k] * Math.round(p.filter((x) => x === k).length / GROUP[k]) : costOf(k) * p.filter((x) => x === k).length), 0); } return n / 600; };
+  assert.ok(ORDER.every((w) => w === 'bazaar' || weight(w) < weight('bazaar')), 'the Market\'s packs are the heaviest on the route');
   // the hounds and the marionettes lead in the last two (from the third pack on in the Garden)
   for (const [w, kinds] of [['spheres', ['hound']], ['bazaar', ['hound', 'marionette']]]) {
     let n = 0; for (let i = 3; i < 603; i++) if (kinds.includes(packOf(i, w, rng)[0])) n++;

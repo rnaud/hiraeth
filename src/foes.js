@@ -106,7 +106,11 @@ export const PEACEFUL = new Set(['home', 'lab', 'references', 'atelier', 'overni
 /** Where the wilds start: this far from any person, and from where the ship lands. */
 export const WILD = { people: 45, spawn: 55 };
 /** The packs of ink blots: how many at once, how far out they come in, how long before the next. */
-export const PACK = { size: [2, 3], first: 1, near: 18, far: 26, settle: 3, rest: [35, 55], drop: 85 };
+// (issue #722, B10: fewer packs, and each one a group: a centre on the ring round you, every member within `spread` m of
+// it on ground it can stand on, or the pack waits for a better spot; `trim` the share of it kept when no spot holds all
+// of it, after `tries` centres. The rest was 35-55 s before: the encounter sites are the fights now, the packs the life
+// between them; none round a site still to clear, Foes.packQuiet)
+export const PACK = { size: [2, 3], first: 1, near: 18, far: 26, settle: 3, rest: [60, 95], drop: 85, tries: 10, spread: [2.4, 6.5], step: 2.5, trim: 0.6 };
 /** What a pack is: the world's roster (src/foe-worlds.js packOf): the first, its own kind alone; then a lead and its fillers. */
 export function packKinds(n, levelId, rng = Math.random) { return packOf(n, levelId, rng); }
 const STILL = 3.5;   // s a stilling glob holds a foe
@@ -917,6 +921,8 @@ export class Foe {
       case 'idle': {
         // its calm (def.calm): wildlife grazes, basks or lies about and fights only when provoked (close in, hurt,
         // or one of its own provoked near it); a machine patrols its round; a blot lies pooled until you come near
+        // (a foe of an encounter site lives its site's life instead: src/encounters/idle.js; noticing you, its alert beat as any)
+        if (this.idle && !this.provoked) { if (this.idle.calm(this, dt, P, d, env)) { this.provoked = true; this.noticed(ev, env); } break; }
         if (D.calm && !this.provoked) { if (this.calmly(dt, P, d, env)) this.noticed(ev, env); break; }
         this.wander += dt * 0.4;
         const tx = this.home.x + Math.sin(this.wander) * 2.5, tz = this.home.z + Math.cos(this.wander * 0.7) * 2.5;
@@ -1712,6 +1718,7 @@ export class Foe {
   hit(mode, dir, info = {}) {
     if (!this.alive) return false;
     this.shrugged = false;
+    const sneak = this.provoked ? 1 : this.idle?.sneak?.(this) ?? 1;   // (asleep at its site: a sneak strike, src/encounters/idle.js)
     this.provoked = true;   // (wildlife hurt fights back)
     const D = this.def, src = info.source;
     if (this.buried && mode === 'blade' && info.air) {
@@ -1785,6 +1792,7 @@ export class Foe {
       // the dash cut through its back (BACKSTAB, v1.47): double; the blow the evade round it sets up
       this.backstab = !!(info.dash && dir && src !== 'parry' && this.fromBehind(dir));
       if (this.backstab) dmg *= BACKSTAB.k;
+      if (sneak > 1) { dmg *= sneak; this.sneakHit = true; }
       if (D.segmented && dir && src !== 'parry') {
         // plated (the centipede): from behind or the side the plates take half and it never reels; its head,
         // turned in for the ring, takes the cut double; cut from behind once it is hurt, its tail breaks off
@@ -2558,7 +2566,10 @@ export class Foes {
   roomAt(kind, at) {
     const phys = this.physics, D = FOES[parseKind(kind).kind] ?? FOES.blot;
     if (!phys?.pushCapsule) return true;
-    const r = Math.max(0.2, Math.min(D.radius ?? 0.5, 0.9)), top = Math.max(1, (D.height ?? 0.6) * 2) + (D.hover ?? 0);
+    // (the column's top at least a body's width over its foot: a squat kind's, a lizard's 1.1 m with a 0.6 m radius, ran the
+    // capsule's segment downward, its lower sphere 0.1 m into the floor, so on every floor that is a mesh (the Signal
+    // Market's paving, the City-Shaft's decks) no crab, lizard or blot ever had room: issue #722)
+    const r = Math.max(0.2, Math.min(D.radius ?? 0.5, 0.9)), top = Math.max(1, (D.height ?? 0.6) * 2, 0.3 + 2 * r + 0.05) + (D.hover ?? 0);
     const push = phys.pushCapsule(_pb.copy(at), r, 0.3, top, _hz);
     return !push || push.lengthSq() < 0.05 * 0.05;
   }
@@ -2585,24 +2596,51 @@ export class Foes {
    * packOf), each in the world's skin. Out here wildlife and the others keep to their calm until provoked.
    */
   spawnPack() {
-    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.worldHere, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
-    const base = this.rng() * Math.PI * 2;
-    let made = 0, flock = null;
-    for (let tries = 0; tries < 24 && made < n; tries++) {
-      const a = base + (tries % 6) * 0.35 + (tries > 11 ? Math.PI : 0), r = PACK.near + this.rng() * (PACK.far - PACK.near);
-      let x = P.pos.x + Math.sin(a) * r, z = P.pos.z + Math.cos(a) * r;
-      // (a flock grazes together: the rest of it round the first, a few metres apart)
-      if (flock && FOES[parseKind(kinds[made]).kind]?.flock) { const b = this.rng() * Math.PI * 2, rr = 0.9 + this.rng() * 2.4; x = flock.x + Math.sin(b) * rr; z = flock.z + Math.cos(b) * rr; }
-      const y = phys ? phys.groundAt(x, P.pos.y + 25, z, 60) : P.pos.y;
-      if (!Number.isFinite(y) || Math.abs(y - P.pos.y) > 5) continue;
-      const at = new THREE.Vector3(x, y, z);
-      if (!this.wild(at) || !this.roomAt(kinds[made], at)) continue;
-      this.add(kinds[made], at, { calm: true, entrance: true });
-      if (!flock && FOES[parseKind(kinds[made]).kind]?.flock) flock = at;
-      made++;
+    const kinds = packKinds(this.packs, this.worldHere, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99);
+    // the whole pack where it fits; failing that, the most of it that does (never fewer than two of a bigger pack)
+    let spots = this.packSpots(kinds), n = kinds.length;
+    while (!spots && n > 2 && n > Math.ceil(kinds.length * PACK.trim)) spots = this.packSpots(kinds.slice(0, --n));
+    if (!spots) return 0;
+    spots.forEach((at, i) => this.add(kinds[i], at, { calm: true, entrance: true }));
+    this.packs++;
+    return spots.length;
+  }
+
+  /**
+   * Where a pack of `kinds` stands (issue #722): a centre on the ring round you (PACK.near-far m, out of sight round
+   * you, on footing within 5 m of your height, in the wilds), the lead on it and the others round it within
+   * PACK.spread m (a flock close in), each on ground within PACK.step m of the centre's, with room for its body
+   * (roomAt). Null when no centre of PACK.tries holds all of them: the pack is not cut down to whoever fits.
+   */
+  packSpots(kinds) {
+    const P = this.player, phys = this.physics, base = this.rng() * Math.PI * 2;
+    for (let tries = 0; tries < PACK.tries; tries++) {
+      const a = base + tries * 2.39996, r = PACK.near + this.rng() * (PACK.far - PACK.near);
+      const cx = P.pos.x + Math.sin(a) * r, cz = P.pos.z + Math.cos(a) * r;
+      const cy = phys ? phys.groundAt(cx, P.pos.y + 25, cz, 60) : P.pos.y;
+      if (!Number.isFinite(cy) || Math.abs(cy - P.pos.y) > 5) continue;
+      const c = new THREE.Vector3(cx, cy, cz);
+      if (!this.wild(c) || this.packQuiet?.(c)) continue;
+      const spots = [];
+      for (let i = 0; i < kinds.length; i++) {
+        const k = kinds[i], flock = !!FOES[parseKind(k).kind]?.flock;
+        let at = null;
+        for (let j = 0; j < 8 && !at; j++) {
+          const b = i * 2.39996 + j * 0.79 + this.rng() * 0.4;
+          const rr = i === 0 && j === 0 ? 0 : flock ? 0.9 + this.rng() * 2.2 : PACK.spread[0] + this.rng() * (PACK.spread[1] - PACK.spread[0]);
+          const x = cx + Math.sin(b) * rr, z = cz + Math.cos(b) * rr;
+          const y = phys ? phys.groundAt(x, cy + 3, z, 3 + PACK.step + 2) : cy;
+          if (!Number.isFinite(y) || Math.abs(y - cy) > PACK.step) continue;
+          const p = new THREE.Vector3(x, y, z);
+          if (spots.some((q) => Math.hypot(q.x - x, q.z - z) < 1.1) || !this.wild(p) || !this.roomAt(k, p)) continue;
+          at = p;
+        }
+        if (!at) break;
+        spots.push(at);
+      }
+      if (spots.length === kinds.length) return spots;
     }
-    if (made) this.packs++;
-    return made;
+    return null;
   }
 
   /** A guarded relic you come near (in the wilds, not yet cleared, its guards not out): they gather round it. */
@@ -2852,7 +2890,7 @@ export class Foes {
   beforeLegs(f) {
     const M = f.model, P = f.dying?.pose;
     if (f.slope && slopeOf(f)) tiltRoot(M.group, f.slope);   // (on a slope: the root onto the ground's plane, then the legs reach it)
-    applyReact(f.react, M.body, P?.body ?? null);
+    applyReact(f.react, M.body, P?.body ?? f.restPose ?? null);   // (at rest at its site: src/encounters/idle.js restPose)
     if (P?.curl > 0 && M.rig) {
       // its legs drawn up under it: off the ground (the rig's air), each foot pulled in toward the body's middle and up
       const R = M.rig, k = Math.min(1, P.curl - 1);
@@ -2970,8 +3008,8 @@ export class Foes {
     const wild = !this.waves && !P.ride && !P.swim && this.wild(P.pos);
     this.wildFor = wild ? this.wildFor + dt : 0;
     this.packRest = Math.max(0, this.packRest - dt);
-    const blots = this.list.filter((f) => !f.placed && !f.guard && !f.post && f.alive);   // (the wilds' own: not the temple's, not a relic's guards, not one placed by hand)
-    if (wild && this.wildFor > PACK.settle && this.packRest === 0 && blots.length === 0) {
+    const blots = this.list.filter((f) => !f.placed && !f.guard && !f.post && !f.site && f.alive);   // (the wilds' own: not the temple's, not a relic's guards, not one placed by hand or at a site)
+    if (wild && this.wildFor > PACK.settle && this.packRest === 0 && blots.length === 0 && !this.packQuiet?.(P.pos)) {
       if (this.spawnPack()) { this.packRest = (PACK.rest[0] + this.rng() * (PACK.rest[1] - PACK.rest[0])) * (this.difficulty === 'gentle' ? GENTLE.rest : 1); this.firstSeen(); }
       else this.packRest = 3;
     }
@@ -3852,7 +3890,7 @@ export class Foes {
       if (M.gaze && f.dist < GAZE.far) gazeApply(M.gaze, f.gaze.at, dt, !f.gaze.watching);
       if (SL && !M.rig) tiltRoot(g, SL);
       if (f.possessed && M.eyeMat?.uniforms?.uColor) M.eyeMat.uniforms.uColor.value.set(POSSESS_EYE);   // (driven by strings: its eyes go black)
-      if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? null);   // (a body with no legs to solve: after its pose)
+      if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? f.restPose ?? null);   // (a body with no legs to solve: after its pose)
       if (DP) this.falling(f, DP, kit);
     } else if (f.kind !== 'machine') {
       const w = Math.sin(performance.now() / 160 + f.home.x) * 0.06;

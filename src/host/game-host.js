@@ -63,6 +63,7 @@ import { JumpShadow } from '../jump-shadow.js';
 import { screen } from '../platform.js';
 import { sceneHolds } from '../hud-shows.js';
 import { Foes, lockFollow, LOCK_NEAR } from '../foes.js';
+import { Encounters } from '../encounters/index.js';
 import { guardianBox } from '../lock-frame.js';
 import { hopAxis } from '../jump.js';
 import { lockAim } from '../fluid-tool.js';
@@ -750,6 +751,10 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
   /** A guardian's purse: scattered on the floor between it and you, short of its body (a floating guardian's is out of reach). */
   const purseAt = (pos, body = null) => purseSpot(player.pos, pos, body);
   const offs = [connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound })];
+  // the encounter sites (issue #722, src/encounters/): the camps, nests, hoards, ambushes and patrols of this world, their
+  // foes living there, and the coffer each pays out once it is cleared
+  const sites = new Encounters({ foes, scene, level, levelId, physics, player, game, sound, tool, toast, teach });
+  let siteClock = 0;
   // potions a foe leaves now and then: walked over, into the pack
   const potionDrops = new PotionDrops(scene, { groundAt, onTake: () => { if (resources.addPotions(1)) { sound?.potionPickup?.(); health?.show(); toast(tr('potion.found')); rumblePlay('chime'); } } });
   if (chimePolicy !== 'off') offs.push(game.on('foe:burst', (e) => { const pot = resources.potions; potionDrops.maybe(e, { hearts: player.hearts, max: player.maxHearts, potions: pot.count, cap: POTION.cap, infinite: pot.infinite }); }));
@@ -789,7 +794,7 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
   };
   let deadFor = 0, knockedOut = null, cardOpen = false;
   const F = {
-    foes, chimes, potionDrops, lowHealth, lockView, startFlurry,
+    foes, sites, chimes, potionDrops, lowHealth, lockView, startFlurry,
     set padLook(fn) { padLook = fn; },
     get cardOpen() { return cardOpen; },
     lock() {
@@ -836,6 +841,7 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
     near: (r = 20) => foes.near(r),
     update(dt, quiet = false) {
       foes.update(dt, quiet);
+      sites.update(quiet ? 0 : dt, (siteClock += quiet ? 0 : dt), { quiet });   // (held still: its things are still made as you come near, its foes wait)
       if (flurryLeft() > 0 && !foes.anyFighting()) endFlurry();   // (nothing left to cut: the world comes back to speed)
       if (!quiet) { chimes.update(dt, player.dead ? null : player.pos); potionDrops.update(dt, player.dead ? null : player.pos); }
       chimeView.update(chimes, camera);
@@ -877,7 +883,7 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
       if (!aimingLocked() && (aimNudge.x || aimNudge.y || aimNudge.mx || aimNudge.my)) aimNudge.reset();   // (each locked aim starts on the point)
       if (tool) tool.nudged = aimingLocked() && aimNudge.nudged;
     },
-    dispose() { for (const o of offs) o?.(); foes.dispose?.(); chimeView.dispose?.(); },
+    dispose() { for (const o of offs) o?.(); sites.dispose(); foes.dispose?.(); chimeView.dispose?.(); },
   };
   return F;
 }
