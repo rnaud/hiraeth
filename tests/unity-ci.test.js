@@ -51,6 +51,14 @@ test('the workflow caches what makes a warm build short', () => {
   assert.ok(linuxBody.indexOf('id: playeragain') < linuxBody.indexOf('sudo rm -rf "$PROJECT/Library"'));
   assert.ok(linuxBody.indexOf('sudo rm -rf "$PROJECT/Library"') < linuxBody.indexOf('id: playerfresh'));
   assert.match(workflow, /FRESH: \$\{\{ steps\.playerfresh\.outcome == 'success' && '-fresh' \|\| '' \}\}/);
+  // The Linux sysroot package is added to the manifest after the Library's key is taken from the committed one,
+  // the same every run, and before any build (#705: the saved Library already holds it, so a warm run restores
+  // the exact key and imports and compiles nothing; the slow runs were real Surface shader edits, Android's too)
+  const restore = linuxBody.indexOf('id: library\n'), toolchain = linuxBody.indexOf('com.unity.toolchain.linux-x86_64');
+  assert.ok(restore > 0 && toolchain > restore, 'toolchain added after the Library restore');
+  assert.ok(toolchain < linuxBody.indexOf('id: player\n'), 'toolchain added before the player build');
+  assert.ok(toolchain < linuxBody.indexOf('id: librarysave'), 'and before the Library is saved');
+  assert.doesNotMatch(read('unity/Hiraeth/Packages/manifest.json'), /com\.unity\.toolchain\.linux-x86_64/);
   // (the Linux player packed with every core, the same .tar.gz)
   assert.match(workflow, /tar -I pigz "\$\{skip\[@\]\}" -cf "\$RUNNER_TEMP\/hiraeth-unity-linux\.tar\.gz"/);   // (without the build's leftovers: issue #500)
   // Gradle's downloads: keyed on Unity's version and the packages, saved when that moved, the older deleted
