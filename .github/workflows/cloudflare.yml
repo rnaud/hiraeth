@@ -126,12 +126,12 @@ jobs:
           # a file only this job reads, written from the environment so they never reach a command line or the log.
           # Without them the Worker keeps the secrets it has (none on a new Worker: the notebook stays closed).
           SECRETS=()
-          if [ -n "$HIRAETH_ISSUES_TOKEN" ] && [ -n "$HIRAETH_NOTES_PASSWORD" ]; then
+          if [ -n "$HIRAETH_ISSUES_TOKEN" ] || [ -n "$HIRAETH_NOTES_PASSWORD" ]; then
             umask 077
-            node -e 'process.stdout.write(JSON.stringify({ HIRAETH_ISSUES_TOKEN: process.env.HIRAETH_ISSUES_TOKEN, HIRAETH_NOTES_PASSWORD: process.env.HIRAETH_NOTES_PASSWORD }))' > "$RUNNER_TEMP/worker-secrets.json"
+            node scripts/cloudflare-secrets.mjs "$RUNNER_TEMP/worker-secrets.json"
             SECRETS=(--secrets-file "$RUNNER_TEMP/worker-secrets.json")
           else
-            echo "::warning::HIRAETH_ISSUES_TOKEN and HIRAETH_NOTES_PASSWORD are not both set in repository Actions secrets: the Worker keeps the Notes secrets it has (docs/systems/notes.md)."
+            echo "::warning::No notebook credentials are set in repository Actions secrets: the Worker keeps the secrets it has (docs/systems/notes.md)."
           fi
           # (a deploy replaces every asset: a second attempt after a transient failure is the same deploy)
           . scripts/retry.sh

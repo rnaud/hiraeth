@@ -33,8 +33,10 @@ Add two **Worker secrets**, never Vite variables, GitHub Actions variables, or s
 The simplest way: add both as **repository secrets** too (Settings → Secrets and variables → Actions, the
 same names). Every deploy then uploads them with the Worker's version (`cloudflare.yml`: `wrangler deploy
 --secrets-file`, a file written from the environment and deleted after, never a command-line argument or the
-log), so a new Worker, or a rotated secret, is set by the next push. Without them the deploy warns and the
-Worker keeps the secrets it has. Or set them on the Worker itself: the Cloudflare dashboard → Workers & Pages →
+log), so a new Worker, or a rotated secret, is set by the next push. Each supplied secret updates independently:
+rotating only the password preserves a signing key configured directly on Cloudflare. Missing or empty
+repository values never overwrite existing Worker secrets. With neither supplied, the deploy warns and the
+Worker keeps both secrets. Or set them on the Worker itself: the Cloudflare dashboard → Workers & Pages →
 hiraeth → Settings → Variables and Secrets → Secret, or the hidden prompts below from an authenticated
 terminal. Do not paste either value into a chat, commit it, or pass it as a command-line argument.
 
