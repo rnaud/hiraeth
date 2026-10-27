@@ -19,6 +19,13 @@ export const REACT = {
   flinch: { push: 0.14, tip: 0.2, squash: 0.16, f: 3.4, z: 0.38 },
   stagger: { push: 0.3, tip: 0.42, squash: 0.24, f: 1.9, z: 0.45, lean: 0.22 },
   shrug: { push: 0.06, tip: 0.08, squash: 0.06, f: 4.5, z: 0.4 },   // (a cut it shrugged off: it told, but it comes on)
+  // issue #722 (src/enemies/fight.js): its poise broken, down (the lean held while it lies: heavy ones less, the caller's
+  // `lean`); its body's words: reared up and back (the alert beat, a call, a taunt, enraged), a lean in at you (a feint),
+  // shrunk back low (cowering, fleeing). A negative squash stretches it tall.
+  down: { push: 0.36, tip: 0.55, squash: 0.28, f: 1.7, z: 0.5, lean: 0.72 },
+  rear: { push: 0.05, tip: 0.4, squash: -0.26, f: 2.6, z: 0.42, lean: 0.46 },
+  lean: { push: 0.18, tip: 0.3, squash: 0.12, f: 3, z: 0.45, lean: 0.24 },
+  cower: { push: 0.05, tip: 0.2, squash: 0.3, f: 2.2, z: 0.5, lean: 0.2 },
   // the flash: s it lasts, how self-lit, how far toward the pale tone, s of white line at its start
   flash: { time: 0.18, glow: 0.25, white: 0.16, line: 0 },
   tone: { creature: '#ffc878', machine: '#ffe2a0', spirit: '#e6f0ff' },
@@ -43,7 +50,7 @@ export class FoeReact {
    * A blow from `dir` (world; null: straight on its front) of `kind` ('flinch' | 'stagger' | 'shrug'); `size`: its body's
    * scale (a brute moves less than a skitter); `flash`: its ink goes bright.
    */
-  hit(dir, kind = 'flinch', { size = 1, flash = true, hold = 0 } = {}) {
+  hit(dir, kind = 'flinch', { size = 1, flash = true, hold = 0, lean = null } = {}) {
     const R = REACT[kind] ?? REACT.flinch, k = 1 / Math.max(0.8, Math.pow(size, 0.35));
     if (dir && dir.lengthSq() > 1e-8) this.dir.set(dir.x, 0, dir.z).normalize();
     for (const s of [this.push, this.tip]) s.set(R.f, R.z, 0);
@@ -51,7 +58,7 @@ export class FoeReact {
     // (an impulse: the springs at rest are kicked, overshoot and settle; the peak is about the tuning's size)
     const w = 2 * Math.PI * R.f;
     this.push.yd += R.push * k * w * 1.3; this.tip.yd += R.tip * k * w * 1.3; this.squash.yd += R.squash * w * 1.8;
-    this.lean = R.lean ?? 0; this.leanT = kind === 'stagger' ? Math.max(0.35, hold) : 0;
+    this.lean = lean ?? R.lean ?? 0; this.leanT = R.lean ? (kind === 'stagger' ? Math.max(0.35, hold) : Math.max(0.2, hold)) : 0;
     this.kind = kind; this.age = 0;
     if (flash) this.flashT = REACT.flash.time;
   }

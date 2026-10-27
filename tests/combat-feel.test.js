@@ -12,6 +12,7 @@ import { FluidTool } from '../src/fluid-tool.js';
 import { items } from '../src/items.js';
 import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
 import { setHintLevel } from '../src/hint-level.js';
+import { ALERT } from '../src/enemies/fight.js';
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');
@@ -52,6 +53,7 @@ test('led past its leash it stays while you are still fighting there; it goes ho
 test('a lobber (the bellows toad) backs off a step, then stands its ground and fights instead of running from you', () => {
   const s = new Foe('toad', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 3));
   s.cool = 99;   // (no strike yet: only the backing off)
+  runFor(s, P, ALERT.time + 0.05);   // (it noticed you: the alert beat first, issue #722)
   runFor(s, P, PRESSURE.retreat + 0.1);
   const after = s.pos.distanceTo(P.pos);
   assert.ok(after > 3.5, 'it backed off');
@@ -198,9 +200,13 @@ test('a cut that lands and does not stop a foe is answered with its armour: a th
   assert.deepEqual(notes, [], 'no unsolicited combat instruction');
   foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
   assert.equal(notes.length, 0, 'repeated light cuts remain free of advice boxes');
-  m.state = 'wind'; m.k = 0.3;
+  m.state = 'wind'; m.k = 0.3; m.hp = 9;
   foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.ok(!m.shrugged && m.state === 'recover' && sounds.at(-1) === 'hurt', 'cut early in its wind-up: it reels');
+  // (issue #722: a light cut no longer stops a wind-up once begun; it wears the foe's poise, and a breaker ends it)
+  assert.ok(m.shrugged && m.state === 'wind' && sounds.at(-1) === 'armour', 'cut early in its wind-up: it comes on through it, committed');
+  foes.hurt(m, 'blade', v(0, 0, 1), { damage: 2, breaks: true, charged: true });
+  assert.ok(!m.shrugged && m.state === 'recover' && m.reel === 'broken' && sounds.at(-1) === 'hurt', 'the charged cut breaks its poise: down it goes');
+  notes.length = 0;
   m.state = 'chase'; m.hp = 4;
   foes.hurt(m, 'stun', v(0, 0, 1));
   assert.equal(m.shrugged, false, 'stilling is no cut');

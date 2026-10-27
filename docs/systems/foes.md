@@ -325,15 +325,16 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
   0.24 s; machines plant and raise their arms for 1.05 s, then slam over 0.32 s. Direction locks
   when the wind-up begins. Damage occurs 55% through the strike, with a wall check. Movement
   checks footing and walls. Every wind-up is told by the body (pose, glow, rising sound: "Telegraphs: the body,
-  not the floor" below); only a lob marks the floor. The off-screen warning marker remains. Light hits interrupt blots and the first
-  two thirds of a machine's wind-up; the machine's late wind-up and strike commit.
+  not the floor" below); only a lob marks the floor. The off-screen warning marker remains. Light hits interrupt blots;
+  since v2.33 (issue #722) everyone else's wind-up is committed once begun, and only a broken poise stops it ("Poise, tiers
+  and states" below). Before, a cut in the first two thirds of any wind-up cancelled it.
 - **What hurts them:**
   - the blade: `info.damage`;
   - a fluid or ember glob: washes a blot (1), only staggers a machine;
   - stilling: holds either for 3.5 s;
   - the push: shoves them.
 
-  A cut breaks a blot's wind-up, and a machine's in its first two thirds.
+  A cut breaks a blot's wind-up; anyone else's only when it breaks its poise (v2.33).
 - **What they do to you:** hearts (October 2026, v1.5; `src/resources.js`), every attack's `damage` in
   hearts, counted in quarters. The table below. A blot shoves you; a machine knocks you down.
 - **The reward:** each foe cut down gives a unit of the magic bar back, a third of the starting bar
@@ -1399,6 +1400,50 @@ unset: any) names the hop that answers it (`src/flurry.js` `hopFits`): only that
 and feint (side), the fencer's overhead (side), sweep (back) and leap (side).
 
 The creatures gallery (enemies.html) shows each guard and its broken pose beside the moves ('Guarding', 'Guard broken').
+
+## Poise, tiers and states (v2.33, issue #722, `src/enemies/fight.js`)
+
+The fight core of [design/enemy-fun.md](../design/enemy-fun.md) section A. Each archetype's fight data (`FIGHT`) beside
+its moves: `mass`, `poise`, `fodder`, `low`, `follow`, `evade`, `backstep`, `alone`, `down`; the old kinds take
+`fightOf`'s defaults from their def.
+
+- **Poise, not cancel.** A light cut no longer stops a wind-up once it has begun (the old rule: the first two thirds of
+  any wind-up), and the third swing no longer staggers by itself. Every blow wears poise (`poiseWear`: its damage; a
+  shot or ember 1, the push 1.5, a plain block of its blow 1.5); the breakers (charged cut, riposte, dash cut, a perfect
+  parry) break it at once. Broken (`Foe.breakPoise`): down `POISE.down` s (heavy 1.1), stunned, its cuts doubled and a
+  cut doesn't wake it; the heron topples, the crab and toad flip (`down`), the rest hold the `'down'` lean
+  (src/foe-react.js); the blade's riposte window opens (`FluidBlade.openRiposte`, `RIPOSTE_BROKEN` s, a buffered press
+  counts). Worn poise comes back after `POISE.after` s untouched. Fodder (blot, skitter, moth) flinches as before.
+- **Reels keep the wait.** Out of a reel a blow sent it into (`reelHit`), its cool goes on where it was (≥ 0.3 s);
+  only its own blow draws a fresh one.
+- **Tiers.** `Foes.add` → `Foe.toughen(stageHere)`: health × `TIER.hp[stage]` (1, 1, 1.4, 1.8, 2.2; cap 16, in
+  halves), poise × `TIER.poise`; Gentle half the growth and poise × 0.8; fodder, a house's own boss (`o.def`) and a
+  game's own foes (`level.foes.own`, the fight temples) never. Its def becomes its own copy (`def.hp` is its health).
+- **Tempo.** `chooseAttack(d, dy, true)`: moves out of range it can walk to (`reachable`: a few metres) join the pick
+  at `REACH.share` of their weight (its `backstep` move at full weight when too close); `plan` walks it there
+  (`reachFor`: backing off facing you, or closing in), at most `REACH.time` s. `follow`: a missed blow (or a plainly
+  guarded one, for duelists) is followed by the same move, `FOLLOW.wind` as long (never under 0.45 s), once.
+  Waiting its turn (`waitTurn`): beats of circling, a feint (in at you, a lean, out again) or a taunt (a rear).
+- **Defence.** `evade`: as a swing begins in front of it within 3.4 m (`env.swing`), a hop back (`hopBack`, `lift`).
+  A plain block makes it stumble (shorter the heavier: `mass`) and wears poise; a parry breaks it.
+- **States.** `low` once under `below`: `enrage` (`rage`: wind-ups × 0.82, never under 0.5 s; cools × 0.6; speed ×
+  1.15; red eyes, `RAGE_EYE` in src/enemies/plans/kit.js, and rising steam), `flee` (to the nearest of its pack,
+  which its call wakes, `RUN.time` s; a heron flies off; cornered after, enraged), `last` (its last move next: the
+  roller's last roll, now at a third of its health, `cling` leaves it a sliver so a combo can't skip it; the hound's
+  rake).
+- **Reactions.** The alert beat (`Foe.noticed`, `ALERT.time` s, Gentle longer): it faces you, rears and flashes and
+  calls (`Foes.gesture` 'alert', the attack warning's sound, short); `Foes.alarm` wakes every foe within `ALERT.pack`
+  m of a wild one, any kind, each its own beat. A packmate's fall (`Foes.packFell`): those near rear and call
+  (`MOURN`); the last one left flees (wildlife, `alone: 'flee'`) or rages.
+- **Hits that land.** Knock-back divided by `mass` (`knockK`); the charged cut and the riposte launch walkers of
+  `LAUNCH.mass` and under (`air`, knocked: off ledges and into water as KNOCK says) and knock the heavier down in place.
+
+Measured (node, `Foes` on flat ground, each world's packs 0, 2, 3 and 4 from `packOf`, a still, a mashing and a
+guarding/parrying/rolling traveller; the script lived in the issue's scratch folder): Normal, mean time to clear and
+hearts lost a pack, before → after: Desert mash 4.6 s / 0.25 → 5.3 s / 0.25, guard 4.9 s / 0 → 5.4 s / 0; Buried
+mash 8.5 s / 0 → 12.1 s / 2.6, guard 8.5 / 0 → 12.5 / 1.5; Signal Market mash 12.9 s / 2.6 → 22.9 s / 10.8, guard 11.3 /
+0.2 → 14.7 / 2.9; a still traveller's hearts in 20 s 4.4 / 7.3 / 9.1 → 4.8 / 8.1 / 11.6. Gentle: mash 0.13 / 0.31 /
+1.9 hearts, guard 0 / 0 / 0.2. Tests: tests/foe-fight.test.js.
 
 ## The makers' fencer (v2.27, issue #665, `src/enemies/plans/fencer.js`)
 

@@ -76,7 +76,7 @@ export function foeThreat(f, P, slow = 1, windK = 1) {
   if (!f?.alive || f.dead !== undefined || f.dying) return null;
   const a = f.atk ?? f.def?.attack;
   if (!harmful(a)) return null;
-  const wind = (a.wind ?? 0.8) * slow * windK;
+  const wind = (f.windFor?.(a) ?? a.wind ?? 0.8) * slow * windK;   // (a follow-up's, an enraged one's: src/enemies/fight.js)
   const t = landsIn(f, a, wind);
   if (t == null) return null;
   const origin = a.at === 'target' || a.shape === 'ring' ? f.attackAt ?? f.pos : f.attackOrigin?.() ?? f.pos;

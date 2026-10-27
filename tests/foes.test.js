@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { ALERT } from '../src/enemies/fight.js';
 import { DAMAGE } from '../src/resources.js';
 import assert from 'node:assert/strict';
 import { keyText } from '../src/prompt-keys.js';
@@ -314,7 +315,7 @@ test('more foes: the bellows toad keeps its distance and lobs at where you stand
   const { packKinds, waveWords } = await import('../src/foes.js');
   // the toad: it backs off when you come close, and its ring lands where you stood
   const s = new Foe('toad', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 4));
-  run(s, P, 0.5);
+  run(s, P, 0.5 + ALERT.time);   // (the alert beat first: issue #722)
   assert.ok(s.pos.distanceTo(P.pos) > 4.2, 'backs off');
   let warned = false; for (let i = 0; i < 6 / DT && !warned; i++) warned = s.update(DT, P, env).includes('warn');
   assert.ok(warned && s.attackAt.distanceTo(v(P.pos.x, 0, P.pos.z)) < 0.01, 'its ring is drawn under you');

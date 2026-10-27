@@ -258,8 +258,8 @@ export const ARCHETYPES = {
           tell: 'its eye stalks sink and the shell rocks back and forth on its foot, three times', counter: 'guard it and it bounces off stunned; or sidestep it into a wall' },
         { id: 'ricochet', name: 'ricochet', shape: 'lane', width: 1.6, range: 9, damage: 0.75, knock: 5, wind: 1.0, strike: 1.0, contact: 0.05, lunge: 9, sweep: true, rolls: true, bounces: 2, stall: 3, onParry: 'bounce', min: 2.5, max: 9, weight: 1.5, skins: ['spheres', 'spacecity'],
           tell: 'the same rocking, faster, and its spiral glows', counter: 'guard it; keep away from the walls it bounces off at you' },
-        // at a quarter of its health: it spins in place, glowing, rolls at you and shatters in a ring of pearl
-        { id: 'last', name: 'last roll', shape: 'lane', width: 1.8, range: 10, damage: 0.75, knock: 6, wind: 1.6, strike: 1.1, contact: 0.05, lunge: 10, sweep: true, rolls: true, onParry: 'bounce', shatter: { speed: 6, reach: 4.5, damage: 0.5, width: 0.55 }, below: 0.25, min: 1.5, max: 9, weight: 6,
+        // at a third of its health (a quarter until v2.33: the combo skipped it, issue #722): it spins in place, glowing, rolls at you and shatters in a ring of pearl
+        { id: 'last', name: 'last roll', shape: 'lane', width: 1.8, range: 10, damage: 0.75, knock: 6, wind: 1.6, strike: 1.1, contact: 0.05, lunge: 10, sweep: true, rolls: true, onParry: 'bounce', shatter: { speed: 6, reach: 4.5, damage: 0.5, width: 0.55 }, below: 0.34, min: 1.5, max: 9, weight: 6,
           tell: 'it pulls in and spins in place, faster and faster, its spiral glowing', counter: 'evade at the last moment and jump its ring; or let it hit a wall: it breaks there alone' },
       ],
       recover: 1.4, cool: [1.6, 2.8], hit: 0.4,

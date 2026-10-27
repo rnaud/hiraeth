@@ -44,6 +44,7 @@ import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
 import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
 import { STANCE, guardBreaker, guardCovers, guardTurns, wantsGuard, guardUp } from './foe-guard.js';
+import { fightOf, tierScale, tierHp, poiseWear, quickWind, POISE, LAUNCH, RAGE, FOLLOW, RUN, EVADE as HOP_BACK, ALERT, MOURN, WAIT, REACH } from './enemies/fight.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -468,7 +469,36 @@ export class Foe {
     // row; s you have held your own guard up in its reach (def.turtle: the fencer's bash); its sword knocked away
     // ({ at, t, from }: where it lies, s since; issue #665)
     this.guardK = 0; this.guardT = 0; this.guardRest = 0; this.blocked = 0; this.turtle = 0; this.disarmed = null;
+    // issue #722 (src/enemies/fight.js): its weight and poise (worn by blows, broken by the breakers: it goes down, `downT` s),
+    // its low-health change (enraged, fleeing to a packmate for `fleeT` s, its last move), the alert beat (`alertT` s), a hop
+    // back from your swing (`hopBack`), the move it walks to make (`plan`), a follow-up chained (`chained`), its waiting beat
+    this.fight = fightOf(this.archetype, this.def);
+    this.poiseMax = this.fight.poise; this.poise = this.poiseMax; this.poiseT = Infinity; this.downT = 0;
+    this.rage = false; this.lowDone = false; this.fleeT = 0; this.fleeTo = null; this.alertT = 0;
+    this.evadeCool = 0; this.hopBack = null; this.plan = null; this.chained = 0; this.beat = null; this.reelHit = false;
   }
+  /**
+   * Tougher further along the route (src/enemies/fight.js TIER): health and poise by the world's stage; fodder stays frail.
+   * Its def becomes its own (the kind's tuning with its health), so everything reading `def.hp` (its low moves, a mend, the
+   * walk home) reads this one's.
+   */
+  toughen(stage = 1, gentle = false) {
+    const F = this.fight, k = tierScale(stage, { fodder: !!F.fodder, gentle });
+    this.tier = stage;
+    this.poiseMax = this.poise = Math.round(F.poise * k.poise * 2) / 2 * (gentle ? POISE.gentle : 1);
+    const hp = tierHp(this.def.hp, stage, { fodder: !!F.fodder, gentle });
+    if (hp !== this.def.hp) { this.def = { ...this.def, hp }; this.hp = hp; }
+    return this;
+  }
+  /** Its wind-up for attack a now: a follow-up's quicker, enraged quicker, never under the floors. */
+  windFor(a) {
+    let w = a.wind;
+    if (this.chained) w = quickWind(w, FOLLOW.wind, FOLLOW.min);
+    if (this.rage) w = quickWind(w, RAGE.wind, RAGE.min);
+    return w;
+  }
+  /** Its speed: enraged, quicker. */
+  get speedNow() { return this.def.speed * (this.rage ? RAGE.speed : 1); }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt + this.lift); }
   /** The level its strikes and its sight are measured from: a walker's feet; a hovering foe's footing and the height it holds over it. */
@@ -529,9 +559,9 @@ export class Foe {
    * move only in that skin (skins), one kept for when it is hurt (below: a share of its health), a tail whip only
    * with you behind it (rear), a flank bite only from behind you (flank).
    */
-  attacksAt(d, dy = 0) {
+  attacksAt(d, dy = 0, anyRange = false) {
     const D = this.def;
-    return D.attacks.filter((a) => !a.chain && (a.ward || a.mend || (d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6 && (dy < STRIKE_RISE || reachesUp(a))))
+    return D.attacks.filter((a) => !a.chain && (a.ward || a.mend || ((anyRange || (d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6)) && (dy < STRIKE_RISE || reachesUp(a))))
       && (!a.skins || this.moves.includes(a.id)) && (a.below == null || this.hp <= D.hp * a.below + 1e-9)
       && (!a.rear || this.behind) && (!a.flank || this.unseen)
       && (!a.up || !this.buried) && (!a.surface || !D.burrow || this.buried)   // (a burrower: some moves only up, its burst only from under)
@@ -556,16 +586,120 @@ export class Foe {
   /** Is it driving a creature with its strings now (a marionette)? */
   get hosting() { return !!(this.host?.alive && this.host.possessed?.by === this); }
   /** One of them, by weight (the one it just used less likely). dy: your height off its level (m): out of a blow's reach, only a lob. */
-  chooseAttack(d, dy = 0) {
-    const can = this.attacksAt(d, dy);
-    if (can.length < 2) return can[0] ?? null;
-    const w = can.map((a) => (a.weight ?? 1) * (a.id === this.lastAtk ? 0.4 : 1));
+  chooseAttack(d, dy = 0, reach = false) {
+    let can = this.attacksAt(d, dy);
+    // (#722: with `reach`, the moves out of range it can walk to as well, at REACH.share of their weight; the one it backs
+    // off to make (fight.backstep) at its full weight: so at one distance a foe still varies its moves)
+    const extra = reach && this.mayReposition() ? this.attacksAt(d, dy, true).filter((a) => !can.includes(a) && this.reachable(a, d)) : [];
+    if (!extra.length && can.length < 2) return can[0] ?? null;
+    can = [...can, ...extra];
+    const w = can.map((a) => (a.weight ?? 1) * (a.id === this.lastAtk ? 0.4 : 1) * (extra.includes(a) ? (a.id === this.fight.backstep && d < (a.min ?? 0) ? 1 : REACH.share) : 1));
     let x = this.rng() * w.reduce((s, v) => s + v, 0);
     for (let i = 0; i < can.length; i++) if ((x -= w[i]) <= 0) return can[i];
     return can.at(-1);
   }
+  /** Can it walk to another distance for a move (#722)? Not one rooted, burrowed, flocking, supporting, puppeteering or perched. */
+  mayReposition() { const D = this.def; return !D.rooted && !D.burrow && !D.flock && !D.support && !D.puppeteer && !this.perched && !this.disarmed; }
+  /** A move out of range it would walk to: within REACH's few metres of its band, not a move needing you behind it. */
+  reachable(a, d) {
+    if (a.rear || a.flank || a.ward || a.mend || a.possess || a.alone || a.far) return false;
+    const lo = a.min ?? 0, hi = a.max ?? this.def.reach;
+    return (d < lo && lo - d <= 3.5) || (d > hi && d - hi <= 3);
+  }
+  /** Does attack a fit where you stand now (its range, your height)? */
+  fits(a, d, dy = 0) { return this.attacksAt(d, dy).includes(a); }
+  /** Toward the distance a planned move needs: backing off for a lunge (facing you), closing in for a short one. */
+  reachFor(a, P, d, dx, dz, dt, env) {
+    const lo = a.min ?? 0, hi = a.max ?? this.def.reach;
+    if (d < lo && d > 1e-4) { this.step(-dx / d * this.speedNow * 0.9 * dt, -dz / d * this.speedNow * 0.9 * dt, env); this.face(dx, dz, dt, 9); }
+    else if (d > hi) { if (!this.def.hover) this.approach(P, dt, env, Math.max(this.def.radius + 0.5, hi * 0.85)); else this.walkTo(P.pos.x, P.pos.z, this.speedNow, dt, env, hi * 0.85); }
+    else this.plan = null;
+  }
+  /**
+   * Waiting its turn (the strike tokens, TURNS): a beat at a time (WAIT), round you at a step's distance, a feint (in
+   * at you, a lean, and out again: no blow) or a taunt (it stands and rears), instead of side-stepping in place.
+   */
+  waitTurn(P, d, dt, env, ev) {
+    const W = WAIT, r = this.def.reach + 1.4;
+    if (!this.beat || (this.beat.t -= dt) <= 0) {
+      const x = this.rng(), kind = x < W.circle ? 'circle' : x < W.circle + W.feint ? 'feint' : 'taunt';
+      if (this.rng() < 0.4) this.side = -(this.side ?? 1);
+      this.beat = { kind, t: W.beat[0] + this.rng() * (W.beat[1] - W.beat[0]), age: 0 };
+      if (kind !== 'circle') ev.push({ type: 'gesture', kind });
+    }
+    const B = this.beat; B.age += dt;
+    const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z;
+    if (B.kind === 'feint' && B.age < 0.3 && d > this.def.radius + 1.2) this.step(dx / d * this.speedNow * 1.6 * dt, dz / d * this.speedNow * 1.6 * dt, env);
+    else if (B.kind === 'feint' && d < r - 0.2 && d > 1e-4) this.step(-dx / d * this.speedNow * 0.7 * dt, -dz / d * this.speedNow * 0.7 * dt, env);
+    else if (B.kind === 'taunt') { /* (it stands its ground, facing you) */ }
+    else this.circle(P, r, dt, env, W.speed);
+    if (d > 1e-4) this.face(dx, dz, dt, 8);
+  }
+  /**
+   * Fleeing (fight.low 'flee', the last of a pack): to the nearest of its pack (`fleeTo`, woken by its call) or away from
+   * you, RUN.time s; a flier (the heron) flies off instead. Then, cornered or at its packmate's side, it comes on enraged.
+   */
+  fleeing(dt, P, d, env, ev) {
+    const D = this.def;
+    if (D.calm?.flee && !this.fled) { this.fled = true; if (this.flyFrom(P, env)) { this.fleeT = 0; this.rage = true; return; } }
+    this.fleeT = Math.max(0, this.fleeT - dt);
+    const T = this.fleeTo?.alive && this.fleeTo.dead === undefined ? this.fleeTo.pos : null;
+    if (T && Math.hypot(T.x - this.pos.x, T.z - this.pos.z) > 2) this.walkTo(T.x, T.z, D.speed * RUN.speed, dt, env, 1.5);
+    else if (!T && d > 1e-4) { const ax = this.pos.x - P.pos.x, az = this.pos.z - P.pos.z; this.walkTo(this.pos.x + ax / d * 3, this.pos.z + az / d * 3, D.speed * RUN.speed, dt, env); }
+    else this.fleeT = Math.min(this.fleeT, 0.2);
+    if (this.fleeT === 0) { this.rage = true; this.cool = Math.min(this.cool, 0.4); ev.push({ type: 'gesture', kind: 'rage' }); }
+  }
+  /** Your swing begins in its reach, in front of it: a hop back out of it, now and then (fight.evade; once a swing). True while it hops. */
+  dodgeSwing(P, d, dx, dz, env, ev) {
+    const E = this.fight.evade, S = env.swing?.();
+    if (!S) { this.sawSwing = false; return false; }
+    if (!E || this.sawSwing || this.evadeCool > 0 || d > 3.4 || d < 1e-4 || this.downT > 0) return false;
+    this.sawSwing = true;
+    const ph = P.heading ?? 0;
+    if ((dx * Math.sin(ph) + dz * Math.cos(ph)) / d > -0.5) return false;   // (he swings away from it)
+    if (this.rng() > E.chance * (env.gentle?.() ? 0.5 : 1)) return false;
+    this.evadeCool = HOP_BACK.cool; this.plan = null;
+    this.hopBack = { t: 0, from: this.pos.clone(), dir: new THREE.Vector3(-dx / d, 0, -dz / d), dist: E.hop };
+    ev.push({ type: 'gesture', kind: 'hop' });
+    return true;
+  }
+  /** The hop back: along its way over HOP.time s, up in a little arc (its body: lift), facing you; then it comes on. */
+  hopping(dt, env) {
+    const H = this.hopBack;
+    H.t += dt;
+    const u = Math.min(1, H.t / HOP_BACK.time), e = 1 - (1 - u) * (1 - u), m = H.dist * e - (H.done ?? 0);
+    H.done = H.dist * e;
+    if (m > 0) this.step(H.dir.x * m, H.dir.z * m, env);
+    this.lift = HOP_BACK.up * Math.sin(Math.PI * u);
+    if (u >= 1) { this.hopBack = null; this.lift = 0; this.cool = Math.min(this.cool, 0.5); }
+  }
+  /**
+   * A follow-up (fight.follow): its move `a` missed you ('whiff') or a plain guard took it ('block'): the same move again at
+   * once, its wind-up quicker (FOLLOW), the body's tell the same; one in a row. True when it began.
+   */
+  tryFollow(on, a, P) {
+    const F = this.fight.follow;
+    if (!F || F.id !== a.id || !F.on.includes(on) || this.chained || !this.alive || P.dead || P.down) return false;
+    if (this.stunned > 0 || this.downT > 0 || this.state === 'dead') return false;
+    const d = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z);
+    if (d > (a.max ?? this.def.reach) + 1.5 || (a.skins && !this.moves.includes(a.id))) return false;
+    if (this.rng() > F.chance + (this.rage ? RAGE.follow : 0)) return false;
+    this.beginWind(a, P, true);
+    return true;
+  }
+  /** Under its low share of health, once (fight.low): enraged, fleeing, or its last move next. Returns the change. */
+  goLow() {
+    const L = this.fight.low;
+    if (!L || this.lowDone || !(this.hp > 0) || this.hp > this.def.hp * L.below + 1e-9) return null;
+    this.lowDone = true;
+    if (L.kind === 'enrage') this.rage = true;
+    else if (L.kind === 'flee') { this.fleeT = RUN.time; this.fled = false; this.plan = null; }
+    else if (L.kind === 'last') { const a = this.def.attacks.find((x) => x.id === L.attack); if (a) { this.plan = { a, t: REACH.time * 2 }; this.cool = 0; } }
+    return L.kind;
+  }
   /** Begin winding up attack a at the traveller: its direction and area lock here (or follow you a while: track). */
-  beginWind(a, P) {
+  beginWind(a, P, follow = false) {
+    this.chained = follow ? 1 : 0; this.whiffed = false;
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false; this.answering = false; this.turtle = 0;
     this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
@@ -650,6 +784,8 @@ export class Foe {
     if (a.shatter && this.state !== 'dead') { this.shatter(a, ev); return; }   // (its last roll ends in pieces)
     const n = a.then ? this.def.attacks.find((x) => x.id === a.then) ?? attackOf(this.kind, a.then) : null;   // (a stronger one's own combo first)
     if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
+    // (it missed you: the same move again, quicker, now and then: fight.follow, #722)
+    if (!n && this.whiffed && !a.shatter && this.tryFollow('whiff', a, P)) { ev.push('warn'); return; }
     if (a.dives && this.def.burrow) { this.buried = true; this.upFor = 0; }   // (the worm's dive: back under the sand)
     if (a.leap) { this.alt = 0; this.leapFrom = null; }                       // (down from its leap)
     this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0; this.reel = null;
@@ -684,6 +820,7 @@ export class Foe {
       const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
       const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.level : p.y)) < STRIKE_RISE && inArea(a, p, this.attackH, P.pos));
       ev.push({ type: 'strike', hit, atk: a });
+      this.whiffed = !hit;
     }
     this.next(a, P, ev);
   }
@@ -708,7 +845,11 @@ export class Foe {
     this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
-    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed', 'toppled', 'open', 'scatter', 'jammed']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
+    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed', 'toppled', 'open', 'scatter', 'jammed', 'evadeCool']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
+    // its poise (src/enemies/fight.js POISE): down, it gets up whole; worn, it comes back once left alone a while
+    if (this.downT > 0 && (this.downT -= dt) <= 0) { this.downT = 0; this.poise = this.poiseMax; }
+    this.poiseT += dt;
+    if (!(this.downT > 0) && this.poise < this.poiseMax && this.poiseT > POISE.after) this.poise = Math.min(this.poiseMax, this.poise + this.poiseMax * POISE.back * dt);
     // driven by a marionette's strings: until they run out or it is gone (Foes.updateStrings frees it, and cuts them)
     if (this.possessed && ((this.possessed.t -= dt) <= 0 || !this.possessed.by.alive || this.possessed.by.dead !== undefined)) this.possessed.done = true;
     // carried in a heap (a skitter climbing its flock-mate for the pile): its mind waits until the heap topples or breaks
@@ -724,6 +865,8 @@ export class Foe {
     if (this.flight) { this.flyOff(dt, ev); return ev; }
     // on the grappling hook's line (src/hook-foes.js): yanked through the air to you, or pinned where it stands; its mind waits
     if (this.yank) { this.yanked(dt, env); return ev; }
+    // hopping back out of your swing (fight.evade): its mind waits until it lands
+    if (this.hopBack) { this.hopping(dt, env); return ev; }
     if (this.pin) {
       if ((this.pin.t -= dt) > 0) { this.pos.x = this.pin.x; this.pos.z = this.pin.z; this.vel.set(0, 0, 0); return ev; }
       this.pin = null;
@@ -752,6 +895,8 @@ export class Foe {
     if (this.stunned > 0) { this.stunned -= dt; return ev; }
     const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
     this.dist = d;
+    // the alert beat (issue #722): it noticed you, and rears and calls before it comes on (src/enemies/fight.js ALERT)
+    if (this.alertT > 0) { this.alertT -= dt; if (d > 1e-4) this.face(dx, dz, dt, 7); return ev; }
     // where it stands to you: you behind it (a tail whip), it behind you, out of your sight (a flank bite)
     if (d > 1e-4) {
       this.behind = (dx * Math.sin(this.heading) + dz * Math.cos(this.heading)) / d < -0.35;
@@ -772,11 +917,11 @@ export class Foe {
       case 'idle': {
         // its calm (def.calm): wildlife grazes, basks or lies about and fights only when provoked (close in, hurt,
         // or one of its own provoked near it); a machine patrols its round; a blot lies pooled until you come near
-        if (D.calm && !this.provoked) { if (this.calmly(dt, P, d, env)) { this.state = 'chase'; ev.push('notice'); } break; }
+        if (D.calm && !this.provoked) { if (this.calmly(dt, P, d, env)) this.noticed(ev, env); break; }
         this.wander += dt * 0.4;
         const tx = this.home.x + Math.sin(this.wander) * 2.5, tz = this.home.z + Math.cos(this.wander * 0.7) * 2.5;
         this.walkTo(tx, tz, D.speed * 0.3, dt, env);
-        if (playerOk && d < D.sight && (env.seen?.(this.chest, P.pos) ?? true)) { this.state = 'chase'; ev.push('notice'); }
+        if (playerOk && d < D.sight && (env.seen?.(this.chest, P.pos) ?? true)) this.noticed(ev, env);
         break;
       }
       case 'chase': {
@@ -785,6 +930,10 @@ export class Foe {
         this.face(dx, dz, dt, 8);
         if (down) { this.circle(P, D.reach + PRESSURE.hold, dt, env); break; }   // (you are down: it waits round you, facing you, for you to rise)
         if (this.disarmed && this.seekSword(dt, d, P, ev, env)) break;   // (its sword knocked away: it runs for it, the shield up)
+        // fleeing (its low-health change, the last of its pack): to a packmate or away from you; cornered after, enraged (#722)
+        if (this.fleeT > 0) { this.fleeing(dt, P, d, env, ev); break; }
+        // your swing begun in its reach, in front of it: it may hop back out of it (src/enemies/fight.js `evade`)
+        if (playerOk && this.dodgeSwing(P, d, dx, dz, env, ev)) break;
         // a support (the jelly) keeps over its neighbours, a little toward you, and works on them; alone, it comes for you
         if (D.support) {
           const ally = this.allies.filter((x) => x.alive && x.dead === undefined).sort((p, q) => p.pos.distanceTo(this.pos) - q.pos.distanceTo(this.pos))[0];
@@ -827,12 +976,19 @@ export class Foe {
           else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.reach * 0.8);
         }
         else if (this.cool === 0 && !(env.mayStrike?.(this) ?? true)) {
-          // another is striking: circle round at a step's distance, waiting a turn
-          this.circle(P, D.reach + 1.4, dt, env);
+          // another is striking: it waits a turn at a step's distance, circling, feinting, taunting (WAIT; #722)
+          this.plan = null;
+          this.waitTurn(P, d, dt, env, ev);
         } else if (this.cool === 0) {
-          // one of its attacks that fits the distance (none: it closes in)
-          const a = this.chooseAttack(d, dy);
-          if (a) { this.beginWind(a, P); ev.push('warn'); this.route = null; }
+          // one of its attacks by weight, at any distance it can walk to: in range it winds up; out of it, it steps back
+          // for a lunge or closes in for a bite first (REACH; #722: no foe repeats one move at one distance). None: closer
+          const a = this.plan?.a ?? this.chooseAttack(d, dy, true);
+          if (a && this.fits(a, d, dy)) { this.plan = null; this.beginWind(a, P); ev.push('warn'); this.route = null; }
+          else if (a) {
+            this.plan ??= { a, t: REACH.time };
+            this.reachFor(a, P, d, dx, dz, dt, env);
+            if ((this.plan.t -= dt) <= 0) { this.plan = null; this.cool = 0.3; }
+          }
           else if (walker) this.approach(P, dt, env, D.radius + 0.6);
           // a flyer too close for any of its moves (a sky ray past you after a skim) wheels off to come round again
           else if (D.hover && d < Math.min(...D.attacks.filter((x) => !x.chain && !x.ward && !x.mend && !x.rear && (!x.skins || this.moves.includes(x.id))).map((x) => x.min ?? 0)) && d > 1e-4) { this.step(-dx / d * D.speed * dt, -dz / d * D.speed * dt, env); }
@@ -842,7 +998,7 @@ export class Foe {
       }
       case 'wind': {
         const a = this.atk ?? D.attack;
-        const wind = a.wind * (env.slow?.() ?? 1) * (this.possessed ? POSSESS.wind : 1);   // (driven by a marionette's strings: quicker)
+        const wind = this.windFor(a) * (env.slow?.() ?? 1) * (this.possessed ? POSSESS.wind : 1);   // (driven by a marionette's strings: quicker; a follow-up, enraged: src/enemies/fight.js)
         this.timer += dt; this.k = Math.min(1, this.timer / wind);
         if (a.track && this.k < a.track && playerOk) {
           // the aim follows you, then holds: a lob's mark, a searchlight's beam (a lane turns the foe with it)
@@ -893,9 +1049,10 @@ export class Foe {
           const hit = playerOk && Math.abs(P.pos.y - this.level) < STRIKE_RISE && inArea(a, this.attackOrigin(), this.attackH, P.pos)
             && (env.seen?.(this.chest, P.pos) ?? true);
           ev.push({ type: 'strike', hit, atk: a });
+          this.whiffed = !hit;
         }
         if (this.k >= 1 && this.state === 'strike') {
-          if (a.sweep && !this.contacted) ev.push({ type: 'strike', hit: false, atk: a });
+          if (a.sweep && !this.contacted) { ev.push({ type: 'strike', hit: false, atk: a }); this.whiffed = true; }
           this.next(a, P, ev);
         }
         break;
@@ -904,7 +1061,14 @@ export class Foe {
         this.timer -= dt;
         // (a ray dives again only once its time up is over: surfaced, it is there to be fought)
         if (this.timer <= 0 && this.reel === 'pickup') { this.disarmed = null; this.reel = null; ev.push({ type: 'rearmed' }); }   // (its sword back in its hand)
-        if (this.timer <= 0) { this.state = 'chase'; this.cool = (D.cool[0] + this.rng() * (D.cool[1] - D.cool[0])) * (env.coolK?.() ?? 1); if (D.burrow && this.upFor <= 0) this.buried = true; }
+        // (out of a reel your blow sent it into, its wait goes on where it was, not from the start: #722, a cut no longer
+        // postpones its next blow by a whole cycle; out of its own blow, a fresh wait, shorter enraged)
+        if (this.timer <= 0) {
+          this.state = 'chase';
+          this.cool = this.reelHit ? Math.max(this.cool, 0.3) : (D.cool[0] + this.rng() * (D.cool[1] - D.cool[0])) * (env.coolK?.() ?? 1) * (this.rage ? RAGE.cool : 1);
+          this.reelHit = false;
+          if (D.burrow && this.upFor <= 0) this.buried = true;
+        }
         break;
       }
       case 'home': {
@@ -919,6 +1083,16 @@ export class Foe {
     return ev;
   }
 
+  /**
+   * It noticed you (or was hurt, or its pack woke it): into the fight after the alert beat, a short rear and a call
+   * (ALERT: the moment a fight starts reads; a foe struck first comes on quicker). Foes.alarm wakes its pack, any kind.
+   */
+  noticed(ev, env = {}, beat = ALERT.time) {
+    this.state = 'chase';
+    ev.push('notice');
+    const t = (this.recoil > 0 ? 0.5 : 1) * beat * (env.gentle?.() ? ALERT.gentle / ALERT.time : 1);
+    if (t > 0) { this.alertT = t; ev.push({ type: 'gesture', kind: 'alert' }); }
+  }
   /**
    * Idle, calm (def.calm, src/enemies/archetypes.js): grazing or wading about its home, basking or lying still with
    * a shift now and then, patrolling a wide round (a machine), pooled (a blot). A shy one backs off as you come
@@ -1007,9 +1181,9 @@ export class Foe {
   }
 
   /** Round you at r m, a slow step to one side, facing you: waiting a turn, or for you to get up. */
-  circle(P, r, dt, env) {
-    const a = Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z) + dt * 0.6 * (this.side ??= this.rng() < 0.5 ? -1 : 1);
-    this.walkTo(P.pos.x + Math.sin(a) * r, P.pos.z + Math.cos(a) * r, this.def.speed * 0.5, dt, env);
+  circle(P, r, dt, env, k = 0.5) {
+    const a = Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z) + dt * 1.2 * k * (this.side ??= this.rng() < 0.5 ? -1 : 1);
+    this.walkTo(P.pos.x + Math.sin(a) * r, P.pos.z + Math.cos(a) * r, this.def.speed * k, dt, env);
     this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 8);
   }
 
@@ -1025,9 +1199,9 @@ export class Foe {
     this.route = null;
     if (Math.abs(P.pos.y - this.pos.y) <= ROUTE.flat && this.stuck < ROUTE.stuck) {
       // on your level: straight at you, as ever; getting nowhere for a while (a wall, a gap), it looks for a way
-      const was = _cs.copy(this.pos), want = Math.min(D.speed * dt, Math.max(0, Math.hypot(P.pos.x - was.x, P.pos.z - was.z) - stopAt));
+      const was = _cs.copy(this.pos), want = Math.min(this.speedNow * dt, Math.max(0, Math.hypot(P.pos.x - was.x, P.pos.z - was.z) - stopAt));
       const wx = was.x, wz = was.z;
-      this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, stopAt);
+      this.walkTo(P.pos.x, P.pos.z, this.speedNow, dt, env, stopAt);
       const got = Math.hypot(this.pos.x - wx, this.pos.z - wz);
       this.stuck = want > 1e-4 && got < want * 0.3 ? this.stuck + dt : Math.max(0, this.stuck - dt * 2);
       this.waiting = false; this.holding = null;
@@ -1091,6 +1265,11 @@ export class Foe {
   takeOff(P, d, env) {
     const F = this.def.calm.flee, vx = P.vel?.x ?? 0, vz = P.vel?.z ?? 0, sp = Math.hypot(vx, vz);
     if (sp < F.run || (vx * (this.pos.x - P.pos.x) + vz * (this.pos.z - P.pos.z)) / (sp * d) < 0.3) return false;
+    return this.flyFrom(P, env);
+  }
+  /** Off away from you to a new home `calm.flee.far` m off (the flight); true when there was somewhere to land. */
+  flyFrom(P, env) {
+    const F = this.def.calm.flee;
     const a0 = Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z);
     for (const da of [0, 0.5, -0.5, 1, -1, 1.5, -1.5]) {
       const a = a0 + da, x = this.pos.x + Math.sin(a) * F.far, z = this.pos.z + Math.cos(a) * F.far;
@@ -1163,7 +1342,37 @@ export class Foe {
     if (!this.alive) return;
     this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8; this.reel = perfect ? 'parried' : 'blocked';   // (reel: why it recovers, for the hitbox overlay's label)
     this.recoil = 1; this.heavyRecoil = perfect; this.recoilDir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
-    if (!this.def.rooted) this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.def.heavy ? 2 : 5);   // (a root knot is rooted)
+    if (!this.def.rooted) this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(THREE.MathUtils.clamp(5 / this.fight.mass, 1, 6));   // (a root knot is rooted; the heavier, the shorter its stumble: #722)
+    this.plan = null; this.chained = 0;
+    // (a guarded blow wears its poise; a perfect parry breaks it: down, open: #722)
+    this.poiseT = 0;
+    if (!this.fight.fodder && !(this.downT > 0) && (this.poise -= perfect ? Infinity : 1.5) <= 0) this.breakPoise(null, { parry: true });
+  }
+
+  /** How fast a blow shoves it (m/s at the plain cut): the heavier, the less it slides (fight.mass; #722). */
+  knockK() { return THREE.MathUtils.clamp(4 / this.fight.mass, 0.8, 6); }
+  /**
+   * Its poise broken (#722): it goes down a while (POISE.down; heavy, shorter), open (cuts double: stunned, and a cut
+   * doesn't wake it), its wind-up gone; the riposte's window opens for you (Foes.poiseBroken). The charged cut and the
+   * riposte throw a light walker off its feet (LAUNCH): it flies along the blow (off a ledge, into water) and lands.
+   */
+  breakPoise(dir, info = {}) {
+    const D = this.def, heavy = this.fight.mass >= 3, t = heavy ? POISE.heavy : POISE.down;
+    this.poise = 0; this.downT = t;
+    this.state = 'recover'; this.timer = Math.max(this.timer ?? 0, t); this.k = 0; this.reel = 'broken'; this.letGo = true;
+    this.stunned = Math.max(this.stunned, t); this.reelHit = true; this.plan = null; this.chained = 0; this.cover = null;
+    this.recoil = 1; this.heavyRecoil = true;
+    this.brokeNow = true;
+    // (a body with its own way of lying down: on its back, on its side: fight.down)
+    if (this.fight.down === 'flip') this.flipped = Math.max(this.flipped, t);
+    else if (this.fight.down === 'topple') this.toppled = Math.max(this.toppled, t);
+    if ((info.breaks || info.riposte) && dir && !D.hover && !D.rooted && !D.burrow && this.fight.mass <= LAUNCH.mass && !this.air) {
+      const l = Math.hypot(dir.x, dir.z) || 1;
+      this.vel.set(dir.x / l, 0, dir.z / l).multiplyScalar(LAUNCH.along / Math.sqrt(this.fight.mass));
+      this.air = { vy: LAUNCH.up, top: this.pos.y, base: this.pos.y, hard: false, knocked: true };
+      this.knockedBy = KNOCK.recent; this.route = null;
+      this.launched = true;
+    }
   }
 
   // ---------------------------------------------------------------- guards (issue #661, src/foe-guard.js)
@@ -1585,7 +1794,7 @@ export class Foe {
         } else if (this.state === 'wind' && this.atk?.encircle) dmg *= 2;
       }
       // (a cut wakes a stunned one; asleep in a bloom or toppled, it stays down for the cuts, double)
-      if (!(this.sleep > 0) && !(this.toppled > 0)) { this.stunned = 0; this.dazed = 0; }
+      if (!(this.sleep > 0) && !(this.toppled > 0) && !(this.downT > 0)) { this.stunned = 0; this.dazed = 0; }   // (down, its poise broken: it stays down: #722)
     } else if (mode === 'shoot' && D.takes.shoot === 'pop') {
       // a support's lanterns: a shot pops one (and the ward it held); with none left, it hurts it
       if (this.pop()) { this.provoked = true; return 'popped'; }
@@ -1614,8 +1823,9 @@ export class Foe {
       dmg = D.takes.shoot ?? 0;
     }
     if (mode === 'push' && dir && !D.rooted) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (D.heavy ? 1.2 : 3)); }
-    // (the heavy third swing throws them, the charged cut further: off a ledge, KNOCK; a root knot is rooted)
-    if (dir && mode !== 'push' && mode !== 'world' && !D.rooted) this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.breaks && !info.riposte ? KNOCK.charged : info.combo === 2 ? 2.2 : 1));
+    // (the heavy third swing throws them, the charged cut further: off a ledge, KNOCK; a root knot is rooted; the heavier
+    // it is, the less it slides: fight.mass, #722)
+    if (dir && mode !== 'push' && mode !== 'world' && !D.rooted) this.vel.set(dir.x, 0, dir.z).multiplyScalar(this.knockK() * (info.breaks && !info.riposte ? KNOCK.charged : info.combo === 2 ? 2.2 : 1));
     if (dir && (mode === 'blade' || mode === 'push')) this.knockedBy = KNOCK.recent;   // (yours: carried off a ledge now, it lands dazed)
     if (dir && this.hop && mode !== 'world') this.knockOutOfHop();
     if (this.flight && mode !== 'world') this.knockOutOfFlight();
@@ -1632,16 +1842,27 @@ export class Foe {
     const topple = mode === 'blade' && D.topples && !!info.breaks && src !== 'parry' && !(this.toppled > 0);   // (a charged cut at a heron's legs)
     // (driven by a marionette's strings, light blows never stagger it: only a charged cut, a riposte, a parry)
     const driven = !!this.possessed && mode === 'blade' && !info.breaks && !info.stagger;
-    const reels = ringBroken || (!warded && !plated && !driven && ((mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.state === 'wind' && this.k < 0.66 && !(D.stout && mode === 'blade') && !(this.answering && mode === 'blade')) || (this.heavyRecoil && this.state !== 'strike')));
+    // its poise (issue #722, src/enemies/fight.js): every blow wears it, a breaker (the charged cut, the riposte, the dash cut,
+    // a parry) breaks it at once; broken, it goes down. A light cut no longer stops a wind-up it has begun, nor does the
+    // combo's third swing stagger it by itself: only a broken poise does (fodder still flinches from every cut)
+    const wear = warded || driven ? 0 : poiseWear(mode, { ...info, source: src }) * (plated ? 0.5 : 1);
+    if (wear > 0) this.poiseT = 0;
+    const broke = !this.fight.fodder && wear > 0 && !(this.downT > 0) && (this.poise -= wear) <= 0;
+    const reels = broke || ringBroken || (!warded && !plated && !driven && ((mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.fight.fodder && wear > 0 && this.state !== 'strike')));
     // a cut that doesn't stop it: a heavy foe, or one committed to its blow (late in its wind-up, striking); Foes.hurt answers with its armour's thunk
     this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
     if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)
-    if (reels) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; }
+    if (reels) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; this.reelHit = true; this.plan = null; this.chained = 0; }
     // (the riposte: held reeling a while longer, src/fluid-blade.js RIPOSTE)
     if (reels && info.stagger) { this.timer = Math.max(this.timer, info.stagger); this.reel = info.riposte ? 'riposted' : this.reel; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
+    if (broke) this.breakPoise(dir, info);
+    // (its last move must be seen: a blow that would end it from above its low share leaves it a sliver: fight.low.cling)
+    const L = this.fight.low;
+    if (L?.cling && !this.lowDone && this.hp > D.hp * L.below + 1e-9 && this.hp - dmg <= 0) dmg = this.hp - 0.25;
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
+    this.lowNow = this.goLow();
     if (guardBreak) { this.openGuard(); return 'guardbreak'; }
     if (topple) { this.toppled = TOPPLE; this.stunned = Math.max(this.stunned, TOPPLE); this.state = 'recover'; this.timer = 0.6; this.k = 0; this.open = 0; return 'toppled'; }
     return true;
@@ -1783,6 +2004,8 @@ const ballMaterial = (color) => (_ballMats[color] ??= makeMaterial({ color, flat
 const _sporeMats = {};   // (a toad's spore patches, by colour)
 /** A heap of skitters (attack.pile): its flock within this many m climbs on. The spores' haze over your sight (of a flash's white). */
 const PILE = { near: 7 }, BLUR = 0.55;
+/** An enraged foe's steam: dark ink with a red fleck, rising off it (issue #722; its eyes: src/enemies/plans/kit.js RAGE_EYE). */
+const RAGE_STEAM = [INK, '#3b3350', '#e8302a'];
 /** The drops a foe bursts into as it falls. */
 const BURST_TONES = {
   machine: ['#a8824a', '#70e7df', '#3a3330'],
@@ -1865,6 +2088,8 @@ export class Foes {
       ground: (x, y, z, range = 6) => { const g = physics?.groundAt?.(x, y, z, range); return g == null || !Number.isFinite(g) ? null : g; },
       slow: () => (this.difficulty === 'gentle' ? GENTLE.wind : 1),
       gentle: () => this.difficulty === 'gentle',   // (a hovering foe hides for less long: COVER.gentle)
+      // your swing as it begins (its wind-up: a foe that hops back from swings sees it, src/enemies/fight.js `evade`)
+      swing: () => { const B = this.tool?.blade; return !!B?.swinging && B.phase === 'wind' && !B.special; },
       coolK: () => coolAt(this.stageHere, this.difficulty === 'gentle'),   // (the last worlds' quicker turns: TURNS.late)
       // the world's hazards and workings (src/hazards.js, src/workings.js), where it ends and its pits
       hazard: (p) => hazardAt(p),
@@ -2149,6 +2374,8 @@ export class Foes {
     const p = parseKind(kind), a = archetypeOfKind(p.kind);
     const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
     const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
+    // (tougher further along the route: src/enemies/fight.js TIER; not a house's own boss (its def), not a game's own foes)
+    if (!o.def && !this.own) f.toughen(this.stageHere, this.gentle);
     // (the body built for the load's warm and kept, if there is one of its kind and skin: keepWarm; else built now)
     const key = shapeKey(f.kind, skin), spare = this.spares.get(key);
     if (spare) { this.spares.delete(key); f.model = spare.model; f.batches = spare.batches; }
@@ -2463,6 +2690,7 @@ export class Foes {
    */
   worldEvent(f, e) {
     const s = this.sound;
+    if (e.type === 'gesture') { this.gesture(f, e.kind); return; }   // (#722: its body says what it does: Foes.gesture)
     if (e.type === 'fell') { f.lost = true; this.burst(f); return; }   // (out of the world: nothing to drop where it went)
     if (e.type === 'thrown' || e.type === 'tumbled') { s?.whoosh?.(); return; }
     if (e.type === 'frosted') { s?.chime?.(); this.animKit(f, 0, {}).dust(f.chest, '#dff4ff', 10, 0.6); return; }   // (a stilled crystal's frost: held, eyes pale)
@@ -2565,6 +2793,8 @@ export class Foes {
 
   /** The fluid tool touched a foe (targets.js): its mind decides; the look, the sound and the reward follow. */
   hurt(f, mode, dir, info, point = null) {
+    f.brokeNow = false; f.lowNow = null; f.launched = false;
+    try {
     // the push on any of a heap scatters it (the one under it reels); an ember into a flock sends the rest running
     if (mode === 'push' && f.riding?.on?.state === 'wind') { const B = f.riding.on; B.state = 'recover'; B.timer = B.def.hit * 2; B.k = 0; B.reel = 'scattered'; }
     if (mode === 'fire' && f.def.flock) for (const x of this.list) if (x !== f && x.kind === f.kind && x.alive && !x.riding && x.pos.distanceTo(f.pos) < 6) x.scatter = 1.4 + this.rng() * 0.6;
@@ -2584,6 +2814,12 @@ export class Foes {
     if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
     if (mode !== 'stun' && mode !== 'bloom' && mode !== 'push') this.react(f, mode, dir, info, point);
     return true;
+    } finally {
+      // (#722: its poise broken, its low-health change: src/enemies/fight.js)
+      if (f.brokeNow && f.alive) this.poiseBroken?.(f, dir);
+      if (f.lowNow && f.alive) this.lowChange?.(f);
+      f.brokeNow = false; f.lowNow = null;
+    }
   }
 
   /**
@@ -2594,7 +2830,8 @@ export class Foes {
   react(f, mode, dir, info = {}, point = null, last = false) {
     const R = f.react;
     if (!R) return;
-    const kind = info.reel ?? (f.shrugged ? 'shrug' : last || f.reel === 'staggered' || f.reel === 'riposted' || f.toppled > 0 || (info.damage ?? 1) >= 2 ? 'stagger' : 'flinch');
+    // (a heavy blow rocks its body even when its poise holds and it comes on through it: #722, the stance holds, the body tells)
+    const kind = info.reel ?? (last || f.reel === 'staggered' || f.reel === 'riposted' || f.toppled > 0 || (info.damage ?? 1) >= 2 ? 'stagger' : f.shrugged ? 'shrug' : 'flinch');
     installFlash(f.model, R);
     // An overhead / directionless blow still tips away from the foe's front,
     // rather than inheriting an unrelated previous hit or losing its shove.
@@ -2642,6 +2879,7 @@ export class Foes {
     hitStop(last ? 0.12 : 0.09); kick(last ? 0.6 : 0.35);
     if (last) slowMo(0.45, 0.35);
     f.state = 'dead'; f.k = 0; f.letGo = true;
+    this.packFell(f);
     f.dying = startDefeat(f, R);
     if (!f.def.burrow) groundStart(f.dying, f.model.group, this.physics, f.pos, f.def.radius);   // (the ground under it, as it stood: issue #304)
     if (this.hold?.f === f) this.hold = null;
@@ -2671,6 +2909,7 @@ export class Foes {
       if (last) slowMo(0.45, 0.35);
     }
     f.state = 'dead'; f.k = 0;
+    this.packFell(f);
     const T = this.tool, at = f.chest.clone();
     const tones = f.model.tones ?? BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];   // (an archetype's from its skin)
     for (let i = 0; i < HIT_SPLASH.burst; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
@@ -2766,7 +3005,7 @@ export class Foes {
       const fk = this.slowAt?.(f.pos) ?? 1, fdt = dt * fk;
       const ev = inTemple ? f.update(fdt, P, this.env) : [];
       for (const e of ev) {
-        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow() / fk, () => f.chest, (f.atk ?? f.def.attack).cue);   // (rising over its whole wind-up, slowed or not; its cue over it)
+        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, (f.windFor?.(f.atk ?? f.def.attack) ?? 0.8) * this.env.slow() / fk, () => f.chest, (f.atk ?? f.def.attack).cue);   // (rising over its whole wind-up, slowed or not; its cue over it)
         if (e === 'warn' && f.atk?.pile) this.pile(f);   // (its flock climbs onto it)
         if (e === 'notice') { this.meet(f); this.alarm(f); }
         if (e?.type === 'ward' || e?.type === 'mend') { this.support(f, e); continue; }
@@ -2786,6 +3025,8 @@ export class Foes {
       if (f.def.trail && f.alive && inTemple) this.trailSlag(f);
       if (f.possessed?.done) this.unstring(f);   // (a marionette's strings ran out, or it is gone: the creature is let go)
       this.look(f, fdt);
+      // (enraged: it steams, a few drops of its ink rising off it now and then: #722)
+      if (f.rage && f.alive && !f.dying && (f.steamT = (f.steamT ?? 0) - dt) <= 0) { f.steamT = RAGE.steam; this.animKit(f, 0, {}).spray(f.chest, RAGE_STEAM, 3, 1.2, -1.5); }
       this.arrival(f, dt);
     }
     this.updateBalls(dt);
@@ -2930,9 +3171,13 @@ export class Foes {
     if (bashed && !this.game.flag('foes.bashed') && hintsFor('tip')) { this.game.set('foes.bashed', true); this.notice?.('A shield bash knocks a raised guard aside: parry it as it lands, or hop away.'); }
     if (guarded && !bashed) {
       const perfect = guarded === 'perfect';
+      // (a plain guard took it: a duelist may swing again at once rather than stumble: fight.follow 'block', #722)
+      if (!perfect && f.tryFollow?.('block', a, P)) { this.react(f, 'guard', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { reel: 'flinch', flash: false }); this.warnSound(f); return false; }
+      f.brokeNow = false;
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
       f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
+      if (f.brokeNow) { f.brokeNow = false; this.poiseBroken(f, null, perfect); }
       // its body reels back off the shield as it would from a cut (src/foe-react.js; issue #672, the BotW study: a guarded
       // blow throws the attacker off balance, and that reel is what says "now"): a perfect parry a full stagger held
       // while it is open, a plain block a flinch; no flash on a plain block (it took no harm)
@@ -3441,11 +3686,86 @@ export class Foes {
    */
   alarm(f) {
     for (const x of this.list) {
-      if (x === f || !x.alive || x.dead !== undefined || x.provoked || (x.kind !== f.kind && !x.def.calm?.joins) || !x.def.calm?.alarm) continue;
-      if (x.pos.distanceTo(f.pos) > x.def.calm.alarm) continue;
+      if (x === f || !x.alive || x.dead !== undefined || x.dying) continue;
+      // (#722: its call wakes its whole pack, any kind, within ALERT.pack m (or its own kind's alarm, if wider); each with
+      // its own alert beat a moment after, not all in step)
+      const own = (x.kind === f.kind || x.def.calm?.joins) && x.def.calm?.alarm ? x.def.calm.alarm : 0, r = Math.max(own, f.wilds || x.wilds ? ALERT.pack : 0);
+      if (!r || x.pos.distanceTo(f.pos) > r) continue;
+      if (x.provoked && x.state !== 'idle') continue;
       x.provoked = true; x.watcher = false;
-      if (x.state === 'idle') x.state = 'chase';
+      if (x.state === 'idle') { const ev = []; x.noticed(ev, this.env, ALERT.time + this.rng() * ALERT.spread); if (ev.some((e) => e?.type === 'gesture')) this.gesture(x, 'alert'); this.meet(x); }
     }
+  }
+  /** A foe's attack warning sound (as Foes.update gives it for a 'warn'). */
+  warnSound(f) { const a = f.atk ?? f.def.attack; this.sound?.foeWarn?.(f.def.sound ?? f.kind, (f.windFor?.(a) ?? 0.8) * this.env.slow(), () => f.chest, a.cue); }
+  /**
+   * What its body says (#722; src/foe-react.js): 'alert' (it noticed you: rears and calls), 'mourn' (a packmate fell), 'taunt'
+   * (it waits its turn, rearing), 'feint' (a lean in at you, no blow), 'rage' (it rears, flashes, steams), 'flee' and 'cower'
+   * (it shrinks back), 'hop' (it hops back from your swing: dust where it set off).
+   */
+  gesture(f, kind) {
+    const R = f.react, P = this.player;
+    const away = P ? _w.set(f.pos.x - P.pos.x, 0, f.pos.z - P.pos.z) : _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
+    if (away.lengthSq() < 1e-6) away.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
+    away.normalize();
+    const size = Math.max(f.def.radius, f.def.height * 0.5) / 0.6;
+    if (kind === 'alert' || kind === 'mourn' || kind === 'taunt') {
+      if (R) { installFlash(f.model, R); R.hit(away, 'rear', { size, hold: kind === 'taunt' ? 0.5 : 0.4, flash: kind === 'alert' }); }   // (the alert's ink flashes: the plan's "rear, yell, flash")
+      if (kind !== 'taunt') this.sound?.foeWarn?.(f.def.sound ?? f.kind, kind === 'alert' ? 0.35 : 0.3, () => f.chest);
+    } else if (kind === 'feint') { if (R) R.hit(away.negate(), 'lean', { size, hold: 0.25, flash: false }); }
+    else if (kind === 'rage') {
+      if (R) { installFlash(f.model, R); R.hit(away, 'rear', { size, hold: 0.5, flash: true }); }
+      this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.5, () => f.chest);
+      this.animKit(f, 0, {}).spray(f.chest, RAGE_STEAM, 18, 3, -1);
+      f.steamT = 0;
+    } else if (kind === 'flee' || kind === 'cower') {
+      if (R) R.hit(away, 'cower', { size, hold: 0.6, flash: false });
+      this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.3, () => f.chest);
+    } else if (kind === 'hop') this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5);
+  }
+  /**
+   * Its poise broken (#722, Foe.breakPoise): it goes down (src/foe-react.js 'down', held while it lies), a heavy thud and
+   * dust; the riposte's window opens for you, as after a perfect parry (src/fluid-blade.js RIPOSTE); the first time, a tip.
+   */
+  poiseBroken(f, dir = null, parried = false) {
+    const R = f.react, P = this.player;
+    const way = dir && Math.hypot(dir.x, dir.z) > 1e-5 ? _w.set(dir.x, 0, dir.z) : P ? _w.set(f.pos.x - P.pos.x, 0, f.pos.z - P.pos.z) : _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
+    if (way.lengthSq() < 1e-6) way.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
+    way.normalize();
+    if (R) { installFlash(f.model, R); R.hit(way, f.fight.down ? 'stagger' : 'down', { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.downT, lean: f.fight.mass >= 3 ? 0.42 : undefined }); }
+    worldSnd.thud(this.sound, f.fight.mass >= 3 ? 0.8 : 0.5); kick(0.25);
+    this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', f.launched ? 6 : 12, 0.8);
+    if (!parried) this.tool?.blade?.openRiposte?.();
+    if (!this.game.flag('foes.broken') && hintsFor('tip')) { this.game.set('foes.broken', true); this.notice?.('Its stance is broken: it is down. Strike now, or riposte.'); }
+  }
+  /** Its low-health change (#722, Foe.goLow): enraged (it rears and steams), fleeing (to the nearest of its pack, which it wakes), its last move. */
+  lowChange(f) {
+    const k = f.lowNow;
+    if (k === 'enrage') this.gesture(f, 'rage');
+    else if (k === 'flee') {
+      const near = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.dying && x.pos.distanceTo(f.pos) < RUN.ally).sort((p, q) => p.pos.distanceTo(f.pos) - q.pos.distanceTo(f.pos))[0];
+      f.fleeTo = near ?? null;
+      if (near) this.alarm(f);
+      this.gesture(f, 'flee');
+    } else if (k === 'last') this.gesture(f, 'rage');
+  }
+  /**
+   * A packmate went down (#722): those near it rear and call (MOURN); the last one left of a pack may cower and flee (wildlife)
+   * or come on enraged (fight.alone).
+   */
+  packFell(f) {
+    if (f.mourned) return;
+    f.mourned = true;
+    const left = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.dying && x.provoked && x.state !== 'idle' && x.state !== 'home' && x.pos.distanceTo(f.pos) < 24);
+    for (const x of left) {
+      if (x.pos.distanceTo(f.pos) > MOURN.near || x.state === 'wind' || x.state === 'strike' || x.fleeT > 0) continue;
+      x.alertT = Math.max(x.alertT, MOURN.time);
+      this.gesture(x, 'mourn');
+    }
+    if (left.length !== 1 || !f.provoked) return;
+    const x = left[0];
+    if (x.fight.alone === 'flee' && x.wilds && !(x.fleeT > 0)) { x.fleeT = RUN.time; x.fleeTo = null; x.fled = false; x.plan = null; this.gesture(x, 'cower'); }
+    else if (x.fight.alone === 'rage' && !x.rage) { x.rage = true; this.gesture(x, 'rage'); }
   }
 
   /** The first time each kind comes for you: what it is and how to beat it, once (NOTES, src/foe-kinds.js; the archetypes', src/enemies/archetypes.js). */

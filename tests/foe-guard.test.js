@@ -29,7 +29,7 @@ function arena(kind, o = {}) {
 const FRONT = v(0, 0, 1), SIDE = v(1, 0, 0);
 /** Run the Arena until its guard is up (its blow held off: cool). */
 function raise(foes, f) {
-  for (let i = 0; i < 40 && f.guardK < 1; i++) { f.cool = Math.max(f.cool, 3); foes.update(DT); }
+  for (let i = 0; i < 100 && f.guardK < 1; i++) { f.cool = Math.max(f.cool, 3); foes.update(DT); }   // (after its alert beat: issue #722)
   return f.guardK;
 }
 const light = (n = 0) => ({ damage: n === 2 ? 2 : 1, combo: n });
@@ -91,7 +91,7 @@ test('the furnace brute: light cuts ring off its forearms, the charged cut smash
   assert.equal(f.reel, 'guardbroken');
   assert.ok(f.stunned >= 1 && f.stunned <= 1.5, `open ${f.stunned} s`);
   assert.equal(f.hp, hp - 2, 'the charged cut lands');
-  assert.equal(f.react.kind, 'stagger', 'its body thrown into the stagger');
+  assert.ok(['stagger', 'down'].includes(f.react.kind), 'its body thrown into the stagger (its poise broken by the charged cut too: down, issue #722)');
   foes.hurt(f, 'blade', FRONT, light(0));
   assert.equal(f.hp, hp - 4, 'the first cut into the window lands double');
   done();
@@ -194,7 +194,9 @@ test('the guard rises over STANCE.raise and drops the moment it winds up', () =>
   while (f.guardK < 1 && n < 60) { foes.update(DT); n++; }
   assert.ok(n * DT <= STANCE.raise + 0.1, `raised in ${(n * DT).toFixed(2)} s`);
   f.cool = 0;
-  for (let i = 0; i < 30; i++) foes.update(DT);
+  // (its move by weight, maybe one it steps back to throw first: issue #722)
+  for (let i = 0; i < 150 && f.state === 'chase'; i++) foes.update(DT);
+  for (let i = 0; i < 12; i++) foes.update(DT);
   assert.notEqual(f.state, 'chase');
   assert.ok(f.guardK < 0.2);
   done();

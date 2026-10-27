@@ -41,7 +41,7 @@ test('a foe\'s strike is drawn where, and as big as, the combat code tests it: t
     assert.equal(f.state, 'wind', kind);
     let s = attackShape(f);
     assert.equal(s.phase, 'telegraph'); assert.equal(s.color, HITBOX_COLORS.telegraph);
-    const a = f.def.attack;
+    const a = f.atk;   // (the move its weighted pick chose: not always its first, issue #722)
     assert.equal(s.kind, { ring: 'circle', cone: 'fan', lane: 'lane' }[a.shape]);
     // sampled points: inside the drawn shape exactly when inArea says the strike would land there
     for (let i = 0; i < 400; i++) {

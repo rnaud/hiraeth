@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { POISE } from '../src/enemies/fight.js';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES } from '../src/foes.js';
@@ -31,7 +32,7 @@ function duel(o = {}) {
   return { foes, f, P, done: () => { foes.dispose(); clearTargets(); } };
 }
 const FRONT = v(0, 0, 1), BACK = v(0, 0, -1);
-const raise = (foes, f) => { for (let i = 0; i < 40 && f.guardK < 1; i++) { f.cool = Math.max(f.cool, 3); foes.update(DT); } return f.guardK; };
+const raise = (foes, f) => { for (let i = 0; i < 100 && f.guardK < 1; i++) { f.cool = Math.max(f.cool, 3); foes.update(DT); } return f.guardK; };
 const CHARGED = { damage: 2, combo: 2, breaks: true, charged: false };
 
 test('the fencer on the roster: a machine duelist of its own plan, in three late route worlds, every wind-up fair', () => {
@@ -71,7 +72,7 @@ test('its shield turns the light combo and shots from the front; the charged cut
   raise(B.foes, B.f);
   B.foes.hurt(B.f, 'blade', FRONT, CHARGED);
   assert.equal(B.f.reel, 'guardbroken');
-  assert.ok(B.f.stunned >= 0.9 && B.f.stunned <= 1.1, `open ${B.f.stunned} s`);
+  assert.ok(B.f.stunned >= 0.9 && B.f.stunned <= POISE.down + 0.05, `open ${B.f.stunned} s (the charged cut breaks its poise too: down, issue #722)`);
   B.done();
 });
 
@@ -168,7 +169,8 @@ test('played with its answers it falls: the charged cut into its shield, a parry
 test('spamming the combo at its front is turned away and punished, but never stalls: the blows get in between its own', () => {
   const r = fight(() => 'light');
   assert.ok(r.turned >= 3, `${r.turned} cuts rang off the shield`);
-  assert.ok(r.hurts >= 2, `${r.hurts} blows taken for it (the bash, its sword)`);
+  // (#722: the cuts that get in wear its poise down, so the spam ends sooner than it did: at least its bash still lands)
+  assert.ok(r.hurts >= 1, `${r.hurts} blows taken for it (the bash, its sword)`);
   assert.ok(r.told >= 1, `${r.told} cuts told: no unexplained invulnerability`);
   const answered = fight(({ f }) => (landing(f) ? 'parry' : f.guardK >= 0.6 ? 'charged' : 'light'));
   assert.ok(answered.hurts < r.hurts, `the answers cost fewer blows (${answered.hurts}, won in ${answered.t.toFixed(1)} s) than the spam (${r.hurts}, ${r.t.toFixed(1)} s)`);

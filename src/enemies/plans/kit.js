@@ -160,7 +160,9 @@ export function pivot(parent, x = 0, y = 0, z = 0, name = '') {
 }
 
 /** The eyes' colour by the fight: orange winding up, pale blue stunned, else its own. */
-export const eyeColor = (f, base, wind = '#f3a361') => (f.state === 'wind' ? wind : f.stunned > 0 ? '#bfe9ff' : base);
+/** An enraged foe's eyes (issue #722, src/enemies/fight.js RAGE): a deep red, apart from the wind-up's orange and the stun's pale blue. */
+export const RAGE_EYE = '#e8302a';
+export const eyeColor = (f, base, wind = '#f3a361') => (f.state === 'wind' ? wind : f.stunned > 0 ? '#bfe9ff' : f.rage ? RAGE_EYE : base);
 
 /** The finishing pass: nothing in the body blocks the camera or the physics; every mesh casts and takes shadows. */
 export function finish(group) {

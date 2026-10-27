@@ -339,6 +339,8 @@ export const AIR_COMBO = {
 };
 /** Is `S` one of the mid-air combo's light swings? */
 export const airLight = (S) => !!S?.light && AIR_COMBO.swings.includes(S);
+/** The riposte's window after a foe's poise breaks (s: issue #722; the parry's is RIPOSTE.window). */
+export const RIPOSTE_BROKEN = 1.1;
 /** Is a press now a riposte: `since` s after a perfect parry (RIPOSTE.window)? */
 export const riposteOpen = (since, R = RIPOSTE) => since >= 0 && since < R.window;
 /** Is a press now a dash cut: evading, or `late` s at most after an evade (`since` s; 0 while evading), the dash cut's cooldown `cool` over. */
@@ -598,7 +600,7 @@ export class FluidBlade {
     // (the backpack's fluid takes the blow, a unit of the bar; before the backpack, the brass alone holds)
     if (!perfect && T.owned !== false && !T.reserve.use(MAGIC_COST.shield)) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
     p.perfectBlock = perfect; this.perfectReady = false;
-    if (perfect) this.sinceParry = 0;   // (the riposte's window opens)
+    if (perfect) { this.sinceParry = 0; this.riposteFor = null; }   // (the riposte's window opens)
     this.guardRearm = GUARD.rearm;
     this.parry = GUARD.parryFor;
     hitStop(perfect ? 0.14 : 0.07); kick(perfect ? 0.5 : 0.14);
@@ -731,7 +733,8 @@ export class FluidBlade {
       this.placeShield(dt); return this.fade(dt);
     }
     // the riposte: a press in the window a perfect parry opened (the guard may still be held)
-    if (press && riposteOpen(this.sinceParry) && !this.swinging && !this.evadeT && p.onGround) { this.sinceParry = Infinity; this.buffered = 0; press = false; this.start(0, RIPOSTE); }
+    // (a foe's broken poise opens it too, a little longer, and a press kept from the swing that broke it counts: openRiposte)
+    if ((press || (this.riposteFor && this.buffered > 0)) && riposteOpen(this.sinceParry, this.riposteFor ?? RIPOSTE) && !this.swinging && !this.evadeT && p.onGround) { this.sinceParry = Infinity; this.riposteFor = null; this.buffered = 0; press = false; this.start(0, RIPOSTE); }
     // the dash cut: a press during an evade (or just after it) cuts as the evade ends, once a cooldown
     if (press && this.evadeT > 0) this.dashWant = true;
     if ((this.dashWant || press) && !this.evadeT && !this.swinging && !held && p.onGround && this.cool === 0 && dashOpen(this.sinceEvade, this.dashCool)) { this.dashWant = false; this.buffered = 0; press = false; this.start(0, DASH); }
@@ -1030,6 +1033,12 @@ export class FluidBlade {
     if (e < S.wind + S.active) return 1;
     return 1 - THREE.MathUtils.smoothstep((e - S.wind - S.active) / Math.max(1e-3, this.dur - S.wind - S.active), 0, 1);
   }
+
+  /**
+   * A foe's poise broken (issue #722, src/foes.js Foes.poiseBroken): the riposte's window opens as a perfect parry's does,
+   * `window` s (a little longer: the blow that broke it is still in its follow-through).
+   */
+  openRiposte(window = RIPOSTE_BROKEN) { this.sinceParry = 0; this.riposteFor = { window }; }
 
   /** The active cut: coarse range/occlusion first, then the actual swept blade. */
   strike() {

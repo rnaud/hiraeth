@@ -98,12 +98,12 @@ test('every archetype flinches on its body when cut (its own family\'s flash and
     const light = f.react.push.yd;
     for (let i = 0; i < 90; i++) foes.update(DT);
     cut(foes, f, 3);
-    assert.equal(f.react.kind, 'stagger', `${id}: a heavy blow staggers`);
+    assert.ok(['stagger', 'down'].includes(f.react.kind), `${id}: a heavy blow staggers (or, its poise broken, knocks it down: issue #722)`);
     assert.ok(Math.abs(f.react.push.yd) > Math.abs(light) || light === 0, `${id}: harder`);
     foes.remove(f);
   }
   // the crab's shell from the front: a glance, its sparks and thunk, no flinch, no flash
-  const c = foes.add('crab', v(0, 0, 6)); c.heading = 0;
+  const c = foes.add('crab', v(0, 0, 6)); c.heading = 0; c.state = 'chase';   // (in the fight already: no alert beat's rear, issue #722)
   for (let i = 0; i < 5; i++) foes.update(DT);
   const r = foes.hurt(c, 'blade', v(-Math.sin(c.heading), 0, -Math.cos(c.heading)), { damage: 1 }, c.chest.clone());   // (onto its face)
   assert.ok(r && !(c.react.flashT > 0) && !c.react.live, 'a glance: its own look');

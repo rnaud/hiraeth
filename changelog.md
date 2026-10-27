@@ -4,6 +4,12 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.33 — 2026-10-27
 
+- Fights move more: foes follow a missed blow with a second, quicker one (the same wind-up, faster), step back to lunge or close in to bite so that they vary their attacks at every distance, and while they wait their turn they circle, feint at you and taunt instead of shuffling sideways. Horn lizards, stilt herons and antler hounds sometimes hop back out of your swing.
+- Every foe changes when it is badly hurt: most fly into a rage (red eyes, rising steam, quicker blows), some run to a packmate for help and come back cornered, and the pearl roller always gets its last roll in now. The antler hound’s antler rake, which you almost never saw, now comes once it has lost a third of its health.
+- Foes notice you: when one sees you it rears up and calls out before it comes on, and its call wakes every foe near it, whatever kind. When one falls the others cry out, and the last one left may cower and run, or turn on you in a rage.
+- The charged cut and the riposte now throw lighter foes off their feet, over ledges and into water, and knock the heavy ones down where they stand. Heavy foes slide less from your blows than light ones.
+- Foes grow tougher along the way. The first worlds stay as they were; from the middle of the journey on, each world’s foes take more blows and keep their stance longer, and in the Signal Market they stand two or three combos. Ink blots, skitters and moths stay as frail as ever.
+- Foes stand their ground. A light cut no longer stops a blow they have begun: each one has a stance that your cuts wear down. Break it with the combo’s heavy third swing, the charged cut, the dash cut, a perfect parry or the riposte, and it goes down for a moment, open, every cut doubled; strike now and your riposte comes out. Hitting a foe no longer delays its next attack either.
 - Sword hits now burst in amber and gold, with a tiny cream spark and a turquoise trail. Enemies keep their colours when struck instead of flashing solid white; sharp streaks scatter into small fading flecks, with a larger burst on heavy blows.
 
 ## v2.32 — 2026-10-27
