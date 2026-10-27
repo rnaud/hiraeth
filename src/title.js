@@ -172,7 +172,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const settings = new Settings();
     // (the title's own recording takes over from the procedural menu music once it has loaded: src/soundtracks.js TITLE_THEME)
     // (started once the menu answers: startIfAllowed below; a press starts it at once, as anywhere)
-    const sound = new Sound('title', { score: false, titleTheme: true, autoStart: false });
+    const reviewMuted = new URLSearchParams(win.location?.search ?? '').has('guardianReview');
+    const sound = new Sound('title', { score: false, titleTheme: true, autoStart: false, muted: reviewMuted ? true : undefined });
     let vista = null, vistaQuality = settings.quality, worldStarted = false;
     let ls = null;
     try { ls = win.localStorage; } catch { /* private mode */ }
@@ -236,8 +237,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       // (each named for a screen reader and in a label shown on hover or focus, at the row's right end where
       // nothing is covered: --k, how many icons stand to its right; the glyph in its corner)
       const fs = !!doc.fullscreenElement;
-      const tools = [['data-a="settings"', t('title.settings'), 'settings'], ['data-a="news"', t('title.news'), 'news'],
-        devMode({ settings }) && ['data-a="debug"', t('title.debug'), 'debug'],
+      const tools = [['data-a="settings"', t('title.settings'), 'settings'],
         fullscreen() && ['data-a="fullscreen"', t(fs ? 'title.leaveFullscreen' : 'title.fullscreen'), fs ? 'leave' : 'fullscreen']].filter(Boolean);
       const tool = ([attr, label, icon], i) => `<button ${attr} class="tool" style="--k: ${tools.length - 1 - i}" aria-label="${esc(label)}">${TITLE_ICONS[icon]}<span class="tip" aria-hidden="true">${esc(label)}</span>${glyph('ok', { focus: true })}</button>`;
       mainNav.innerHTML = `<div class="entries">${s

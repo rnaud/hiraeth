@@ -1,6 +1,7 @@
 import { cleanBatch, validBuild } from '../../src/analytics/protocol.js';
+import { adminSignedIn, adminCors, adminOrigin, ADMIN_ORIGINS } from '../admin.js';
 import { handleIssues } from '../issues.js';
-const ORIGINS = new Set(['https://rnaud.github.io', 'https://hiraeth.alexandria-rnaud.workers.dev']);
+const ORIGINS = ADMIN_ORIGINS;
 const json = (body, status = 200, headers = {}) => Response.json(body, { status, headers: {
   'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers,
 } });
@@ -25,10 +26,11 @@ export async function handleAnalytics(request, env, now = Date.now()) {
   if (!events && url.pathname !== '/api/analytics/report') return json({ error: 'Not found' }, 404);
   const origin = request.headers.get('Origin');
   const cors = events && origin && ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } : {};
+    'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } : (!events && origin ? adminCors(request) : {});
   // Native clients have no Origin. Origin checks reduce accidental browser abuse, not authentication.
   if (events && origin && !ORIGINS.has(origin)) return json({ error: 'Origin not allowed' }, 403);
-  if (events && request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+  if (!events && !adminOrigin(request)) return json({ error: 'Origin not allowed' }, 403);
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   if (request.method !== (events ? 'POST' : 'GET')) return json({ error: 'Method not allowed' }, 405, cors);
   if (!env.ANALYTICS || !env.ANALYTICS_LIMITER) return json({ error: 'Analytics is not configured' }, 503, cors);
   try {
@@ -41,11 +43,16 @@ export async function handleAnalytics(request, env, now = Date.now()) {
       if (!data) return json({ error: 'Invalid event batch' }, 400, cors);
     } else {
       // Reuse the existing private notebook login; no password or raw installation IDs in reports.
-      const auth = await handleIssues(new Request(new URL('/api/notes/session', url), { headers: request.headers }), env);
-      if (!auth.ok) return json({ error: 'Private reporting needs notebook login configuration' }, 503);
-      if (!(await auth.json()).authenticated) return json({ error: 'Sign in to view analytics' }, 401);
+      let authenticated = await adminSignedIn(request, env, now);
+      // Existing same-origin notebook sessions continue working. Bearer failures never fall back to cookies.
+      if (!authenticated && !request.headers.has('Authorization') && (!origin || origin === url.origin)) {
+        const auth = await handleIssues(new Request(new URL('/api/notes/session', url), { headers: request.headers }), env);
+        if (!auth.ok) return json({ error: 'Private reporting needs notebook login configuration' }, 503, cors);
+        authenticated = (await auth.json()).authenticated;
+      }
+      if (!authenticated) return json({ error: 'Sign in to view analytics' }, 401, cors);
       const days = Number(url.searchParams.get('days') ?? 7), platform = url.searchParams.get('platform') ?? 'all', build = url.searchParams.get('build') ?? '';
-      if (![7, 30, 90].includes(days) || !['all', 'web', 'android', 'linux'].includes(platform) || (build && !validBuild(build))) return json({ error: 'Invalid filters' }, 400);
+      if (![7, 30, 90].includes(days) || !['all', 'web', 'android', 'linux'].includes(platform) || (build && !validBuild(build))) return json({ error: 'Invalid filters' }, 400, cors);
       data = { days, platform, build };
     }
     const stub = env.ANALYTICS.get(env.ANALYTICS.idFromName('hiraeth-v1'));

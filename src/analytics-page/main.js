@@ -1,7 +1,9 @@
 import './style.css';
+import { adminClient } from '../admin/session.js';
+const client = adminClient();
 const app = document.querySelector('#app');
 const demo = location.hash === '#demo';
-app.innerHTML = `<header><a class="brand" href="./">HIRAETH <span>/ Observatory</span></a><span class="badge">PRIVATE ANALYTICS</span></header>
+app.innerHTML = `<header><a class="brand" href="./admin/">HIRAETH <span>/ Observatory</span></a><span class="badge">PRIVATE ANALYTICS</span></header>
 <main><div class="intro"><div class="eyebrow">UNDERSTAND THE JOURNEY</div><h1>Where players wander.<br>Where they get stuck.</h1><p>One game. Every platform. A shared view of exploration, challenges and loading.</p></div>
 <div id="notice" role="status" aria-live="polite"></div>
 <form id="login" hidden><h2>Unlock your reports</h2><p>Use your private Hiraeth notebook password.</p><label>Password<input type="password" id="password" autocomplete="current-password" required></label><button>Sign in</button></form>
@@ -56,10 +58,7 @@ function render(data) {
   $('freshness').textContent = data.totals.latest ? `Latest event · ${new Date(data.totals.latest).toLocaleString()}` : 'Waiting for the first production event';
   $('health').textContent = `Today · ${number(data.health.todayAccepted)} / ${number(data.health.dailyLimit)} event budget`;
 }
-async function api(path, options = {}) {
-  const response = await fetch(path, { credentials: 'same-origin', ...options });
-  const body = await response.json(); if (!response.ok) throw Object.assign(new Error(body.error || 'Reports are unavailable'), { status: response.status }); return body;
-}
+const api = client.request;
 let revision = 0;
 async function refresh() {
   const current = ++revision;
@@ -77,15 +76,13 @@ async function refresh() {
 }
 $('login').onsubmit = async e => {
   e.preventDefault();
-  try { await api('/api/notes/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('password').value }) }); $('password').value = ''; await refresh(); }
+  try { const password = $('password').value; $('password').value = ''; await client.signIn(password); await refresh(); }
   catch (error) { $('notice').textContent = error.message; }
 };
-$('logout').onclick = async () => { try { await api('/api/notes/session', { method: 'DELETE' }); await refresh(); } catch (e) { $('notice').textContent = e.message; } };
+$('logout').onclick = () => { ++revision; client.signOut(); $('dashboard').hidden = true; $('login').hidden = false; $('notice').textContent = 'Signed out on this tab.'; };
 $('refresh').onclick = refresh;
 for (const id of ['days', 'platform', 'build']) { $(id).onchange = refresh; if (demo) $(id).disabled = true; }
 if (demo) $('logout').hidden = true;
-// Reports live on the Worker; Pages never asks for a password it cannot authenticate.
-if (!demo && location.hostname === 'rnaud.github.io') {
-  $('notice').textContent = 'Private reports are hosted on the Hiraeth server. ';
-  const link = document.createElement('a'); link.href = 'https://hiraeth.alexandria-rnaud.workers.dev/analytics'; link.textContent = 'Open analytics'; $('notice').append(link);
-} else void refresh();
+window.addEventListener('pagehide', () => { ++revision; $('dashboard').hidden = true; });
+window.addEventListener('pageshow', event => { if (event.persisted) void refresh(); });
+void refresh();

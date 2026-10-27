@@ -51,3 +51,11 @@ test('global budget caps writes and does not partially accept a batch', () => {
   const s = store(); s.sql.exec('INSERT INTO budget VALUES (?, ?)', Math.floor(now / DAY), DAILY_EVENT_LIMIT);
   assert.deepEqual(s.ingest(batch(), now), { limited: true, accepted: 0 }); assert.equal(s.report({}, now).totals.events, 0);
 });
+
+test('retention pruning does not label a still-active installation as newly acquired', () => {
+  const s = store(), player = hex();
+  s.ingest(batch('web', now - 91 * DAY, player), now - 91 * DAY);
+  s.ingest(batch('web', now - 2 * DAY, player), now - 2 * DAY);
+  s.prune(now); s.ingest(batch('web', now - DAY, player), now - DAY);
+  assert.deepEqual(s.report({}, now).retention, { eligible: 0, returned: 0 });
+});

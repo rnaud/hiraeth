@@ -1,3 +1,4 @@
+import { handleAdmin } from './admin.js';
 import { handleAnalytics } from './analytics/routes.js';
 export { HiraethAnalytics } from './analytics/store.js';
 import { handleIssues } from './issues.js';
@@ -7,6 +8,7 @@ export { NotesDrafts } from './drafts.js';
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/admin/')) return handleAdmin(request, env);
     if (url.pathname.startsWith('/api/analytics/')) return handleAnalytics(request, env);
     if (url.pathname.startsWith('/api/notes/')) return handleIssues(request, env);
     if (!/^\/updates\/(web|unity)-\d+\.zip$/.test(url.pathname)) return env.ASSETS.fetch(request);

@@ -9,6 +9,8 @@ test('Vite uses the same page-input object exported for page consumers', () => {
   assert.strictEqual(compatibilityInput, BUILD_INPUT, 'existing config export retains identity');
   assert.strictEqual(config.build.rolldownOptions.input, BUILD_INPUT, 'the actual build consumes the shared list');
   const expected = {
+    admin: 'admin/index.html',
+    analytics: 'analytics.html',
     'caravan-review': 'caravan-review.html',
     'notes': 'notes.html',
     'cinematics': 'cinematics.html',

@@ -107,3 +107,36 @@ authentication, streamed limits and CORS. Native compilation is a separate check
 it does not prove player event delivery. Before calling native tracking verified,
 run an actual release player and confirm a received event and persisted opt-out.
 No production fixture data should be sent just to make the dashboard look populated.
+
+
+## Admin hub and domain
+
+Open `https://hiraeth.my/admin/`. This is a real `admin/index.html` so GitHub Pages
+serves `/admin` without a custom router or hosting migration. Use the existing
+private notebook password. The hub links analytics, changelog, world-debug tools,
+and the existing notebook (which keeps its own secure cookie login).
+
+`POST /api/admin/session` on the existing Cloudflare Worker verifies the password
+server-side, shares the notebook's five-attempt/minute edge login budget, bounds
+streamed input, and issues a one-hour HMAC session. Its key derives from both
+server-only credentials with an admin-specific purpose. Tokens are signed for
+one trusted frontend origin. Only the two published hosts and `hiraeth.my` get
+CORS; local same-origin previews are supported. No wildcard credentialed CORS.
+The browser keeps the token in sessionStorage for this tab, never in a link or
+localStorage, and sends it explicitly as Authorization with cookies omitted.
+Reports verify the token server-side; changing either server credential invalidates
+sessions. Sign out removes this tab's token; an already copied token expires in
+one hour. Reuse in an XSS-compromised same-origin page remains a bearer-token risk.
+No secret or password is bundled in the public site.
+
+The hub and private reports require authentication. Changelog and debug game
+assets remain public static assets: moving their entrypoints is not a security
+boundary around code already delivered to every game client. Fresh production
+profiles have developer mode off; deliberate `?dev=1` links and local development
+continue to work. The web title has only play, saves, settings and fullscreen;
+Unity's title already has this structure (plus native updates).
+
+Collection accepts the primary `hiraeth.my` origin too. Events expire after 90 days;
+first-observed dates survive for still-active installation IDs to avoid counting
+returning players as newly acquired when the oldest event is pruned. Inactive IDs
+are removed with retention cleanup.

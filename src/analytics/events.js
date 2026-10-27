@@ -29,7 +29,7 @@ export function observeGameplay(game, emit) {
 
 /** Local/dev/review sessions never enter production analytics, even with a saved enabled preference. */
 export function productionWeb({ production = false, hostname = '', search = '', debugSlot = false } = {}) {
-  if (!production || debugSlot || !['rnaud.github.io', 'hiraeth.alexandria-rnaud.workers.dev'].includes(hostname)) return false;
+  if (!production || debugSlot || !['hiraeth.my', 'rnaud.github.io', 'hiraeth.alexandria-rnaud.workers.dev'].includes(hostname)) return false;
   const q = new URLSearchParams(search);
   for (const key of q.keys()) if (/review|debug|bench|test|capture|sequence/i.test(key) || ['dev', 'worlds', 'shot', 'freeze', 'hudRun', 'tour'].includes(key)) return false;
   return true;

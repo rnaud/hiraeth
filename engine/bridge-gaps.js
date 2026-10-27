@@ -129,6 +129,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ page elements (HTML) the game builds
   dom: [
+    { keys: ['src/analytics-page/main.js', 'src/admin/main.js'], count: { 'src/analytics-page/main.js': 14, 'src/admin/main.js': 2 }, what: 'private administration and analytics reporting', status: 'web-only', why: 'site-only author tools; native players send to the same dataset but do not render admin pages' },
     { keys: ['src/effect-loading.js'], count: { 'src/effect-loading.js': 6 }, what: 'recoverable sound recording load failure and Retry / Back controls', status: 'handled', where: 'engine/unity/game.js catches SoundEffectsLoadError; EngineMenus.showSoundLoadFailure supplies the native title-menu Retry and Back actions before gameplay is ready' },
     { keys: ['src/sfx-trace.js'], count: { 'src/sfx-trace.js': 2 }, what: 'optional sound-effect source panel', status: 'handled', where: 'shared screen.sfxTrace state, BridgeHud.SoundSources.cs; actual muted Editor recording, procedural, loop, stop and mute views checked for #619' },
     // gaps

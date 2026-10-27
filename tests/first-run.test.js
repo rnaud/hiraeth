@@ -39,7 +39,7 @@ test('a brand-new profile is not greeted with "Updated to": the version is marke
 
 test('the debug entries are the author’s: the Developer panel setting, a dev build or ?dev=1', () => {
   const s = mem();
-  assert.equal(devMode({ storage: s, search: '', dev: false }), ALWAYS_DEV, 'ALWAYS_DEV: everyone, for now');
+  assert.equal(devMode({ storage: s, search: '', dev: false }), false, 'published players see no developer entries by default');
   assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), false, 'a player sees none');
   assert.equal(devMode({ always: false, storage: s, search: '', dev: false, settings: { devPanel: true } }), true, 'the Developer panel');
   assert.equal(devMode({ always: false, storage: s, search: '', dev: true }), true, 'a dev build');
@@ -50,7 +50,7 @@ test('the debug entries are the author’s: the Developer panel setting, a dev b
   assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), false);
   // the title's Debug button and the Start menu's entry go through it
   const title = src('src/title.js'), ui = src('src/ui.js');
-  assert.match(title, /devMode\(\{ settings \}\) && \['data-a="debug"', t\('title\.debug'\), 'debug'\]/);   // (an icon in the tools' row: its name, its label and the confirm glyph)
+  assert.doesNotMatch(title, /\['data-a="(?:debug|news)"'/, 'title tools live in the admin hub');
   assert.match(title, /a === 'debug' && devMode\(/);
   assert.match(ui, /<button data-a="debug" data-dev hidden>\$\{t\('menu\.debug'\)\}\$\{F\}<\/button>/);
   assert.match(ui, /for \(const b of el\.querySelectorAll\('\[data-dev\]'\)\) b\.hidden = !dev;/);

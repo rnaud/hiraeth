@@ -40,7 +40,7 @@ export class AnalyticsStore {
   prune(now) {
     this.storage.transactionSync(() => {
       this.sql.exec('DELETE FROM events WHERE at < ?', now - RETENTION_DAYS * DAY);
-      this.sql.exec('DELETE FROM first_seen WHERE at < ?', now - RETENTION_DAYS * DAY);
+      this.sql.exec('DELETE FROM first_seen WHERE at < ? AND installation NOT IN (SELECT DISTINCT installation FROM events)', now - RETENTION_DAYS * DAY);
       this.sql.exec('DELETE FROM budget WHERE day < ?', Math.floor(now / DAY) - RETENTION_DAYS);
     });
   }

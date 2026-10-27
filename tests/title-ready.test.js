@@ -18,7 +18,7 @@ test('the title draws and wires its menu first; the sound and the game behind it
   const t = src('title.js');
   const at = (s) => { const i = t.indexOf(s); assert.ok(i > 0, s); return i; };
   // the sound is made without its start (opening an audio context to ask is 100-250 ms)
-  assert.match(t, /new Sound\('title', \{ score: false, titleTheme: true, autoStart: false \}\)/);
+  assert.match(t, /new Sound\('title', \{ score: false, titleTheme: true, autoStart: false, muted: reviewMuted \? true : undefined \}\)/);
   // the menu shown and the heartbeat marked before anything waits
   assert.ok(at("show('main')") < at('sound.startIfAllowed()'));
   assert.ok(at('markBooted(win)') < at('sound.startIfAllowed()'));
