@@ -66,9 +66,10 @@ test('the flash: its ink brightens through the materials\' own flags as it is dr
   const R = new FoeReact('creature'); installFlash({ group: g }, R);
   R.hit(v(0, 0, 1), 'flinch'); R.update(0.001);
   mesh.onBeforeRender(null, null, null, mesh.geometry, mat);
-  assert.ok(lightness(mat.uniforms.uColor.value) > 0.5, 'pale');
-  assert.ok(mat.uniforms.uGlow.value > 0.62, 'self-lit past the bloom\'s threshold');
-  assert.equal(mat.uniforms.uLineWhite.value, 1, 'its line white at the start');
+  assert.ok(lightness(mat.uniforms.uColor.value) > lightness(new THREE.Color('#302820')), 'a visible warm lift');
+  assert.ok(lightness(mat.uniforms.uColor.value) < 0.3, 'the dark body keeps its identity instead of whitening');
+  assert.ok(mat.uniforms.uGlow.value < 0.62, 'the whole body stays below the bloom threshold');
+  assert.equal(mat.uniforms.uLineWhite.value, 0, 'its ink remains dark at contact');
   mesh.onAfterRender(null, null, null, mesh.geometry, mat);
   assert.equal(mat.uniforms.uColor.value.getHexString(), '302820'); assert.equal(mat.uniforms.uGlow.value, 0); assert.equal(mat.uniforms.uLineWhite.value, 0);
   const shadow = new THREE.MeshBasicMaterial();

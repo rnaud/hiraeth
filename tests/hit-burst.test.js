@@ -12,10 +12,10 @@ const camera = () => { const c = new THREE.PerspectiveCamera(); c.position.set(0
 
 test('a burst: rays round a core at once (its biggest frame), a heavy one more and longer with a streak along the cut; gone after its life', () => {
   const light = burstPieces({ heavy: false, spin: 0, cut: null }, 0), heavy = burstPieces({ heavy: true, spin: 0, cut: 0.4 }, 0);
-  assert.equal(light.filter((p) => p.kind === 'light').length, HIT_BURST.light.rays);
-  assert.equal(light.filter((p) => p.kind === 'ink').length, HIT_BURST.light.rays, 'each ray cut out of an ink one');
-  assert.equal(light.filter((p) => p.kind === 'core').length, 4, 'the white star at its heart on the first frame');
-  assert.equal(heavy.filter((p) => p.kind === 'light' && !p.streak).length, HIT_BURST.heavy.rays, 'a heavy blow: more rays');
+  assert.equal(light.filter((p) => p.kind === 'light' && !p.fleck).length, HIT_BURST.light.rays);
+  assert.equal(light.filter((p) => p.kind === 'ink' && !p.fleck).length, HIT_BURST.light.rays, 'each ray cut out of an ink one');
+  assert.equal(light.filter((p) => p.kind === 'core').length, 4, 'the cream accent at its heart on the first frame');
+  assert.equal(heavy.filter((p) => p.kind === 'light' && !p.streak && !p.fleck).length, HIT_BURST.heavy.rays, 'a heavy blow: more rays');
   const streak = heavy.filter((p) => p.kind === 'light' && p.streak);
   assert.equal(streak.length, 2, 'and a streak through the point, both ways along the cut');
   assert.ok(Math.abs(Math.abs(streak[1].angle - streak[0].angle) - Math.PI) < 1e-9 && 2 * streak[0].length > 2.5 * Math.max(...heavy.filter((p) => p.kind === 'light' && !p.streak).map((p) => p.length)) && streak[0].width < 0.1, 'long and thin');
@@ -91,4 +91,43 @@ test('a landed cut bursts where it struck, heavy on the combo\'s third, with the
   shell.blade.strike(); assert.equal(shell.bursts.length, 0, 'armour: its own sparks, no burst');
   clearTargets(); resetFeel();
   assert.ok(SWINGS[2].heavy);
+});
+
+
+test('amber contact keeps its colour in instance data, with a tiny cream core and a bounded draw budget', () => {
+  const B = new HitBursts(null, camera());
+  for (const heavy of [false, true]) {
+    B.clear(); B.add({ at: v(0, 1, 2), heavy, cut: v(1, -1, 0) }); B.update(0);
+    const pieces = burstPieces(B.list[0], 0), c = new THREE.Color();
+    let creamArea = 0, rayArea = 0;
+    for (let i = 0; i < pieces.length; i++) {
+      const p = pieces[i]; B.mesh.getColorAt(i, c);
+      if (p.kind === 'light') {
+        assert.ok(c.r > c.g * 1.5 && c.g > c.b * 2, 'rays are saturated amber, never white');
+        rayArea += p.width * p.length;
+      }
+      if (p.kind === 'core') creamArea += p.width * p.length;
+    }
+    assert.ok(creamArea < rayArea / 3, 'cream is a small contact accent, not the whole burst');
+    assert.ok(B.mesh.material.uniforms.uGlow.value < 0.62, 'a readable flat print below the bloom threshold');
+    B.update(HIT_BURST[heavy ? 'heavy' : 'light'].life * 0.75);
+    assert.ok(burstPieces(B.list[0], B.list[0].age).every(p => p.kind !== 'core'), 'only coloured flecks remain as it clears');
+  }
+  B.dispose();
+});
+
+
+test('the approved impact is an irregular needle fan followed by detached flecks, not a regular star badge', () => {
+  for (const heavy of [false, true]) {
+    const S = HIT_BURST[heavy ? 'heavy' : 'light'], b = { heavy, spin: 0.2, cut: 0.8 };
+    const rays = burstPieces(b, 0).filter(p => p.kind === 'light' && !p.streak && !p.fleck);
+    assert.ok(rays.length >= 18, 'dense sharp contact silhouette');
+    assert.ok(Math.max(...rays.map(p => p.length)) > 3 * Math.min(...rays.map(p => p.length)), 'deliberately uneven ray lengths');
+    const leader = rays.reduce((a, p) => p.length > a.length ? p : a);
+    assert.equal(leader.angle, b.cut, 'dominant ray follows the actual cut');
+    assert.ok(leader.width < leader.length * 0.1, 'a needle, not a broad petal');
+    const tail = burstPieces(b, S.life * 0.75);
+    assert.equal(tail.filter(p => p.kind === 'light').length, S.flecks);
+    assert.ok(tail.every(p => p.fleck && p.from > S.reach), 'after contact only separated slivers remain');
+  }
 });

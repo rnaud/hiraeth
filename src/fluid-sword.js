@@ -28,8 +28,8 @@ export const HILT = {
 };
 /** The blade's palette, from the sheet: turquoise body, sand-cream currents, deep teal pools, a pale and a gold rim, the ridge's light. */
 export const SWORD_TONES = { base: '#38b8a9', cream: '#e7dca0', deep: '#1e8886', pale: '#b9f1e4', gold: '#e9c46e', light: '#f4fff9' };
-/** The wake's bands (turquoise, pale, cream) and the drops' colours. */
-export const WAKE_TONES = ['#3fbfae', '#7fdccb', '#e3d79c'];
+/** The wake's bands (turquoise, seafoam, pale mint) and the drops' colours. */
+export const WAKE_TONES = ['#26b8ad', '#5dd9cc', '#b6eee3'];
 /** The wake's strands: [from, to] along the blade (share of it), and their life (share of the cut's): one off the point, a thinner one off the middle. */
 export const WAKE_STRANDS = [[0.8, 1.0, 1], [0.5, 0.6, 0.7]];
 

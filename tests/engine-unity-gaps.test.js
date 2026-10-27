@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { fillUnfound, portraitPaint } from '../engine/traveller-paint.js';
 import { SceneMirror } from '../engine/mirror.js';
 import { makeMaterial } from '../src/materials.js';
-import { installFlash } from '../src/foe-react.js';
+import { installFlash, REACT } from '../src/foe-react.js';
 import { Ship } from '../src/ship/ship.js';
 
 test('fillUnfound: the vertices with no place in the skin take their neighbours\' colour, never black', () => {
@@ -41,7 +41,7 @@ test('portraitPaint: the black hatch under the chin and the baked shading go to 
   assert.ok(disp(3).r < 0.2, 'the painted eye is kept');
 });
 
-test('the mirror gives a foe\'s flash back after reading it: sent pale, the material its own colour again', () => {
+test('the mirror gives a foe\'s flash back after reading it: sent warm, the material its own colour again', () => {
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera();
   const mat = makeMaterial({ color: '#3b3350' });
   const own = mat.uniforms.uColor.value.clone();
@@ -58,7 +58,9 @@ test('the mirror gives a foe\'s flash back after reading it: sent pale, the mate
     mirror.sync(scene, cam);
     assert.ok(own.equals(mat.uniforms.uColor.value), `frame ${f}: the material's own colour after the frame`);
   }
-  assert.ok(sent.length > 0 && sent[0][0] > own.r + 0.2, 'the flash itself was sent');
+  const expected = own.clone().lerp(new THREE.Color(REACT.tone.creature), REACT.flash.white);
+  assert.ok(sent.length > 0, 'the warm flash was sent');
+  for (const [i, channel] of ['r', 'g', 'b'].entries()) assert.ok(Math.abs(sent[0][i] - expected[channel]) < 1e-4, `the configured flash reaches Unity: ${channel}`);
   // its flash over: the colour sent goes back to its own, it doesn't creep paler frame after frame
   react.flashK = 0; react.flashT = 0;
   mirror.sync(scene, cam); mirror.sync(scene, cam);

@@ -8,9 +8,8 @@ import { SecondOrder } from './motion-kit/spring.js';
 //     planted) is shoved along the blow and tipped away from it on springs (SecondOrder: quick, overshooting a little),
 //     and squashed; a stagger (a heavy blow, the riposte, a charged cut: the mind's reel 'staggered') is a bigger, slower
 //     shove with a lean held while it reels, so it reads apart from a light flinch
-//   - the flash: its ink goes bright a blink (flash()): the body's colour toward a pale tone, self-lit (uGlow, over the
-//     bloom's threshold: a printed halo) and its line drawn white for the first frames (uLineWhite: the shade, already
-//     white-lined, goes black), the material flags the post pass already reads (src/materials.js); no pass is touched
+//   - the flash: a restrained warm lift that keeps the body's painted colours and ink visible. The amber contact
+//     burst carries the bright accent; the whole foe stays below the bloom threshold (src/hit-burst.js).
 //   - the splash where the blade met it (Foes.hurt): ink and its own colours off a creature, sparks off a machine, black
 //     ink off a spirit
 // Armoured glances keep their own look (Foes.hurt 'glance': the sparks and the thunk, no flash, no flinch).
@@ -21,8 +20,8 @@ export const REACT = {
   stagger: { push: 0.3, tip: 0.42, squash: 0.24, f: 1.9, z: 0.45, lean: 0.22 },
   shrug: { push: 0.06, tip: 0.08, squash: 0.06, f: 4.5, z: 0.4 },   // (a cut it shrugged off: it told, but it comes on)
   // the flash: s it lasts, how self-lit, how far toward the pale tone, s of white line at its start
-  flash: { time: 0.18, glow: 0.92, white: 0.7, line: 0.08 },
-  tone: { creature: '#fff3dc', machine: '#ffe2a0', spirit: '#e6f0ff' },
+  flash: { time: 0.18, glow: 0.25, white: 0.16, line: 0 },
+  tone: { creature: '#ffc878', machine: '#ffe2a0', spirit: '#e6f0ff' },
 };
 
 const UP = new THREE.Vector3(0, 1, 0);
