@@ -2,8 +2,8 @@
 // Splits the unit test files into shards of about equal time, for the parallel jobs of
 // .github/workflows/tests.yml (docs/systems/testing.md, "The shards").
 //
-//   node scripts/test-shards.mjs 2/4            the files of shard 2 of 4, one a line
-//   node scripts/test-shards.mjs --plan 4       every shard's files and expected seconds
+//   node scripts/test-shards.mjs 2/5            the files of shard 2 of 5, one a line
+//   node scripts/test-shards.mjs --plan 5       every shard's files and expected seconds
 //   node scripts/test-shards.mjs --ci <run id> [<run id>...]
 //                                               reads each file's time from those runs of Tests on GitHub
 //                                               (scripts/test-file-times.mjs prints them; the mean of the
@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const TABLE = 'tests/shard-timings.json';
-export const SHARDS = 4;                // the matrix of .github/workflows/tests.yml
+export const SHARDS = 5;                // the matrix of .github/workflows/tests.yml
 export const AT_ONCE = 3;               // files node --test runs at once on a runner (its 4 cores less one)
 export const RUNNER_PER_MAC = 1.9;      // a runner's seconds for a file timed alone on the author's Mac (2026-10-17)
 

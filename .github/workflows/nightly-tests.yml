@@ -1,6 +1,6 @@
 name: Nightly tests
 
-# Complete gameplay suite in the four Tests shards, plus the existing slow tool tests.
+# Complete gameplay suite in the five Tests shards, plus the existing slow tool tests.
 # Scheduled/manual provenance never satisfies production's successful push-main gate.
 
 on:

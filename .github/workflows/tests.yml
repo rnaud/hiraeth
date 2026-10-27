@@ -62,13 +62,13 @@ jobs:
           if-no-files-found: error
   unit:
     needs: selection
-    name: unit (shard ${{ matrix.shard }}/4)
+    name: unit (shard ${{ matrix.shard }}/5)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -118,4 +118,4 @@ jobs:
       - name: Run only the selected shard (empty is explicit)
         env:
           SELECTED_TESTS: ${{ needs.selection.outputs.files }}
-        run: node scripts/run-test-shard.mjs ${{ matrix.shard }}/4 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/test-file-times.mjs --test-reporter-destination=stdout
+        run: node scripts/run-test-shard.mjs ${{ matrix.shard }}/5 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/test-file-times.mjs --test-reporter-destination=stdout
