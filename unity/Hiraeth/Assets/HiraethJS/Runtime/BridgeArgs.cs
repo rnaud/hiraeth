@@ -235,7 +235,7 @@ namespace Hiraeth.Bridge
             // (-hud-run secs: round someone at a walk, then a sprint, the floating prompt and the stamina wheel in motion: engine/unity/game.js)
             if (Arg("-hud-run") != null) args["hudRun"] = double.Parse(Arg("-hud-run"), CultureInfo.InvariantCulture);
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
-            // (-sprint-shots N: a sprint, then N pictures two frames apart; -js-on kevinSprint for Kevin Iglesias's, issue #704: engine/unity/game.js)
+            // (-sprint-shots N: a sprint, then N pictures two frames apart; his sprint Kevin Iglesias's since issue #709, -js-off kevinSprint the library's: engine/unity/game.js)
             if (Arg("-sprint-shots") != null) args["sprintShots"] = int.Parse(Arg("-sprint-shots"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);
             if (Flag("-tour")) args["tour"] = true;

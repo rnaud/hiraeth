@@ -1,4 +1,4 @@
-// Kevin Iglesias's sprint as the traveller's alternative sprint loop (issue #704): the conversion of his rig
+// Kevin Iglesias's sprint, the traveller's sprint loop (a switch in issue #704, the default since #709): the conversion of his rig
 // (scripts/mocap/maps.js KEVIN_MAP, kevin-sprint.js), the shipped clip (public/anim/sprint-kevin.glb), the switch
 // (src/animator.js sprintSetting) and the Animator taking it in the sprint's place (useSprint), the traveller's alone.
 import test from 'node:test';
@@ -86,21 +86,25 @@ test('his sprint leans further and pumps the arms higher than the library\'s, bo
   assert.ok(Math.abs(d - 0.5) < 0.1, `the feet half a cycle apart (${d.toFixed(2)})`);
 });
 
-test('the switch: the library\'s unless asked for, ?sprint= or this device', () => {
+test('the switch: his sprint unless asked for, ?sprint= or this device; #704\'s stored choice not read (issue #709)', () => {
   const g = globalThis, had = { location: g.location, localStorage: g.localStorage };
   const store = new Map();
   g.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) };
   try {
     g.location = { search: '' };
-    assert.equal(sprintSetting.get(), 'ual');
-    sprintSetting.set('kevin');
+    assert.equal(sprintSetting.get(), 'kevin', 'the default');
+    // (a device left on the library's while #704's switch was tried takes the new default)
+    store.set('hiraeth.sprint', 'ual');
     assert.equal(sprintSetting.get(), 'kevin');
-    g.location = { search: '?sprint=ual' };
-    assert.equal(sprintSetting.get(), 'ual', 'the address wins');
+    sprintSetting.set('ual');
+    assert.equal(store.get('hiraeth.sprintLoop'), 'ual');
+    assert.equal(sprintSetting.get(), 'ual', 'chosen again: kept');
+    g.location = { search: '?sprint=kevin' };
+    assert.equal(sprintSetting.get(), 'kevin', 'the address wins');
     g.location = { search: '?sprint=nonsense' };
-    assert.equal(sprintSetting.get(), 'kevin');
-    sprintSetting.set('nonsense');
     assert.equal(sprintSetting.get(), 'ual');
+    sprintSetting.set('nonsense');
+    assert.equal(sprintSetting.get(), 'kevin');
   } finally { g.location = had.location; g.localStorage = had.localStorage; }
   assert.equal(SPRINTS.ual, null);
   assert.ok(SPRINTS.kevin.url.endsWith('sprint-kevin.glb'));
@@ -138,7 +142,8 @@ test('the dev menu has the switch beside the carried stop', () => {
   const row = tabs.find((t) => t.id === 'story').rows.find((r) => r.act?.key === 'kevinSprint');
   assert.ok(row, 'a row for it');
   assert.equal(row.state, true);
-  assert.match(row.hint, /\?sprint=kevin/);
+  assert.match(row.hint, /\?sprint=kevin \/ ual/);
+  assert.match(row.hint, /the default/);
 });
 
 test('the shipped file is what the converter makes of the pack\'s FBX (where the FBX is on this machine)', { skip: !existsSync(new URL('../data/mocap/kevin-iglesias/HumanM@Sprint01_Forward.fbx', import.meta.url)) && 'the FBX stays out of git' }, async () => {

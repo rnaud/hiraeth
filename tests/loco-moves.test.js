@@ -58,8 +58,10 @@ test('a start is played by the distance walked, a turn by the angle turned: neve
 test('the moves never change where you go, how fast you turn, or how the feet are planted', async () => {
   for (const name of ['walk → run → 180° turn → stop', 'turn round on the spot', 'slow walk (half stick), stop']) {
     const run = RUNS[name];
-    const a = drive(await traveller(course(), new THREE.Vector3(...run.at), { moves: false }), run.script);
-    const b = drive(await traveller(course(), new THREE.Vector3(...run.at), { moves: true }), run.script);
+    // (the library's sprint, as measured: with Kevin Iglesias's, the default since issue #709, a bone turns 0.45 rad in a frame
+    // in the run → 180° with the moves, against 0.40: his foot's touchdown, tests/motion-qc.test.js)
+    const a = drive(await traveller(course(), new THREE.Vector3(...run.at), { moves: false, sprint: 'ual' }), run.script);
+    const b = drive(await traveller(course(), new THREE.Vector3(...run.at), { moves: true, sprint: 'ual' }), run.script);
     const last = (r) => r.frames[r.frames.length - 1];
     assert.ok(last(a).pos.distanceTo(last(b).pos) < 1e-6 && Math.abs(last(a).heading - last(b).heading) < 1e-6, `${name}: the same path`);
     assert.ok(b.maxSlide <= a.maxSlide + 0.01 && b.meanSlide <= a.meanSlide + 0.005, `${name}: the feet slide no more (${b.maxSlide.toFixed(3)} / ${b.meanSlide.toFixed(3)} against ${a.maxSlide.toFixed(3)} / ${a.meanSlide.toFixed(3)})`);

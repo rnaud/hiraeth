@@ -6,13 +6,17 @@ import { analyse } from './lib.mjs';
 import { sample, metaOf, stickOf, timeAnimator } from './sample.mjs';
 
 // (every way stops from a run as the game does, carried over two strides (src/loco-moves.js STOP_FEEL, the default since
-// issue #702); snap: the default way with the old crisp stop, ?stop=snap; kevin: the default way with Kevin Iglesias's
-// sprint, src/animator.js SPRINTS, issue #704)
-export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false }, snap: { matching: false, moves: true, stop: 'snap' }, kevin: { matching: false, moves: true, sprint: 'kevin' } };
+// issue #702); snap: the default way with the old crisp stop, ?stop=snap; every way sprints
+// Kevin Iglesias's sprint, the game's since issue #709 (src/animator.js SPRINTS); ual: the default way with the library's
+// old sprint, ?sprint=ual)
+export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false }, snap: { matching: false, moves: true, stop: 'snap' }, ual: { matching: false, moves: true, sprint: 'ual' } };
 
-/** One scenario one way: { samples, meta, r (lib.analyse) }. o.frames(k): frame k's dt (the game's uneven frames; default 1 / fps). */
-export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null, frames = null } = {}) {
-  const p = await traveller(course(), new THREE.Vector3(...sc.at), { ...WAYS[way], body });
+/**
+ * One scenario one way: { samples, meta, r (lib.analyse) }. o.frames(k): frame k's dt (the game's uneven frames; default
+ * 1 / fps); o.sprint: his sprint over the way's (src/animator.js SPRINTS).
+ */
+export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null, frames = null, sprint = null } = {}) {
+  const p = await traveller(course(), new THREE.Vector3(...sc.at), { ...WAYS[way], body, ...(sprint ? { sprint } : {}) });
   p.stopFeel = WAYS[way].stop ?? 'carry';
   timeAnimator(p.animator);
   const S = [], st = {};

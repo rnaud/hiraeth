@@ -67,7 +67,8 @@ export function compactGeometry(geometry,used,drop=[]){
  */
 export const GARMENT_CAPS=5;   // the leg capsules (each thigh and shin, and the crotch's)
 export const GARMENT_GLSL=`
-  uniform mat4 uGarmentRigid;
+  uniform mat4 uGarmentRigid, uGarmentRigid2;
+  uniform vec3 uGarmentHang;
   uniform sampler2D uClothP, uClothG;
   uniform vec4 uGarmentCapA[${GARMENT_CAPS}], uGarmentCapB[${GARMENT_CAPS}];
   uniform float uGarmentSim;
@@ -98,8 +99,15 @@ function garmentBody(cols,morphRest=false){
  return `    {
       // the overshirt (tripo-cloth.js garmentShader)
       float free = aCage.w, sk = 1.0 - free;
-      vec3 p = mix((uGarmentRigid * vec4(${morphRest?'garmentRest':'position'}, 1.0)).xyz, transformed, sk);
-      vec3 nn = normalize(mix(mat3(uGarmentRigid) * normal, objectNormal, sk));
+      // (lower down, from uGarmentHang.x of its rest height to .y where .z is 1, its rest shape is carried by its own skin
+      // as the cloth under it is, not by the attachment: the v2 traveller's hem drapes his seat however his back bends,
+      // and his back stays under it, issue #709; uGarmentRigid2, the hips, turns its side of him there)
+      vec3 restP = ${morphRest?'garmentRest':'position'};
+      float hang = uGarmentHang.z * smoothstep(0.0, 1.0, clamp((uGarmentHang.x - restP.y) / (uGarmentHang.x - uGarmentHang.y), 0.0, 1.0));
+      float skinW = max(sk, hang);
+      vec3 p = mix((uGarmentRigid * vec4(restP, 1.0)).xyz, transformed, skinW);
+      mat3 carry = mat3(uGarmentRigid) * (1.0 - hang) + mat3(uGarmentRigid2) * hang;
+      vec3 nn = normalize(mix(mat3(uGarmentRigid) * normal, objectNormal, skinW));
       if (free > 0.0) {
         int i0 = int(aCage.x + 0.5), i1 = i0 + 1, i2 = i0 + ${cols+1}, i3 = i2 + 1;
         float u = aCage.y, v = aCage.z;
@@ -110,13 +118,15 @@ function garmentBody(cols,morphRest=false){
         vec3 b = normalize(mix(a, normalize(cross(mix(P1 - P0, P3 - P2, v), mix(P2 - P0, P3 - P1, u))), free));
         vec3 ax = cross(a, b); float c = dot(a, b);
         if (c > -0.95) nn = nn * c + cross(ax, nn) + ax * (dot(ax, nn) / (1.0 + c));
+        // (its side of him turned with the attachment, as the cage's are: hunched, level would push it along his back, issue #709)
+        vec3 ow = normalize(carry * aOutward);
         if (uGarmentSim > 0.5 && free > 0.95) for (int k = 0; k < ${GARMENT_CAPS}; k++) {
           vec4 A = uGarmentCapA[k], B = uGarmentCapB[k];
           float r2 = A.w * A.w;
-          if (A.w <= 0.0 || garmentD2(0.0, p, aOutward, A.xyz, B.xyz, B.w) >= r2) continue;
+          if (A.w <= 0.0 || garmentD2(0.0, p, ow, A.xyz, B.xyz, B.w) >= r2) continue;
           float lo = 0.0, hi = A.w * 3.0;
-          for (int i = 0; i < 14; i++) { float mid = 0.5 * (lo + hi); if (garmentD2(mid, p, aOutward, A.xyz, B.xyz, B.w) < r2) lo = mid; else hi = mid; }
-          p += aOutward * hi;
+          for (int i = 0; i < 14; i++) { float mid = 0.5 * (lo + hi); if (garmentD2(mid, p, ow, A.xyz, B.xyz, B.w) < r2) lo = mid; else hi = mid; }
+          p += ow * hi;
           // pressed against the leg, the cloth faces away from its axis (the main thread's normals, worked out from that shape, did)
           vec3 d = p - A.xyz, q = d - clamp(dot(d, B.xyz) / B.w, 0.0, 1.0) * B.xyz;
           nn = normalize(mix(nn, normalize(q), clamp(hi / 0.012, 0.0, 1.0)));
@@ -129,7 +139,7 @@ function garmentBody(cols,morphRest=false){
 function finishGarment(material){
  material.vertexShader=material.vertexShader.replace('vObjNormal = normal / scl;','vObjNormal = normal / scl;\n    #ifdef GARMENT\n      vObjPos = transformed * scl; vObjNormal = objectNormal / scl;   // (strokes on the moving cloth, as when it was rewritten here)\n    #endif');
  material.defines={...material.defines,GARMENT:1};
- Object.assign(material.uniforms,{uGarmentRigid:{value:new T.Matrix4()},uClothP:{value:null},uClothG:{value:null},uGarmentSim:{value:0},uGarmentCapA:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4())},uGarmentCapB:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))}});
+ Object.assign(material.uniforms,{uGarmentRigid:{value:new T.Matrix4()},uGarmentRigid2:{value:new T.Matrix4()},uGarmentHang:{value:new T.Vector3(1,0,0)},uClothP:{value:null},uClothG:{value:null},uGarmentSim:{value:0},uGarmentCapA:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4())},uGarmentCapB:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))}});
  material.needsUpdate=true;
  return material;
 }
@@ -155,7 +165,7 @@ ${garmentBody(cols,morphRest)}
   }`,
   fragmentShader:'void main() { gl_FragColor = vec4(1.0); }'});
  m.defines={GARMENT:1};
- Object.assign(m.uniforms,{uGarmentRigid:{value:new T.Matrix4()},uClothP:{value:null},uClothG:{value:null},uGarmentSim:{value:0},uGarmentCapA:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4())},uGarmentCapB:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))}});
+ Object.assign(m.uniforms,{uGarmentRigid:{value:new T.Matrix4()},uGarmentRigid2:{value:new T.Matrix4()},uGarmentHang:{value:new T.Vector3(1,0,0)},uClothP:{value:null},uClothG:{value:null},uGarmentSim:{value:0},uGarmentCapA:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4())},uGarmentCapB:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))}});
  return m;
 }
 

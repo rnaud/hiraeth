@@ -35,11 +35,14 @@ export function setCap(caps, k, from, to, radius) {
 
 /**
  * `steps` steps of the cage. s: { P, Q (positions and the previous ones), G (targets), outwards (Float64Array, 3 a
- * particle), pins (1 free, 0 held on its target), edgeA, edgeB, edgeLength, edgeK }; caps (CAP floats each, radius
- * included). P and Q change in place.
+ * particle: each one's side of the body, along which the legs push it out and past which it may sink at most `inward`
+ * behind its target; the owner may turn them with the body each frame), pins (1 free, 0 held on its target), edgeA,
+ * edgeB, edgeLength, edgeK, inward? (m, default 0.02), lift? (m a particle: how far it may rise over its target along `up`,
+ * his up as posed: a hem that must keep covering what is under it) }; caps (CAP floats each, radius included). P and Q
+ * change in place.
  */
 export function simulate(s, G, caps, steps) {
-  const { P, Q, pins, outwards, edgeA, edgeB, edgeLength, edgeK } = s, N = pins.length, K = caps.length / CAP, step = CLOTH_STEP;
+  const { P, Q, pins, outwards, edgeA, edgeB, edgeLength, edgeK } = s, N = pins.length, K = caps.length / CAP, step = CLOTH_STEP, IN = s.inward ?? 0.02, lift = s.lift && s.up ? s.lift : null, up = s.up;
   for (let n = 0; n < steps; n++) {
     for (let i = 0; i < N; i++) {
       const j = i * 3;
@@ -72,7 +75,8 @@ export function simulate(s, G, caps, steps) {
           if (hi) { P[j] += ox * hi; P[j + 1] += oy * hi; P[j + 2] += oz * hi; }
         }
         const inward = (P[j] - G[j]) * ox + (P[j + 1] - G[j + 1]) * oy + (P[j + 2] - G[j + 2]) * oz;
-        if (inward < -0.02) { const t = -0.02 - inward; P[j] += ox * t; P[j + 1] += oy * t; P[j + 2] += oz * t; }
+        if (inward < -IN) { const t = -IN - inward; P[j] += ox * t; P[j + 1] += oy * t; P[j + 2] += oz * t; }
+        if (lift) { const rise = (P[j] - G[j]) * up[0] + (P[j + 1] - G[j + 1]) * up[1] + (P[j + 2] - G[j + 2]) * up[2] - lift[i]; if (rise > 0) { P[j] -= up[0] * rise; P[j + 1] -= up[1] * rise; P[j + 2] -= up[2] * rise; } }
       }
     }
   }
@@ -88,6 +92,9 @@ export function clothWorkerHandler() {
   return (m) => {
     if (m.type === 'init') { s = { ...m.constants, P: new Float64Array(m.constants.pins.length * 3), Q: new Float64Array(m.constants.pins.length * 3) }; return null; }
     if (m.reset) { s.P.set(m.reset); s.Q.set(m.reset); }
+    // (the outward directions as posed this frame, where the cage's owner turns them with the body: traveller-v2-cloth.js)
+    if (m.outwards) s.outwards = m.outwards;
+    if (m.up) s.up = m.up;
     simulate(s, m.G, m.caps, m.steps);
     return { id: m.id, P: s.P.slice(), G: m.G };
   };

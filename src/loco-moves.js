@@ -86,7 +86,9 @@ export const MOVES = {
   blendIn: 0.1, blendOut: 0.2,
   smooth: true,   // the weight laid on eased in and out along a smoothstep of its ramp (false: the straight ramp)
   start: { clips: ['start_walking'], legs: false, from: 0.25, upTo: 2.6, fade: [2.2, 3.4], minRate: 0.6, maxRate: 3, lead: 0.12 },
-  stop: { legs: false, walk: 'stop_walking', run: 'run_to_stop', runFrom: 2.8, from: 0.9, brake: 16, minRate: 0.7, maxRate: 2.5 },
+  // (blendIn: the stop's own, over MOVES.blendIn: Kevin Iglesias's sprint pumps the arms high, and the capture's arms laid on
+  // in 0.1 s jumped the hand 5-9 cm in a frame as it crossed half its share, issue #709)
+  stop: { legs: false, walk: 'stop_walking', run: 'run_to_stop', runFrom: 2.8, from: 0.9, brake: 16, minRate: 0.7, maxRate: 2.5, blendIn: 0.2 },
   turn: { legs: false, from: 0.75, maxSpeed: 2.0, outSpeed: 2.8, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], minRate: 0.9, maxRate: 3.2 },
   // (rateEase, 1/s: the pivot's playback speed follows the body's turn toward its new rate this fast, not at once)
   pivot: { legs: false, clip: 'running_turn_180', speed: 4.2, from: 2.4, minRate: 0.8, maxRate: 1.8, rateEase: 10 },
@@ -264,7 +266,7 @@ export class LocoMoves {
       if (p) this.A.alignPhase(p.f, p.since);
       C.aligned = true;
     }
-    C.w = C.out ? Math.max(0, C.w - dt / MOVES.blendOut) : Math.min(1, C.w + dt / MOVES.blendIn);
+    C.w = C.out ? Math.max(0, C.w - dt / MOVES.blendOut) : Math.min(1, C.w + dt / (M.blendIn ?? MOVES.blendIn));
     if (C.t >= sh.end) C.w = Math.min(C.w, Math.max(0, C.w - dt / MOVES.blendOut));
     if (C.out && C.w <= 0) this.cur = null;
   }

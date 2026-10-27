@@ -13,7 +13,7 @@ globalThis.document ??= { createElement: element, body: element(), getElementByI
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
 const { Player, buildCharacter } = await import('../src/player.js');
 const { Physics } = await import('../src/physics.js');
-const { Animator, libraryFrom } = await import('../src/animator.js');
+const { Animator, libraryFrom, sprintFrom } = await import('../src/animator.js');
 const { createTraveller } = await import('../src/characters/traveller.js');
 const { travellerB3 } = await import('./gait-sim.js');
 const { course, CAM_PLUS_Z } = await import('../src/gait-course.js');
@@ -110,8 +110,42 @@ test('the shader moves the shirt: its material patched with the keys applied, it
   assert.ok(u.uGarmentCapA.value.every((v) => v.w === 0), 'the shader\'s own leg push off, as B3\'s (detailCollisions: false)');
   // B3's garment shader as it was: its rest is the bare position
   const b3 = garmentDepthMaterial(32);
-  assert.ok(b3.vertexShader.includes('uGarmentRigid * vec4(position, 1.0)') && !b3.vertexShader.includes('morphtarget'));
+  assert.ok(b3.vertexShader.includes('vec3 restP = position;') && b3.vertexShader.includes('uGarmentRigid * vec4(restP, 1.0)') && !b3.vertexShader.includes('morphtarget'));
+  assert.equal(b3.uniforms.uGarmentHang.value.z, 0, 'B3\'s hangs from its attachment alone');
+  // (v2's hangs from its skin low down: issue #709)
+  assert.deepEqual(u.uGarmentHang.value.toArray(), [V2_CLOTH.hang[0], V2_CLOTH.hang[1], 1]);
+  assert.ok(m.vertexShader.includes('float skinW = max(sk, hang)') && m.vertexShader.includes('normalize(carry * aOutward)'));
   cloth.dispose();
+});
+
+test('hunched into his sprint the shirt stays over his back and his seat (issue #709)', { timeout: 300000 }, async () => {
+  const p = traveller(), cloth = p.character.v2State.cloth;
+  const kev = await parse('public/anim/sprint-kevin.glb');
+  p.animator.useSprint(sprintFrom(kev, 'kevin'));
+  const N = cloth.rest.length, COLS = cloth.cols;
+  // (hung low: the hem's rows on the shirt's own skin, the chest's on spine_02)
+  assert.equal(cloth.hangs[0], 0);
+  assert.equal(cloth.hangs[N - 1], 1);
+  let deepest = 0, highest = 0, turned = 0, sprinted = 0;
+  const dt = 1 / 60, P = cloth.sim.P, G = cloth.simTarget, out = cloth.posedOut, rest = cloth.outwards;
+  for (let i = 0; i < 5 * 60; i++) {
+    p.update(dt, i < 60 ? {} : { KeyW: true, ShiftLeft: true }, CAM_PLUS_Z);
+    if (i < 2 * 60) continue;
+    if (p.animator.w.sprint > 0.9) sprinted++;
+    for (let j = COLS + 1; j < N; j++) {
+      const r = cloth.rest[j];
+      if (r.z > 0) continue;   // (his back half)
+      const k = j * 3, d = [P[k] - G[k], P[k + 1] - G[k + 1], P[k + 2] - G[k + 2]];
+      // how far behind its target along its side of him as posed (his back bent forward: no longer level)
+      deepest = Math.max(deepest, -(d[0] * out[k] + d[1] * out[k + 1] + d[2] * out[k + 2]));
+      turned = Math.max(turned, Math.acos(Math.min(1, out[k] * rest[k] + out[k + 1] * rest[k + 1] + out[k + 2] * rest[k + 2])));
+      if (cloth.sim.lift[j] < 1) { const up = cloth.sim.up; highest = Math.max(highest, d[0] * up[0] + d[1] * up[1] + d[2] * up[2]); }
+    }
+  }
+  assert.ok(sprinted > 60, `his sprint (${sprinted} frames)`);
+  assert.ok(turned > 0.25, `his back's side turned with him: ${(turned * 180 / Math.PI).toFixed(0)}°`);
+  assert.ok(deepest <= V2_CLOTH.inward + 1e-3, `no deeper into his back than ${V2_CLOTH.inward * 1000} mm: ${(deepest * 1000).toFixed(1)} mm`);
+  assert.ok(highest <= V2_CLOTH.lift + 1e-3, `the back hem no higher off his seat than ${V2_CLOTH.lift * 1000} mm: ${(highest * 1000).toFixed(1)} mm`);
 });
 
 test('the fluid glove trims his hand under it, and an outfit\'s sleeve or glove, in every outfit', async () => {

@@ -1435,6 +1435,38 @@ slap, 14-16 rad/s against the 14 limit), the hands' faster swing crossing a capt
 stairs at a sprint. Tried and left out: more blur on the feet alone (fewer pops, more slide), strideK 1.0-1.5 and leg blur
 0.035-0.07 (a chaotic trade between the two).
 
+**Issue #709: his sprint, the default** (2026-10-27). The author kept it: `sprintSetting` (src/animator.js) gives `kevin`
+unless asked otherwise, `?sprint=ual` or the dev menu's switch off for the library's. Stored under a new key,
+`hiraeth.sprintLoop`: #704's `hiraeth.sprint` is not read, so a device left on the library's while the switch was only being
+tried takes the new default (as #702 did for the stop); choosing the old one again keeps it. Unity: the same setting through
+engine/platform.js; a batch's `-js-off kevinSprint` asks for the library's (tests/sprint-default-engine.test.js). The gait
+harness (tests/gait-sim.js) sprints his by default; the motion QC's ways all sprint his, and a `ual` way (node and browser,
+`?sprint=ual`) the old one. `runScenario(…, { sprint })` overrides a way's.
+
+- **The stop's blend-in** (src/loco-moves.js `MOVES.stop.blendIn` 0.2 s over `MOVES.blendIn`'s 0.1, the only change there):
+  his hands pump high, and the run-to-stop capture's arms laid on in 0.1 s jumped a hand 4.4-8.9 cm in a frame as the move
+  crossed half its share. Now 2.3-2.4 cm with his; the old sprint's 2.0-2.9.
+- **The curve at a sprint** stands 2.2 s at its end (it stopped measuring before a carried stop had settled: `stop` Infinity).
+- **What is left** (tests/motion-qc.test.js holds #47's rounds on the library's sprint, `sprint: 'ual'`, the runs that never
+  sprint being the same either way, and the default in its own test): the course with his sprint is 13 of 17 green (the old
+  one 17 of 17): his foot slapped flat at touchdown, 4-6 pops a minute against 3 in walk → run → 180°, starts and stops and
+  the stairs at a run (a ball jolting 3-4 cm there too), and a step sliding 6.8 cm (p95) in the 180° at a sprint. Tried and left
+  out again: more blur on his feet or legs (0.05-0.1 s), strideK 1.2 / 1.3: each trades one red for another (the feet's
+  contacts are measured on the smoothed loop).
+- **Held on the library's sprint** (`sprint: 'ual'`, each saying his numbers): tests/locomotion.test.js's walk → run → sharp
+  turn → stop (a foot skids 20.6 cm over a contact with his, the limit 20), tests/loco-moves.test.js's moves-against-loops
+  (a bone 0.45 rad a frame, 0.40), tests/blade-grip.test.js's bracer strap (2.0 mm into B3's forearm for a frame, 1.5) and
+  tests/mocap.test.js's motion matching (a dev switch: its database has no sprint of his; the worst contact 0.87 m, a sole
+  3.9 cm down). Left open.
+
+| scenario | old sprint (`--ways ual`) | his (the default) |
+|---|---|---|
+| walk → run → 180° turn → stop | green: 3.7/3.7 cm, 1 pop, boundary 2.8 cm | red: 4.1/7.5 cm, 4 pops, 2.3 cm |
+| starts and stops, walk and run | green: 4.0/4.7, 3, 2.0 | red: 3.9/5.2, 6 pops, 2.3 |
+| pivot 180° at a jog, and at a sprint | green: 3.7/4.1, 1, 2.9 | red: 6.8/6.9 slide, 3, 2.4 |
+| stairs at a run | green: 3.6/3.6, 1, 2.8 | red: 4.8/4.8, 6 pops, 4 jolts, 2.3 |
+| the other 13 | green | green |
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

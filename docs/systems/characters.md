@@ -2316,6 +2316,24 @@ the switch reloads the world, an outfit changes live).
   stopping, as B3's. Only the default's shirt: the outfits' jackets are short, the salt pilgrim's robe has its swing
   (#547). Web only: an engine that takes B3's cloth over (`CLOTH_HOST.offload`, Unity's Burst job) and an engine's VM
   without a window get none; the shirt stays skinned there.
+- **Over his back and seat, hunched** (issue #709, Kevin Iglesias's sprint made the default). Sprinting (and less, running)
+  the tee showed through the shirt's back in pale patches, and the back hem lifted off the seat of the trousers, where
+  under the hem they are two pieces (B3's trousers cut a few centimetres above the hem, the backing above) with a gap
+  between them at rest (the body is culled there): seen through it, the far inside of the trousers, a dark-edged hole.
+  Three causes, in the cage and its shader: each particle's side of him (`outwards`, along which the leg capsules push
+  and past which it may sink at most `inward` behind its target) was level, fixed at rest, so with his back bent 45°
+  forward gravity drew the back panel along it into him without limit (5.5 cm under its targets, measured); the whole hem was carried
+  rigidly by spine_02, so as his spine bent from his hips the hem swung up off his seat; and flying out at a sprint it
+  rose further. Now `posedOut`: the sides are turned with the rest shape each frame and sent with each step (and `up`);
+  from `hang` (1.12 m) down to 0.92 m the rest shape is carried by the shirt's own skin, as the tee, trousers and body
+  under it are, not spine_02 (`uGarmentHang`, `skinW` in `garmentShader`; the cage's targets by the skin of the shirt's
+  vertex nearest each particle, `skinnedBy`; `uGarmentRigid2`, the pelvis, turns the sides there); `inward` 5 mm (B3's
+  2 cm: the shirt lies closer over the tee); and the back hem's particles (below 0.98 m, behind z 0.02) rise at most
+  `lift` 12 mm over their targets along his hips' up (`tripo-cloth-sim.js`'s `lift`). It still swings: its mean hang off
+  its targets at his sprint 4.9 cm (5.0 before), jogging 3.4 (3.8), standing 1.5 (1.3) (node; tests/traveller-v2-parts.test.js). B3's cloth is as it was (`uGarmentHang.z` 0). Checked in the
+  running game behind, three-quarter behind and side on, idle, walking, running and sprinting; the other outfits draw
+  no cloth and showed nothing new at his sprint (the salt pilgrim's back slit opens wider with his longer back-kick).
+  Web only, as the cloth: Unity's shirt is skinned.
 - **The fluid glove** is still built from B3's hand (`fluidGlove`), which his skin piece is cut from. Worn, the triangles
   it covers are left out of every skin in `glove.skins` (`Humanoid.wearGlove`): B3's mesh, and v2's body and clothes,
   replaced with each outfit (the lamplighter's own right glove and any sleeve under it go too).

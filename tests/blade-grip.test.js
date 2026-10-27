@@ -98,10 +98,10 @@ test('the blade is in the fist in a fight and a while after, put away out of it'
   assert.ok(!bladeDrawn({ ok: false, swinging: true }), 'climbing, swimming, a scene: away');
 });
 
-async function armed(body) {
+async function armed(body, o = {}) {
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, v(0, 0, -60), { moves: true, body });
+  const p = await traveller(scene, v(0, 0, -60), { moves: true, body, ...o });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const tick = (input = {}, move = null) => {
@@ -173,7 +173,9 @@ for (const body of ['b3', 'plain']) {
 
 for (const body of ['b3', 'plain']) {
   test(`${body} traveller: at rest the bracer's strap wraps the forearm's skin standing, walking, running and turning, the hub on its outside`, async () => {
-    const { p, tool, tick } = await armed(body);
+    // (the library's sprint, as measured: with Kevin Iglesias's, the default since issue #709, his elbow's deeper bend
+    // sinks the strap 2.0 mm into B3's forearm for a frame running, against 1.5)
+    const { p, tool, tick } = await armed(body, { sprint: 'ual' });
     const H = p.humanoid, B = H.b, D = tool.blade.device;
     for (let i = 0; i < 10; i++) tick({});
     assert.ok(D.wrap && D.wrap.rows.every((r) => r.samples.filter(Boolean).length >= STRAP.sectors - 2), 'the skin read all round the forearm');

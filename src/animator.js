@@ -177,10 +177,12 @@ export function libraryFrom(gltf) {
 }
 
 /**
- * The traveller's sprint (issue #704): the library's Sprint_Loop ('ual', the default) or Kevin Iglesias's
- * (Human Basic Motions FREE: 'kevin', public/anim/sprint-kevin.glb, converted by scripts/mocap/build-sprint.mjs),
- * hunched further into it, the arms pumping higher, closer to Breath of the Wild's. A switch the author tries:
- * `?sprint=kevin` / `?sprint=ual`, the dev menu's Story tab, kept on this device. The traveller's alone (Animator.useSprint):
+ * The traveller's sprint: Kevin Iglesias's (Human Basic Motions FREE: 'kevin', public/anim/sprint-kevin.glb, converted
+ * by scripts/mocap/build-sprint.mjs), hunched further into it, the arms pumping higher, closer to Breath of the Wild's:
+ * the default since issue #709 (a switch since #704); or the library's Sprint_Loop ('ual', the old one): `?sprint=ual` /
+ * `?sprint=kevin`, the dev menu's Story tab, kept on this device under a new key (`hiraeth.sprintLoop`: #704's
+ * `hiraeth.sprint` is not read, so a device left on the library's while it was only tried takes the new default, as the
+ * stop did in #702). The traveller's alone (Animator.useSprint):
  * the people keep the library's. `strideK`: the share of the loop's own stride a step covers (STRIDE_K): his loop's own
  * stride is short (3.1 m a cycle on the library's body, the library's 5.8), so a step covers a little more than it
  * (2.4 cycles a second at 8.2 m/s, the library's 1.9; at 1.4, his cadence, the long stance left the planted foot out of
@@ -189,16 +191,16 @@ export function libraryFrom(gltf) {
  */
 export const SPRINTS = { ual: null, kevin: { url: 'anim/sprint-kevin.glb', clip: 'kevin_sprint', strideK: 1.1, smooth: { blur: 0.02, legs: 0.045 } } };
 export const sprintSetting = {
-  key: 'hiraeth.sprint',
+  key: 'hiraeth.sprintLoop', DEFAULT: 'kevin',
   get() {
     try {
       const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('sprint') : null;
       if (q && q in SPRINTS) return q;
       const v = globalThis.localStorage?.getItem(this.key);
-      return v && v in SPRINTS ? v : 'ual';
-    } catch { return 'ual'; }
+      return v && v in SPRINTS ? v : this.DEFAULT;
+    } catch { return this.DEFAULT; }
   },
-  set(v) { try { globalThis.localStorage?.setItem(this.key, v in SPRINTS ? v : 'ual'); } catch { /* this session only */ } },
+  set(v) { try { globalThis.localStorage?.setItem(this.key, v in SPRINTS ? v : this.DEFAULT); } catch { /* this session only */ } },
 };
 
 /** A parsed sprint file's loop (SPRINTS[which].clip), smoothed as the library's sprint is (SMOOTH_LOOPS), or null. */

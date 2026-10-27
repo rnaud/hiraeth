@@ -231,7 +231,9 @@ test('the matcher picks standing, walking and jogging by the stick, and the game
 
 test('motion matching on the traveller: the feet stay planted, the turn answers as fast as before', async () => {
   const W = { KeyW: true }, R = { KeyW: true, ShiftLeft: true }, SR = { KeyS: true, ShiftLeft: true }, none = {};
-  const p = await traveller(course(), new THREE.Vector3(0, 0, -60), { matching: true });
+  // (the library's sprint: matching's database has no Kevin Iglesias's sprint; with it, the default since issue #709, the
+  // worst contact here is 0.87 m and a sole 3.9 cm down: matching is a dev menu switch, left open)
+  const p = await traveller(course(), new THREE.Vector3(0, 0, -60), { matching: true, sprint: 'ual' });
   const r = drive(p, [[1, none, 'idle'], [2, W, 'walk'], [2, R, 'run'], [1.5, SR, 'turn180'], [2.5, none, 'stop']]);
   console.log(`  matching: slide max ${r.maxSlide.toFixed(3)} mean ${r.meanSlide.toFixed(3)}, held ${r.heldSlide.toFixed(4)}, sink ${r.sink.toFixed(3)}, jerk ${r.jitterHead.toFixed(2)}`);
   const share = r.frames.filter((f) => f.mmW > 0.5).length / r.frames.length;

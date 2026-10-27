@@ -589,7 +589,8 @@ if (lib) {
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
   player.locoMoves = movesSetting.get();
   player.stopFeel = stopSetting.get();   // (how he stops from a run: carried, Link's, unless ?stop=snap or the dev menu's switch: issues #699, #702)
-  // his sprint (issue #704): the library's, or Kevin Iglesias's with the author's switch (?sprint=kevin, the dev menu), not waited for
+  // his sprint: Kevin Iglesias's (the default since issue #709), or the library's with ?sprint=ual or the dev menu's switch; not
+  // waited for (14 KB: in before the world is up)
   if (sprintSetting.get() !== 'ual') void loadSprintClip().then((c) => { if (c) player.animator?.useSprint(c); });
 }
 const humanT = await humans;
@@ -1080,7 +1081,7 @@ function setTraveller(on, outfit = travellerV2.dress?.wardrobe.worn?.id ?? trave
 const devMoves = { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; } };
 // (a stop from a run carried over two strides, as Link's, the default since #702; off: the old crisp stop: src/loco-moves.js STOP_FEEL, issue #699)
 const devCarry = { get: () => player.stopFeel === 'carry', set: (on) => { stopSetting.set(on ? 'carry' : 'snap'); player.stopFeel = on ? 'carry' : 'snap'; } };
-// (Kevin Iglesias's sprint, issue #704: at once, and kept on this device)
+// (Kevin Iglesias's sprint, the default since issue #709; off: the library's, as before: at once, and kept on this device)
 const devSprint = { get: () => player.animator?.sprintName === 'kevin', set: (on) => { sprintSetting.set(on ? 'kevin' : 'ual'); if (!on) player.animator?.useSprint(null); else void loadSprintClip('kevin').then((c) => { if (c) player.animator?.useSprint(c); }); } };
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story,
   world: () => ({

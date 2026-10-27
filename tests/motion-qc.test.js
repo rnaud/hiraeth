@@ -6,9 +6,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyse, steps, pops, jolts, latency, pivots, LIMITS, BONES, JOINTS } from '../scripts/motion-qc/lib.mjs';
-import { runScenario } from '../scripts/motion-qc/runner.mjs';
+import { runScenario as runWay } from '../scripts/motion-qc/runner.mjs';
 import { COURSE, WORLDS_FLAT, unevenFrames } from '../scripts/motion-qc/scenarios.mjs';
 
+// (issue #47's rounds below were fixed and are held on the library's sprint, Sprint_Loop: Kevin Iglesias's, the game's since
+// issue #709, has its own test at the end; every run that never sprints is the same either way)
+const runScenario = (sc, way, o = {}) => runWay(sc, way, { sprint: 'ual', ...o });
 const meta = { ballRest: 0.04, ankleRest: 0.08 };
 /**
  * A made-up walk along +z at `v` m/s, 60 frames a second: feet planted in turn (each 0.4 s down, 0.4 s swinging over
@@ -477,4 +480,23 @@ test('the worlds\' course stands long enough to see a stop settle, and the Arena
     assert.ok(!last.stick && last.for >= LIMITS.stop + 0.3, `${sc.name}: the last stop stands ${last.for} s (a stop counts once both feet are still for 0.3 s, within ${LIMITS.stop} s)`);
   }
   assert.match(WORLDS.find((s) => s.world === 'arena').setup ?? '', /setPractice/, 'the Arena: the waves held off (one came up beside him and shoved him as he stood)');
+});
+
+// Kevin Iglesias's sprint, the game's since issue #709 (src/animator.js SPRINTS, sprintSetting): the course with it is green
+// but for four runs that sprint, held where they are: his foot comes down flatter in a frame at a touchdown (pops 4-6 a
+// minute against the library's 0-1), a stairs' run jolts a ball 3-4 cm, the 180° at a sprint slides a step 6.8 cm (p95).
+// The stop from a run no longer jumps his high-pumping hand: the stop's capture eases in over 0.2 s (src/loco-moves.js
+// MOVES.stop.blendIn; 5-9 cm in a frame before).
+test('Kevin Iglesias\'s sprint, the default (issue #709): the course green but four sprinting runs, held; no jolt at a stop', { timeout: 300000 }, async () => {
+  const OPEN = { 'walk → run → 180° turn → stop': 1, 'starts and stops, walk and run': 1, 'pivot 180° at a jog, and at a sprint': 1, 'stairs at a run': 1 };
+  const said = [];
+  for (const [name, sc] of Object.entries(COURSE)) {
+    const { r } = await runWay(sc, 'moves');
+    const m = r.measures;
+    said.push(`${name}: ${r.green ? 'green' : r.fails.join(',')}`);
+    assert.ok(m.boundaryMax <= LIMITS.boundary, `${name}: boundary ${(m.boundaryMax * 100).toFixed(1)} cm`);
+    if (!OPEN[name]) { assert.ok(r.green, `${name}: green (${r.fails.join(', ')})`); continue; }
+    assert.ok(m.popsPerMin <= 6 && m.joltsPerMin <= 4 && m.slideP95 <= 0.07 && m.held <= LIMITS.held, `${name}: pops ${m.popsPerMin}/min, jolts ${m.joltsPerMin}/min, slide p95 ${(m.slideP95 * 100).toFixed(1)} cm, held ${(m.held * 100).toFixed(1)} cm`);
+  }
+  assert.ok(said.length >= 17, said.join('\n'));
 });

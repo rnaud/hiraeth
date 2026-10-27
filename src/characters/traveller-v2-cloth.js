@@ -16,6 +16,13 @@ import { garmentShader, garmentDepthMaterial, GARMENT_CAPS } from './tripo-cloth
 /** B3's own fit (traveller-b3.js): the shirt is B3's surface, so the cage is B3's. maxX: wider than this is a sleeve. */
 export const V2_CLOTH = {
   garment: 'Shirt', top: 1.20, bottom: 0.825, freeHeight: 0.18, maxX: 0.25,
+  // (its rest shape is carried by spine_02 at the chest and from `hang[1]` down by its own skin, as the tee, trousers
+  // and body under it are, eased between by rest height; `hip` turns its side of him there. Hunched into a sprint his
+  // back bends between spine_02 and his hips: carried by the chest alone its back hem lifted off his seat, issue #709)
+  hip: 'pelvis', hang: [1.12, 0.92], inward: 0.005,
+  // (and its back hem rises at most `lift` over where it hangs, from `liftFrom` down and behind `liftBehind` (z): flapping at a
+  // sprint it lifted off the seat of his trousers, which is only cloth as far as the hem hangs: issue #709)
+  lift: 0.012, liftFrom: 0.98, liftBehind: 0.02,
   width: [0.20, 0.22], depth: [0.13, 0.15], hipX: 0.105, kneeX: 0.115, legZ: -0.015, thighRadius: 0.108,
   cols: 32, rows: 14,
 };
@@ -86,10 +93,19 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
   }
   const N = rest.length;
 
-  // the attachment (spine_02) at bind: a rest point (the mesh's frame) into its frame is boneInverse · bindMatrix
-  const att = boneAt('spine_02'), attachment = bones[att];
+  // the attachment (spine_02) and the hips (fit.hip) at bind: a rest point (the mesh's frame) into a bone's frame is boneInverse · bindMatrix
+  const att = boneAt(fit.attach ?? 'spine_02'), attachment = bones[att];
   const restToAttach = skeleton.boneInverses[att].clone().multiply(bind);
-  const attachmentRest = rest.map((p) => p.clone().applyMatrix4(restToAttach));
+  const hipI = fit.hip ? boneAt(fit.hip) : -1, hipBone = bones[hipI], restToHip = hipI >= 0 ? skeleton.boneInverses[hipI].clone().multiply(bind) : null;
+  const hangOf = (y) => (fit.hang && hipI >= 0 ? smooth(clamp((fit.hang[0] - y) / (fit.hang[0] - fit.hang[1]), 0, 1), 0, 1) : 0);
+  const hangs = rest.map((p) => hangOf(p.y));
+  // (each particle hung low enough is carried by the skin of the shirt's vertex nearest it at rest)
+  const skinnedBy = rest.map((p, i) => {
+    if (!(hangs[i] > 0)) return -1;
+    let best = -1, bd = Infinity;
+    for (let v = start; v < start + count; v++) { if (Math.abs(pos.getX(v)) >= fit.maxX) continue; const d = (pos.getX(v) - p.x) ** 2 + (pos.getY(v) - p.y) ** 2 + (pos.getZ(v) - p.z) ** 2; if (d < bd) { bd = d; best = v; } }
+    return best;
+  });
   // a bone's place at bind, in the mesh's frame
   const restOf = (i) => new T.Vector3().setFromMatrixPosition(skeleton.boneInverses[i].clone().invert()).applyMatrix4(bindInv);
 
@@ -109,9 +125,14 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
   if (caps.length > GARMENT_CAPS) throw new Error('v2 cloth: more leg capsules than the shader takes');
 
   // the solver's arrays (tripo-cloth-sim.js)
-  const outwards = new Float64Array(N * 3);
+  // (each particle's side of him, at rest: level, out from his middle; turned with spine_02 each frame, `posedOut`, so
+  // that hunched into a sprint the back panel cannot sink into his back and seat any further than when he stands: the
+  // legs push along it and the solver stops a particle `fit.inward` behind its target along it, issue #709)
+  const outwards = new Float64Array(N * 3), posedOut = new Float64Array(N * 3);
   rest.forEach((p, i) => { const o = new T.Vector3(p.x, 0, p.z + 0.016).normalize(); outwards.set([o.x, o.y, o.z], i * 3); });
-  const constants = { pins: Float64Array.from(pins), outwards, edgeA: Int32Array.from(edges, (e) => e[0]), edgeB: Int32Array.from(edges, (e) => e[1]), edgeLength: Float64Array.from(edges, (e) => e[2]), edgeK: Float64Array.from(edges, (e) => e[3]) };
+  const liftOf = (p) => (fit.lift != null && p.y < fit.liftFrom && p.z < fit.liftBehind ? fit.lift : 1e3);
+  const up = new Float64Array(3);
+  const constants = { pins: Float64Array.from(pins), outwards, inward: fit.inward ?? 0.02, lift: Float64Array.from(rest, liftOf), edgeA: Int32Array.from(edges, (e) => e[0]), edgeB: Int32Array.from(edges, (e) => e[1]), edgeLength: Float64Array.from(edges, (e) => e[2]), edgeK: Float64Array.from(edges, (e) => e[3]) };
   const sim = { ...constants, P: new Float64Array(N * 3), Q: new Float64Array(N * 3) }, G = new Float64Array(N * 3), simTarget = new Float64Array(N * 3);
   const simCaps = new Float64Array(caps.length * CAP);
 
@@ -130,7 +151,7 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
     g.setAttribute('aCage', new T.BufferAttribute(cell, 4));
     g.setAttribute('aOutward', new T.BufferAttribute(outward, 3));
     const tex = () => { const t = new T.DataTexture(new Float32Array(N * 4), N, 1, T.RGBAFormat, T.FloatType); t.minFilter = t.magFilter = T.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true; return t; };
-    gpuState = { P: tex(), G: tex(), rigid: new T.Matrix4(), capA: Array.from({ length: GARMENT_CAPS }, () => new T.Vector4(0, 0, 0, 0)), capB: Array.from({ length: GARMENT_CAPS }, () => new T.Vector4(0, 0, 0, 1)) };
+    gpuState = { P: tex(), G: tex(), rigid: new T.Matrix4(), rigid2: new T.Matrix4(), capA: Array.from({ length: GARMENT_CAPS }, () => new T.Vector4(0, 0, 0, 0)), capB: Array.from({ length: GARMENT_CAPS }, () => new T.Vector4(0, 0, 0, 1)) };
     garmentShader(mesh.material, COLS, { morphRest: true });
     // its shadow: the same shape (the shadow passes' one material would draw it skinned, unmoved)
     shadow = new T.SkinnedMesh(g, garmentDepthMaterial(COLS, { morphRest: true }));
@@ -159,7 +180,7 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
 
   // a point skinned with vertex v's weights (SkinnedMesh.applyBoneTransform's sums), into the mesh's frame
   const SI = g.attributes.skinIndex, SW = g.attributes.skinWeight, boneSkin = bones.map(() => new T.Matrix4());
-  const base = new T.Vector4(), toLocal = new T.Matrix4(), attachToLocal = new T.Matrix4();
+  const base = new T.Vector4(), toLocal = new T.Matrix4(), attachToLocal = new T.Matrix4(), rigid = new T.Matrix4(), rigid2 = new T.Matrix4(), turn = new T.Matrix3(), turn2 = new T.Matrix3(), c2 = new T.Vector3();
   const skin = (v, p) => {
     base.set(p.x, p.y, p.z, 1).applyMatrix4(bind);
     let x = 0, y = 0, z = 0;
@@ -180,9 +201,22 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
     toLocal.copy(mesh.matrixWorld).invert();
     for (let k = 0; k < bones.length; k++) boneSkin[k].multiplyMatrices(bones[k].matrixWorld, skeleton.boneInverses[k]);
     attachToLocal.multiplyMatrices(toLocal, attachment.matrixWorld);
-    for (let i = 0; i < N; i++) target[i].copy(attachmentRest[i]).applyMatrix4(attachToLocal);
+    // (the rest shape carried by spine_02, as the shader draws it, and from the waist down by its skin: hangs)
+    rigid.multiplyMatrices(attachToLocal, restToAttach);
+    if (hipBone) rigid2.multiplyMatrices(toLocal, hipBone.matrixWorld).multiply(restToHip); else rigid2.copy(rigid);
+    for (let i = 0; i < N; i++) { target[i].copy(rest[i]).applyMatrix4(rigid); if (hangs[i] > 0) target[i].lerp(skin(skinnedBy[i], c2.copy(rest[i])), hangs[i]); }
     for (let i = 0; i <= COLS; i++) { const s = top[i]; target[i].copy(skin(s.a, a.copy(rest[i])).lerp(skin(s.b, b.copy(rest[i])), s.t)); }
     for (let i = 0; i < N; i++) { G[i * 3] = target[i].x; G[i * 3 + 1] = target[i].y; G[i * 3 + 2] = target[i].z; }
+    // (each particle's side of him turned as its rest place is carried)
+    const e = turn.setFromMatrix4(rigid).elements, f = turn2.setFromMatrix4(rigid2).elements;
+    for (let i = 0; i < N * 3; i += 3) {
+      const x = outwards[i], y = outwards[i + 1], z = outwards[i + 2], h = hangs[i / 3], k = 1 - h;
+      const ox = (e[0] * k + f[0] * h) * x + (e[3] * k + f[3] * h) * y + (e[6] * k + f[6] * h) * z, oy = (e[1] * k + f[1] * h) * x + (e[4] * k + f[4] * h) * y + (e[7] * k + f[7] * h) * z,
+        oz = (e[2] * k + f[2] * h) * x + (e[5] * k + f[5] * h) * y + (e[8] * k + f[8] * h) * z, l = Math.hypot(ox, oy, oz) || 1;
+      posedOut[i] = ox / l; posedOut[i + 1] = oy / l; posedOut[i + 2] = oz / l;
+    }
+    // (his up at the hips, for the hem's lift)
+    { const l = Math.hypot(f[3], f[4], f[5]) || 1; up[0] = f[3] / l; up[1] = f[4] / l; up[2] = f[5] / l; }
     caps.forEach((c, k) => {
       c.from.copy(c.localFrom).applyMatrix4(c.a.matrixWorld).applyMatrix4(toLocal);
       c.to.copy(c.localTo).applyMatrix4(c.b.matrixWorld).applyMatrix4(toLocal);
@@ -200,23 +234,24 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
       if (worker) {
         pendingSteps = Math.min(pendingSteps + steps, 9);
         if (!waiting && pendingSteps) {
-          const msg = { type: 'step', id: ++requestId, G: G.slice(), caps: simCaps.slice(), steps: pendingSteps, reset: reset ? G.slice() : null };
-          worker.postMessage(msg, [msg.G.buffer, msg.caps.buffer, ...(msg.reset ? [msg.reset.buffer] : [])]);
+          const msg = { type: 'step', id: ++requestId, G: G.slice(), caps: simCaps.slice(), outwards: posedOut.slice(), up: up.slice(), steps: pendingSteps, reset: reset ? G.slice() : null };
+          worker.postMessage(msg, [msg.G.buffer, msg.caps.buffer, msg.outwards.buffer, ...(msg.reset ? [msg.reset.buffer] : [])]);
           waiting = true; pendingSteps = 0; reset = false;
         }
-      } else if (steps) { simulate(sim, G, simCaps, steps); simTarget.set(G); }
+      } else if (steps) { sim.outwards = posedOut; sim.up = up; simulate(sim, G, simCaps, steps); simTarget.set(G); }
     }
     if (gpuState) {
       const S = gpuState, tp = S.P.image.data, tg = S.G.image.data;
       for (let i = 0; i < N; i++) for (let c = 0; c < 3; c++) { tp[i * 4 + c] = sim.P[i * 3 + c]; tg[i * 4 + c] = simTarget[i * 3 + c]; }
       S.P.needsUpdate = S.G.needsUpdate = true;
-      S.rigid.multiplyMatrices(attachToLocal, restToAttach);
+      S.rigid.copy(rigid); S.rigid2.copy(rigid2);
       // (the shader's own push off the legs stays off, as B3's: detailCollisions false, its fused folds kept apart;
       // a capsule of radius 0, capA.w, is skipped)
       for (const m of [mesh.material, shadow.material]) {
         const u = m.uniforms;
         if (!u?.uClothP) continue;
-        u.uClothP.value = S.P; u.uClothG.value = S.G; u.uGarmentRigid.value.copy(S.rigid); u.uGarmentSim.value = simulated ? 1 : 0;
+        u.uClothP.value = S.P; u.uClothG.value = S.G; u.uGarmentRigid.value.copy(S.rigid); u.uGarmentRigid2.value.copy(S.rigid2);
+        if (fit.hang && hipBone) u.uGarmentHang.value.set(fit.hang[0], fit.hang[1], 1); u.uGarmentSim.value = simulated ? 1 : 0;
         for (let k = 0; k < GARMENT_CAPS; k++) { u.uGarmentCapA.value[k].copy(S.capA[k]); u.uGarmentCapB.value[k].copy(S.capB[k]); }
       }
       shadow.matrixWorld.copy(mesh.matrixWorld);
@@ -228,5 +263,5 @@ export function makeV2Cloth(mesh, range, { fit = V2_CLOTH, gpu = typeof window !
   /** How far each particle hangs off its target now (m): the swing (tests, the measuring pages). */
   const swing = () => { let max = 0, sum = 0; for (let i = (COLS + 1); i < N; i++) { const d = Math.hypot(sim.P[i * 3] - simTarget[i * 3], sim.P[i * 3 + 1] - simTarget[i * 3 + 1], sim.P[i * 3 + 2] - simTarget[i * 3 + 2]); max = Math.max(max, d); sum += d; } return { max, mean: sum / (N - COLS - 1) }; };
   const dispose = () => { worker?.terminate(); worker = null; if (shadow) shadow.material.dispose(); };
-  return { update, swing, shadow, dispose, free, rest, caps, sim, simTarget, cols: COLS, get gpuState() { return gpuState; }, get threaded() { return !!worker; } };
+  return { update, swing, shadow, dispose, free, rest, caps, sim, simTarget, outwards, posedOut, hangs, rigid, rigid2, cols: COLS, get gpuState() { return gpuState; }, get threaded() { return !!worker; } };
 }

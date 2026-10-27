@@ -507,8 +507,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // stay the library's: lib.motion holds the gestures alone; the matching once the database is in, main.js's)
   player.locoMoves = moves && movesSetting.get();
   player.stopFeel = stopSetting.get();   // (how he stops from a run, as main.js: carried unless ?stop=snap or the switch stored snap, issues #699, #702)
-  // (his sprint as main.js has it, issue #704: the library's unless the switch, sprintSetting, or `sprint` (-js-on kevinSprint) asks
-  // for Kevin Iglesias's, public/anim/sprint-kevin.glb, waited for here so a batch's first sprint is already his)
+  // (his sprint as main.js has it: Kevin Iglesias's, public/anim/sprint-kevin.glb, the default since issue #709, unless the switch,
+  // sprintSetting, or `sprint` (-js-off kevinSprint: 'ual') asks for the library's; waited for here so a batch's first sprint is his)
   const sprintAsk = sprint ?? sprintSetting.get();
   if (player.animator && sprintAsk !== 'ual') { const c = await loadSprintClip(sprintAsk); if (c) { player.animator.useSprint(c); stamp('sprint-' + sprintAsk); log(`sprint: ${player.animator.sprintName}`); } }
   if (player.animator) player.animator.matching = !!(matchOn && lib?.motion?.db);

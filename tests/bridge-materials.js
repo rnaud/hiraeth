@@ -69,6 +69,8 @@ export const REQUIRED_MATERIAL_KEYS = {
     "define:FACE_KEYS",
     "uniform:uKeyWidth",
     "uniform:uGarmentRigid",
+    "uniform:uGarmentRigid2",
+    "uniform:uGarmentHang",
     "uniform:uGarmentSim",
     "define:SWAY",
     "uniform:uGrassLook"

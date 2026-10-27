@@ -133,3 +133,29 @@ test('the garment keeps only the vertices its triangles use, and the same triang
     assert.equal(c.attributes.uv.getY(b), g.attributes.uv.getY(a));
   }
 });
+
+test('the cage bent over (issue #709): its sides as posed hold it out of him, and a hem with a lift rises no further', () => {
+  // the cage's targets turned 50° forward about x at its top (a back hunched into a sprint), gravity along the back
+  const c = cage(), { constants, caps } = arrays(c), N = c.rest.length, a = 50 * Math.PI / 180;
+  const turn = new T.Matrix4().makeTranslation(0, 1.2, 0).multiply(new T.Matrix4().makeRotationX(a)).multiply(new T.Matrix4().makeTranslation(0, -1.2, 0));
+  const G = flat(c.rest.map((p) => p.clone().applyMatrix4(turn)));
+  const posed = new Float64Array(N * 3), r3 = new T.Matrix3().setFromMatrix4(turn), o = new T.Vector3();
+  for (let i = 0; i < N; i++) { o.fromArray(constants.outwards, i * 3).applyMatrix3(r3).normalize(); o.toArray(posed, i * 3); }
+  const behind = (s) => { let d = 0; for (let i = 0; i < N; i++) { if (c.rest[i].z > 0) continue; const k = i * 3; d = Math.max(d, -((s.P[k] - G[k]) * s.outwards[k] + (s.P[k + 1] - G[k + 1]) * s.outwards[k + 1] + (s.P[k + 2] - G[k + 2]) * s.outwards[k + 2])); } return d; };
+  const run = (extra) => { const s = { ...constants, ...extra, P: G.slice(), Q: G.slice() }; simulate(s, G, caps, 90); return s; };
+  // level sides (as before): the back panel sinks along the bent back, past its 2 cm, into him
+  const level = run({}), levelDeep = behind({ ...level, outwards: posed });
+  const bent = run({ outwards: posed, inward: 0.005 });
+  assert.ok(levelDeep > 0.008, `level, it sank ${(levelDeep * 1000).toFixed(1)} mm`);
+  assert.ok(behind(bent) <= 0.005 + 1e-6, `posed, at most 5 mm: ${(behind(bent) * 1000).toFixed(1)} mm`);
+  // a lift: with `up` its rows rise at most so far over their targets
+  const up = Float64Array.from(new T.Vector3(0, 1, 0).applyMatrix3(r3).normalize().toArray());
+  const lift = Float64Array.from(c.rest, (p) => (p.y < 0.95 ? 0.004 : 1e3));
+  const lifted = run({ outwards: posed, inward: 0.005, lift, up });
+  for (let i = 0; i < N; i++) if (lift[i] < 1) { const k = i * 3; const rise = (lifted.P[k] - G[k]) * up[0] + (lifted.P[k + 1] - G[k + 1]) * up[1] + (lifted.P[k + 2] - G[k + 2]) * up[2]; assert.ok(rise <= 0.004 + 1e-6, `row ${i}: ${(rise * 1000).toFixed(1)} mm up`); }
+  // and the worker takes the posed sides and up with each step
+  const h = clothWorkerHandler();
+  h({ type: 'init', constants: { ...constants, inward: 0.005, lift } });
+  const w = h({ type: 'step', id: 1, G, caps, steps: 90, reset: G.slice(), outwards: posed, up });
+  assert.deepEqual(Array.from(w.P), Array.from(lifted.P));
+});

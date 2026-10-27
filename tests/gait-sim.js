@@ -65,11 +65,11 @@ export { course, measure, timeToFace, CAM_PLUS_Z };
  * A traveller on the course, standing at `at` facing +z (heading 0); o.matching: motion matching on,
  * or off (the loops, the game's default); o.moves: the starts, stops and turns over the loops
  * (src/loco-moves.js; the game's default) or not; o.body: 'b3' the game's traveller (src/characters/traveller.js), with
- * his own head, else the people's plain body; o.sprint: his sprint (src/animator.js SPRINTS: 'ual' the library's, the game's
- * default, or 'kevin', issue #704).
+ * his own head, else the people's plain body; o.sprint: his sprint (src/animator.js SPRINTS: 'kevin' Kevin Iglesias's, the
+ * game's default since issue #709, or 'ual' the library's).
  */
 let kevin = null;
-export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false, moves = false, body = 'plain', sprint = 'ual' } = {}) {
+export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false, moves = false, body = 'plain', sprint = 'kevin' } = {}) {
   const { lib, human } = await loadAssets();
   const physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });

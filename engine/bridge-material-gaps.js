@@ -69,6 +69,8 @@ export const MATERIAL_GAPS = [
       where: 'blend shapes (engine/unity/backend.js FaceKeys, BridgeHost.FaceKeys); the parts by their uMode' },
     { keys: ['define:GARMENT', 'uniform:uGarmentRigid', 'uniform:uClothP', 'uniform:uClothG', 'uniform:uGarmentSim', 'uniform:uGarmentCapA', 'uniform:uGarmentCapB'],
       what: 'the traveller\'s overshirt cloth', status: 'handled', where: 'BridgeCloth.cs (the cloth offloaded: engine/cloth.js, backend clothOffload)' },
+    { keys: ['uniform:uGarmentRigid2', 'uniform:uGarmentHang'], what: 'the v2 traveller\'s shirt hung from its own skin low down (issue #709)', status: 'web-only',
+      why: 'the v2 shirt\'s cloth is the page\'s alone (characters/traveller-v2.js): in Unity it is skinned, which is that skin already; B3\'s offloaded cloth hangs from its attachment alone (uGarmentHang.z 0)' },
     { keys: ['define:SWAY'], what: 'the wind\'s sway', status: 'handled', where: 'uSway → Surface.shader _Sway' },
     { keys: ['uniform:uGrassView', 'uniform:uGrassLod', 'uniform:uGrassLook'], what: 'the grass patch\'s centre, detail and look', status: 'handled', where: 'Surface.shader _GrassView, _GrassLod, _GrassLook, set by the bridge each frame' },
   ];

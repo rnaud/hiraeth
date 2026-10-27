@@ -18,6 +18,7 @@ Three ways of moving him are compared (`--ways`):
 | `mm` | motion matching (src/motion-match.js): the database's captures and the game's own loops | `?mm=1`, the dev menu |
 | `loops` | the clips' loops alone | `?moves=0` |
 | `snap` | `moves` with the old crisp stop from a run (every other way stops carried, the game's since issue #702: src/loco-moves.js `STOP_FEEL`) | `?stop=snap` |
+| `ual` | `moves` with the library's old sprint, Sprint_Loop (every other way sprints Kevin Iglesias's, the game's since issue #709: src/animator.js `SPRINTS`) | `?sprint=ual` |
 
 ## 1. Run it
 
