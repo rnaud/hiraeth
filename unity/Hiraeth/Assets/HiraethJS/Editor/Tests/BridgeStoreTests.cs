@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using Hiraeth.Bridge;
 using NUnit.Framework;
@@ -210,6 +211,47 @@ namespace Hiraeth.Tests
             int n = s.Writes;
             s.Set("k", "v");
             Assert.AreEqual(n, s.Writes);
+        }
+
+        [DllImport("libc", EntryPoint = "link")] static extern int Link(string from, string to);
+
+        [Test]
+        public void AStoreLeftHardLinkedToItsBackupIsWrittenAgain()
+        {
+            // (issue #714: on the AYN Odin 3 the old writer's File.Replace hard-linked store.json to store.json.bak, then every
+            // write failed: the next write must put a new store.json in place and leave the old one as the backup, apart)
+            if (Path.DirectorySeparatorChar == '\\') Assert.Ignore("hard links: the POSIX players");
+            File.WriteAllText(file, "{\"v\":1,\"items\":{\"k\":\"one\"}}\n");
+            Assert.AreEqual(0, Link(file, file + ".bak"));
+            var s = new BridgeStore(file, threaded: false);
+            s.Set("k", "two");
+            Assert.IsNull(s.LastError);
+            Assert.AreEqual("rename", BridgeStore.RenameWay, "rename(2), never a link");
+            Assert.IsTrue(BridgeStore.TryRead(file, out var now));
+            Assert.AreEqual("two", now["k"]);
+            Assert.IsTrue(BridgeStore.TryRead(file + ".bak", out var bak));
+            Assert.AreEqual("one", bak["k"]);
+            s.Set("k", "three");
+            Assert.IsTrue(BridgeStore.TryRead(file + ".bak", out bak));
+            Assert.AreEqual("two", bak["k"], "the backup its own file now");
+            Assert.AreEqual("three", new BridgeStore(file, threaded: false).Get("k"));
+            Assert.IsFalse(File.Exists(file + ".tmp"));
+            Assert.IsFalse(File.Exists(file + ".bak.tmp"));
+        }
+
+        [Test]
+        public void RenameReplacesTheFileWhole()
+        {
+            var a = Path.Combine(dir, "a"); var b = Path.Combine(dir, "b");
+            File.WriteAllText(a, "new"); File.WriteAllText(b, "old and longer");
+            BridgeStore.Rename(a, b);
+            Assert.IsFalse(File.Exists(a));
+            Assert.AreEqual("new", File.ReadAllText(b));
+            File.WriteAllText(a, "first");
+            File.Delete(b);
+            BridgeStore.Rename(a, b);
+            Assert.AreEqual("first", File.ReadAllText(b));
+            if (Path.DirectorySeparatorChar != '\\') Assert.AreEqual("rename", BridgeStore.RenameWay);
         }
     }
 }

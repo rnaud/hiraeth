@@ -13,8 +13,8 @@ channel: the Deck's runtime feed (deck.py), the Xbox's Device Portal, the APK.
 | file | what |
 |---|---|
 | `store.json` | `{"v":1,"items":{key: value}}`, written whole |
-| `store.json.tmp` | the next one, flushed to the disk and read back before it takes `store.json`'s place |
-| `store.json.bak` | the last good file (the one `store.json` replaced): read when `store.json` is missing or doesn't parse, then written back as `store.json` |
+| `store.json.tmp` | the next one, flushed to the disk and read back before it is renamed over `store.json` |
+| `store.json.bak` | the last good file (a copy of the `store.json` the write replaced, put in place by its own `.bak.tmp` and rename): read when `store.json` is missing or doesn't parse, then written back as `store.json` |
 | `store.json.bad` | a `store.json` that didn't read, kept to look at |
 
 Writes are coalesced on a thread of their own (a save's burst of keys is one write, ~30 ms later) and flushed at the
@@ -25,6 +25,13 @@ PlayerPrefs any more: UWP keeps them in `LocalSettings`, 8 KB a value, and a sav
 the script reads it and the file doesn't have it; PlayerPrefs is left as it was, a fallback read for a key the file never
 had. Removing a key removes it from both, so an old value can't come back. The Graphics setting the player reads at its
 start (`BridgeArgs.SavedQuality`) comes from the same store.
+
+**No hard links (#714).** The files change places only by `rename(2)` (libc's, P/Invoked on Android, Linux and macOS;
+`ReplaceFile` on Windows and the Xbox), never .NET's `File.Replace(…, backup)` or `File.Move`, which `link(2)` on Unix:
+Android's FUSE external storage (where `persistentDataPath` is) answers `link` with EINVAL, and on the AYN Odin 3 (a
+permissive SELinux build) every write after the first failed from its install on 2026-10-23 until this fix ("the store
+couldn't be written (Invalid argument)" in logcat, `store.json` and `store.json.bak` one hard-linked 40-byte file). A
+store left hard-linked that way is written again at the next save: the backup's rename gives it its own file.
 
 `-store <file>` puts the store elsewhere (a test). The editor's tests: `Editor/Tests/BridgeStoreTests.cs` (below).
 

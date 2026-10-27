@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.32 — 2026-10-27
 
+- On some Android handhelds (the AYN Odin 3 among them) the Unity version could not save: your journey and settings were lost each time the game closed. It now saves there like everywhere else.
 - Gameplay statistics help us find difficult quests, minigames and slow-loading worlds. Sharing is on by default; you can turn it off in Settings. The browser version and updated Unity apps send to our own analytics service, with a random device identifier and no save contents or dialogue.
 - The web title screen is simpler: What’s changed and world-debug shortcuts now live in the password-protected admin hub. Developer entries are hidden by default.
 

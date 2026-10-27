@@ -13,6 +13,7 @@ export const CHANGELOG = [
     items: [
       'The web title screen is simpler: What’s changed and world-debug shortcuts now live in the password-protected admin hub. Developer entries are hidden by default.',
       { text: 'Gameplay statistics help us find difficult quests, minigames and slow-loading worlds. Sharing is on by default; you can turn it off in Settings. The browser version and updated Unity apps send to our own analytics service, with a random device identifier and no save contents or dialogue.', see: 'Open Settings → Game → Share gameplay statistics. Turning it off stops collection and stays off after restarting. Unity collection requires an updated native app; older apps remain playable without it.' },
+      { text: "On some Android handhelds (the AYN Odin 3 among them) the Unity version could not save: your journey and settings were lost each time the game closed. It now saves there like everywhere else.", see: "On an affected handheld, play a little, close the game fully and open it again: your journey is where you left it." },
     ],
   },
   {

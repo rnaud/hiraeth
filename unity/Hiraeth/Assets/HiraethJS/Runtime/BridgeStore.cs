@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -12,7 +13,7 @@ namespace Hiraeth.Bridge
     /// persistentDataPath (the Unity-default plan's D4 and X1, issue #264): UWP's PlayerPrefs hold at most 8 KB a value, and
     /// a save outgrows it. The file is
     ///   store.json      {"v":1,"items":{"key":"value",…}}, written whole: first to store.json.tmp (flushed to the disk and
-    ///                   read back), then put in place of the last one, which becomes
+    ///                   read back), then renamed over the last one (rename(2): no hard links, issue #714), which first becomes
     ///   store.json.bak  the last good file: read when store.json is missing or doesn't parse (a write cut off by a crash or
     ///                   a full disk), and then written again as the new store.json.
     /// Writes are coalesced on a thread of their own (Set and Remove return at once; a burst of saves is one write), and
@@ -195,29 +196,31 @@ namespace Hiraeth.Bridge
             }
         }
 
-        /// <summary>The items now, written to the file: tmp, flushed and read back, then in place of store.json (the old one kept as the backup).</summary>
+        /// <summary>The items now, written to the file: tmp, flushed and read back, then renamed over store.json (the old one copied
+        /// to the backup first). No hard links (issue #714): .NET's File.Replace and File.Move link(2) the files on Unix, and on
+        /// Android's FUSE external storage (persistentDataPath) link fails with EINVAL, so on the AYN Odin 3 no write after the
+        /// first ever reached the disk. Only whole-file writes and rename(2) here, which every file system the players have
+        /// (FUSE, ext4, f2fs, NTFS, the Xbox's) does.</summary>
         void WriteNow()
         {
             string text; int at, n;
             lock (gate) { at = version; n = items.Count; text = Serialize(items); }
             try
             {
-                var bytes = new UTF8Encoding(false).GetBytes(text);
-                using (var f = new FileStream(Tmp, FileMode.Create, FileAccess.Write, FileShare.None))
-                {
-                    f.Write(bytes, 0, bytes.Length);
-                    f.Flush(true);
-                }
+                WriteDurable(Tmp, new UTF8Encoding(false).GetBytes(text));
                 // (read back before it replaces anything: a full disk or a cut write never takes the place of a good file)
                 if (!TryRead(Tmp, out var check) || check.Count != n) throw new IOException("the written store didn't read back");
-                if (File.Exists(path))
+                // (the file in place is the last good one, kept as the backup: it was read back before it took its place, or Load
+                // read it; a damaged store.json is not made the backup, Load kept it as store.json.bad)
+                if ((Source == "file" || written > 0) && File.Exists(path))
                 {
-                    // (the file in place is the last good one: it was read back before it took its place, or Load read it)
-                    if (Source == "file" || written > 0) File.Replace(Tmp, path, Backup, true);
-                    else { File.Delete(path); File.Move(Tmp, path); }   // (a damaged store.json: not made the backup)
+                    WriteDurable(Backup + ".tmp", File.ReadAllBytes(path));
+                    Rename(Backup + ".tmp", Backup);
                 }
-                else File.Move(Tmp, path);
-                lock (gate) { writtenVersion = Math.Max(writtenVersion, at); lastError = null; }
+                Rename(Tmp, path);
+                bool recovered;
+                lock (gate) { writtenVersion = Math.Max(writtenVersion, at); recovered = lastError != null; lastError = null; }
+                if (recovered) Log($"Hiraeth bridge: the store written again ({RenameWay})");
                 Interlocked.Increment(ref written);
             }
             catch (Exception e)
@@ -226,6 +229,67 @@ namespace Hiraeth.Bridge
                 Log($"Hiraeth bridge: the store couldn't be written ({e.Message}); the last good file stays");
             }
         }
+
+        static void WriteDurable(string file, byte[] bytes)
+        {
+            using var f = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None);
+            f.Write(bytes, 0, bytes.Length);
+            f.Flush(true);
+        }
+
+        /// <summary>How the last Rename was done: "rename" (rename(2)), "windows" (ReplaceFile / MoveFile), "move" (no libc
+        /// found: delete and File.Move). Tests and the log.</summary>
+        public static string RenameWay { get; private set; }
+
+        /// <summary>src put in dst's place, dst replaced whole (never a mix of the two): rename(2) on Android, Linux and macOS,
+        /// ReplaceFile on Windows and the Xbox. Never a hard link (see WriteNow).</summary>
+        public static void Rename(string src, string dst)
+        {
+            if (Path.DirectorySeparatorChar == '\\')
+            {
+                if (File.Exists(dst)) File.Replace(src, dst, null, true); else File.Move(src, dst);
+                RenameWay = "windows";
+                return;
+            }
+            if (PosixRename(src, dst, out int errno)) { RenameWay = "rename"; return; }
+            if (errno >= 0)
+            {
+                // (a file system that won't rename over this dst, e.g. a store.json left hard-linked to its backup by the old
+                // writer: dst removed, then renamed again; dst's content is in the backup already)
+                if (File.Exists(dst)) File.Delete(dst);
+                if (PosixRename(src, dst, out errno)) { RenameWay = "rename"; return; }
+                throw new IOException($"rename {Path.GetFileName(src)} → {Path.GetFileName(dst)} failed (errno {errno})");
+            }
+            // (no libc to call: delete, then move to a name that doesn't exist)
+            if (File.Exists(dst)) File.Delete(dst);
+            File.Move(src, dst);
+            RenameWay = "move";
+        }
+
+        [DllImport("libc", EntryPoint = "rename", SetLastError = true)] static extern int rename_libc(string from, string to);
+        [DllImport("libc.so.6", EntryPoint = "rename", SetLastError = true)] static extern int rename_glibc(string from, string to);
+        static int libc;   // 0 not tried, 1 "libc", 2 "libc.so.6", -1 neither
+
+        /// <summary>rename(2): true when done; false with its errno, or errno -1 when there is no libc to call.</summary>
+        static bool PosixRename(string src, string dst, out int errno)
+        {
+            errno = -1;
+            if (libc == 0 || libc == 1)
+                try { return Done(rename_libc(src, dst), 1, out errno); }
+                catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { }
+            if (libc == 0 || libc == 2)
+                try { return Done(rename_glibc(src, dst), 2, out errno); }
+                catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { }
+            libc = -1;
+            return false;
+        }
+        static bool Done(int r, int which, out int errno)
+        {
+            libc = which;
+            errno = r == 0 ? 0 : Marshal.GetLastWin32Error();
+            return r == 0;
+        }
+
         public static string Serialize(Dictionary<string, string> items)
         {
             var b = new StringBuilder(64 + items.Count * 64);

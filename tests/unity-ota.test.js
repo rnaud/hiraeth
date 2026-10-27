@@ -248,7 +248,14 @@ test('the C# side: the store is a file, the script chosen at each start, its wat
   const ota = src(UPDATES_CS);
   assert.match(host, /public static string StorageGet\(string k\) => \(store \?\? Ask\(OpenStore\)\)\.Get\(k\);/);
   assert.doesNotMatch(host, /PlayerPrefs\.SetString/, 'nothing written to PlayerPrefs any more (8 KB a value on UWP)');
-  assert.match(store, /File\.Replace\(Tmp, path, Backup, true\)/, 'the last good file kept as the backup');
+  // (issue #714: no hard links. .NET's File.Replace with a backup and File.Move link(2) on Unix, which Android's FUSE storage
+  // refuses with EINVAL: on the AYN Odin 3 nothing after the first write reached the disk)
+  assert.doesNotMatch(store, /File\.Replace\(Tmp, path, Backup/, 'no File.Replace with a backup (a hard link on Unix)');
+  assert.match(store, /WriteDurable\(Backup \+ "\.tmp", File\.ReadAllBytes\(path\)\);\s*Rename\(Backup \+ "\.tmp", Backup\);/, 'the last good file copied to the backup');
+  assert.match(store, /Rename\(Tmp, path\);/, 'then the new one renamed over store.json');
+  assert.match(store, /DllImport\("libc", EntryPoint = "rename"/, 'rename(2) on the POSIX players');
+  const rename = store.slice(store.indexOf('public static void Rename('), store.indexOf('[DllImport("libc"'));
+  assert.ok(rename.indexOf('PosixRename') < rename.indexOf('File.Move(src, dst);\n            RenameWay = "move"'), 'File.Move (a link on Unix) only when there is no libc');
   assert.match(store, /f\.Flush\(true\)/, 'on the disk before it takes the place of the last');
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /BridgeHost\.OpenStore\(\)\.Get\("hiraeth\.settings\.v1"\)/, 'the saved Graphics from the store');
   for (const [what, re] of [['the store opened first', /BridgeHost\.OpenStore\(\);/], ['the script chosen', /BridgeUpdates\.Choose\(\) is string ota/], ['the watchdog', /BridgeUpdates\.Watchdog\(\)/],
