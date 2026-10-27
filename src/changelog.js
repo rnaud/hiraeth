@@ -16,6 +16,7 @@ export const CHANGELOG = [
       { text: "On some Android handhelds (the AYN Odin 3 among them) the Unity version could not save: your journey and settings were lost each time the game closed. It now saves there like everywhere else.", see: "On an affected handheld, play a little, close the game fully and open it again: your journey is where you left it." },
       { text: "Kevin Iglesias's sprint, tried last version, is now the traveller's sprint: hunched further into it, his arms pumping high, a quicker stride, closer to Breath of the Wild's. The old sprint is still in the dev menu's Story tab. Stopping from a sprint, his arms settle without a jerk.", see: "Sprint (L3 / Shift). For the old sprint, turn off Kevin Iglesias's sprint in the dev menu's Story tab, or add ?sprint=ual to the address." },
       "Running and sprinting, his shirt stays over his back: the tee under it no longer shows through in pale patches, and its hem keeps covering the seat of his trousers instead of lifting off a gap there. It still flies out behind him as he runs.",
+      "Climbing onto a ledge and setting off at a run no longer leaves a smear of dozens of overlapping footprints behind you: each foot now prints once each time it really touches the ground, and the footstep sounds no longer rattle there either.",
     ],
   },
   {

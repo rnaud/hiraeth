@@ -490,14 +490,17 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         if (F.n.dot(up) < 0.5) F.n.copy(up);
         onStep?.(_b.copy(d.place).addScaledVector(up, -ballRest), s, F.n);
       } else if (!d.planted) { if (F.locked) F.late = lateRel(s); F.locked = false; }
-      // too far from the clip's foot (a stride that ran away, a teleport): let go (standing: set down again at once)
+      // too far from the clip's foot (a stride that ran away, a teleport): let go (standing still: set down again at once)
       // (standing, as after a fast turn on the spot: it steps over there, once the other foot is down,
       // rather than jumping there in a frame; only a real teleport lets go at once)
       if (F.locked && F.pos.distanceTo(d.place) > FEET.release * sc) {
         const other = S[s === 'l' ? 'r' : 'l'], far = F.pos.distanceTo(d.place) > 2 * FEET.release * sc;
         if (still && !far && d.finite) {
           if (!other.step) { F.step = { from: F.pos.clone(), fromYaw: F.yaw.clone(), t: 0, quick: pivoting }; F.locked = false; }
-        } else { F.locked = false; F.released = !standing; F.dragged = false; }
+        // (set down again at once only standing still: standing by the gait's share but moving, a sprint set off over a thin
+        // wall's far side still in the start's move at 5-8 m/s, it planted where it was drawn 60 cm behind, was let go again
+        // and planted again the next frame, a print and a step every frame, 37 in half a second, issue #717)
+        } else { F.locked = false; F.released = !still; F.dragged = false; }
       }
       // the body has left a held foot behind, out of the leg's reach (the hips can't come down that
       // fast): it goes with the stride now rather than being dragged along the ground

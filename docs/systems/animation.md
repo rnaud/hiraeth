@@ -180,6 +180,15 @@ below is laid over them procedurally, so no new motion data was needed (see TODO
   steps round quickly (0.17 s). A standing foot left out of reach of its place (a 180° pivot) steps
   there once the other is down, instead of jumping there in a frame; a settling step up onto a stair
   rises first and then goes over, so the toe doesn't drag up the riser.
+- **One footprint per touchdown** (issue #717): `onStep` (the print and the step's sound, main.js and
+  engine/game.js) fires as a foot is set down, with its side (`Player.stepped` 0 left, 1 right). A
+  held foot let go 60 cm from the clip's is set down again at once only when the body is truly still
+  (a teleport while standing); standing by the gait's share but moving (setting off at a sprint and
+  dropping off a thin wall still in the start's move: 5-8 m/s with the gait near nothing) it goes
+  free until its contact falls. Set down again at once there, it planted where it was drawn, 60 cm
+  behind, was let go again and planted again the next frame: a print and a step a frame, 37 in half a
+  second. `tests/footprint-burst.test.js` climbs, drops, lands, stops, starts and teleports with each
+  foot printing at most once per touchdown.
 - **The foot's way** (`footWay`): the foot bone's own turn applied to its rest way (the rest ankle →
   ball, laid flat), not the ankle → ball line itself. The coral-shirt traveller's ankle sits high
   over the ball, so that line is steep: a little roll of the foot swung its flat part through tens of

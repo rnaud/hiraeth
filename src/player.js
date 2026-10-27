@@ -2161,7 +2161,7 @@ export class Player {
         this._feetGround ??= this.opts.dynamic ? standGround(this.physics, () => this.opts.dynamic(), () => this.ride) : this.physics;
         const legs = this.frame.dir(this.heading, _g1).clone();
         if (this._strafe?.yaw) legs.applyAxisAngle(U, this._strafe.yaw);   // (a side-run: the legs go the way he runs, LOCK_MOVE.sideRun)
-        H.plantFeet(dt, this._feetGround, U, this.object.position, legs, (p, side, n) => this.stepped(p.clone(), 0, n), o);
+        H.plantFeet(dt, this._feetGround, U, this.object.position, legs, (p, side, n) => this.stepped(p.clone(), side === 'r' ? 1 : 0, n), o);
       } else H.resetFeet();
       if (this.aim && !this.aim.noArm && !this.climbing && !this.mantle && (!this.gliding || this.hovering)) H.aimAt?.(this.aim.point, this.aim.k, U);   // (noArm: a captured blade swing moves the arm itself)
       // the soft aim: a swing's plane tilted toward its target's body, low or high (src/fluid-blade.js AIM)
