@@ -500,6 +500,31 @@ All deck furniture and plants are rigid children of `porch-panel`, with visible 
 
 New journeys land near Qanat at (115, 360), about 83 m from the gate instead of 219 m. The emergency reserve powers the approach and a smooth vertical touchdown; the caravan uses its four authored rear booster mouths, and the original fallback uses its own lift bells. The parked hull stays upright on its gear, with no furrow or buried belly. Stage IDs and skip behavior remain unchanged. `ship.desertControlledLanding` records the new berth when the opening starts; completed older saves without that flag retain the original (86, 149) berth, including aboard resumes. Site collision, terrain/ramp probes and the real director's motion are covered by the landing tests for both models.
 
+**In front of the camps (#706).** The author walked off the ramp at (115, 360), west of the walls, facing the city's middle,
+and had to turn left round the walls to reach the gate and the tree. The controlled berth is now (140.7, 244.6), on the
+camps' lane to the main gate (`CAMP_WAY`), its hatch toward the gate: down the ramp the camps, the gate and the dark tree
+stand straight ahead, about 90 m to the gate on ground that falls 1.7 m across the 52 m hull. Tied to it and moved with
+it: the pilgrims' road (`desert-road.js` `ROAD`, now turning east past its resting stone to the ship's west end), the two
+first fragments on its last cairns, the Givers' field-stone on the walk home from the House, the procession's circuit (it
+passes behind the ship), the bench ride and the camera QC's open run, and the desert's first views
+(`arrival-views.js`, its exit held along the ramp's way: `VIEW_OPTS.desert.exitTurn`). Older saves on the (86, 149)
+berth keep it.
+
+### Clear ground (#706)
+
+"There's a plant going through the stairs of the ship": nothing drawn may stand in the hull, over the ramp or across the
+first steps off it, in any world the ship lands in. `src/ship/landing-clear.js` names three volumes round the parked
+ship: the hull's plan from belly to roof, the ramp from hinge to foot (1.8 m either side, a head's height over its
+treads), and 6 m on from its foot (1.6 m either side, from shin height). `Ship` calls `clearLanding()` once it is placed:
+walk-through scenery scattered by the instance (shrubs, agaves, tufts) reaching into them is scaled to nothing, as the
+levels clear their own paths. Everything else (solid props, single meshes, a level's own furniture) a level moves itself:
+`tests/landing-clear.test.js` builds every world the ship lands in (the route, Home, the Lantern, the developer's rooms;
+not the discarded side worlds) with the caravan and fails on any vertex in a volume (a point in the hull's box counts when
+the caravan's own surfaces are both over and under it). Fixed with it: Glass Dunes' first west post (under the aft
+boosters), the Space City pier lantern under the nose, Edena's berth 6 m west (its ramp came down on Mira's runnel's
+curb), the Desert's agave on the old berth's ramp and the road cairn under its boosters; on the Spheres, ten grass tufts
+are left out under the ramp.
+
 
 ### Room visibility and folding-panel closure (#653)
 

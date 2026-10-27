@@ -132,7 +132,7 @@ export const QUESTS = [
   },
   {
     // the first fragment of the singing light, easy (issue #247: "there should be a quest to find the first light fragment"):
-    // Marrow, at your ship, points at it singing by the pilgrims’ cairn 30 m from the ramp (src/fragments-data.js, the desert’s slot 5, issue #550);
+    // Marrow, at your ship, points at it singing by the pilgrims’ cairn 36 m from the ramp (src/fragments-data.js, the desert’s slot 5, issue #550);
     // taking it is the goal (and it brings Anselm Thrum, docs/systems/fragments.md). Found first, it never starts.
     id: SPLINTER, title: 'Something Singing', world: 'desert',
     outro: 'A splinter of the singing light, warm in your hand. More of them hide out there.',

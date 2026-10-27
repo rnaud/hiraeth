@@ -31,11 +31,16 @@ export const LEGACY_DESERT_SITE = {
   };
 
 export const SITE_OVERRIDES = {
+  // in front of the pilgrims' camps, on the line of their lane to the main gate (CAMP_WAY, src/desert-city.js): down the
+  // ramp the camps, the gate and the dark tree stand straight ahead, 90 m to the gate (issue #706: from (115, 360), west of
+  // the walls, the hatch faced the city's middle and the way to the gate was a turn to the left round the walls). z 244.6,
+  // not the lane's 244.3: the fragments' reach test walks a 1 m grid from the spawn, and from that phase it missed the
+  // south-west cairn's fragment (tests/fragments-reach.js REACH_CELL)
   desert: {
-    x: 115, z: 360, heading: Math.atan2(230 - 115, 400 - 360),
+    x: 140.7, z: 244.6, heading: Math.atan2(195.1 - 140.7, 339.3 - 244.6),
     landing: 'controlled',
     // Compatibility metadata for older tools; this mode never builds a furrow or sinks the hull.
-    crash: { travel: Math.atan2(230 - 115, 400 - 360) - 0.6, length: 0, pitch: 0, roll: 0, sink: 0 },
+    crash: { travel: Math.atan2(195.1 - 140.7, 339.3 - 244.6) - 0.6, length: 0, pitch: 0, roll: 0, sink: 0 },
   },
   // the search's own pick crowded the pearl sphere, a listening spot of the main quest
   spheres: { x: 38, z: 81, heading: -2.7 },
@@ -48,7 +53,7 @@ export const SITE_OVERRIDES = {
   // players know them, the hull checked clear of each world (tests/contact-audit.test.js)
   arzach: { x: -272.4, z: -1116.2, heading: 1.153 },
   perdide: { x: 19.8, z: -128.5, heading: -0.148 },
-  edena: { x: -48.2, z: -103.3, heading: 0.437 },
+  edena: { x: -54.2, z: -103.3, heading: 0.437 },   // (6 m west since issue #706: the ramp came down on Mira's runnel's curb)
   buried: { x: -3, z: 101.5, heading: -2.662 },   // (22 m west of the search's old spot: its bow, twice as long, lay across the furnace steps' course)
 };
 

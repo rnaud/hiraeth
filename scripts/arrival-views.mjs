@@ -38,7 +38,7 @@ const PICK = (id) => `(async () => {
   const marks = AV.marksOf(${JSON.stringify(id)}, level, footAt);
   const wide = AV.pickWide({ rest, marks, los, hit, ground, ...AV.VIEW_OPTS[${JSON.stringify(id)}] });
   const stand = ship.rampFoot.clone().addScaledVector(ship.outDir, 2).toArray();
-  const exit = AV.pickExit({ stand, out: ship.site.heading, marks, los, hit, away: ship.hinge.toArray() });
+  const exit = AV.pickExit({ stand, out: ship.site.heading, marks, los, hit, away: ship.hinge.toArray(), ...AV.VIEW_OPTS[${JSON.stringify(id)}] });
   const wf = wide ? AV.framed(wide, marks, los) : [];
   const ef = exit ? AV.framed(AV.rigView(stand, exit.heading, exit.pitch), marks, los, { figure: true }) : [];
   return JSON.stringify({ rest, stand, wide, exit, marks: marks.map((m) => ({ name: m.name, main: !!m.main })), wf, ef });
@@ -55,7 +55,8 @@ try {
   for (const id of ids) {
     const t0 = Date.now();
     await c.send('Page.navigate', { url: `${base}manifest.webmanifest` }); await sleep(200);
-    await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'low', showFps: false })); true`);
+    // (the game's own review mute as well as Chrome's: AGENTS.md, silent browser review)
+    await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'low', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 })); true`);
     await c.send('Page.navigate', { url: `${base}index.html?level=${id}&defer=0` });
     let up = false;
     for (let i = 0; i < 4 * 300 && !up; i++) { try { up = await c.ev('!!window.__hiraethBooted && !!window.ship && !!window.physics'); } catch { /* loading */ } if (!up) await sleep(250); }

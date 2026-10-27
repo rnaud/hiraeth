@@ -62,8 +62,8 @@ export const FRAGMENTS = {
     [658.0, 24.45, 51.9],
     [-166.0, 27.03, 745.9],
     [-324.0, 7.61, 395.9],
-    [96.6, -0.08, 380.0],   // (#247; v1.87, #550) the first, easy: at the controlled landing’s return cairn (#603); same found slot
-    [66.6, -2.83, 355.0],   // (#247; v1.87, #550) the second, easy: at the next controlled-landing return cairn (#603); same found slot
+    [115.6, 1.62, 266.0],   // (#247; v1.87, #550; #706) the first, easy: at the pilgrims’ road’s last cairn by the ship, 36 m west of the ramp (the berth before the camps, #706); same found slot
+    [101.6, 3.94, 256.0],   // (#247; v1.87, #550; #706) the second, easy: at the road’s cairn before it (#706); same found slot
     [-162.0, 10.93, 359.9],   // (v1.66, #250; v1.87, #550) among the sail tents
     [4.0, 21.37, 193.9],   // (v1.70, #317; v1.87, #550) by a pilgrims’ cairn on the old road
     [-386.0, 4.23, 629.9],   // (v1.70, #317; v1.87, #550) inside a ribcage
@@ -375,8 +375,9 @@ export const FRAGMENTS = {
 /**
  * Fragments whose song carries further than FRAGMENT.sing (src/fragments.js), in metres, by world and slot (issue #638,
  * the exploration-pacing review: docs/audits/mix-pacing-v2.28.md). The Desert's two by the ship: the first sang only
- * within 26 m, and it lies 31 m from the ramp's foot and 42 m from Marrow, where the traveller asks "What's that singing
- * out on the sand?" over silence; the second lies 39 m on along the pilgrims' road from the first's cairn. Carried 48 m,
+ * within 26 m, and it lies 36 m from the ramp's foot and 47 m from Marrow (the berth in front of the camps, issue #706), where
+ * the traveller asks "What's that singing out on the sand?" over silence; the second lies 17 m back along the pilgrims' road
+ * from the first's cairn. Carried 48 m,
  * the first is a faint call behind you as you step out (the city's tree ahead: a choice), and taking it lets the next
  * one call from further down the road: a short trail of song, no marker.
  */
@@ -390,8 +391,8 @@ export const FRAGMENT_CARRY = { desert: { 5: 48, 6: 48 } };
  */
 export const FRAGMENT_PLACES = {
   desert: [
-    'Ribcage', 'The Rose House (2)', 'The giant’s arm', 'Crashed hull', 'Ribcage (5)', 'the pilgrims’ cairn (13)',
-    'the pilgrims’ cairn (12)', 'Sail tents', 'the pilgrims’ cairn (7)', 'Ribcage (4)', 'the light’s cairn (1)',
+    'Ribcage', 'The Rose House (2)', 'The giant’s arm', 'Crashed hull', 'Ribcage (5)', 'the pilgrims’ cairn (11)',
+    'the pilgrims’ cairn (10)', 'Sail tents', 'the pilgrims’ cairn (7)', 'Ribcage (4)', 'the light’s cairn (1)',
     'The giant’s hand', 'Ribcage (4)', 'Crashed hull', 'The Rose House (2)', 'a boat stranded in the dry wash',
     'Sail tents', 'Ribcage (5)', 'The Rose House (2)', 'the light’s cairn (2)', 'The giant’s arm', 'Ribcage',
     'the first qanat well', 'the light’s cairn (3)',

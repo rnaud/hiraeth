@@ -888,7 +888,8 @@ test('issue #638: the Desert\'s first fragment is heard from the ramp and from M
     sound: { fragmentSong: (p, k, reach) => songs.push({ p, k, reach }), fragmentTaken: () => {} } });
   const a = F.list[5], b = F.list[6];
   // the ramp's foot (the level's spawn) and where Marrow stands: both past the ordinary song's 26 m
-  for (const [x, z, who] of [[122.6, 362.6, 'the ramp'], [136, 366, 'Marrow']]) {
+  // (the berth in front of the camps since issue #706: the ramp's foot, and Marrow's spot by the hull, src/ship/landing.js bystanderSpot)
+  for (const [x, z, who] of [[151.3, 263, 'the ramp'], [161, 253, 'Marrow']]) {
     songs.length = 0;
     player.pos.set(x, 1.1, z);
     const d = Math.hypot(a.pos.x - x, a.pos.z - z);
@@ -899,7 +900,7 @@ test('issue #638: the Desert\'s first fragment is heard from the ramp and from M
     assert.ok(songs[0].k > 0 && songs[0].k < 0.5, 'faint at that distance');
     assert.equal(songs[0].reach, FRAGMENT_CARRY.desert[5] + 6, 'placed with the reach it carries to');
   }
-  // taken, the second calls from the first's cairn (39 m along the pilgrims' road)
+  // taken, the second calls from the first's cairn (17 m back along the pilgrims' road)
   player.pos.copy(a.pos).add(V(0, -FRAGMENT.lift, 0));
   songs.length = 0;
   F.update(0.1, 50); F.update(FRAGMENT.singEvery + 0.1, 54);

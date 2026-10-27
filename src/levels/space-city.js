@@ -19,6 +19,8 @@ import {
 } from './space-city-kit.js';
 import { buildDetours } from './space-city-detours.js';
 import { buildPort } from './port-pad.js';
+import { fromPlan } from '../ship/sites.js';
+import * as caravanLayout from '../ship/caravan-layout.js';
 import { SPACECITY_PORT } from './ports.js';
 import { buildCityWays, routeOf, STACK_BRIDGE, OPENINGS, ANCHOR, STAIR_LAMP, UNDER, CAPSTAN, DRIFT, TIERS, corridors, inCorridor } from './space-city-ways.js';
 
@@ -249,6 +251,7 @@ export function* buildSpaceCity(scene) {
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2 + 0.26, r = P.w / 2 - 2.2, x = P.x + Math.sin(a) * r, z = P.z + Math.cos(a) * r;
       if (Math.abs(x) < 5 && z < P.z) continue;   // (the bridge's mouth)
+      if (fromPlan(x, z, SHIP_SITE.x + caravanLayout.SITE_OFFSETS.spacecity.x, SHIP_SITE.z, Math.PI, caravanLayout) < 1) continue;   // (none under the moored caravan's nose: issue #706)
       lantern(kit, M, x, P.y, z, { kind: 'post', h: 3, r: 9, light: i % 3 === 0 });
     }
     for (const [x, z] of [[-14, 104], [15, 106], [-18, 136], [17, 140]]) {

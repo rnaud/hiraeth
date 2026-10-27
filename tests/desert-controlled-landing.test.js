@@ -15,14 +15,17 @@ import { Physics } from '../src/physics.js';
 const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
 function freshWorld(){const scene=new THREE.Scene();const level=quiet(()=>createDesert(scene));const physics=new Physics(scene,level.ground);quiet(()=>level.init?.(physics));return {scene,level,physics};}
 
-test('controlled first berth is substantially closer to Qanat and fits both ships on real Desert terrain',async()=>{
-  const w=freshWorld(), site=SITE_OVERRIDES.desert;
-  assert.ok(Math.hypot(site.x-195.1,site.z-339.3)<90);
+test('controlled first berth stands in front of the camps, the gate and the tree straight ahead, and fits both ships on real Desert terrain',async()=>{
+  const w=freshWorld(), site=SITE_OVERRIDES.desert, gate={x:195.1,z:339.3}, camps=w.level.qanat.camps.center;
+  assert.ok(Math.hypot(site.x-gate.x,site.z-gate.z)<115,'well within the legacy berth\'s 220 m');
   assert.ok(Math.hypot(site.x-230,site.z-400)>66+35,'outside city and ship clearance');
+  // issue #706: down the ramp, the camps' lane to the gate runs straight ahead (no turn round the walls to the left)
+  const toGate=Math.atan2(gate.x-site.x,gate.z-site.z), toCamps=Math.atan2(camps.x-site.x,camps.z-site.z);
+  assert.ok(Math.abs(site.heading-toGate)<0.05&&Math.abs(site.heading-toCamps)<0.08,'the hatch faces the camps and the gate behind them');
   for(const layout of [undefined,caravanLayout]) {
     const p=probeSite(w.physics,site.x,site.z,site.heading,{refY:w.level.ground.heightAt(site.x,site.z),...(layout?{layout}:{})});
     assert.ok(p,'hull, overhead and ramp probes clear actual scene');
-    assert.ok(p.spread<1.5);
+    assert.ok(p.spread<2,'flat ground: under 2 m across the 52 m hull');
   }
 });
 

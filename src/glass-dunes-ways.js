@@ -34,9 +34,10 @@ export const FLOAT_POSTS = [[104, 94], [84, 104], [62, 108], [40, 113], [18, 122
 /**
  * The west posts, [x, z] (issue #475): every one on open sand 3-5 m beside the walk (none under the prism crossings'
  * bridge), in two runs: from the landing flat to the pearl city's south stair, and from its east stair to the north camp.
+ * (The first stood at -22, 254, under the caravan's aft boosters: moved out in front of the hull, issue #706.)
  */
 export const WEST_POSTS = [
-  [[-22, 254], [-42, 274], [-60, 291], [-87, 295], [-115, 298], [-143, 302], [-174, 315], [-196, 325], [-224, 325], [-241, 306],
+  [[-24, 236], [-42, 274], [-60, 291], [-87, 295], [-115, 298], [-143, 302], [-174, 315], [-196, 325], [-224, 325], [-241, 306],
     [-241, 278], [-240, 238], [-240, 214], [-265, 205], [-293, 205], [-321, 205], [-333, 180], [-333, 152], [-333, 124], [-333, 92],
     [-333, 64], [-330, 35], [-333, 15], [-333, -13], [-333, -41], [-333, -111]],
   [[-273, -226], [-248, -213], [-212, -200], [-185, -193], [-142, -187], [-114, -185], [-86, -184], [-60, -183], [-32, -183]],

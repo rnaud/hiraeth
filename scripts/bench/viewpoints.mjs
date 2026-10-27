@@ -108,7 +108,8 @@ const C = Q.camps.center, G = Q.city.gate, S = Q.city.plinthStair, B = W.bike.po
 const paths = [
   // riding the hoverbike from where it waits, past the camps, through the gate into Qanat, round the tree
   path('ride-city', 'riding from the hoverbike\'s hollow past the camps, through the gate into Qanat', [
-    [B.x, B.z], [148, 228], [158, 268], [182, 318], [G.x, G.z], [S.x, S.z], [222, 385], [238, 392], [248, 410], [240, 428], [222, 440],
+    // (round the ship's stern since issue #706: it stands in front of the camps)
+    [B.x, B.z], [185, 215], [178, 262], [182, 318], [G.x, G.z], [S.x, S.z], [222, 385], [238, 392], [248, 410], [240, 428], [222, 440],
   ], { speed: 12, secs: 20, back: 7, up: 3.2 }),
   // walking round the camps, through the crowd
   path('walk-camps', 'walking round the camps, among the people', Array.from({ length: 41 }, (_, i) => {

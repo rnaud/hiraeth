@@ -180,9 +180,10 @@ export function processionLoop(step = 3) {
   const n = Math.ceil(curve.getLength() / step);
   return curve.getSpacedPoints(n).slice(0, n).map((p) => [p.x, p.z]);
 }
-// the procession's circuit round the city, out over the golden dunes (x, z)
+// the procession's circuit round the city, out over the golden dunes (x, z): since issue #706 it passes behind the ship,
+// berthed before the camps (src/ship/sites.js), not through it ([228, 196] went straight on to [120, 262])
 export const PROCESSION = [
-  [120, 262], [62, 330], [40, 420], [70, 520], [150, 600], [262, 640], [372, 610], [420, 520], [400, 418], [376, 306], [330, 222], [228, 196],
+  [100, 252], [62, 330], [40, 420], [70, 520], [150, 600], [262, 640], [372, 610], [420, 520], [400, 418], [376, 306], [330, 222], [228, 196], [170, 206], [125, 222],
 ];
 
 /** The desert's touches on the print preset (as its plates): a clean sky, no cloud bank; far dunes a pale warm band. */

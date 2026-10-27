@@ -163,6 +163,8 @@ export const MARKS = {
  * only blue, or white); in the Signal Market high over the roofs (from the street its towers fill the frame).
  */
 export const VIEW_OPTS = {
+  // (down the ramp the camps' lane runs straight to the gate and the tree: the first view looks along it, issue #706)
+  desert: { exitTurn: 0.15 },
   underwater: { dists: [90, 130, 170], heights: [16, 28, 40] },
   moonfoundry: { dists: [90, 120, 160], heights: [16, 28, 42], haze: 220 },
   bazaar: { dists: [200, 280, 360], heights: [170, 230, 290] },
@@ -435,10 +437,12 @@ export function rigView(stand, heading, pitch = REVEAL.pitch, { arm = RIG.arm, s
  * most of the landmarks with nothing near filling the frame; and the side the drift into it comes from (`swing`, the
  * side with room). stand: where he stops ([x, y, z]); out: the heading he walks out on (preferred a little, ties).
  */
-export function pickExit({ stand, out = 0, marks, los, hit, aspect = ASPECT, away = null }) {
+export function pickExit({ stand, out = 0, marks, los, hit, aspect = ASPECT, away = null, exitTurn = Math.PI }) {
   let best = null;
   for (let i = 0; i < 48; i++) {
     const heading = out + (i * Math.PI * 2) / 48;
+    // (a world whose way on lies straight down the ramp keeps its first view on it: `exitTurn` rad either side at most)
+    if (Math.abs(Math.atan2(Math.sin(heading - out), Math.cos(heading - out))) > exitTurn + 1e-9) continue;
     // (a little high, as the rig stands in the open; lower where the main landmark stands high over the landing: the
     //  City-Shaft's Lodestar, the market's silent tower)
     for (const pitch of EXIT_PITCHES) {

@@ -17,9 +17,12 @@ import { STORY, RIDE } from './desert-sites.js';
 
 /** The cairns, [x, z], from just west of the main gate down to the ship. */
 export const LEGACY_ROAD = [[168, 352], [128, 340], [90, 318], [55, 290], [28, 255], [16, 226], [4, 192], [30, 166], [58, 160]];
-/** The resting stone on the last dune's shoulder, between the 7th and 8th cairns ([x, z]; it faces the tree). */
-export const ROAD = [[168,352],[128,340],[90,318],[55,290],[28,255],[16,226],[4,192],[-18,228],[-8,278],[18,305],[48,315],[65,355],[95,380]];
+/** The road to the ship in front of the camps (issue #706, src/ship/sites.js): past the resting stone it turns east over the
+ *  dunes and comes down to the ship's west end, its last cairn 35 m from the ramp's foot (it ran on north to the berth west
+ *  of the walls before). */
+export const ROAD = [[168,352],[128,340],[90,318],[55,290],[28,255],[16,226],[4,192],[36,214],[70,238],[100,256],[114,266]];
 export const CONTROLLED_ROAD = ROAD;
+/** The resting stone on the last dune's shoulder, between the 7th and 8th cairns ([x, z]; it faces the tree). */
 export const REST = { x: 10, z: 178 };
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
@@ -132,7 +135,8 @@ export function buildRiderStrips(scene, terrain) {
 /** Where it stands, [x, z]; its carved face looks up the dunes toward the House (`toward`). */
 export const FIELD_STONE = { x: 300, z: 268, toward: [518, 378] };
 
-export const CONTROLLED_FIELD_STONE = { x: 350, z: 365, toward: [518, 378] };
+/** For the berth before the camps (issue #706): halfway along the straight walk from the House's door to the ramp. */
+export const CONTROLLED_FIELD_STONE = { x: 346, z: 320, toward: [518, 378] };
 
 export function buildFieldStone(scene, terrain, site = FIELD_STONE) {
   const { x, z } = site, y = terrain.heightAt(x, z), face = Math.atan2(site.toward[0] - x, site.toward[1] - z);

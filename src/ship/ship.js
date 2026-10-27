@@ -10,6 +10,7 @@ import { caravanStowPose } from './caravan-deployment.js';
 import { polar } from './geo.js';
 import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
 import { LEGACY_DESERT_SITE, CONTROLLED_LANDING_FLAG, findShipSite, siteAvoid, decorAvoid } from './sites.js';
+import { clearLanding } from './landing-clear.js';
 import { buildCrashSite } from './crash.js';
 import { buildApproach } from './approach.js';
 import { HoloTable } from './holotable.js';
@@ -110,6 +111,8 @@ export class Ship {
     this.cinematic = null;
     this.powerState = game.flag('ship.powered') ? 'on' : 'emergency';
     this.place();
+    // (no shrub, agave or tuft through the hull, its ramp or the first steps off it: src/ship/landing-clear.js, issue #706)
+    this.clearedScenery = clearLanding(scene, this);
     this.clearSpawn();
     if (prologue) this.buildSpaceCopy();
     this.cinema = new Cinema();
