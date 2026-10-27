@@ -1,3 +1,4 @@
+import { effectBytes } from '../scripts/sound-qc/test-runtime.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TravellerVoice } from '../src/traveller-voice.js';
@@ -86,7 +87,7 @@ test('all and only starred masters have finite runtime derivatives and common ac
  assert.equal(source.sources.length,18);assert.equal(source.sources.filter(x=>x.group.startsWith('vox-')).length,10);
  for(const x of source.sources){
   assert.ok(ACTION_SFX[x.group]);assert.ok(!/rose|footprint|casting|aerie/i.test(x.group));
-  const meta=runtime.files[`${x.group}-${x.index}`],bytes=readFileSync(new URL(`../public/sfx/${x.group}-${x.index}.wav`,import.meta.url));
+  const meta=runtime.files[`${x.group}-${x.index}`],bytes=effectBytes(`${x.group}-${x.index}.wav`);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),meta.sha256);assert.equal(meta.sourceSha256,x.sha256);
   assert.ok(Number.isFinite(meta.rmsDbfs)&&meta.peakDbfs<=-3.99);assert.equal(bytes.readUInt16LE(22),1);assert.equal(bytes.readUInt32LE(24),44100);
   if(x.group==='temple-slide-open')assert.equal(meta.duration,1.8);

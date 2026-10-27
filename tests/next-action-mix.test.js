@@ -1,6 +1,6 @@
+import { effectBytes } from '../scripts/sound-qc/test-runtime.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { AudioContext, setAudioDecoder } from '../engine/webaudio.js';
 import { SampleBank } from '../src/sfx.js';
 import { ACTION_SFX } from '../src/action-sfx.js';
@@ -21,7 +21,7 @@ function wav(data) {
 }
 async function setup(){
  setAudioDecoder(wav);const ctx=new AudioContext({sampleRate:44100}),master=ctx.createGain();master.connect(ctx.destination);
- const bank=new SampleBank(ctx,{base:'',table:ACTION_SFX,rand:()=>.5,fetcher:async name=>{const b=readFileSync(new URL('../public/sfx/'+name,import.meta.url));return {ok:true,arrayBuffer:async()=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};}});
+ const bank=new SampleBank(ctx,{base:'',table:ACTION_SFX,rand:()=>.5,fetcher:async name=>{const b=effectBytes(name);return {ok:true,arrayBuffer:async()=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)};}});
  await bank.preload(2);for(const g of Object.keys(ACTION_SFX))assert.equal(bank.state(g),'ready',g);
  return {ctx,master,bank,s:{ctx,bank,fx:master,voices:master,muted:false,uiOut:()=>master},close:async()=>{bank.dispose();await ctx.close();setAudioDecoder(null);}};
 }

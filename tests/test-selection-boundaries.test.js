@@ -10,13 +10,14 @@ import {affectedTests,dependenciesOf} from '../scripts/affected-tests.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const motion='tests/motion-qc.test.js', witness='tests/selection-witness.test.js';
 const inventory=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
-const files=new Map(),analysisCache=new Map();
+const files=new Map(),presence=new Map(),analysisCache=new Map();
+const exists=f=>{if(!presence.has(f))presence.set(f,existsSync(join(root,f)));return presence.get(f);};
 const read=f=>{if(!files.has(f))files.set(f,readFileSync(join(root,f),'utf8'));return files.get(f);};
 function selection(path,consumer=motion){
  // A virtual direct consumer supplies ownership; every real consumer/dependency
  // is read from the repository, without executing the expensive gameplay test.
  return affectedTests([path],{root,files:inventory,tests:[consumer,witness],modifiedRegularOnly:true,analysisCache,
-  read:f=>f===witness?`import '../${path}';`:read(f),exists:f=>f===witness||existsSync(join(root,f))});
+  read:f=>f===witness?`import '../${path}';`:read(f),exists:f=>f===witness||exists(f)});
 }
 test('HUD edits do not select motion QC; real motion inputs still do',()=>{
  for(const path of ['src/hud.js'])assert.deepEqual(selection(path),[witness],path);
@@ -80,7 +81,7 @@ test('temple measurements follow game inputs without importing the CLI process w
 
 test('documentation edits have a real reference-scan owner; unrelated unknown inputs still fail closed',()=>{
  const consumers=['tests/reference-paths.test.js',motion];
- const opts={root,files:inventory,tests:consumers,read,exists:f=>existsSync(join(root,f)),analysisCache,modifiedRegularOnly:true};
+ const opts={root,files:inventory,tests:consumers,read,exists,analysisCache,modifiedRegularOnly:true};
  assert.deepEqual(affectedTests(['docs/systems/testing.md'],opts),['tests/reference-paths.test.js']);
  assert.equal(affectedTests(['unknown-build-input.config'],opts),'ALL');
 });
@@ -236,4 +237,25 @@ test('browser theme changes exclude gameplay journeys while actual behavior stil
   }
   assert.ok(selection('src/hud-look.js', 'tests/ui-style-registry.test.js').includes('tests/ui-style-registry.test.js'));
   assert.ok(selection('src/hud-styles/cinema.js', 'tests/unity-letterbox.test.js').includes('tests/unity-letterbox.test.js'));
+});
+
+
+test('native picture checks ignore HUD markup but retain game and complete model inputs', () => {
+  const consumer = 'tests/engine-gltf-pictures.test.js';
+  assert.deepEqual(selection('src/hud-view.js', consumer), [witness]);
+  for (const path of ['src/hud-state.js', 'src/levels/desert.js', 'engine/boot.js',
+    'tests/public-model-inputs.js', 'public/characters/new/model.glb'])
+    assert.ok(selection(path, consumer).includes(consumer), path);
+  const catalogue = 'tests/public-model-inputs.test.js';
+  assert.deepEqual(selection('src/hud-view.js', catalogue), [witness]);
+  assert.ok(selection('public/characters/new/model.glb', catalogue).includes(catalogue));
+});
+
+
+test('approved PCM mix tests exclude theme edits but retain audio and packaged files', () => {
+  for (const consumer of ['tests/selected-action-audio.test.js', 'tests/selected-action-mix.test.js', 'tests/next-action-mix.test.js']) {
+    assert.deepEqual(selection('src/hud-look.js', consumer), [witness], consumer);
+    for (const input of ['src/audio.js', 'src/action-sfx.js', 'public/sfx/new-take.wav', 'scripts/sound-qc/test-runtime.mjs'])
+      assert.ok(selection(input, consumer).includes(consumer), consumer + ' tracks ' + input);
+  }
 });

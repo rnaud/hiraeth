@@ -590,3 +590,9 @@ assertions read the extracted styles; the registry check covers bootstrap
 registration, and selection regressions retain cinema behavior coverage while
 excluding CSS-only edits from sequence and completion simulations. Native HUD
 rendering remains in its existing bridge; no native palette or state changed.
+
+### Remaining model and audio consumers
+
+Native picture tests read an explicit public-GLB catalogue. Its independent recursive discovery test fails when any model is added or removed, including a new folder. Existing texture loading and desert integration assertions remain unchanged. Approved PCM mix tests read real packaged bytes through the existing confined audio adapter; unknown asset names or escaping paths remain rejected.
+
+Repository-graph regression tests reuse source bytes, existence answers and exact-text AST analysis within one immutable test process. Stale-contract and changed-source tests still supply explicit overlays, and temporary Git repositories are read independently. This avoids repeated filesystem work without caching results across edits or dropping selection assertions.
