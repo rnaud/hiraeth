@@ -1351,6 +1351,17 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 const RELIEF696 = 'Issue #696: the review page’s captures (tools/relief-shots.mjs): a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera; one load of one build (26b565197 with this change), the shared painted-relief switch flipped between the two pictures (before: off, the flat marks as they were; after: on); 26 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '2.31': [
+  { match: 'Running, the traveller carries his chest a little forward', shots: [
+    { name: 'run-lean', caption: 'Setting off at a sprint, every 1/15 s from the stick pushed, from the side: his chest further forward from the first stride', size: [1280, 720],
+      from: 'Issue #699: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, clear, enemies off) on this branch’s own Vite (port 5454), based on 525c0811e plus this change; the Arena’s floor (?level=arena), the camera held side on, the stick pushed with run held from the game’s own update; ten frames of each run cropped round him and laid out in time; before: this change with its new lean switched off in the page (LOCO.leanRun, leanCarry, bankRun null: the lean and bank as they were); 26 October; cwebp -q 72',
+      view: 'Ten moments a fifteenth of a second apart, the same run before and after; the difference is a few degrees of the chest, clearest at +0.20 to +0.40 s.' },
+  ], numbers: [
+    { title: 'The traveller’s chest and bank (most, in degrees)', unit: '°', better: 'higher', device: 'node, the game’s traveller on the gait harness’s flat (60 frames a second)', source: 'node scripts/motion-qc/feel.mjs (before: TUNE with LOCO.leanRun, leanCarry, bankRun null)', rows: [
+      { where: 'setting off at a sprint: the chest forward', before: 8.8, after: 15.7 },
+      { where: 'setting off at a jog: the chest forward', before: 7.9, after: 8.6 },
+      { where: 'round a bend at a sprint: the bank', before: 5.0, after: 7.2 },
+    ], note: 'Setting off (90 % of the speed in 0.28 s), stopping (0.34 m and 0.32 s from a sprint) and turning round (0.32 s) are as before; the motion QC’s node course is 16 of 16 green before and after, the same means.' },
+  ] },
   {
     "match": "Lorn’s crystals now grow as in their drawing",
     "numbers": [
@@ -1618,17 +1629,6 @@ export const CHANGELOG_MEDIA = {
 },
   ],
   '2.30': [
-  { match: 'Running, the traveller carries his chest a little forward', shots: [
-    { name: 'run-lean', caption: 'Setting off at a sprint, every 1/15 s from the stick pushed, from the side: his chest further forward from the first stride', size: [1280, 720],
-      from: 'Issue #699: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, clear, enemies off) on this branch’s own Vite (port 5454), based on 525c0811e plus this change; the Arena’s floor (?level=arena), the camera held side on, the stick pushed with run held from the game’s own update; ten frames of each run cropped round him and laid out in time; before: this change with its new lean switched off in the page (LOCO.leanRun, leanCarry, bankRun null: the lean and bank as they were); 26 October; cwebp -q 72',
-      view: 'Ten moments a fifteenth of a second apart, the same run before and after; the difference is a few degrees of the chest, clearest at +0.20 to +0.40 s.' },
-  ], numbers: [
-    { title: 'The traveller’s chest and bank (most, in degrees)', unit: '°', better: 'higher', device: 'node, the game’s traveller on the gait harness’s flat (60 frames a second)', source: 'node scripts/motion-qc/feel.mjs (before: TUNE with LOCO.leanRun, leanCarry, bankRun null)', rows: [
-      { where: 'setting off at a sprint: the chest forward', before: 8.8, after: 15.7 },
-      { where: 'setting off at a jog: the chest forward', before: 7.9, after: 8.6 },
-      { where: 'round a bend at a sprint: the bank', before: 5.0, after: 7.2 },
-    ], note: 'Setting off (90 % of the speed in 0.28 s), stopping (0.34 m and 0.32 s from a sprint) and turning round (0.32 s) are as before; the motion QC’s node course is 16 of 16 green before and after, the same means.' },
-  ] },
 {
   "match": "Vael’s sky stones are no longer one flat colour",
   "shots": [
