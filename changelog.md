@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.33 — 2026-10-27
+
+- Sword hits now burst in amber and gold, with a tiny cream spark and a turquoise trail. Enemies keep their colours when struck instead of flashing solid white; sharp streaks scatter into small fading flecks, with a larger burst on heavy blows.
+
 ## v2.32 — 2026-10-27
 
 - Attacking while sprinting is now a running cut: the traveller carries his speed into one strong slash, then slows to a stop. It used to play the standing first swing over a frozen stride while he slid to a halt.

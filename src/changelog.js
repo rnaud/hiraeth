@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.33', date: '2026-10-27',
+    items: [
+      { text: 'Sword hits now burst in amber and gold, with a tiny cream spark and a turquoise trail. Enemies keep their colours when struck instead of flashing solid white; sharp streaks scatter into small fading flecks, with a larger burst on heavy blows.', see: 'Strike a foe with the first swing, then finish a three-hit combo. Watch the brief amber contact burst and turquoise wake clear as the enemy recoils. The same effect runs on web and Unity.' },
+    ],
+  },
+  {
     v: '2.32', date: '2026-10-27',
     items: [
       'The web title screen is simpler: What’s changed and world-debug shortcuts now live in the password-protected admin hub. Developer entries are hidden by default.',

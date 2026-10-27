@@ -917,16 +917,38 @@ the phase that teaches it; `tests/temples.test.js` plays them as part of each te
   layers on a landed hit: a few frames' freeze, a bright star of light at the contact drawn over everything, the foe
   flashing, a slash streak and a shake on its heavy blows, a sharp crack of a sound. Hiraeth had all but the star (the
   hit-stop above, `Foes.react`'s ink flash and flinch, the blade's splash and ripple, the kick, `fluidSlashHit`); the burst
-  is its star, inked: cream rays round a white four-pointed core, each ray cut out of a black one a little bigger, flat and
+  is its star, inked: amber and orange rays round a tiny cream four-pointed core, each ray cut out of a dark plum one a little bigger, flat and
   turned to the camera, at every contact a landed blade cut makes (up to three a swing; not on armour, a block, a miss or
-  a dull guardian). Heavy blows (the combo's third, the charged cut, the riposte, the dash and air cuts) get nine rays
-  against six, half as long again, and a long inked streak along the blade's way as seen. It lives on the traveller's
+  a dull guardian). Heavy blows (the combo's third, the charged cut, the riposte, the dash and air cuts) get 25 needles
+  against 18, with a longer directional fan, and a long inked streak along the blade's way as seen. It lives on the traveller's
   clock (`selfDt`), so the hit-stop holds its first, biggest frame through the freeze; then it bursts out and is gone
-  (0.1 s light, 0.15 s heavy). It is drawn at `toward` (0.45) of the way to the camera, shrunk to the same size on the
+  (0.14 s light, 0.22 s heavy). It is drawn at `toward` (0.45) of the way to the camera, shrunk to the same size on the
   screen, so neither the foe's body nor the traveller in front of the camera hides it, with no depth trick the
   engines would have to mirror. One InstancedMesh (`makeMaterial`, flat): one draw for all of them, mirrored to the
   engines like the rings (checked in Unity's batch run: `scripts/unity-js-run.sh … -level arena -fight combo`, a toad
   kept up and the three blows pressed, a picture every few frames). Tests: `tests/hit-burst.test.js`.
+  The approved Amber Impact reference is `references/combat/amber/approved-a.png` (concept, not a game capture).
+  Rays are biased along the cut, alternate warm gold and orange, and separate into flecks as they clear. The cream
+  core disappears halfway through. The star and body lift stay below the bloom threshold; `REACT.flash` keeps the
+  foe's painted colours and original ink instead of turning its silhouette white. The blade wake uses turquoise
+  and pale mint bands. Attack timing, damage, hit-stop and miss/armour handling are unchanged. The visual lifetime is longer to
+  separate the short central flash from the slower fleck tail. The bounded budget is 432 instances in one draw.
+  The fan has unequal shoulders around its leading needle, fine tapered tips and a small hot center; flecks
+  move quickly outward and decelerate as they disappear.
+
+  Research informing this pass (27 October 2026):
+  [Riot’s clarity principles](https://www.leagueoflegends.com/en-us/news/dev/clarity-in-league/) call for readable
+  silhouettes, limited visual noise and effect prominence proportional to gameplay importance.
+  [Beyond-FX’s Zelda-inspired breakdown](https://blog.beyond-fx.com/articles/level-up-episode-2-explosion-effects-tutorial)
+  separates flare, streaks and secondary particles; it is an explosion tutorial, not documentation of Nintendo’s
+  sword-hit implementation. [Mathis Desage’s impact breakdown](https://mathis_desage16.artstation.com/projects/dyVvmQ)
+  likewise separates flare from velocity-aligned particles. Hiraeth adapts that layering to a small sword contact:
+  cream flash, amber needle fan, detached flecks. Smoke, rocks and shock rings from explosion examples are not
+  appropriate here. [Thomas Vasseur’s Dead Cells breakdown](https://www.gamedeveloper.com/production/art-design-deep-dive-using-a-3d-pipeline-for-2d-animation-in-i-dead-cells-i-) emphasizes attack poses and timing before VFX;
+  [VFX Apprentice’s timing guide](https://www.vfxapprentice.com/blog/the-soul-of-effects-what-is-timing-in-vfx)
+  treats contact as an instant intensity spike with a quieter follow-through. These sources guide timing and
+  hierarchy; the approved A concept remains the art target.
+
 - **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
   `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
 - **The finishing blow** (v0.96, `Foes.burst`; since v1.35 at the blow, `Foes.defeat`, the burst after its defeat): 0.09 s and a bigger kick; the last foe of a fight (none other
