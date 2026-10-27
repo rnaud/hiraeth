@@ -21,6 +21,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
+import { UNITY_APK } from '../src/updates.js';
 import {
   LAST_RUN_NUMBER_BUILD, releasePage, releaseNotes, staleWebZips, newestVersionTag,
   unityLabel, unitySection, webReleaseNotes, withUnitySection, unityNotes,
@@ -85,12 +86,13 @@ export const unityBundleInfo = ({ build, version, minUnity = unityMinApi(), upda
 
 /**
  * The Unity script's manifest, updates/unity.json beside web.json (scripts/web-update.mjs; read by BridgeUpdates.cs):
- * the zip of the player's StreamingAssets/hiraeth-js without public/, its sha256 and size, and `minUnity`, the player it needs.
+ * the zip of the player's StreamingAssets/hiraeth-js without public/, its sha256 and size, `minUnity`, the player it needs,
+ * and `apk`, the Android player to install when it is too old (the testers' APK, .github/workflows/unity-android.yml).
  */
 export function unityJson({ build, version, zip, file, minUnity = unityMinApi(), notes = releaseNotes() }) {
   const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
   const page = releasePage(zip);
-  return { version, build, sha256, zip, minUnity, size: statSync(file).size, notes, ...(page ? { page } : {}) };
+  return { version, build, sha256, zip, minUnity, size: statSync(file).size, notes, apk: UNITY_APK, ...(page ? { page } : {}) };
 }
 
 /**

@@ -173,5 +173,15 @@ namespace Hiraeth.Tests
             Assert.AreEqual(0, BundleInfo.Read(null).build);
             Assert.IsFalse(BundleInfo.Read(Encoding.UTF8.GetBytes("nope")).updates);
         }
+
+        [Test]
+        public void OnlyTheGamesOwnLinksOpen()
+        {
+            Assert.IsTrue(UpdateRules.OpenableUrl("https://github.com/rnaud/hiraeth/releases/download/unity-android/hiraeth-unity.apk"));
+            Assert.IsTrue(UpdateRules.OpenableUrl("https://hiraeth.alexandria-rnaud.workers.dev/changelog.html"));
+            foreach (var bad in new[] { null, "", "http://github.com/rnaud/hiraeth/releases/x", "https://github.com/someone/else/releases/x",
+                "https://github.com.evil.example/rnaud/hiraeth/releases/", "file:///sdcard/x.apk", "intent://x", "https://github.com/rnaud/hiraeth/releases/a b" })
+                Assert.IsFalse(UpdateRules.OpenableUrl(bad), bad ?? "null");
+        }
     }
 }

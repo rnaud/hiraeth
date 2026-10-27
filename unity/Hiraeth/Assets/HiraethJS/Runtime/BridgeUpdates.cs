@@ -374,7 +374,7 @@ namespace Hiraeth.Bridge
                 ["size"] = size, ["got"] = got, ["total"] = total,
                 ["ready"] = State?.pending ?? 0, ["readyVersion"] = State?.pendingVersion ?? "",
                 ["notes"] = notes.Cast<object>().ToList(),
-                ["checkedAt"] = checkedAt, ["error"] = error, ["page"] = page,
+                ["checkedAt"] = checkedAt, ["error"] = error, ["page"] = page, ["apk"] = manifest?.S("apk") ?? "",
                 ["restart"] = RestartKind(),
             };
             lock (logLines) d["log"] = string.Join("\n", logLines);
@@ -465,6 +465,11 @@ namespace Hiraeth.Bridge
     {
         /// <summary>A JSON number (Json.Parse's double), 0 for anything else.</summary>
         public static double N(object v) => v is double x ? x : 0;
+
+        /// <summary>A link the script may open (BridgeHost.OpenUrl): the game's GitHub releases or its site, over https.</summary>
+        public static bool OpenableUrl(string url) => !string.IsNullOrEmpty(url) && url.IndexOfAny(new[] { ' ', '\n', '\r', '"' }) < 0
+            && (url.StartsWith("https://github.com/rnaud/hiraeth/releases/", StringComparison.Ordinal)
+                || url.StartsWith("https://hiraeth.alexandria-rnaud.workers.dev/", StringComparison.Ordinal));
 
         /// <summary>A downloaded build this player can play: newer than its own script, made for it, not failed, unpacked.</summary>
         public static bool Usable(UpdateState s, int build, int min, int builtin, int api, Func<int, bool> present)

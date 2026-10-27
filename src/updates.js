@@ -17,6 +17,10 @@
 
 /** The native level from which the settings can check, download and open the APK page. */
 export const SETTINGS_NATIVE = 4;
+/** The Unity testers' APK for Android (.github/workflows/unity-android.yml; unity.json's `apk` names it too) and its page. */
+export const UNITY_APK = 'https://github.com/rnaud/hiraeth/releases/download/unity-android/hiraeth-unity.apk';
+export const UNITY_APK_PAGE = 'github.com/rnaud/hiraeth/releases/tag/unity-android';
+
 export const STATES = ['idle', 'checking', 'current', 'available', 'downloading', 'ready', 'apk', 'offline', 'error', 'off'];
 
 /** Compare two versions by their numbers ('0.9' < '0.10' < '0.55' < '1.0'): < 0, 0 or > 0. */
@@ -61,7 +65,8 @@ const vb = (version, build) => [version && `v${version}`, build && `build ${buil
  * @param o.restarting the restart was asked for
  * @param o.failed a button's call failed (its message)
  * @returns {{ state, running, title, detail, notes, notesFor, more, progress, progressText, actions, busy, legacy }}
- *   actions: [{ a: 'check' | 'download' | 'restart' | 'apk', label, primary }]
+ *   actions: [{ a: 'check' | 'download' | 'restart' | 'apk' | 'player-apk' | 'player-…', label, primary }]
+ *   (a Unity player's info also has `os`, BridgeHost.Platform, and `openUrl`, whether it can open a link: engine/unity/updates.js)
  */
 export function updateView(info, { version = '', now = Date.now(), armed = false, restarting = false, failed = '', maxNotes = 4 } = {}) {
   if (!info?.web) return null;
@@ -132,6 +137,17 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
       if (unity) {
         // (the script needs a newer player, minUnity: the player's own update brings it, the Deck's in the background)
         v.title = `${vb(info.latestVersion, info.latest) || 'The newest game'} needs a newer version of the player`;
+        if (info.os === 'android') {
+          // (the Android player can't replace itself: the testers' APK, its download opened in the browser (BridgeHost.OpenUrl),
+          // installed over this one; the same release key signs every one, so the saves stay, issue #715)
+          v.detail = info.openUrl
+            ? 'Its engine changed, so it can\'t come over the air. Get the new player, then open the download to install it over this one. Your saves are kept.'
+            : `Its engine changed, so it can't come over the air. Download the new player from ${UNITY_APK_PAGE} and install it over this one. Your saves are kept.`;
+          showNotes();
+          if (info.openUrl) v.actions.push({ a: 'player-apk', label: 'Get the new player', primary: true });
+          v.actions.push(check('Check again'));
+          break;
+        }
         v.detail = 'Its engine changed, so it can\'t come over the air: it comes with the player\'s next update. You can keep playing this version.';
         showNotes();
         v.actions.push(check('Check again'));
@@ -185,8 +201,11 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
         v.detail = p.detail || (p.state === 'offline' ? 'The player update is offline. Keep playing and try again later.' : 'The player update is not ready.');
         v.actions = [action('player-check', 'Check player again'), ...v.actions.filter(a => a.a !== 'check')];
       } else v.actions.push(action('player-check', 'Check player update'));
-    } else if (state === 'apk') {
-      v.detail = p?.guidance || 'This player cannot update itself here. On Steam Deck, quit and relaunch Hiraeth so its launcher can fetch the new player; then launch again after the download. Other installs need their original installer. Your saves are kept.';
+    } else if (state === 'apk' && info.os !== 'android') {
+      // (the player's own words when it has them (BridgePlayerUpdates' guidance), else the platform's)
+      v.detail = p?.guidance || (info.os === 'xbox'
+        ? 'This player cannot update itself on the Xbox. Install the new Xbox package over this one, the way this one was installed. Your saves are kept.'
+        : 'This player cannot update itself here. On Steam Deck, quit and relaunch Hiraeth so its launcher can fetch the new player; then launch again after the download. Other installs need their original installer. Your saves are kept.');
     }
   }
   if (failed) v.detail = `${failed}. ${v.detail}`.trim();

@@ -9,7 +9,7 @@
 //   updates.auto();          // the title's own check, once a launch (a newer build downloads by itself)
 //   updates.rows(at); updates.act('download'); updates.tick();   // (engine/menus.js)
 
-import { updateView, armedStep } from '../../src/updates.js';
+import { updateView, armedStep, UNITY_APK } from '../../src/updates.js';
 
 /** The page's poll: close while something happens, now and then otherwise (src/update-panel.js schedule). */
 export const POLL_BUSY_MS = 400, POLL_IDLE_MS = 4000;
@@ -38,6 +38,11 @@ export class UnityUpdates {
   read() {
     if (!this.on) return null;
     try { const info = JSON.parse(this.host.UpdateInfo()); if (info && typeof info === 'object') this.info = info; } catch { /* keep the last */ }
+    if (this.info) {
+      // (which player this is, and whether it can open a link: the Android player's "Get the new player", issue #715)
+      try { this.info.os = String(this.host.Platform?.() ?? ''); } catch { this.info.os = ''; }
+      this.info.openUrl = !!this.host.OpenUrl;
+    }
     // Optional host methods: compatible script updates must still work on API 3.
     if (this.info && this.info.native >= 4 && this.host?.PlayerUpdateInfo) {
       try { this.info.player = JSON.parse(this.host.PlayerUpdateInfo()); } catch { /* no usable capability */ }
@@ -74,7 +79,7 @@ export class UnityUpdates {
     return JSON.stringify(this.info) !== was;
   }
 
-  /** A button: 'check', 'download' (and restart when it is in), 'restart'. */
+  /** A button: 'check', 'download' (and restart when it is in), 'restart', the player's ('player-check' … 'player-apk'). */
   act(a) {
     // Ignore stale button/controller events while the native operation is pending.
     if (a.startsWith('player-') && !this.view()?.actions.some(b => b.a === a)) return;
@@ -83,16 +88,23 @@ export class UnityUpdates {
       if (a === 'player-check') this.host.PlayerUpdateCheck();
       else if (a === 'player-download') { this.playerArmed = true; this.host.PlayerUpdateDownload(); }
       else if (a === 'player-restart') { this.restartPlayer(); return; }
+      else if (a === 'player-apk') { this.host.OpenUrl(this.apkUrl()); return; }   // (the browser downloads it; nothing to poll)
       else if (a === 'check') { this.host.UpdateCheck(false); if (this.info?.player?.supported) this.host.PlayerUpdateCheck(); }
       else if (a === 'download') { this.armed = true; this.host.UpdateDownload(); }
       else if (a === 'restart') { this.restart(); return; }
     } catch (e) {
       this.armed = false; this.playerArmed = false;
-      this.failed = a === 'download' ? 'The download couldn\'t start' : 'The check couldn\'t start';
+      this.failed = a === 'download' ? 'The download couldn\'t start' : a === 'player-apk' ? 'The download couldn\'t open' : 'The check couldn\'t start';
       console.warn(`[updates] ${a}: ${e?.message ?? e}`);
     }
     this.polled = -Infinity;
     this.read();
+  }
+
+  /** The new Android player: the feed's (unity.json `apk`, BridgeUpdates.Info) when it names one on the testers' release, else the testers' APK. */
+  apkUrl() {
+    const url = String(this.info?.apk ?? '');
+    return url.startsWith('https://github.com/rnaud/hiraeth/releases/') ? url : UNITY_APK;
   }
 
   restartPlayer() {

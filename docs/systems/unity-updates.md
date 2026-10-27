@@ -35,7 +35,7 @@ makes the folder with `engine-bundle.mjs`'s `unityOta`):
 
 - `updates/unity-<build>.zip`: the player's `StreamingAssets/hiraeth-js` without its `public/` folder (`hiraeth.cjs`,
   `audio.cjs`, `bundle.json`, the menus' pictures), ~6 MB; parted and streamed by the Worker like web's when large.
-- `updates/unity.json`: `{ version, build, sha256, zip, minUnity, size, notes }` (release-info.mjs `unityJson`); the
+- `updates/unity.json`: `{ version, build, sha256, zip, minUnity, size, notes, apk }` (release-info.mjs `unityJson`); the
   previous build's zip is kept for a player that read the last manifest a moment ago.
 
 Every bundle carries `bundle.json` (`{ build, version, minUnity, updates }`, engine-bundle.mjs `unityBundleJson`): the
@@ -185,3 +185,18 @@ manifest, checks missing API-4 directories, and verifies packaged helper bytes.
 Eight actual native menu renders and browser renderer states are isolated fixtures,
 not a physical Deck download or restart. The warm project was restored byte-for-byte.
 Evidence: `.local-tools/validation/v1.99/player-update-620/` (ignored).
+
+## The Android player too old for the newest game (#715, v2.31)
+
+An Android player can't replace itself. When the newest script needs a newer player (`minUnity` above its `UnityApi`,
+state `apk`), its Updates page offers **Get the new player**: `BridgeHost.OpenUrl` (only https links on the game's
+GitHub releases or its site, `UpdateRules.OpenableUrl`) opens the testers' APK in the browser, which downloads it, and
+the player installs it over this one. `unity.json`'s `apk` names it (release-info.mjs `unityJson`, `UNITY_APK` in
+src/updates.js); the script falls back to that address when the feed has none. The saves stay: every testers' APK is
+`com.rnaud.hiraeth.unity` signed with the one release key (the workflow's `ANDROID_KEYSTORE_BASE64`, the Mac's
+`.local-tools/android-signing/`, checked by scripts/unity-android-release.sh), so Android takes it as an update and
+keeps the app's data (`persistentDataPath`, the store). A player built before `OpenUrl` shows the
+release page's address instead of a button. The script reads the platform from `BridgeHost.Platform`
+(`info.os`); the Deck keeps its launcher's update, the Xbox and other installs their installer's wording.
+A player from before this change gets the button only once a newer player is installed by hand from
+github.com/rnaud/hiraeth/releases/tag/unity-android (its script stops at the old player's level).

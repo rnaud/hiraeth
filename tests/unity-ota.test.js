@@ -96,6 +96,7 @@ test('unity-<build>.zip and unity.json beside web.json: the script folder withou
   assert.equal(u.sha256, sha(zip));
   assert.equal(u.size, zip.length);
   assert.equal(u.minUnity, 1);
+  assert.equal(u.apk, 'https://github.com/rnaud/hiraeth/releases/download/unity-android/hiraeth-unity.apk', 'the Android player a too-old one installs (#715)');
   assert.ok(Array.isArray(u.notes) && u.notes.length > 0, 'what it brings, for the Updates page');
   const files = Object.keys(unzip(zip)).sort();
   assert.deepEqual(files, ['audio.cjs', 'bundle.json', 'hiraeth.cjs', 'item-pictures/lamp.png'], 'no public/ (the player carries it), no .meta');

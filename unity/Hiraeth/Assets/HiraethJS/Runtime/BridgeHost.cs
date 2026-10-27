@@ -369,6 +369,14 @@ namespace Hiraeth.Bridge
         public static void PlayerUpdateCheck() => On(BridgePlayerUpdates.Check);
         public static void PlayerUpdateDownload() => On(BridgePlayerUpdates.Download);
         public static void PlayerUpdateRestart() => On(BridgePlayerUpdates.Restart);
+        /// <summary>Open a link in the system's browser (the Android player's "Get the new player": the testers' APK, issue #715).
+        /// Only the game's own release pages and site; a batch run logs it instead.</summary>
+        public static void OpenUrl(string url) => On(() =>
+        {
+            if (!UpdateRules.OpenableUrl(url)) { UnityEngine.Debug.Log($"Hiraeth bridge: not opening {url}"); return; }
+            UnityEngine.Debug.Log($"Hiraeth bridge: opening {url}");
+            if (!Application.isBatchMode) Application.OpenURL(url);
+        });
         /// <summary>The C# bridge's level (BridgeUpdates.UnityApi).</summary>
         public static int UnityApi() => BridgeUpdates.UnityApi;
 
