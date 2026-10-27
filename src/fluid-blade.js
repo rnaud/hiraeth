@@ -12,6 +12,7 @@ import { rumblePlay } from './rumble.js';
 import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
 import { bodyTouch, bodySpan } from './foe-body.js';
 import { SlashArc, SLASH_LOOK } from './slash-arc.js';
+import { HIT_BURST } from './hit-burst.js';
 
 // Three committed cuts: anticipation, release and recovery, with one buffered follow-up.
 // Full-body captured poses on the ground, upper-body in the air. The blade's swept segment
@@ -91,10 +92,20 @@ export const SWINGS = [
   // 0.24, 0.25 / 0.17 / 0.26 and 0.42 / 0.2 / 0.36, the combo 2.28 s from the first press to the end of the third)
   { clip: 'mixamo_ss_slash_1', from: 0.12, to: 1.02, hit: 0.6, wind: 0.16, active: 0.13, recover: 0.18 },
   { clip: 'mixamo_ss_slash_3', from: 0.32, to: 1.35, hit: 0.87, wind: 0.18, active: 0.14, recover: 0.19 },
-  // (the third, v1.39: the pack's slash 5, an overhead chop with both feet planted: the sword raised high over a longer
-  // wind-up and brought straight down; it was attack 1, a leaping overhead that took both feet 1.4 m off the ground)
-  { clip: 'mixamo_ss_slash_5', from: 0.12, to: 1.05, hit: 0.6, wind: 0.32, active: 0.16, recover: 0.27, heavy: true },
+  // (the third, v2.31, issue #712: the Great Sword pack's slash 3, the finisher. The author: "the third strike is a crouch
+  // strike which doesn't make sense, it should be a third heavy strike". Slash 5, v1.39 to v2.30, dropped the pelvis 0.48 m
+  // and cut low out of a crouch; this one stands tall: the sword raised high over the head in both hands through a longer
+  // wind-up (the tip 2.26 m up at 0.3 s, coiled back behind the head to 0.73), cleaved down and across in front (the tip
+  // from over his shoulder to 0.4 m off the ground 1.5 m out, 0.76-0.95 s) and brought back up into guard over a slower
+  // follow-through: the most committed of the three, as Breath of the Wild's finishers are. Before v1.39 it was attack 1,
+  // a leaping overhead that took both feet 1.4 m off the ground.)
+  // (`roll`: the clip is the two-handed great sword's, its right fist turned so the blade would cut 34-80° off its edge,
+  // flat on: the blade turned this much (rad) about its own line in the fist through the swing, so it cuts edge first:
+  // FluidBlade.place, mountGrip; tests/blade-grip.test.js)
+  { clip: 'mixamo_gs_slash_3', from: 0.1, to: 1.15, hit: 0.86, activeFrom: 0.76, activeTo: 0.95, wind: 0.42, active: 0.15, recover: 0.36, heavy: true, roll: -0.95 },
 ];
+/** The blade's turn about its own line (rad) while a swing's clip is on his body: its `roll` (SWINGS), else 0. */
+export const edgeRollOf = (clip) => SWINGS.find((S) => S.clip === clip)?.roll ?? 0;
 export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored phase timing.
 /**
  * The evade: `duration` s long, `cooldown` s from one to the next, at `speed`. Its invulnerability (i-frames):
@@ -281,6 +292,19 @@ export const RIPOSTE = { clip: 'mixamo_ss_slash_4', window: 0.6, from: 1.05, hit
 export const DASH = { clip: 'mixamo_ss_attack_2', late: 0.15, cooldown: 1.1, speed: 9, pull: 5, side: 1.1, past: 1.0, fastest: 16, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.16, active: 0.14, recover: 0.26,
   angle: 1.7, reach: 3.2, damage: 2 };
 /**
+ * The running cut (v2.32, issue #718: "pressing shift + attack with the sword creates a non sensical animation"): the blade
+ * pressed at a run (sprinting, or `min` m/s and more on the ground), a combo's first swing, played the standing first slash
+ * over a sprinting stride and slid him from 8 to 1.4 m/s in a third of a second, his legs held mid-stride. Breath of the
+ * Wild's sprint attack carries the run into one strong cut and then a recovery; this is ours: the Sword and Shield pack's
+ * running cut (the dash cut's clip, attack 2), the run's own speed (at most `carry` m/s) carried on through the wind-up and
+ * the cut along the way he runs (or at a foe in reach), easing to a stop through the follow-through (as (1 − u)^`ease`), `damage` 2 and heavy (the knockback, the hit-stop, the heavy hit burst); then the cooldown, as after a third
+ * swing. Not the dash cut's backstab (that stays the evade's). The lunge (an ink upgrade) still takes a run's swing first.
+ */
+export const RUN_CUT = { clip: 'mixamo_ss_attack_2', min: 5.2, carry: 9, ease: 1.6, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.14, active: 0.14, recover: 0.36,
+  angle: 1.7, reach: 3.2, damage: 2 };
+/** Does a press start the running cut (RUN_CUT): on the ground, sprinting or at `min` m/s, not in a chain (`chained`)? */
+export const runCutOpen = ({ onGround = false, sprinting = false, speed = 0, chained = false } = {}, R = RUN_CUT) => onGround && !chained && (sprinting || speed >= R.min);
+/**
  * Does a swing turn into the charge now (CHARGE)? A combo swing (`n` 0..2, not a special: the air cuts, the riposte, the
  * dash cut, the whirl or the lunge), on the ground, its blade button held `held` s since the press that began it, past
  * CHARGE.after, and not in the middle of its cut (`phase` 'wind' or 'recover').
@@ -320,9 +344,9 @@ export const riposteOpen = (since, R = RIPOSTE) => since >= 0 && since < R.windo
 /** Is a press now a dash cut: evading, or `late` s at most after an evade (`since` s; 0 while evading), the dash cut's cooldown `cool` over. */
 export const dashOpen = (since, cool, D = DASH) => since <= D.late && cool <= 0;
 /** The attacks that end a combo (no chain after them; the cooldown follows), and play as heavy ones (sound, knockback). */
-const ENDS = new Set([CHARGE, AIR, RIPOSTE, DASH]);
+const ENDS = new Set([CHARGE, AIR, RIPOSTE, DASH, RUN_CUT]);
 /** Every attack the blade plays from a captured clip: the combo's three, the grown whirl and lunge, the charged cut, the air cut, the riposte and the dash cut. */
-export const ATTACKS = { swing1: SWINGS[0], swing2: SWINGS[1], swing3: SWINGS[2], whirl: WHIRL, lunge: LUNGE, charge: CHARGE, air: AIR, riposte: RIPOSTE, dash: DASH };
+export const ATTACKS = { swing1: SWINGS[0], swing2: SWINGS[1], swing3: SWINGS[2], whirl: WHIRL, lunge: LUNGE, charge: CHARGE, air: AIR, riposte: RIPOSTE, dash: DASH, run: RUN_CUT };
 /** The charged cut's pose while held `t` s (src/fluid-blade.js CHARGE): drawn back to `hold`, then a slow breath about it. */
 export function chargePose(t, C = CHARGE) {
   const k = smooth01(t / C.raise);
@@ -464,6 +488,7 @@ export function lockTarget(from, range = BLADE.lock, targets = allTargets(), loc
   return best;
 }
 
+const _y0 = new THREE.Vector3(0, 1, 0);
 const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _Y = new THREE.Vector3(0, 1, 0);
 const _m1 = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _p1 = new THREE.Vector3(), _p2 = new THREE.Vector3(), _s1 = new THREE.Vector3(), _s2 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
@@ -850,6 +875,11 @@ export class FluidBlade {
       this.closeLeft -= pull * dt;
       // (the dash cut: carried on through its wind-up and cut, slowing through the follow-through)
       if (this.special === DASH) p.combatMotion = { dir: this.dashDir, speed: this.phase === 'recover' ? this.dashSpeed * 0.25 * (1 - this.t) : this.dashSpeed, scale: 0.15, dash: true };
+      // (the running cut: the run carried on through its wind-up and cut along the swing's way, easing to a stop through the follow-through)
+      else if (this.special === RUN_CUT) {
+        const S = this.sample, rec = this.phase === 'recover' ? THREE.MathUtils.clamp((this.t * this.dur - S.wind - S.active) / Math.max(1e-3, this.dur - S.wind - S.active), 0, 1) : 0;
+        p.combatMotion = { dir: this.runDir, speed: (this.runSpeed ?? 0) * (1 - rec) ** RUN_CUT.ease, scale: 0.1, dash: true };
+      }
       else p.combatMotion = { dir: this.dir, speed: Math.max(active ? (this.special === LUNGE ? 7 : 1.7) : 0, pull), scale: this.phase === 'recover' ? 0.45 : 0.15 };
     }
     // in a fight the blade stays in the fist (a while after, and all the time locked on), then is put away
@@ -893,7 +923,10 @@ export class FluidBlade {
     const airStep = air ? Math.min(this.airN ?? 0, AIR_COMBO.swings.length) : -1;
     if (air) { this.airN = airStep + 1; this.n = n = airStep; }
     const airSpec = air ? AIR_COMBO.swings[airStep] ?? AIR : null;
-    this.special = force ? force : air ? airSpec : !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
+    const hs = p.vel ? Math.hypot(p.vel.x, p.vel.z) : 0;
+    this.special = force ? force : air ? airSpec : !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE
+      : n === 0 && A?.moveClip?.(RUN_CUT.clip) && runCutOpen({ onGround: p.onGround, sprinting: p.sprinting, speed: hs, chained: this.chained }) ? RUN_CUT
+        : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
     if (airSpec === AIR) this.airUsed = true;
     const S = this.special ?? quickSwing(SWINGS[n], this.quick);   // (the fight temples' quick cut: QUICK_CUT)
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
@@ -901,6 +934,7 @@ export class FluidBlade {
     // (the press answered at once: the grip and the fluid drawn back, the cut's whoosh at the end of the wind-up;
     // before, nothing was heard for the wind-up's 133 ms, issue #379. The dash cut and the riposte have their own.)
     if (!force) T.sound?.fluidWindup?.(n, ENDS.has(this.special));
+    if (this.special === RUN_CUT) { T.sound?.fluidDash?.(); this.runSpeed = THREE.MathUtils.clamp(hs, 0, RUN_CUT.carry); }   // (the rush of the run carried into it)
     this.hitAt = (this.sample.wind + this.sample.active * 0.45) / this.dur;
     // the swing's way: toward the nearest foe in reach, else where the traveller faces
     const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
@@ -912,9 +946,10 @@ export class FluidBlade {
     const rise = foe && this.special !== LUNGE && !force && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
     this.rising = !!rise;
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
-    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js; the generous cut: only to bring it under the crescent)
+    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && this.special !== RUN_CUT && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js; the generous cut: only to bring it under the crescent)
     this.closeLeft = this.closeIn * pullT;
     this.aimAt(foe, flat - this.closeLeft, !rise && p.onGround && this.special !== AIR);   // (aimed from where the pull will have him)
+    if (this.special === RUN_CUT) { (this.runDir ??= new THREE.Vector3()).copy(this.dir); if (this.runDir.lengthSq() > 1e-8) this.runDir.normalize(); else p.frame.dir(p.heading, this.runDir); }
     if (force === DASH) {
       // past the foe on its left (on his sword side), through its line; with none near, straight on
       this.dashCool = DASH.cooldown; T.sound?.fluidDash?.();
@@ -1048,7 +1083,11 @@ export class FluidBlade {
           for (let i = 0; i < 14; i++) T.glow?.add({ pos: h.point, vel: _a.randomDirection().multiplyScalar(3), drag: 3, size: 0.06, life: 0.45, color: i % 2 ? '#fff6dc' : RIPOSTE_GOLD, grow: true });
         }
       }
-      for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6, 'cut');   // (a light splash of the blade's fluid: the foe's own splash says the rest, Foes.react)
+      for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6, 'cut');
+      // (the inked star where it landed, held through the hit-stop: src/hit-burst.js; issue #713) along the blade's way
+      const cut = pose && this.previousBlade ? _vel.subVectors(pose.b, this.previousBlade.b) : this.dir;
+      // (a third of the way from the contact into the struck body's middle: on the foe, not on the traveller beside it)
+      for (const h of hits.slice(0, 3)) T.bursts?.add({ at: h.target?.position ? _back.copy(h.point).lerp(h.target.position(), HIT_BURST.into) : h.point, heavy, cut });   // (a light splash of the blade's fluid: the foe's own splash says the rest, Foes.react)
       this.hit = true;
       // (a ring runs along the blade from where it struck, both ways)
       const at = pose ? _tip.copy(hits[0].point).sub(pose.a).dot(_vel.subVectors(pose.b, pose.a)) / Math.max(pose.a.distanceToSquared(pose.b), 1e-6) : 0.75;
@@ -1202,8 +1241,11 @@ export class FluidBlade {
   mountGrip() {
     const g = this.fist();
     if (!g) { if (this.group.parent !== this.tool.fx) this.tool.fx.add(this.group); return false; }
-    if (this.group.parent === g.bone) { fitScale(this.group); return true; }
-    return carry(this.group, g);
+    const ok = this.group.parent === g.bone ? (fitScale(this.group), true) : carry(this.group, g);
+    // (turned about the blade's own line, y, by the swing's roll: the hilt where it was, the edge leading)
+    this.group.quaternion.copy(g.quaternion);
+    if (this.edgeRoll) this.group.quaternion.multiply(_q2.setFromAxisAngle(_y0, this.edgeRoll));
+    return ok;
   }
 
   /** The frog (and the hilt, when it is in it) on the chest anchor, behind the right shoulder. */
@@ -1238,6 +1280,10 @@ export class FluidBlade {
   }
 
   place(dt) {
+    // (a swing's `roll`, SWINGS: the blade turned about its own line in the fist, eased in and out with the swing's pose)
+    // (keyed by the clip on his body: the pose shown, at its weight)
+    const P = this.tool.player, R = P?.shownClip ? edgeRollOf(P.shownClip) : 0;
+    this.edgeRoll = R ? R * THREE.MathUtils.clamp(P.shownW ?? 1, 0, 1) : 0;
     this.drawSlash(dt);
     this.previousBlade = this.bladeSegment();
     const T = this.tool, p = T.player, S = this.sheath;

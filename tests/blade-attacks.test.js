@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { ATTACKS, SWINGS, CHARGE, AIR, AIR_COMBO, LUNGE, RIPOSTE, DASH, BLADE, attackSample, activeRange, chargePose, chargeOpen, chargeBody, CHARGE_LOOK, trailCut, riposteOpen, dashOpen } from '../src/fluid-blade.js';
+import { ATTACKS, SWINGS, CHARGE, AIR, AIR_COMBO, LUNGE, RIPOSTE, DASH, BLADE, attackSample, activeRange, chargePose, chargeOpen, chargeBody, CHARGE_LOOK, trailCut, riposteOpen, dashOpen, RUN_CUT, runCutOpen } from '../src/fluid-blade.js';
 import { Foe } from '../src/foes.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { GameState } from '../src/game-state.js';
@@ -310,8 +310,8 @@ test('a press during an evade is a dash cut as it ends: carried through the foe\
   tool.dispose(); clearTargets();
 });
 
-test('the combo\'s third swing is a heavy blow on the ground: a longer wind-up, both feet planted (the leap it was is not)', async () => {
-  const { p, tick } = await armed();
+test('the combo\'s third swing is a heavy blow on the ground: a longer wind-up, both feet planted (the leap it was is not), standing tall (the crouch it was is not)', async () => {
+  const { p, tool, tick } = await armed();
   const S = SWINGS[2];
   assert.ok(S.heavy && S.wind > SWINGS[0].wind && S.wind > SWINGS[1].wind, 'the longest wind-up of the three');
   assert.equal(BLADE.damage[2], 3, 'its damage as before');
@@ -335,6 +335,26 @@ test('the combo\'s third swing is a heavy blow on the ground: a longer wind-up, 
   const planted = lift(S.clip, S.from, S.to), leap = lift('mixamo_ss_attack_1', 0.55, 1.7);
   assert.ok(planted < 0.2, `the third: both feet up at most ${planted.toFixed(2)} m`);
   assert.ok(leap > 0.5, `(the measure sees the old leap: ${leap.toFixed(2)} m)`);
+  // (issue #712: "the third strike is a crouch strike": it stands tall through its cut, the sword raised over the head)
+  const pelvis = p.humanoid.b.pelvis;
+  /** The lowest the pelvis goes (m over his feet) and the highest the blade's point (m) through a clip's range. */
+  const body = (clip, from, to) => {
+    let low = Infinity, tip = -Infinity;
+    for (let t = from; t <= to; t += 1 / 30) {
+      for (let k = 0; k < 3; k++) tick({}, { clip, t, w: 1, full: true, id: 'probe' });
+      p.object.updateMatrixWorld(true);
+      low = Math.min(low, pelvis.getWorldPosition(w).y - p.pos.y);
+      tool.blade.move = SWINGS[2]; tool.blade.lit = 1; tool.blade.sheath.set(true); tool.blade.place(0);
+      tip = Math.max(tip, (tool.blade.bladeSegment(1)?.b.y ?? -Infinity) - p.pos.y);
+    }
+    return { low, tip };
+  };
+  for (let i = 0; i < 20; i++) tick({});
+  p.object.updateMatrixWorld(true);
+  const stand = pelvis.getWorldPosition(w).y - p.pos.y;
+  const third = body(S.clip, S.from, S.to);
+  assert.ok(stand - third.low < 0.25, `the third stands: the pelvis drops ${(stand - third.low).toFixed(2)} m (the crouched slash 5 dropped 0.48)`);
+  assert.ok(third.tip > 2, `raised over the head: the point ${third.tip.toFixed(2)} m up`);
 });
 
 test('a swing through a small creature bonks it (the blade, not a scare from anywhere in the cone); one beside the cut is left alone', async () => {
@@ -366,4 +386,26 @@ test('recorded perfect parry suppresses only the duplicate mode chirp; fallback 
     tool.dispose();
   }
   clearTargets();
+});
+
+test('the blade pressed at a sprint is the running cut: the run carried into one strong cut, then a recovery to a stop (issue #718)', async () => {
+  assert.ok(runCutOpen({ onGround: true, sprinting: true }), 'sprinting');
+  assert.ok(runCutOpen({ onGround: true, speed: RUN_CUT.min + 0.1 }), 'or running fast');
+  assert.ok(!runCutOpen({ onGround: true, speed: 3 }) && !runCutOpen({ onGround: false, sprinting: true }) && !runCutOpen({ onGround: true, sprinting: true, chained: true }), 'not at a jog, in the air or in a chain');
+  const { p, tool, tick } = await armed();
+  const blade = tool.blade;
+  for (let i = 0; i < 90; i++) tick({ KeyW: true, ShiftLeft: true });
+  const v0 = Math.hypot(p.vel.x, p.vel.z);
+  assert.ok(p.sprinting && v0 > RUN_CUT.min, `sprinting at ${v0.toFixed(2)} m/s`);
+  tick({ KeyW: true, ShiftLeft: true, KeyF: true });
+  assert.equal(blade.special, RUN_CUT, 'the running cut, not the standing first slash');
+  const speeds = [], phases = [];
+  for (let i = 0; i < 80 && blade.swinging; i++) { tick({ KeyW: true, ShiftLeft: true }); speeds.push(Math.hypot(p.vel.x, p.vel.z)); phases.push(blade.phase); }
+  const cutAt = phases.indexOf('strike'), recAt = phases.indexOf('recover');
+  assert.ok(cutAt > 0 && speeds[cutAt] > v0 * 0.85, `carried into the cut (${speeds[cutAt]?.toFixed(2)} m/s)`);
+  for (let i = recAt + 1; i < speeds.length; i++) assert.ok(speeds[i] <= speeds[i - 1] + 0.05, `easing to a stop through the follow-through, never a lurch (${speeds[i - 1].toFixed(2)} → ${speeds[i].toFixed(2)})`);
+  assert.ok(speeds.at(-1) < 1.5, `stopped at its end (${speeds.at(-1).toFixed(2)} m/s)`);
+  assert.ok(Math.max(...speeds.slice(recAt).map((v, i, a) => (i ? a[i - 1] - v : 0))) < 1.5, 'no sudden drop in a frame');
+  assert.ok(blade.cool > 0 || !blade.swinging, 'then the cooldown, as after a finisher');
+  tool.dispose();
 });

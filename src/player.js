@@ -2882,6 +2882,8 @@ export class Player {
       this.moves.play(A);
     }
     // (the air cut, src/fluid-blade.js AIR: the whole body in the air too, its own rise off the floor left out: the controller flies it)
+    // (the move on his body this frame, as posed: the blade's edge roll reads it, src/fluid-blade.js; swingMove itself is changed after)
+    this.shownClip = Sw && !R && !this.down ? Sw.clip : null; this.shownW = Sw?.w ?? 0;
     if (Sw && !R && !this.down) A.playCombat(Sw.clip, Sw.t, Sw.w, { full: (Sw.full && this.onGround) || (!!Sw.air && !this.onGround), ground: !!Sw.air && !this.onGround, id: Sw.id, blend: Sw.blend ?? 0.09 });
     // setting off from standing: the loops start on the step the feet are in, the foot ahead down and the one behind lifting
     // first (the shared phase ran on from wherever the last stop left it: a jog set off on the foot behind, held down out of

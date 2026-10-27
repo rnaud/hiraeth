@@ -9,6 +9,7 @@ import { triggers } from './controller.js';
 import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes, startMode } from './fluid-kit.js';
 import { FluidBlade, HIT_FX } from './fluid-blade.js';
+import { HitBursts } from './hit-burst.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
 import { boostVelocity, DOUBLE_JUMP } from './jump.js';
 
@@ -829,6 +830,7 @@ export class FluidTool {
     this.glow = new Dots(fx, 160, makeMaterial({ color: '#ffffff', flat: true, glow: 0.95 }));
     this.splats = new Splats(fx, () => this.physics);
     this.rings = new Rings(fx);
+    this.bursts = new HitBursts(fx, () => this.camera);   // (a landed cut's inked star: src/hit-burst.js)
     const globMat = (this.globMat = globMaterial());
     this.globU = globMat.uniforms;
     this.globMeshes = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 2), globMat); m.visible = false; m.userData.noCollide = true; fx.add(m); return m; });
@@ -1102,7 +1104,7 @@ export class FluidTool {
     this.updateGlobs(dt);
     const up = p?.frame.up ?? _y;
     this.drops.update(dt, up); this.glow.update(dt, up);
-    this.splats.update(dt); this.rings.update(dt);
+    this.splats.update(dt); this.rings.update(dt); this.bursts.update(dt);
     this.updateWorn(dt);
     const dry = this.dry;
     this.sound?.fluidLevel?.(this.reserve.level / this.reserve.max, this.owned && !dry && bodyOk);

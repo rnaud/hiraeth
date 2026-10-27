@@ -378,8 +378,11 @@ node scripts/mocap/compare-people.mjs      # a person on each captured walk
   `Animator.playCombat` takes a `blend` (s, default 0.09) for a move's way in (the charge's draw: 0.2) and
   `ground` (the air cut); `blendCombat` now holds every joint of the library's skeleton (plain nodes, not
   Bones: it had held none, so nothing blended).
-- **The heavy third swing** (v1.39, docs/systems/foes.md): the Sword and Shield pack's slash 5 (`ss_slash_5`, `--add ss_slash_5`):
-  645 908 → 657 668 bytes. Attack 1 stays in the library (the shade's strike). The tip peaks at 37 m/s at 0.56 s.
+- **The heavy third swing** (v2.31, issue #712, docs/systems/foes.md): the Great Sword pack's slash 3 (`gs_slash_3`, `until`
+  1.45 s, `--add gs_slash_3`), slash 5 taken out of moves.glb (its row `ref`; `readGLB` / `writeGLB` without it): 657 668 →
+  658 312 bytes. It is the two-handed great sword's, its right fist turned so the blade would cut 34–80° off its edge:
+  the swing's `roll` (−0.95 rad) turns the blade about its own line in the fist while the clip is on his body
+  (`Player.shownClip`, `edgeRollOf`, `FluidBlade.mountGrip`; tests/blade-grip.test.js keeps every swing edge first). Until v2.30 slash 5 (`ss_slash_5`, v1.39, `--add ss_slash_5`): 645 908 → 657 668 bytes. Attack 1 stays in the library (the shade's strike). The tip peaks at 37 m/s at 0.56 s.
 - **The blade's counters** (v1.4, docs/systems/foes.md): the Sword and Shield pack's slash 4 (`ss_slash_4`, the
   riposte, `until` 1.8 of its 2.4 s) and attack 2 (`ss_attack_2`, the dash cut, `until` 1.05 of 1.3 s), with
   `--add ss_slash_4,ss_attack_2`: 621 644 → 645 908 bytes (+24 KB, 3.9 %; gzip 412 874 → 427 094). The blade tip

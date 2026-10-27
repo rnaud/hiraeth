@@ -157,7 +157,9 @@ for (const body of ['b3', 'plain']) {
         assert.ok(m.min > -1.5e-3 && m.max < 4.5e-3, `${S.clip} t ${s.t.toFixed(2)}: the strap ${(m.min * 1000).toFixed(1)}..${(m.max * 1000).toFixed(1)} mm off the skin`);
         assert.ok(m.plate > STRAP.leather + STRAP.plate - 1e-3 && m.plate < STRAP.leather + STRAP.plate + 5e-3, `${S.clip}: the plate on the strap (${(m.plate * 1000).toFixed(1)} mm off the skin)`);
         const out = v(0, 0, 1).transformDirection(b.matrixWorld), back = mount.outHand.clone().transformDirection(B.hand_l.matrixWorld);
-        assert.ok(Math.abs(out.dot(axis2)) < 1e-3 && out.dot(back) > 0.7, `${S.clip}: facing out, the back of the hand's way (${out.dot(back).toFixed(2)})`);
+        // (0.65: the third swing's two-handed coil behind the head, v2.31's great sword slash 3, turns the plain body's left wrist
+        // furthest: 0.69 at its 0.62 s; every other clip over 0.7)
+        assert.ok(Math.abs(out.dot(axis2)) < 1e-3 && out.dot(back) > 0.65, `${S.clip}: facing out, the back of the hand's way (${out.dot(back).toFixed(2)})`);
         // the swings cut edge first: the tip's motion across the blade along its edge
         if (SWINGS.includes(S) && s.phase === 'strike') {
           const tip = at.clone().addScaledVector(axis, 0.9);

@@ -786,6 +786,15 @@ function makePlan(args) {
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-cut.png` });
     steps.push({ kind: 'wait', frames: 60, secs: 2 });
   }
+  if (fights.includes('combo')) {
+    // (-fight combo, issues #712 / #713: a toad set down 2.4 m ahead, kept alive, locked on; the three cuts pressed in a
+    // chain, a picture every few frames from the first press: the hit bursts, the heavy third)
+    const shots = (from, n) => (args.out ? Array.from({ length: n }, (_, i) => ({ kind: 'shot', file: `${args.out}/unity-combo-${String(from + i).padStart(2, '0')}.png` })) : []);
+    const press = [{ kind: 'key', code: 'KeyF', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyF', down: false }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'toad', dist: 2.4, hp: 99 }, { kind: 'wait', frames: 30, secs: 1 },
+      { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 30, secs: 0.6 },
+      ...press, { kind: 'wait', frames: 4 }, ...shots(0, 8), ...press, ...shots(8, 10), ...press, ...shots(18, 22), { kind: 'wait', frames: 60, secs: 1 });
+  }
   if (fights.includes('wisp')) {
     // (-fight wisp: an exchange with the ember wisp, issue #398: set down 9 m ahead, locked on; its wind-up, its ball in the
     // air, the blade (F) pressed as the ball comes in, the ball sent back, the wisp stunned low; tests/engine-fireball.test.js)
@@ -1231,7 +1240,11 @@ function playFrame(dt) {
         game.player.heading = Math.atan2(c.x - at.x, c.z - at.z); game.rig.yaw = game.player.heading + Math.PI;
         console.log(`[unity] in ${T.id}'s arena (${G.state})`);
       }
-    } else { const got = F.spawnKind(step.what, { n: 1, dist: step.what === 'wisp' ? 9 : 5 }); console.log(`[unity] a ${step.what} set down: ${got.length}`); }
+    } else {
+      const got = F.spawnKind(step.what, { n: 1, dist: step.dist ?? (step.what === 'wisp' ? 9 : 5) });
+      if (step.hp) for (const f of got) { f.hp = step.hp; f.cool = 99; }   // (kept up and slow to strike: -fight combo)
+      console.log(`[unity] a ${step.what} set down: ${got.length}`);
+    }
     next();
   }
   else if (step.kind === 'wisp') {

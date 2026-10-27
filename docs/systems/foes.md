@@ -15,14 +15,22 @@ The first things in the game that fight back, and the tool's answer to them.
   to `MAGNET.max` (2.2 m) of ground; in reach, or further, nothing. Not the lunge (it carries you itself) nor in the air.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.16/0.13/0.18 s for the first,
-  0.18/0.14/0.19 for the second, 0.32/0.16/0.27 for the heavy third; v1.41, the author: "speed up the main
+  0.18/0.14/0.19 for the second, 0.42/0.15/0.36 for the heavy third since v2.31 (0.32/0.16/0.27 before); v1.41, the author: "speed up the main
   character's attacks": each phase about a quarter quicker, the whole combo 1.73 s against 2.28, the cooldown after
   it 0.4 s against 0.5) onto source time.
-  **The heavy third** (v1.39): the pack's slash 5 (`ss_slash_5`), an overhead chop with both feet planted, the sword raised
-  high over the longer wind-up and brought down; a nudge of the camera (`kick` 0.12) as it comes down, landed or not, and on a
-  hit the third's damage 3, knockback 2.2× and 0.11 s hit-stop as before. It was attack 1 (`ss_attack_1`), a leaping overhead
-  that took both feet 1.4 m off the ground (the author: "I don't want the third attack to be a jump"; measured on the packs'
-  takes: `ss_slash_5`'s feet never rise more than 5 cm). `scripts/combat-reach.mjs --swings=3`: 0 misses of 84.
+  **The heavy third** (v2.31, issue #712: "the third strike with my sword is a crouch strike which doesn't make sense, it
+  should be a third heavy strike, check what BotW does"): the Great Sword pack's slash 3 (`gs_slash_3`), the combo's finisher.
+  Breath of the Wild's one-handed string ends on its most committed blow: Link steps into it, it comes from higher and
+  further and throws the foe back, and he is a beat longer getting out of it. Ours stands tall: the sword raised over the
+  head in both hands through the longest wind-up of the three (0.42 s; the point 2.26 m up), cleaved down and across in
+  front (0.15 s; the point from over his shoulder to 0.4 m off the ground 1.5 m out) and brought back up into guard over a
+  slower follow-through (0.36 s): 0.93 s against the old 0.75. The camera nudges (`kick` 0.12) as it comes down, landed or
+  not; on a hit the third's damage 3, knockback 2.2×, the 0.11 s hit-stop, the heavy hit burst and the heavy sounds
+  (`fluidSlash(2)`'s deeper whoosh, `fluidSlashHit(true, true)`). Slash 5 (`ss_slash_5`, v1.39–v2.30) was an overhead
+  chop out of a crouch: the pelvis down 0.48 m and the cut low (`tests/blade-attacks.test.js` now keeps it under 0.25 m
+  and the point over 2 m); before it, attack 1 (`ss_attack_1`), a leaping overhead that took both feet 1.4 m off the
+  ground (the author: "I don't want the third attack to be a jump"; slash 3's feet stay down). `scripts/combat-reach.mjs
+  --swings=3`: 0 misses of 92 before and after.
   Grounded swings use the legs and hips. `Animator.playCombat` blends clip changes (and the way back to
   locomotion) over 90 ms from the displayed pose, including motion matching when enabled (v1.3: it had
   blended nothing, `isBone` finding none of the library's plain-node joints; a swing into the next jumped up to
@@ -90,6 +98,18 @@ The first things in the game that fight back, and the tool's answer to them.
   you (on another target, swinging at your partner) and to the evade or the side hop round one that just struck. Within its
   cooldown a press out of an evade is the plain buffered swing. `tests/blade-attacks.test.js` checks both
   (window, damage, stagger, chop on the foe's line, the carry past the foe, no i-frames, the cooldown).
+- **The running cut** (`RUN_CUT`, `runCutOpen`, v2.32, issue #718: "pressing shift + attack with the sword creates a non
+  sensical animation"): the blade pressed at a run (sprinting, or 5.2 m/s and more on the ground), a combo's first swing
+  and not in a chain. It was the standing first slash played over a sprinting stride, the legs held mid-stride while the
+  swing's 1.7 m/s step slid him from 8 to 1.4 m/s in a third of a second. Breath of the Wild's sprint attack carries the run
+  into one strong cut and a recovery; ours plays the dash cut's clip (the running cut, attack 2, 0.14/0.14/0.36 s) with
+  the run's own speed (at most 9 m/s) carried through the wind-up and the cut along the swing's way (at a foe in reach, else
+  straight on; no magnet step), easing to a stop over the follow-through as (1 − u)^1.6 (`combatMotion.dash`, so the run's
+  lean and turn are left out). Damage 2, heavy (the knockback, the hit-stop, the heavy hit burst), the dash's rush of air
+  (`fluidDash`) and the heavy whoosh; the cooldown after it, as after a third swing. Not the dash cut's backstab. The lunge
+  (an ink upgrade) still takes a run's swing first. Standing with Shift held, the blade is the plain first swing. Tested
+  in `tests/blade-attacks.test.js` (from a sprint: the running cut, the speed carried into the cut and eased to a stop,
+  never a lurch); the same with the default sprint and with `?sprint=kevin`.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
@@ -890,8 +910,23 @@ the phase that teaches it; `tests/temples.test.js` plays them as part of each te
 ## Feel (`src/feel.js`)
 
 - **Hit-stop (frame freeze):** `hitStop(s)` freezes the world (`FEEL.slow` 0: main.js `feelDt` passes a
-  1e-5 s step, never zero): 0.06 s on a cut, 0.11 s on the heavy third swing, the whirl and the lunge, 0.07 s
-  on a block, 0.14 s on a perfect parry.
+  1e-5 s step, never zero): 0.06 s on a cut (3-4 frames), 0.11 s on the heavy third swing, the whirl and the lunge,
+  0.15 s on a full charged cut or a riposte, 0.07 s on a block, 0.14 s on a perfect parry.
+- **The hit burst** (v2.31, issue #713, `src/hit-burst.js` `HitBursts`, `HIT_BURST`; `FluidTool.bursts`): the author: "in
+  BotW when a hit lands there is a hit effect which makes it very clear that the hit connected". What Breath of the Wild
+  layers on a landed hit: a few frames' freeze, a bright star of light at the contact drawn over everything, the foe
+  flashing, a slash streak and a shake on its heavy blows, a sharp crack of a sound. Hiraeth had all but the star (the
+  hit-stop above, `Foes.react`'s ink flash and flinch, the blade's splash and ripple, the kick, `fluidSlashHit`); the burst
+  is its star, inked: cream rays round a white four-pointed core, each ray cut out of a black one a little bigger, flat and
+  turned to the camera, at every contact a landed blade cut makes (up to three a swing; not on armour, a block, a miss or
+  a dull guardian). Heavy blows (the combo's third, the charged cut, the riposte, the dash and air cuts) get nine rays
+  against six, half as long again, and a long inked streak along the blade's way as seen. It lives on the traveller's
+  clock (`selfDt`), so the hit-stop holds its first, biggest frame through the freeze; then it bursts out and is gone
+  (0.1 s light, 0.15 s heavy). It is drawn at `toward` (0.45) of the way to the camera, shrunk to the same size on the
+  screen, so neither the foe's body nor the traveller in front of the camera hides it, with no depth trick the
+  engines would have to mirror. One InstancedMesh (`makeMaterial`, flat): one draw for all of them, mirrored to the
+  engines like the rings (checked in Unity's batch run: `scripts/unity-js-run.sh … -level arena -fight combo`, a toad
+  kept up and the three blows pressed, a picture every few frames). Tests: `tests/hit-burst.test.js`.
 - **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
   `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
 - **The finishing blow** (v0.96, `Foes.burst`; since v1.35 at the blow, `Foes.defeat`, the burst after its defeat): 0.09 s and a bigger kick; the last foe of a fight (none other
