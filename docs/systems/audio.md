@@ -1234,6 +1234,41 @@ Discarded side worlds (White Mangrove, Waterfall, Salt Harbour, Forest of Antenn
 
 Ten author-selected Suno v6 originals replace the title and seven world recordings and add prologue/battle themes. `public/music/manifest.json` preserves source links. New filenames avoid stale device caches. Nine retired/WIP recordings are removed from game downloads; Suno originals are retained.
 
-`SceneMusic` shares the web/Unity audio graph and music volume bus. Battle is preloaded, begins on a nearby enemy's chase/wind/strike/recovery, holds for 1.2 seconds after disengagement, and fades over 2.5 seconds. Exploration fades down during combat and returns afterward. Pauses, death, riding and disabled encounters release combat. A new fight during the fade resumes from the current gain. Unavailable recordings retain procedural fallback. Disposal aborts pending loads and stops voices.
+`SceneMusic` shares the web/Unity audio graph and music volume bus. Battle is preloaded, begins on a nearby enemy's chase/wind/strike/recovery, holds for 1.2 seconds after disengagement, and fades over 2.5 seconds. Exploration fades out before combat's music comes in and returns after it has gone (one music at a time: below, issue #711). Pauses, death, riding and disabled encounters release combat. A new fight during the fade resumes from the current gain. Unavailable recordings retain procedural fallback. Disposal aborts pending loads and stops voices.
 
 Prologue music plays only in the ship phase, fades for the voicemail, and never substitutes for the desert outside. The prologue and battle recordings are carried in device/content bundles for immediate offline playback. World themes continue background downloading. `scripts/theme-levels.mjs` measures the same loop join and loudness target for Unity as the web uses at runtime.
+
+## One music at a time (issue #711, v2.32)
+
+The author: "When the battle music comes on it layers up with the existing music? that's wrong, no two music should
+ever overlap." Before, each music faded on its own clock: the world's theme went out over 0.3 s while the fight's came
+in over 0.2 s, and after a fight the two crossed over 2.5 s; where the fight's recording was not there yet (a Unity
+player still downloading it) its procedural drums played *over* the theme; the musicians' bands, a moment's swell (the
+score ducked to 0.3, not out), the drum circle (its music bus put down, then put back every frame by `listen()`) and the
+menu (two exponential fades crossing) all summed two musics too.
+
+Now every music goes through one owner, `MusicOwner` (`src/music-owner.js`), made in `Sound.start()`. Each kind has a
+lane, a gain (and a gain for its reverb send) that its sources go through (`Sound.musicLane(id, room)`), ranked:
+`menu` (the menu bus, the title's recording) > `game` (a minigame's music: `musicTake('game', on)`, the drum circle) >
+`swell` (a story moment's swell, a musician's solo, the Garden's sphere song, held for their length with
+`musicHold('swell', secs)`; the box's fanfare 3 s and the father's charge 6 s, which are effects, hold it too, so the
+music steps out under them) > `prologue` (the ship's recording) > `battle` (the fight's recording, or its drums where
+that is missing) > `bands` (the world's musicians, once the loudest band's level k² passes `BAND_FLOOR.on` 0.12, given
+back under 0.06) > `theme` (the world's recording) > `score` (the procedural score; it is only scheduled while it has
+the floor). `Sound.musicWants()` says which are wanted; `musicOwnerUpdate()` (every frame, and on each change) gives the
+floor to the highest. The lanes losing it fade out as fast as the newcomer's `cut` asks (a fight's 0.3 s, the menu's
+0.25 s) or their own `out` if quicker (the moments' 10 s for the theme going to the light score); the lane taking it holds
+until every other is under `MUSIC_EPS` (0.03, -30 dB), then fades in (`in`). So at most one lane is ever above -30 dB.
+The envelopes are tracked in the owner, and a recording (the theme, the fight's, the prologue's) starts at its lane's
+rise (`startAt`), so its opening is heard. A swell no longer ducks the music bus: it has the floor; under a solo or a
+swell the other bands go to 0 (were 0.2). The reverb's own tail of the music before still rings out under the next.
+
+Short stingers stay effects over whatever plays: a key's chime, a quest's chime, the light's three notes on the map.
+Two `Sound`s exist at once only in Unity's title-to-world handover (the title's menu music fading as the world loads).
+
+Unity runs the same JS on engine/webaudio.js: the lanes are ordinary gains, so the recordings Unity plays
+(`nativeText()`) carry them. `tests/music-owner.test.js` drives the game's Sound there with Unity's decoder stood in and
+fails if two recordings reach the speakers above 0.01 (about -30 dB under a theme) or two lanes are above `MUSIC_EPS` at
+any 50 ms: a fight starting and ending in Incal and Space City, a swell, a fanfare and the menu during a fight, a temple
+entered mid-fight, the drum circle, the musicians, the prologue, a fight without its recording; and the owner alone under
+4000 random changes.

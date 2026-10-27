@@ -28,6 +28,7 @@ export const PLUMBING = {
   constructor: 'the engine', startIfAllowed: 'the engine', masterLevel: 'the engine', _away: 'the engine', start: 'the engine',
   dispose: 'the engine', levels: 'the meters', toggleMute: 'the mute', setVolumes: 'the volumes', setVoices: 'the voice volume',
   prologueTheme: 'recorded prologue phase controller',
+  musicLane: 'one music at a time (src/music-owner.js)', musicWants: 'one music at a time', musicOwnerUpdate: 'one music at a time', musicHold: 'one music at a time', musicTake: 'one music at a time',
   setMusicMode: 'Settings > Music', musicCue: 'the moments (src/music-moments.js)', musicMomentsUpdate: 'the moments',
   holdTheme: 'the moments', playTitleTheme: 'the title (its recording is among the songs)',
   setScore: 'the score player (Songs: each score)', schedule: 'the score player', playEvent: 'the score player', freq: 'the world\'s scale',

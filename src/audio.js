@@ -1,4 +1,5 @@
 import { SceneMusic } from './scene-music.js';
+import { MusicOwner } from './music-owner.js';
 import { SfxTrace } from './sfx-trace.js';
 // Recorded world soundtracks with procedural fallback, ambience and effects.
 // Mixed with Web Audio. Starts on the first click or
@@ -166,6 +167,8 @@ export const GRUNTS = {
 };
 /** The music under a conversation's or a call's voice (x its level: -4.4 dB, issue #379; eased in 0.3 s, out over 0.8 s). */
 export const TALK_DUCK = 0.6;
+/** The musicians' level (k², k = 1 at them .. 0 at their radius) where they take the music's floor, and give it back. */
+export const BAND_FLOOR = { on: 0.12, off: 0.06 };
 /**
  * The outdoor ambience under the same voice (issue #638): the wind's, the storm's, the rain's and the falls' beds x this
  * (-6 dB, eased with the layers' own 0.15 s), and the bed's occasional events (a horn, a piston, a croak) held back, so
@@ -352,6 +355,10 @@ export class Sound {
     this.fx.connect(this.world);
     this.fxSend = ctx.createGain(); this.fxSend.gain.value = 0.25;
     this.fx.connect(this.fxSend).connect(this.reverb);
+    // every music goes through one owner, one lane of it at a time (src/music-owner.js, issue #711): the score's own
+    this.musicOwner = new MusicOwner(ctx);
+    this.scoreBus = this.musicLane('score');
+    this.musicOwner.settle(this.musicWants(ctx.currentTime));   // (the score from the first beat, as before)
     // an effect's own room (the singing light's theme, the makers' hum): the effects volume too, so at 0 nothing
     // of it reaches the reverb (it used to go straight in: issue #112, the only sound left with effects at 0)
     this.fxRoom = ctx.createGain(); this.fxRoom.gain.value = this.fxVol;
@@ -421,6 +428,57 @@ export class Sound {
     if (this.menuOn) this.menuMusic(true);
   }
 
+  // ------------------------------------------------------------------ the music's one owner (issue #711)
+  /**
+   * The gain a music of this lane goes through (src/music-owner.js MUSIC_LANES), into its bus: the world's music bus
+   * for the score, the theme, a fight's and the prologue's; the world (and `room`: the reverb) for the musicians, a
+   * moment's swell and a minigame's; the master for the menus'. Null before the sound has started.
+   */
+  musicLane(id, room = false) {
+    const O = this.musicOwner;
+    if (!O) return null;
+    const dest = id === 'menu' ? this.master : ['bands', 'swell', 'game'].includes(id) ? (room ? this.reverb : this.world) : this.music;
+    return O.node(id, dest, { room });
+  }
+
+  /** Is a fight's music on (its recording or its drums; held a moment after the foes give up: src/scene-music.js)? */
+  get fightOn() { return !!this.sceneMusic?.battle && !this.sceneMusic.prologue; }
+
+  /** Which music lanes want the floor now (the owner gives it to the highest: src/music-owner.js). */
+  musicWants(t = this.ctx?.currentTime ?? 0) {
+    const S = this.sceneMusic, H = this._musicHolds ?? {};
+    return {
+      menu: !!this.menuOn,
+      game: !!this._musicTakes?.game,
+      swell: (H.swell ?? 0) > t || this.soloing,
+      prologue: !!S?.prologue && !!S?.buffers.prologue,
+      battle: this.fightOn,
+      bands: !!this._bandsNear,
+      theme: !!this.trackBuffer && !!this.trackOn,
+      score: !this.scoreOff,
+    };
+  }
+
+  /** Give the floor to the music wanted now (cheap when nothing changed: called every frame and on each change). */
+  musicOwnerUpdate() {
+    if (!this.musicOwner || !this.ctx) return null;
+    return this.musicOwner.update(this.musicWants(this.ctx.currentTime), this.ctx.currentTime);
+  }
+
+  /** Hold a lane's floor for `secs` from now (a moment's swell, a solo, a fanfare: 'swell'). */
+  musicHold(id, secs) {
+    if (!this.ctx) return;
+    const H = (this._musicHolds ??= {}), until = this.ctx.currentTime + secs;
+    if (!(H[id] > until)) H[id] = until;
+    this.musicOwnerUpdate?.();
+  }
+
+  /** Take a lane's floor (on) until given back (off): a minigame's music ('game', src/minigames/drums.js). */
+  musicTake(id, on) {
+    (this._musicTakes ??= {})[id] = !!on;
+    this.musicOwnerUpdate?.();
+  }
+
   // ------------------------------------------------------------------ the recorded theme, for the moments
   /** Settings > Music: 'always' (the default) or 'moments' (the theme for arrivals, interiors and moments, ambience between). */
   setMusicMode(mode) {
@@ -439,8 +497,9 @@ export class Sound {
    * when you step out. The bands keep their own key (they play in this.profile's: it follows the score).
    */
   setScore(id) {
-    if (id === null) { this.scoreOff = true; return; }
+    if (id === null) { this.scoreOff = true; this.musicOwnerUpdate?.(); return; }
     this.scoreOff = false;
+    this.musicOwnerUpdate?.();
     if (id === this.scoreId) return;
     const S = scoreFor(id);
     this.scoreId = id; this.S = S;
@@ -473,24 +532,27 @@ export class Sound {
     if (M && ctx && !this.trackBuffer && this.S?.moments) { const { on } = M.update(ctx.currentTime, { indoor }); this.scoreMoment = on || !!this.themeHeld; return; }
     if (!M || !ctx || !this.trackBuffer || !this.trackGain) return;
     let { on } = M.update(ctx.currentTime, { indoor });
-    if (this.themeHeld || this.sceneMusic?.battleActive) on = false;
+    if (this.themeHeld || this.fightOn) on = false;
     if (on === this.trackOn) return;
     this.trackOn = on;
+    // (its lane, src/music-owner.js, lets it in only once the music before it is out: one music at a time, issue #711)
     const t = ctx.currentTime, g = this.trackGain.gain;
     clearTimeout(this._trackStop);
+    this.musicOwnerUpdate?.();
     g.cancelScheduledValues(t);
     g.setValueAtTime(Math.max(0, Math.min(1, g.value)), t);
     if (on) {
       if (!this.recordedTrack) {
         const src = ctx.createBufferSource();
         src.buffer = this.trackBuffer; src.loop = true;
-        src.connect(this.trackGain); src.start(t);
+        // (from its opening, where its lane comes in: once the music before it is out)
+        src.connect(this.trackGain); src.start(this.musicOwner?.startAt('theme', t) ?? t);
         this.recordedTrack = src;
       }
       g.linearRampToValueAtTime(1, t + M.T.fadeIn);
     } else {
-      const fadeOut = this.sceneMusic?.battleActive ? 0.3 : M.T.fadeOut;
-      g.linearRampToValueAtTime(0, t + fadeOut);
+      // (a fight's music: its lane takes the theme out at once, src/music-owner.js; the moments' own fade is the long one)
+      g.linearRampToValueAtTime(0, t + M.T.fadeOut);
       this._trackStop = setTimeout(() => {
         const src = this.recordedTrack;
         if (this.trackOn || !src) return;
@@ -502,8 +564,9 @@ export class Sound {
 
   // ------------------------------------------------------------------ combat
   /**
-   * A fight's layer over the world's music (src/foes.js: on while foes chase you): a low drum on the beat,
-   * a dry tom on the off-beats and a held drone a fifth apart, fading in over a second and out over two.
+   * A fight's music (src/foes.js: on while foes chase you): its recording (src/scene-music.js), or where that is not
+   * there a low drum on the beat, a dry tom on the off-beats and a held drone a fifth apart. Either takes the floor
+   * from the world's music, which goes out first (src/music-owner.js: never the two at once, issue #711).
    */
   combat(on) {
     on = !!on;
@@ -511,6 +574,7 @@ export class Sound {
     if (this._disposed) return;
     this.sceneMusic ??= new SceneMusic(this);
     this.sceneMusic.fight(on);
+    this.musicOwnerUpdate?.();
     if (this.sceneMusic.buffers.battle) {
       clearInterval(this.combatTimer); this.combatTimer = null;
       clearTimeout(this._combatStop);
@@ -524,7 +588,7 @@ export class Sound {
     const t = ctx.currentTime;
     if (!this.combatBus) {
       this.combatBus = ctx.createGain(); this.combatBus.gain.value = 0;
-      this.combatBus.connect(this.music ?? this.master);
+      this.combatBus.connect(this.musicLane('battle') ?? this.music ?? this.master);   // (in the fight's lane: the world's music out under it)
       this.combatDrone = [55, 82.4].map((f) => {
         const o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
         o.type = 'sawtooth'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 220; g.gain.value = 0.05;
@@ -568,6 +632,8 @@ export class Sound {
     this.menuOn = !!on;
     const ctx = this.ctx;
     if (!ctx) return;   // (start() applies it)
+    this.menuBusEnsure();
+    this.musicOwnerUpdate?.();
     const t = ctx.currentTime;
     this.world.gain.setTargetAtTime(on ? MENU_HUSH : 1, t, on ? 0.3 : 0.5);
     // the world's own music goes out altogether under a menu (issue #243: "we should not play both the level and menu
@@ -595,7 +661,7 @@ export class Sound {
     if (this.menuBus) return this.menuBus;
     const ctx = this.ctx;
     this.menuBus = ctx.createGain(); this.menuBus.gain.value = 0;
-    this.menuBus.connect(this.master);
+    this.menuBus.connect(this.musicLane('menu') ?? this.master);
     this.menuSynth = ctx.createGain(); this.menuSynth.gain.value = this.titleTrack ? 0 : 1;
     this.menuSynth.connect(this.menuBus);
     const verb = ctx.createConvolver(); verb.buffer = this.reverb.buffer;
@@ -727,7 +793,7 @@ export class Sound {
 
   /** The music bus's level as listen() sets it: the player's music volume, the musicians near, a moment's swell, a bench's. */
   musicLevel(near = 0, t = this.ctx?.currentTime ?? 0) {
-    const swell = ((this._swellUntil ?? 0) > t ? 0.3 : 1) * ((this._duckUntil ?? 0) > t ? TALK_DUCK : 1);   // (and under a conversation's or a call's voice: TALK_DUCK)
+    const swell = (this._duckUntil ?? 0) > t ? TALK_DUCK : 1;   // (under a conversation's or a call's voice: TALK_DUCK; a moment's swell takes the floor instead, src/music-owner.js)
     const seat = 1 + (SEATED_SWELL.lift - 1) * (this._sitK ?? 0);
     return this.menuOn ? 0 : 0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell * seat;
   }
@@ -779,7 +845,7 @@ export class Sound {
     const ctx = this.ctx, spb = 60 / this.S.tempo;
     if (!this.V) this.V = { ctx, noise: this.noiseBuf };
     // the score's echo (the desert's), made once when a score with one first plays; the others send nothing into it
-    this.V.echo = this.S.echo ? (this._echo ??= echoBus(this.V, this.music, { time: this.S.echo.beats * spb })) : null;
+    this.V.echo = this.S.echo ? (this._echo ??= echoBus(this.V, this.scoreBus ?? this.music, { time: this.S.echo.beats * spb })) : null;
     if (!this._luteReady && this.S.pal.pluck === 'lute') this._luteReady = prepareLute(this.V);   // (its registers, one a tick)
     while (this.nextBeat < ctx.currentTime + 0.4) {
       const t = this.nextBeat;
@@ -787,7 +853,8 @@ export class Sound {
       // the recorded theme playing: no procedural score; resting between moments (src/music-moments.js): its light layers
       // (the theme held back, the prologue's ship: its score in full; the score off: nothing). A score with moments of its
       // own and no recording loaded (the desert's): in full for a moment, its light layers between (musicMomentsUpdate)
-      if (!(this.recordedTrack && this.trackOn) && !this.scoreOff && !this.sceneMusic?.suppressScore) {
+      // (and only while its lane has the floor: src/music-owner.js)
+      if (!(this.recordedTrack && this.trackOn) && !this.scoreOff && !this.sceneMusic?.suppressScore && (!this.musicOwner || this.musicOwner.floor === 'score')) {
         const events = scoreBeat(this.scoreId, this.beat, this.act);
         const light = this.trackBuffer ? !this.themeHeld : !!this.S.moments && this.scoreMoment === false;
         for (const e of light ? lightScore(events) : events) this.playEvent(e, t, spb);
@@ -802,8 +869,8 @@ export class Sound {
   /** One of the score's events (src/score.js), at the beat starting t0. */
   playEvent(e, t0, spb) {
     const ctx = this.ctx, t = t0 + e.at * spb, dur = e.beats * spb;
-    let out = this.music;
-    if (e.pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = e.pan; p.connect(this.music); out = p; }
+    let out = this.scoreBus ?? this.music;
+    if (e.pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = e.pan; p.connect(out); out = p; }
     if (e.layer === 'perc') return hit(this.V, e.kind, t, e.vol, out);
     const f = this.freq(e.degree, e.octave);
     if (e.layer === 'color') {
@@ -818,11 +885,11 @@ export class Sound {
 
   /** One note of a named instrument. dur in seconds. `dest`: a band's input instead of the score. */
   instrument(kind, f, t, dur, vol, dest = null) {
-    if (!OWN_KINDS.has(kind) && playVoice(this.V ??= { ctx: this.ctx, noise: this.noiseBuf }, kind, f, t, dur, vol, dest ?? this.music)) return;
+    if (!OWN_KINDS.has(kind) && playVoice(this.V ??= { ctx: this.ctx, noise: this.noiseBuf }, kind, f, t, dur, vol, dest ?? this.scoreBus ?? this.music)) return;
     const ctx = this.ctx, out = ctx.createGain(); out.gain.value = 0;
     const pan = !dest && ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (dest) out.connect(dest);
-    else if (pan) { pan.pan.value = Math.random() * 0.8 - 0.4; out.connect(pan).connect(this.music); } else out.connect(this.music);
+    else if (pan) { pan.pan.value = Math.random() * 0.8 - 0.4; out.connect(pan).connect(this.scoreBus ?? this.music); } else out.connect(this.scoreBus ?? this.music);
     const env = (g, a, d, peak, sustain = 0) => {
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a);
       if (sustain) { g.gain.setValueAtTime(peak, t + Math.max(a, dur - d)); g.gain.linearRampToValueAtTime(0, t + dur + d); }
@@ -1224,10 +1291,11 @@ export class Sound {
     const fx = bus !== 'music';
     // (the effects bus is 1.6 × the effects volume: SPOT_FX keeps a placed sound as loud as it was at the default volumes)
     g.gain.value = gain * vol * (fx ? SPOT_FX : this.musicVol);
-    const into = fx ? this.fx : this.world;
+    // (a music placed (the sphere song): in the moments' lane, the world's music out under it: src/music-owner.js)
+    const into = fx ? this.fx : this.musicLane('swell') ?? this.world;
     const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (p) { p.pan.value = pan; g.connect(p).connect(into); } else g.connect(into);
-    const send = ctx.createGain(); send.gain.value = fx ? room * 1.6 : room; g.connect(send).connect(fx ? this.fxRoom : this.reverb);
+    const send = ctx.createGain(); send.gain.value = fx ? room * 1.6 : room; g.connect(send).connect(fx ? this.fxRoom : this.musicLane('swell', true) ?? this.reverb);
     setTimeout(() => { try { g.disconnect(); send.disconnect(); p?.disconnect(); } catch { /* gone */ } }, until * 1000);
     return g;
   }
@@ -1304,6 +1372,7 @@ export class Sound {
     this.instrument('chant', this.freq(0, 0), t + len * 0.5, len * 0.5 + 1.5, 0.07, out);
     for (let k = 0; k < at; k++) { const hit = [2, 0, 1, 2, 1, 0, 2, 1][k % 8]; if (hit === 2) this.dum(t + k * e, 0.34, out); else if (hit === 1) this.tek(t + k * e, 0.14, out); }
     this.dum(t + len, 0.5, out);
+    this.musicHold?.('swell', 0.1 + len + 2);
     this.musicCue('moment', { delay: len + 1 });
     if (ney) { let a2 = 0; for (const [deg, n] of tune) { if (deg !== null && n >= 2) this.instrument('ney', this.freq(deg, 1), t + (a2 + 1) * e, n * e, 0.07, out); a2 += n; } }
     return len + 2;
@@ -1596,6 +1665,7 @@ export class Sound {
    */
   fanfare() {
     if (!this.ctx || this.muted) return;
+    this.musicHold?.('swell', 3);   // (the world's music steps out under it, and back after: one music at a time)
     this.musicCue('moment', { delay: 2.5 });
     if (templeAudio(this).cue('treasure-reveal', 1)) return;
     const t = this.ctx.currentTime, bus = this.fx;
@@ -1621,6 +1691,7 @@ export class Sound {
     const ctx = this.ctx, t = ctx.currentTime + 0.05, bus = this.fx;
     const n = (semi) => 293.66 * Math.pow(2, semi / 12);            // from D4
     this.musicCue('moment', { delay: 5 });
+    this.musicHold?.('swell', 6);
     for (const [s, v] of [[-12, 0.05], [-5, 0.035], [0, 0.02]]) {    // D3, A3, D4: held, swelling, fading
       const o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
       o.type = 'triangle'; o.frequency.value = n(s); f.type = 'lowpass'; f.frequency.value = 1200;
@@ -1650,8 +1721,8 @@ export class Sound {
     const ctx = this.ctx, t0 = ctx.currentTime + 0.25, S = this.S;
     const input = ctx.createGain(), gain = ctx.createGain();
     gain.gain.value = 0;
-    input.connect(gain).connect(this.world);
-    const send = ctx.createGain(); send.gain.value = 0.75; gain.connect(send).connect(this.reverb);
+    input.connect(gain).connect(this.musicLane('swell') ?? this.world);
+    const send = ctx.createGain(); send.gain.value = 0.75; gain.connect(send).connect(this.musicLane('swell', true) ?? this.reverb);
     const phrase = kind === 'father' ? fatherIn(S) : S.motif;
     const voice = kind === 'father' ? S.pal.father ?? 'duduk' : S.pal.lead ?? 'flute';
     let t = t0;
@@ -1666,7 +1737,7 @@ export class Sound {
       this.instrument('strings', this.freq(d, -1), at, len / 3 + 0.9, 0.06 * vol, input);
       this.instrument('strings', this.freq(d + 2, 0), at + 0.15, len / 3 + 0.7, 0.035 * vol, input);
     }
-    this._swellUntil = t0 + len + 1;
+    this.musicHold?.('swell', 0.25 + len + 1.5);   // (the score, a fight's music, the musicians: out under it)
     this.musicCue('moment', { delay: len + 0.5 });
     this.bands.push({ id: 'solo', solo: true, pos: pos ?? (() => (this._ear ? { x: this._ear.x, y: this._ear.y, z: this._ear.z } : null)), radius: 80, parts: [], vol: 1, duck: 1, input, gain, pan: null, level: 0, mode: 'play', phrase: 0, until: t0 + len + 1.5 });
     return len + 0.25;
@@ -2841,8 +2912,8 @@ export class Sound {
       const input = ctx.createGain(), gain = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
       gain.gain.value = 0;
       input.connect(gain);
-      (pan ? gain.connect(pan) : gain).connect(this.world);
-      const send = ctx.createGain(); send.gain.value = 0.35; gain.connect(send).connect(this.reverb);
+      (pan ? gain.connect(pan) : gain).connect(this.musicLane('bands') ?? this.world);
+      const send = ctx.createGain(); send.gain.value = 0.35; gain.connect(send).connect(this.musicLane('bands', true) ?? this.reverb);
       return Object.assign(d, { input, gain, pan, level: 0, mode: d.mode ?? 'play', phrase: 0 });
     });
   }
@@ -2857,13 +2928,16 @@ export class Sound {
     let near = 0;
     // (a world with no musicians still sets the music's level here: a bench's swell, SEATED_SWELL)
     if (this.bands) this.bands = this.bands.filter((b) => !b.solo || b.until > t);
-    const hush = this.soloing ? 0.2 : 1;
+    // (under a solo or a swell the other musicians stop: one music at a time, issue #711)
+    const hush = this.soloing ? 0 : 1;
+    let loudest = 0;
     for (const b of this.bands ?? []) {
       const p = typeof b.pos === 'function' ? b.pos() : b.pos;
       if (!p) { b.level = 0; b.gain.gain.setTargetAtTime(0, t, 0.3); continue; }
       const dx = p.x - pos.x, dz = p.z - pos.z, d = Math.hypot(dx, dz, (p.y - pos.y) * 0.5);
       const k = Math.max(0, 1 - d / b.radius);
       b.level = k * k * (b.vol ?? 1);
+      if (!b.solo) loudest = Math.max(loudest, b.level);
       near = Math.max(near, Math.max(0, 1 - d / (b.radius * 0.45)) * (b.duck ?? 1));
       b.gain.gain.setTargetAtTime(this.muted ? 0 : b.level * 0.9 * this.musicVol * (b.solo ? 1 : hush), t, b.solo ? 0.25 : 0.8);
       if (b.pan) {
@@ -2875,7 +2949,11 @@ export class Sound {
     // the score steps back when you stand among musicians
     // (and under a moment's swell: src/story/moment.js, swell())
     // (and swells on a bench: SEATED_SWELL, eased here so the gain follows it smoothly)
-    const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
+    // the musicians take the floor once you are near enough to hear them (and give it back further off): the world's
+    // music goes out first (src/music-owner.js, BAND_FLOOR)
+    this._bandsNear = loudest > (this._bandsNear ? BAND_FLOOR.off : BAND_FLOOR.on);
+    this.musicOwnerUpdate?.();
+    const swell = this.musicOwner?.floor === 'swell' ? 0 : 1;
     this.seatedK(t);
     const ducking = (this._duckUntil ?? 0) > t;
     if (ducking !== this._ducked) { this._ducked = ducking; this._duckT = t; }
@@ -2948,13 +3026,14 @@ export class Sound {
     const input = ctx.createGain(), gain = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     gain.gain.value = 0;
     input.connect(gain);
-    (pan ? gain.connect(pan) : gain).connect(this.world);
-    const send = ctx.createGain(); send.gain.value = 0.7; gain.connect(send).connect(this.reverb);   // a lot of room: it carries over the dunes
+    (pan ? gain.connect(pan) : gain).connect(this.musicLane('swell') ?? this.world);
+    const send = ctx.createGain(); send.gain.value = 0.7; gain.connect(send).connect(this.musicLane('swell', true) ?? this.reverb);   // a lot of room: it carries over the dunes
     let t = t0;
     for (const phrase of SOLO_TUNE) { this.soloPhrase(phrase, root, t, input, 0.16 * vol); t += phrase.reduce((a, [, d]) => a + d, 0) + 1.3; }
     const len = t - t0;
     this.soloDrone(root / 2, t0 - 0.3, len + 1, input, 0.05 * vol);
     this.bands.push({ id: 'solo', solo: true, pos, radius, parts: [], vol: 1.2, duck: 1, input, gain, pan, level: 0, mode: 'play', phrase: 0, until: t0 + len + 2 });
+    this.musicOwnerUpdate?.();   // (it takes the floor: the score and the other musicians out under it)
     return len + 0.4;
   }
   /** Is a solo playing (other bands hush under it)? */
@@ -3146,6 +3225,7 @@ export class Sound {
     this.follow(s);
     if (s.footing) this.surface = footSurface(this.levelId, s.footing);   // (what the feet are on: step, land)
     this.musicMomentsUpdate(s.indoor ?? 0);
+    this.musicOwnerUpdate?.();   // (a swell's hold over, a fight's release: the floor handed on)
     const k = Math.min(s.speed / 11, 1.5);
     // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
     // (sat on a bench the wind steps back under the swelling music: SEATED_SWELL)

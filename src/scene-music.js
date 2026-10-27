@@ -1,4 +1,5 @@
-// Recorded battle/prologue cues, using only the shared Web Audio surface (web and Unity).
+// Recorded battle/prologue cues, using only the shared Web Audio surface (web and Unity). Each in its lane of the
+// music's one owner (src/music-owner.js): the world's music goes out before a fight's comes in, never the two at once.
 export const SCENE_FADE = { battleIn: 0.2, battleOut: 2.5, battleRelease: 1.2, prologueIn: 1, prologueOut: 1 };
 
 export class SceneMusic {
@@ -19,13 +20,15 @@ export class SceneMusic {
     if (this.disposed || !ctx || !music) return;
     const t = ctx.currentTime;
     if (this.releaseAt !== null && t >= this.releaseAt) { this.battle = false; this.releaseAt = null; }
+    // (one music at a time, src/music-owner.js: the floor handed on first, so a recording starts where its lane comes in)
+    this.sound.musicOwnerUpdate?.();
     for (const id of ['battle', 'prologue']) {
       const on = id === 'battle' ? this.battleActive : this.prologue && !!this.buffers.prologue;
       let v = this.voices[id];
       if (on && !v) {
         const gain = ctx.createGain(), source = ctx.createBufferSource();
         gain.gain.value = 0; source.buffer = this.buffers[id]; source.loop = true;
-        source.connect(gain).connect(music); source.start(t);
+        source.connect(gain).connect(this.sound.musicLane?.(id) ?? music); source.start(this.sound.musicOwner?.startAt(id, t) ?? t);
         v = this.voices[id] = { source, gain, on: false, from: 0, to: 0, start: t, end: t };
       }
       if (!v) continue;

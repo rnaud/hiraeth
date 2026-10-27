@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.32 — 2026-10-27
 
+- Only one music plays at a time. When a fight starts, the world's music fades out in a moment before the battle music comes in, instead of the two playing together, and after the fight it fades back in once the battle music has gone. The same goes for the menu music, a story moment's music, a box's fanfare, the musicians in the worlds, the drum circle and the opening on your ship.
 - Shared gameplay statistics now include main-story progress and return visits, helping us see how far journeys reach. The true ending counts as 100%; optional content is excluded.
 - Climbing onto a ledge and setting off at a run no longer leaves a smear of dozens of overlapping footprints behind you: each foot now prints once each time it really touches the ground, and the footstep sounds no longer rattle there either.
 - Running and sprinting, his shirt stays over his back: the tee under it no longer shows through in pale patches, and its hem keeps covering the seat of his trousers instead of lifting off a gap there. It still flies out behind him as he runs.

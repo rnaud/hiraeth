@@ -215,24 +215,26 @@ function startTrack(sound, decoded, { late = false } = {}) {
   const gain = ctx.createGain();
   sound.trackBuffer = prepareSoundtrack(ctx, decoded);
   gain.gain.setValueAtTime(0, ctx.currentTime);
-  gain.connect(sound.music);
+  gain.connect(sound.musicLane?.('theme') ?? sound.music);   // (the theme's lane: one music at a time, src/music-owner.js)
   sound.trackGain = gain;
   // (Sound.musicMomentsUpdate starts it, faded, when a moment wants it; held back, the prologue in the ship: issue #149)
   // (a recording that arrived while the score played, downloaded: it takes over now, faded in as on arriving, not at
   // the next moment minutes away; issue #471)
-  if (late || sound.themeHeld || sound.sceneMusic?.battleActive) {
+  if (late || sound.themeHeld || (sound.fightOn ?? sound.sceneMusic?.battleActive)) {
     sound.trackOn = false;
     if (late && !sound.themeHeld) sound.moments?.cue?.('arrival', ctx.currentTime);
     return;
   }
+  sound.trackOn = true;   // (from here Sound.musicMomentsUpdate fades it in and out: src/music-moments.js)
+  // (its lane fades it in once the score before it is out, src/music-owner.js: it starts there, from its opening)
+  const at = sound.musicOwnerUpdate ? (sound.musicOwnerUpdate(), sound.musicOwner?.startAt('theme') ?? ctx.currentTime) : ctx.currentTime;
   const source = ctx.createBufferSource();
   source.buffer = sound.trackBuffer;
   source.loop = true;
   gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 2);
   source.connect(gain);
-  source.start(ctx.currentTime);
+  source.start(at);
   sound.recordedTrack = source;
-  sound.trackOn = true;   // (from here Sound.musicMomentsUpdate fades it in and out: src/music-moments.js)
 }
 
 

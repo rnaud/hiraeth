@@ -413,11 +413,13 @@ class Band {
     if (!ctx || this.bus) return !!this.bus;
     this.bus = ctx.createGain();
     this.bus.gain.value = 0.62 * (S.musicVol ?? 0.8) * 1.25;
-    this.bus.connect(S.world ?? S.master ?? ctx.destination);
-    if (S.reverb) { this.send = ctx.createGain(); this.send.gain.value = 0.32; this.bus.connect(this.send).connect(S.reverb); }
+    // (in the minigames' lane of the music's one owner, src/music-owner.js: the world's music out while the circle
+    // plays, before it comes in, and back at the end; issue #711. Before, the frame's music level brought the score back under it)
+    this.bus.connect(S.musicLane?.('game') ?? S.world ?? S.master ?? ctx.destination);
+    if (S.reverb) { this.send = ctx.createGain(); this.send.gain.value = 0.32; this.bus.connect(this.send).connect(S.musicLane?.('game', true) ?? S.reverb); }
     this.V = { ctx, noise: S.noiseBuf };
-    // (the world's own score hushed while the circle plays: the music bus down, put back at the end)
-    if (S.music) S.music.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+    if (S.musicTake) S.musicTake('game', true);
+    else if (S.music) S.music.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
     return true;
   }
   /** A new bus (after a pause: what was scheduled before it is left to sound into the old one, cut). */
@@ -430,7 +432,8 @@ class Band {
   }
   restoreWorld() {
     const S = this.sound, ctx = this.ctx;
-    if (ctx && S.music) S.music.gain.setTargetAtTime(0.62 * (S.musicVol ?? 0.8), ctx.currentTime, 0.6);
+    if (S?.musicTake) S.musicTake('game', false);
+    else if (ctx && S.music) S.music.gain.setTargetAtTime(0.62 * (S.musicVol ?? 0.8), ctx.currentTime, 0.6);
   }
   /** One backing event at context time t. */
   play(e, t, spb) {

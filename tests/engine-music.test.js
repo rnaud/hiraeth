@@ -151,13 +151,13 @@ test('the game\'s Sound: the world\'s theme in Unity under the volumes, the menu
   try {
     assert.equal(await loadSoundtrack(s, fetcher), true);
     assert.ok(s.trackBuffer instanceof NativeAudioBuffer && s.trackBuffer.level === THEME_LEVELS['incal-streets-above-streets.mp3']);
-    // (Settings > Music plays: moments; an arrival of 3 s here, its theme for that long)
-    s.moments = new MusicMoments({ mode: 'moments', now: s.ctx.currentTime, T: { ...MUSIC_MOMENTS, arrival: 3, returnAfter: [1e4, 1e4] } });
+    // (Settings > Music plays: moments; an arrival of 5 s here, its theme for that long)
+    s.moments = new MusicMoments({ mode: 'moments', now: s.ctx.currentTime, T: { ...MUSIC_MOMENTS, arrival: 5, returnAfter: [1e4, 1e4] } });
     const calm = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0, indoor: 0 };
     // (each frame, as the game: the sound's update, and the ear, which sets the music bus's level: src/story/index.js)
     const step = () => { s.update(calm); s.listen({ x: 0, y: 0, z: 0 }, 0); };
     const gain = () => theme(s)[0]?.gain ?? 0;
-    run(s, 2.5, step);
+    run(s, 3.5, step);   // (the score out first, then the theme in: one music at a time, src/music-owner.js)
     const [a] = theme(s);
     const L = THEME_LEVELS['incal-streets-above-streets.mp3'], full = L * 0.62 * s.musicVol * 0.9;   // (its level, the music bus, the master)
     assert.ok(a && a.loop && a.join === 2 && Math.abs(a.gain - full) / full < 0.05, `faded in, under the music volume: ${JSON.stringify(a)} against ${full}`);
