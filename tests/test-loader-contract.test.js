@@ -7,18 +7,21 @@ import { join } from 'node:path';
 import { tempDir, removeTemp } from '../scripts/temp-dirs.mjs';
 import { boundedGameInputs, CONTRACT_FILE } from '../scripts/test-loader-contract.mjs';
 const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {encoding:'utf8'}).split('\0').filter(Boolean);
-const read = f => readFileSync(f, 'utf8');
+// Repository inputs are frozen for this test process; mutation cases use explicit overlays.
+const sources = new Map(), presence = new Map();
+const read = f => { if (!sources.has(f)) sources.set(f, readFileSync(f, 'utf8')); return sources.get(f); };
+const exists = f => { if (!presence.has(f)) presence.set(f, existsSync(f)); return presence.get(f); };
 const syntax = new Map(), analysisCache = new Map();
 const analyze = (f,text,o) => {
   const key=f+'\0'+!!o?.explain, old=syntax.get(key);
   if(old?.text===text)return old.value;
   const value=dependenciesOf(f,text,o);syntax.set(key,{text,value});return value;
 };
-const options = {read, exists: existsSync, files, analyze};
+const options = {read, exists, files, analyze};
 const witness = 'tests/bounded-input-witness.test.js';
 function selected(path, consumer, override={}) {
   return affectedTests([path], {files, tests:[consumer,witness], modifiedRegularOnly:true, analysisCache,
-    exists:f=>f===witness||existsSync(f), read:f=>f===witness?`import '../${path}';`:read(f), ...override});
+    exists:f=>f===witness||exists(f), read:f=>f===witness?`import '../${path}';`:read(f), ...override});
 }
 test('bounded engine inputs include the real source closure and both asset roots', () => {
   const d = boundedGameInputs(options);

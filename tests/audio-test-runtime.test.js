@@ -11,8 +11,12 @@ import {installAudio} from '../engine/webaudio.js';
 import {affectedTests,dependenciesOf} from '../scripts/affected-tests.mjs';
 import {boundedAudioInputs,AUDIO_CONTRACT_FILE} from '../scripts/test-loader-contract.mjs';
 const files=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{encoding:'utf8'}).split('\0').filter(Boolean);
-const read=f=>readFileSync(f,'utf8'), exists=existsSync;
-const options={read,exists,files,analyze:dependenciesOf};
+// Freeze repository inputs per process; source-mutation tests supply their own overlays.
+const sources=new Map(), presence=new Map(), syntax=new Map();
+const read=f=>{if(!sources.has(f))sources.set(f,readFileSync(f,'utf8'));return sources.get(f);};
+const exists=f=>{if(!presence.has(f))presence.set(f,existsSync(f));return presence.get(f);};
+const analyze=(f,text,o)=>{const key=f+'\0'+!!o?.explain, old=syntax.get(key);if(old?.text===text)return old.value;const value=dependenciesOf(f,text,o);syntax.set(key,{text,value});return value;};
+const options={read,exists,files,analyze};
 const consumers=['tests/action-sounds.test.js','tests/engine-sound.test.js','tests/music-page.test.js','tests/sound-qc-decoder.test.js'];
 const witness='tests/audio-input-witness.test.js';
 const analysisCache=new Map();

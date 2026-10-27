@@ -182,32 +182,49 @@ test('knockdown: a long fall through the air never ends in the air (it used to s
 test('the traveller: tumbling off a ledge down a long drop stays limp all the way down, gets up only on the ground, and the landing hurts', async () => {
   const { Player, FALL } = await import('../src/player.js');
   // a ledge at 0 for x < 1, the ground 300 m below beyond it
-  const h = (p) => p.x < 1 ? p.y : p.y + 300;
-  const ledge = { heightAbove: h, groundAt: (x, y, z) => -h({ x, y: 0, z }), rayDistance: () => Infinity, pushCapsule: () => null, groundNormal: () => new THREE.Vector3(0, 1, 0) };
-  const p = new Player(ledge);
-  p.humanoid = new Humanoid(human, p.char, 'm');
-  p.attach(new THREE.Scene());
-  p.pos.set(0.6, 0, 0); p.onGround = true;
-  for (let i = 0; i < 10; i++) p.update(1 / 60, {}, 0);
-  p.knockDown(new THREE.Vector3(12, -2, 0));
-  let t = 0, worst = 0;
-  for (; t < 20 && p.down && !p.dead; t += 1 / 60) {
-    p.update(1 / 60, {}, 0);
-    if (p.down?.phase === 'rise' || p.down?.phase === 'lie') worst = Math.max(worst, p.down.rag.pelvis.y - (-300));
-  }
-  assert.ok(p.pos.y < -295, `down at the bottom (${p.pos.y.toFixed(1)} m)`);
-  assert.ok(worst < 1.5, `it only lies and gets up on the ground (pelvis ${worst.toFixed(1)} m over it at most)`);
-  assert.ok(p.dead && p.health === 0, 'a 300 m fall is fatal, ragdoll or not');
-  // a shorter drop (~25 m) hurts a little, and you get up at the bottom
-  const q = new Player({ ...ledge, heightAbove: (pt) => pt.x < 1 ? pt.y : pt.y + 25, groundAt: (x) => x < 1 ? 0 : -25 });
-  q.humanoid = new Humanoid(human, q.char, 'm');
-  q.attach(new THREE.Scene());
-  q.pos.set(0.6, 0, 0); q.onGround = true;
-  for (let i = 0; i < 10; i++) q.update(1 / 60, {}, 0);
-  q.knockDown(new THREE.Vector3(12, -2, 0));
-  for (t = 0; t < 12 && q.down; t += 1 / 60) q.update(1 / 60, {}, 0);
-  assert.ok(!q.down && q.pos.y < -24, `up at the bottom (${q.pos.y.toFixed(1)} m)`);
-  assert.ok(q.hearts < q.maxHearts && q.hearts >= q.maxHearts - FALL.worst, `a little hurt (${q.hearts} hearts)`);
+  // Match a downward ground ray: once below the ledge, its top cannot be a hit.
+  // The old heightfield double pushed particles back up through the ledge, launching
+  // the short-fall body to 1504 m at tumble sample 0.055 when reproducing the CI failure.
+  const ledgeAt = (drop) => {
+    const groundAt = (x, fromY) => x < 1 && fromY >= 0 ? 0 : -drop;
+    return { heightAbove: (pt, up, step = 0.6) => pt.y - groundAt(pt.x, pt.y + step), groundAt,
+      rayDistance: () => Infinity, pushCapsule: () => null, groundNormal: () => new THREE.Vector3(0, 1, 0) };
+  };
+  const ledge = ledgeAt(300);
+  assert.equal(ledge.groundAt(0, 0.2), 0, 'the ledge is below a ray started above it');
+  assert.equal(ledge.groundAt(0, -0.2), -300, 'a ray below the ledge reaches the bottom');
+  const random = Math.random; let seed = 7;
+  const seeded = () => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646;
+  Math.random = seeded;
+  try {
+    const p = new Player(ledge);
+    p.humanoid = new Humanoid(human, p.char, 'm');
+    p.attach(new THREE.Scene());
+    p.pos.set(0.6, 0, 0); p.onGround = true;
+    for (let i = 0; i < 10; i++) p.update(1 / 60, {}, 0);
+    p.knockDown(new THREE.Vector3(12, -2, 0));
+    let t = 0, worst = 0;
+    for (; t < 20 && p.down && !p.dead; t += 1 / 60) {
+      p.update(1 / 60, {}, 0);
+      if (p.down?.phase === 'rise' || p.down?.phase === 'lie') worst = Math.max(worst, p.down.rag.pelvis.y - (-300));
+    }
+    assert.ok(p.pos.y < -295, `down at the bottom (${p.pos.y.toFixed(1)} m)`);
+    assert.ok(worst < 1.5, `it only lies and gets up on the ground (pelvis ${worst.toFixed(1)} m over it at most)`);
+    assert.ok(p.dead && p.health === 0, 'a 300 m fall is fatal, ragdoll or not');
+    // a shorter drop (~25 m) hurts a little, and you get up at the bottom
+    for (const sample of [0.055, 0, 0.25, 0.5, 0.75, 1]) {
+      const q = new Player(ledgeAt(25));
+      q.humanoid = new Humanoid(human, q.char, 'm');
+      q.attach(new THREE.Scene());
+      q.pos.set(0.6, 0, 0); q.onGround = true;
+      for (let i = 0; i < 10; i++) q.update(1 / 60, {}, 0);
+      Math.random = () => sample;
+      try { q.knockDown(new THREE.Vector3(12, -2, 0)); } finally { Math.random = seeded; }
+      for (t = 0; t < 12 && q.down; t += 1 / 60) q.update(1 / 60, {}, 0);
+      assert.ok(!q.down && q.pos.y < -24, `tumble ${sample}: up at the bottom (${q.pos.y.toFixed(1)} m)`);
+      assert.ok(q.hearts < q.maxHearts && q.hearts >= q.maxHearts - FALL.worst, `a little hurt (${q.hearts} hearts)`);
+    }
+  } finally { Math.random = random; }
 });
 
 // #541: the joint limits push one particle at a time; in the air their pushes used to add up and swim a tumbling body

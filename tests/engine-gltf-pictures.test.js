@@ -6,19 +6,19 @@
 // engine/game.js in a bare V8 context (the bundle the engines run).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
+import { PUBLIC_MODELS, readPublicModel } from './public-model-inputs.js';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { bundle } from '../engine/game-test-runtime.mjs';
 import { loadBundle } from '../engine/game-test-runtime.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
 const PUBLIC = join(import.meta.dirname, '..', 'public');
-const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]));
 /** Every model of the game's, with its glTF images. */
-const MODELS = walk(PUBLIC).filter((f) => f.endsWith('.glb')).map((f) => {
-  const b = readFileSync(f), json = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString());
-  return { file: relative(PUBLIC, f), images: json.images ?? [] };
+const MODELS = PUBLIC_MODELS.map((f) => {
+  const b = readPublicModel(f), json = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString());
+  return { file: f, images: json.images ?? [] };
 });
 
 let built = null;

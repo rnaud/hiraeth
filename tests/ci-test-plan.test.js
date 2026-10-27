@@ -40,9 +40,9 @@ test('malformed, stale, duplicate or absent lists cannot silently select all',()
  for(const value of [null,'ALL',['tests/missing.test.js'],['tests/a.test.js','tests/a.test.js']])assert.throws(()=>validateTests(value,['tests/a.test.js']));
  assert.throws(()=>selectedShard([],[],{},'0/4'));assert.throws(()=>selectedShard([],[],{},'1/0'));
 });
-test('workflow preserves four named shards, explicit lists and separate daily tool coverage',()=>{
+test('workflow preserves five named shards, explicit lists and separate daily tool coverage',()=>{
  const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');const ci=read('.github/workflows/tests.yml'),night=read('.github/workflows/nightly-tests.yml');
- assert.match(ci,/^name: Tests\n/);assert.match(ci,/name: unit \(shard \$\{\{ matrix.shard \}\}\/4\)/);assert.match(ci,/shard: \[1, 2, 3, 4\]/);assert.match(ci,/needs: selection/);assert.match(ci,/fetch-depth: 0/);assert.match(ci,/SELECTED_TESTS: \$\{\{ needs.selection.outputs.files \}\}/);assert.match(ci,/ref: \$\{\{ needs.selection.outputs.head \}\}/);
+ assert.match(ci,/^name: Tests\n/);assert.match(ci,/name: unit \(shard \$\{\{ matrix.shard \}\}\/5\)/);assert.match(ci,/shard: \[1, 2, 3, 4, 5\]/);assert.match(ci,/run-test-shard\.mjs \$\{\{ matrix.shard \}\}\/5/);assert.match(ci,/needs: selection/);assert.match(ci,/fetch-depth: 0/);assert.match(ci,/SELECTED_TESTS: \$\{\{ needs.selection.outputs.files \}\}/);assert.match(ci,/ref: \$\{\{ needs.selection.outputs.head \}\}/);
  assert.match(night,/uses: \.\/\.github\/workflows\/tests.yml\n    with:\n      full: true/);assert.match(night,/node --test tests\/nightly\/\*\.test.js/);
  for(const file of ['deploy.yml','cloudflare.yml']){const y=read('.github/workflows/'+file);assert.match(y,/workflow_run.event == 'push'/);assert.match(y,/workflow_run.head_branch == 'main'/);assert.match(y,/workflow_run.head_repository.full_name == github.repository/);}
 });

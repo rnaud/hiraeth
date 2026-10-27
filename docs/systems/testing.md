@@ -29,7 +29,7 @@ CI uses:
   `full=true`, and the daily run execute the full gameplay suite.
 
 `scripts/ci-test-plan.mjs` records exact head/base, baseline evidence and selected files in the
-`test-selection` artifact. All four existing `unit (shard N/4)` checks remain. Empty shards explicitly
+`test-selection` artifact. All five `unit (shard N/5)` checks must pass. Empty shards explicitly
 succeed without invoking Node's automatic test discovery. Invalid selections or source refs fail visibly.
 
 ## Automatic web, separately built installers
@@ -52,14 +52,15 @@ next selection includes its unverified changes. Tests for selection, events and 
 
 ## The shards
 
-On GitHub the suite runs as four jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3, 4]`;
-the run, and so the deploys, succeed only when all four pass). Each runs its explicitly selected list through `scripts/run-test-shard.mjs`:
+On GitHub the suite runs as five jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3, 4, 5]`;
+the run, and so the deploys, succeed only when all five pass). Each runs its explicitly selected list through `scripts/run-test-shard.mjs`:
 the script deals the test files out by their times in `tests/shard-timings.json` (file → the seconds a GitHub
 runner takes over it, committed), longest first, each to the shard with the least time so far; a file not in the
 table yet (a new test) counts as the table's mean file (about 10 s), and one in the table that is gone is ignored.
+The fifth shard restores headroom after the growing full-suite plan exceeded the unchanged 12-minute budget.
 Every shard works the plan out alone, the same way, so together they run every file once (`tests/test-shards.test.js`).
 
-    node scripts/test-shards.mjs --plan 4                 each shard's files, seconds and minutes
+    node scripts/test-shards.mjs --plan 5                 each shard's files, seconds and minutes
     node scripts/test-shards.mjs --ci <run id> [<id>...]  each file's time from green runs of Tests: the update
     node scripts/test-shards.mjs --update --missing       the fallback: time here the files the table lacks
 
@@ -590,3 +591,9 @@ assertions read the extracted styles; the registry check covers bootstrap
 registration, and selection regressions retain cinema behavior coverage while
 excluding CSS-only edits from sequence and completion simulations. Native HUD
 rendering remains in its existing bridge; no native palette or state changed.
+
+### Remaining model and audio consumers
+
+Native picture tests read an explicit public-GLB catalogue. Its independent recursive discovery test fails when any model is added or removed, including a new folder. Existing texture loading and desert integration assertions remain unchanged. Approved PCM mix tests read real packaged bytes through the existing confined audio adapter; unknown asset names or escaping paths remain rejected.
+
+Repository-graph regression tests reuse source bytes, existence answers and exact-text AST analysis within one immutable test process. Stale-contract and changed-source tests still supply explicit overlays, and temporary Git repositories are read independently. This avoids repeated filesystem work without caching results across edits or dropping selection assertions.
