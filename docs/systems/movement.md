@@ -480,10 +480,12 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   gauges for climbing and stamina are gone. Since issue #710 ("the stamina wheel is white in the
   middle on web but I would expect that part to be transparent? also on unity the stamina wheel
   doesn't look the same?") it is the enamel HUD's ring with **nothing in its middle**: one spec,
-  `src/hud-look.js` `STAMINA_RING` (a 34 px box: a charcoal band from 9.5 to 15.5 px out, the hints'
-  `rgba(22, 23, 23, 0.96)`, a 1.2 px brass hairline on each side of it, the gauge 3.6 px wide at
-  12.5 px in the enamel turquoise filled clockwise from the top, winded the enamel red pulsing to
-  its gold every 0.7 s with a "!" beside it, the enamel's soft shadow as a drop-shadow). The page
+  `src/hud-look.js` `STAMINA_RING` (a 34 px box: a charcoal band from 5.4 to 14 px out, the hints'
+  `rgba(22, 23, 23, 0.96)`, a 1.2 px brass hairline on each side of it, the gauge 6 px wide at
+  9.6 px (6.6 to 12.6 px) filled clockwise from the top, winded pulsing red to gold every 0.7 s
+  with a "!" beside it, the enamel's soft shadow as a drop-shadow). The gauge keeps the old inked
+  wheel's colours and thickness (the author: "revert the color and make the wheel a bit thicker
+  like it used to be"): green `#3f8f6a`, winded `#c8483a` pulsing to `#f2c54b`, about its 6.4 px. The page
   builds its SVG from it (`staminaSvg`); Unity (BridgeHud.cs `StaminaRing`, `RingSprite`: the band
   and hairlines, the gauge's annulus as a radially filled Image, the shadow, made as textures from
   the same numbers) draws the same, where it drew a gold radial pie on a faint disc

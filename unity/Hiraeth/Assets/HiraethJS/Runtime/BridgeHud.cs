@@ -111,12 +111,12 @@ namespace Hiraeth.Bridge
             wheel = Ui.Node("stamina", root);
             wheelShadow = Ui.Rect(wheel, new Color(0, 0, 0, StaminaRing.ShadowAlpha), 0, "shadow"); wheelShadow.sprite = RingSprite("shadow");
             wheelFace = Ui.Rect(wheel, Color.white, 0, "ring"); wheelFace.sprite = RingSprite("face");
-            wheelFill = Ui.Rect(wheel, HintAccent, 0, "gauge"); wheelFill.sprite = RingSprite("arc");
+            wheelFill = Ui.Rect(wheel, StaminaRing.Fill, 0, "gauge"); wheelFill.sprite = RingSprite("arc");
             wheelFill.type = Image.Type.Filled; wheelFill.fillMethod = Image.FillMethod.Radial360; wheelFill.fillOrigin = (int)Image.Origin360.Top; wheelFill.fillClockwise = true;
             { float h = StaminaRing.Size / 2, p = StaminaRing.Box / 2;
               Ui.Place(wheelShadow.rectTransform, h - p, h - p + StaminaRing.ShadowDy, 2 * p, 2 * p);
               Ui.Place(wheelFace.rectTransform, h - p, h - p, 2 * p, 2 * p); Ui.Place(wheelFill.rectTransform, h - p, h - p, 2 * p, 2 * p); }
-            wheelBang = Ui.Label(wheel, "winded", Ui.SansHeavy, 14, EnBad, TextAnchor.UpperLeft, Ui.SansHeavyStyle, 1f); wheelBang.text = "!";
+            wheelBang = Ui.Label(wheel, "winded", Ui.SansHeavy, 14, StaminaRing.Winded, TextAnchor.UpperLeft, Ui.SansHeavyStyle, 1f); wheelBang.text = "!";
             { var o = wheelBang.gameObject.AddComponent<Outline>(); o.effectColor = new Color(22 / 255f, 23 / 255f, 23 / 255f, 0.9f); o.effectDistance = new Vector2(1f, -1f); }
             Ui.Place(wheelBang.rectTransform, StaminaRing.Size + 1, -4, 14, 20);
             wordsRoot = Ui.Node("words", root);   // (a minigame's words in the world: under the conversation and the cards, as the page's #mg-words)
@@ -1901,7 +1901,7 @@ namespace Hiraeth.Bridge
             // (winded: the enamel's red pulsing to its gold and back, ease-in-out over 0.7 s, as the page's stpulse)
             bool winded = s.Get("winded") is bool w && w;
             float k = 0.5f - 0.5f * Mathf.Cos(2 * Mathf.PI * Time.unscaledTime / StaminaRing.PulseSecs);
-            wheelFill.color = winded ? Color.Lerp(EnBad, EnGold, k) : HintAccent;
+            wheelFill.color = winded ? Color.Lerp(StaminaRing.Winded, StaminaRing.Pulse, k) : StaminaRing.Fill;
             Show(wheelBang.rectTransform, winded);
         }
 
@@ -1909,7 +1909,9 @@ namespace Hiraeth.Bridge
         /// holds the two the same).</summary>
         static class StaminaRing
         {
-            public const float Size = 34, Outer = 15.5f, Inner = 9.5f, EdgeWidth = 1.2f, ArcR = 12.5f, ArcWidth = 3.6f;
+            public const float Size = 34, Outer = 14f, Inner = 5.4f, EdgeWidth = 1.2f, ArcR = 9.6f, ArcWidth = 6f;
+            public const string FillHex = "#3f8f6a", WindedHex = "#c8483a", PulseHex = "#f2c54b";   // (the old wheel's green, red and gold)
+            public static readonly Color Fill = Ui.Hex(FillHex), Winded = Ui.Hex(WindedHex), Pulse = Ui.Hex(PulseHex);
             public const float ShadowDy = 2, ShadowBlur = 2.5f, ShadowAlpha = 0.33f, PulseSecs = 0.7f;
             public const float Box = 48;   // (the sprites' square: the ring and two of the shadow's deviations round it)
         }

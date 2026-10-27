@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { STAMINA_RING as R, staminaSvg, ENAMEL } from '../src/hud-look.js';
+import { STAMINA_RING as R, staminaSvg } from '../src/hud-look.js';
 import { STAMINA_POSE, UI_PIECES } from '../engine/ui-poses.js';
 
 const circles = (svg) => [...svg.matchAll(/<circle([^>]*)\/>/g)].map(([, a]) => Object.fromEntries([...a.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, k, v]) => [k, v])));
@@ -26,17 +26,22 @@ test('the page\'s wheel is a ring: nothing painted inside its band, the band and
   assert.ok(alphaAt(svg, (R.outer + R.inner) / 2) > 0.95, 'the band is solid');
   assert.equal(alphaAt(svg, R.outer + 0.3), 0, 'nothing outside the band');
   const arc = circles(svg).find((c) => c.class === 'arc');
-  assert.equal(Number(arc.r), R.arcR); assert.equal(arc.stroke, ENAMEL.accent); assert.equal(arc.transform, 'rotate(-90)');
-  assert.ok(R.arcR - R.arcWidth / 2 >= R.inner + R.edgeWidth && R.arcR + R.arcWidth / 2 <= R.outer - R.edgeWidth, 'the gauge between the hairlines');
+  assert.equal(Number(arc.r), R.arcR); assert.equal(arc.stroke, '#3f8f6a'); assert.equal(arc.transform, 'rotate(-90)');
+  assert.ok(R.arcR - R.arcWidth / 2 >= R.inner + R.edgeWidth - 1e-9 && R.arcR + R.arcWidth / 2 <= R.outer - R.edgeWidth + 1e-9, 'the gauge between the hairlines');
+  // (the old inked wheel's gauge, issue #710 follow-up: its green, and about as thick, 7.5 of 40 units in 34 px ≈ 6.4 px)
+  assert.deepEqual([R.fill, R.winded, R.pulse], ['#3f8f6a', '#c8483a', '#f2c54b']);
+  assert.ok(R.arcWidth >= 6 && R.arcWidth <= 6.4, `the gauge ${R.arcWidth} px wide`);
+  assert.ok(R.arcR >= 9.4 && R.arcR <= 9.6, `the gauge centred ${R.arcR} px out`);
   assert.match(svg, new RegExp(`viewBox="${-R.size / 2} ${-R.size / 2} ${R.size} ${R.size}"`));
 });
 
-test('index.html: no wheel of its own (the page builds it from the spec), the winded look from the enamel tokens', () => {
+test('index.html: no wheel of its own (the page builds it from the spec), the winded look in the old wheel’s red and gold', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(html, /<div id="stamina" aria-hidden="true"><\/div>/);
   assert.match(html, /#stamina \{[^}]*width: 34px; height: 34px;/, 'the box the spec is drawn for');
-  assert.match(html, /#stamina\.winded \.arc \{ stroke: var\(--en-bad\); animation: stpulse \.7s/);
-  assert.match(html, /@keyframes stpulse \{ 50% \{ stroke: var\(--en-gold\); \} \}/);
+  assert.ok(html.includes(`#stamina.winded .arc { stroke: ${R.winded}; animation: stpulse .7s`), 'winded: the old red');
+  assert.ok(html.includes(`@keyframes stpulse { 50% { stroke: ${R.pulse}; } }`), 'pulsing to the old gold');
+  assert.match(html, new RegExp(`#stamina\\.winded::after \\{[^}]*color: ${R.winded};`), 'the "!" in the same red');
   assert.ok(!/#f7ecd2[^\n]*#stamina|#stamina[^\n]*#f7ecd2/.test(html), 'no cream paper in the wheel');
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /stEl\.innerHTML = staminaSvg\(\)/);
@@ -52,12 +57,11 @@ test('Unity draws the same ring: BridgeHud.cs StaminaRing holds the spec\'s numb
   assert.ok(num('Box') / 2 >= R.outer + 2 * R.shadow.blur, 'the sprites hold the shadow\'s blur (two deviations)');
   assert.match(block + cs, /float sigma = StaminaRing\.ShadowBlur;/, 'a filter\'s drop-shadow blur is the deviation itself');
   assert.match(cs, /wheelFill\.fillOrigin = \(int\)Image\.Origin360\.Top; wheelFill\.fillClockwise = true;/);
-  assert.match(cs, /wheelFill\.color = winded \? Color\.Lerp\(EnBad, EnGold, k\) : HintAccent;/);
-  // (the colours it uses are the enamel's: the accent, the red and gold, the brass, the hints' charcoal)
+  assert.match(cs, /wheelFill\.color = winded \? Color\.Lerp\(StaminaRing\.Winded, StaminaRing\.Pulse, k\) : StaminaRing\.Fill;/);
+  assert.match(cs, /wheelFill = Ui\.Rect\(wheel, StaminaRing\.Fill,/);
+  // (the gauge's colours the spec's, the old wheel's; the brass and the hints' charcoal the enamel's)
+  assert.ok(block.includes(`FillHex = "${R.fill}", WindedHex = "${R.winded}", PulseHex = "${R.pulse}"`), 'StaminaRing\'s colours');
   const hints = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Hints.cs', import.meta.url), 'utf8');
-  assert.match(hints, new RegExp(`HintAccent = Ui\\.Hex\\("${R.fill}"\\)`));
-  assert.match(hints, new RegExp(`EnBad = Ui\\.Hex\\("${R.winded}"\\)`));
-  assert.match(hints, new RegExp(`EnGold = Ui\\.Hex\\("${R.pulse}"\\)`));
   assert.match(hints, new RegExp(`EnBrass = Ui\\.Hex\\("${R.edge}"\\)`));
   assert.equal(R.band, 'rgba(22, 23, 23, 0.96)'); assert.match(block + cs, /new Color\(22 \/ 255f, 23 \/ 255f, 23 \/ 255f, 0\.96f\)/);
   // (no pie: the old gold disc and its faint ink back are gone)

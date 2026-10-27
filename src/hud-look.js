@@ -107,11 +107,11 @@ export const HUD_MESSAGES = Object.freeze([
  */
 export const STAMINA_RING = Object.freeze({
   size: 34,
-  outer: 15.5, inner: 9.5,          // the band: from 9.5 to 15.5 px out; inside 9.5 px, nothing drawn
+  outer: 14, inner: 5.4,            // the band: from 5.4 to 14 px out; inside 5.4 px, nothing drawn
   band: ENAMEL.strip,               // the hints' charcoal
   edge: ENAMEL.brass, edgeWidth: 1.2,   // a brass hairline on each side of the band, inside it
-  arcR: 12.5, arcWidth: 3.6,        // the gauge, between the hairlines
-  fill: ENAMEL.accent, winded: ENAMEL.bad, pulse: ENAMEL.gold, pulseSecs: 0.7,
+  arcR: 9.6, arcWidth: 6,           // the gauge, between the hairlines: 6.6 to 12.6 px, as thick as the old inked wheel's (7.5 of 40)
+  fill: '#3f8f6a', winded: '#c8483a', pulse: '#f2c54b', pulseSecs: 0.7,   // the old wheel's green, red and gold (issue #710)
   shadow: { dy: 2, blur: 2.5, alpha: 0.33 },   // (the enamel's soft shadow, ENAMEL.shadow's 0 2px 5px, as a ring's drop-shadow:
                                                // a filter's blur is the deviation, box-shadow's 5px is twice it)
 });
