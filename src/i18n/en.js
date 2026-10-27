@@ -4,6 +4,8 @@
 // them as the pad does and in the player's own keys.
 
 export const EN = {
+  'set.analytics': 'Share gameplay statistics',
+  'set.analyticsNote': 'GameAnalytics receives progress, results, loading times and a random device identifier to help improve Hiraeth. Turn this off to stop collection.',
   // ---------------------------------------------------------------- the Start menu
   'menu.paused': 'PAUSED',
   'menu.resume': 'Resume',

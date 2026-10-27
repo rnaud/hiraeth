@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.32 — 2026-10-27
+
+- Gameplay statistics help us find difficult quests, minigames and slow-loading worlds. Sharing is on by default; you can turn it off in Settings. The browser version and updated Unity apps use GameAnalytics, with a random device identifier and no save contents or dialogue.
+
 ## v2.31 — 2026-10-26
 
 - The stamina wheel beside the traveller is a clear ring now, in the dark-and-brass look of the rest of the HUD: a charcoal band edged in fine brass lines that fills in turquoise, with nothing painted in its middle, so you see the world through it. Winded, it pulses red and gold with a "!" beside it. The Unity version draws the same ring where it showed a gold pie.

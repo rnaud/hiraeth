@@ -131,3 +131,5 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 |---|---|
 | [traveller-looks.md](archive/traveller-looks.md) | the rider (v0.14) and the lavender-suited hero (v0.15), before the traveller of today |
 | [retroid-measurements.md](archive/retroid-measurements.md) | the Retroid Pocket Nova measured in October 2026 (WebView 109 against Chrome 154, frame times per world) and how to repeat it |
+
+- [Gameplay analytics](systems/analytics.md): GameAnalytics events, opt-out and release configuration.

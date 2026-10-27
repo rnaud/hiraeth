@@ -1351,6 +1351,9 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 const RELIEF700 = 'Issue #700: tools/relief-shots.mjs --preset medium --png 1, a muted headless Chrome on the real GPU (ANGLE on Metal), Medium, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera, a Vite of its own (port 5441); before: origin/main at 591ed0aa8, after: this change; 27 October; cwebp -q 72';
 const RELIEF696 = 'Issue #696: the review page’s captures (tools/relief-shots.mjs): a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera; one load of one build (26b565197 with this change), the shared painted-relief switch flipped between the two pictures (before: off, the flat marks as they were; after: on); 26 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.32': [{ match: 'Gameplay statistics help us find difficult quests', shots: [
+    { name: 'analytics-settings', only: 'after', size: [1280, 720], caption: 'Gameplay statistics are on by default, with a saved opt-out and an explanation in Settings.', from: 'After-only actual web game, muted headless Chrome on this branch’s separate Vite port 5465; 093cc03919a2 plus the analytics candidate, 27 October 2026. Fresh local settings, High, review mode, scrolled to the Game section. Local review sends no analytics. Native bridge compilation is separate evidence, not a native screenshot.', view: 'Settings → Game; the checked Share gameplay statistics control and its explanation. No before view is implied.' },
+  ] }],
   '2.31': [
   { match: 'The stamina wheel beside the traveller is a clear ring now', shots: [
     { name: 'stamina-web', caption: 'The stamina wheel on the web, close up: full, part spent, low, winded. Before, a cream disc with a cream middle; after, a ring with nothing in its middle', size: [984, 240],

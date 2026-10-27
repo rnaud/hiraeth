@@ -176,6 +176,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ host wiring: main.js against engine/game.js (also #427's list)
   host: [
+    { keys: ['import:src/analytics/start-web.js#startWebAnalytics'], what: 'optional gameplay statistics', status: 'handled', where: 'engine/unity/game.js uses the same trackSession/event vocabulary through BridgeAnalytics and the native GameAnalytics SDK; older players omit collection safely' },
     { keys: ['import:src/effect-loading.js#prepareSoundWithRetry'], what: 'strict recording preparation and recoverable loading failure', status: 'handled', where: 'engine/game.js awaits Sound.prepareEffects before building the world; engine/unity/game.js presents EngineMenus.showSoundLoadFailure and retries the complete load with retryEffects' },
     // gaps
     { keys: ['import:src/motion-match.js#loadMotionLibrary'], what: 'the traveller\'s captured moves and the people\'s own walks; motion matching\'s database (only with matching switched on)', status: 'handled',

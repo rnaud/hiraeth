@@ -67,6 +67,9 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build the game and its content update
+        env:
+          VITE_GAMEANALYTICS_GAME_KEY: ${{ secrets.GAMEANALYTICS_WEB_GAME_KEY }}
+          VITE_GAMEANALYTICS_SECRET_KEY: ${{ secrets.GAMEANALYTICS_WEB_SECRET_KEY }}
         run: |
           npm run build
           # this build's zip and web.json, and the previous build's zip from the live site

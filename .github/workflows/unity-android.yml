@@ -112,6 +112,14 @@ jobs:
           path: .local-tools/puerts
           key: puerts-3.0.3
 
+      - name: Configure GameAnalytics SDK ingestion keys
+        env:
+          GAMEANALYTICS_ANDROID_GAME_KEY: ${{ secrets.GAMEANALYTICS_ANDROID_GAME_KEY }}
+          GAMEANALYTICS_ANDROID_SECRET_KEY: ${{ secrets.GAMEANALYTICS_ANDROID_SECRET_KEY }}
+          GAMEANALYTICS_LINUX_GAME_KEY: ${{ secrets.GAMEANALYTICS_LINUX_GAME_KEY }}
+          GAMEANALYTICS_LINUX_SECRET_KEY: ${{ secrets.GAMEANALYTICS_LINUX_SECRET_KEY }}
+        run: node scripts/gameanalytics-config.mjs
+
       - name: Puerts into the project, the game's JavaScript into StreamingAssets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -407,6 +415,14 @@ jobs:
         with:
           path: .local-tools/puerts
           key: puerts-3.0.3
+
+      - name: Configure GameAnalytics SDK ingestion keys
+        env:
+          GAMEANALYTICS_ANDROID_GAME_KEY: ${{ secrets.GAMEANALYTICS_ANDROID_GAME_KEY }}
+          GAMEANALYTICS_ANDROID_SECRET_KEY: ${{ secrets.GAMEANALYTICS_ANDROID_SECRET_KEY }}
+          GAMEANALYTICS_LINUX_GAME_KEY: ${{ secrets.GAMEANALYTICS_LINUX_GAME_KEY }}
+          GAMEANALYTICS_LINUX_SECRET_KEY: ${{ secrets.GAMEANALYTICS_LINUX_SECRET_KEY }}
+        run: node scripts/gameanalytics-config.mjs
 
       - name: Puerts into the project, the game's JavaScript into StreamingAssets
         env:

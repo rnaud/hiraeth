@@ -98,6 +98,7 @@ export const SETTINGS_ROWS = [
   { k: 'enemies', label: () => t('set.enemies'), kind: 'choice', opts: ['normal', 'gentle', 'off'], name: (v) => t(`set.enemies.${v ?? 'normal'}`).replace(/ \(.*$/, '') },
   { k: 'piratePitch', label: () => t('set.piratePitch'), kind: 'choice', opts: ['auto', 'dive', 'climb'], name: (v) => t(`set.piratePitch.${v ?? 'auto'}`), when: (m) => m.piratesBeaten() },
   { k: 'hints', label: () => t('set.hints'), kind: 'choice', opts: HINT_LEVELS, name: (v) => t(`set.hints.${v}`) },
+  { k: 'analytics', label: () => t('set.analytics'), note: () => t('set.analyticsNote'), kind: 'switch' },
   { k: 'droneHints', label: () => t('set.droneHints'), kind: 'choice', opts: DRONE_HINTS, name: (v) => t(`set.droneHints.${v ?? 'on'}`) },
 ];
 
