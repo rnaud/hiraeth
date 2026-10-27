@@ -5,11 +5,13 @@ import { CAM_PLUS_Z } from '../../src/gait-course.js';
 import { analyse } from './lib.mjs';
 import { sample, metaOf, stickOf, timeAnimator } from './sample.mjs';
 
-export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false } };
+// (carry: the default way with the stop from a run carried over two strides, src/loco-moves.js STOP_FEEL, issue #699)
+export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false }, carry: { matching: false, moves: true, stop: 'carry' } };
 
 /** One scenario one way: { samples, meta, r (lib.analyse) }. o.frames(k): frame k's dt (the game's uneven frames; default 1 / fps). */
 export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null, frames = null } = {}) {
   const p = await traveller(course(), new THREE.Vector3(...sc.at), { ...WAYS[way], body });
+  p.stopFeel = WAYS[way].stop ?? 'snap';
   timeAnimator(p.animator);
   const S = [], st = {};
   let t = 0, k = 0;

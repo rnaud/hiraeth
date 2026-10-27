@@ -5,10 +5,10 @@
 // and what the matcher costs a frame. The camera-qc skill's harness, for the traveller instead of the camera.
 //
 //   node .claude/skills/motion-qc/run.mjs <out-dir> [--worlds desert,bazaar] [--ways moves,mm] [--preset medium] [--cpu 4]
-//   PORT (default 5363; never 5173); Chrome picks its own debugging port; TUNE='{"feet.js":{"FEET":{...}}}' assigns into the page's src/ modules
+//   PORT (default 5363; never 5173); Chrome picks its own debugging port (CDP_PORT: a fixed one, on a machine that shares them out); TUNE='{"feet.js":{"FEET":{...}}}' assigns into the page's src/ modules
 //
 // ways: moves (the game's default: the loops with the captured starts, stops and turns), mm (motion matching, ?mm=1),
-// loops (?moves=0). --cpu 4: Chrome's CPU throttled 4x (a handheld's main thread, roughly) for the cost columns.
+// loops (?moves=0), carry (the default with the carried stop from a run, ?stop=carry: issue #699). --cpu 4: Chrome's CPU throttled 4x (a handheld's main thread, roughly) for the cost columns.
 // Writes <out>/motion-world.json, motion-world.md (the table), <scenario>.<way>.png (a contact sheet of the worst frames,
 // pictures of the game captioned with what was wrong and by how much) and <scenario>.<way>.json (the samples). Exits 1
 // if a run of the default way is red. No game code changed: it drives `window.input` as a player's hands would, and reads.
@@ -32,7 +32,7 @@ const { WORLDS } = await import(join(ROOT, 'scripts/motion-qc/scenarios.mjs'));
 const worlds = arg('worlds')?.split(','), ways = arg('ways', 'moves,mm').split(',');
 const plan = WORLDS.filter((s) => !worlds || worlds.includes(s.world) || worlds.includes(s.name));
 if (!plan.length) throw new Error('no scenario matches');
-const QUERY = { moves: '', mm: '&mm=1', loops: '&moves=0' };
+const QUERY = { moves: '', mm: '&mm=1', loops: '&moves=0', carry: '&stop=carry' };
 
 // ---------------------------------------------------------------- the server and the browser (one each, closed at the end)
 const profile = tempDir('motion-qc-chrome-');
@@ -43,13 +43,13 @@ const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.con
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
 const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
-  '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
+  `--remote-debugging-port=${process.env.CDP_PORT ?? 0}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 'about:blank'], { stdio: 'ignore' }));
 const done = async () => { try { proc.kill('SIGKILL'); } catch {} try { await server.close(); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} };
 process.on('exit', () => { try { proc.kill('SIGKILL'); } catch {} });   // (never leave a Chrome behind on a shared machine)
 process.on('uncaughtException', async (e) => { console.error(e); await done(); process.exit(1); });
 // (port 0: Chrome picks a free one and writes it in the profile, so a stray Chrome on a fixed port is never driven by mistake)
-let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { const cdp = readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]; tabs = (await (await fetch(`http://127.0.0.1:${cdp}/json`)).json()).filter?.((t) => t.webSocketDebuggerUrl); if (!tabs?.length) tabs = null; } catch { await sleep(250); } }
+let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { const cdp = process.env.CDP_PORT ?? readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]; tabs = (await (await fetch(`http://127.0.0.1:${cdp}/json`)).json()).filter?.((t) => t.webSocketDebuggerUrl); if (!tabs?.length) tabs = null; } catch { await sleep(250); } }
 if (!tabs) throw new Error('Chrome did not start');
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));

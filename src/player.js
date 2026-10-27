@@ -7,7 +7,7 @@ import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
 import { Knockdown, toppleVelocities, getUpPlacement, GET_UP } from './ragdoll.js';
-import { LocoMoves } from './loco-moves.js';
+import { LocoMoves, braking } from './loco-moves.js';
 import { AirMoves } from './air-moves.js';
 import { SWIM, swimFrame, swimPose, leaveSwim, waterHere } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
@@ -1679,11 +1679,19 @@ export class Player {
       if (this.onGround || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
       // (in a locked-on hop, none: it carries you its own way)
       if (this._hop && this.onGround && this.time - this._hop.at > 0.1) { this._hop = null; this._hopReady = this.time + HOP.rest; }
+      // (a stop's braking: as fast as ever, or carried over a couple of strides from a run as Link's are: the stop feel,
+      // src/loco-moves.js STOP_FEEL, the author's switch; the speed it began at is kept until the stick is pushed again)
+      const tvs = Math.sqrt(Math.max(0, this.vel.lengthSq() - this.vel.dot(U) ** 2));
+      if (steering || !this.onGround) this._stopFrom = null;
+      else this._stopFrom ??= tvs;
+      const B = braking(this.stopFeel, this._stopFrom ?? 0, tvs, dt, this._braking ??= {});
       const accel = this._stagger && this._stagger.t < STAGGER.time ? (this.onGround ? STAGGER.slide : 0.5) : this.onGround ? (steering ? 8 : 16) : this._hop ? 0 : this._carry ? 0.5 : 2.5;
+      this._brake = B.rate;
       // (the motion matcher predicts the body's path with this same spring: animateClips)
       this._wantSpeed = move.lengthSq() > 0 ? speed : 0;
       this._accel = accel;
-      const a = 1 - Math.exp(-accel * dt);
+      const braked = this.onGround && !steering && !(this._stagger && this._stagger.t < STAGGER.time);
+      const a = braked ? B.k : 1 - Math.exp(-accel * dt);
       let vu = this.vel.dot(U);
       const tv = _v3.copy(this.vel).addScaledVector(U, -vu);
       const want = _g5.copy(move).multiplyScalar(speed);
@@ -2814,6 +2822,7 @@ export class Player {
       if (this.moves?.A !== A) this.moves = new LocoMoves(A);
       // (locked on: none of them, the captured steps sideways and back play instead: updateStrafe)
       const free = this.onGround && !this.aim && !this.ride && !this.swim && !this.overlay && !this.down && !this.climbing && !A.matching && !R && !air.cur && !this._gesture && !this.lockOn;
+      this.moves.brake = this._brake ?? null;
       this.moves.update(dt, { speed: hs, steering, wantSpeed: this._wantSpeed ?? 0, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
       this.moves.play(A);
     }

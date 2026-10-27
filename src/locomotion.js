@@ -20,8 +20,14 @@ const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _x = new THREE.
 
 export const LOCO = {
   leanPerAccel: 0.02, leanMax: 0.16, leanBack: 0.2,   // rad per m/s^2, forward and back limits
+  leanCarry: [2.5, 5, 0.06],                           // m/s, m/s, rad: at a run the chest carried this much forward, eased in from the first speed
+  leanRun: [2.5, 5, 0.24],                             // m/s, m/s, rad: setting off into a run the forward limit grows to the third (issue #699:
+                                                       // Link throws his chest well forward on the first stride, ~0.3 s from standing to a full run;
+                                                       // walking, as before: a pivot into a walk back popped the calf at 0.24)
   dipPerBrake: 0.005, dipMax: 0.05,                    // m the hips dip per m/s^2 of braking
   bankPerTurn: 0.035, bankMax: 0.22,                    // rad per (rad/s x m/s / walk speed)
+  bankRun: [4, 7, 0.05, 0.28],                          // m/s, m/s, per turn, max: from a jog to a sprint the bank grows to these (issue #699: 5° round a
+                                                       // sprint's circle, now 7°; at every speed, a pivot into a walk back popped the calf)
   headLead: 0.5, headMax: 0.6, chestLead: 0.28, chestMax: 0.32,
   pivotTurn: 3.2, pivotSpeed: 2.6,                      // rad/s faster than this, under this speed: a pivot
   pivotKeep: 0.7, pivotHold: 0.12, pivotFast: 1.1,     // once pivoting: kept over 0.7x the turn, or for 0.12 s, under 1.1x the speed
@@ -34,12 +40,12 @@ export class Locomotion {
     this.walk = walk;
     this.style = { lean: 1, bank: 1, head: 1, ...(style ?? {}) };
     this.vf = 0; this.af = 0; this.turn = 0; this.lastHeading = null;
-    this.lean = 0; this.dip = 0; this.bank = 0; this.chest = 0; this.head = 0;
+    this.lean = 0; this.leanHips = 0; this.dip = 0; this.bank = 0; this.chest = 0; this.head = 0;
   }
 
   reset(heading = null) {
     this.vf = 0; this.af = 0; this.turn = 0; this.lastHeading = heading;
-    this.lean = this.dip = this.bank = this.chest = this.head = 0;
+    this.lean = this.leanHips = this.dip = this.bank = this.chest = this.head = 0;
     this.pivot = false; this.pivotT = 0;
   }
 
@@ -62,11 +68,21 @@ export class Locomotion {
     this.vf = vf;
     this.af += (clamp(a, -60, 60) - this.af) * damp(7, dt);
     const g = ground ? 1 : 0;
-    const leanT = clamp(this.af * LOCO.leanPerAccel, -LOCO.leanBack, LOCO.leanMax) * S.lean * g;
+    const LR = LOCO.leanRun, leanMax = LR ? LOCO.leanMax + (LR[2] - LOCO.leanMax) * THREE.MathUtils.smoothstep(speed, LR[0], LR[1]) : LOCO.leanMax;
+    // (and a run's own carriage: the chest a little forward the whole time at a run, LOCO.leanCarry, issue #699: Link runs pitched
+    // well forward, the traveller's jog loop near upright)
+    const LC = LOCO.leanCarry, carry = LC ? LC[2] * THREE.MathUtils.smoothstep(speed, LC[0], LC[1]) : 0;
+    const leanT = (clamp(this.af * LOCO.leanPerAccel, -LOCO.leanBack, leanMax) + carry) * S.lean * g;
     this.lean += (leanT - this.lean) * damp(8, dt);
+    // (the share of it the hips take stays what it was before issue #699, the old forward limit and no carriage: the rest is the
+    // chest's alone. Tipped from the hips too, the planted feet of a sprint's steps slid 8-10 cm in the game, the motion QC)
+    const baseT = clamp(this.af * LOCO.leanPerAccel, -LOCO.leanBack, LOCO.leanMax) * S.lean * g;
+    this.leanHips += (baseT - this.leanHips) * damp(8, dt);
     const dipT = clamp(-this.af * LOCO.dipPerBrake, 0, LOCO.dipMax) * g * Math.min(speed / 1.5 + 0.3, 1);
     this.dip += (dipT - this.dip) * damp(10, dt);
-    const bankT = clamp(-this.turn * LOCO.bankPerTurn * Math.min(speed / this.walk, 1.6), -LOCO.bankMax, LOCO.bankMax) * S.bank * g;
+    const BR = LOCO.bankRun, br = BR ? THREE.MathUtils.smoothstep(speed, BR[0], BR[1]) : 0;
+    const bankPer = LOCO.bankPerTurn + ((BR?.[2] ?? 0) - LOCO.bankPerTurn) * br, bankMax = LOCO.bankMax + ((BR?.[3] ?? 0) - LOCO.bankMax) * br;
+    const bankT = clamp(-this.turn * bankPer * Math.min(speed / this.walk, 1.6), -bankMax, bankMax) * S.bank * g;
     this.bank += (bankT - this.bank) * damp(8, dt);
     // the head leads a turn, the chest follows it, the hips (the heading) come last
     const ahead = want === null ? 0 : wrap(want - heading);
@@ -90,9 +106,10 @@ export class Locomotion {
     if (k <= 0) return;
     const { body, torso, head } = char;
     // the hips take a little of the lean and the bank, the chest the rest (both in the body's frame)
-    body.quaternion.premultiply(_q.setFromAxisAngle(_x, this.lean * 0.3 * k)).premultiply(_q2.setFromAxisAngle(_z, this.bank * 0.4 * k));
+    const hips = this.leanHips ?? this.lean;
+    body.quaternion.premultiply(_q.setFromAxisAngle(_x, hips * 0.3 * k)).premultiply(_q2.setFromAxisAngle(_z, this.bank * 0.4 * k));
     body.position.y -= this.dip * k;
-    torso.quaternion.premultiply(_q.setFromAxisAngle(_x, this.lean * 0.7 * k)).premultiply(_q2.setFromAxisAngle(_z, this.bank * 0.6 * k));
+    torso.quaternion.premultiply(_q.setFromAxisAngle(_x, (this.lean - hips * 0.3) * k)).premultiply(_q2.setFromAxisAngle(_z, this.bank * 0.6 * k));
     torso.quaternion.premultiply(_q.setFromAxisAngle(_y, this.chest * k));
     head.quaternion.premultiply(_q.setFromAxisAngle(_y, this.head * k));
   }

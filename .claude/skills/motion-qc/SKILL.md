@@ -17,6 +17,7 @@ Three ways of moving him are compared (`--ways`):
 | `moves` | the loops with the captured starts, stops and turns laid over them (src/loco-moves.js) | the default |
 | `mm` | motion matching (src/motion-match.js): the database's captures and the game's own loops | `?mm=1`, the dev menu |
 | `loops` | the clips' loops alone | `?moves=0` |
+| `carry` | `moves` with the carried stop from a run (src/loco-moves.js `STOP_FEEL`, issue #699; its long stop fails the stop limit by design) | `?stop=carry` |
 
 ## 1. Run it
 
@@ -24,6 +25,8 @@ Three ways of moving him are compared (`--ways`):
 node scripts/motion-qc/run.mjs <scratch>/motion [--ways moves,mm] [--only stairs,pivot]    # node, ~40 s
 node .claude/skills/motion-qc/run.mjs <scratch>/motion-world [--worlds desert,bazaar] [--ways moves,mm] [--cpu 4]   # browser, ~1 min a run
 node scripts/motion-qc/diff.mjs <before>/motion.json <after>/motion.json [--way moves]   # two node runs side by side
+node scripts/motion-qc/worlds-flat.mjs [--seeds 1,2,3] [--verbose]   # the worlds' course on node's flat at the game's uneven frames
+node scripts/motion-qc/feel.mjs [--carry]   # the controller's feel: starts, stops, the reversal, the lean and the bank
 ```
 
 Both runs take `TUNE='{"feet.js":{"FEET":{"dropKeep":false}}}'` (assigned into `src/<module>`'s exported objects; in the
@@ -45,7 +48,7 @@ Node 22.12 or newer on PATH (the global `WebSocket` and Vite's floor; CI uses 24
 - **Browser** (the skill's `run.mjs`): the same hands in the real game, one world after another (the desert's open
   sand, the Signal Market's street, the Arena's floor), each way on a fresh boot. PORT (default 5363; **never
   5173**, the author's own server); Chrome picks its own debugging port (port 0, read from the profile's
-  `DevToolsActivePort`); `VITE_CACHE=<checkout>/.vite-cache` in a worktree whose
+  `DevToolsActivePort`; `CDP_PORT` fixes one); `VITE_CACHE=<checkout>/.vite-cache` in a worktree whose
   node_modules is a link. One muted headless Chrome (`--mute-audio`, the game's volumes at 0) and one Vite server,
   both closed at the end. `--cpu 4` throttles Chrome's CPU fourfold for the cost columns (a handheld's main thread,
   roughly). Writes `motion-world.json`, `motion-world.md`, `<scenario>.<way>.png` (pictures of the game at the worst

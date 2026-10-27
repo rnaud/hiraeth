@@ -146,7 +146,7 @@ import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
 import { padFaces, setFaces, confirmKey, backKey, padLayout } from '../src/native-pad.js';
 import { attachMotion, matchingSetting } from '../src/motion-match.js';
-import { movesSetting } from '../src/loco-moves.js';
+import { movesSetting, stopSetting } from '../src/loco-moves.js';
 import { ShopPanel } from '../src/shop-panel.js';
 import { resources } from '../src/resources.js';
 import { Gadgets } from '../src/gadgets/index.js';
@@ -506,6 +506,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (his captured moves as main.js has them, the save's own switch, movesSetting; without moves.glb, -js-off moves, his loops
   // stay the library's: lib.motion holds the gestures alone; the matching once the database is in, main.js's)
   player.locoMoves = moves && movesSetting.get();
+  player.stopFeel = stopSetting.get();   // (how he stops from a run, as main.js: the author's switch, issue #699; snap unless asked for)
   if (player.animator) player.animator.matching = !!(matchOn && lib?.motion?.db);
   const humans0 = await humansP;
   // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
