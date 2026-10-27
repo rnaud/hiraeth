@@ -72,7 +72,8 @@ test('session readiness is reported once; preference changes stop collection', a
   const game=bus(), events=[]; let listener, time=0;
   const settings={analytics:true,on(f){listener=f;f(null);}};
   const session=trackSession({game,settings,world:'desert',allowed:true,now:()=>time,loadTransport:async()=>({enable(){},send:e=>events.push(e),close(){}})});
-  await new Promise(r=>setImmediate(r)); time=123; session.ready(); session.ready();
+  time=123; session.ready(); session.ready();
+  assert.equal(events.length,0); session.play(); session.play(); await new Promise(r=>setImmediate(r));
   assert.equal(events.length,2); assert.equal(events[1].value,123);
   settings.analytics=false; listener('analytics'); game.emit('quest',{id:'desert.power',stage:'done'});
   assert.equal(events.length,2); session.dispose();

@@ -22,6 +22,7 @@ platform adapters subscribe with `trackSession`.
 | Progression World | Start at world entry; Complete when its authored completion flag becomes true | none |
 | Progression Quest | Start at first stage; Complete/Fail at terminal stage | none |
 | Progression Minigame | Start per attempt; Complete/Fail on result | rounded score when available |
+| Story progress | Snapshot of the active save at play/resume and main-story milestones | model 1, completed route-world count, four milestone bits; server-derived percent |
 | Loading World | Entry-point setup to world-ready, before waiting on title selection | milliseconds |
 
 Only authored short identifiers, finite numeric results, game build, platform,
@@ -140,3 +141,39 @@ Collection accepts the primary `hiraeth.my` origin too. Events expire after 90 d
 first-observed dates survive for still-active installation IDs to avoid counting
 returning players as newly acquired when the oldest event is pruned. Inactive IDs
 are removed with retention cleanup.
+
+
+## Per-player story completion
+
+The private Player journeys table shows a random report-only alias for each
+installation, best observed main-story percentage, latest reported world,
+first/last recorded activity, session count and distinct active UTC days.
+Two or more active days in the selection is labelled returned. Last seen is
+an event timestamp, not a claim that somebody is online or has abandoned the game.
+The same person on different devices still has separate rows; no identity linking.
+
+Model 1 is a milestone estimate, not percent of playtime. It counts up to 11
+completed route worlds (ORDER length minus AHEAD plus one, checked against the
+completion specification), plus the prologue, first homecoming, Ilen found and
+true ending: 15 milestones. Until `ending.final`, floor(completed milestones /
+15 * 100) stays below 100. `ending.final` alone makes it 100, including alternative
+routes. `ending.done` is only the first homecoming. Extra worlds, collectibles,
+outfits and optional challenges are not required for 100%. The model is versioned;
+changing its meaning requires an explicit migration rather than mixing scores.
+
+A snapshot reads the current save's numeric progress, including legacy journal
+world completion; it never sends save contents or text. Existing players report
+their current progress on resuming. No snapshot or activity is sent just because
+the web title preloads a world. Opt-out and debug exclusions still apply. The
+native sender forwards the bounded counters through its updated event schema;
+older compatible analytics installers omit these new snapshots until updated.
+
+Report filters select the player cohort and visits. Completion is the maximum
+single-save snapshot over the retained 90 days for those players, across builds;
+latest world comes from the newest snapshot. Resetting/replaying another save
+cannot sum into that high-water mark. No snapshot means “Not reported”, not 0%.
+Pagination is 50 players, sorted by recent activity, highest completion or oldest
+last-seen time, with a stable alias tie-breaker. Report aliases are generated in
+the database separately from ingestion IDs; raw installation and session IDs
+are never returned. Aliases and inactive first-seen rows are pruned when their
+90-day event history expires. There is no permanent lifetime progress archive.

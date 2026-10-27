@@ -53,7 +53,9 @@ export async function handleAnalytics(request, env, now = Date.now()) {
       if (!authenticated) return json({ error: 'Sign in to view analytics' }, 401, cors);
       const days = Number(url.searchParams.get('days') ?? 7), platform = url.searchParams.get('platform') ?? 'all', build = url.searchParams.get('build') ?? '';
       if (![7, 30, 90].includes(days) || !['all', 'web', 'android', 'linux'].includes(platform) || (build && !validBuild(build))) return json({ error: 'Invalid filters' }, 400, cors);
-      data = { days, platform, build };
+      const playerPage = Number(url.searchParams.get('playerPage') ?? 0), playerSort = url.searchParams.get('playerSort') ?? 'recent';
+      if (!Number.isSafeInteger(playerPage) || playerPage < 0 || playerPage > 100000 || !['recent', 'progress', 'oldest'].includes(playerSort)) return json({ error: 'Invalid player filters' }, 400, cors);
+      data = { days, platform, build, playerPage, playerSort };
     }
     const stub = env.ANALYTICS.get(env.ANALYTICS.idFromName('hiraeth-v1'));
     const response = await stub.fetch('https://analytics/internal', { method: 'POST', body: JSON.stringify({ op: events ? 'ingest' : 'report', data }) });

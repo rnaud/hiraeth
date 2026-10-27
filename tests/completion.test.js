@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import { completionSpec, specMarkdown, chartedAfter } from './completion-spec.js';
 import { ORDER } from '../src/levels/names.js';
+import { STORY_WORLD_TARGET } from '../src/analytics/progress.js';
 import { TEMPLES } from '../src/temples/index.js';
 
 const spec = completionSpec();
@@ -45,4 +46,8 @@ test('the daily run plays the game to its end in node and in Chrome, and keeps t
   assert.match(yaml, /node --test tests\/completion\.test\.js tests\/playthrough\.test\.js/);
   assert.match(yaml, /node scripts\/playthrough-browser\.mjs --url http:\/\/127\.0\.0\.1:6101\/ --port 6101 --out completion-evidence\/browser/);
   assert.match(yaml, /name: completion-evidence/);
+});
+
+test('analytics milestone route target follows the completion specification', () => {
+  assert.equal(STORY_WORLD_TARGET, spec.minimum.worlds);
 });

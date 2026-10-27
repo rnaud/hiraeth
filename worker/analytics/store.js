@@ -13,7 +13,9 @@ export class AnalyticsStore {
       CREATE INDEX IF NOT EXISTS events_at ON events(at);
       CREATE INDEX IF NOT EXISTS events_installation ON events(installation, received);
       CREATE TABLE IF NOT EXISTS budget (day INTEGER PRIMARY KEY, accepted INTEGER NOT NULL);
-      CREATE TABLE IF NOT EXISTS first_seen (installation TEXT PRIMARY KEY, at INTEGER NOT NULL);`);
+      CREATE TABLE IF NOT EXISTS first_seen (installation TEXT PRIMARY KEY, at INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS player_labels (installation TEXT PRIMARY KEY, label TEXT NOT NULL UNIQUE);
+      INSERT OR IGNORE INTO player_labels SELECT installation, lower(hex(randomblob(8))) FROM first_seen;`);
   }
   rows(query, ...args) { return [...this.sql.exec(query, ...args)]; }
   ingest(batch, now) {
@@ -31,6 +33,7 @@ export class AnalyticsStore {
           e.id, batch.installation, batch.session, batch.platform, batch.build, at, now,
           e.type, e.category ?? 'Loading', e.type === 'design' ? e.name.slice(14) : e.name, e.status ?? '', e.value ?? null);
         this.sql.exec('INSERT INTO first_seen VALUES (?, ?) ON CONFLICT(installation) DO UPDATE SET at = MIN(at, excluded.at)', batch.installation, at);
+        this.sql.exec('INSERT OR IGNORE INTO player_labels VALUES (?, lower(hex(randomblob(8))))', batch.installation);
         accepted++;
       }
       this.sql.exec('INSERT INTO budget VALUES (?, ?) ON CONFLICT(day) DO UPDATE SET accepted = accepted + excluded.accepted', day, accepted);
@@ -41,10 +44,11 @@ export class AnalyticsStore {
     this.storage.transactionSync(() => {
       this.sql.exec('DELETE FROM events WHERE at < ?', now - RETENTION_DAYS * DAY);
       this.sql.exec('DELETE FROM first_seen WHERE at < ? AND installation NOT IN (SELECT DISTINCT installation FROM events)', now - RETENTION_DAYS * DAY);
+      this.sql.exec('DELETE FROM player_labels WHERE installation NOT IN (SELECT installation FROM first_seen)');
       this.sql.exec('DELETE FROM budget WHERE day < ?', Math.floor(now / DAY) - RETENTION_DAYS);
     });
   }
-  report({ days = 7, platform = 'all', build = '' }, now) {
+  report({ days = 7, platform = 'all', build = '', playerPage = 0, playerSort = 'recent' }, now) {
     const since = Math.floor(now / DAY) * DAY - (days - 1) * DAY;
     const terms = ['at >= ?', 'at <= ?'], args = [since, now];
     if (platform !== 'all') { terms.push('platform = ?'); args.push(platform); }
@@ -64,8 +68,25 @@ export class AnalyticsStore {
       cohorts AS (SELECT a.installation, a.day FROM activity a JOIN first_seen f ON f.installation=a.installation
         WHERE a.day=CAST(f.at / 86400000 AS INTEGER) AND a.day < ?)
       SELECT COUNT(*) AS eligible, SUM(EXISTS(SELECT 1 FROM activity a WHERE a.installation=c.installation AND a.day=c.day+1)) AS returned FROM cohorts c`, Math.floor(now / DAY) - 1)[0];
+    // Filters select the active cohort/activity. Progress is that cohort's best single-save
+    // snapshot across the retained history, never a union of completions from different saves.
+    const order = { recent: 'a.lastSeen DESC', progress: 'best.value DESC, a.lastSeen DESC', oldest: 'a.lastSeen ASC' }[playerSort] ?? 'a.lastSeen DESC';
+    const players = query(`WITH activity AS (
+      SELECT installation, MAX(at) AS lastSeen, COUNT(DISTINCT session) AS sessions,
+        COUNT(DISTINCT CAST(at / 86400000 AS INTEGER)) AS activeDays,
+        GROUP_CONCAT(DISTINCT platform) AS platforms FROM events WHERE $filter GROUP BY installation),
+      snapshots AS (SELECT e.*, ROW_NUMBER() OVER(PARTITION BY e.installation ORDER BY value DESC, at DESC, id DESC) AS bestRank,
+        ROW_NUMBER() OVER(PARTITION BY e.installation ORDER BY at DESC, id DESC) AS latestRank
+        FROM events e JOIN activity a ON a.installation=e.installation WHERE e.type='progress' AND e.at >= ? AND e.at <= ?)
+      SELECT labels.label AS player, f.at AS firstSeen, a.lastSeen, a.sessions, a.activeDays, a.platforms,
+        best.value AS completion, best.status AS milestone, latest.name AS lastWorld, latest.at AS progressAt
+      FROM activity a JOIN first_seen f ON f.installation=a.installation JOIN player_labels labels ON labels.installation=a.installation
+      LEFT JOIN snapshots best ON best.installation=a.installation AND best.bestRank=1
+      LEFT JOIN snapshots latest ON latest.installation=a.installation AND latest.latestRank=1
+      ORDER BY ${order}, labels.label LIMIT 50 OFFSET ?`, now - RETENTION_DAYS * DAY, now, playerPage * 50);
     const observedFirst = this.rows('SELECT MIN(at) AS at FROM events')[0]?.at ?? null;
     return { generatedAt: now, since, days, platform, build, totals, daily, platforms, progression, loading,
+      players, playerPage, playerPageSize: 50, playerSort,
       retention: { eligible: retention.eligible, returned: retention.returned ?? 0 }, observedFirst,
       builds: this.rows('SELECT DISTINCT build FROM events WHERE at >= ? ORDER BY build DESC LIMIT 100', now - 90 * DAY).map(x => x.build),
       health: { todayAccepted: this.rows('SELECT accepted FROM budget WHERE day = ?', Math.floor(now / DAY))[0]?.accepted ?? 0, dailyLimit: DAILY_EVENT_LIMIT }, retentionDays: RETENTION_DAYS };
