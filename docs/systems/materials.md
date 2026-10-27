@@ -461,8 +461,8 @@ frame), so they agree with the cast shadows. Still flat colour: the darker band 
   (`_Relief`, HiraethLook.cs from the look's `shared`).
 - **The helper** (`RELIEF_GLSL`, included before every pattern): `reliefEdge(dpx, g, sun2, inkW)` the signed band beside
   an edge (px from it; `g` the way the nearest slope faces: out of a raised thing, back toward an engraved groove; the
-  band starts past the ink line's half and has soft ramps of 2 device px, so no step from one pixel to the next crosses
-  post.js's colour-edge threshold and inks the band as a line of its own); `reliefTone(alb, r)`; `reliefFrameSun(...)`
+  band starts past the ink line's half and has soft ramps of 2 device px); `reliefTone(alb, r)` (records it: below,
+  issue #700); `reliefFrameSun(...)`
   the sun across a face in an object's own frame, from the two frames' screen derivatives (rooms).
 - **Where**: paving's stones (raised), sheet metal's panels and rivets (raised: a lit and a shaded crescent beside each
   dot), pale stone's blocks (raised), the buried city's wind bands (grooves),
@@ -476,16 +476,28 @@ frame), so they agree with the cast shadows. Still flat colour: the darker band 
 - **Review**: `tools/relief-review.html` (open on any dev server), its pictures and frame times made by
   `node tools/relief-shots.mjs` (fixed views in `tools/relief-review/views.json`; `--preset medium --out <dir>` shoots
   them at render scale 1, as the Unity port and the web's Medium, Deck, Xbox and handheld presets draw).
-- **Inked beside a joint at render scale 1** (issue #700, open): across a joint the lit band (+) and the shaded one (−)
-  sit on either side, so post.js's colour-edge test, whose kernel reaches `inW × uPixelRatio` px (about 1.5–2) and
-  straddles the joint, sees both at once (up to 2 × 0.065 a channel, ≈ 0.2 in RGB length on Lorn's purple stone)
-  and inks a dashed line just past the joint's own; the 2 px ramps only keep *neighbouring* pixels under its
-  threshold. Web High draws at render scale 1.5 and averages it down to faint dashes; every preset at scale 1 (web
-  Medium, Deck, Xbox; the Unity port, which never supersamples) shows them crisp. The Unity port is not at fault: at
-  the same render scale its albedo and final picture match the web's within a level or two of 255 (shop floor, Lorn's
-  stone, the Glass Dunes drum, the City-Shaft paving, the Foundry walls). A fix belongs in `src/relief.js` (both
-  renderers): a smaller cap, bands that start past the kernel's reach, or the relief kept out of what the colour-edge
-  test reads.
+- **Kept out of the colour-edge test** (issue #700). Until v2.31 the bands were drawn into the albedo, and across a joint
+  the lit band (+) and the shaded one (−) sit on either side, so post.js's colour-edge test, whose kernel reaches
+  `inW × uPixelRatio` px (about 1.5–2) and straddles the joint, saw both at once and inked a dashed line just past the
+  joint's own (web High's 1.5 supersample averaged it to faint dashes; every preset at scale 1, web Medium, Deck, Xbox
+  and the Unity port, showed it crisp; the port was never at fault: at the same scale its albedo and picture match the
+  web's within a level or two of 255). Now the patterns only say where the relief goes: `reliefTone` adds its share to
+  the pixel's `gRelief` and gives the colour back as it was, the G-buffer keeps the **flat colour**, and the relief
+  travels in the **length of the G-buffer's normal** (`reliefMark`, `RELIEF_MARK`: `0.975 − 0.015 k` for k in −1..1,
+  under 1 where the water's mark is over it; a unit normal carries none). The composite reads it back at the pixel's
+  own texel (`RELIEF_READ_GLSL`: `reliefOf`, then `reliefApply`, the same tone as before) right after its own albedo
+  read, so the colour-edge test (which reads the neighbours' flat colour) never sees the bands and lines appear only
+  on real geometry and colour edges; the crease test and the sun's facing take the normal back to unit length
+  (`reliefNormal`). No pass, no target, no fetch more: one `length` at the pixel and five in each crease test. Unity
+  the same: Surface.shader's `static float gRelief` and `reliefMark` (SurfaceMarks.hlsl, generated), Composite.shader's
+  read-back by hand, its text the HLSL of `RELIEF_READ_GLSL` (tests/relief.test.js holds them together, and models the
+  joint: the toned colour inked at a kernel of 1.5–2 px, the flat one nothing). The tone is now laid after the
+  material's last touches to its colour (its weather, a tint) instead of before them: the same within a level.
+  Cost, M4 Pro, 1280 × 720, the shipped bundle, `fps.mjs --worlds perdide,incal --extras 0` (origin/main 591ed0aa8 against
+  this change, load 9–15), median frame ms: High 11.0 → 10.1, 9.4 → 9.4 (Lorn), 11.6 → 10.3, 13.3 → 13.5 (City-Shaft);
+  Handheld (two runs each, alternating) 6.1 → 6.1, 5.6 → 5.1, 9.0 → 8.3, 7.6 → 7.4: within the noise. Pictures: web
+  Medium and Deck (`tools/relief-shots.mjs --preset medium --png 1`) and the Unity port at Lorn's Hush-House, before and
+  after, in the changelog (v2.31).
 ## The census's code-only list applied (issue #691)
 
 docs/audits/surfaces-v2.30.md's "code only" list: every item an existing pick covers, as options on materials (no new

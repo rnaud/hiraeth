@@ -271,6 +271,7 @@ Shader "Hiraeth/Surface"
     TEXTURE2D(_EyePaint); SAMPLER(sampler_EyePaint);   // the portrait head's painted eyes and brows (PortraitFace.hlsl, issue #473)
     #include "Figure.hlsl"
     #include "Marks.hlsl"
+    static float gRelief = 0.0;   // (the painted relief this pixel takes: reliefTone adds to it, reliefMark sends it on in the normal's length, src/relief.js)
     #include "SurfaceMarks.hlsl"   // (first: its head is the painted relief's helpers, src/relief.js, that Paving.hlsl and SkinPatterns.hlsl use)
     #include "Paving.hlsl"
     #include "GardenBeds.hlsl"
@@ -1764,6 +1765,7 @@ Shader "Hiraeth/Surface"
         o.albedoLight = float4(albedo, saturate(L) + 2.0 * lineStepHere);   // (the line's weight and colour over it: materials.js LINE, LINE_FAR)
         if (_LineWhite.x > 0.5) o.albedoLight.a = -1.0 - o.albedoLight.a;   // (a white line, uLineWhite: the sign bit, Composite 1b)
         o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
+        o.normalDepth.xyz = reliefMark(o.normalDepth.xyz);   // (the painted relief in the normal's length: Composite.shader lights or shades the flat colour, src/relief.js)
         o.hatch = 0;
         // (the water marks itself by its normal's length, its glints on top: water-shader.js WATER_MARK, read by WaterOver.shader)
         if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0 && frontFace && _WaterOpt.y < 0.5) o.normalDepth.xyz *= 1.012 + 0.05 * waterGlint;

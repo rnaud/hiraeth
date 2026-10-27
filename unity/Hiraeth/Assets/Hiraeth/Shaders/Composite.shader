@@ -132,6 +132,14 @@ Shader "Hidden/Hiraeth/Composite"
       // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 x step)
       // (a white line, makeMaterial({ lineWhite }), is stored in the sign bit: −(1 + L + 2 × step); issue #264, surfaces D)
       float lightOf(float a) { a = a < 0.0 ? -a - 1.0 : a; return a - 2.0 * floor(a * 0.5); }
+      // (the same as post.js reads, src/relief.js RELIEF_READ_GLSL: tests/relief.test.js holds them together)
+      // ---------------------------------------------------------------- painted relief, read back (src/relief.js, issue 700)
+      float reliefOf(float len) { return len > 0.955 && len < 0.995 ? clamp((0.975 - len) / 0.015, -1.0, 1.0) : 0.0; }
+      float3 reliefNormal(float3 n) { float l = length(n); return l > 0.955 && l < 0.995 ? n / l : n; }
+      float3 reliefApply(float3 alb, float k) {
+        if (k > 0.0) return max(alb, min(alb + min(alb * 0.16, ((float3)(0.065))) * k, ((float3)(0.9))));
+        return alb + min(alb * 0.16, ((float3)(0.065))) * k;
+      }
       // gSliver (set by each inkLines, read by 1a on inked pixels only: post.js, issue #538): how far this pixel differs from
       // its neighbours on BOTH sides across: x the nearer neighbour's depth across (the sky far), y its own depth, z the
       // smaller normal difference across, w the smaller colour difference. Nearer than both, or a crease or a colour edge on
@@ -158,10 +166,12 @@ Shader "Hidden/Hiraeth/Composite"
         gSliver = float4(max(min(nf.x, nf.y), min(nf.z, nf.w)), c.w, 0.0, 0.0);
         float nEdge = 0.0;
         if (c.w > 0.0 && interior) {
-          float d1 = n1.w > 0.0 ? 1.0 - dot(c.xyz, n1.xyz) : 0.0;
-          float d2 = n2.w > 0.0 ? 1.0 - dot(c.xyz, n2.xyz) : 0.0;
-          float d3 = n3.w > 0.0 ? 1.0 - dot(c.xyz, n3.xyz) : 0.0;
-          float d4 = n4.w > 0.0 ? 1.0 - dot(c.xyz, n4.xyz) : 0.0;
+          // (a normal carrying the painted relief in its length, back to unit length: src/relief.js)
+          float3 cN = reliefNormal(c.xyz);
+          float d1 = n1.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n1.xyz)) : 0.0;
+          float d2 = n2.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n2.xyz)) : 0.0;
+          float d3 = n3.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n3.xyz)) : 0.0;
+          float d4 = n4.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n4.xyz)) : 0.0;
           nEdge = smoothstep(_NormalThresh, _NormalThresh * 1.5, max(max(d1, d2), max(d3, d4)));
           gSliver.z = max(min(d1, d2), min(d3, d4));
         }
@@ -552,6 +562,9 @@ Shader "Hidden/Hiraeth/Composite"
         float4 A = tA(uv);
         A.a = lightOf(A.a);   // (the line step over it: 1b)
         float4 N = tN(uv);
+        // the painted relief (src/relief.js, post.js): drawn into the flat colour here, after the colour-edge test read that (issue #700)
+        float reliefK = reliefOf(length(N.xyz));
+        if (reliefK != 0.0) { A.rgb = reliefApply(A.rgb, reliefK); N.xyz = normalize(N.xyz); }
         bool isSky = N.w <= 0.0;
         float4 surface = tH(uv);
         // the shade's tone packed over the strokes (materials.js SHADE): r += 2 (1 + hue step), g += 2 lift step

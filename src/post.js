@@ -1,12 +1,15 @@
 import * as THREE from 'three';
 import { sharedUniforms, SHADE, SPOT, WEATHER, LINE, INK_WHITE } from './materials.js';
+import { RELIEF_READ_GLSL } from './relief.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
 //
 // Inputs (from the G-buffer written by materials.js):
 //   tAlbedo : rgb albedo, a = light term (+ 2 × the material's line step, materials.js LINE)
-//   tNormal : rgb world normal, a = view depth (0 = sky)
+//   tNormal : rgb world normal, a = view depth (0 = sky); its length a mark: the water's over 1 (water-shader.js
+//             WATER_MARK), the painted relief's under 1 (src/relief.js RELIEF_MARK: lit or shaded here, in main,
+//             after the colour-edge test has read the flat albedo, issue #700)
 //   tHatch  : r = single hatch, g = cross hatch (strokes drawn on surfaces)
 //
 // Steps, per pixel:
@@ -448,6 +451,7 @@ const fragmentShader = /* glsl */ `
   // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 × step)
   // (a white line, makeMaterial({ lineWhite }), is stored in the sign bit: −(1 + L + 2 × step))
   float lightOf(float a) { a = a < 0.0 ? -a - 1.0 : a; return a - 2.0 * floor(a * 0.5); }
+  ${RELIEF_READ_GLSL}
 
   // Edge components at a given kernel width:
   //   x = depth discontinuity (silhouettes), y = normal crease,
@@ -488,10 +492,12 @@ const fragmentShader = /* glsl */ `
     // Normals: creases.
     float nEdge = 0.0;
     if (c.w > 0.0 && interior) {
-      float d1 = n1.w > 0.0 ? 1.0 - dot(c.xyz, n1.xyz) : 0.0;
-      float d2 = n2.w > 0.0 ? 1.0 - dot(c.xyz, n2.xyz) : 0.0;
-      float d3 = n3.w > 0.0 ? 1.0 - dot(c.xyz, n3.xyz) : 0.0;
-      float d4 = n4.w > 0.0 ? 1.0 - dot(c.xyz, n4.xyz) : 0.0;
+      // (a normal carrying the painted relief in its length, back to unit length: src/relief.js)
+      vec3 cN = reliefNormal(c.xyz);
+      float d1 = n1.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n1.xyz)) : 0.0;
+      float d2 = n2.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n2.xyz)) : 0.0;
+      float d3 = n3.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n3.xyz)) : 0.0;
+      float d4 = n4.w > 0.0 ? 1.0 - dot(cN, reliefNormal(n4.xyz)) : 0.0;
       nEdge = smoothstep(uNormalThresh, uNormalThresh * 1.5, max(max(d1, d2), max(d3, d4)));
       gSliver.z = max(min(d1, d2), min(d3, d4));
     }
@@ -945,6 +951,11 @@ const fragmentShader = /* glsl */ `
     vec4 A = texture(tAlbedo, uv);
     A.a = lightOf(A.a);   // (the line step over it: 1b)
     vec4 N = texture(tNormal, uv);
+    // the painted relief (src/relief.js): the G-buffer keeps the flat colour, the ink pass's colour-edge test reads that
+    // (inkLines), and the lit or shaded band beside a mark is drawn into it here, from the mark in the normal's length
+    // at this pixel's own texel (issue #700: tested on the toned colour, a joint's lit and shaded bands were inked)
+    float reliefK = reliefOf(length(N.xyz));
+    if (reliefK != 0.0) { A.rgb = reliefApply(A.rgb, reliefK); N.xyz = normalize(N.xyz); }
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
     // the shade's tone, packed over the strokes (materials.js SHADE): r += 2 (1 + hue step), g += 2 lift step

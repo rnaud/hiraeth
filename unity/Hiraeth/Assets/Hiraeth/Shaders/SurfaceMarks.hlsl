@@ -15,10 +15,11 @@
     float band = smoothstep(a - 0.2, a + 2.0, dpx) * (1.0 - smoothstep(a + 2.0 + w, a + 4.0 + w, dpx));
     return band * clamp(dot(g, sun2) / 0.45, -1.0, 1.0);
   }
-  float3 reliefTone(float3 alb, float r) {
-    float k = _Relief * r;
-    if (k > 0.0) return max(alb, min(alb + min(alb * 0.16, ((float3)(0.065))) * k, ((float3)(0.9))));
-    return alb + min(alb * 0.16, ((float3)(0.065))) * k;
+  // (gRelief: the relief this pixel takes, declared by the host shader: materials.js, Unity's Surface.shader)
+  float3 reliefTone(float3 alb, float r) { gRelief += _Relief * r; return alb; }
+  float3 reliefMark(float3 n) {
+    float k = clamp(gRelief, -1.0, 1.0);
+    return abs(k) > 0.02 ? n * (0.975 - 0.015 * k) : n;
   }
   float3 reliefFrameSun(float3 wdx, float3 wdy, float3 odx, float3 ody, float3 sun) {
     float a = dot(wdx, wdx), b = dot(wdx, wdy), c = dot(wdy, wdy), det = a * c - b * b;

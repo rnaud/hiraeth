@@ -289,7 +289,7 @@ fraction in 0..1, and each reader takes them off (`floor`, `mod`) before using t
 |---|---|---|---|
 | RT0.rgb | albedo | (none) | 1 |
 | RT0.a | the light term L (half-lambert × cast shadow, 0..1) | + 2 × line step (LINE: weight step + 4 × tint step, 0..15); a white line (`lineWhite`): −(1 + all that) | −33 … 32 |
-| RT1.xyz | world normal | its length: the water's mark (`WATER_MARK`: 1.012 + 0.05 × sparkle) | 1.07 |
+| RT1.xyz | world normal | its length: the water's mark (`WATER_MARK`: 1.012 + 0.05 × sparkle), or the painted relief's under 1 (`RELIEF_MARK`: 0.975 − 0.015 k, lit or shaded by the composite, issue #700) | 1.07 |
 | RT1.w | linear view depth (m; 0 = the sky) | (none) | 5000 |
 | RT2.r | hatch strokes (0..1) | + 2 × hue step (SHADE: 0 the world's, 1 … 9 a hue, 10 … 15 a flat print) | < 32 |
 | RT2.g | cross-hatch strokes (0..1) | + 2 × lift step (SHADE: 0 … 15) | < 32 |

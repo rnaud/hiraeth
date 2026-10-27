@@ -20,6 +20,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The opening aboard your ship has its own theme, fading away for your father's message before the desert music takes over outside.
 - The Glass Dunes, Moon Foundry and Underwater City each have a new recording with a different rhythm and character.
 - A new French electro main theme welcomes you. Lorn is mysterious and mischievous, Viridel bursts with playful energy, the City-Shaft has an orchestral adventure, and Space City reaches for the epic.
+- Those raised and cut-in edges no longer leave a broken dashed line beside the joints on the Medium, Steam Deck and Xbox settings or in the Unity version: the light and shaded edges stay soft tones, and ink lines are drawn only where shapes and colours really meet.
 - Paving, stone blocks, shop tiles, metal plates and carved bands now look raised or cut in, the way a pen-and-wash drawing shows it: a thin light edge on the side facing the sun and a soft shade on the other, so they agree with the shadows.
 
 ## v2.30 — 2026-10-26

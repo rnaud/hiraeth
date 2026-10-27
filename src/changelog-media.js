@@ -1348,6 +1348,7 @@ const MAC536 = 'The Unity editor’s batch run on this Mac (M4 Pro, Metal), mute
 const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (FSR 1 to 1280 × 960, dynamic resolution), muted, release APK 2778 with the switches (before: -no-one-cull -no-uniform-layout), warm launches, -bench 6, two passes interleaved world by world; 20 October';
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
+const RELIEF700 = 'Issue #700: tools/relief-shots.mjs --preset medium --png 1, a muted headless Chrome on the real GPU (ANGLE on Metal), Medium, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera, a Vite of its own (port 5441); before: origin/main at 591ed0aa8, after: this change; 27 October; cwebp -q 72';
 const RELIEF696 = 'Issue #696: the review page’s captures (tools/relief-shots.mjs): a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera; one load of one build (26b565197 with this change), the shared painted-relief switch flipped between the two pictures (before: off, the flat marks as they were; after: on); 26 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '2.31': [
@@ -1441,6 +1442,26 @@ export const CHANGELOG_MEDIA = {
     ], source: 'tools/relief-shots.mjs (tools/relief-review/data.json: eight views)', note: 'Within the run-to-run noise in every view (±0.3 ms on High): no measurable cost.' },
   ],
   see: 'Walk onto a paved plaza or into a shop at midday and look at the joints. Add ?relief=0 to the address to see a world flat again.',
+},
+{
+  match: 'Those raised and cut-in edges no longer leave a broken dashed line',
+  shots: [
+    { name: 'relief-joints-lorn', caption: 'Lorn’s Hush-House on Medium: the dashed line that ran just under each joint is gone; the light and shaded edges stay soft tones', from: RELIEF700, view: 'In front of the Hush-House’s door (a pinned camera, eye −108, 5, 109), the Medium preset (render scale 1, as the Steam Deck, Xbox and Unity draw); a 640 × 360 part of the 1280 × 720 frame (from x 40, y 100) shown at twice its size, nearest pixel, so the joints can be seen.', size: [1280, 720] },
+    { name: 'relief-joints-unity', caption: 'The same in the Unity version: the dashes beside the joints gone, the soft light and shaded edges kept', from: 'Issue #700: the Unity port in the editor’s batch mode (scripts/unity-js-run.sh -level perdide -views … -fresh -no-hud, muted), 1280 × 720, noon, clear; before: Surface.shader, SurfaceMarks.hlsl and Composite.shader as on origin/main (591ed0aa8), after: this change, the same build otherwise; 27 October; cwebp -q 72', view: 'The same pinned camera at Lorn’s Hush-House (eye −108, 5, 109) and the same 640 × 360 part (from x 40, y 100) at twice its size. The drifting motes and the person by the door move between the two.', size: [1280, 720] },
+  ],
+  numbers: [
+    { title: 'Median frame time before and after, the same views', unit: 'ms', better: 'lower', device: 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, the shipped bundle (origin/main 591ed0aa8 against this change), .claude/skills/perf-audit/fps.mjs --worlds perdide,incal --extras 0; High one run each, Handheld two each in alternating order (the mean); load 9–15', rows: [
+      { where: 'High, Lorn, start', before: 11.0, after: 10.1 },
+      { where: 'High, Lorn, crowd', before: 9.4, after: 9.4 },
+      { where: 'High, City-Shaft, start', before: 11.6, after: 10.3 },
+      { where: 'High, City-Shaft, wide', before: 13.3, after: 13.5 },
+      { where: 'Handheld, Lorn, start', before: 6.1, after: 6.1 },
+      { where: 'Handheld, Lorn, crowd', before: 5.6, after: 5.1 },
+      { where: 'Handheld, City-Shaft, start', before: 9.0, after: 8.3 },
+      { where: 'Handheld, City-Shaft, wide', before: 7.6, after: 7.4 },
+    ], source: 'fps.mjs JSON per run (the issue-700 agent’s scratchpad)', note: 'Within the run-to-run noise: no pass, target or texture read was added (one length at each pixel, five in each crease test).' },
+  ],
+  see: 'On the Medium or Steam Deck setting, stand in front of Lorn’s Hush-House at midday and look at the joints between the pale blocks.',
 },
 {
   "match": "The Rose House is red stone inside, after its new ",

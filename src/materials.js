@@ -1768,6 +1768,7 @@ ${SHADOW_GLSL}
     return inkLine(d, 0.9) * gaps * fade;
   }
 
+  float gRelief = 0.0;   // (the painted relief this pixel takes: reliefTone adds to it, reliefMark sends it on, src/relief.js)
   ${RELIEF_GLSL}
   #ifdef S_PAVING
   ${PAVING_GLSL}
@@ -2821,6 +2822,7 @@ ${SHADOW_GLSL}
     float packedL = clamp(L, 0.0, 1.0) + 2.0 * lineStepHere;
     gAlbedoLight = vec4(albedo, uLineWhite > 0.5 ? -1.0 - packedL : packedL);   // (a white line: the sign bit, post.js 1b)
     gNormalDepth = vec4(n, vViewDepth);
+    gNormalDepth.xyz = reliefMark(gNormalDepth.xyz);   // (the painted relief in the normal's length: the composite lights or shades the flat colour, src/relief.js)
     #ifdef WATER
       if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
     #endif
