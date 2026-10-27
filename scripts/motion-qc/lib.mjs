@@ -15,6 +15,7 @@
 //                    loops (src/loco-moves.js) or null; gait: the loop that leads ('idle' 'walk' 'jog' 'sprint');
 //                    pivot (src/locomotion.js)
 //   us               { match, anim }: µs spent this frame in Animator.match and in the whole Animator.update
+//   carried          a stop under way carried from a run: the s it takes over the crisp stop's (src/loco-moves.js), else 0
 // The meta: { ballRest, ankleRest } (the ball's and the ankle's height over the sole at rest, m), fps.
 
 export const JOINTS = ['pelvis', 'spine_03', 'Head', 'upperarm_l', 'upperarm_r', 'lowerarm_l', 'lowerarm_r', 'hand_l', 'hand_r', 'thigh_l', 'thigh_r', 'calf_l', 'calf_r', 'foot_l', 'foot_r', 'ball_l', 'ball_r'];
@@ -35,7 +36,8 @@ export const LIMITS = {
   joltsPerMin: 3,
   boundary: 0.03,     // m: the worst jolt within two frames of a blend boundary (a matcher jump, the matching or a move easing in or out)
   start: 0.22,        // s from the stick pushed (standing) to a foot off the ground
-  stop: 1.1,          // s from the stick let go (moving) to both feet held and still
+  stop: 1.1,          // s from the stick let go (moving) to both feet held and still (a carried stop: and the s its carry takes
+                      // over the crisp stop's from that speed, the sample's `carried`: 0.31 s more from a sprint, Link's own; issue #702)
   turn: 0.3,          // s from the stick turned (by over 60°) to the chest half way round
   pivotSlip: 0.05,    // m the pivoting foot moves while held, through a pivot
   crossed: 0.03,      // share of a pivot's frames with the feet crossed (the left one right of the right one)
@@ -200,7 +202,7 @@ export function latency(S, meta) {
         held = both ? held + 1 : 0;
         if (held >= fps * 0.3) { got = S[k - held + 1].t - b.t; break; }
       }
-      stopsOut.push({ i, t: b.t, tag: b.tag, s: got ?? Infinity });
+      stopsOut.push({ i, t: b.t, tag: b.tag, s: got ?? Infinity, limit: LIMITS.stop + (b.carried ?? 0) });
     }
     // (the stick's way in the world: camera-relative, the camera still in a scripted run; `camYaw` turns it)
     if (steering(a) && steering(b)) {
@@ -279,6 +281,7 @@ export function analyse(S, meta) {
     boundaries: B.length, boundaryMax: worstOf(B, 'size'),
     start: L.starts.length ? Math.max(...L.starts.map((x) => x.s)) : null,
     stop: L.stops.length ? Math.max(...L.stops.map((x) => x.s)) : null,
+    stopLimit: L.stops.length ? L.stops.reduce((a, x) => (x.s - x.limit > a.s - a.limit ? x : a)).limit : null,   // (the limit of the stop furthest over its own)
     turn: L.turns.length ? Math.max(...L.turns.map((x) => x.s)) : null,
     pivots: V.length, pivotSlip: worstOf(V, 'slip'), crossed: worstOf(V, 'crossed'), pivotDone: V.length ? Math.max(...V.map((x) => x.done)) : null,
     ...(() => { const c = cost(S); return { matchUs: c.match.mean, matchUs95: c.match.p95, animUs: c.anim.mean, animUs95: c.anim.p95 }; })(),
@@ -294,7 +297,7 @@ export function analyse(S, meta) {
   if (m.joltsPerMin > LIMITS.joltsPerMin) fails.push('jolts');
   if (m.boundaryMax > LIMITS.boundary) fails.push('boundary');
   if (m.start !== null && !(m.start <= LIMITS.start)) fails.push('start');
-  if (m.stop !== null && !(m.stop <= LIMITS.stop)) fails.push('stop');
+  if (L.stops.some((x) => !(x.s <= (x.limit ?? LIMITS.stop)))) fails.push('stop');
   if (m.turn !== null && !(m.turn <= LIMITS.turn)) fails.push('turn');
   if (m.pivots && m.pivotSlip > LIMITS.pivotSlip) fails.push('pivotSlip');
   if (m.pivots && m.crossed > LIMITS.crossed) fails.push('crossed');

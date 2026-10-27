@@ -35,6 +35,9 @@ function house() {
   quiet(() => level.init?.(physics));
   const rt = templeOf(level, 'spheres') ?? level.temple;
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
+  // (these hands sprint to a mark and stand on it at once: the old crisp stop. A player's carried stop from a run, two
+  // strides on, is the game's default and has its own tests: tests/stop-feel.test.js, issue #702)
+  P.stopFeel = 'snap';
   const notes = [];
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;

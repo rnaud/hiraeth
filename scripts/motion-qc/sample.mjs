@@ -3,6 +3,7 @@
 // run.mjs imports this file into the page). The fields: scripts/motion-qc/lib.mjs.
 import * as THREE from 'three';
 import { JOINTS, BONES } from './lib.mjs';
+import { stopPath } from '../../src/loco-moves.js';
 
 const _v = new THREE.Vector3(), _q = new THREE.Quaternion();
 const r4 = (x) => Math.round(x * 1e4) / 1e4;
@@ -71,6 +72,9 @@ export function sample(p, st, { t, dt, tag = '', stick = null, run = false }) {
     feet, joints, w, chest: r4(chest),
     mm: { w: r4(A?.mmW ?? 0), jumps: M?.jumps ?? 0, clip: M && M.cur >= 0 ? db.segments[db.segOf[Math.floor(M.cur)]].name : null },
     move: p.moves?.cur?.name ?? null, gait, pivot: !!p.loco?.pivot, us,
+    // (a stop under way carried from a run (src/loco-moves.js STOP_FEEL, the default since issue #702): the seconds it takes
+    // over the crisp stop's from the same speed, which the stop's limit allows it: lib.mjs latency)
+    carried: p._stopAs === 'carry' && p._stopFrom > 0 ? (st.carried?.from === p._stopFrom ? st.carried.s : (st.carried = { from: p._stopFrom, s: r4(stopPath('carry', p._stopFrom).t - stopPath('snap', p._stopFrom).t) }).s) : 0,
   };
 }
 

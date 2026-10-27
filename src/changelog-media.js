@@ -1352,6 +1352,16 @@ const RELIEF700 = 'Issue #700: tools/relief-shots.mjs --preset medium --png 1, a
 const RELIEF696 = 'Issue #696: the review page’s captures (tools/relief-shots.mjs): a muted headless Chrome on the real GPU (ANGLE on Metal), High, 1280 × 720, noon, clear, enemies off, the HUD hidden, a pinned camera; one load of one build (26b565197 with this change), the shared painted-relief switch flipped between the two pictures (before: off, the flat marks as they were; after: on); 26 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '2.31': [
+  { match: 'Let go of the stick at a run and the traveller now carries on', shots: [
+    { name: 'stop-carry', caption: 'Let go at a sprint (8.2 m/s), every tenth of a second from a fixed camera side on: the old crisp stop stood 0.45 m on in a fifth of a second; the carried one takes two braking strides and stands 2.06 m on after half a second (the red mark: where he let go)', size: [1280, 506],
+      from: 'Issue #702: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, clear, enemies off) on this branch’s own Vite (port 5498: 5442 was held by another run’s Chrome), based on 591ed0aa8 plus this change; the Arena’s floor (?level=arena), a sprint to the camera’s right for 2.4 s, the stick let go from the game’s own update and the camera held side on from that moment; ten frames cropped round him. Before: the same build with ?stop=snap (the old stop, frame for frame: tests/locomotion-botw.test.js); 27 October; cwebp -q 72',
+      view: 'The Arena’s floor: sprint, let go and watch where he stands; ?stop=snap for the old stop, or the dev menu’s Story tab (“Carried stop from a run”).' },
+  ], numbers: [
+    { title: 'Stopping from a run (distance and time to standing)', unit: 'm', better: 'higher', device: 'node, the game’s traveller on the gait harness’s flat (60 frames a second); the game’s own run in the Arena as pictured', source: 'node scripts/motion-qc/feel.mjs (--snap for before); the pictures’ run: 0.45 → 2.06 m', rows: [
+      { where: 'from a sprint (8.2 m/s): metres', before: 0.34, after: 1.9 },
+      { where: 'from a jog (3.8 m/s): metres', before: 0.16, after: 0.39 },
+    ], note: 'Motion QC, node course: 16 of 16 green before and after. Stopped short as before (the crisp stop) at a ledge, a kerb or steps ahead, when the game takes the controls and as a doorway’s walk ends: tests/stop-feel.test.js.' },
+  ] },
   { match: 'Running, the traveller carries his chest a little forward', shots: [
     { name: 'run-lean', caption: 'Setting off at a sprint, every 1/15 s from the stick pushed, from the side: his chest further forward from the first stride', size: [1280, 720],
       from: 'Issue #699: the web game in muted headless Chrome (hiraeth.muted set before load, --mute-audio; High, 1280 × 720, clear, enemies off) on this branch’s own Vite (port 5454), based on 525c0811e plus this change; the Arena’s floor (?level=arena), the camera held side on, the stick pushed with run held from the game’s own update; ten frames of each run cropped round him and laid out in time; before: this change with its new lean switched off in the page (LOCO.leanRun, leanCarry, bankRun null: the lean and bank as they were); 26 October; cwebp -q 72',

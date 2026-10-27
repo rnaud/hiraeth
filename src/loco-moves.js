@@ -32,26 +32,41 @@ export const movesSetting = {
 };
 
 /**
- * How the traveller stops from a run (issue #699, the Breath of the Wild study: docs/design/locomotion-botw-study.md): 'snap'
- * (the default, as before: the speed falls at STOP_FEEL.snap /s, 0.34 m and a third of a second from a sprint) or 'carry'
- * (Link's: stopped from STOP_FEEL.from m/s or faster (a jog or more: not a tap of the stick), the body carries on over a couple of braking strides, slowing by no more
- * than STOP_FEEL.decel m/s² until the snap's own rate is the gentler, 1.9 m and 0.63 s from a sprint, 0.4 m from a jog: Link
- * takes about 0.8 s from the last running stride to standing). Slowing at a steady rate rather than a share of the speed, it
- * ends crisply: a long tail of creeping at under a walk's pace slid the planted feet 15-35 cm in the motion QC. A change of the
- * controller's feel, so a switch the author decides: `?stop=carry`, the dev menu's Story tab, kept on this device.
+ * How the traveller stops from a run (issue #699, the Breath of the Wild study: docs/design/locomotion-botw-study.md;
+ * the default since issue #702): 'carry' (Link's: stopped from STOP_FEEL.from m/s or faster (a jog or more: not a tap of
+ * the stick), the body carries on over a couple of braking strides, slowing by no more than STOP_FEEL.decel m/s² until the
+ * snap's own rate is the gentler, 1.9 m and 0.63 s from a sprint, 0.4 m from a jog: Link takes about 0.8 s from the last
+ * running stride to standing) or 'snap' (the old crisp stop: the speed falls at STOP_FEEL.snap /s, 0.34 m and a third of a
+ * second from a sprint). Slowing at a steady rate rather than a share of the speed, it ends crisply: a long tail of creeping
+ * at under a walk's pace slid the planted feet 15-35 cm in the motion QC. The player still stops crisply where a carry
+ * would be wrong (Player.update: the ground along it not smooth, the game taking the controls, a doorway's walk ending).
+ * `?stop=snap` (or `carry`), the dev menu's Story tab, kept on this device under a new key: the switch's old key
+ * ('hiraeth.stopFeel', whose 'snap' was only ever the old default switched back to) is not read, so nobody is left on
+ * the old stop without choosing it again.
  */
 export const STOP_FEEL = { snap: 16, decel: 16, from: 3.2 };
 export const stopSetting = {
-  key: 'hiraeth.stopFeel',
+  key: 'hiraeth.stop',
   get() {
     try {
       const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('stop') : null;
       if (q === 'carry' || q === 'snap') return q;
-      return globalThis.localStorage?.getItem(this.key) === 'carry' ? 'carry' : 'snap';
-    } catch { return 'snap'; }
+      return globalThis.localStorage?.getItem(this.key) === 'snap' ? 'snap' : 'carry';
+    } catch { return 'carry'; }
   },
-  set(v) { try { globalThis.localStorage?.setItem(this.key, v === 'carry' ? 'carry' : 'snap'); } catch { /* this session only */ } },
+  set(v) { try { globalThis.localStorage?.setItem(this.key, v === 'snap' ? 'snap' : 'carry'); } catch { /* this session only */ } },
 };
+/**
+ * A stop from `from` m/s played through braking() at `dt` frames until under 0.05 m/s: { t (s), d (m) }. Pure: the
+ * player's look along a carried stop (how far it goes), the motion QC's stop limit, the tests.
+ */
+export function stopPath(feel, from, dt = 1 / 60, out = {}) {
+  let v = from, d = 0, t = 0;
+  const o = {};
+  while (v > 0.05 && t < 5) { braking(feel, from, v, dt, o); v -= v * o.k; d += v * dt; t += dt; }
+  out.t = t; out.d = d;
+  return out;
+}
 /**
  * A stop's braking this frame (the stick let go on the ground at `from` m/s, going `speed` m/s now): { k, rate }. k, the share
  * of the speed taken off this frame (the controller's lerp toward standing); rate (1/s), the speed over the distance left to

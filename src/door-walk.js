@@ -259,7 +259,9 @@ export class DoorWalk {
 
   /** The controls back. */
   end() {
-    if (this.player?.doorWalk) this.player.doorWalk = null;
+    // (the controls back with the stick let go: he stops where the walk left him, crisply, not carried on into the room's
+    // wall or furniture over a carried stop's metre: src/player.js crispStop, issue #702)
+    if (this.player?.doorWalk) { this.player.doorWalk = null; this.player.crispStop = true; }
     this.phase = null; this.door = null; this.held = null;
   }
 }

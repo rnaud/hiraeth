@@ -1316,14 +1316,46 @@ cycle), but carries his chest well forward, and stops over two braking strides i
   planted feet slid 8-10 cm in the game.
 - **The bank** grows from a jog to a sprint (`LOCO.bankRun`): 7.2° round a sprint's circle (5.0°); at a walk as before (a pivot
   into a walk back popped the calf with it).
-- **The carried stop**, a switch (src/loco-moves.js `STOP_FEEL`, `braking`, `stopSetting`; `?stop=carry`, the dev menu's Story
-  tab): from 3.2 m/s or more the speed falls by at most 16 m/s², 1.9 m and 0.63 s from a sprint; the captured stop is played by the
-  distance left at that rate (`LocoMoves.brake`). Off, the controller brakes exactly as before.
-- **Tools**: `node scripts/motion-qc/feel.mjs [--carry]` (the controller's numbers: starts, stops, the reversal, the lean and the
+- **The carried stop**, the default since issue #702 (src/loco-moves.js `STOP_FEEL`, `braking`, `stopPath`, `stopSetting`): from
+  3.2 m/s or more the speed falls by at most 16 m/s², 1.9 m and 0.63 s from a sprint; the captured stop is played by the
+  distance left at that rate (`LocoMoves.brake`). The old crisp stop, exactly as it was, is `?stop=snap` or the dev menu's Story
+  tab ("Carried stop from a run" off), kept on the device under `hiraeth.stop` (the #699 switch's key, `hiraeth.stopFeel`, is
+  not read: its stored "snap" was only ever the old default switched back to, so nobody is left on it without choosing it).
+  Where a carry would be wrong the stop is crisp all the same (Player `_stopAs`, decided as the stick is let go):
+  - **the ground along it not smooth** (`Player.carryClear`, `STOP_CLEAR`): the ground's height at six places from his feet
+    to 0.35 m past where the carry would end; two neighbours more than 6 cm + 0.45 × their spacing apart (a 24° slope), or a
+    climb off the last one's by 5 cm + 0.15 × the spacing, are an edge or a step. A ledge he would have been carried off (2 m
+    from a sprint, where he used to stop in a third of a metre), a kerb, a flight of stairs (carried onto the course's steps,
+    4 pops a minute) stop him crisply; a ramp or a slope carries. Six rays once a stop, the physics' record of the ground
+    kept as it was.
+  - **the controls taken** (a conversation, a cinematic, a box, a menu: main.js's and engine/game.js's `noInput` carries
+    `crispStop`): talking to someone at a run, he is not carried two metres into them.
+  - **a doorway's walk handing the controls back** (src/door-walk.js `end`: `player.crispStop`, once): the steps in off the
+    door end where the room was measured for, not a carry further on.
+  - **locked on or aiming**: the strafe's steps at the lock's pace (4.2 m/s) carried on slid a held foot 20 cm walking back.
+  Test hands that sprint to a mark and stand on it at once (the Belfry's and the Footprint's walk-throughs) use the crisp
+  stop; the ship's hold sequence's web stream was recorded again (coming aboard he stands 0.2 m on, the planet then in view).
+  Tests: tests/stop-feel.test.js (each case, in the real Player and Physics), tests/stop-feel-engine.test.js (the engines'
+  storage and query, as Unity reads them).
+- **Tools**: `node scripts/motion-qc/feel.mjs [--snap]` (the controller's numbers: starts, stops, the reversal, the lean and the
   bank), `node scripts/motion-qc/worlds-flat.mjs` (the worlds' course at the game's uneven frames, six seeds), the QC's way
-  `carry` (node and the browser), and `CDP_PORT` for the browser run.
+  `snap` (the old crisp stop; every other way stops carried, as the game does), and `CDP_PORT` for the browser run. The QC's
+  stop limit (1.1 s to both feet still) allows a carried stop the time its carry takes over the crisp stop's from the same
+  speed (the sample's `carried`: 0.31 s from a sprint, 0.08 s from a jog), and its scripts stand long enough for it.
 
 The node course stays 16 of 16 green with every mean as it was; the game's three worlds are within their run-to-run spread.
+
+**Issue #702: the carried stop as the default** (2026-10-27). Node (`run.mjs`, `--ways moves,snap`): 16 of 16 green both ways
+(#699's `carry` way was 11 of 16: four reds were scripts that stopped standing before a carried stop could count, the fifth
+the stairs, 4 pops and 4 jolts a minute and a 3.7 cm boundary carried onto the steps, now 3, 2 and 2.5 cm: the stop is crisp
+there). The worlds' course at the game's uneven frames (`worlds-flat.mjs`, six seeds): red 1 of 6 with the crisp stop, 4 of 6
+carried; in the game (muted headless Chrome, Medium, this Mac, one run each, crisp → carried): the desert 5.4/7.5 → 3.9/8.1 cm
+slide p95/max, held 1.9 → 2.1 cm, pops 3 → 2, jolts 4 → 4 a minute; the Signal Market held 1.0 → 4.3 cm, pops 0 → 2; the Arena
+held 1.0 → 3.9 cm, pops 1 → 3. The new reds are not the braking strides: they are the turn on the spot tapped after the stop
+(a held foot slips 2-4 cm in `mixamo_left_turn_90`) and the pivot into a jog at 90° after it (the calf 19-24 rad/s), and both
+follow the gait's phase the stop leaves him standing in: set by hand to the carried stop's, the crisp stop's runs show the same
+pops and the carried runs lose them. A standing turn's and pivot's fit to whichever foot is forward is left for its own round
+(tests/motion-qc.test.js keeps #47's pivot check on the crisp stop's phase).
 Tried for the last reds and left out: a touchdown cushion, the stride warp eased, the cadence held through a reversal, a longer
 blend-in of the captured moves (the study says what each did).
 

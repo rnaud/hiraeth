@@ -1,6 +1,6 @@
 {
-  "recorded": "2026-10-25",
-  "sha": "cb97e3eae",
+  "recorded": "2026-10-27",
+  "sha": "591ed0aa8",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -6240,7 +6240,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 2055,
+            "ink": 2054,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6270,7 +6270,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 2053,
+            "ink": 2052,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6280,15 +6280,15 @@
             "wisp": 1
           },
           "cam": [
-            -245.3,
+            -245.5,
             57.8,
             -1104.2,
             55
           ],
           "player": [
-            -249.8,
-            55.3,
-            -1106.2
+            -250,
+            55.4,
+            -1106.3
           ],
           "late": false
         },
@@ -6300,23 +6300,25 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1936,
+            "ink": 1942,
             "basic": 1,
+            "planet": 1,
+            "shader": 2,
             "print": 1,
             "chimeshade": 1,
-            "veil": 1,
+            "veil": 2,
             "wisp": 1
           },
           "cam": [
-            -270.5,
+            -269.9,
             63.3,
-            -1114.9,
+            -1115.3,
             65
           ],
           "player": [
-            -271.2,
+            -271.5,
             61.7,
-            -1115.8
+            -1116
           ],
           "late": false
         },
@@ -6341,7 +6343,7 @@
           },
           "cam": [
             -265.9,
-            63.4,
+            63.3,
             -1125.5,
             65
           ],
@@ -6365,7 +6367,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1987,
+            "ink": 1986,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6403,7 +6405,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1986,
+            "ink": 1985,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6441,7 +6443,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1986,
+            "ink": 1985,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6485,7 +6487,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 1960,
+            "ink": 1961,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -6493,7 +6495,7 @@
           },
           "cam": [
             -265.9,
-            63.4,
+            63.3,
             -1125.5,
             65
           ],

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.31 — 2026-10-26
 
+- Let go of the stick at a run and the traveller now carries on over a couple of braking strides before he stands, the way Link does: about two metres from a sprint, under half a metre from a jog. He still stops short at a ledge, a kerb or a flight of steps ahead, when someone starts talking to him, and as he comes in through a door. The old quick stop is a switch in the dev menu's Story tab.
 - The soft pale patches on the open ground of Vael, Home, the Buried Machine and the Glass Dunes cost less to draw: the same picture on High, up to half a millisecond a frame less at 1920 × 1080 on a Mac (M4 Pro). On the Handheld preset the tiny wind dashes and pebbles right at your feet are left out; the stones further off stay.
 - Try a new sprint for the traveller, closer to Breath of the Wild's: hunched further into it, his arms pumping high, a quicker stride. It is a switch in the dev menu's Story tab (Kevin Iglesias's sprint, from his Human Basic Motions pack); the sprint you know stays the default.
 - Running, the traveller carries his chest a little forward, and throws it further forward as he sets off into a run or a sprint, the way Link does; at a sprint he leans into a bend more. Walking is as before, and he still sets off, stops and turns as quickly as ever.

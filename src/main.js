@@ -581,7 +581,7 @@ if (lib) {
   const matching = matchingSetting.get();
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
   player.locoMoves = movesSetting.get();
-  player.stopFeel = stopSetting.get();   // (how he stops from a run: the author's switch, issue #699)
+  player.stopFeel = stopSetting.get();   // (how he stops from a run: carried, Link's, unless ?stop=snap or the dev menu's switch: issues #699, #702)
   // his sprint (issue #704): the library's, or Kevin Iglesias's with the author's switch (?sprint=kevin, the dev menu), not waited for
   if (sprintSetting.get() !== 'ual') void loadSprintClip().then((c) => { if (c) player.animator?.useSprint(c); });
 }
@@ -1071,7 +1071,7 @@ function setTraveller(on, outfit = travellerV2.dress?.wardrobe.worn?.id ?? trave
 }
 // (the captured starts, stops and turns over the loops: src/loco-moves.js)
 const devMoves = { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; } };
-// (a stop from a run carried over two strides, as Link's: src/loco-moves.js STOP_FEEL, issue #699)
+// (a stop from a run carried over two strides, as Link's, the default since #702; off: the old crisp stop: src/loco-moves.js STOP_FEEL, issue #699)
 const devCarry = { get: () => player.stopFeel === 'carry', set: (on) => { stopSetting.set(on ? 'carry' : 'snap'); player.stopFeel = on ? 'carry' : 'snap'; } };
 // (Kevin Iglesias's sprint, issue #704: at once, and kept on this device)
 const devSprint = { get: () => player.animator?.sprintName === 'kevin', set: (on) => { sprintSetting.set(on ? 'kevin' : 'ual'); if (!on) player.animator?.useSprint(null); else void loadSprintClip('kevin').then((c) => { if (c) player.animator?.useSprint(c); }); } };
@@ -1743,7 +1743,7 @@ const busy = () => restartOpen || shopPanel.isOpen || story.pageOpen || journal.
 // a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
-const noInput = { jumpBlocked: true };
+const noInput = { jumpBlocked: true, crispStop: true };   // (the controls taken: a stop from a run is crisp, not carried into whoever he is talking to: src/player.js, issue #702)
 let controllerActive = inputMode.controller;
 // The controller's layout changed in v0.93 (src/bindings.js): a player with a save from before is told once,
 // the first time a pad is used (the flag is the device's, like the settings)

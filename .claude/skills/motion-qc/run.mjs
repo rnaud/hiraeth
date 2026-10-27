@@ -8,7 +8,7 @@
 //   PORT (default 5363; never 5173); Chrome picks its own debugging port (CDP_PORT: a fixed one, on a machine that shares them out); TUNE='{"feet.js":{"FEET":{...}}}' assigns into the page's src/ modules
 //
 // ways: moves (the game's default: the loops with the captured starts, stops and turns), mm (motion matching, ?mm=1),
-// loops (?moves=0), carry (the default with the carried stop from a run, ?stop=carry: issue #699), kevin (the default with Kevin Iglesias's sprint, ?sprint=kevin: issue #704). --cpu 4: Chrome's CPU throttled 4x (a handheld's main thread, roughly) for the cost columns.
+// loops (?moves=0), snap (the default with the old crisp stop, ?stop=snap; every way stops from a run carried, the game's since issue #702), kevin (the default with Kevin Iglesias's sprint, ?sprint=kevin: issue #704). --cpu 4: Chrome's CPU throttled 4x (a handheld's main thread, roughly) for the cost columns.
 // Writes <out>/motion-world.json, motion-world.md (the table), <scenario>.<way>.png (a contact sheet of the worst frames,
 // pictures of the game captioned with what was wrong and by how much) and <scenario>.<way>.json (the samples). Exits 1
 // if a run of the default way is red. No game code changed: it drives `window.input` as a player's hands would, and reads.
@@ -32,7 +32,7 @@ const { WORLDS } = await import(join(ROOT, 'scripts/motion-qc/scenarios.mjs'));
 const worlds = arg('worlds')?.split(','), ways = arg('ways', 'moves,mm').split(',');
 const plan = WORLDS.filter((s) => !worlds || worlds.includes(s.world) || worlds.includes(s.name));
 if (!plan.length) throw new Error('no scenario matches');
-const QUERY = { moves: '', mm: '&mm=1', loops: '&moves=0', carry: '&stop=carry', kevin: '&sprint=kevin' };
+const QUERY = { moves: '', mm: '&mm=1', loops: '&moves=0', snap: '&stop=snap', kevin: '&sprint=kevin' };
 
 // ---------------------------------------------------------------- the server and the browser (one each, closed at the end)
 const profile = tempDir('motion-qc-chrome-');

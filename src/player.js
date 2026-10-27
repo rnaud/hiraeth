@@ -7,7 +7,7 @@ import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
 import { Knockdown, toppleVelocities, getUpPlacement, GET_UP } from './ragdoll.js';
-import { LocoMoves, braking } from './loco-moves.js';
+import { LocoMoves, braking, stopPath, STOP_FEEL } from './loco-moves.js';
 import { AirMoves } from './air-moves.js';
 import { SWIM, swimFrame, swimPose, leaveSwim, waterHere } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
@@ -181,6 +181,11 @@ const NO_HANDS = Object.freeze({});
  */
 export const FACE = { accel: 600, jerk: 12000, runGait: 0.5, runMax: 18 };   // (jerk, rad/s³: and, the loops over runGait of the pose, that speed-up itself comes in over a few frames: issue #47's running turn; runMax, rad/s: running, the fastest it turns)
 /** Setting off from standing (under `gait` of the loops and `speed`, faster than `over`, within `turn` rad of the facing): the loops' phase `share` of a cycle past the front foot's touchdown. */
+/** A carried stop's look ahead (Player.carryClear, issue #702): the ground's height at `points` places along it, `body` m
+ * past where it ends (his front foot, the capsule). Two neighbours more than `rise` m + `slope` × their spacing apart (a
+ * 24° slope), or the climb between them off the last one's by `bend` m + `bendPer` × the spacing, are an edge or a step. */
+export const STOP_CLEAR = { points: 6, rise: 0.06, slope: 0.45, bend: 0.05, bendPer: 0.15, body: 0.35 };
+const _cc1 = new THREE.Vector3(), _cc2 = new THREE.Vector3(), _ccPath = {};
 export const START_STEP = { gait: 0.1, speed: 0.5, over: 2.6, share: 0, turn: 1.2 };
 export function faceStep(p, step, dt, was = 0, accWas = 0, running = true) {
   if (!(dt > 0)) return step;
@@ -685,6 +690,8 @@ export class Player {
     this._press = 0;
     this._climbCooldown = 0;
     this.doorWalk = null;   // walked on through a doorway: { dir, pace, through } (src/door-walk.js)
+    this.stopFeel = 'carry';  // how he stops from a run: 'carry' (Link's, the default) or 'snap' (src/loco-moves.js STOP_FEEL, stopSetting)
+    this.crispStop = false;   // a stop asked to be crisp, once (src/door-walk.js: a doorway's walk ending; the input's crispStop does it each frame)
     this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
     this.onStep = null;                            // (footPos, heading) for footprints
     this.aim = null;                               // { k, point, dir } while aiming the tool (fluid-tool.js)
@@ -1207,6 +1214,38 @@ export class Player {
     this.opts.onStagger?.(why);
     return true;
   }
+  /**
+   * Whether a carried stop from `speed` m/s (src/loco-moves.js stopPath) has smooth ground all along it (issue #702): the
+   * ground's height under STOP_CLEAR.points places from his feet to just past where it ends, as STOP_CLEAR says. A slope,
+   * a ramp, rolling sand say yes; an edge to fall from, a step, a kerb, a flight of stairs say no, and he stops crisply
+   * there, as he always did (carried onto the course's stairs, the calf popped: the motion QC).
+   */
+  carryClear(speed, U = this.frame.up) {
+    const P = this.physics, C = STOP_CLEAR;
+    if (!P?.heightAbove) return true;
+    const dir = _cc1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
+    if (dir.lengthSq() < 1e-6) return true;
+    dir.normalize();
+    const gap = (stopPath('carry', speed, 1 / 60, _ccPath).d + C.body) / C.points;
+    // (the physics' own record of the ground last found is the player's: kept as it was)
+    const mover = P.groundMover, kind = P.groundKind, base = P.groundBase;
+    let last = 0, climb = null, clear = true;
+    for (let i = 0; i <= C.points && clear; i++) {
+      const p = _cc2.copy(this.pos).addScaledVector(dir, gap * i);
+      // (looked for from over the highest a smooth climb could reach, so a rise ahead is found as ground, not from inside it)
+      const h = -P.heightAbove(p, U, 0.4 + (C.rise + C.slope * gap) * i);   // (the ground's height there over his feet)
+      if (!Number.isFinite(h)) { clear = false; break; }
+      if (i > 0) {
+        const dh = h - last;
+        if (Math.abs(dh) > C.rise + C.slope * gap || (climb !== null && Math.abs(dh - climb) > C.bend + C.bendPer * gap)) clear = false;
+        climb = dh;
+      }
+      last = h;
+    }
+    P.groundMover = mover; P.groundKind = kind; P.groundBase = base;
+    return clear;
+  }
+
   /** Just staggered (STAGGER.guard s): no other blow lands on him yet. */
   get staggered() { return !!this._stagger && this._stagger.t < STAGGER.guard; }
 
@@ -1681,10 +1720,19 @@ export class Player {
       if (this._hop && this.onGround && this.time - this._hop.at > 0.1) { this._hop = null; this._hopReady = this.time + HOP.rest; }
       // (a stop's braking: as fast as ever, or carried over a couple of strides from a run as Link's are: the stop feel,
       // src/loco-moves.js STOP_FEEL, the author's switch; the speed it began at is kept until the stick is pushed again)
+      // (crisp all the same where a carry would be wrong: the ground along it not smooth (an edge, a step: carried off a
+      // ledge or onto a flight), the game taking the controls (a conversation, a cinematic, a menu: input.crispStop), a
+      // doorway's walk handing them back (this.crispStop), locked on or aiming (a step back at the lock's pace carried on
+      // slid a held foot 20 cm: tests/strafe.test.js); issue #702)
       const tvs = Math.sqrt(Math.max(0, this.vel.lengthSq() - this.vel.dot(U) ** 2));
-      if (steering || !this.onGround) this._stopFrom = null;
-      else this._stopFrom ??= tvs;
-      const B = braking(this.stopFeel, this._stopFrom ?? 0, tvs, dt, this._braking ??= {});
+      if (steering || !this.onGround) { this._stopFrom = null; this._stopAs = null; }
+      else if (this._stopFrom == null) {
+        this._stopFrom = tvs;
+        this._stopAs = this.stopFeel === 'carry' && tvs >= STOP_FEEL.from && !this.carryClear(tvs, U) ? 'snap' : this.stopFeel;
+      }
+      if (!steering && (this.crispStop || input.crispStop || this.lockOn || this.aim)) this._stopAs = 'snap';   // (locked on or aiming: the strafe's own steps, crisp)
+      this.crispStop = false;
+      const B = braking(this._stopAs ?? this.stopFeel, this._stopFrom ?? 0, tvs, dt, this._braking ??= {});
       const accel = this._stagger && this._stagger.t < STAGGER.time ? (this.onGround ? STAGGER.slide : 0.5) : this.onGround ? (steering ? 8 : 16) : this._hop ? 0 : this._carry ? 0.5 : 2.5;
       this._brake = B.rate;
       // (the motion matcher predicts the body's path with this same spring: animateClips)

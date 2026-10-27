@@ -4,13 +4,13 @@
 // at 60 frames a second: how long to 50 / 90 % of the gait's speed, how far and how long a stop takes, how long the
 // facing takes round a 180° at a run, the body's lean and bank. Prints a table; --json for the numbers.
 //
-//   node scripts/motion-qc/feel.mjs [--json] [--carry]   (--carry: the carried stop, src/loco-moves.js STOP_FEEL)       TUNE='{"locomotion.js":{"LOCO":{...}}}' as run.mjs
+//   node scripts/motion-qc/feel.mjs [--json] [--snap]   (--snap: the old crisp stop; the carried one is the game's, src/loco-moves.js STOP_FEEL)       TUNE='{"locomotion.js":{"LOCO":{...}}}' as run.mjs
 import * as THREE from 'three';
 import { course, traveller } from '../../tests/gait-sim.js';
 import { CAM_PLUS_Z } from '../../src/gait-course.js';
 
 /** One measured run: script [secs, input] steps; returns per-frame { t, speed, heading, lean, bank }. */
-export async function feelRun(script, { fps = 60, at = [0, 0, 0], stop = 'snap' } = {}) {
+export async function feelRun(script, { fps = 60, at = [0, 0, 0], stop = 'carry' } = {}) {
   const p = await traveller(course(), new THREE.Vector3(...at), { moves: true, body: 'b3' });
   p.stopFeel = stop;
   const S = [];
@@ -30,7 +30,7 @@ const first = (S, from, f) => { for (let i = from; i < S.length; i++) if (f(S[i]
 const idx = (S, tag) => S.findIndex((s) => s.tag === tag);
 
 /** The numbers: starts (jog, sprint), stops (jog, sprint), the 180° at a sprint, the curve's bank. */
-export async function feel({ stop = 'snap' } = {}) {
+export async function feel({ stop = 'carry' } = {}) {
   const W = { KeyW: true }, R = { KeyW: true, ShiftLeft: true }, B = { KeyS: true, ShiftLeft: true }, none = {};
   const out = {};
   for (const [name, input, top] of [['jog', W, 3.8], ['sprint', R, 8.2]]) {
@@ -60,7 +60,7 @@ export async function feel({ stop = 'snap' } = {}) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   if (process.env.TUNE) for (const [mod, o] of Object.entries(JSON.parse(process.env.TUNE))) { const M = await import(`../../src/${mod}`); for (const [k, v] of Object.entries(o)) Object.assign(M[k], v); }
-  const stop = process.argv.includes('--carry') ? 'carry' : 'snap';
+  const stop = process.argv.includes('--snap') ? 'snap' : 'carry';
   const r = await feel({ stop });
   console.log(`stop feel: ${stop}`);
   if (process.argv.includes('--json')) console.log(JSON.stringify(r, null, 1));

@@ -54,13 +54,15 @@ and side by side with ours: `evidence/start.jpg`, `stop.jpg`, `stop-jog.jpg`, `g
    0.3 of the lean), a sprint's planted feet slid 8-10 cm in the game. A bigger carriage (6°) slid the node course's starts 10 cm.
 3. **The bank into a curve** (`LOCO.bankRun`): from a jog to a sprint the bank grows to 0.05 rad per (rad/s × speed) and 0.28 at
    most: 7.2° round a sprint's circle (5.0° before). Not at a walk: banked as much there, a pivot into a walk back popped the calf.
-4. **The carried stop** (a switch, off by default: the author decides the controller's feel; src/loco-moves.js `STOP_FEEL`,
-   `braking`): stopped from 3.2 m/s or faster (a jog or more, not a tap of the stick), the speed falls by no more than 16 m/s²
+4. **The carried stop** (a switch in #699; **the default since issue #702**, the author's choice: "stop like Breath of the Wild";
+   src/loco-moves.js `STOP_FEEL`, `braking`): stopped from 3.2 m/s or faster (a jog or more, not a tap of the stick), the speed falls by no more than 16 m/s²
    until the old rate is the gentler, so he carries on over a couple of braking strides and stops crisply: **1.9 m in 0.63 s**
    from a sprint (0.34 m, 0.32 s as it is), 0.39 m in 0.35 s from a jog (0.16 m, 0.27 s). The captured stop is played by the
    distance left at that rate. Slowing by a share of the speed instead (6/s) left a long creep at under a walk's pace, and the
-   planted feet slid 15-35 cm. `?stop=carry` (or `snap`), the dev menu's Story tab ("Carried stop from a run"), kept on this
-   device. Not changed: where you go, how fast you set off or turn.
+   planted feet slid 15-35 cm. `?stop=snap` (or `carry`), the dev menu's Story tab ("Carried stop from a run" off: the old
+   crisp stop), kept on this device under a new key (the #699 switch's stored value is not read). Crisp all the same at an
+   edge or a step ahead, when the game takes the controls (talking at a run) and when a doorway's walk hands them back:
+   docs/systems/animation.md, "Issue #699". Not changed: where you go, how fast you set off or turn.
 
 **Not done** (for the author, or a capture): Link's run carriage is much more forward than ours and his sprint's arms are wide;
 those are the loops' own poses (a new run and sprint loop, or a procedural arm layer). The sprint reversal and the sprint's
@@ -94,3 +96,6 @@ limit 2 cm). Frame cost: the Animator 63-85 µs a frame in the game before and a
   swinging foot frozen in mid-stride): the worlds' course's pops 0.7 → 0, slides 5.5 → 4.2 cm, but the node course's reversals
   went red (the 180° pivots' jolts 0 → 2 a minute).
 - *A longer blend-in of the captured moves*: no change.
+
+**Issue #702** (the carried stop made the default): the numbers, and what the new reds are, are in docs/systems/animation.md
+("Issue #702").

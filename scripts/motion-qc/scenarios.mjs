@@ -23,13 +23,14 @@ export const COURSE = {
     script: [[1, none, 'idle'], [2, stick(0, 0.45), 'walk'], [2, W, 'jog'], [2.5, R, 'sprint'], [1.5, W, 'jog'], [1.5, stick(0, 0.45), 'walk'], [2, none, 'stop']] },
   'starts and stops, walk and run': { at: [0, 0, -60], about: 'setting off and stopping over and over, at a walk, a jog and a run',
     script: [[1, none, 'idle'], ...[0, 1].flatMap((i) => [[1.2, stick(0, 0.45), `walk${i}`], [1.2, none, `wstop${i}`]]),
-      ...[0, 1].flatMap((i) => [[1, W, `jog${i}`], [1.2, none, `jstop${i}`]]), ...[0, 1].flatMap((i) => [[1.4, R, `run${i}`], [1.5, none, `rstop${i}`]])] },
+      ...[0, 1].flatMap((i) => [[1, W, `jog${i}`], [1.4, none, `jstop${i}`]]), ...[0, 1].flatMap((i) => [[1.4, R, `run${i}`], [1.8, none, `rstop${i}`]])] },
+  // (the stops stand 1.4 and 1.8 s: a stop carried from a run (issue #702) has its limit and the 0.3 s still within them)
   'setting off the other way: a walk and a jog from standing, reversed, a jog at 90°': { at: [0, 0, -60], about: 'pushed away from the way he faces and held (a pivot that turns into a start: the Signal Market’s street, issue #288)',
     script: [[1, none, 'idle'], [2, stick(0, -0.45), 'walk-back'], [1.8, none, 'stop'], [2, W, 'jog-back'], [1.8, none, 'stop2'], [1.6, D, 'jog-90'], [1.8, none, 'stop3']] },
   'pivots standing: 90° each way, 180°': { at: [0, 0, -60], about: 'turning on the spot by a tap of the stick',
     script: [[1, none, 'idle'], [0.15, D, 'pivot-r'], [1.6, none, 'settle'], [0.15, A, 'pivot-l'], [1.6, none, 'settle2'], [0.15, S, 'pivot-180'], [2, none, 'settle3']] },
   'pivot 180° at a jog, and at a sprint': { at: [0, 0, -60], about: 'reversing the stick while moving',
-    script: [[1, none, 'idle'], [2, W, 'jog'], [1.5, S, 'pivot-jog'], [1.2, none, 'stop'], [2.5, SR, 'sprint'], [1.5, R, 'pivot-sprint'], [2, none, 'stop2']] },
+    script: [[1, none, 'idle'], [2, W, 'jog'], [1.5, S, 'pivot-jog'], [1.4, none, 'stop'], [2.5, SR, 'sprint'], [1.5, R, 'pivot-sprint'], [2, none, 'stop2']] },
   'curve: the stick round a circle at a jog': { at: [0, 0, -60], about: 'a steady turn (the stick sweeping 90°/s), then back the other way',
     script: [[1, none, 'idle'], ...Array.from({ length: 24 }, (_, i) => [0.25, stick(Math.sin(i * Math.PI / 8), Math.cos(i * Math.PI / 8)), i < 12 ? 'curve' : 'curve2']), [1.5, none, 'stop']] },
   // (and at a sprint: the sprint's own loop through a steady turn, the lean and the bank on it, issue #704)
@@ -38,14 +39,15 @@ export const COURSE = {
   'down the ramp, stop on it': { at: [-20, 0, 42], about: 'walking down the 12° ramp and stopping on the slope',
     script: [[1, none, 'idle'], [2.2, S, 'down'], [1.5, none, 'stand'], [1.5, S, 'down2']] },
   'stairs at a run': { at: [20, 0, 26], about: 'up the 18 cm stairs, over the landing and down at a run',
-    script: [[1, none, 'idle'], [3.2, R, 'run'], [1.5, none, 'stand']] },
+    script: [[1, none, 'idle'], [3.2, R, 'run'], [1.8, none, 'stand']] },
 };
 
 // the worlds: open sand (slopes), a town's street (kerbs, crowds), the Arena's flat floor
 const course = (prefix = '') => [
   { for: 1, tag: `${prefix}idle` }, { for: 2, stick: [0, 0.45], tag: `${prefix}walk` }, { for: 2, stick: [0, 1], tag: `${prefix}jog` },
   { for: 2.5, stick: [0, 1], run: true, tag: `${prefix}sprint` }, { for: 1.5, stick: [0, -1], run: true, tag: `${prefix}pivot-sprint` },
-  { for: 1.5, tag: `${prefix}stop` }, { for: 0.15, stick: [1, 0], tag: `${prefix}pivot-r` }, { for: 1.5, tag: `${prefix}settle` },
+  // (the sprint's stop stands 1.8 s: carried (issue #702), its limit 1.41 s and the 0.3 s still)
+  { for: 1.8, tag: `${prefix}stop` }, { for: 0.15, stick: [1, 0], tag: `${prefix}pivot-r` }, { for: 1.5, tag: `${prefix}settle` },
   { for: 1.6, stick: [0, 1], tag: `${prefix}jog2` }, { for: 1.2, stick: [-1, 0], tag: `${prefix}turn90` },
   // (the last stop stands 1.8 s: the stop's limit (1.1 s) and the 0.3 s it must stay still to count, with room. It stood 1.2 s,
   // and a stop that settled in 0.93 s, as the Signal Market's and the Arena's did, ran out of script before it counted:

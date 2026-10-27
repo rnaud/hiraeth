@@ -506,7 +506,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (his captured moves as main.js has them, the save's own switch, movesSetting; without moves.glb, -js-off moves, his loops
   // stay the library's: lib.motion holds the gestures alone; the matching once the database is in, main.js's)
   player.locoMoves = moves && movesSetting.get();
-  player.stopFeel = stopSetting.get();   // (how he stops from a run, as main.js: the author's switch, issue #699; snap unless asked for)
+  player.stopFeel = stopSetting.get();   // (how he stops from a run, as main.js: carried unless ?stop=snap or the switch stored snap, issues #699, #702)
   // (his sprint as main.js has it, issue #704: the library's unless the switch, sprintSetting, or `sprint` (-js-on kevinSprint) asks
   // for Kevin Iglesias's, public/anim/sprint-kevin.glb, waited for here so a batch's first sprint is already his)
   const sprintAsk = sprint ?? sprintSetting.get();
@@ -1103,7 +1103,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     sound.drone?.('go');
   }
 
-  const noInput = { jumpBlocked: true };
+  const noInput = { jumpBlocked: true, crispStop: true };   // (the controls taken: a stop from a run is crisp, not carried into whoever he is talking to: src/player.js, issue #702)
   let eWasDown = false, qWasDown = false;
   // the HUD's state, as main.js draws it (src/platform.js screen): the cue line, the floating prompt,
   // the toasts, the health bar and the stamina wheel

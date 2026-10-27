@@ -17,7 +17,7 @@ Three ways of moving him are compared (`--ways`):
 | `moves` | the loops with the captured starts, stops and turns laid over them (src/loco-moves.js) | the default |
 | `mm` | motion matching (src/motion-match.js): the database's captures and the game's own loops | `?mm=1`, the dev menu |
 | `loops` | the clips' loops alone | `?moves=0` |
-| `carry` | `moves` with the carried stop from a run (src/loco-moves.js `STOP_FEEL`, issue #699; its long stop fails the stop limit by design) | `?stop=carry` |
+| `snap` | `moves` with the old crisp stop from a run (every other way stops carried, the game's since issue #702: src/loco-moves.js `STOP_FEEL`) | `?stop=snap` |
 
 ## 1. Run it
 
@@ -26,7 +26,7 @@ node scripts/motion-qc/run.mjs <scratch>/motion [--ways moves,mm] [--only stairs
 node .claude/skills/motion-qc/run.mjs <scratch>/motion-world [--worlds desert,bazaar] [--ways moves,mm] [--cpu 4]   # browser, ~1 min a run
 node scripts/motion-qc/diff.mjs <before>/motion.json <after>/motion.json [--way moves]   # two node runs side by side
 node scripts/motion-qc/worlds-flat.mjs [--seeds 1,2,3] [--verbose]   # the worlds' course on node's flat at the game's uneven frames
-node scripts/motion-qc/feel.mjs [--carry]   # the controller's feel: starts, stops, the reversal, the lean and the bank
+node scripts/motion-qc/feel.mjs [--snap]   # the controller's feel: starts, stops, the reversal, the lean and the bank
 ```
 
 Both runs take `TUNE='{"feet.js":{"FEET":{"dropKeep":false}}}'` (assigned into `src/<module>`'s exported objects; in the
@@ -80,7 +80,7 @@ camera-relative, the camera held where it starts (3.6 m behind him: `dist`).
 | **jolts** | a joint (relative to the body) off the cubic through its places two frames either side by over 3 cm: a pose that jumps | ≤ 3 a minute |
 | **boundary** | the worst jolt within two frames of a blend boundary: a matcher jump, matching or a captured move crossing half its share, the leading loop changing, a pivot starting or ending | under 3 cm |
 | **start** | from the stick pushed (standing) to a foot 3 cm off the ground | ≤ 0.22 s |
-| **stop** | from the stick let go (moving) to both feet held and still for 0.3 s | ≤ 1.1 s |
+| **stop** | from the stick let go (moving) to both feet held and still for 0.3 s | ≤ 1.1 s, and a carried stop the time its carry takes over the crisp one's from that speed (0.31 s from a sprint, 0.08 from a jog: the sample's `carried`) |
 | **turn** | from the stick turned by over 60° to the chest half way round | ≤ 0.3 s |
 | **pivot** | through each pivot (src/locomotion.js) and a second after: the pivoting foot's slip while held, the share of frames with the feet crossed | slip under 5 cm, crossed ≤ 3 % |
 | **cost** | µs a frame in `Animator.match` and the whole `Animator.update` (this machine; `--cpu 4` in the browser) | reported |

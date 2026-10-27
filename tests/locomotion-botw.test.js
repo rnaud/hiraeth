@@ -4,8 +4,8 @@ import { braking, stopSetting, STOP_FEEL } from '../src/loco-moves.js';
 import { Locomotion, LOCO } from '../src/locomotion.js';
 import { feel } from '../scripts/motion-qc/feel.mjs';
 
-// Issue #699, the Breath of the Wild study (docs/design/locomotion-botw-study.md): the carried stop from a run (a switch, off by
-// default: the snap stop is exactly as before), the chest's lean setting off into a run and its carriage at a run (the hips' share
+// Issue #699, the Breath of the Wild study (docs/design/locomotion-botw-study.md): the carried stop from a run (the default since
+// issue #702, tests/stop-feel.test.js; the snap stop, on the switch, is exactly the old one), the chest's lean setting off into a run and its carriage at a run (the hips' share
 // as before), the bank at a sprint; measured on the node traveller (scripts/motion-qc/feel.mjs).
 
 const stopFrom = (feel, v0, dt = 1 / 60) => {
@@ -36,8 +36,8 @@ test('the carried stop slows at a steady rate and ends crisply: about 2 m and 0.
   assert.ok(Math.abs(6 / o.rate - 36 / (2 * STOP_FEEL.decel)) < 1e-9);
 });
 
-test('the stop feel is snap unless asked for', () => {
-  assert.equal(stopSetting.get(), 'snap');
+test('the stop feel is carried unless the old crisp stop is asked for (the default since issue #702)', () => {
+  assert.equal(stopSetting.get(), 'carry');
 });
 
 test('setting off into a run the chest leans further, the hips as before; walking nothing changes', () => {
