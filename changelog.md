@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.31 — 2026-10-26
 
+- Setting off sideways just after a stop is smoother: the traveller's first stride now starts on the foot that fits how he is standing, so his back foot no longer drags along the ground and his leg no longer flicks straight as he speeds up into a jog.
 - On Android, the Unity version no longer leaves you stuck when the newest game needs a newer player: Updates now offers Get the new player, which downloads it in your browser. Install it over the one you have and your saves are kept. On the Xbox it says to install the new package over the old one.
 - The stamina wheel beside the traveller is a clear ring now, in the dark-and-brass look of the rest of the HUD: a charcoal band edged in fine brass lines, with nothing painted in its middle, so you see the world through it. It still fills in its green and is as thick as it was; winded, it pulses red and gold with a "!" beside it, as before. The Unity version draws the same ring where it showed a gold pie.
 - Let go of the stick at a run and the traveller now carries on over a couple of braking strides before he stands, the way Link does: about two metres from a sprint, under half a metre from a jog. He still stops short at a ledge, a kerb or a flight of steps ahead, when someone starts talking to him, and as he comes in through a door. The old quick stop is a switch in the dev menu's Story tab.

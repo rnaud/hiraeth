@@ -1359,6 +1359,37 @@ pops and the carried runs lose them. A standing turn's and pivot's fit to whiche
 Tried for the last reds and left out: a touchdown cushion, the stride warp eased, the cadence held through a reversal, a longer
 blend-in of the captured moves (the study says what each did).
 
+**Issue #707: setting off at a right angle after a stop** (2026-10-27). The loops' shared phase stands still while he stands and
+runs on from there when he sets off; a set-off the way he faces is started on the step the feet are in (Player, `START_STEP`:
+the foot ahead down), but one at a right angle was not, and kept whatever phase the stop had left. The stop always settles into
+the idle stance (the left foot 15-25 cm ahead, after a jog's stop or a sprint's, carried or crisp) while its phase depends on the
+stop (the carried one leaves it half a cycle from the crisp one's), so the same stance set off at 90° on any step: through the
+pivot feet.js holds one foot and steps the other round, and on the wrong step the loops kept the held one down as the body reached
+a jog: it dragged 2-5 cm out of reach behind him and was let go there, the calf flicking 18-38 rad/s. Forcing the phase at the
+set-off (a bench: a jog's stop and a sprint's, carried and crisp, ±90° and ±135°, every tenth of a cycle) showed the phase
+decides it, not the stop or the foot: at ±90° the step where the foot behind is about to come down (0.4-0.5 of the jog's cycle
+with the left ahead) is clean both ways round, the step the carried stop left (0.9-0.2) is not.
+- **The fix** (`START_STEP.pivot`, `pivotUpTo`, `stopFrom`): a set-off from standing at `turn` (1.2 rad) to `pivotUpTo` (2.0 rad)
+  from the facing, after a stop from 0.9 m/s or more, starts the loops with the foot behind (along the facing, whichever it is)
+  0.08 of a jog's cycle before it comes down (`Animator.alignPhase`). Not from the very start, nor after a tap round on the spot
+  (the game's first tap and the course's standing pivots were tuned on the phase they have: aligned, the pivots' settling steps
+  slid 7 cm), nor at over 2 rad (a turn round: aligning those by the same rule crossed the feet and slid 18 cm down the ramp).
+  The stop itself is untouched: as long, as far, on the foot it ends on.
+- **Numbers** (before → after): the worlds' course on node's flat at the game's frames (`worlds-flat.mjs`, six seeds), carried:
+  red 4 → 2 of 6 (the two left are the sprint's own jolts, red with the crisp stop as well), pops 2.2 → 0.3 a minute, after the
+  stop the worst held slip 3.9 → 0.8 cm and pops 12 → 1; crisp: red 1 → 1, pops 0.7 → 0.2 a minute (after the stop 3 → 0);
+  mirrored (the course's turns the other way round) red 3 → 1. Kevin's sprint: red 4 → 3 of 6. The node course (`run.mjs`,
+  moves and snap): 16 of 17 green carried and 17 of 17 crisp, before and after (the red is #704's curve at a sprint, whose 1.5 s stand is shorter
+  than a carried sprint stop's limit), two better: setting off the other way (3 → 2 pops a minute, its 3.3 cm jolt gone), the
+  pivots standing (slide 5.5 → 4.5 cm). In the game (muted headless Chrome, Medium, this Mac, two runs, after the stop): the
+  Arena held 0.6 / 4.8 → 0.4 / 0.9 cm, the Signal Market 1.4 / 2.8 → 0.2 / 0.4 cm, the desert 1.3 / 0.6 → 0.4 / 0.4 cm; calf pops
+  after the stop 3 + 6 → 0 + 0 (Kevin's sprint 1 → 0). Tests: tests/motion-qc.test.js (the tap and the set-off after a stop, six
+  seeds both stops; the rule's phase after a stop, and none from the start or after a tap).
+- **Left**: `START_STEP` reads "standing" as under 0.5 m/s after the set-off frame's own push, and at the game's longer frames
+  that push alone reaches 0.52 m/s, so a set-off now and then goes on from its old phase (the course's jog after the tap, at some
+  seeds); read before the push, every straight start from a run's standing aligned too, and the node course went 8 runs red (a
+  sprint's start on the wrong step). The settling step after the tap on the spot still jolts a foot 4.6 cm at one seed of six.
+
 **Issue #704: Kevin Iglesias's sprint, a switch** (2026-10-27). The author's try of a sprint closer to Breath of the Wild's:
 the sprint from Kevin Iglesias's *Human Basic Motions FREE* (docs/motion-data.md) in the library sprint's place, for the
 traveller only (the people keep Sprint_Loop). Over each rig's standing pose it leans 43° to the library's 32°, the hands swing

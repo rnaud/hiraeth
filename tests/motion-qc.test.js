@@ -296,9 +296,7 @@ test('the judgement: a smooth swing at uneven frames is no jolt (the cubic at th
 
 test('the worlds\' course at the game\'s uneven frames: the pivot into a jog at 90° and the sprint reversed (issue #47, sixth round)', { timeout: 180000 }, async () => {
   let red = 0;
-  // (with the crisp stop, the way this round was tuned on: carried (the default since issue #702), the stop before the pivot
-  // ends on the other foot, and a pivot into a jog from that standing phase pops the calf 19-24 rad/s, with either stop:
-  // the gait's phase set by hand to the carried stop's shows it with the crisp one. Left for its own round)
+  // (with the crisp stop, the way this round was tuned on; the carried stop's, issue #707: the case above)
   for (const seed of [2, 3, 5, 6]) {
     const { r } = await runScenario(WORLDS_FLAT, 'snap', { frames: unevenFrames(seed) });
     const jog2 = r.events.pops.filter((e) => e.tag === 'jog2'), b = Math.max(0, ...r.events.boundaries.filter((e) => e.tag === 'jog2').map((e) => e.size));
@@ -309,6 +307,76 @@ test('the worlds\' course at the game\'s uneven frames: the pivot into a jog at 
     if (!r.green) red++;
   }
   assert.ok(red <= 1, `${red} of 4 seeds red (all 4 before)`);
+});
+
+// (the slip of every hold, over the frames of these tags only: a hold that began in the settle and slipped in the jog counts)
+function heldIn(S, tags) {
+  let worst = 0;
+  for (const side of ['l', 'r']) {
+    let h = null;
+    for (let i = 1; i < S.length; i++) {
+      const f = S[i].feet[side], g = S[i - 1].feet[side];
+      if (f.held && g.held) { h ??= 0; if (tags.includes(S[i].tag)) h += Math.hypot(f.ball[0] - g.ball[0], f.ball[2] - g.ball[2]); } else { worst = Math.max(worst, h ?? 0); h = null; }
+    }
+    worst = Math.max(worst, h ?? 0);
+  }
+  return worst;
+}
+
+test('after a stop, a tap round on the spot and a set-off into a jog at 90° fit whichever foot the stop left ahead (issue #707)', { timeout: 240000 }, async () => {
+  // (carried (the default) and crisp: the carried stop leaves the gait's phase half a cycle from the crisp one's; before,
+  // carried, a held foot slipped 1.6-3.9 cm and the calf popped 18-23 rad/s at every seed, the crisp stop 3 pops in 6)
+  const after = ['pivot-r', 'settle', 'jog2'];
+  for (const way of ['moves', 'snap']) {
+    let n = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const { samples: S } = await runScenario(WORLDS_FLAT, way, { frames: unevenFrames(seed) });
+      const held = heldIn(S, after), P = pops(S).filter((e) => after.includes(e.tag));
+      assert.ok(held < LIMITS.held, `${way}, seed ${seed}: a held foot slipped ${(held * 100).toFixed(1)} cm after the stop`);
+      assert.ok(P.every((e) => e.size < 18), `${way}, seed ${seed}: pops ${P.map((e) => `${e.bone} ${e.size.toFixed(0)}`).join(', ')} rad/s after the stop`);
+      n += P.length;
+    }
+    assert.ok(n <= 2, `${way}: ${n} pops after the stop over six seeds (12 carried before)`);
+  }
+});
+
+test('a set-off at 90° after a stop starts the loops by the foot behind; from the start and after a tap, as before (src/player.js START_STEP.pivot, issue #707)', async () => {
+  const { START_STEP } = await import('../src/player.js');
+  const none = {}, go = { stick: { x: 1, y: 0 } };
+  const phaseAt = async (script, tag) => {
+    let ph = null, last = '', feet = null;
+    await runScenario({ at: [0, 0, -60], script }, 'moves', { onFrame: (p, i, s) => {
+      if (s.tag === tag && last !== tag) {
+        ph = p.animator.phase;
+        const F = p.humanoid._feet, f = p.frame.dir(p.heading, p.pos.clone());
+        const along = (k) => F[k].pos.clone().sub(p.pos).dot(f);
+        feet = { behind: along('l') >= along('r') ? 'r' : 'l', jog: p.animator.gait.clips.jog };
+      }
+      last = s.tag;
+    } });
+    return { ph, feet };
+  };
+  const touchdown = (c) => { const N = c.length; for (let i = 0; i < N; i++) if (c[i] >= 0.5 && c[(i + N - 1) % N] < 0.5) return i / N; return 0; };
+  const wrap = (x) => ((x % 1) + 1.5) % 1 - 0.5;
+  const stopThenGo = [[1, none, 'idle'], [1.5, { stick: { x: 0, y: 1 } }, 'jog'], [1.8, none, 'stop'], [0.3, go, 'go']];
+  const { ph, feet } = await phaseAt(stopThenGo, 'go');
+  const want = touchdown(feet.jog.contact[feet.behind]) + START_STEP.pivot;
+  // (the frame's own step of the phase on after it, at most a fiftieth of a cycle)
+  assert.ok(Math.abs(wrap(ph - want)) < 0.03, `after a stop: phase ${ph.toFixed(3)}, the foot behind (${feet.behind}) ${want.toFixed(3)}`);
+  const was = START_STEP.pivot;
+  try {
+    START_STEP.pivot = null;
+    const off = await phaseAt(stopThenGo, 'go');
+    assert.ok(Math.abs(wrap(off.ph - want)) > 0.1, `the switch off: the stop's own phase (${off.ph.toFixed(3)}), so the case tests something`);
+    // (from the start, and after a tap round on the spot: the phase as it was)
+    for (const script of [[[1, none, 'idle'], [0.3, go, 'go']], [[1, none, 'idle'], [0.15, { stick: { x: -1, y: 0 } }, 'tap'], [1.6, none, 'settle'], [0.3, go, 'go']]]) {
+      const a = (await phaseAt(script, 'go')).ph;
+      START_STEP.pivot = was;
+      const b = (await phaseAt(script, 'go')).ph;
+      START_STEP.pivot = null;
+      assert.ok(Math.abs(wrap(a - b)) < 1e-6, `${script.map((x) => x[2]).join(' → ')}: ${a.toFixed(3)} → ${b.toFixed(3)}`);
+    }
+  } finally { START_STEP.pivot = was; }
 });
 
 test('gaitFeet keeps the stride\'s warp through a frame of no sweep while the gait holds the pose (src/locomotion.js WARP_HOLD)', async () => {

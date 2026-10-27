@@ -186,7 +186,12 @@ export const FACE = { accel: 600, jerk: 12000, runGait: 0.5, runMax: 18 };   // 
  * 24° slope), or the climb between them off the last one's by `bend` m + `bendPer` × the spacing, are an edge or a step. */
 export const STOP_CLEAR = { points: 6, rise: 0.06, slope: 0.45, bend: 0.05, bendPer: 0.15, body: 0.35 };
 const _cc1 = new THREE.Vector3(), _cc2 = new THREE.Vector3(), _ccPath = {};
-export const START_STEP = { gait: 0.1, speed: 0.5, over: 2.6, share: 0, turn: 1.2 };
+// (pivot, pivotUpTo, stopFrom: setting off at `turn` to `pivotUpTo` rad from the facing after a stop from `stopFrom` m/s or
+// more, the feet step round first, src/feet.js: the loops start with the foot behind `pivot` of a jog's cycle before it comes
+// down, whichever foot the stop left ahead. The shared phase ran on from wherever the stop had left it, a carried stop's half
+// a cycle from a crisp one's, and the held foot, still down by the loops as the body reached a jog, slipped 2-4 cm and was let
+// go out of reach, the calf 19-24 rad/s, issue #707. Not from the very start or after a tap: those set off as before)
+export const START_STEP = { gait: 0.1, speed: 0.5, over: 2.6, share: 0, turn: 1.2, pivot: -0.08, pivotUpTo: 2.0, stopFrom: 0.9 };
 export function faceStep(p, step, dt, was = 0, accWas = 0, running = true) {
   if (!(dt > 0)) return step;
   const want = step / dt;
@@ -1729,6 +1734,8 @@ export class Player {
       else if (this._stopFrom == null) {
         this._stopFrom = tvs;
         this._stopAs = this.stopFeel === 'carry' && tvs >= STOP_FEEL.from && !this.carryClear(tvs, U) ? 'snap' : this.stopFeel;
+        // (a stop, carried or crisp: the next set-off at a right angle starts the loops by the feet, START_STEP.pivot)
+        if (tvs >= START_STEP.stopFrom) this._ranStop = true;
       }
       if (!steering && (this.crispStop || input.crispStop || this.lockOn || this.aim)) this._stopAs = 'snap';   // (locked on or aiming: the strafe's own steps, crisp)
       this.crispStop = false;
@@ -2884,8 +2891,17 @@ export class Player {
       const ahead = (s) => (F[s].pos.x - this.pos.x) * d.x + (F[s].pos.y - this.pos.y) * d.y + (F[s].pos.z - this.pos.z) * d.z;
       // (setting off the way he faces, more or less: one the other way is a pivot, the feet step round first: src/feet.js)
       const turnBy = Math.atan2(Math.sin(this.frame.headingOf(d) - this.heading), Math.cos(this.frame.headingOf(d) - this.heading));
-      if (F.l.locked && F.r.locked && Math.abs(turnBy) < START_STEP.turn) A.alignPhase(ahead('l') >= ahead('r') ? 'l' : 'r', 0, START_STEP.share, 'jog');
+      // (and one at a right angle after a stop, by the foot behind along the facing: START_STEP.pivot, issue #707)
+      if (F.l.locked && F.r.locked) {
+        if (Math.abs(turnBy) < START_STEP.turn) A.alignPhase(ahead('l') >= ahead('r') ? 'l' : 'r', 0, START_STEP.share, 'jog');
+        else if (START_STEP.pivot !== null && this._ranStop && Math.abs(turnBy) < START_STEP.pivotUpTo) {
+          const f = this.frame.dir(this.heading, new THREE.Vector3());
+          const along = (s) => (F[s].pos.x - this.pos.x) * f.x + (F[s].pos.y - this.pos.y) * f.y + (F[s].pos.z - this.pos.z) * f.z;
+          A.alignPhase(along('l') >= along('r') ? 'r' : 'l', 0, START_STEP.pivot, 'jog');
+        }
+      }
     }
+    if (steering && !this._startSteer) this._ranStop = false;
     this._startSteer = steering;
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
