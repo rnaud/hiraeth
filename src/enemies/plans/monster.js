@@ -3,7 +3,8 @@ import { materials, add, many, merged, skinBy, pivot, tubeGeometry, ease, eyeCol
 import { gazePart } from '../gaze.js';
 import { humanoidSkeleton, HumanoidDriver, Sway, HOLD_AT } from '../humanoid-rig.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
-import { lathe, tatters, limb, spearParts, bowParts } from './mummer.js';
+import { twoBone } from '../../motion-kit/ik.js';
+import { lathe, tatters, spearParts, bowParts } from './mummer.js';
 
 // Roster v4's monsters (issue #726; docs/design/enemy-roster-v4.md): one roster in every world, its skin's colour the
 // tier (src/enemies/skins.js tierSkin: the darker, banded one). On the humanoid rig like the mummers
@@ -21,22 +22,33 @@ import { lathe, tatters, limb, spearParts, bowParts } from './mummer.js';
 // traveller. Slate-blue skin, a pale icy belly, a hunched back: a small head low and forward between its shoulders, a
 // heavy jaw with two lower fangs, one ivory horn up from its brow; long heavy arms to its knees, big four-fingered hands;
 // thick legs, broad bare feet; a ragged kilt of hide patches (brown, olive, tan) on a rope belt knotted at the front. A
-// long dark club with iron bands, a few studs on its head (the brief's "spiked"; the sheet draws only bands).
+// long dark club with iron bands (the brief's "spiked"; the sheet draws only bands, and so does the game since the shape pass).
 //
 // Draws: every part of a material one skinned mesh on the rig's joints (kit.js skinBy): eight (grunt) and nine (hulk).
 
 const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _w = new THREE.Vector3();
 const smooth = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
-/** A clawed hand hanging down its joint: a palm, three fingers and a thumb, each tipped with a claw (claws: bone). */
+/** A cone of radius r, l long, its base at `at` and its point along dir (arrays): a claw, a spine. */
+function spike(at, dir, r, l, n = 5) {
+  const d = new THREE.Vector3(...dir).normalize();
+  return new THREE.ConeGeometry(r, l, n).translate(0, l / 2, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d)).translate(...at);
+}
+/**
+ * A clawed hand hanging down its joint: a palm, three jointed fingers a little splayed and curled in, a thumb, each
+ * tipped with a claw (claws: bone). Long thin fingers with knuckles, not a mitten (the shape pass, #726).
+ */
 function clawHand(s, size = 1) {
-  const r = 0.03 * size, skin = [new THREE.SphereGeometry(r * 1.7, 8, 6).scale(1.05, 1.15, 0.75).translate(0, -r * 1.3, 0)], claw = [];
+  const r = 0.03 * size, skin = [new THREE.SphereGeometry(r * 1.55, 9, 7).scale(1.08, 1.25, 0.62).translate(0, -r * 1.25, r * 0.05)], claw = [];
   for (let i = -1; i <= 1; i++) {
-    skin.push(new THREE.CapsuleGeometry(r * 0.62, r * 2.2, 3, 6).rotateX(0.45).translate(i * r * 1.1, -r * 3.5, r * 0.7));
-    claw.push(new THREE.ConeGeometry(r * 0.38, r * 1.0, 5).rotateX(Math.PI - 0.2).translate(i * r * 1.1, -r * 5.1, r * 1.4));
+    const sp = i * 0.2, x = i * r * 1.0, l = i ? 0.9 : 1;
+    const k = [x, -r * 2.45, r * 0.2], m = [x + Math.sin(sp) * r * 1.8 * l, k[1] - r * 1.85 * l, k[2] + r * 0.45], e = [m[0] + Math.sin(sp) * r * 1.2 * l, m[1] - r * 1.05 * l, m[2] + r * 1.0 * l];
+    skin.push(new THREE.SphereGeometry(r * 0.5, 5, 4).translate(...k), bone(k, m, r * 0.46, 5), bone(m, e, r * 0.38, 5));
+    claw.push(spike(e, [e[0] - m[0], e[1] - m[1] - r * 0.4, e[2] - m[2]], r * 0.3, r * 1.25));
   }
-  skin.push(new THREE.CapsuleGeometry(r * 0.6, r * 1.6, 3, 6).rotateZ(s * 0.75).translate(s * r * 1.6, -r * 1.9, r * 0.8));
-  claw.push(new THREE.ConeGeometry(r * 0.34, r * 0.8, 5).rotateZ(s * 2.2).translate(s * r * 2.6, -r * 2.6, r * 0.9));
+  const t0 = [s * r * 1.35, -r * 1.2, r * 0.55], t1 = [s * r * 2.2, -r * 2.4, r * 1.25];
+  skin.push(bone(t0, t1, r * 0.4, 5));
+  claw.push(spike(t1, [s * 0.4, -0.7, 0.6], r * 0.28, r * 1.0));
   return { skin, claw };
 }
 /** A wide clawed foot on its ankle, toes splayed forward (`toes` of them), each with a claw (or a toenail). */
@@ -56,6 +68,132 @@ function onFace(c, r, xs, y) {
 }
 const span = (a, b, n) => Array.from({ length: n }, (_, i) => a + ((b - a) * i) / (n - 1));
 
+/**
+ * A lofted limb down its joint (-y), `len` long (the shape pass, #726: muscle masses, a knee, a calf, an ankle, not a
+ * cylinder): rings at shares t of its length, each an ellipse rx across × rz front to back about a centre moved dz
+ * forward (+z) and dx out (× s, the side: + its left); between two keys the radii ease (smoothstep), so a mass swells and
+ * falls off. prof: [[t, rx, rz, dz = 0, dx = 0], …] from the joint (t 0) to the far end (t 1). Capped at both ends.
+ */
+export function loftLimb(len, prof, s = 1, sides = 8, sub = 2) {
+  const rings = [];
+  for (let k = 0; k < prof.length; k++) {
+    const a = prof[k], b = prof[k + 1];
+    if (!b) { rings.push(a); break; }
+    for (let j = 0; j < sub; j++) { const u = j / sub, e = u * u * (3 - 2 * u); rings.push(a.map((x, n) => (n ? (x ?? 0) + ((b[n] ?? 0) - (x ?? 0)) * e : x + (b[0] - x) * u))); }
+  }
+  const pos = [], uv = [], idx = [], n = rings.length;
+  for (let i = 0; i < n; i++) {
+    const [t, rx, rz, dz = 0, dx = 0] = rings[i];
+    for (let j = 0; j < sides; j++) { const a = (j / sides) * Math.PI * 2; pos.push(s * dx + Math.sin(a) * rx, -t * len, dz + Math.cos(a) * rz); uv.push(j / sides, t); }
+  }
+  for (let i = 0; i < n - 1; i++) for (let j = 0; j < sides; j++) {
+    const a = i * sides + j, b = i * sides + ((j + 1) % sides), c = a + sides, d = b + sides;
+    idx.push(a, c, b, b, c, d);
+  }
+  // (the caps: a point at each end's centre)
+  for (const [i, flip] of [[0, true], [n - 1, false]]) {
+    const [t, , , dz = 0, dx = 0] = rings[i], o = pos.length / 3;
+    pos.push(s * dx, -t * len, dz); uv.push(0.5, t);
+    for (let j = 0; j < sides; j++) { const a = i * sides + j, b = i * sides + ((j + 1) % sides); if (flip) idx.push(o, a, b); else idx.push(o, b, a); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+/**
+ * A tube lofted along a curve (points), its section an ellipse `w(u)` across × `h(u)` (u 0..1 along it), the section's
+ * h along the curve's normal: a ram's horn (flattened, ridged, tapering), a lizard's head, a lock of a mane, a claw.
+ * Frames: the curve's Frenet frames (smooth on a spiral), or with `up` the section's h kept along that axis. Capped at
+ * its root; its far end as thin as w and h make it.
+ */
+export function loftAlong(points, w, h = w, sides = 9, steps = 28, up = null) {
+  const curve = new THREE.CatmullRomCurve3(points.map((p) => (Array.isArray(p) ? new THREE.Vector3(...p) : p)));
+  const F = up ? null : curve.computeFrenetFrames(steps, false), pos = [], uv = [], idx = [], U = up && new THREE.Vector3(...up).normalize();
+  for (let i = 0; i <= steps; i++) {
+    const u = i / steps, p = curve.getPointAt(u), rw = w(u), rh = h(u);
+    let N, B;
+    if (F) { N = F.normals[i]; B = F.binormals[i]; } else { const T = curve.getTangentAt(u); N = U.clone().addScaledVector(T, -U.dot(T)).normalize(); B = new THREE.Vector3().crossVectors(T, N); }
+    for (let j = 0; j < sides; j++) { const a = (j / sides) * Math.PI * 2, cx = Math.cos(a) * rh, cy = Math.sin(a) * rw; pos.push(p.x + N.x * cx + B.x * cy, p.y + N.y * cx + B.y * cy, p.z + N.z * cx + B.z * cy); uv.push(j / sides, u); }
+  }
+  for (let i = 0; i < steps; i++) for (let j = 0; j < sides; j++) {
+    const a = i * sides + j, b = i * sides + ((j + 1) % sides), c = a + sides, d = b + sides;
+    idx.push(a, b, c, b, d, c);
+  }
+  const p0 = curve.getPointAt(0), o = pos.length / 3;
+  pos.push(p0.x, p0.y, p0.z); uv.push(0.5, 0);
+  for (let j = 0; j < sides; j++) idx.push(o, (j + 1) % sides, j);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+/** A value eased between keys [[u, v], …] (u rising): a profile along a loft. */
+export function keyed(u, K) {
+  if (u <= K[0][0]) return K[0][1];
+  for (let i = 1; i < K.length; i++) if (u <= K[i][0]) { const a = K[i - 1], b = K[i], x = (u - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * x * x * (3 - 2 * x); }
+  return K.at(-1)[1];
+}
+/** loftLimb's profile laid from a to b (arrays) instead of down -y: a bent limb's segment, a digitigrade shank. */
+function loftBone(a, b, prof, s = 1, sides = 9) {
+  const A = new THREE.Vector3(...a), d = new THREE.Vector3(...b).sub(A), l = d.length();
+  return loftLimb(l, prof, s, sides).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), d.normalize())).translate(...a);
+}
+/** A curved claw from `at` along dir (arrays), hooking down toward `hook` (its tip bending that way), r at its root. */
+function hookClaw(at, dir, hook, r, l) {
+  const A = new THREE.Vector3(...at), D = new THREE.Vector3(...dir).normalize(), H = new THREE.Vector3(...hook).normalize();
+  const pts = [A, A.clone().addScaledVector(D, l * 0.5).addScaledVector(H, l * 0.05), A.clone().addScaledVector(D, l * 0.85).addScaledVector(H, l * 0.3)];
+  return loftAlong(pts, (u) => r * (1 - u * 0.92), (u) => r * 1.25 * (1 - u * 0.92), 5, 5, hook);
+}
+/**
+ * A held prop's grip turned so its +y points along `dir` in `frame`'s own axes (x its left, y up, z ahead), `w` of the
+ * way from the turn it has (slerped): a pose's own aim for a weapon, where the clip's fist would hold it wrong.
+ */
+const _aq = new THREE.Quaternion(), _bq = new THREE.Quaternion(), _pq = new THREE.Quaternion(), _yUp = new THREE.Vector3(0, 1, 0);
+export function aimGrip(grip, frame, dir, w = 1) {
+  if (!(w > 0.01)) return;
+  frame.updateWorldMatrix(true, false); grip.parent.updateWorldMatrix(true, false);
+  _w.set(...dir).normalize();
+  _aq.setFromUnitVectors(_yUp, _w).premultiply(frame.getWorldQuaternion(_bq));
+  grip.parent.getWorldQuaternion(_pq).invert();
+  grip.quaternion.slerp(_pq.multiply(_aq), Math.min(1, w));
+}
+/**
+ * The hips raised `up` m (the rig's; less where the leg would not reach) over a leg whose foot stays where the clip
+ * planted it (leg i reaches it again by two-bone IK, the knee forward, the sole's turn kept): a standing leg straightened
+ * under a lifted body (`tilt`: the body first leant about z that much, rad).
+ */
+const _h0 = new THREE.Vector3(), _f0 = new THREE.Vector3(), _kn = new THREE.Vector3(), _fwd = new THREE.Vector3(), _fq = new THREE.Quaternion(), _down = new THREE.Vector3(0, -1, 0);
+function liftOver(J, i, up, tilt = 0) {
+  const leg = J.legs[i], knee = J.knees[i], foot = J.feet[i];
+  J.body.updateWorldMatrix(true, true);
+  foot.getWorldPosition(_f0); foot.getWorldQuaternion(_fq);
+  if (tilt) { J.body.rotateZ(tilt); J.body.updateMatrixWorld(true); }   // (its weight leant over that foot, the foot kept)
+  const s = J.body.getWorldScale(_kn).y || 1;
+  // (no higher than the leg reaches, a little bent: the foot never pulled off the ground)
+  leg.getWorldPosition(_h0);
+  const R = (J.D.thigh + J.D.shin) * s * 0.96, h2 = (_h0.x - _f0.x) ** 2 + (_h0.z - _f0.z) ** 2, dy = _h0.y - _f0.y;
+  up = Math.max(0, Math.min(up, (Math.sqrt(Math.max(0, R * R - h2)) - dy) / s));
+  J.body.position.y += up; J.body.updateMatrixWorld(true);
+  leg.getWorldPosition(_h0);
+  _fwd.set(0, 0, 1).applyQuaternion(J.body.getWorldQuaternion(_pq));
+  twoBone(_h0, _f0, J.D.thigh * s, J.D.shin * s, _fwd, _kn);
+  const aim = (j, dir) => { j.parent.getWorldQuaternion(_pq).invert(); j.quaternion.setFromUnitVectors(_down, dir.normalize().applyQuaternion(_pq)); j.updateMatrixWorld(true); };
+  aim(leg, _kn.clone().sub(_h0));
+  knee.getWorldPosition(_h0); aim(knee, _f0.clone().sub(_h0));
+  foot.parent.getWorldQuaternion(_pq).invert(); foot.quaternion.copy(_pq.multiply(_fq)); foot.updateMatrixWorld(true);
+}
+/** A hem (a kilt, a loincloth) on the torso hung from the hips instead: its turn the hips' (body's), then its sway. */
+function hangFromHips(hem, body, sx, sz) {
+  hem.parent.updateWorldMatrix(true, false); body.updateWorldMatrix(true, false);
+  hem.quaternion.copy(hem.parent.getWorldQuaternion(_pq).invert().multiply(body.getWorldQuaternion(_bq)));
+  hem.rotateX(sx); hem.rotateZ(sz);
+}
+
 /** The grunt's knobbly club along +y from the grip: a log thickening to a lumpy head, leather wound round its grip. */
 function knobClub(L = 0.82) {
   const wood = [new THREE.CylinderGeometry(0.068, 0.03, L, 8, 4).translate(0, L * 0.4, 0), new THREE.SphereGeometry(0.075, 9, 7).scale(1, 1.4, 1).translate(0, L * 0.84, 0)];
@@ -65,12 +203,12 @@ function knobClub(L = 0.82) {
   }
   return { wood, leather: [0, 0.05, 0.1].map((y) => new THREE.TorusGeometry(0.034, 0.011, 4, 10).rotateX(Math.PI / 2).translate(0, y - 0.03, 0)) };
 }
-/** The hulk's long club along +y from the grip: a dark log thickening to its end, iron bands near it and at the grip, studs. */
+/** The hulk's long club along +y from the grip: a dark log thickening to its end, iron bands near it and at the grip (the
+ * sheet draws bands only, no studs). */
 function bandedClub(L = 1.75) {
   const wood = [new THREE.CylinderGeometry(0.12, 0.055, L, 10, 3).translate(0, L * 0.38, 0), new THREE.CylinderGeometry(0.11, 0.12, 0.06, 10).translate(0, L * 0.88 + 0.03, 0)];
   const iron = [L * 0.6, L * 0.78, L * 0.86].map((y) => new THREE.CylinderGeometry(0.035 + 0.075 * (y / L) + 0.012, 0.035 + 0.075 * (y / L) + 0.012, 0.05, 10).translate(0, y - L * 0.12, 0));
   iron.push(new THREE.CylinderGeometry(0.064, 0.064, 0.05, 10).translate(0, -0.02, 0));
-  for (let i = 0; i < 6; i++) { const a = i * 1.05 + 0.3, y = L * (0.66 + 0.06 * (i % 2)) - L * 0.12, rr = 0.1; iron.push(new THREE.ConeGeometry(0.02, 0.06, 5).rotateZ(-Math.PI / 2).translate(rr + 0.02, 0, 0).rotateY(a).translate(0, y, 0)); }
   return { wood, iron };
 }
 
@@ -94,6 +232,8 @@ export const GRUNT_MOVES = {
   rock: { clip: 'gs_jump_attack', from: 0.15, load: 0.85, cut: 1.1, to: 1.45, ground: true, release: 0.78 },
 };
 const GRUNT_SPEEDS = { walk: 0.6, jog: 1.8, sprint: 3.6 };
+/** Where its club points in the overhead's wind-up, in its torso's frame (x its left, z ahead): up, back and to its right. */
+export const GRUNT_AIM = { overhead: [-0.85, 0.5, -0.2] };
 
 export function gruntModel(skin) {
   const P = skin.palette, M = materials('grunt', skin);
@@ -105,10 +245,10 @@ export function gruntModel(skin) {
   const eyeM = M.own('eye', P.eye, { glow: 0.55 });
   const T = J.torso;
   // the pot belly: a round barrel from the hips to the shoulders, the belly a ball pushed out before it, a little low
-  add(T, lathe([[0.001, -0.08], [0.17, -0.06], [0.235, 0.02], [0.255, 0.12], [0.25, 0.22], [0.245, 0.29], [0.215, 0.35], [0.12, 0.42], [0.001, 0.44]], 20, 0.84), skinB);
+  add(T, lathe([[0.001, -0.08], [0.17, -0.06], [0.235, 0.02], [0.255, 0.12], [0.25, 0.21], [0.232, 0.27], [0.2, 0.32], [0.155, 0.37], [0.09, 0.42], [0.001, 0.44]], 20, 0.84), skinB);
   many(T, [new THREE.SphereGeometry(0.24, 16, 12).scale(1, 0.95, 0.9).translate(0, 0.1, 0.075),
-    // (its chest a little fuller under the strap; the shoulders' round)
-    new THREE.SphereGeometry(0.15, 10, 8).scale(1.3, 0.75, 0.8).translate(0, 0.28, 0.05)], skinB);
+    // (its chest a little fuller under the strap; the shoulders sloping down into its arms, not a block)
+    new THREE.SphereGeometry(0.15, 12, 8).scale(1.2, 0.62, 0.78).translate(0, 0.3, 0.04)], skinB);
   // its navel
   add(T, new THREE.SphereGeometry(0.012, 6, 4).scale(1, 0.6, 0.5), inkB, 0, 0.06, 0.29);
   // the leather strap across its chest from its left shoulder to its right hip, an iron ring at the front
@@ -118,22 +258,25 @@ export function gruntModel(skin) {
   const hem = pivot(T, 0, -0.06, 0, 'hem');
   const flap = [];
   for (let i = 0; i < 6; i++) {
-    const a = -0.55 + 0.22 * i, l = 0.13 + 0.05 * Math.abs(Math.sin(i * 2.1 + 0.5));
-    flap.push(new THREE.ConeGeometry(0.06, l, 3, 1).rotateY(Math.PI / 6).scale(1, 1, 0.25).rotateX(Math.PI).translate(0, -l / 2, 0).rotateX(-0.08).translate(0, 0, 0.275).rotateY(a).scale(1, 1, 0.86).translate(0, -0.1, 0));
+    const a = -0.55 + 0.22 * i, l = 0.09 + 0.04 * Math.abs(Math.sin(i * 2.1 + 0.5)) - 0.025 * Math.abs(i - 2.5) / 2.5;
+    flap.push(new THREE.ConeGeometry(0.06, l, 3, 1).rotateY(Math.PI / 6).scale(1, 1, 0.25).rotateX(Math.PI).translate(0, -l / 2, 0).rotateX(-0.08).translate(0, 0, 0.27).rotateY(a).scale(1, 1, 0.86).translate(0, -0.075, 0));
   }
-  many(hem, [lathe([[0.28, -0.11], [0.25, -0.02], [0.235, 0.06]], 18, 0.86), ...tatters(9, 0.28, -0.1, 0.06, 0.86, 0.12), ...flap], clothB);
-  // arms: short, thick, to its thighs; four-fingered clawed hands
+  // (short at its sides, the hem at mid-thigh: its legs show to the hips, as the sheet draws them)
+  many(hem, [lathe([[0.27, -0.08], [0.25, -0.02], [0.235, 0.06]], 18, 0.86), ...tatters(9, 0.27, -0.075, 0.045, 0.86, 0.11), ...flap], clothB);
+  // arms: short, thick, to its thighs (lofted: a round shoulder falling into the upper arm, a fleshy forearm narrowing to
+  // the wrist); four-fingered clawed hands
   J.arms.forEach((arm, i) => {
     const s = i ? 1 : -1, h = clawHand(s, 1.35);
-    many(arm, [limb(D.upper, 0.06, 0.05), new THREE.SphereGeometry(0.082, 9, 7).scale(1, 1, 0.95)], skinB);
-    many(J.elbows[i], [new THREE.SphereGeometry(0.05, 8, 6), limb(D.fore, 0.05, 0.044)], skinB);
+    many(arm, [loftLimb(D.upper, [[-0.27, 0.008, 0.008], [-0.2, 0.042, 0.041], [-0.1, 0.058, 0.057, 0, 0.003], [0.04, 0.064, 0.062, 0, 0.006], [0.35, 0.06, 0.058, 0.006], [0.75, 0.05, 0.05], [1, 0.046, 0.046]], s, 10)], skinB);
+    many(J.elbows[i], [new THREE.SphereGeometry(0.046, 8, 6), loftLimb(D.fore, [[0, 0.046, 0.046], [0.3, 0.053, 0.05, 0.005], [0.8, 0.036, 0.032], [1.02, 0.033, 0.03]], s)], skinB);
     many(J.hands[i], h.skin, skinB); many(J.hands[i], h.claw, boneB);
   });
   // legs: short and bowed, thick thighs, wide clawed feet
   J.legs.forEach((leg, i) => {
-    const f = clawFoot(1.25, 3);
-    many(leg, [limb(D.thigh, 0.075, 0.06), new THREE.SphereGeometry(0.08, 9, 7)], skinB);
-    many(J.knees[i], [new THREE.SphereGeometry(0.058, 8, 6), limb(D.shin, 0.058, 0.048)], skinB);
+    const f = clawFoot(1.25, 3), s = i ? 1 : -1;
+    // (lofted: a round thigh falling to a knobbed knee, a calf behind the shin, a narrow ankle over the wide foot)
+    many(leg, [loftLimb(D.thigh, [[-0.15, 0.04, 0.04], [0.05, 0.082, 0.08], [0.45, 0.074, 0.074, 0.008], [0.9, 0.054, 0.054], [1.05, 0.05, 0.05]], s)], skinB);
+    many(J.knees[i], [new THREE.SphereGeometry(0.05, 8, 6).translate(0, 0, 0.012), loftLimb(D.shin, [[0, 0.05, 0.05], [0.3, 0.052, 0.058, -0.012], [0.75, 0.036, 0.036], [1, 0.034, 0.034]], s)], skinB);
     many(J.feet[i], f.skin, skinB); many(J.feet[i], f.claw, boneB);
   });
   // the head: big and round, a heavy brow, the flat snout, the wide grin with two small tusks, long pointed ears out to
@@ -185,15 +328,20 @@ export function gruntModel(skin) {
       const dt = Math.max(c.dt, 0);
       const want = driver.update(f, c);
       const sw = sway.update(dt, driver.speed, f.heading);
-      hem.rotation.set(sw.x, 0, sw.z);
+      hangFromHips(hem, J.body, sw.x, sw.z);
       // what it holds (f.weapon: 'club', 'spear', 'bow', or 'none'); nothing while it is disarmed or off to the rack
       const W = f.disarmed ? null : f.weapon ?? 'club';
       for (const [k, node] of Object.entries(held)) node.scale.setScalar(k === W ? 1 : 1e-3);
       const move = want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0;
       // (carried: the club down along its thigh, head forward; the spear upright; the bow upright before it)
       if (W === 'spear') grip.rotation.set(0.25, 0, 0.1); else grip.rotation.set(Math.PI / 2 - 0.3, 0, 0.1);
-      // (the overhead: the arms are the pose's, the club up out of its fists and back over its head)
-      if (want.pose === 'overhead') grip.rotation.set(Math.PI - 0.5, 0, 0);
+      // (the overhead: the arms are the pose's, the club up out of its fists; winding up, tilted back over its head and its
+      // right shoulder (the sheet's attack pose: GRUNT_AIM), coming over as it swings)
+      if (want.pose === 'overhead') {
+        grip.rotation.set(Math.PI - 0.5, 0, 0);
+        const back = want.phase === 'strike' ? 1 - smooth((f.k ?? 0) * 3) : want.phase === 'wind' ? 1 : 0;
+        aimGrip(grip, J.torso, GRUNT_AIM.overhead, driver.procW * back);
+      }
       gripL.rotation.set(0.15, 0, Math.PI / 2 - 0.15);
       driver.gripFrom(grip, 0, move); driver.gripFrom(gripL, 1, move);
       // one it dropped lies where it fell (not one it is off to take from the rack)
@@ -236,7 +384,9 @@ export const HULK_MOVES = {
 };
 const HULK_SPEEDS = { walk: 1.0, jog: 2.4, sprint: 4.6 };
 /** Its hunch over the clip's pose (rad: the chest forward, the head back up to look ahead); the stomp's foot (rad). */
-export const HULK_STANCE = { hunch: 0.26, look: -0.3, stomp: { thigh: 1.5, knee: 1.55, foot: -0.1 } };
+export const HULK_STANCE = { hunch: 0.26, look: -0.3, stomp: { thigh: 1.05, out: 0.55, knee: 0.95, foot: -0.1, rise: 0.22 } };
+/** Its head (the face's pivot under the neck's, m) and its size over the parts built at a person's: thrust forward and low. */
+export const HULK_HEAD = { at: [0, -0.1, 0.22], scale: 1.18 };
 
 export function hulkModel(skin) {
   const P = skin.palette, M = materials('hulk', skin);
@@ -258,37 +408,43 @@ export function hulkModel(skin) {
   const kiltFlap = [];
   for (let i = 0; i < 7; i++) {
     const a = -0.6 + 0.2 * i + (i % 2) * 0.03, l = 0.2 + 0.12 * Math.abs(Math.sin(i * 1.9 + 0.4));
-    kiltFlap.push(new THREE.ConeGeometry(0.13, l, 3, 1).rotateY(Math.PI / 6).scale(1, 1, 0.25).rotateX(Math.PI).translate(0, -l / 2, 0).rotateX(-0.1).translate(0, 0, 0.6).rotateY(a).scale(1, 1, 0.8).translate(0, -0.38, 0));
+    kiltFlap.push(new THREE.ConeGeometry(0.13, l, 3, 1).rotateY(Math.PI / 6).scale(1, 1, 0.25).rotateX(Math.PI).translate(0, -l / 2, 0).rotateX(-0.1).translate(0, 0, 0.6).rotateY(a).scale(1, 1, 0.72).translate(0, -0.38, 0.03));
   }
-  many(hem, [lathe([[0.6, -0.4], [0.55, -0.24], [0.47, -0.06], [0.42, 0.08]], 24, 0.8),
-    ...tatters(15, 0.6, -0.38, 0.16, 0.8, 0.17), ...kiltFlap], hideB);
-  many(hem, [new THREE.TorusGeometry(0.45, 0.03, 5, 28).rotateX(Math.PI / 2).scale(1, 1, 0.8).translate(0, 0.02, 0),
-    new THREE.SphereGeometry(0.055, 7, 5).translate(-0.05, 0.01, 0.37), ...[-0.08, -0.02].map((x, i) => new THREE.CylinderGeometry(0.022, 0.017, 0.4 + i * 0.1, 5).rotateX(-0.12).translate(x, -0.2 - i * 0.05, 0.4))], ropeB);
-  // long heavy arms to its knees, big four-fingered hands
+  // (close round its hips before and behind, the sheet's side view: not a bell out behind it)
+  many(hem, [lathe([[0.6, -0.4], [0.55, -0.24], [0.47, -0.06], [0.42, 0.08]], 24, 0.72).translate(0, 0, 0.03),
+    ...tatters(15, 0.6, -0.38, 0.16, 0.72, 0.17).map((x) => x.translate(0, 0, 0.03)), ...kiltFlap], hideB);
+  many(hem, [new THREE.TorusGeometry(0.45, 0.03, 5, 28).rotateX(Math.PI / 2).scale(1, 1, 0.7).translate(0, 0.02, 0.04),
+    new THREE.SphereGeometry(0.055, 7, 5).translate(-0.05, 0.01, 0.36), ...[-0.08, -0.02].map((x, i) => new THREE.CylinderGeometry(0.022, 0.017, 0.4 + i * 0.1, 5).rotateX(-0.12).translate(x, -0.2 - i * 0.05, 0.39))], ropeB);
+  // long heavy arms to its knees, muscled (lofted: the deltoid's mass over the shoulder, the biceps before, the forearm
+  // swelling below the elbow and narrowing to the wrist); big four-fingered hands
   J.arms.forEach((arm, i) => {
-    const s = i ? 1 : -1, h = clawHand(s, 2.5);
-    many(arm, [limb(D.upper, 0.16, 0.13), new THREE.SphereGeometry(0.16, 11, 8).scale(1, 1.15, 1)], skinB);
-    many(J.elbows[i], [new THREE.SphereGeometry(0.13, 9, 7), limb(D.fore, 0.14, 0.11)], skinB);
+    const s = i ? 1 : -1, h = clawHand(s, 2.6);
+    many(arm, [loftLimb(D.upper, [[-0.14, 0.09, 0.09], [0.04, 0.2, 0.19, -0.005, 0.025], [0.24, 0.18, 0.175, 0, 0.02], [0.52, 0.145, 0.168, 0.035], [0.86, 0.12, 0.125], [1.02, 0.115, 0.115]], s, 9)], skinB);
+    many(J.elbows[i], [new THREE.SphereGeometry(0.12, 9, 7), loftLimb(D.fore, [[0, 0.12, 0.12], [0.2, 0.152, 0.14, 0.012, 0.012], [0.5, 0.128, 0.115, 0.005], [0.88, 0.09, 0.076], [1.02, 0.085, 0.07]], s, 9)], skinB);
     many(J.hands[i], h.skin, skinB); many(J.hands[i], h.claw, hornB);
   });
   // thick legs, broad bare feet with five toes
   J.legs.forEach((leg, i) => {
-    const f = clawFoot(2.45, 5);
-    many(leg, [limb(D.thigh, 0.24, 0.17), new THREE.SphereGeometry(0.25, 11, 8)], skinB);
-    many(J.knees[i], [new THREE.SphereGeometry(0.17, 9, 7), limb(D.shin, 0.17, 0.12)], skinB);
+    const f = clawFoot(2.45, 5), s = i ? 1 : -1;
+    many(leg, [loftLimb(D.thigh, [[-0.15, 0.15, 0.15], [0.04, 0.25, 0.24], [0.45, 0.22, 0.225, 0.02], [0.88, 0.165, 0.165], [1.03, 0.155, 0.155]], s, 9)], skinB);
+    many(J.knees[i], [new THREE.SphereGeometry(0.16, 9, 7).translate(0, 0, 0.02), loftLimb(D.shin, [[0, 0.16, 0.16], [0.25, 0.165, 0.185, -0.03], [0.7, 0.12, 0.12], [1, 0.1, 0.1]], s, 9)], skinB);
     many(J.feet[i], f.skin, skinB); many(J.feet[i], f.claw, hornB);
   });
   // the head: small, low and forward on its thick neck; a heavy brow, a broad flat nose, the heavy jaw with two fangs
   // up from it, small pointed ears; one ivory horn up from its brow
   const H = J.head;
   const face = [0, 0.07, 0.1], faceR = [0.18, 0.12, 0.17];
-  // (its head thrust forward of its neck: the sheet's side view)
-  many(H, [new THREE.CylinderGeometry(0.17, 0.25, 0.26, 12).rotateX(0.5).translate(0, -0.04, 0.04)], skinB);
-  const Hf = pivot(H, 0, -0.05, 0.13, 'face');
+  // (its head thrust well forward of its neck, low between its shoulders: the sheet's side view; a little bigger than a
+  // person's: HULK_HEAD)
+  many(H, [new THREE.CylinderGeometry(0.19, 0.28, 0.36, 12).rotateX(0.95).translate(0, -0.06, 0.1)], skinB);
+  const Hf = pivot(H, ...HULK_HEAD.at, 'face');
+  Hf.scale.setScalar(HULK_HEAD.scale);
   many(Hf, [new THREE.SphereGeometry(0.2, 14, 11).scale(1, 1.02, 1).translate(0, 0.17, 0.04),
     new THREE.SphereGeometry(1, 14, 10).scale(...faceR).translate(...face),
-    new THREE.CapsuleGeometry(0.035, 0.2, 4, 8).rotateZ(Math.PI / 2).translate(0, 0.21, 0.2),
+    new THREE.CapsuleGeometry(0.044, 0.2, 4, 8).rotateZ(Math.PI / 2).scale(1, 0.9, 1).translate(0, 0.215, 0.2),
     new THREE.SphereGeometry(0.045, 8, 6).scale(1.3, 0.9, 1).translate(0, 0.14, 0.26),
+    // (the heavy underslung jaw, wider than its skull)
+    new THREE.SphereGeometry(1, 12, 8).scale(0.165, 0.085, 0.13).translate(0, 0.035, 0.135),
     ...[-1, 1].map((s) => new THREE.ConeGeometry(0.045, 0.13, 5).scale(1, 1, 0.35).rotateZ(-s * 1.2).translate(s * 0.22, 0.2, 0.0))], skinB);
   many(Hf, [tubeGeometry(onFace(face, faceR, span(-0.11, 0.11, 7), (x) => 0.04 - 0.4 * x * x), 0.006),
     ...[-1, 1].map((s) => new THREE.SphereGeometry(0.012, 6, 4).translate(s * 0.022, 0.125, 0.295))], inkB);
@@ -309,8 +465,10 @@ export function hulkModel(skin) {
     if (cur?.atk?.id !== 'stomp' || !want.clip) return;
     const k = want.kind === 'wind' ? smooth(want.load) : want.kind === 'strike' ? 1 - smooth((cur.k ?? 0) * 3) : 0, S = HULK_STANCE.stomp;
     if (k <= 0) return;
-    J.legs[0].rotateX(-S.thigh * k); J.knees[0].rotateX(S.knee * k); J.feet[0].rotateX(S.foot * k);
-    J.body.rotateZ(0.08 * k);   // (its weight over the other foot)
+    // (the body raised off the guard's crouch over its standing leg, straightened: the legs seen long, not squatting)
+    liftOver(J, 1, S.rise * k, 0.08 * k);   // (its weight over the other foot)
+    // (a wrestler's stamp: the leg swung up and out to its side, the knee only half bent: the whole leg seen, long)
+    J.legs[0].rotateX(-S.thigh * k); J.legs[0].rotateZ(-S.out * k); J.knees[0].rotateX(S.knee * k); J.feet[0].rotateX(S.foot * k);
   };
   const driver = new HumanoidDriver(J, rig, { moves: HULK_MOVES, speeds: HULK_SPEEDS, style, seat: 0.36 });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.6, up: 0.35, down: 0.45 })];
@@ -334,7 +492,7 @@ export function hulkModel(skin) {
       cur = f;
       const want = driver.update(f, c);
       const sw = sway.update(dt, driver.speed, f.heading);
-      hem.rotation.set(sw.x - HULK_STANCE.hunch, 0, sw.z);   // (its kilt hangs from its hips, not its hunch)
+      hangFromHips(hem, J.body, sw.x, sw.z);   // (its kilt hangs from its hips, not its hunched chest nor the clip's bend)
       // the club: hanging along its fist, head down and forward; set down while it holds a grunt up
       grip.rotation.set(Math.PI / 2 - 0.35, 0, 0);
       driver.gripFrom(grip, 0, want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
@@ -425,14 +583,21 @@ function curvedBlade(L, w, curve = 0.12, y0 = 0, t = 0.008, hook = false) {
   g.rotateY(-Math.PI / 2);
   return g;
 }
-/** A spiral (the warlord's ram horns): from the brow up, back, down round the ear and out forward, `turns` of a turn. */
-function ramHorn(s, c, R0 = 0.14, R1 = 0.06, x0 = 0.08, x1 = 0.2, turns = 1.05, r0 = 0.068, r1 = 0.02) {
-  const pts = [];
-  for (let i = 0; i <= 18; i++) {
-    const u = i / 18, a = Math.PI / 2 + u * turns * Math.PI * 2, R = R0 + (R1 - R0) * u;
-    pts.push(new THREE.Vector3(s * (x0 + (x1 - x0) * Math.pow(u, 0.8)), c[1] + Math.sin(a) * R, c[2] + Math.cos(a) * R));
+/**
+ * A ram's horn (the warlord's, the shape pass #726): from its root on the crown up, back, down round behind the ear and
+ * forward under it, its tip flaring out by the cheek; the coil's axis out to its side and a little forward, so from the
+ * front each horn is a big curl standing out past the mane (WARLORD_HORN). Lofted: broad and flattened, thick at the
+ * root, tapering to its tip, ridged across.
+ */
+export function ramHorn(s, H = WARLORD_HORN) {
+  const A = new THREE.Vector3(s, 0, H.fwd).normalize(), e1 = new THREE.Vector3(0, 1, 0).addScaledVector(A, -A.y).normalize(), e2 = new THREE.Vector3().crossVectors(A, e1).multiplyScalar(-s);
+  const C = new THREE.Vector3(s * H.c[0], H.c[1], H.c[2]), pts = [];
+  for (let i = 0; i <= 14; i++) {
+    const u = i / 14, th = u * H.turns * Math.PI * 2 - H.start, R = H.r0 + (H.r1 - H.r0) * u;
+    pts.push(C.clone().addScaledVector(e1, Math.cos(th) * R).addScaledVector(e2, Math.sin(th) * R).addScaledVector(A, H.x0 + (H.x1 - H.x0) * Math.pow(u, 1.6)));
   }
-  return tubeGeometry(pts, r0, r1);
+  const ridge = (u) => 1 + 0.07 * Math.max(0, Math.cos(u * Math.PI * 2 * H.ridges)) * (1 - u);
+  return loftAlong(pts, (u) => keyed(u, H.w) * ridge(u), (u) => keyed(u, H.h) * ridge(u), 8, 30, A.toArray());
 }
 
 // ------------------------------------------------------------------ the prowler
@@ -462,8 +627,14 @@ export const PROWLER_MOVES = {
 };
 const PROWLER_SPEEDS = { walk: 0.8, jog: 2.6, sprint: 5.0 };
 /** Its stance over the clip's (rad): leaning forward from the hips, the head brought back up level; its knees a little bent. */
-export const PROWLER_STANCE = { lean: 0.2, look: -0.25, knee: 0.18, crouch: 0.55, flipTuck: 1.3, head: 1.2 };
+export const PROWLER_STANCE = { lean: 0.2, look: -0.25, knee: 0.18, crouch: 0.55, flipTuck: 1.3, head: 1.3 };
 /** The tail: segments, each `len` m, tapering `r0` → `r1`; its rest curve (rad down per segment, root to tip). */
+/** Its head (m, before PROWLER_STANCE.head's scale): from its nape (z0) to its snout (z1), the centre's height, the half
+ * width and half height along it (keys: [u, value]); its jaw that much lower. Long and narrow (the sheet's). */
+export const PROWLER_HEAD = { z0: -0.09, z1: 0.32, jaw: 0.026,
+  y: [[0, 0.1], [0.35, 0.098], [0.75, 0.08], [1, 0.072]],
+  w: [[0, 0.03], [0.1, 0.075], [0.33, 0.088], [0.6, 0.064], [0.88, 0.045], [1, 0.016]],
+  h: [[0, 0.03], [0.1, 0.07], [0.33, 0.072], [0.6, 0.052], [0.88, 0.036], [1, 0.014]] };
 export const PROWLER_TAIL = { n: 8, len: 0.17, r0: 0.075, r1: 0.014, rest: [0.45, 0.25, 0.15, 0.05, -0.1, -0.2, -0.2, -0.1] };
 
 /** A long three-fingered lizard hand hanging down its joint: a narrow palm, three long fingers, each with a claw. */
@@ -472,7 +643,9 @@ function lizardHand(size = 1) {
   for (let i = -1; i <= 1; i++) {
     const a = i * 0.28, l = r * (i ? 3.4 : 4.2);
     skin.push(new THREE.CapsuleGeometry(r * 0.42, l, 3, 5).translate(0, -l / 2, 0).rotateX(0.3).rotateZ(a).translate(i * r * 0.7, -r * 2.2, r * 0.3));
-    claw.push(new THREE.ConeGeometry(r * 0.32, r * 1.3, 5).rotateX(Math.PI - 0.5).translate(0, -l - r * 0.5, r * 0.25).rotateX(0.3).rotateZ(a).translate(i * r * 0.7, -r * 2.2, r * 0.3));
+    // (a long hooked claw, curling in toward the palm: the sheet's)
+    const tip = new THREE.Vector3(0, -l, 0).applyEuler(new THREE.Euler(0.3, 0, a)).add(new THREE.Vector3(i * r * 0.7, -r * 2.2, r * 0.3)), d = new THREE.Vector3(0, -1, 0.35).applyEuler(new THREE.Euler(0.3, 0, a));
+    claw.push(hookClaw(tip.toArray(), d.toArray(), [0, -0.2, 1], r * 0.4, r * 2.1));
   }
   return { skin, claw };
 }
@@ -482,14 +655,14 @@ function lizardFoot(size = 1) {
   for (let i = -1; i <= 1; i++) {
     const a = i * 0.42, l = 0.11 * s * (i ? 0.85 : 1.1);
     skin.push(new THREE.CapsuleGeometry(0.016 * s, l, 3, 5).rotateX(Math.PI / 2).translate(0, 0, l / 2).rotateY(a).translate(0, -0.05, 0.02));
-    claw.push(new THREE.ConeGeometry(0.01 * s, 0.035 * s, 5).rotateX(Math.PI / 2 + 0.3).translate(0, -0.012, l + 0.012).rotateY(a).translate(0, -0.05, 0.02));
+    claw.push(hookClaw([Math.sin(a) * l, -0.044, 0.02 + Math.cos(a) * l], [Math.sin(a), 0, Math.cos(a)], [0, -1, 0.3], 0.011 * s, 0.045 * s));
   }
   return { skin, claw };
 }
-/** Points from a to b (arrays) for a capsule along them: its geometry, radius r. */
-function bone(a, b, r) {
+/** Points from a to b (arrays) for a capsule along them: its geometry, radius r (n round it: a finger's few). */
+function bone(a, b, r, n = 8) {
   const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A), l = d.length();
-  return new THREE.CapsuleGeometry(r, Math.max(0.001, l - r * 2), 3, 8).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())).translate(...A.add(B).multiplyScalar(0.5).toArray());
+  return new THREE.CapsuleGeometry(r, Math.max(0.001, l - r * 2), n > 6 ? 3 : 2, n).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())).translate(...A.add(B).multiplyScalar(0.5).toArray());
 }
 
 export function prowlerModel(skin) {
@@ -520,8 +693,11 @@ export function prowlerModel(skin) {
   // arms: thin and long, to its thighs; three long clawed fingers
   J.arms.forEach((arm, i) => {
     const h = lizardHand(1.25);
-    many(arm, [limb(D.upper, 0.048, 0.036), new THREE.SphereGeometry(0.056, 10, 8).scale(1, 1.15, 1), new THREE.SphereGeometry(0.042, 8, 6).scale(1, 2.2, 1).translate(0, -D.upper * 0.4, 0.005)], skinB);
-    many(J.elbows[i], [new THREE.SphereGeometry(0.036, 8, 6), limb(D.fore, 0.037, 0.026), new THREE.SphereGeometry(0.034, 8, 6).scale(1, 2.4, 1).translate(0, -D.fore * 0.3, 0)], skinB);
+    // (lean muscle, lofted: a round deltoid, the biceps' swell before and the triceps' behind, a forearm thick below the
+    // elbow and thin at the wrist)
+    const s = i ? 1 : -1;
+    many(arm, [loftLimb(D.upper, [[-0.12, 0.03, 0.03], [0.04, 0.056, 0.056, 0, 0.006], [0.2, 0.048, 0.05, 0], [0.45, 0.04, 0.048, 0.004], [0.82, 0.03, 0.031], [1.03, 0.028, 0.028]], s)], skinB);
+    many(J.elbows[i], [new THREE.SphereGeometry(0.031, 8, 6), loftLimb(D.fore, [[0, 0.031, 0.031], [0.2, 0.038, 0.036, -0.003, 0.004], [0.5, 0.031, 0.028], [0.85, 0.021, 0.019], [1.02, 0.019, 0.017]], s)], skinB);
     many(J.hands[i], h.skin, skinB); many(J.hands[i], h.claw, boneB);
   });
   // legs (digitigrade): a thick thigh; the shin bent back from the knee to a raised hock, the long instep forward and down
@@ -529,8 +705,12 @@ export function prowlerModel(skin) {
   const K = PROWLER_SHANK.hock, ballAt = [0, -D.shin, PROWLER_SHANK.ball];
   J.legs.forEach((leg, i) => {
     const f = lizardFoot(1.2);
-    many(leg, [new THREE.SphereGeometry(0.07, 12, 9).scale(1, 2.9, 1.1).translate(0, -D.thigh * 0.45, 0.01)], skinB);
-    many(J.knees[i], [new THREE.SphereGeometry(0.044, 8, 6), bone([0, 0, 0], K, 0.04), new THREE.SphereGeometry(0.03, 8, 6).translate(...K), bone(K, ballAt, 0.027)], skinB);
+    // (lofted: a thigh thick with muscle at the hip, before and behind, falling to a lean knee; the shank's calf high
+    // behind it, the instep a lean bone to the ball of its foot)
+    const s = i ? 1 : -1;
+    many(leg, [loftLimb(D.thigh, [[-0.18, 0.04, 0.05], [0.0, 0.075, 0.085, 0.005], [0.3, 0.07, 0.085, 0.015], [0.65, 0.055, 0.062, 0.008], [0.95, 0.042, 0.044], [1.06, 0.038, 0.04]], s, 8)], skinB);
+    many(J.knees[i], [new THREE.SphereGeometry(0.04, 8, 6), loftBone([0, 0, 0], K, [[0, 0.04, 0.04], [0.25, 0.042, 0.05, -0.012], [0.7, 0.03, 0.032], [1.03, 0.026, 0.028]], s),
+      new THREE.SphereGeometry(0.027, 8, 6).translate(...K), loftBone(K, ballAt, [[0, 0.026, 0.028], [0.5, 0.022, 0.024], [1.02, 0.024, 0.022]], s, 8)], skinB);
     many(J.knees[i], [new THREE.ConeGeometry(0.009, 0.03, 5).rotateX(-2.3).translate(K[0], K[1] - 0.02, K[2] - 0.02)], boneB);
     many(J.feet[i], f.skin, skinB); many(J.feet[i], f.claw, boneB);
   });
@@ -550,22 +730,24 @@ export function prowlerModel(skin) {
   // its skull and down the back of its neck; wide-set yellow eyes on its sides under a brow ridge; a long mouth line
   const H = J.head, Hp = pivot(J.head, 0, 0, 0, 'skull');
   Hp.scale.setScalar(PROWLER_STANCE.head);
-  many(Hp, [new THREE.SphereGeometry(0.105, 16, 12).scale(1, 0.85, 1.12).translate(0, 0.085, 0.0),
-    new THREE.CylinderGeometry(0.05, 0.088, 0.2, 14).rotateX(Math.PI / 2).scale(1, 0.66, 1).translate(0, 0.07, 0.15),
-    new THREE.SphereGeometry(0.05, 12, 8).scale(1, 0.66, 1.15).translate(0, 0.07, 0.25),
-    ...[-1, 1].map((s) => new THREE.CapsuleGeometry(0.02, 0.08, 3, 6).rotateX(Math.PI / 2).translate(s * 0.062, 0.125, 0.07)),
-    ...Array.from({ length: 9 }, (_, i) => { const u = i / 8, z = 0.07 - u * 0.26, y = 0.175 - u * u * 0.14, l = 0.085 - 0.04 * Math.abs(u - 0.25); return new THREE.ConeGeometry(0.013, l, 5).scale(0.5, 1, 1).rotateX(-0.5 - u * 0.4).translate(0, y + l * 0.4, z); })], skinB);
-  // (the throat and the underside of the jaw: cream)
-  many(Hp, [new THREE.SphereGeometry(0.094, 14, 8, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45).scale(1, 0.9, 1.12).translate(0, 0.083, 0.002),
-    new THREE.CylinderGeometry(0.049, 0.084, 0.2, 14, 1, true, Math.PI - 1.0, 2.0).rotateX(Math.PI / 2).scale(1, 0.68, 1).translate(0, 0.067, 0.15)], bellyB);
-  const mouth = (s) => [0, 1, 2, 3, 4].map((i) => new THREE.Vector3(s * (0.078 - i * 0.008), 0.048 + (i === 0 ? 0.012 : 0), -0.01 + i * 0.06));
-  many(Hp, [tubeGeometry(mouth(-1), 0.0045), tubeGeometry(mouth(1), 0.0045), ...[-1, 1].map((s) => new THREE.SphereGeometry(0.007, 5, 4).translate(s * 0.02, 0.095, 0.29))], inkB);
+  // (lofted, nape to snout: deep behind the eyes and tapering to a rounded snout: PROWLER_HEAD; its jaw a second loft a
+  // little lower, the cream showing under it; the crest's spines down from the crown over its nape)
+  const HD = PROWLER_HEAD, zAt = (u) => HD.z0 + (HD.z1 - HD.z0) * u, cy = (u) => keyed(u, HD.y), hw = (u) => keyed(u, HD.w), hh = (u) => keyed(u, HD.h);
+  const line = (f) => span(0, 1, 6).map((u) => new THREE.Vector3(0, f(u), zAt(u)));
+  many(Hp, [loftAlong(line(cy), hw, hh, 10, 14, [0, 1, 0]),
+    ...[-1, 1].map((s) => new THREE.CapsuleGeometry(0.019, 0.08, 3, 6).rotateX(Math.PI / 2).translate(s * 0.064, 0.13, 0.06)),
+    ...Array.from({ length: 9 }, (_, i) => { const u = i / 8, z = 0.06 - u * 0.2, y = 0.175 - u * u * 0.09, l = 0.12 - 0.06 * Math.abs(u - 0.3); return new THREE.ConeGeometry(0.016, l, 5).scale(0.45, 1, 1).rotateX(-0.75 - u * 0.5).translate(0, y + l * 0.35, z); })], skinB);
+  // (the jaw and the throat: cream)
+  many(Hp, [loftAlong(line((u) => cy(u) - HD.jaw), (u) => hw(u) * 0.93, (u) => hh(u) * 0.78, 10, 12, [0, 1, 0])], bellyB);
+  const mouth = (s) => span(0.12, 0.97, 6).map((u) => new THREE.Vector3(s * (hw(u) * 0.9 + 0.003), cy(u) - hh(u) * 0.42, zAt(u)));
+  many(Hp, [tubeGeometry(mouth(-1), 0.0045), tubeGeometry(mouth(1), 0.0045), ...[-1, 1].map((s) => new THREE.SphereGeometry(0.007, 5, 4).translate(s * 0.02, cy(0.96) + hh(0.96) * 0.6, zAt(0.96)))], inkB);
   const eyes = pivot(Hp, 0, 0, 0, 'eyes');
   many(eyes, [-1, 1].map((s) => new THREE.SphereGeometry(0.036, 12, 9).scale(0.6, 1, 1).translate(s * 0.084, 0.105, 0.05)), eyeM);   // (both eyes one draw)
   many(Hp, [-1, 1].map((s) => new THREE.CapsuleGeometry(0.005, 0.026, 2, 4).translate(s * 0.106, 0.105, 0.053)), inkB);
   // the short curved blade in its right fist (its edge forward), a leather grip and a small steel guard
   const grip = pivot(J.hands[0], 0, -0.05, 0.012, 'grip');
-  many(grip, [curvedBlade(0.42, 0.055, 0.18, 0.06, 0.008), new THREE.BoxGeometry(0.03, 0.012, 0.07).translate(0, 0.055, 0.005)], steelB);
+  // (a short broad blade curving forward to its point, a hand wide at its belly: no stick)
+  many(grip, [curvedBlade(0.44, 0.1, 0.3, 0.06, 0.011), new THREE.BoxGeometry(0.034, 0.016, 0.1).translate(0, 0.058, 0.01)], steelB);
   many(grip, [new THREE.CylinderGeometry(0.014, 0.016, 0.11, 7).translate(0, 0.0, 0), new THREE.SphereGeometry(0.018, 6, 5).translate(0, -0.06, 0)], leatherB);
   let cur = null;
   // (its stance over the clip's: leaning forward, the head back up level, the knees a little bent; the dart's crouch
@@ -612,7 +794,7 @@ export function prowlerModel(skin) {
         for (const a of J.arms) a.rotateZ(0);
       }
       // grip: the blade hanging point-down by its leg; in a move, the clip's fist
-      grip.rotation.set(Math.PI - 0.15, 0, 0.05);
+      grip.rotation.set(Math.PI - 0.15, Math.PI / 2, 0.05);   // (its flat out to the front, as the sheet draws it hanging)
       driver.gripFrom(grip, 0, want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
       // the tail: lashing as it winds up (the dart's: hard), straight out at knee height through the tail sweep, curled in the flip
       const id = f.atk?.id, active = f.state === 'wind' || f.state === 'strike';
@@ -658,10 +840,13 @@ const WARLORD_SPEEDS = { walk: 1.0, jog: 2.6, sprint: 5.2 };
 export const WARLORD_STANCE = { chest: -0.04, look: 0.02 };
 /** Its head's size over the parts built at a person's (the sheet's maned head is big for its body). */
 export const WARLORD_HEAD = { scale: 1.45 };
+/** Its ram horns (m, in the head's frame before WARLORD_HEAD's scale): the coil's centre (x out to its side), its axis'
+ * lean forward, its radius root to tip, how far out along the axis root to tip, a share of a turn, where it starts (rad
+ * back from the top), the section's half width (in the coil) and half height (along its axis) by keys, its ridges. */
+export const WARLORD_HORN = { c: [0.17, 0.17, -0.02], fwd: 0.4, r0: 0.13, r1: 0.1, x0: -0.06, x1: 0.14, turns: 0.82, start: 0.35, ridges: 9,
+  w: [[0, 0.058], [0.5, 0.05], [1, 0.014]], h: [[0, 0.07], [0.5, 0.058], [1, 0.016]] };
 /** Where its glaive points in a held pose, in its body's frame (x its left, z ahead): the charge's lance, the whirl's reach. */
-export const WARLORD_AIM = { lance: [0, -0.12, 1], whirl: [-1, 0.05, 0.25], glaiveHigh: [-0.7, 0.6, -0.4], glaiveHighStrike: [0.85, 0.1, 0.55], roar: [-0.35, 1, 0.25], carry: [-0.16, 1, 0.1] };
-const _aq = new THREE.Quaternion(), _bq = new THREE.Quaternion(), _pq = new THREE.Quaternion(), _yUp = new THREE.Vector3(0, 1, 0);
-
+export const WARLORD_AIM = { sweep: [0.62, 0.6, -0.5], lance: [0, -0.12, 1], whirl: [-1, 0.05, 0.25], glaiveHigh: [-0.7, 0.6, -0.4], glaiveHighStrike: [0.85, 0.1, 0.55], roar: [-0.35, 1, 0.25], carry: [-0.16, 1, 0.1] };
 export function warlordModel(skin) {
   const P = skin.palette, M = materials('warlord', skin);
   const g = new THREE.Group(); g.name = skin.name;
@@ -687,19 +872,23 @@ export function warlordModel(skin) {
   // arms: thick and muscled; bronze bracers on the forearms; big hands
   J.arms.forEach((arm, i) => {
     const s = i ? 1 : -1, h = clawHand(s, 2.0);
-    many(arm, [limb(D.upper, 0.12, 0.095), new THREE.SphereGeometry(0.14, 11, 8).scale(1, 1.1, 1)], skinB);
-    many(J.elbows[i], [new THREE.SphereGeometry(0.095, 9, 7), limb(D.fore, 0.098, 0.072)], skinB);
+    // (lofted: the deltoid under its pauldron, the biceps' swell, the forearm thick below the elbow)
+    many(arm, [loftLimb(D.upper, [[-0.14, 0.07, 0.07], [0.04, 0.14, 0.135, 0, 0.015], [0.3, 0.12, 0.13, 0.015], [0.55, 0.105, 0.125, 0.025], [0.88, 0.09, 0.092], [1.03, 0.088, 0.088]], s, 9)], skinB);
+    many(J.elbows[i], [new THREE.SphereGeometry(0.09, 9, 7), loftLimb(D.fore, [[0, 0.09, 0.09], [0.2, 0.108, 0.1, 0.006, 0.008], [0.55, 0.09, 0.08], [0.9, 0.07, 0.062], [1.02, 0.068, 0.06]], s, 9)], skinB);
     many(J.elbows[i], [new THREE.CylinderGeometry(0.098, 0.104, 0.22, 12).translate(0, -D.fore + 0.15, 0), ...[-0.06, 0.06].map((y) => new THREE.TorusGeometry(0.104, 0.012, 4, 14).rotateX(Math.PI / 2).translate(0, -D.fore + 0.15 + y, 0))], bronzeB);
     many(J.hands[i], [...h.skin, ...h.claw], skinB);
   });
   // legs: thick; bare broad feet; a bronze greave on each shin and its knee (plates)
   const plates = [];
   J.legs.forEach((leg, i) => {
-    const f = clawFoot(2.1, 5);
-    many(leg, [limb(D.thigh, 0.13, 0.1), new THREE.SphereGeometry(0.135, 11, 8)], skinB);
-    many(J.knees[i], [new THREE.SphereGeometry(0.11, 9, 7), limb(D.shin, 0.105, 0.075)], skinB);
+    const f = clawFoot(2.1, 5), s = i ? 1 : -1;
+    // (lofted: a heavy thigh, the calf's mass high behind the shin, the ankle narrow over the broad foot)
+    many(leg, [loftLimb(D.thigh, [[-0.15, 0.09, 0.09], [0.04, 0.14, 0.14], [0.45, 0.125, 0.13, 0.012], [0.9, 0.095, 0.095], [1.04, 0.09, 0.09]], s, 9)], skinB);
+    many(J.knees[i], [new THREE.SphereGeometry(0.1, 9, 7).translate(0, 0, 0.01), loftLimb(D.shin, [[0, 0.1, 0.1], [0.25, 0.105, 0.118, -0.02], [0.7, 0.08, 0.08], [1, 0.07, 0.07]], s, 9)], skinB);
     many(J.feet[i], [...f.skin, ...f.claw], skinB);
     many(J.knees[i], [new THREE.TorusGeometry(0.088, 0.016, 4, 12).rotateX(Math.PI / 2).translate(0, -D.shin + 0.06, 0), new THREE.TorusGeometry(0.1, 0.016, 4, 12).rotateX(Math.PI / 2).translate(0, -0.2, 0)], leatherB);
+    // (a bronze buckle on each strap, on its outer side: the sheet's)
+    many(J.knees[i], [[0.088, -D.shin + 0.06], [0.1, -0.2]].flatMap(([r, y]) => [new THREE.BoxGeometry(0.014, 0.042, 0.04).translate(r + 0.012, y, 0), new THREE.BoxGeometry(0.008, 0.012, 0.03).translate(r + 0.02, y, 0)].map((g) => g.rotateY(s > 0 ? -0.3 : Math.PI + 0.3))), bronzeB);
   });
   // the head: a great cat's, big for its body (the sheet's): a broad skull, the muzzle, a dark nose, a heavy brow, small
   // ears; two ram horns curled back and down round them to the cheeks, their tips out and forward. All on a pivot at
@@ -714,20 +903,31 @@ export function warlordModel(skin) {
   many(Hf, [new THREE.SphereGeometry(0.034, 8, 6).scale(1.35, 0.72, 0.9).translate(0, 0.128, 0.2),
     tubeGeometry([[-0.05, 0.066, 0.183], [-0.018, 0.055, 0.198], [0, 0.07, 0.205], [0.018, 0.055, 0.198], [0.05, 0.066, 0.183]], 0.005),
     new THREE.CylinderGeometry(0.004, 0.004, 0.05, 4).translate(0, 0.094, 0.204)], inkB);
-  many(Hf, [-1, 1].map((s) => ramHorn(s, [0, 0.16, -0.01], 0.125, 0.07, 0.13, 0.29, 0.82)), hornB);
+  many(Hf, [-1, 1].map((s) => ramHorn(s)), hornB);
   // the mane: a shaggy ruff round the face (never over it), over the crown between the horns, a beard down its throat to
-  // its chest, long down its back; tufts of it as tapering cones, all one mesh
-  const tufts = [], cone = (at, dir, l, r) => tufts.push(new THREE.ConeGeometry(r, l, 6).translate(0, l / 2, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize())).translate(...at));
-  for (let ring = 0; ring < 3; ring++) for (let i = 0; i < 20; i++) {
-    const a = ((i + ring * 0.5) / 20) * Math.PI * 2, R = 0.15 + ring * 0.035, low = Math.max(0, -Math.cos(a)), side = Math.abs(Math.sin(a)) * Math.max(0, Math.cos(a) + 0.3);
-    // (shorter at the sides by the horns, long under the jaw: its beard; swept back and down)
-    const l = (0.12 + 0.05 * ((i * 7 + ring * 3) % 5) / 4 + low * 0.2 + ring * 0.05) * (1 - 0.45 * side);
-    cone([Math.sin(a) * R, 0.12 + Math.cos(a) * R * 1.05, -0.04 - ring * 0.06], new THREE.Vector3(Math.sin(a) * 0.6, Math.cos(a) * 0.4 - 0.85 - low * 0.3 - ring * 0.35, -0.4 - ring * 0.1), l * (1 - ring * 0.12), 0.07 + ring * 0.01);
+  // its chest, long down its back: long flat locks (the shape pass, #726: not cone tufts), each out from its root, then
+  // falling, swept back, its tip curling, all one mesh; a cap of it over the crown
+  const locks = [], lock = (root, out, l, wd, back = 0.3) => {
+    const o = new THREE.Vector3(...out).normalize(), R = new THREE.Vector3(...root);
+    const p1 = R.clone().addScaledVector(o, l * 0.2).add(new THREE.Vector3(0, -0.04 * l, -back * 0.25 * l));
+    const p2 = p1.clone().addScaledVector(o, l * 0.06).add(new THREE.Vector3(0, -0.42 * l, -back * 0.3 * l));
+    const p3 = p2.clone().add(new THREE.Vector3(o.x * 0.05 * l, -0.36 * l, -back * 0.06 * l));
+    locks.push(loftAlong([R, p1, p2, p3], (u) => wd * (1 - 0.85 * u), (u) => wd * 0.4 * (1 - 0.8 * u), 4, 5, out));
+  };
+  for (let ring = 0; ring < 2; ring++) for (let i = 0; i < 16; i++) {
+    const a = ((i + ring * 0.5) / 16) * Math.PI * 2, R = 0.14 + ring * 0.045, low = Math.max(0, -Math.cos(a)), side = Math.abs(Math.sin(a)) * Math.max(0, Math.cos(a) + 0.3);
+    // (shorter at the sides by the horns, long under the jaw: its beard; the crown's swept back over its head)
+    const l = (0.2 + 0.05 * ((i * 7 + ring * 3) % 5) / 4 + low * 0.18 + ring * 0.1) * (1 - 0.5 * side);
+    lock([Math.sin(a) * R, 0.12 + Math.cos(a) * R * 1.05, -0.03 - ring * 0.08], [Math.sin(a), Math.cos(a) * (Math.cos(a) > 0 ? 0.3 : 0.8), -0.35 - ring * 0.3 - 0.3 * Math.max(0, Math.cos(a))], l, 0.06 + ring * 0.012, 0.25 + 0.5 * Math.max(0, Math.cos(a)) + ring * 0.25);
   }
-  tufts.push(new THREE.SphereGeometry(0.165, 12, 9).scale(1.05, 1.1, 1.0).translate(0, 0.13, -0.08));
-  many(Hf, tufts, maneB);
-  many(T, Array.from({ length: 9 }, (_, i) => { const x = -0.2 + i * 0.05, l = 0.24 + 0.08 * ((i * 3) % 4) / 3; return new THREE.ConeGeometry(0.065, l, 5).scale(1, 1, 0.5).rotateX(Math.PI - 0.1).translate(x, D.chest + 0.04 - l / 2, 0.17 - Math.abs(x) * 0.3); })
-    .concat(Array.from({ length: 7 }, (_, i) => { const x = -0.18 + i * 0.06, l = 0.42; return new THREE.ConeGeometry(0.09, l, 5).scale(1, 1, 0.45).rotateX(Math.PI - 0.12).translate(x, D.chest + 0.12 - l / 2, -0.2 - 0.02 * Math.cos(i)); })), maneB);
+  // (the mass of it the locks lie on: over the crown and down the back of its head and neck)
+  locks.push(new THREE.SphereGeometry(0.16, 12, 9).scale(1.05, 1.1, 1.0).translate(0, 0.13, -0.08), new THREE.SphereGeometry(0.17, 10, 8).scale(1.2, 1.35, 0.75).translate(0, -0.02, -0.14));
+  many(Hf, locks, maneB);
+  // (its chest's and its back's: locks down from the throat and the nape)
+  const bodyLocks = [];
+  for (let i = 0; i < 9; i++) { const x = -0.2 + i * 0.05, l = 0.3 + 0.08 * ((i * 3) % 4) / 3; bodyLocks.push(loftAlong([[x, D.chest + 0.06, 0.17 - Math.abs(x) * 0.3], [x * 1.05, D.chest - l * 0.45, 0.2 - Math.abs(x) * 0.3], [x * 1.1, D.chest - l * 0.95, 0.19 - Math.abs(x) * 0.3]], (u) => 0.045 * (1 - 0.85 * u), (u) => 0.018 * (1 - 0.8 * u), 4, 5, [0, 0, 1])); }
+  for (let i = 0; i < 8; i++) { const x = -0.21 + i * 0.06, l = 0.46 + 0.06 * Math.cos(i * 2.1); bodyLocks.push(loftAlong([[x, D.chest + 0.14, -0.17], [x * 1.05, D.chest - l * 0.4, -0.24 - 0.02 * Math.cos(i)], [x * 1.1, D.chest - l, -0.23]], (u) => 0.06 * (1 - 0.8 * u), (u) => 0.022 * (1 - 0.8 * u), 4, 5, [0, 0, -1])); }
+  many(T, bodyLocks, maneB);
   const eyes = pivot(Hf, 0, 0, 0, 'eyes');
   many(eyes, [-1, 1].map((s) => new THREE.SphereGeometry(0.021, 9, 7).scale(1.25, 0.72, 0.6).translate(s * 0.055, 0.162, 0.162)), eyeM);   // (both eyes one draw)
   many(Hf, [-1, 1].map((s) => new THREE.SphereGeometry(0.009, 6, 5).scale(1, 1.4, 0.5).translate(s * 0.055, 0.162, 0.174)), inkB);
@@ -735,8 +935,10 @@ export function warlordModel(skin) {
   // bronze, each a dome over the shoulder and a lame under it; a greave down each shin with its knee cop
   for (const [k, arm] of J.arms.entries()) {
     const s = k ? 1 : -1;
-    const geo = merged([new THREE.SphereGeometry(0.19, 14, 8, 0, Math.PI * 2, 0, 1.15).scale(1.05, 0.78, 1.05).rotateZ(s * 0.32).translate(s * 0.02, 0.05, 0),
-      new THREE.SphereGeometry(0.2, 14, 3, 0, Math.PI * 2, 1.05, 0.3).scale(1.02, 1.0, 1.04).rotateZ(s * 0.32).translate(s * 0.03, -0.03, 0)]);
+    // (two layers, the sheet's: the dome, then a second, wider plate stepped out under it, and its lame)
+    const geo = merged([new THREE.SphereGeometry(0.19, 14, 8, 0, Math.PI * 2, 0, 1.12).scale(1.05, 0.78, 1.05).rotateZ(s * 0.32).translate(s * 0.02, 0.06, 0),
+      new THREE.SphereGeometry(0.215, 14, 4, 0, Math.PI * 2, 0.95, 0.42).scale(1.04, 0.92, 1.06).rotateZ(s * 0.36).translate(s * 0.035, -0.03, 0),
+      new THREE.SphereGeometry(0.225, 14, 3, 0, Math.PI * 2, 1.25, 0.28).scale(1.02, 1.0, 1.05).rotateZ(s * 0.4).translate(s * 0.05, -0.1, 0)]);
     plates.push(plate(arm, geo, plateM, 0, 0, 0, `pauldron ${s > 0 ? 'left' : 'right'}`));
   }
   for (const [k, knee] of J.knees.entries()) {
@@ -780,7 +982,7 @@ export function warlordModel(skin) {
       cur = f;
       const want = driver.update(f, c);
       const sw = sway.update(dt, driver.speed, f.heading);
-      hem.rotation.set(sw.x, 0, sw.z);
+      hangFromHips(hem, J.body, sw.x, sw.z);
       // the glaive: upright beside it in its fist, the butt by its foot; levelled like a lance in the charge; in a move
       // the clip's fists
       grip.rotation.set(0.08, 0, 0.06);
@@ -790,13 +992,9 @@ export function warlordModel(skin) {
       // (standing or walking, the glaive upright at its side, a little out: carry)
       const posed = (want.phase === 'strike' && WARLORD_AIM[want.pose + 'Strike']) || WARLORD_AIM[want.pose];
       const aim = posed ?? WARLORD_AIM.carry, w = posed ? Math.min(1, driver.procW ?? 1) : 1 - (want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
-      if (w > 0.01) {
-        J.body.updateWorldMatrix(true, false); grip.parent.updateWorldMatrix(true, false);
-        _w.set(...aim).normalize();
-        _aq.setFromUnitVectors(_yUp, _w).premultiply(J.body.getWorldQuaternion(_bq));
-        grip.parent.getWorldQuaternion(_pq).invert();
-        grip.quaternion.slerp(_pq.multiply(_aq), w);
-      }
+      aimGrip(grip, J.body, aim, w);
+      // (the sweep's wind-up: the glaive drawn back over its right shoulder on the sheet's diagonal, not upright: WARLORD_AIM)
+      if (f.atk?.id === 'sweep' && (want.kind === 'wind' || want.kind === 'strike')) aimGrip(grip, J.body, WARLORD_AIM.sweep, driver.moveW * (want.kind === 'wind' ? smooth((f.k ?? 0) / HOLD_AT) : 1 - smooth((f.k ?? 0) * 4)));
       glow = ease(glow, f.state === 'wind' ? 1 : 0, 6, dt || 1);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye, P.flare ?? '#ffcf6a'));
       eyeM.uniforms.uGlow.value = 0.5 + 0.4 * glow;
