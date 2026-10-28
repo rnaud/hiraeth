@@ -76,7 +76,7 @@ function load(id) {
  * people, the crowd, the makers' boxes and the ship's landing; not inside a temple; its foes of the roster of the part it stands in.
  * The Floating City's platforms are small: its distances are SITE_CLEAR.spacecity's.
  */
-export const SITE_CLEAR = { path: 12, door: 15, people: 18, box: 10, ship: 40, crowd: 10, spacecity: { path: 7, door: 9, people: 12, box: 8, ship: 30, crowd: 6 } };
+export const SITE_CLEAR = { path: 12, door: 15, people: 18, box: 10, ship: 40, crowd: 10, flood: 12, spacecity: { path: 7, door: 9, people: 12, box: 8, ship: 30, crowd: 6 } };
 function siteFaults(W, id, segs) {
   const { level, physics } = W, C = id === 'spacecity' ? SITE_CLEAR.spacecity : SITE_CLEAR, out = [];
   const xyz = (p) => (p?.isVector3 ? [p.x, p.y, p.z] : Array.isArray(p) ? p : p && Number.isFinite(p.x) ? [p.x, p.y ?? 0, p.z] : null);
@@ -103,6 +103,9 @@ function siteFaults(W, id, segs) {
       if (push && push.lengthSq() > 0.0025) out.push(`${id}.${s.id}: ${p.what} inside something`);
       const at = [x, g, z];
       if (temples.some((t) => t.inside?.(v(x, g, z)))) out.push(`${id}.${s.id}: ${p.what} inside a temple`);
+      // (the desert's salt pan floods when the tree drinks, its sheet spilling past the crust: issue #738, a camp stood in it)
+      const pan = level.water?.pan;
+      if (pan && Math.hypot(x - pan.at.x, z - pan.at.z) < pan.r + SITE_CLEAR.flood) out.push(`${id}.${s.id}: ${p.what} in the salt pan (it floods)`);
       const dp = distanceToPath(at, segs);
       if (dp < C.path) out.push(`${id}.${s.id}: ${p.what} ${dp.toFixed(1)} m from the route`);
       for (const [q, r, what] of away) if (q && Math.hypot(q[0] - x, q[2] - z) < r && Math.abs(q[1] - g) < 20) out.push(`${id}.${s.id}: ${p.what} ${Math.hypot(q[0] - x, q[2] - z).toFixed(1)} m from ${what}`);
@@ -247,7 +250,7 @@ test('the rebuilt worlds hide at least two in their new country, one of them hig
   assert.deepEqual(short, []);
 });
 
-test('every encounter site stands on its world’s ground, off the route, clear of doors, people, boxes, the landing and the temples', () => {
+test('every encounter site stands on its world’s ground, off the route, clear of doors, people, boxes, the landing, the temples and the flooding salt pan', () => {
   const faults = [];
   for (const id of ORDER) { assert.ok(sitesOf(id).length >= 3, `${id}: its sites`); faults.push(...measures(id).sites); }
   assert.deepEqual(faults, []);

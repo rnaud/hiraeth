@@ -134,8 +134,9 @@ export function siteFootprint(s, o) {
 // looked at in the running game; see tests/encounters.test.js for what every one must keep clear of)
 export const SITES = {
   desert: [
-    // (issue #724: the blots' fire became the mummers' camp: three round the fire with their king, a lookout on the post)
-    { id: 'mummer-camp', kind: 'camp', at: [312, 14.8, 176], heading: -0.49, foes: ['mummer', 'mummerking', 'mummer', 'mummer'], lookout: 'mummer',
+    // (issue #724: the blots' fire became the mummers' camp: three round the fire with their king, a lookout on the post;
+    // issue #738: moved off the salt pan, which floods when the tree drinks, onto the sand east of it)
+    { id: 'mummer-camp', kind: 'camp', at: [361, 15.7, 202], heading: -0.49, foes: ['mummer', 'mummerking', 'mummer', 'mummer'], lookout: 'mummer',
       // (issue #726: roster v4's grunts and a hulk beside the mummers, with their weapon rack; off until the rosters take them)
       staged: { roster4: { foes: ['grunt', 'hulk', 'grunt', 'grunt'], rack: true, unarmed: 2 } } },
     { id: 'twitching-sand', kind: 'ambush', at: [515, 37.4, 288], heading: -0.51, foes: ['worm', 'worm'], sign: 'sand' },

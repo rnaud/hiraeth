@@ -1620,7 +1620,8 @@ junk. Drawn to their picked sheets (a new `mummer/` and `mummerking/` folder und
   crown in its fists (`Foes.carryUpdate`; a held one skips its own mind and is left out of `keepApart`), flung along the
   lob's arc to its mark and lands dazed `CARRY.daze` 1.6 s, `Foes.landThrown`; nothing near it: no throw).
 - **Where**: the Desert keeps their camp (`SITES.desert` `mummer-camp`, the blots' old fire: three mummers round it with
-  their king, a mummer on the lookout); a pair of mummers now and then walks the dunes (`WORLDS.desert` roster 1.5,
+  their king, a mummer on the lookout; on the sand east of the salt pan since #738, which floods when the tree drinks:
+  tests/route-worlds.test.js keeps every site `SITE_CLEAR.flood` 12 m past the pan's edge); a pair of mummers now and then walks the dunes (`WORLDS.desert` roster 1.5,
   `GROUP` 2, never the first pack); the king only at the camp (`WORLDS.desert.sites`: met at a site, never in a pack).
   The blot still leads: the Desert teaches. The Arena: two waves (a troupe of three; the king with two to throw).
 - Their sites' idles are clips (squatting by the fire, asleep on the back, looking out: `model.ownRest`, so
