@@ -2,7 +2,7 @@
 // choked and its floors under a hand of water, the stones still turning when something leans on the gear. Down lanes of
 // its floors the millstones come rolling (hazards.js 'stone': the lane's edges show in rust and the stone rises at its
 // head, then it rolls the length of the room): it crushes you for a heart unless you roll through it or step aside, and
-// everything it rolls over. Its foes are Lorn's own (src/foe-worlds.js: bellows toads lobbing from afar, root knots,
+// everything it rolls over. Its foes are Lorn's own (its horde, src/foe-worlds.js: bellows toads lobbing from afar, root knots,
 // skitters in swarms, a stilt heron or two), light, many; the last wave brings a shade out of the Deep Wood and a whole
 // root knot. The reward: Reed and rust (src/kit-colours.js).
 //

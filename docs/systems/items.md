@@ -167,6 +167,11 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   | makers' machine | 6 |
   | shade, glass golem, slag walker | 8 |
   | a world enemy (the 100): local creature, shadow spirit, possessed machine | 4, 6, 8 (by its category, not its family) |
+  | roster v4 (#726): the grunt, the crawler / the prowler / the sentinel, the oracle / the hulk / the warlord | 2 / 4 / 6 / 8 / 9 |
+
+  (The table above is the old kinds'; each built archetype's own is its `drop`, src/enemies/archetypes.js.) Along the
+  route a drop is as much bigger as the foe is tougher there (`DROP_BY_STAGE`, × 1, 1, 1.4, 1.8, 2.2 by the world's
+  stage: `dropAmount({ kind, stage })`), since roster v4 meets the same foes in every world.
   | a temple's guardian resolved (calmed or broken) | a purse of 40, once per temple (`res.purse.<id>`) |
   | a makers' run's first finish | 15, straight into the wallet (the results card says so: `firstPurse`) |
 
@@ -303,8 +308,8 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   A container's and an expansion's price rises with every one bought **in any shop** (`shop.bought.heart`,
   `shop.bought.magic`; `stepPrice`), so batch 4's shops in the later worlds go on up the same curve, and buying
   them in any order costs the same in the end. The caps still hold (20 hearts, a bar of 9).
-- **Why these prices** (against the drop table above): a desert fight is three or four foes, two ink blots, a
-  spitter and a dune ray, about **11 chimes** (±25 %). A **potion** at 10 is about one fight: it heals two hearts,
+- **Why these prices** (against the drop table above): an early fight is three or four foes, two grunts, a
+  prowler and an ink blot, about **10 chimes** (±25 %). A **potion** at 10 is about one fight: it heals two hearts,
   and a fight that goes badly costs one or two, so buying potions with what the fights drop is break-even, never
   a farm. The **first heart container** at 50 is four or five fights (or one guardian's purse of 40 and a makers'
   run's 15): a few fights, not a grind, and the first one the player will want as soon as the shop is found.
@@ -349,11 +354,14 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   and 3 + 6 = **a bar of 9** (`MAGIC.cap`; with the Engine-House's cell the last expansion shows "full"). The prices go
   on up the one curve: the fifteenth heart costs 470, the sixth expansion 190 (4,590 chimes for everything). Against
   the drops: a **pack** of a world's foes (its wild kinds' drops, src/chimes.js, the pack's size by the world's stage,
-  src/foe-worlds.js `BUDGET`) is about 3–4 chimes in the desert and Vael, 8–10 in the stage-1 worlds, 12–18 in the
-  stage-2 and 15–21 in the last three; the tiered pieces (`TIERS`) only change how a drop looks, not its worth. Bought
-  in the route's order, every container costs **14–31 packs** of the world it is sold in (the desert's first 14,
-  the Market's last two 29–31), so the late ones keep the first one's feel and none is a handful of fights
-  (tests/shop.test.js holds each between 8 and 35 packs, an expansion from 5). A potion stays 10, a pack or two.
+  src/foe-worlds.js `BUDGET`) is about 3–4 chimes in the desert and Vael, 6–7 in the stage-1 worlds, 15–16 in the
+  stage-2, 19–24 in the stage-3 and 36 in the Market; the tiered pieces (`TIERS`) only change how a drop looks, not its
+  worth. Since roster v4 (issue #726) the same foes are met in every world, so a foe pays as much more along the route
+  as it is tougher there (`DROP_BY_STAGE`, src/enemies/fight.js `TIER.hp`: × 1, 1, 1.4, 1.8, 2.2 by stage; the
+  'foe:burst' event carries the stage); before, each world's own animals dropped more. Bought in the route's order,
+  every container costs **13–31 packs** of the world it is sold in (the desert's first 15, Lorn II's 31, the Market's
+  last two 13–14), so none is a handful of fights (tests/shop.test.js holds each between 8 and 35 packs, an expansion
+  from 5). A potion stays 10, a pack or two.
   Each keeper (`SHOPKEEPERS`, `SHOP_LINES` in src/story/shop-data.js) has a conversation of Haddu's shape (hello,
   again, one thing to ask about that the People page then remembers), their counter lines in their world's voice
   (Brin's one word at a time, Odo's stamps, Pashka's shouting), every line toned; they are on the People page once met.

@@ -4,7 +4,7 @@ import { ARCHETYPES, spawnKindOf } from '../enemies/archetypes.js';
 import { FOES } from '../foes.js';
 import { rosterOf } from '../foe-worlds.js';
 import { hintsFor } from '../hint-level.js';
-import { SITE, SITE_PURSE, SITE_PAYS, sitesOf, layoutSite, siteFlag, cofferFlag, stagedFrom } from './sites.js';
+import { SITE, SITE_PURSE, SITE_PAYS, sitesOf, layoutSite, siteFlag, cofferFlag } from './sites.js';
 import { makeIdle, restPose, CALLS } from './idle.js';
 import { buildProp, sleepMarks, SAND_TONES } from './props.js';
 
@@ -29,12 +29,12 @@ const _v = new THREE.Vector3(), _top = new THREE.Vector3();
 export const BODIES = { hovers: (a) => !!FOES[spawnKindOf(a)]?.hover, radius: (a) => FOES[spawnKindOf(a)]?.radius ?? 0.6, racks: (a) => !!FOES[spawnKindOf(a)]?.racks };
 
 export class Encounters {
-  constructor({ foes, scene = null, level = null, levelId, physics = null, player, game, sound = null, tool = null, toast = () => {}, teach = toast, rng = Math.random, staged = stagedFrom(globalThis.location?.search ?? '') }) {
+  constructor({ foes, scene = null, level = null, levelId, physics = null, player, game, sound = null, tool = null, toast = () => {}, teach = toast, rng = Math.random }) {
     Object.assign(this, { foes, scene, level, levelId, physics, player, game, sound, tool, toast, teach, rng });
     this.group = new THREE.Group(); this.group.name = 'Encounter sites'; this.group.userData.noCollide = true;
     scene?.add(this.group);
     const stage = rosterOf(levelId).stage ?? 1;
-    this.sites = sitesOf(levelId, staged).map((s, n) => ({
+    this.sites = sitesOf(levelId).map((s, n) => ({
       ...s, n, pos: new THREE.Vector3(...s.at), lay: layoutSite(s, BODIES), out: [], killed: new Set(), props: null, coffer: null,
       sprung: false, purse: SITE_PURSE[Math.max(0, Math.min(SITE_PURSE.length - 1, stage))] * (SITE_PAYS[s.kind] ?? 1),
     }));

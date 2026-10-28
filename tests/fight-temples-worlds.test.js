@@ -162,7 +162,8 @@ for (const game of GAMES) {
   });
 
   test(`${D.name}: waves of ${D.world}'s own kinds, light and many; gorged ones from the second room; the tough ones last`, () => {
-    const own = new Set(Object.keys(WORLDS[D.world].roster).map(spawnKindOf).filter(Boolean));
+    // (its world's horde: the pre-v4 roster the temple still breeds, issue #726; src/foe-worlds.js WORLDS[w].horde)
+    const own = new Set(Object.keys(WORLDS[D.world].horde ?? WORLDS[D.world].roster).map(spawnKindOf).filter(Boolean));
     let tough = 0, gorged = 0, n = 0;
     for (const [i, r] of D.rooms.entries()) {
       for (const [wi, w] of roomWaves(r, { hpOf }).entries()) for (const q of w) {

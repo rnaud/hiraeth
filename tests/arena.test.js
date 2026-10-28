@@ -79,7 +79,10 @@ test('the FOES list: the roster first, a section per world (its archetypes in it
   // a world filter
   assert.deepEqual(filterSections(s, { world: 'bazaar' }).map((x) => x.id), ['bazaar']);
   assert.deepEqual(filterSections(s, { world: 'guardians' }).map((x) => x.id), ['guardians']);
-  assert.ok(filterSections(s, { world: 'bazaar', q: 'coin lizard' })[0].items.some((i) => i.kind === 'lizard@bazaar'));
+  // (issue #726: the Market fields roster v4; a side world keeps its own in their skins, and the roster every retired one)
+  assert.ok(filterSections(s, { world: 'saltharbour', q: 'anchor crab' })[0].items.some((i) => i.kind === 'crab@saltharbour'));
+  assert.ok(filterSections(s, { world: 'bazaar', q: 'prowler' })[0].items.some((i) => parseKind(i.kind).kind === 'prowler'));
+  for (const a of ['lizard', 'crab', 'mummer', 'heron']) assert.ok(s[0].items.some((i) => parseKind(i.kind).kind === a), `${a}: retired, still in the debug menu's roster`);
 });
 
 test('the list chooses: an archetype in a skin practised alone, a world’s waves, the field cleared; LB / RB turn the world filter', () => {

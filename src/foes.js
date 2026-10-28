@@ -3432,7 +3432,7 @@ export class Foes {
     // (it lies a while after its own defeat, then goes up in a puff of smoke: src/smoke-puff.js; gone at once, the puff at once)
     f.dead = (f.dying ? SMOKE.linger : 0) + SMOKE.fade; f.puffed = false;
     // (src/chimes.js, main.js: what it leaves; `lost` when it went out of the world or into deep water)
-    this.game.emit?.('foe:burst', { kind: f.kind, skin: f.skin, archetype: f.archetype, pos: f.pos.clone(), lost: !!f.lost, practice: !!this.practice?.kind, waves: !!this.waves });
+    this.game.emit?.('foe:burst', { kind: f.kind, skin: f.skin, archetype: f.archetype, pos: f.pos.clone(), lost: !!f.lost, practice: !!this.practice?.kind, waves: !!this.waves, stage: this.stageHere });
   }
 
   /** The puff of smoke a defeated foe goes out in (src/smoke-puff.js: pooled, one mesh for all). */

@@ -231,29 +231,29 @@ export const SKINS = {
     desert: { name: 'mummer king', palette: { sack: '#56649a', patch: '#c98d36', patch2: '#d7c3a0', rag: '#a98f62', rope: '#b08850', brass: '#d9b048', verd: '#5f9a84', ink: '#141020', sheen: '#6a58a8', wood: '#8b6239', wood2: '#d6c6a4', iron: '#4e4842', copper: '#7fae9a', copper2: '#b8703f', eye: '#fbf6e8', flare: '#ffcf6a' }, props: [] },
   },
   // (issue #726, roster v4's monsters: one skin in every world, its colour the tier: tierSkin's darker, banded one later on;
-  // `arena` until the worlds' rosters take them: the Desert's camp stages them behind a flag, src/encounters/sites.js)
+  // the one skin worn in every route world since the world rosters, #726: src/foe-worlds.js, src/encounters/sites.js)
   // sheet-1 (references/enemy-archetypes/grunt/sheet-1.jpg): tomato-red skin, a shade deeper in its creases and paler on
   // its belly and snout, knobbly bumps on its scalp; a khaki loincloth, a brown leather strap with an iron ring; ivory
   // tusks and claws; yellow eyes; a grey-brown knobbly club.
   grunt: {
-    desert: { name: 'grunt', arena: true, palette: { skin: '#d65a40', skin2: '#e98a68', crease: '#9a3428', cloth: '#c6b071', cloth2: '#a48e52', leather: '#6b4630', iron: '#5e5852', wood: '#9d8a6c', wood2: '#c2b08e', bone: '#efe2c4', eye: '#f2c33c', pupil: '#1b1414', ink: '#1b1414', rock: '#b9a07c', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'grunt', palette: { skin: '#d65a40', skin2: '#e98a68', crease: '#9a3428', cloth: '#c6b071', cloth2: '#a48e52', leather: '#6b4630', iron: '#5e5852', wood: '#9d8a6c', wood2: '#c2b08e', bone: '#efe2c4', eye: '#f2c33c', pupil: '#1b1414', ink: '#1b1414', rock: '#b9a07c', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/hulk/sheet-1.jpg): slate-blue skin with lilac in its shadows, a pale icy belly,
   // an ivory horn; a ragged kilt of hide patches (brown, olive, tan) on a rope belt; a long dark club with iron bands.
   hulk: {
-    desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#bfcde8', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'hulk', palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#bfcde8', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/prowler/sheet-1.jpg): smooth leaf-green scaly skin, a shade deeper on its back and
   // paler on its flanks; a cream throat, chest, belly and tail underside; yellow eyes; a polished steel shoulder guard and
   // blade, a brown leather strap and grip; pale claws; its spit a sour yellow-green.
   prowler: {
-    desert: { name: 'prowler', arena: true, palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'prowler', palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/warlord/sheet-1.jpg): deep crimson skin, darker in its creases; a dark brown mane;
   // ridged tan ram horns; rough bronze, blotched darker; a wide dark leather belt and a brown loincloth; a dark glaive
   // shaft with steel rings and a grey steel blade; yellow eyes.
   warlord: {
-    desert: { name: 'warlord', arena: true, palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'warlord', palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
   },
 };
 
@@ -267,7 +267,7 @@ export const DROID_PALETTE = {
   eye: '#ffa51f', flare: '#fff0b8', moss: '#7d9748', steel: '#d4d6d8', ring: '#ddd3bb',
 };
 export const DROID_TIER = { ceramic: '#7a7064', ceramic2: '#8c8274', stain: '#2b231d', joint: '#1a1817', joint2: '#2c2826', seam: '#ff4a2e', eye: '#ff3324', flare: '#ffc2b0', moss: '#4a5032', ring: '#6e665a', steel: '#9a9890' };
-const droid = (name) => ({ desert: { name, arena: true, palette: { ...DROID_PALETTE }, props: [], tier: { palette: DROID_TIER } } });
+const droid = (name) => ({ desert: { name, palette: { ...DROID_PALETTE }, props: [], tier: { palette: DROID_TIER } } });
 SKINS.sentinel = droid('sentinel');
 SKINS.oracle = droid('oracle');
 SKINS.crawler = droid('crawler');

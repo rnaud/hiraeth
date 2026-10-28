@@ -43,7 +43,27 @@ test('every world on the route has three to six sites, none in a discarded world
   }
   for (const w of Object.keys(SITES)) assert.ok(ORDER.includes(w) && !DISCARDED.includes(w), `${w}: a route world`);
   // every kind is somewhere
-  assert.deepEqual([...new Set(Object.values(SITES).flat().map((s) => s.kind))].sort(), ['ambush', 'camp', 'hoard', 'nest', 'patrol']);
+  assert.deepEqual([...new Set(Object.values(SITES).flat().map((s) => s.kind))].sort(), ['ambush', 'camp', 'hoard', 'nest', 'patrol', 'warlord-hold']);
+});
+
+test('roster v4 (#726): the same foes keep the same kind of place in every world, growing with its stage', () => {
+  const DROIDS = new Set(['sentinel', 'oracle', 'crawler', 'fencer', 'tripod']);
+  const size = (w, kind) => Math.max(0, ...sitesOf(w).filter((s) => s.kind === kind).map((s) => s.foes.length));
+  for (const w of ORDER) for (const s of sitesOf(w)) {
+    const all = [...s.foes, ...(s.lookout ? [s.lookout] : [])];
+    if (s.kind === 'camp') assert.ok(all.every((a) => a === 'grunt' || a === 'hulk') && s.foes.includes('hulk') && s.rack, `${w}.${s.id}: grunts round the fire with a hulk, their rack`);
+    if (s.kind === 'ambush') assert.ok(all.every((a) => a === 'prowler'), `${w}.${s.id}: prowlers`);
+    if (s.kind === 'hoard' || s.kind === 'patrol') assert.ok(all.every((a) => DROIDS.has(a)) && all.some((a) => a !== 'crawler'), `${w}.${s.id}: droids at the ruins and the makers' places`);
+    // (a nest: prowlers asleep, or the droids dormant round the coffer in the three worlds whose only ruin it was)
+    if (s.kind === 'nest') assert.ok(all.every((a) => a === 'prowler') || (all.every((a) => DROIDS.has(a)) && ['arzach', 'glassdunes', 'buried'].includes(w)), `${w}.${s.id}: prowlers, or dormant droids`);
+    if (s.kind === 'warlord-hold') assert.ok(s.foes[0] === 'warlord' && s.foes.slice(1).every((a) => a === 'grunt'), `${w}.${s.id}: the warlord and its grunts`);
+    for (const a of all) assert.ok(!['crab', 'lizard', 'toad', 'worm', 'centipede', 'heron', 'mummer', 'mummerking'].includes(a), `${w}.${s.id}: ${a} retired`);
+  }
+  // every world has its droids somewhere (a ruin, a beat, a dormant nest)
+  for (const w of ORDER) assert.ok(sitesOf(w).some((s) => s.foes.some((a) => DROIDS.has(a) && a !== 'crawler')), `${w}: its droids`);
+  // the camps and the holds grow along the route
+  assert.ok(size('desert', 'camp') < size('bazaar', 'camp') + 1 && size('arzach', 'warlord-hold') < size('bazaar', 'warlord-hold'), 'bigger further on');
+  assert.ok(size('desert', 'ambush') < size('bazaar', 'ambush'), 'more prowlers further on');
 });
 
 test('each kind of site laid out: a camp round its fire with a lookout, a nest asleep, a hoard on guard, an ambush hidden, a patrol on its beat', () => {

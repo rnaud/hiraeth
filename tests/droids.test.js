@@ -12,6 +12,7 @@ import { SKINS, skinOf } from '../src/enemies/skins.js';
 import { surfaceFor, TIER_SURFACE } from '../src/enemies/surfaces.js';
 import { FIGHT, TIERS, RAGE } from '../src/enemies/fight.js';
 import { WORLDS, worldArchetypes } from '../src/foe-worlds.js';
+import { ORDER, SIDE, partsOf } from '../src/levels/names.js';
 import { Foes, FOES, ARENA_WAVES, STING } from '../src/foes.js';
 import { foeSections } from '../src/foe-spawner.js';
 import { windMin } from '../src/telegraph.js';
@@ -46,14 +47,15 @@ const CHARGED = { damage: 2, combo: 2, breaks: true, charged: false };
 // (the clips the rig plays: the captured moves' names in public/anim/moves.glb, read from its JSON chunk)
 const clipNames = (() => { const b = readFileSync(new URL('../public/anim/moves.glb', import.meta.url)); const n = b.readUInt32LE(12); return new Set(JSON.parse(b.subarray(20, 20 + n).toString()).animations.map((a) => a.name.replace(/^mixamo_/, ''))); })();
 
-test('the droids on the roster: three built machines drawn to their picked sheets, in the Arena and the gallery, not yet in any world', () => {
+test('the droids on the roster: three built machines drawn to their picked sheets, in the Arena and the gallery, and in the route worlds (#726)', () => {
   for (const a of DROIDS) {
     const A = ARCHETYPES[a];
     assert.equal(A.status, 'built'); assert.ok(BUILT.includes(a)); assert.equal(A.kind, a); assert.equal(A.family, 'machine');
     assert.equal(A.art, 'sheet-1'); assert.equal(A.roster, 'v4');
     assert.ok(existsSync(new URL(`../references/enemy-archetypes/${a}/sheet-1.jpg`, import.meta.url)), `${a}: its sheet`);
-    assert.ok(Object.keys(WORLDS).every((w) => !worldArchetypes(w).includes(a)), `${a}: no world's roster yet (a later batch)`);
-    assert.ok(Object.values(SKINS[a]).every((s) => s.arena), `${a}: its skin met in the Arena only`);
+    assert.ok(ORDER.filter((w) => partsOf(w).some((p) => worldArchetypes(p).includes(a))).length >= { crawler: ORDER.length, sentinel: 9, oracle: 6 }[a], `${a}: met along the route`);
+    assert.ok(SIDE.every((w) => !worldArchetypes(w).includes(a)), `${a}: not in a discarded world`);
+    assert.equal(Object.keys(SKINS[a]).length, 1, `${a}: one skin, worn in every world`);
     assert.ok(ARENA_WAVES.some((w) => w.every((k) => k.startsWith(`${a}@`))), `${a}: an Arena wave of its own`);
     assert.ok(foeSections()[0].items.some((i) => i.kind.startsWith(`${a}@`)), `${a}: in the Arena's foe list`);
   }

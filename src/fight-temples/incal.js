@@ -2,7 +2,7 @@
 // of the shaft, iron decks over the drop, the shaft's far wall of lit windows all round and the cranes' jibs over the
 // bays. The cranes still work, and nobody drives them (hazards.js 'drop'): a ring tightens on the deck under him and
 // round him as a load comes down, and it lands: a heart unless he is out of the ring or rolls, three cuts to every foe
-// under it. Its foes are the City-Shaft's own (src/foe-worlds.js: horn lizards in pairs, bellows toads, lamp tripods),
+// under it. Its foes are the City-Shaft's own (its horde, src/foe-worlds.js: horn lizards in pairs, bellows toads, lamp tripods),
 // light, many; the last wave brings two shades. The reward: Cab yellow (src/kit-colours.js).
 //
 // Its rooms: the cab stand (no loads yet), the first bay, the second bay (its door off to one side), the dispatch

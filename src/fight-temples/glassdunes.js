@@ -2,7 +2,7 @@
 // sheds, their floors laid in tiles of glass over the kilns' glow, chimneys for pillars, glass shards on the dunes round
 // them. The glass cracks under a crowd now (hazards.js 'crack'): a tile under him and tiles near him crack white, then
 // break, pits to the kilns' glow until they glaze over: in one he burns, half a heart a tick, and so do the foes. Its
-// foes are the Glass Dunes' own (src/foe-worlds.js: glass crabs, mantas, mound worms, a furnace walker or two made
+// foes are the Glass Dunes' own (its horde, src/foe-worlds.js: glass crabs, mantas, mound worms, a furnace walker or two made
 // light), light, many; the last wave brings two clock-house drones and a whole furnace walker. The reward: Furnace
 // glass (src/kit-colours.js).
 //

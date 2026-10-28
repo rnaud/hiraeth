@@ -2,7 +2,7 @@
 // a spur of the cliff, roofless, its stalls empty, the sea of cloud far under its walls. The wind comes through it in
 // gusts down lanes of the floor (hazards.js 'gust': pale chevrons run down the lane first, then it blows): it shoves
 // you, and it carries every foe in the lane to the wall at its end and slams it there, so you draw the crowd into a
-// lane before it blows. Its foes are Vael's own (src/foe-worlds.js: sky rays, stilt herons, blots), light, many; the
+// lane before it blows. Its foes are Vael's own (its horde, src/foe-worlds.js: sky rays, stilt herons, blots), light, many; the
 // last wave brings a crab of the sky stones and two whole herons. The reward: Rider's slate (src/kit-colours.js).
 //
 // Its rooms: the riders' stalls (no wind: the first room teaches the crowd), the cloister (a square court ringed by its

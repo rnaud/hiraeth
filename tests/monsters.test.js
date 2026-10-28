@@ -2,18 +2,19 @@
 // carries a club (an overhead and a lunge) or nothing (it digs up rocks), runs to a camp's rack for a spear (a jab) or a
 // bow (a volley), shrugs the first light cut of an exchange, hangs back with a bow or bare hands, and low, runs to its
 // hulk. The hulk smashes, sweeps and stomps, answers three light cuts in a row with its stomp, picks up a grunt and
-// throws it, and rages low. Both in the Arena, the gallery and the foe list; staged at the Desert's mummer camp behind a
-// site flag, off by default. The combat review v2.34's asks: a camp of grunts starts at least two attacks a grunt against
-// a mashing traveller.
+// throws it, and rages low. Both in the Arena, the gallery and the foe list, and since the world rosters (#726) in every
+// route world: the grunts in the packs, the two together at every camp. The combat review v2.34's asks: a camp of grunts
+// starts at least two attacks a grunt against a mashing traveller.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES, WAVES, CARRY, RACK } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { FIGHT, TIERS, POISE, tierDef } from '../src/enemies/fight.js';
-import { SITES, STAGED, layoutSite, sitesOf, stagedFrom, siteFootprint } from '../src/encounters/sites.js';
+import { SITES, layoutSite, siteFootprint } from '../src/encounters/sites.js';
 import { BODIES } from '../src/encounters/index.js';
 import { worldArchetypes, WORLDS } from '../src/foe-worlds.js';
+import { ROUTE_PARTS, SIDE } from '../src/levels/names.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { skinWorlds, skinOf } from '../src/enemies/skins.js';
 import { surfaceFor, TIER_SURFACE } from '../src/enemies/surfaces.js';
@@ -70,8 +71,9 @@ test('the grunt and the hulk on the roster: monsters on their own plan, built, s
   assert.ok(WAVES.some((w) => w.includes('grunt')) && WAVES.some((w) => w.includes('hulk') && w.includes('grunt')), 'the Arena\'s waves');
   const list = foeSections().find((s) => s.id === 'roster').items.map((i) => i.kind);
   assert.ok(list.includes('grunt@desert') && list.includes('hulk@desert'), 'the Arena\'s foe list');
-  // (no world fields them yet: the rosters come later)
-  for (const w of Object.keys(WORLDS)) assert.ok(!worldArchetypes(w).includes('grunt') && !worldArchetypes(w).includes('hulk'), `${w}: not yet`);
+  // (the world rosters, #726: every route world fields them, the grunt in its packs, the hulk at its camps; no side world)
+  for (const w of ROUTE_PARTS) assert.ok(WORLDS[w].roster.grunt && worldArchetypes(w).includes('hulk') === !!WORLDS[w].sites?.includes('hulk'), `${w}: the grunt in its packs`);
+  for (const w of SIDE) assert.ok(!worldArchetypes(w).includes('grunt'), `${w}: a discarded world, as it was`);
 });
 
 test('every move is a shipped clip (a pose of the arms over it at most); the wind-ups pinned', () => {
@@ -262,23 +264,23 @@ test('a camp of grunts starts at least two attacks a grunt against a mashing tra
 });
 const _dir = (from, to) => new THREE.Vector3(to.x - from.x, 0, to.z - from.z).normalize();
 
-test('the Desert\'s mummer camp stages the grunts and a hulk with their rack behind a site flag, off by default', () => {
-  assert.equal(STAGED.roster4, false, 'off');
-  const plain = sitesOf('desert').find((s) => s.id === 'mummer-camp');
-  assert.deepEqual(plain.foes, SITES.desert.find((s) => s.id === 'mummer-camp').foes, 'off: the mummers alone');
-  assert.ok(!plain.foes.includes('grunt') && !plain.rack);
-  const on = sitesOf('desert', stagedFrom('?staged=roster4')).find((s) => s.id === 'mummer-camp');
-  assert.ok(on.foes.filter((a) => a === 'grunt').length === 3 && on.foes.includes('hulk') && on.foes.includes('mummerking') && on.rack, 'on: three grunts and a hulk beside the mummers, a rack');
-  const L = layoutSite(on, BODIES);
-  assert.ok(L.props.some((p) => p.type === 'rack'), 'the rack');
-  assert.equal(L.foes.filter((f) => f.weapon === 'none').length, 2, 'two of them empty-handed, for the rack');
-  // (nobody sits in another: each pair of bodies round the fire at least their radii apart)
-  const R = (a) => BODIES.radius(a), sit = L.foes.filter((f) => f.idle === 'sit');
-  for (let i = 0; i < sit.length; i++) for (let j = i + 1; j < sit.length; j++) {
-    const d = Math.hypot(sit[i].at[0] - sit[j].at[0], sit[i].at[1] - sit[j].at[1]);
-    assert.ok(d >= R(sit[i].archetype) + R(sit[j].archetype) - 0.05, `${sit[i].archetype} and ${sit[j].archetype}: ${d.toFixed(2)} m`);
+test('every camp on the route (roster v4, #726): grunts round the fire with a hulk, a lookout grunt, their rack and some empty-handed for it', () => {
+  const camps = Object.values(SITES).flat().filter((s) => s.kind === 'camp');
+  assert.ok(camps.length >= 9, `${camps.length} camps`);
+  for (const on of camps) {
+    assert.ok(on.foes.filter((a) => a === 'grunt').length >= 2 && on.foes.filter((a) => a === 'hulk').length === 1 && on.foes.every((a) => a === 'grunt' || a === 'hulk'), `${on.id}: grunts and a hulk`);
+    assert.ok(on.lookout === 'grunt' && on.rack, `${on.id}: a lookout grunt, a rack`);
+    const L = layoutSite(on, BODIES);
+    assert.ok(L.props.some((p) => p.type === 'rack'), 'the rack');
+    assert.equal(L.foes.filter((f) => f.weapon === 'none').length, on.unarmed, `${on.id}: ${on.unarmed} of them empty-handed, for the rack`);
+    // (nobody sits in another: each pair of bodies round the fire at least their radii apart)
+    const R = (a) => BODIES.radius(a), sit = L.foes.filter((f) => f.idle === 'sit');
+    for (let i = 0; i < sit.length; i++) for (let j = i + 1; j < sit.length; j++) {
+      const d = Math.hypot(sit[i].at[0] - sit[j].at[0], sit[i].at[1] - sit[j].at[1]);
+      assert.ok(d >= R(sit[i].archetype) + R(sit[j].archetype) - 0.05, `${on.id}: ${sit[i].archetype} and ${sit[j].archetype}: ${d.toFixed(2)} m`);
+    }
+    assert.ok(siteFootprint(on, BODIES).some((p) => p.what === 'rack'));
   }
-  assert.ok(siteFootprint(on, BODIES).some((p) => p.what === 'rack'));
 });
 
 // (with the clips: the held poses read)

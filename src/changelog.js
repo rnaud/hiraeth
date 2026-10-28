@@ -14,6 +14,12 @@ export const CHANGELOG = [
       // the Desert's race
       { text: 'Kamal is a real rival now: his fan sled rides much harder, so only a clean, fast lap beats him, and your bikes bump into each other instead of passing through.', see: 'Race Kamal for the hoverbike: ride into his sled and you both get knocked aside and slowed.' },
       { text: 'On a handheld like the Retroid, the buttons on a game’s cards (Retry, Quit, Play) show their letters again instead of blank white circles, and while you race or play, the controls at the bottom of the screen show little button icons instead of plain text.', see: 'Finish or lose any race with a controller: Retry and Quit carry their button letters.' },
+      'The same foes in every world: the camps on the way home all belong to the grunts now, sat round their fire with a hulk and a rack of spears and bows by the way in, and one or two of them run for it when they see you coming.',
+      'The ruins and the makers’ old places are kept by their droids: a sentinel with its shield, an oracle hanging back over the others, crawlers scuttling round them. In Vael, the Glass Dunes and the Buried Machine they lie dormant round their coffer until one of them wakes the rest. The nests and the ambushes belong to the prowlers.',
+      'From Vael on, every world has one warlord. It stands guard before its own coffer between two banners, its band of grunts sat round a fire until it roars. Its coffer pays twice.',
+      'Out in the open you meet grunts, prowlers and pairs of crawlers in every world, with the sky rays and the drones overhead where they were and the skitter swarms in the Buried Machine and the Moon Foundry. The ink blots stay in the Desert to teach you. Further along the way the same foes come tougher, more often in their darker, banded kind, and they drop more chimes.',
+      'The crabs, horn lizards, toads, mound worms, centipedes, stilt herons, mummers and the other old creatures have left the worlds: you still meet them in the fight temples and the Arena. A sentinel now keeps the post on the lit path in Lorn’s deep wood, and an oracle hangs at the Garden of Spheres’ white archway.',
+      'Grunts no longer fall to one mashed combo: cut one twice in a row and it scrambles back out of reach, then lunges back in.',
     ],
   },
   {
