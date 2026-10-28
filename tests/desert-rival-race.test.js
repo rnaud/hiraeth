@@ -2,9 +2,10 @@ import test from 'node:test';
 import { ensureNpcDom } from './helpers/npc-dom.js';
 ensureNpcDom();
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import rivalGame from '../src/minigames/canyon-rival.js';
 import {checkGame} from '../src/minigames/kit/registry.js';
-import {COURSE,makeTrack,makeCourse,newBike,bikeStep,botInput,newRival,stepRival,rivalWinner,awardRivalBike,loseRivalWager} from '../src/minigames/canyon.js';
+import {COURSE,makeTrack,makeCourse,newBike,bikeStep,botInput,newRival,stepRival,rivalWinner,awardRivalBike,loseRivalWager,bumpBikes,BUMP,RIVAL} from '../src/minigames/canyon.js';
 import {buildRivalSled} from '../src/minigames/canyon-sled.js';
 import {bikeWager} from '../src/story/bike-wager.js';
 import {DialogueRunner} from '../src/story/dialogue.js';
@@ -56,7 +57,7 @@ test('finish order uses actual within-frame crossings; a tie does not hand over 
  assert.equal(rivalWinner(98,100,99,100,100),'rival');
  assert.equal(rivalWinner(90,99,99,100,100),'rival');
 });
-test('the fixed rival completes both chasms at 20–120 fps and can be beaten by the same physics',()=>{
+test('the fixed rival completes both chasms at 20–120 fps and is beaten only by a clean, full-throttle line',()=>{
  const times=[];
  for(const fps of [20,30,60,120]){
   const K=course(),r=newRival(K),p=newBike(K,6,-3);let t=0,playerTime=null,rivalTime=null;
@@ -69,7 +70,8 @@ test('the fixed rival completes both chasms at 20–120 fps and can be beaten by
    if(!rivalTime&&r.bike.prog>=K.L)rivalTime=t;
   }
   assert.ok(playerTime&&rivalTime,`${fps}: both finish`);
-  assert.ok(rivalTime-playerTime>8&&rivalTime-playerTime<14,`${fps}: margin ${rivalTime-playerTime}`);
+  // (issue #736, "Kamal is too easy to beat": a plain full-throttle line won by 8-14 s; now only by 1-4 s)
+  assert.ok(rivalTime-playerTime>1&&rivalTime-playerTime<4,`${fps}: margin ${rivalTime-playerTime}`);
   assert.equal(r.falls,0);assert.equal(r.race.splits.length,K.C.checkpoints);
   times.push(rivalTime);
  }
@@ -120,4 +122,21 @@ test('real session awards only a win; losing, intro and disposal never grant own
  assert.ok(Math.hypot(good.S.rival.bike.x-prior.x,good.S.rival.bike.z-prior.z)>0,'rival coasts after finish');
  assert.ok(good.S.rival.bike.speed<prior.speed,'rival brakes after finish');good.S.end();
  const quit=session();quit.S.end();assert.deepEqual(quit.save.flags,{});
+});
+
+test('the two bikes bump instead of passing through each other (issue #736)',()=>{
+ const K=course(),a=newBike(K,40,0),b=newBike(K,40,0.8);
+ a.vx=0;a.vz=20;a.speed=20;b.vx=0;b.vz=10;b.speed=10;
+ b.x=a.x+Math.cos(a.heading)*0.8;b.z=a.z-Math.sin(a.heading)*0.8;b.y=a.y;
+ a.vx=(b.x-a.x)*10;a.vz=(b.z-a.z)*10;b.vx=0;b.vz=0;   // (a drives straight into b's side)
+ const hit=bumpBikes(a,b);
+ assert.ok(hit>0,'a hit');assert.ok(Math.hypot(b.x-a.x,b.z-a.z)>=2*BUMP.r-1e-9,'pushed apart');
+ assert.ok((b.vx*(b.x-a.x)+b.vz*(b.z-a.z))>0,'b thrown off along the line');assert.ok(a.speed<20&&b.speed<10,'both slowed');
+ const far=newBike(K,200,0);assert.equal(bumpBikes(a,far),0,'far apart: nothing');
+ const over={...b,y:b.y+5};assert.equal(bumpBikes(a,over),0,'one in the air over the other: nothing');
+ assert.ok(RIVAL.throttle>0.72,'Kamal rides harder than before');
+});
+test('the race steps the bump each frame, with a sound and a shake (issue #736)',()=>{
+ const src=readFileSync(new URL('../src/minigames/canyon.js',import.meta.url),'utf8');
+ assert.match(src,/if \(rival && moving && !\(run\.dying > 0\) && !\(rival\.dying > 0\)\) \{\s*const hit = bumpBikes\(B, rival\.bike\);/);
 });

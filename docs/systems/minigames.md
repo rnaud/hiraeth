@@ -343,8 +343,12 @@ The existing three-lap Canyon run remains an optional time trial.
 
 Both racers use `bikeStep`, the same base-bike handling, pads, drifts, jumps and
 checkpoint recovery. Kamal uses a fixed steering policy and throttle: full at
-chasms, 72% elsewhere. He never reads the player's position, gets no catch-up
-speed and cannot advance during the introduction or pause. The visible opponent
+chasms, `RIVAL.throttle` 92% elsewhere (72% until issue #736, "Kamal is too easy to
+beat": a plain full-throttle line won by about 10 s; now by 1-4 s, 37.4 s against
+35.1 s). He never reads the player's position, gets no catch-up
+speed and cannot advance during the introduction or pause. The two bikes bump
+(`bumpBikes`, #736): closer than 2 x `BUMP.r` they are pushed apart and swap the
+closing part of their velocity, each slowed, with the wall's sound and a shake. The visible opponent
 uses the existing character rig and riding pose on the fan sled's seat. Its
 two skids, blunt cowling and rear fan differ from the long-nosed prize bike;
 the sled has its own motor and no fluid tank socket. Passing is

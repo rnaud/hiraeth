@@ -337,7 +337,12 @@ export function botInput(B, K, { look = 16 } = {}) {
   return { x: Math.max(-1, Math.min(1, -diff * 2.6)), throttle: 1, brake: 0, hop: false };
 }
 
-/** Equal-start, one-lap rival. Skill is fixed, never adjusted to the player's position. */
+/**
+ * Equal-start, one-lap rival. Skill is fixed, never adjusted to the player's position: `throttle` off the jumps (full
+ * over them). 0.72 until issue #736 ("Kamal is too easy to beat"): a plain full-throttle line won by about 10 s; at
+ * 0.92 it wins by 2 to 3 s, so a clean, fast ride beats him and a messy one doesn't.
+ */
+export const RIVAL = { throttle: 0.92 };
 export function newRival(K) { return { bike: newBike(K,6,3), race: newRace(K), dying:0, time:0, falls:0 }; }
 export function stepRival(r,K,dt) {
   r.time+=dt;
@@ -353,9 +358,27 @@ export function stepRival(r,K,dt) {
   }
   const input=botInput(r.bike,K);
   const nearJump=K.jumps.some(j=>{const d=K.ds(j.s,r.bike.s);return d>-j.gap-8&&d<90;});
-  input.throttle=nearJump?1:.72;
+  input.throttle=nearJump?1:RIVAL.throttle;
   for(const e of bikeStep(r.bike,input,dt,K))if(e.kind==='fell'){r.dying=1;r.falls++;}
   if(!r.dying)raceStep(r.race,K,r.bike.prog,r.time);
+}
+/**
+ * The two bikes bump (issue #736: "no collision physics"): closer than 2·r on the ground plan and within `dy` in height,
+ * they are pushed apart along the line between them and swap the part of their speed along it (e: how elastic), each a
+ * little slowed. Returns the impact (m/s, closing speed) or 0. A falling rival (dying) is out of it.
+ */
+export const BUMP = { r: 1.15, dy: 1.6, e: 0.35, slow: 0.94 };
+export function bumpBikes(A, B, P = BUMP) {
+  const dx = B.x - A.x, dz = B.z - A.z, d = Math.hypot(dx, dz);
+  if (d >= 2 * P.r || Math.abs(B.y - A.y) > P.dy) return 0;
+  const nx = d > 1e-6 ? dx / d : Math.sin(A.heading + Math.PI / 2), nz = d > 1e-6 ? dz / d : Math.cos(A.heading + Math.PI / 2), push = (2 * P.r - d) / 2;
+  A.x -= nx * push; A.z -= nz * push; B.x += nx * push; B.z += nz * push;
+  const closing = (A.vx - B.vx) * nx + (A.vz - B.vz) * nz;
+  if (closing <= 0) return 0;
+  const j = closing * (1 + P.e) / 2;
+  A.vx -= nx * j; A.vz -= nz * j; B.vx += nx * j; B.vz += nz * j;
+  A.speed *= P.slow; B.speed *= P.slow;
+  return closing;
 }
 /** Within-frame crossing order prevents update order deciding close finishes. A dead heat is a retry. */
 export function rivalWinner(p0,p1,r0,r1,line) {
@@ -751,6 +774,11 @@ export function start(ctx) {
           }
         }
         if (live) for (const e of raceStep(R, K, B.prog, ctx.time)) split(e);
+      }
+      // (the two bikes bump: neither passes through the other, issue #736)
+      if (rival && moving && !(run.dying > 0) && !(rival.dying > 0)) {
+        const hit = bumpBikes(B, rival.bike);
+        if (hit > 1) { sfx.land(Math.min(hit / 15, 1)); ctx.kick(Math.min(0.15 + hit / 30, 0.6)); burst(8 + hit * 2, 1.2); }
       }
       if (duel && live && !settled) {
         const winner = rivalWinner(before, B.prog, rivalBefore, rival.bike.prog, K.L);

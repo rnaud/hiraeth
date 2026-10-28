@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.35 — 2026-10-28
+
+- Kamal is a real rival now: his fan sled rides much harder, so only a clean, fast lap beats him, and your bikes bump into each other instead of passing through.
+
 ## v2.34 — 2026-10-28
 
 - The Arena is one long fight now: every enemy in the game, in each of its looks, comes in one at a time, in a different order every visit, and the next walks in as soon as you beat the last. A notice says which one it is and how far along you are (“Foe 12 of 138”); beat them all and they start again in a new order. The battle music plays on between foes instead of stopping and starting each time.

@@ -1383,6 +1383,14 @@ const DROIDS726U = 'Issue #726: Unity 6000.6.4f1 editor batch run of this change
 const FROM727 = 'The bench’s own frame captures (host.Shot, the game’s 1920 × 1080 picture as the screen shows it, without the HUD) on the AYN Thor (Adreno 740, 1920 × 1080), Handheld as Android picks it, muted, a review store, the same pinned camera, 28 October 2026, scaled to 1280 × 720. Before: the Unity testers’ APK 2.34 (versionCode 2961, CI-built from 5872f4a80) at its 0.5 floor; after: this branch’s release APK (versionCode 2964, built locally with the same signing key) at its new floor of a third. The people and the water move between the two runs; the after is softer by design';
 const SRC727 = 'the bench (-bench 6, one 6 s run per view, muted, a review store), every route world, Home and the ship, one sweep before and one after, 28 October 2026; docs/systems/performance.md, “Unity on the AYN Thor: every level at 60”';
 export const CHANGELOG_MEDIA = {
+  '2.35': [
+  { match: 'Kamal is a real rival now', numbers: [
+    { title: 'One lap of Kamal’s wager (the Two Chasms), in seconds', unit: 's', better: 'lower', device: 'node, the race’s own physics (src/minigames/canyon.js) at 60 steps a second', source: 'Issue #736: Kamal’s sled (stepRival) against a plain full-throttle line (botInput, the same bike physics), one lap', rows: [
+      { where: 'Kamal’s sled', before: 45.0, after: 37.4 },
+      { where: 'A full-throttle line', before: 35.1, after: 35.1 },
+    ], note: 'Kamal’s throttle off the jumps went 0.72 → 0.92. A plain full-throttle line still beats him, by about 2 s instead of 10: a lap with walls hit or a drift ridden into loses. The bump between the bikes is not in these numbers.' },
+  ] },
+  ],
   '2.34': [
   { match: 'The yellow relics are gone from every world', shots: [
     { name: 'relics-gone', size: [1280, 720], caption: 'The Signal Market’s street, where its first relic floated (the Lantern seed at 18, 1.1, 48): before, the gold shard in its pale ring and its pool of light on the paving; after, the street alone', from: RELICS732, view: 'bazaar, eye (23, 3.2, 56) looking at (18, 1.6, 48), fov 55, the traveller set at (26, 0, 62) behind the camera, the HUD hidden' },
