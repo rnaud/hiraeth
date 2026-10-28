@@ -1592,6 +1592,17 @@ every blow, cuts while it is open) beat it in 7.0 s without a blow taken (a floo
 parry); one who only spams the combo had 5 cuts turned off the shield, took 2 blows (its bash, its leap) and still won in
 9.1 s (no stalemate: its cuts land while it recovers from its own blows). Measured 2026-10-25 on this branch.
 
+## Weapons in the fist (v2.35, issue #744, `src/enemies/wield.js`)
+
+Every armed humanoid (the grunt, the hulk, the prowler, the warlord, the mummers and their king, the sentinel, the
+fencer, the shade) holds its weapon in a closed fist, aimed by what its body does: a carry off the swinging arm, each
+attack's own wind-up, strike and follow-through aims, a guard's, lying along its side; both fists on a two-handed haft
+(the overheads, the sweeps, the lance), the bow at the middle of its stave with its cord drawn to the other hand. The
+pose is the telegraph (no glow since #733), so the weapon now reads with it: the hulk's club up and back over its
+shoulder before the smash, the sentinel's blade up over its shoulder before the cut. The aims are per model (`*_HOLD`
+next to each plan's moves); how the fist, the fingers and the second hand are solved: docs/systems/procedural-animation.md,
+"Holding a weapon". No timing, damage, hitbox or reach changed.
+
 ## The mummers (v2.33, issue #724, `src/enemies/plans/mummer.js`)
 
 The camp tribe of docs/design/enemy-roster-v2.md, the first humanoids on clips (docs/design/enemy-roster-v3.md; the rig:

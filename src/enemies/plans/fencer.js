@@ -3,6 +3,7 @@ import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, many, skinBy, pivot, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 import { humanoidSkeleton, HumanoidDriver } from '../humanoid-rig.js';
+import { Wielder, SWORD_WRIST } from '../wield.js';
 
 // The makers' fencer (issue #665; docs/design/combat-botw-study.md ranked changes 5-8; docs/systems/foes.md "The makers'
 // fencer"): a sword-and-shield duelist that fights the way the traveller does. No design sheet was picked for it: it is
@@ -88,6 +89,21 @@ export const FENCER_MOVES = {
   shove: { clip: 'ss_block_1', from: 0, load: 0.1, cut: 0.4, to: 0.55, pose: 'bash' },
 };
 const FENCER_SPEEDS = { walk: 1.0, jog: 2.6, sprint: 5 };
+/**
+ * How it holds its sword (src/enemies/wield.js, #744; dirs in the chest's frame: x its left, y up, z ahead): carried
+ * forward and a little up out of its fist; the overhead raised high and back over its head, then down before it; the
+ * sweep wound round low behind its right hip, swung across; the leap drawn back as it crouches, over its head in the
+ * air, down on where you stood; its guard drawn back over its shoulder, the point at you over the shield.
+ */
+export const FENCER_HOLD = {
+  sword: { side: 0, r: 0.022, wrist: SWORD_WRIST, reach: [1.17, 0.17], carry: { dir: [0, 0.3, 0.95] },
+    moves: {
+      overhead: { wind: [-0.05, 0.5, -0.86], via: [0, 0.95, 0.3], hit: [0, -0.45, 0.89] },
+      sweep: { wind: [-0.55, -0.15, -0.82], via: [-0.72, -0.1, 0.68], hit: [0.75, -0.1, 0.65] },
+      leap: { wind: [-0.2, 0.25, -0.95], via: [-0.05, 0.95, -0.3], hit: [0, -0.5, 0.86] },
+    },
+    poses: { swordBack: { dir: [0.12, 0.3, 1] }, flung: { dir: [-0.7, 0.55, 0.3] } } },
+};
 
 export function fencerModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('fencer', skin);
@@ -161,6 +177,7 @@ export function fencerModel(skin) {
     many(J.feet[i], [new THREE.BoxGeometry(0.11, 0.06, 0.24).translate(0, 0.04 - ankle, 0.06), new THREE.BoxGeometry(0.1, 0.03, 0.08).translate(0, 0.075 - ankle, 0.13)], plateB);
   });
   const driver = new HumanoidDriver(J, rig, { moves: FENCER_MOVES, speeds: FENCER_SPEEDS });
+  const wield = new Wielder(J, driver, { grips: [grip, null], at: [[0, -0.03, 0.01], null], weapons: FENCER_HOLD });
   const gaze = [gazePart(g, head, { mode: 'turn' })];
   skinBy(g, [
     { from: [plateB], into: plateM }, { from: [frameB], into: frameM }, { from: [trimB], into: trimM },
@@ -174,7 +191,7 @@ export function fencerModel(skin) {
   const local = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _eu = new THREE.Euler();
   return {
     group: g, gaze, body: rig, rig: null, upright: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.plate, P.seam, P.frame],
-    driver, joints: J,
+    driver, joints: J, wield,
     tell: (id) => (id === 'bash' || id === 'shove' ? strap : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind';
@@ -189,14 +206,8 @@ export function fencerModel(skin) {
       g.position.y += f.alt;   // (the leap: up in the air over you, Foe.update's arc)
       // the sword: carried forward and up out of its fist; in a move or the guard, as the clip's fist holds the traveller's
       const moving = want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover';
-      grip.rotation.set(1.07, 0, 0.1);
-      driver.gripFrom(grip, 0, moving ? driver.moveW : 0);
-      // (guarding: the point at you over its shoulder, a little up, whatever the fist's twist)
-      if (guarding && broke < 0.5) {
-        hull.getWorldQuaternion(_qa); _qa.multiply(_qb.setFromUnitVectors(UPV, _dir.set(0.12, 0.3, 1).normalize()));
-        grip.parent.getWorldQuaternion(_qc).invert();
-        grip.quaternion.slerp(_qc.multiply(_qa), Math.min(1, guard));
-      }
+      // (FENCER_HOLD; none in hand when it is knocked away)
+      wield.update(f, want, c, f.disarmed ? null : 'sword');
       // the shield kept upright and facing out before it: its turn in the world the chest's heading, a little out to its
       // left at its side, square in its guard and its bash, flung out to its side when broken
       g.updateMatrixWorld(true);

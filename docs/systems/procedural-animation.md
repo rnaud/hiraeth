@@ -820,10 +820,43 @@ The mind's timing is never touched: the rig reads the foe's clock (`f.k`, `f.tim
 `BLEND.in` 0.12 s and out over 0.22 s. On top: the head turns to the traveller (src/enemies/gaze.js, after the pose); on
 a slope the body stands upright (`model.upright`), lowered to the lower foot's ground and each leg reached to its own by
 two-bone IK, the soles laid on the plane (`plant`: the plane the foe already reads, no ray of its own); springs swing the
-hems, the crown and the horn (`Sway`); a held weapon is turned as the clip's fist holds the library's sword (`gripFrom`:
-out of the thumb side) in a move, carried its own way otherwise; the model's own stance (`style`: the mummers' bowed
-legs). Far off it is made every 2nd (past `RIG_LOD.mid` 22 m) or 4th frame (past 40 m). With no clips (node, a page
+hems, the crown and the horn (`Sway`); a held weapon is the model's `Wielder`'s (below, "Holding a weapon"); the model's
+own stance (`style`: the mummers' bowed legs). Far off it is made every 2nd (past `RIG_LOD.mid` 22 m) or 4th frame (past 40 m). With no clips (node, a page
 without the library) a stance and a walk by hand (`fallbackPose`).
+
+**Holding a weapon** (v2.35, issue #744, `src/enemies/wield.js`; tests/wield.test.js). Before, a weapon hung from a
+grip on an open hand at a fixed carry turn, turned as the clip's fist would hold the library's sword (`gripFrom`, gone):
+the hand never turned, the captured moves' fists are often turned wrong for a weapon (made for another skeleton), and a
+hand-made pose kept the carry's turn: the hulk's club across open palms, the sentinel's blade hidden behind its head, the
+bow hung from the end of a limb. Now the weapon decides and the hand follows (`Wielder.update`, after the driver's pose):
+
+- **Its line** (out of the thumb's side: a point, a club's head, a bow's upper limb) by what the body does, from the
+  model's table (`GRUNT_HOLD`, `HULK_HOLD`, `PROWLER_HOLD`, `WARLORD_HOLD`, `MUMMER_HOLD`, `KING_HOLD`, `SENTINEL_HOLD`,
+  `FENCER_HOLD`, `SHADE_HOLD`; `spearHold`, `bowHold`): a `carry` in the forearm's frame, half toward the body's (it
+  swings with the arm, never points at you off a running forearm; `fore` brings the forearm up for a spear or a glaive
+  carried upright); each attack's `wind` (the loaded pose, eased in by the wind-up's load and held), `via` and `hit`
+  through the strike to its contact, `follow` after it, in the chest's frame (`frame: 'body'` for a sweep, where the
+  clip twists the chest away); a held pose's (`poses`: a guard); lying (`LYING`: along its side). Its head and butt are
+  kept over the ground (the slope's plane; a fist the lying clip sinks takes the ground at itself).
+- **The fist** (`fistTurn`, pure): the hand turned so the haft runs across the palm out past the thumb, the fingers' line
+  the forearm's made square to it; a haft nearer the forearm than the fist can hold is brought out to it (`WRIST` 46–132°
+  for a club; `SWORD_WRIST` 17–149° for a sword, a spear, a glaive: a thrust lies nearly along the arm), and of what is
+  left off square up to `diag` lies diagonally across the palm, the wrist bending the rest. The grip pivot sits at the
+  fist's haft, so the weapon's line is exactly the one held.
+- **Fingers that close** (`Fist`, `curlAngles`): the clawed, lizard and ink hands' fingers on two pivots each hand
+  (knuckles, tips), bent so the middle joint and the tip lie on a haft of the weapon's own radius (worked out once a
+  radius); open when it is empty (the hulk lifting a grunt, the king's horn, a mummer unmasked, a fencer disarmed).
+  The droids' and the shade's hands are one piece already.
+- **Both hands** (`both: { at, from, to, phases }`): the other arm by two-bone IK onto the haft `at` m along it (+ toward
+  its head), or the nearest point it reaches within `from..to`, never in the first fist (`gap`); still out of reach, the
+  weapon is brought over toward that shoulder (the holding arm reaches it there, its line kept, at most 30 % of the arm);
+  beyond that the hand lets go (eased) rather than hold the air (`WIELD.miss`). The smash, the overheads, the sweeps,
+  the lance and the beam's swings; the overhead pose's fists brought together over the head.
+- **The bow**: held at the middle of its stave, its belly at you, its cord two halves on pivots at the limb tips pulled
+  to the right fist through the volley's draw (`drawCord`, `drawOf`) and let go at the strike; the right hand pinches.
+
+Nothing here touches the timing, the damage, the hitboxes or the reach. Cost: about 0.06 ms a foe a frame in node
+(tests/prowler-warlord.test.js's walking frame), most of it the two-handed IK's rounds.
 
 **The mummers' last moves** (v2.34, issue #724 polish; tests/mummers.test.js). The full Quaternius Universal Animation
 Library is not on this machine (only the shipped `ual.glb` subset), so each is a shipped clip, or one with a hand-made

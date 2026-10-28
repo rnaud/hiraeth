@@ -283,7 +283,8 @@ export const PROC_POSES = {
   // style); brought down hard as it stamps
   // (the grunt's club overhead, #726: the sheet's attack pose) both arms straight up over its head, the club behind it,
   // leaning back; then down before it
-  overhead: { lean: -0.12, r: [[-0.22, 1, -0.12], [-0.05, 1, -0.35]], l: [[0.22, 1, -0.12], [0.05, 1, -0.35]], strike: { r: [[-0.15, 0.1, 1], [-0.05, -0.4, 1]], l: [[0.15, 0.1, 1], [0.05, -0.4, 1]] } },
+  // (#744: the fists brought together over its head, both on the haft)
+  overhead: { lean: -0.12, r: [[-0.02, 1, -0.12], [0.3, 1, -0.35]], l: [[0.02, 1, -0.12], [-0.3, 1, -0.35]], strike: { r: [[-0.15, 0.1, 1], [-0.05, -0.4, 1]], l: [[0.15, 0.1, 1], [0.05, -0.4, 1]] } },
   stomp: { lean: -0.1, r: [[-0.75, 0.55, 0.3], [-0.35, 0.9, 0.25]], l: [[0.75, 0.55, 0.3], [0.35, 0.9, 0.25]], strike: { r: [[-0.55, -0.7, 0.45], [-0.2, -0.85, 0.5]], l: [[0.55, -0.7, 0.45], [0.2, -0.85, 0.5]] } },
   // (the prowler's spit, #726) its arms braced low and out, the head reared back (its model's own style), leaning back
   spit: { lean: -0.18, r: [[-0.45, -0.8, 0.35], [-0.15, -0.55, 0.8]], l: [[0.45, -0.8, 0.35], [0.15, -0.55, 0.8]] },
@@ -536,35 +537,12 @@ export class HumanoidDriver {
     });
   }
 
-  /**
-   * A held prop's grip turned as the clip's fist holds it (side 0 the right, 1 the left): its +y out of the fist's thumb
-   * side (the haft of the library's sword), its +z along the fingers; `w` of the way from the turn it has now (the
-   * model's carry, set before). False without the clips, or while a procedural pose holds the arms (the fist's turn is
-   * the clip's, not the pose's): the model keeps its own carry then.
-   */
-  gripFrom(node, side = 0, w = 1) {
-    const A = this.A;
-    if (!A || this.procW > 0.5 || !(w > 0)) return false;
-    const s = side ? 'l' : 'r';
-    // (the library's world is the rig's frame: both face +z, y up)
-    A.dir(A.bone(`pinky_01_${s}`), A.bone(`index_01_${s}`), _y);
-    A.dir(A.bone(`hand_${s}`), A.bone(`middle_01_${s}`), _z);
-    _z.addScaledVector(_y, -_z.dot(_y)).normalize();
-    _x.crossVectors(_y, _z);
-    _q.setFromRotationMatrix(_m.makeBasis(_x, _y, _z));
-    this.rig.getWorldQuaternion(_q2); _q.premultiply(_q2);
-    node.parent.updateWorldMatrix(true, false);
-    node.parent.getWorldQuaternion(_q2).invert();
-    node.quaternion.slerp(_q2.multiply(_q), Math.min(1, w));
-    return true;
-  }
-
   /** The procedural arms (PROC_POSES) over the clip's: a move's own (want.pose) or one asked for (o.pose). */
   procPose(want, o, dt) {
     const name = o.pose ?? want.pose ?? null;
     const P = name ? PROC_POSES[name] : null;
     const target = P ? (o.pose ? o.poseW ?? 1 : want.phase === 'wind' ? smooth(want.load) : want.phase === 'strike' ? 1 : 1 - clamp01(want.k ?? 0)) : 0;
-    if (P) this.proc = P;
+    if (P) { this.proc = P; this.procName = name; }
     this.procW += (target - this.procW) * (dt === 0 ? 1 : 1 - Math.exp(-14 * dt));
     if (!this.proc || this.procW < 0.01) return;
     const Q = this.proc, J = this.J, strike = want.phase === 'strike' && Q.strike ? smooth((want.k ?? 0) * 2) : 0;

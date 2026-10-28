@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { materials, add, many, skinBy, pivot, tubeGeometry, lerp, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
-import { humanoidSkeleton, HumanoidDriver, Sway } from '../humanoid-rig.js';
+import { humanoidSkeleton, HumanoidDriver, Sway, HOLD_AT } from '../humanoid-rig.js';
+import { Fist, fingerPivots, Wielder, SWORD_WRIST } from '../wield.js';
 
 // The mummers (issue #724; docs/design/enemy-roster-v2.md "The mummers", v3 "humanoid foes on clips"): the dark playing at
 // being people, dressed up in what people throw away. The first foes on the humanoid rig (src/enemies/humanoid-rig.js):
@@ -46,12 +47,24 @@ export function tatters(n, r, y, len, depth = 1, w = 0.08) {
   }
   return out;
 }
-/** A three-fingered ink hand hanging down its joint (a palm, three fingers curled in a little, a thumb). */
-function handParts(s, size = 1) {
-  const r = 0.028 * size, out = [new THREE.SphereGeometry(r * 1.6, 8, 6).scale(1, 1.2, 0.8).translate(0, -r * 1.2, 0)];
-  for (let i = -1; i <= 1; i++) out.push(new THREE.CapsuleGeometry(r * 0.6, r * 2.6, 3, 6).rotateX(0.35).translate(i * r * 1.05, -r * 3.6, r * 0.6));
-  out.push(new THREE.CapsuleGeometry(r * 0.55, r * 1.8, 3, 6).rotateZ(s * 0.7).translate(s * r * 1.5, -r * 1.8, r * 0.8));
-  return out;
+/**
+ * A three-fingered ink hand on its joint, hanging down it (a palm, three fingers curled in a little, a thumb); each finger
+ * in two segments on the fist's pivots (src/enemies/wield.js Fist, #744): they close round what it holds. Returns the Fist.
+ */
+function handParts(hand, s, size, mat) {
+  const r = 0.028 * size, K0 = [0, -r * 2.6, r * 0.35], M0 = [0, K0[1] - r * 1.4, K0[2] + r * 0.25], E0 = [0, M0[1] - r * 1.0, M0[2] + r * 0.4];
+  const { knuckles, tips } = fingerPivots(hand, K0, M0);
+  const seg = (a, b, rr) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A), l = d.length(); return new THREE.CapsuleGeometry(rr, Math.max(0.001, l - rr), 3, 6).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())).translate(...A.add(B).multiplyScalar(0.5).toArray()); };
+  const prox = [], dist = [];
+  for (let i = -1; i <= 1; i++) {
+    const x = i * r * 1.05;
+    prox.push(seg([x, 0, 0], [x, M0[1] - K0[1], M0[2] - K0[2]], r * 0.6));
+    dist.push(seg([x, 0, 0], [x, E0[1] - M0[1], E0[2] - M0[2]], r * 0.56));
+  }
+  many(hand, [new THREE.SphereGeometry(r * 1.6, 8, 6).scale(1, 1.2, 0.8).translate(0, -r * 1.2, 0),
+    new THREE.CapsuleGeometry(r * 0.55, r * 1.8, 3, 6).rotateZ(s * 0.7).translate(s * r * 1.5, -r * 1.8, r * 0.8)], mat);
+  many(knuckles, prox, mat); many(tips, dist, mat);
+  return new Fist(knuckles, tips, { K: [K0[1], K0[2]], M: [M0[1], M0[2]], E: [E0[1], E0[2]], finger: r * 0.58, haft: (rh) => [0, K0[1] - r * 0.3, r * 1.05 + rh * 0.92] });
 }
 /** A flat three-toed ink foot on its ankle (the toes splayed forward). */
 function footParts(size = 1) {
@@ -89,14 +102,73 @@ export function spearParts(L = 1.5) {
     rope: [new THREE.TorusGeometry(0.022, 0.006, 4, 8).rotateX(Math.PI / 2).translate(0, lo + L - 0.06, 0)],
   };
 }
-/** The short bow: a bent coil spring (an arc of tube), a cord across it; held upright in the left fist. */
-export function bowParts(R = 0.36) {
-  const pts = [];
-  for (let i = 0; i <= 10; i++) { const a = -1.1 + 2.2 * (i / 10); pts.push(new THREE.Vector3(0, Math.sin(a) * R, (Math.cos(a) - Math.cos(1.1)) * R * 0.6)); }
+/**
+ * The short bow: a bent coil spring (an arc of tube), a cord across it; held in the left fist at the middle of its stave
+ * (the grip's origin, #744: it hung from the end of a limb), the stave's belly ahead (+z), the cord behind it toward the
+ * archer. `cord: false` leaves the cord out (a held bow's is drawn: bowCord).
+ */
+export function bowParts(R = 0.36, cord = true) {
+  const pts = [], T = bowTips(R);
+  for (let i = 0; i <= 10; i++) { const a = -1.1 + 2.2 * (i / 10); pts.push(new THREE.Vector3(0, Math.sin(a) * R, (Math.cos(a) - Math.cos(1.1)) * R * 0.6 + T.z)); }
   return {
     iron: [tubeGeometry(pts, 0.016)],
-    rope: [new THREE.CylinderGeometry(0.004, 0.004, 2 * Math.sin(1.1) * R, 4).translate(0, 0, 0)],
+    rope: cord ? [new THREE.CylinderGeometry(0.004, 0.004, 2 * T.y, 4).translate(0, 0, T.z)] : [],
   };
+}
+/** The bow's limb tips (its frame): ±y, z behind the stave's middle. */
+export function bowTips(R = 0.36) { return { y: Math.sin(1.1) * R, z: -(1 - Math.cos(1.1)) * R * 0.6 }; }
+/** A held bow's cord in two halves, each on its own pivot at a limb's tip, hanging to the middle (drawCord pulls them). */
+export function bowCord(bow, R, mat) {
+  const T = bowTips(R), half = T.y, out = [];
+  for (const s of [1, -1]) {
+    const p = pivot(bow, 0, s * T.y, T.z, s > 0 ? 'cord top' : 'cord bottom');
+    many(p, [new THREE.CylinderGeometry(0.004, 0.004, half, 4).translate(0, -half / 2, 0)], mat);
+    out.push(p);
+  }
+  const cord = { bow, halves: out, half, z: T.z };
+  drawCord(cord, null);
+  return cord;
+}
+const _nock = new THREE.Vector3(), _cd = new THREE.Vector3(), _DN = new THREE.Vector3(0, -1, 0);
+/** The cord drawn back to `nock` (world: the drawing fist) by w (0 at rest, straight across), its halves aimed and stretched. */
+export function drawCord(cord, nock, w = 1) {
+  const { bow, halves, half } = cord;
+  if (nock && w > 0.001) { bow.updateWorldMatrix(true, false); bow.worldToLocal(_nock.copy(nock)); _nock.lerp(_cd.set(0, 0, cord.z), 1 - w); }
+  else _nock.set(0, 0, cord.z);
+  for (const p of halves) {
+    _cd.copy(_nock).sub(p.position);
+    const l = _cd.length();
+    p.quaternion.setFromUnitVectors(_DN, _cd.normalize());
+    p.scale.set(1, Math.max(0.05, l / half), 1);
+  }
+}
+
+/**
+ * How a spear and a bow are held (src/enemies/wield.js Wielder's specs, #744; shared by the mummer and the grunt): the
+ * spear in the right fist, carried upright before it (the forearm brought up), thrust along the forearm's line; the bow
+ * in the left fist at the middle of its stave, carried limbs fore and aft off the hanging arm, raised upright at you for
+ * the volley (its cord drawn back by the right fist: drawCord).
+ */
+export function spearHold(L = 1.5) {
+  return { side: 0, r: 0.017, wrist: SWORD_WRIST, reach: [L - 0.12 + 0.15, 0.12],
+    carry: { frame: 'body', dir: [0.05, 1, 0.12], fore: [0.05, -0.45, 0.9] },
+    moves: { jab: { wind: [0.05, 0.08, 1], hit: [0, 0.02, 1] } },
+    poses: { clutch: { dir: [0.2, -0.5, 0.85] } } };
+}
+export function bowHold(R = 0.36) {
+  const T = bowTips(R);
+  return { side: 1, r: 0.016, reach: [T.y + 0.02, T.y + 0.02], carry: { dir: [0, 0.2, 1] },
+    moves: { volley: { wind: [-0.12, 1, 0.05], hit: [-0.12, 1, 0.05] } } };
+}
+
+/**
+ * How far a bow's cord is drawn (0..1) through its volley (`id`): back with the wind-up's load, held, loosed at once as the
+ * strike begins; eased from `was` (dt s).
+ */
+export function drawOf(f, want, dt, id, was) {
+  const sm = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+  const to = f.atk?.id === id ? (f.state === 'wind' ? sm(want.load ?? (f.k ?? 0) / HOLD_AT) : 0) : 0;
+  return dt === 0 ? to : to > was ? was + (to - was) * (1 - Math.exp(-14 * dt)) : to;
 }
 
 /** The coffee-pot mask: a dented brass pot on its side over the face, its lid and knob on top, a spout and a handle; two eye holes. */
@@ -139,6 +211,17 @@ export const MUMMER_MOVES = {
   rock: { clip: 'gs_jump_attack', from: 0.15, load: 0.85, cut: 1.1, to: 1.45, ground: true, release: 0.78 },
 };
 const MUMMER_SPEEDS = { walk: 0.55, jog: 1.6, sprint: 3.3 };
+/**
+ * How it holds what it holds (src/enemies/wield.js, #744; dirs in the chest's frame: x its left, y up, z ahead): the
+ * driftwood club in its right fist, its head down and forward; the whack both fists on it, the club back behind its pot,
+ * over its head and down before it; the spear and the bow spearHold's and bowHold's.
+ */
+export const MUMMER_HOLD = {
+  club: { side: 0, r: 0.035, reach: [0.7, 0.09], head: 0.08, carry: { dir: [0.1, -0.45, 0.88] },
+    moves: { whack: { wind: [-0.2, 0.42, -0.88], via: [0, 0.95, 0.3], hit: [0, -0.45, 0.89], follow: [0, -0.75, 0.66], both: { at: 0.1, from: -0.08, to: 0.35, phases: ['wind', 'strike'] } } } },
+  spear: spearHold(1.5),
+  bow: bowHold(0.36),
+};
 
 export function mummerModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('mummer', skin);
@@ -162,13 +245,14 @@ export function mummerModel(skin) {
   many(hem, tatters(11, 0.215, 0, 0.14, 0.87, 0.1), ragB);
   // ink seeping: drips under the hem and the cuffs
   many(hem, [0.4, 1.9, 3.3, 4.6, 5.6].map((a, i) => new THREE.SphereGeometry(0.016, 6, 4).scale(1, 2.2, 1).translate(Math.sin(a) * 0.2, -0.1 - (i % 2) * 0.03, Math.cos(a) * 0.17)), inkB);
+  const fists = [null, null];
   // the shoulders' rag sleeves (short, torn) and the long thin ink arms, the three-fingered hands
   J.arms.forEach((arm, i) => {
     const s = i ? 1 : -1;
     many(arm, [new THREE.ConeGeometry(0.07, 0.13, 6, 1, true).translate(0, -0.03, 0), ...tatters(4, 0.06, -0.08, 0.07, 1, 0.04)], ragB);
     many(arm, [limb(D.upper, 0.026, 0.022), new THREE.SphereGeometry(0.028, 8, 6)], inkB);
     many(J.elbows[i], [new THREE.SphereGeometry(0.024, 8, 6), limb(D.fore, 0.022, 0.018), new THREE.SphereGeometry(0.012, 6, 4).scale(1, 2, 1).translate(0.015 * s, -D.fore * 0.8, 0.012)], inkB);
-    many(J.hands[i], handParts(s), inkB);
+    fists[i] = handParts(J.hands[i], s, 1, inkB);
   });
   // the bowed legs: thin ink sticks bound in rag, bowed out (their own lean: the model's anim), flat three-toed feet
   J.legs.forEach((leg, i) => {
@@ -190,8 +274,9 @@ export function mummerModel(skin) {
   // the weapons: a grip in the right fist (the club, the spear), the bow in the left; each its own pivot
   const grip = pivot(J.hands[0], 0, -0.045, 0.01, 'grip'), gripL = pivot(J.hands[1], 0, -0.045, 0.01, 'grip l');
   const club = pivot(grip, 0, 0, 0, 'club'), spear = pivot(grip, 0, 0, 0, 'spear'), bow = pivot(gripL, 0, 0, 0, 'bow');
-  const build = (node, parts) => { for (const [k, geos] of Object.entries(parts)) many(node, geos, { wood: woodB, rope: ropeB, iron: ironB, rag: ragB }[k]); };
-  build(club, clubParts()); build(spear, spearParts()); build(bow, bowParts());
+  const build = (node, parts) => { for (const [k, geos] of Object.entries(parts)) if (geos.length) many(node, geos, { wood: woodB, rope: ropeB, iron: ironB, rag: ragB }[k]); };
+  build(club, clubParts()); build(spear, spearParts()); build(bow, bowParts(0.36, false));
+  const cord = bowCord(bow, 0.36, ropeB);
   // the ones it drops (and the pot knocked off): copies on the model's root, placed in the world as they fly and lie
   const dropped = pivot(g, 0, 0, 0, 'dropped weapon');
   const dClub = pivot(dropped, 0, 0, 0, 'dropped club'), dSpear = pivot(dropped, 0, 0, 0, 'dropped spear'), dBow = pivot(dropped, 0, 0, 0, 'dropped bow');
@@ -203,6 +288,8 @@ export function mummerModel(skin) {
   // (its stance over the clip's: bow-legged, the knees out, the feet turned flat)
   const style = () => { J.legs[0].rotateZ(-0.16); J.legs[1].rotateZ(0.16); J.knees[0].rotateZ(0.1); J.knees[1].rotateZ(-0.1); J.feet[0].rotateZ(0.06); J.feet[1].rotateZ(-0.06); };
   const driver = new HumanoidDriver(J, rig, { moves: MUMMER_MOVES, speeds: MUMMER_SPEEDS, style, seat: 0.16 });
+  const wield = new Wielder(J, driver, { fists, grips: [grip, gripL], weapons: MUMMER_HOLD });
+  let draw = 0;
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.9, up: 0.5, down: 0.5 })];
   skinBy(g, [
     { from: [sackB], into: sackM }, { from: [ragB], into: ragM }, { from: [ropeB], into: ropeM }, { from: [brassB], into: brassM },
@@ -215,7 +302,7 @@ export function mummerModel(skin) {
   let dim = 0;
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.sack, P.brass, P.ink],
-    driver, joints: J,
+    driver, joints: J, wield, fists,
     tell: (id) => (id === 'volley' ? gripL : id === 'rock' ? J.hands[0] : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 0), unmasked = !!f.unmasked;
@@ -226,12 +313,10 @@ export function mummerModel(skin) {
       // the weapon in hand (its own: f.weapon), turned as the clip's fist holds it; none disarmed or unmasked
       const W = f.disarmed || unmasked ? null : f.weapon ?? 'club';
       for (const [k, node] of Object.entries(held)) node.scale.setScalar(k === W ? 1 : 1e-3);
-      // (carried: the club forward over its shoulder, the spear upright, its butt by its feet, the bow upright before it;
-      // in a move, turned as the clip's fist holds the library's sword)
-      const move = want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0;
-      if (W === 'spear') grip.rotation.set(0.25, 0, 0.1); else grip.rotation.set(Math.PI / 2 - 0.5, 0, 0.15);
-      gripL.rotation.set(0.15, 0, Math.PI / 2 - 0.15);   // (the bow held sideways before it, as the sheet's)
-      driver.gripFrom(grip, 0, move); driver.gripFrom(gripL, 1, move);
+      // (in its fists, its line aimed by what the body does: MUMMER_HOLD; the bow's cord drawn back by the right fist)
+      wield.update(f, want, c, held[W] ? W : null, { pinch: [W === 'bow' && draw > 0.05, false] });
+      draw = drawOf(f, want, dt, 'volley', draw);
+      drawCord(cord, W === 'bow' && draw > 0.001 ? J.hands[0].localToWorld(_w.copy(fists[0].fit(0.006).at)) : null, draw);
       // one it dropped lies where it fell (f.disarmed: an arc to it, turning, then flat)
       for (const node of Object.values(lying)) node.scale.setScalar(1e-3);
       const S = f.disarmed, lie = S ? lying[f.droppedWeapon ?? f.weapon ?? 'club'] : null;
@@ -286,6 +371,18 @@ export const KING_MOVES = {
   throw: { clip: 'gs_jump_attack', from: 0.15, load: 0.85, cut: 1.1, to: 1.45, ground: true, release: 0.78, lean: -0.1 },
 };
 const KING_SPEEDS = { walk: 1.0, jog: 2.6, sprint: 5 };
+/**
+ * How it holds its door beam (src/enemies/wield.js, #744): in its right fist, the end down and forward; the smash both
+ * fists on it, high behind the cauldron, over its crown and down; the royal swing drawn back over its right shoulder in
+ * both fists, swung across before it.
+ */
+export const KING_HOLD = {
+  beam: { side: 0, r: 0.08, reach: [1.32, 0.32], head: 0.12, carry: { dir: [0.15, -0.5, 0.85] },
+    moves: {
+      smash: { wind: [-0.25, 0.42, -0.87], via: [0, 0.95, 0.3], hit: [0, -0.5, 0.86], follow: [0, -0.75, 0.66], both: { at: 0.26, from: -0.25, to: 0.9, phases: ['wind', 'strike'] } },
+      swing: { frame: 'body', wind: [-0.7, 0.45, -0.55], via: [-0.62, 0.15, 0.77], hit: [0.85, 0.05, 0.5], follow: [0.8, -0.2, -0.55], both: { at: 0.26, from: -0.25, to: 0.9, phases: ['wind', 'strike'] } },
+    } },
+};
 
 export function mummerKingModel(skin) {
   const P = skin.palette, M = materials('mummerking', skin);
@@ -318,12 +415,13 @@ export function mummerKingModel(skin) {
   for (let i = 0; i <= 8; i++) { const u = i / 8; hornPts.push(new THREE.Vector3(0.4 - 0.85 * u, 0.15 + 1.1 * u, -0.56 - 0.14 * Math.sin(Math.PI * u))); }
   const hornNode = pivot(T, 0, 0, 0, 'horn');
   many(hornNode, [tubeGeometry(hornPts, 0.035, 0.08), new THREE.CylinderGeometry(0.25, 0.07, 0.3, 16, 1, true).rotateZ(0.6).translate(-0.55, 1.33, -0.6)], brassB);
+  const fists = [null, null];
   // the long heavy ink arms to its knees, the big three-fingered hands
   J.arms.forEach((arm, i) => {
     const s = i ? 1 : -1;
     many(arm, [limb(D.upper, 0.18, 0.15), new THREE.SphereGeometry(0.2, 10, 8)], inkB);
     many(J.elbows[i], [new THREE.SphereGeometry(0.15, 8, 6), limb(D.fore, 0.15, 0.12)], inkB);
-    many(J.hands[i], handParts(s, 3.1), inkB);
+    fists[i] = handParts(J.hands[i], s, 3.1, inkB);
   });
   // the short thick legs bound in rag, the wide flat feet
   J.legs.forEach((leg, i) => {
@@ -357,6 +455,7 @@ export function mummerKingModel(skin) {
   many(beam, [0, 0.1, 0.2].map((y) => new THREE.TorusGeometry(0.11, 0.013, 4, 10).rotateX(Math.PI / 2).translate(0, y, 0)), ropeB);
   const style = () => { J.legs[0].rotateZ(-0.1); J.legs[1].rotateZ(0.1); J.feet[0].rotateZ(0.05); J.feet[1].rotateZ(-0.05); };
   const driver = new HumanoidDriver(J, rig, { moves: KING_MOVES, speeds: KING_SPEEDS, style, seat: 0.3 });
+  const wield = new Wielder(J, driver, { fists, grips: [grip, null], weapons: KING_HOLD });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.6, up: 0.35, down: 0.45 })];
   skinBy(g, [
     { from: [sackB], into: sackM }, { from: [ragB], into: ragM }, { from: [ropeB], into: ropeM }, { from: [brassB], into: brassM },
@@ -369,7 +468,7 @@ export function mummerKingModel(skin) {
   let glow = 0;
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.wood, P.copper, P.ink],
-    driver, joints: J,
+    driver, joints: J, wield, fists,
     tell: (id) => (id === 'horn' ? hornNode : id === 'throw' ? J.hands[1] : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 0);
@@ -381,10 +480,10 @@ export function mummerKingModel(skin) {
       // the horn to its cauldron while it calls: brought round from its back
       const calling = f.atk?.id === 'horn' && (f.state === 'wind' || f.state === 'strike');
       hornNode.position.set(0, calling ? 0.25 * Math.min(1, (f.k ?? 0) * 2) : 0, calling ? 0.5 * Math.min(1, (f.k ?? 0) * 2) : 0);
-      // the beam: along its fist's grip; set down while it holds a mummer up or blows its horn
-      grip.rotation.set(Math.PI / 2 - 0.4, 0, 0);
-      driver.gripFrom(grip, 0, want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
-      beam.scale.setScalar(f.atk && (f.atk.id === 'throw' || f.atk.id === 'horn') && f.state !== 'chase' && f.state !== 'idle' ? 1e-3 : 1);
+      // the beam in its fists (KING_HOLD); set down while it holds a mummer up or blows its horn, its hands open
+      const away = !!(f.atk && (f.atk.id === 'throw' || f.atk.id === 'horn') && f.state !== 'chase' && f.state !== 'idle');
+      beam.scale.setScalar(away ? 1e-3 : 1);
+      wield.update(f, want, c, away ? null : 'beam');
       // the eyes: brighter as it winds up; red enraged
       glow = ease(glow, f.state === 'wind' ? 1 : 0, 6, dt || 1);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye, P.flare ?? '#ffcf6a'));

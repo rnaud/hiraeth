@@ -4,7 +4,8 @@ import { gazePart } from '../gaze.js';
 import { humanoidSkeleton, HumanoidDriver, Sway, HOLD_AT } from '../humanoid-rig.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { twoBone } from '../../motion-kit/ik.js';
-import { lathe, tatters, spearParts, bowParts } from './mummer.js';
+import { lathe, tatters, spearParts, bowParts, bowCord, drawCord, drawOf, spearHold, bowHold } from './mummer.js';
+import { Fist, fingerPivots, Wielder, SWORD_WRIST } from '../wield.js';
 
 // Roster v4's monsters (issue #726; docs/design/enemy-roster-v4.md): one roster in every world, its skin's colour the
 // tier (src/enemies/skins.js tierSkin: the darker, banded one). On the humanoid rig like the mummers
@@ -35,21 +36,29 @@ function spike(at, dir, r, l, n = 5) {
   return new THREE.ConeGeometry(r, l, n).translate(0, l / 2, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d)).translate(...at);
 }
 /**
- * A clawed hand hanging down its joint: a palm, three jointed fingers a little splayed and curled in, a thumb, each
- * tipped with a claw (claws: bone). Long thin fingers with knuckles, not a mitten (the shape pass, #726).
+ * A clawed hand on its joint, hanging down it: a palm, three jointed fingers a little splayed and curled in, a thumb, each
+ * tipped with a claw. Long thin fingers with knuckles, not a mitten (the shape pass, #726). The fingers on the fist's two
+ * pivots (src/enemies/wield.js Fist, #744): they close round what the hand holds. Returns the Fist.
  */
-function clawHand(s, size = 1) {
-  const r = 0.03 * size, skin = [new THREE.SphereGeometry(r * 1.55, 9, 7).scale(1.08, 1.25, 0.62).translate(0, -r * 1.25, r * 0.05)], claw = [];
+function clawHand(hand, s, size, skinM, clawM) {
+  const r = 0.03 * size, palm = [new THREE.SphereGeometry(r * 1.55, 9, 7).scale(1.08, 1.25, 0.62).translate(0, -r * 1.25, r * 0.05)];
+  const K0 = [0, -r * 2.45, r * 0.2], M0 = [0, K0[1] - r * 1.85, K0[2] + r * 0.45], E0 = [0, M0[1] - r * 1.05, M0[2] + r * 1.0];
+  const { knuckles, tips } = fingerPivots(hand, K0, M0);
+  const sub = (p, o) => [p[0] - o[0], p[1] - o[1], p[2] - o[2]];
+  const prox = [], dist = [], claw = [];
   for (let i = -1; i <= 1; i++) {
     const sp = i * 0.2, x = i * r * 1.0, l = i ? 0.9 : 1;
     const k = [x, -r * 2.45, r * 0.2], m = [x + Math.sin(sp) * r * 1.8 * l, k[1] - r * 1.85 * l, k[2] + r * 0.45], e = [m[0] + Math.sin(sp) * r * 1.2 * l, m[1] - r * 1.05 * l, m[2] + r * 1.0 * l];
-    skin.push(new THREE.SphereGeometry(r * 0.5, 5, 4).translate(...k), bone(k, m, r * 0.46, 5), bone(m, e, r * 0.38, 5));
-    claw.push(spike(e, [e[0] - m[0], e[1] - m[1] - r * 0.4, e[2] - m[2]], r * 0.3, r * 1.25));
+    prox.push(new THREE.SphereGeometry(r * 0.5, 5, 4).translate(...sub(k, K0)), bone(sub(k, K0), sub(m, K0), r * 0.46, 5));
+    dist.push(bone(sub(m, M0), sub(e, M0), r * 0.38, 5));
+    claw.push(spike(sub(e, M0), [e[0] - m[0], e[1] - m[1] - r * 0.4, e[2] - m[2]], r * 0.3, r * 1.25));
   }
   const t0 = [s * r * 1.35, -r * 1.2, r * 0.55], t1 = [s * r * 2.2, -r * 2.4, r * 1.25];
-  skin.push(bone(t0, t1, r * 0.4, 5));
-  claw.push(spike(t1, [s * 0.4, -0.7, 0.6], r * 0.28, r * 1.0));
-  return { skin, claw };
+  many(hand, [...palm, bone(t0, t1, r * 0.4, 5)], skinM);
+  many(hand, [spike(t1, [s * 0.4, -0.7, 0.6], r * 0.28, r * 1.0)], clawM);
+  many(knuckles, prox, skinM); many(tips, dist, skinM); many(tips, claw, clawM);
+  // (the haft across the palm's lower half, in front of it, just under the knuckles)
+  return new Fist(knuckles, tips, { K: [K0[1], K0[2]], M: [M0[1], M0[2]], E: [E0[1], E0[2]], finger: r * 0.42, haft: (rh) => [0, K0[1] - r * 0.35, r * 0.72 + rh * 0.92] });
 }
 /** A wide clawed foot on its ankle, toes splayed forward (`toes` of them), each with a claw (or a toenail). */
 function clawFoot(size = 1, toes = 3) {
@@ -150,23 +159,11 @@ function hookClaw(at, dir, hook, r, l) {
   return loftAlong(pts, (u) => r * (1 - u * 0.92), (u) => r * 1.25 * (1 - u * 0.92), 5, 5, hook);
 }
 /**
- * A held prop's grip turned so its +y points along `dir` in `frame`'s own axes (x its left, y up, z ahead), `w` of the
- * way from the turn it has (slerped): a pose's own aim for a weapon, where the clip's fist would hold it wrong.
- */
-const _aq = new THREE.Quaternion(), _bq = new THREE.Quaternion(), _pq = new THREE.Quaternion(), _yUp = new THREE.Vector3(0, 1, 0);
-export function aimGrip(grip, frame, dir, w = 1) {
-  if (!(w > 0.01)) return;
-  frame.updateWorldMatrix(true, false); grip.parent.updateWorldMatrix(true, false);
-  _w.set(...dir).normalize();
-  _aq.setFromUnitVectors(_yUp, _w).premultiply(frame.getWorldQuaternion(_bq));
-  grip.parent.getWorldQuaternion(_pq).invert();
-  grip.quaternion.slerp(_pq.multiply(_aq), Math.min(1, w));
-}
-/**
  * The hips raised `up` m (the rig's; less where the leg would not reach) over a leg whose foot stays where the clip
  * planted it (leg i reaches it again by two-bone IK, the knee forward, the sole's turn kept): a standing leg straightened
  * under a lifted body (`tilt`: the body first leant about z that much, rad).
  */
+const _bq = new THREE.Quaternion(), _pq = new THREE.Quaternion();
 const _h0 = new THREE.Vector3(), _f0 = new THREE.Vector3(), _kn = new THREE.Vector3(), _fwd = new THREE.Vector3(), _fq = new THREE.Quaternion(), _down = new THREE.Vector3(0, -1, 0);
 function liftOver(J, i, up, tilt = 0) {
   const leg = J.legs[i], knee = J.knees[i], foot = J.feet[i];
@@ -232,8 +229,22 @@ export const GRUNT_MOVES = {
   rock: { clip: 'gs_jump_attack', from: 0.15, load: 0.85, cut: 1.1, to: 1.45, ground: true, release: 0.78 },
 };
 const GRUNT_SPEEDS = { walk: 0.6, jog: 1.8, sprint: 3.6 };
-/** Where its club points in the overhead's wind-up, in its torso's frame (x its left, z ahead): up, back and to its right. */
-export const GRUNT_AIM = { overhead: [-0.85, 0.5, -0.2] };
+/**
+ * How it holds what it holds (src/enemies/wield.js, #744; dirs in the chest's frame, x its left, y up, z ahead, unless
+ * the key says): the club in its right fist, its head down and forward off the swinging arm; the overhead both fists
+ * stacked on the haft, the club up and back over its right shoulder (the sheet's attack pose), over its head and down
+ * before it; the lunge cocked back by its hip, then swung through ahead. The spear and the bow the mummer's.
+ */
+export const GRUNT_HOLD = {
+  club: { side: 0, r: 0.045, reach: [0.8, 0.09], head: 0.1, carry: { dir: [0.12, -0.5, 0.86] },
+    moves: {
+      club: { wind: [-0.4, 0.72, -0.56], via: [-0.1, 0.85, 0.5], hit: [0, -0.55, 0.84], follow: [0, -0.8, 0.6], both: { at: 0.11, from: -0.07, to: 0.4, phases: ['wind', 'strike'] } },
+      lunge: { wind: [-0.35, 0.25, -0.9], via: [-0.6, 0.1, 0.8], hit: [0.25, -0.2, 0.95] },
+    },
+    poses: { clutch: { dir: [0.1, -0.5, 0.86] } } },
+  spear: spearHold(1.55),
+  bow: bowHold(0.4),
+};
 
 export function gruntModel(skin) {
   const P = skin.palette, M = materials('grunt', skin);
@@ -263,13 +274,14 @@ export function gruntModel(skin) {
   }
   // (short at its sides, the hem at mid-thigh: its legs show to the hips, as the sheet draws them)
   many(hem, [lathe([[0.27, -0.08], [0.25, -0.02], [0.235, 0.06]], 18, 0.86), ...tatters(9, 0.27, -0.075, 0.045, 0.86, 0.11), ...flap], clothB);
+  const fists = [null, null];
   // arms: short, thick, to its thighs (lofted: a round shoulder falling into the upper arm, a fleshy forearm narrowing to
   // the wrist); four-fingered clawed hands
   J.arms.forEach((arm, i) => {
-    const s = i ? 1 : -1, h = clawHand(s, 1.35);
+    const s = i ? 1 : -1;
+    fists[i] = clawHand(J.hands[i], s, 1.35, skinB, boneB);
     many(arm, [loftLimb(D.upper, [[-0.27, 0.008, 0.008], [-0.2, 0.042, 0.041], [-0.1, 0.058, 0.057, 0, 0.003], [0.04, 0.064, 0.062, 0, 0.006], [0.35, 0.06, 0.058, 0.006], [0.75, 0.05, 0.05], [1, 0.046, 0.046]], s, 10)], skinB);
     many(J.elbows[i], [new THREE.SphereGeometry(0.046, 8, 6), loftLimb(D.fore, [[0, 0.046, 0.046], [0.3, 0.053, 0.05, 0.005], [0.8, 0.036, 0.032], [1.02, 0.033, 0.03]], s)], skinB);
-    many(J.hands[i], h.skin, skinB); many(J.hands[i], h.claw, boneB);
   });
   // legs: short and bowed, thick thighs, wide clawed feet
   J.legs.forEach((leg, i) => {
@@ -300,8 +312,9 @@ export function gruntModel(skin) {
   // the weapons: the club, the spear in the right fist, the bow in the left; each its own pivot (shown, hidden, dropped)
   const grip = pivot(J.hands[0], 0, -0.06, 0.012, 'grip'), gripL = pivot(J.hands[1], 0, -0.06, 0.012, 'grip l');
   const club = pivot(grip, 0, 0, 0, 'club'), spear = pivot(grip, 0, 0, 0, 'spear'), bow = pivot(gripL, 0, 0, 0, 'bow');
-  const build = (node, parts) => { for (const [k, geos] of Object.entries(parts)) many(node, geos, { wood: woodB, rope: leatherB, leather: leatherB, iron: ironB, rag: clothB }[k]); };
-  build(club, knobClub()); build(spear, spearParts(1.55)); build(bow, bowParts(0.4));
+  const build = (node, parts) => { for (const [k, geos] of Object.entries(parts)) if (geos.length) many(node, geos, { wood: woodB, rope: leatherB, leather: leatherB, iron: ironB, rag: clothB }[k]); };
+  build(club, knobClub()); build(spear, spearParts(1.55)); build(bow, bowParts(0.4, false));
+  const cord = bowCord(bow, 0.4, leatherB);
   const dropped = pivot(g, 0, 0, 0, 'dropped weapon');
   const dClub = pivot(dropped, 0, 0, 0, 'dropped club'), dSpear = pivot(dropped, 0, 0, 0, 'dropped spear'), dBow = pivot(dropped, 0, 0, 0, 'dropped bow');
   build(dClub, knobClub()); build(dSpear, spearParts(1.55)); build(dBow, bowParts(0.4));
@@ -309,6 +322,8 @@ export function gruntModel(skin) {
   // (its stance over the clip's: bow-legged, the feet turned out, a little hunched over its belly)
   const style = () => { J.legs[0].rotateZ(-0.12); J.legs[1].rotateZ(0.12); J.knees[0].rotateZ(0.08); J.knees[1].rotateZ(-0.08); J.feet[0].rotateZ(0.04); J.feet[1].rotateZ(-0.04); J.feet[0].rotateY(-0.2); J.feet[1].rotateY(0.2); };
   const driver = new HumanoidDriver(J, rig, { moves: GRUNT_MOVES, speeds: GRUNT_SPEEDS, style, seat: 0.14 });
+  const wield = new Wielder(J, driver, { fists, grips: [grip, gripL], weapons: GRUNT_HOLD });
+  let draw = 0;
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.9, up: 0.5, down: 0.5 })];
   const vc = { vertexColors: true };
   skinBy(g, [
@@ -322,7 +337,7 @@ export function gruntModel(skin) {
   let glow = 0;
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.skin, P.cloth, P.ink],
-    driver, joints: J,
+    driver, joints: J, wield, fists,
     tell: (id) => (id === 'volley' ? gripL : id === 'rock' ? J.hands[0] : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 0);
@@ -332,18 +347,11 @@ export function gruntModel(skin) {
       // what it holds (f.weapon: 'club', 'spear', 'bow', or 'none'); nothing while it is disarmed or off to the rack
       const W = f.disarmed ? null : f.weapon ?? 'club';
       for (const [k, node] of Object.entries(held)) node.scale.setScalar(k === W ? 1 : 1e-3);
-      const move = want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0;
-      // (carried: the club down along its thigh, head forward; the spear upright; the bow upright before it)
-      if (W === 'spear') grip.rotation.set(0.25, 0, 0.1); else grip.rotation.set(Math.PI / 2 - 0.3, 0, 0.1);
-      // (the overhead: the arms are the pose's, the club up out of its fists; winding up, tilted back over its head and its
-      // right shoulder (the sheet's attack pose: GRUNT_AIM), coming over as it swings)
-      if (want.pose === 'overhead') {
-        grip.rotation.set(Math.PI - 0.5, 0, 0);
-        const back = want.phase === 'strike' ? 1 - smooth((f.k ?? 0) * 3) : want.phase === 'wind' ? 1 : 0;
-        aimGrip(grip, J.torso, GRUNT_AIM.overhead, driver.procW * back);
-      }
-      gripL.rotation.set(0.15, 0, Math.PI / 2 - 0.15);
-      driver.gripFrom(grip, 0, move); driver.gripFrom(gripL, 1, move);
+      // (its fists closed round it, its line aimed by what the body does: GRUNT_HOLD; the bow's cord drawn back by the
+      // right fist through the volley's draw)
+      wield.update(f, want, c, held[W] ? W : null, { pinch: [W === 'bow' && draw > 0.05, false] });
+      draw = drawOf(f, want, dt, 'volley', draw);
+      drawCord(cord, W === 'bow' && draw > 0.001 ? J.hands[0].localToWorld(_w.copy(fists[0].fit(0.006).at)) : null, draw);
       // one it dropped lies where it fell (not one it is off to take from the rack)
       for (const node of Object.values(lying)) node.scale.setScalar(1e-3);
       const S = f.disarmed, lie = S && !S.rack ? lying[f.droppedWeapon ?? f.weapon] : null;
@@ -387,6 +395,20 @@ const HULK_SPEEDS = { walk: 1.0, jog: 2.4, sprint: 4.6 };
 export const HULK_STANCE = { hunch: 0.26, look: -0.3, stomp: { thigh: 1.05, out: 0.55, knee: 0.95, foot: -0.1, rise: 0.22 } };
 /** Its head (the face's pivot under the neck's, m) and its size over the parts built at a person's: thrust forward and low. */
 export const HULK_HEAD = { at: [0, -0.1, 0.22], scale: 1.18 };
+/**
+ * How it holds its club (src/enemies/wield.js, #744): by the butt in its right fist, the head down and forward across
+ * its front, toward the ground (the sheet's); the smash both fists stacked at the butt, the club up and back over its
+ * right shoulder (the sheet's attack pose), over its horn and down before it; the sweep drawn back high over its right
+ * shoulder in both fists, swung across before it; the stomp raised in its fist as its arms fly up, brought down with it.
+ */
+export const HULK_HOLD = {
+  club: { side: 0, r: 0.064, reach: [1.56, 0.22], head: 0.13, carry: { dir: [0.25, -0.55, 0.8] },
+    moves: {
+      smash: { wind: [-0.42, 0.62, -0.66], via: [-0.05, 0.9, 0.45], hit: [0, -0.5, 0.86], follow: [0, -0.75, 0.66], both: { at: -0.17, from: -0.2, to: 0.6, phases: ['wind', 'strike'] } },
+      sweep: { frame: 'body', wind: [-0.62, 0.55, -0.56], via: [-0.7, 0.15, 0.7], hit: [0.8, 0.02, 0.6], follow: [0.75, -0.25, -0.6], both: { at: -0.17, from: -0.2, to: 0.6, phases: ['wind', 'strike'] } },
+      stomp: { wind: [-0.25, 0.35, -0.9], hit: [-0.35, -0.3, 0.88] },
+    } },
+};
 
 export function hulkModel(skin) {
   const P = skin.palette, M = materials('hulk', skin);
@@ -415,13 +437,14 @@ export function hulkModel(skin) {
     ...tatters(15, 0.6, -0.38, 0.16, 0.72, 0.17).map((x) => x.translate(0, 0, 0.03)), ...kiltFlap], hideB);
   many(hem, [new THREE.TorusGeometry(0.45, 0.03, 5, 28).rotateX(Math.PI / 2).scale(1, 1, 0.7).translate(0, 0.02, 0.04),
     new THREE.SphereGeometry(0.055, 7, 5).translate(-0.05, 0.01, 0.36), ...[-0.08, -0.02].map((x, i) => new THREE.CylinderGeometry(0.022, 0.017, 0.4 + i * 0.1, 5).rotateX(-0.12).translate(x, -0.2 - i * 0.05, 0.39))], ropeB);
+  const fists = [null, null];
   // long heavy arms to its knees, muscled (lofted: the deltoid's mass over the shoulder, the biceps before, the forearm
   // swelling below the elbow and narrowing to the wrist); big four-fingered hands
   J.arms.forEach((arm, i) => {
-    const s = i ? 1 : -1, h = clawHand(s, 2.6);
+    const s = i ? 1 : -1;
+    fists[i] = clawHand(J.hands[i], s, 2.6, skinB, hornB);
     many(arm, [loftLimb(D.upper, [[-0.14, 0.09, 0.09], [0.04, 0.2, 0.19, -0.005, 0.025], [0.24, 0.18, 0.175, 0, 0.02], [0.52, 0.145, 0.168, 0.035], [0.86, 0.12, 0.125], [1.02, 0.115, 0.115]], s, 9)], skinB);
     many(J.elbows[i], [new THREE.SphereGeometry(0.12, 9, 7), loftLimb(D.fore, [[0, 0.12, 0.12], [0.2, 0.152, 0.14, 0.012, 0.012], [0.5, 0.128, 0.115, 0.005], [0.88, 0.09, 0.076], [1.02, 0.085, 0.07]], s, 9)], skinB);
-    many(J.hands[i], h.skin, skinB); many(J.hands[i], h.claw, hornB);
   });
   // thick legs, broad bare feet with five toes
   J.legs.forEach((leg, i) => {
@@ -471,6 +494,7 @@ export function hulkModel(skin) {
     J.legs[0].rotateX(-S.thigh * k); J.legs[0].rotateZ(-S.out * k); J.knees[0].rotateX(S.knee * k); J.feet[0].rotateX(S.foot * k);
   };
   const driver = new HumanoidDriver(J, rig, { moves: HULK_MOVES, speeds: HULK_SPEEDS, style, seat: 0.36 });
+  const wield = new Wielder(J, driver, { fists, grips: [grip, null], weapons: HULK_HOLD });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.6, up: 0.35, down: 0.45 })];
   const vc = { vertexColors: true };
   skinBy(g, [
@@ -485,7 +509,7 @@ export function hulkModel(skin) {
   let glow = 0;
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.skin, P.belly, P.ink],
-    driver, joints: J,
+    driver, joints: J, wield, fists,
     tell: (id) => (id === 'throw' ? J.hands[1] : id === 'stomp' ? J.feet[0] : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 0);
@@ -493,10 +517,10 @@ export function hulkModel(skin) {
       const want = driver.update(f, c);
       const sw = sway.update(dt, driver.speed, f.heading);
       hangFromHips(hem, J.body, sw.x, sw.z);   // (its kilt hangs from its hips, not its hunched chest nor the clip's bend)
-      // the club: hanging along its fist, head down and forward; set down while it holds a grunt up
-      grip.rotation.set(Math.PI / 2 - 0.35, 0, 0);
-      driver.gripFrom(grip, 0, want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
-      club.scale.setScalar(f.atk?.id === 'throw' && f.state !== 'chase' && f.state !== 'idle' ? 1e-3 : 1);
+      // the club in its fist (HULK_HOLD); set down while it holds a grunt up, its hands open
+      const throwing = f.atk?.id === 'throw' && f.state !== 'chase' && f.state !== 'idle';
+      club.scale.setScalar(throwing ? 1e-3 : 1);
+      wield.update(f, want, c, throwing ? null : 'club');
       glow = ease(glow, f.state === 'wind' ? 1 : 0, 6, dt || 1);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye, P.flare ?? '#ffcf6a'));
       eyeM.uniforms.uGlow.value = 0.5 + 0.4 * glow;
@@ -635,19 +659,42 @@ export const PROWLER_HEAD = { z0: -0.09, z1: 0.32, jaw: 0.026,
   y: [[0, 0.1], [0.35, 0.098], [0.75, 0.08], [1, 0.072]],
   w: [[0, 0.03], [0.1, 0.075], [0.33, 0.088], [0.6, 0.064], [0.88, 0.045], [1, 0.016]],
   h: [[0, 0.03], [0.1, 0.07], [0.33, 0.072], [0.6, 0.052], [0.88, 0.036], [1, 0.014]] };
+/**
+ * How it holds its blade (src/enemies/wield.js, #744): hanging point down and forward by its leg; the slash drawn back
+ * across its chest to its left shoulder, then out flat across before it; the dart drawn back along its side as it sinks,
+ * then straight ahead with it.
+ */
+export const PROWLER_HOLD = {
+  blade: { side: 0, r: 0.016, wrist: SWORD_WRIST, reach: [0.52, 0.08], carry: { dir: [0.05, -0.72, 0.7] },
+    moves: {
+      slash: { wind: [0.55, 0.5, -0.67], via: [0.1, 0.35, 0.93], hit: [-0.8, 0.05, 0.6], follow: [-0.85, -0.2, -0.3] },
+      dart: { wind: [-0.25, 0.15, -0.95], hit: [0, 0.05, 1] },
+    } },
+};
 export const PROWLER_TAIL = { n: 8, len: 0.17, r0: 0.075, r1: 0.014, rest: [0.45, 0.25, 0.15, 0.05, -0.1, -0.2, -0.2, -0.1] };
 
-/** A long three-fingered lizard hand hanging down its joint: a narrow palm, three long fingers, each with a claw. */
-function lizardHand(size = 1) {
-  const r = 0.022 * size, skin = [new THREE.SphereGeometry(r * 1.6, 8, 6).scale(1, 1.3, 0.6).translate(0, -r * 1.2, 0)], claw = [];
+/**
+ * A long three-fingered lizard hand on its joint, hanging down it: a narrow palm, three long fingers, each with a hooked
+ * claw curling in toward the palm (the sheet's); the fingers in two segments on the fist's pivots (#744). Returns the Fist.
+ */
+function lizardHand(hand, size, skinM, clawM) {
+  const r = 0.022 * size, K0 = [0, -r * 2.2, r * 0.3];
+  const tilt = (a) => new THREE.Vector3(0, -1, 0).applyEuler(new THREE.Euler(-0.3, 0, a));
+  const M0 = new THREE.Vector3(...K0).addScaledVector(tilt(0), r * 4.2 * 0.55).toArray(), E0 = new THREE.Vector3(...K0).addScaledVector(tilt(0), r * 4.2).toArray();
+  const { knuckles, tips } = fingerPivots(hand, K0, M0);
+  const sub = (p, o) => [p[0] - o[0], p[1] - o[1], p[2] - o[2]];
+  const prox = [], dist = [], claw = [];
   for (let i = -1; i <= 1; i++) {
-    const a = i * 0.28, l = r * (i ? 3.4 : 4.2);
-    skin.push(new THREE.CapsuleGeometry(r * 0.42, l, 3, 5).translate(0, -l / 2, 0).rotateX(0.3).rotateZ(a).translate(i * r * 0.7, -r * 2.2, r * 0.3));
+    const a = i * 0.28, l = r * (i ? 3.4 : 4.2), d = tilt(a), k = [i * r * 0.7, K0[1], K0[2]];
+    const m = new THREE.Vector3(...k).addScaledVector(d, l * 0.55).toArray(), e = new THREE.Vector3(...k).addScaledVector(d, l).toArray();
+    prox.push(bone(sub(k, K0), sub(m, K0), r * 0.42, 5));
+    dist.push(bone(sub(m, M0), sub(e, M0), r * 0.4, 5));
     // (a long hooked claw, curling in toward the palm: the sheet's)
-    const tip = new THREE.Vector3(0, -l, 0).applyEuler(new THREE.Euler(0.3, 0, a)).add(new THREE.Vector3(i * r * 0.7, -r * 2.2, r * 0.3)), d = new THREE.Vector3(0, -1, 0.35).applyEuler(new THREE.Euler(0.3, 0, a));
-    claw.push(hookClaw(tip.toArray(), d.toArray(), [0, -0.2, 1], r * 0.4, r * 2.1));
+    claw.push(hookClaw(sub(e, M0), d.clone().add(new THREE.Vector3(0, 0, 0.35)).toArray(), [0, -0.2, 1], r * 0.4, r * 2.1));
   }
-  return { skin, claw };
+  many(hand, [new THREE.SphereGeometry(r * 1.6, 8, 6).scale(1, 1.3, 0.6).translate(0, -r * 1.2, 0)], skinM);
+  many(knuckles, prox, skinM); many(tips, dist, skinM); many(tips, claw, clawM);
+  return new Fist(knuckles, tips, { K: [K0[1], K0[2]], M: [M0[1], M0[2]], E: [E0[1], E0[2]], finger: r * 0.42, haft: (rh) => [0, K0[1] - r * 0.4, r * 0.75 + rh * 0.92] });
 }
 /** A digitigrade foot on its ankle (the ball of the foot): a pad, three long toes on the ground, claws. */
 function lizardFoot(size = 1) {
@@ -690,15 +737,15 @@ export function prowlerModel(skin) {
     new THREE.SphereGeometry(0.1, 14, 4, 0, Math.PI * 2, 1.15, 0.3).scale(1, 0.9, 1.08).rotateZ(-0.3).translate(0.02, 0.0, 0)];
   many(J.arms[1], guard.map((x) => x.scale(0.92, 0.92, 0.92).translate(0, -0.035, 0)), steelB);
   many(J.arms[1], [-0.5, 0, 0.5].map((a) => new THREE.SphereGeometry(0.008, 5, 4).translate(Math.sin(a) * 0.07 + 0.04, -0.035, Math.cos(a) * 0.075)), inkB);
+  const fists = [null, null];
   // arms: thin and long, to its thighs; three long clawed fingers
   J.arms.forEach((arm, i) => {
-    const h = lizardHand(1.25);
+    fists[i] = lizardHand(J.hands[i], 1.25, skinB, boneB);
     // (lean muscle, lofted: a round deltoid, the biceps' swell before and the triceps' behind, a forearm thick below the
     // elbow and thin at the wrist)
     const s = i ? 1 : -1;
     many(arm, [loftLimb(D.upper, [[-0.12, 0.03, 0.03], [0.04, 0.056, 0.056, 0, 0.006], [0.2, 0.048, 0.05, 0], [0.45, 0.04, 0.048, 0.004], [0.82, 0.03, 0.031], [1.03, 0.028, 0.028]], s)], skinB);
     many(J.elbows[i], [new THREE.SphereGeometry(0.031, 8, 6), loftLimb(D.fore, [[0, 0.031, 0.031], [0.2, 0.038, 0.036, -0.003, 0.004], [0.5, 0.031, 0.028], [0.85, 0.021, 0.019], [1.02, 0.019, 0.017]], s)], skinB);
-    many(J.hands[i], h.skin, skinB); many(J.hands[i], h.claw, boneB);
   });
   // legs (digitigrade): a thick thigh; the shin bent back from the knee to a raised hock, the long instep forward and down
   // from it to the ball of the foot (the ankle's joint), three long toes on the ground (PROWLER_SHANK)
@@ -761,6 +808,7 @@ export function prowlerModel(skin) {
     if (cur?.atk?.id === 'spit' && want.clip) { const k = want.kind === 'wind' ? Math.min(1, want.load ?? 0) * (want.thrown > 0 ? 1 - want.thrown : 1) : 0; J.head.rotateX(-0.6 * k); J.torso.rotateX(-0.15 * k); }
   };
   const driver = new HumanoidDriver(J, rig, { moves: PROWLER_MOVES, speeds: PROWLER_SPEEDS, style, seat: 0.3 });
+  const wield = new Wielder(J, driver, { fists, grips: [grip, null], weapons: PROWLER_HOLD });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 1.0, up: 0.5, down: 0.6 })];
   const vc = { vertexColors: true };
   skinBy(g, [
@@ -774,7 +822,7 @@ export function prowlerModel(skin) {
   const _hinge = new THREE.Vector3(), _hq = new THREE.Quaternion(), _ax = new THREE.Vector3(1, 0, 0);
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.skin, P.belly, P.ink],
-    driver, joints: J, tail,
+    driver, joints: J, tail, wield, fists,
     tell: (id) => (id === 'tail' ? segs[4] : id === 'spit' ? Hp : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 0);
@@ -793,9 +841,8 @@ export function prowlerModel(skin) {
         for (const k of J.knees) k.rotateX(PROWLER_STANCE.flipTuck * 1.3 * tuck);
         for (const a of J.arms) a.rotateZ(0);
       }
-      // grip: the blade hanging point-down by its leg; in a move, the clip's fist
-      grip.rotation.set(Math.PI - 0.15, Math.PI / 2, 0.05);   // (its flat out to the front, as the sheet draws it hanging)
-      driver.gripFrom(grip, 0, want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
+      // the blade in its fist (PROWLER_HOLD)
+      wield.update(f, want, c, 'blade');
       // the tail: lashing as it winds up (the dart's: hard), straight out at knee height through the tail sweep, curled in the flip
       const id = f.atk?.id, active = f.state === 'wind' || f.state === 'strike';
       const sweep = id === 'tail' && active ? (f.state === 'strike' ? 1 : Math.min(1, (f.k ?? 0) / HOLD_AT)) : 0;
@@ -845,8 +892,23 @@ export const WARLORD_HEAD = { scale: 1.45 };
  * back from the top), the section's half width (in the coil) and half height (along its axis) by keys, its ridges. */
 export const WARLORD_HORN = { c: [0.17, 0.17, -0.02], fwd: 0.4, r0: 0.13, r1: 0.1, x0: -0.06, x1: 0.14, turns: 0.82, start: 0.35, ridges: 9,
   w: [[0, 0.058], [0.5, 0.05], [1, 0.014]], h: [[0, 0.07], [0.5, 0.058], [1, 0.016]] };
-/** Where its glaive points in a held pose, in its body's frame (x its left, z ahead): the charge's lance, the whirl's reach. */
-export const WARLORD_AIM = { sweep: [0.62, 0.6, -0.5], lance: [0, -0.12, 1], whirl: [-1, 0.05, 0.25], glaiveHigh: [-0.7, 0.6, -0.4], glaiveHighStrike: [0.85, 0.1, 0.55], roar: [-0.35, 1, 0.25], carry: [-0.16, 1, 0.1] };
+/**
+ * How it holds its glaive (src/enemies/wield.js, #744; dirs in the chest's frame unless the key says): upright beside it
+ * in its right fist, the forearm brought up before it, the butt by its foot; the sweep drawn back up over its right
+ * shoulder in both fists, the left hand up the shaft (the sheet's attack pose), swung across before it; the overhead high
+ * over its horns, then down; levelled like a lance at you for the charge, the left hand forward along the shaft; the roar
+ * raised in its fist; the last stand swung back round behind it in both fists, then out at its full reach as it whirls.
+ */
+export const WARLORD_HOLD = {
+  glaive: { side: 0, r: 0.032, wrist: SWORD_WRIST, reach: [2.45, 0.8], carry: { frame: 'body', dir: [-0.1, 1, 0.06], fore: [-0.05, -0.35, 0.94] },
+    moves: {
+      sweep: { frame: 'body', wind: [-0.55, 0.6, -0.58], via: [-0.62, 0.12, 0.78], hit: [0.8, 0.02, 0.6], follow: [0.9, -0.15, -0.35], both: { at: 0.5, from: -0.6, to: 1.0 } },
+      overhead: { wind: [-0.12, 0.45, -0.88], via: [0, 0.95, 0.3], hit: [0, -0.45, 0.89], both: { at: -0.35, from: -0.6, to: 1.0 } },
+      charge: { frame: 'body', wind: [0, -0.12, 1], hit: [0, -0.12, 1], both: { at: 0.6, from: -0.6, to: 1.0 } },
+      roar: { frame: 'body', wind: [-0.35, 1, 0.25], hit: [-0.35, 1, 0.25] },
+      whirl: { frame: 'body', wind: [-0.45, 0.05, -0.9], hit: [-1, 0.05, 0.2], both: { at: 0.5, from: -0.6, to: 1.0 } },
+    } },
+};
 export function warlordModel(skin) {
   const P = skin.palette, M = materials('warlord', skin);
   const g = new THREE.Group(); g.name = skin.name;
@@ -869,14 +931,15 @@ export function warlordModel(skin) {
   const hem = pivot(T, 0, -0.04, 0, 'hem');
   const flap = (z, w, l) => { const geo = new THREE.PlaneGeometry(w, l, 4, 3).translate(0, -l / 2, 0); const p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, (z > 0 ? 1 : -1) * (0.04 * Math.cos((x / w) * Math.PI)) - 0.02 * (y / l)); if (y < -l * 0.95) p.setY(i, y + 0.04 * Math.sin(x * 37)); } geo.computeVertexNormals(); return geo.translate(0, 0, z); };
   many(hem, [flap(0.2, 0.34, 0.5), flap(-0.18, 0.38, 0.46), ...tatters(10, 0.25, -0.02, 0.18, 0.74, 0.1)], clothB);
+  const fists = [null, null];
   // arms: thick and muscled; bronze bracers on the forearms; big hands
   J.arms.forEach((arm, i) => {
-    const s = i ? 1 : -1, h = clawHand(s, 2.0);
+    const s = i ? 1 : -1;
+    fists[i] = clawHand(J.hands[i], s, 2.0, skinB, skinB);
     // (lofted: the deltoid under its pauldron, the biceps' swell, the forearm thick below the elbow)
     many(arm, [loftLimb(D.upper, [[-0.14, 0.07, 0.07], [0.04, 0.14, 0.135, 0, 0.015], [0.3, 0.12, 0.13, 0.015], [0.55, 0.105, 0.125, 0.025], [0.88, 0.09, 0.092], [1.03, 0.088, 0.088]], s, 9)], skinB);
     many(J.elbows[i], [new THREE.SphereGeometry(0.09, 9, 7), loftLimb(D.fore, [[0, 0.09, 0.09], [0.2, 0.108, 0.1, 0.006, 0.008], [0.55, 0.09, 0.08], [0.9, 0.07, 0.062], [1.02, 0.068, 0.06]], s, 9)], skinB);
     many(J.elbows[i], [new THREE.CylinderGeometry(0.098, 0.104, 0.22, 12).translate(0, -D.fore + 0.15, 0), ...[-0.06, 0.06].map((y) => new THREE.TorusGeometry(0.104, 0.012, 4, 14).rotateX(Math.PI / 2).translate(0, -D.fore + 0.15 + y, 0))], bronzeB);
-    many(J.hands[i], [...h.skin, ...h.claw], skinB);
   });
   // legs: thick; bare broad feet; a bronze greave on each shin and its knee (plates)
   const plates = [];
@@ -961,6 +1024,7 @@ export function warlordModel(skin) {
     if (cur?.atk?.id === 'charge' && (want.kind === 'wind' || want.phase === 'strike')) J.head.rotateX(0.35 * (want.kind === 'wind' ? Math.min(1, want.load ?? 0) : 1));
   };
   const driver = new HumanoidDriver(J, rig, { moves: WARLORD_MOVES, speeds: WARLORD_SPEEDS, style, seat: 0.4 });
+  const wield = new Wielder(J, driver, { fists, grips: [grip, null], weapons: WARLORD_HOLD });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.7, up: 0.35, down: 0.45 })];
   const vc = { vertexColors: true };
   skinBy(g, [
@@ -975,7 +1039,7 @@ export function warlordModel(skin) {
   let glow = 0;
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, plates, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.skin, P.mane, P.bronze],
-    driver, joints: J,
+    driver, joints: J, wield, fists,
     tell: (id) => (id === 'roar' ? H : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 0);
@@ -983,18 +1047,8 @@ export function warlordModel(skin) {
       const want = driver.update(f, c);
       const sw = sway.update(dt, driver.speed, f.heading);
       hangFromHips(hem, J.body, sw.x, sw.z);
-      // the glaive: upright beside it in its fist, the butt by its foot; levelled like a lance in the charge; in a move
-      // the clip's fists
-      grip.rotation.set(0.08, 0, 0.06);
-      driver.gripFrom(grip, 0, want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
-      // (levelled at you for the charge, out to its right for the last stand: aimed in the body's own frame, eased in
-      // with the pose's weight; WARLORD_AIM)
-      // (standing or walking, the glaive upright at its side, a little out: carry)
-      const posed = (want.phase === 'strike' && WARLORD_AIM[want.pose + 'Strike']) || WARLORD_AIM[want.pose];
-      const aim = posed ?? WARLORD_AIM.carry, w = posed ? Math.min(1, driver.procW ?? 1) : 1 - (want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover' ? driver.moveW : 0);
-      aimGrip(grip, J.body, aim, w);
-      // (the sweep's wind-up: the glaive drawn back over its right shoulder on the sheet's diagonal, not upright: WARLORD_AIM)
-      if (f.atk?.id === 'sweep' && (want.kind === 'wind' || want.kind === 'strike')) aimGrip(grip, J.body, WARLORD_AIM.sweep, driver.moveW * (want.kind === 'wind' ? smooth((f.k ?? 0) / HOLD_AT) : 1 - smooth((f.k ?? 0) * 4)));
+      // the glaive in its fists (WARLORD_HOLD)
+      wield.update(f, want, c, 'glaive');
       glow = ease(glow, f.state === 'wind' ? 1 : 0, 6, dt || 1);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye, P.flare ?? '#ffcf6a'));
       eyeM.uniforms.uGlow.value = 0.5 + 0.4 * glow;
