@@ -148,13 +148,13 @@ const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [C
 const flatM = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
 
 function tankModel() {
-  // the flask as it is worn (fluid-tool.js buildFlask), in its own fluid material (not the worn tank's: the box animates its time)
-  const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
-  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false, stage: 0 });
+  // the makers' battery as it is worn (fluid-tool.js buildFlask, without its clip), in its own fluid material (not the
+  // worn one's: the box animates its time); tipped as the reference lies, a little turned to the eye (item-icons.js ICON_VIEW)
+  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [TANK.glass.y0, TANK.full, TANK.radius, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false, stage: 0 });
   glass.userData.fluid = true;
-  g.position.y = -0.22;
-  g.rotation.y = Math.PI + 0.3;   // (its dome to the eye (item-icons.js ICON_VIEW), a little turned: the round backpack's glass is half a sphere, open behind)
-  const w = new THREE.Group(); w.add(g); w.scale.setScalar(0.7);
+  g.position.y = -TANK.height / 2;
+  const tip = new THREE.Group(); tip.add(g); tip.rotation.set(0, Math.PI - 0.6, -0.55);
+  const w = new THREE.Group(); w.add(tip); w.scale.setScalar(1.2);
   return w;
 }
 
@@ -305,7 +305,7 @@ function whistleModel() {
   return g;
 }
 
-/** The lift valve (the double jump, v1.38): the backpack's brass valve, its wheel, a jade bead of fluid under it and the pair of small fins it adds to the ring (the round backpack's second stage). */
+/** The lift valve (the double jump, v1.38): the battery's brass valve, its wheel, a bead of fluid under it and a pair of small fins (once the round backpack's second stage). */
 function liftModel() {
   const g = new THREE.Group();
   const brass = flatM(BRASS), dark = flatM(BRASS_DARK), jade = flatM(FLUID_TONES[0], { glow: 0.7 });

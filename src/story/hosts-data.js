@@ -39,7 +39,7 @@ export const HOSTS = {
   rings: P({
     id: 'host.rings', name: 'Aziza', title: 'who keeps the brass hoops', color: '#d8a24a', kind: 'f',
     palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#6b4a36', legs: '#3a3330', hat: '#71d7cf', hair: '#4a3226' }, head: 'wrap', look: { mask: 'glasses' },
-    say: ['~curious~ I polish those brass hoops every week, and I still don’t know what the makers hung them for. Do you?', '~neutral~ So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little.'],
+    say: ['~curious~ I polish those brass hoops every week, and I still don’t know what the makers hung them for. Do you?', '~neutral~ So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your battery up a little.'],
     prize: '~neutral~ Fly it to the end, and the pathfinder’s coat on my peg is yours.',
     lines: ['~curious~ Twenty hoops. I’ve counted twice.'],
   }),

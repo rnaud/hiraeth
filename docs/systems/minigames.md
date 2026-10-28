@@ -122,7 +122,7 @@ refused a moment later by the notice. Once had, the lines and Play / Not now as 
 |---|---|---|---|
 | Fishing | Desert, the mineral basin's shore | Yusra, who fishes the basin | Six this morning, and one had legs. Whatever lives in the giants' water, it bites my hook. / Take the rod. Three minutes on my pier. When the float goes under, strike. Snap my line and you're mending it. |
 | Canyon run | Desert, red-rag salvage hollow (course sign under the lavender cliffs) | Kamal, who found the hoverbike | Race the salvage bike against his fan sled for ownership; after winning, he offers the optional three-lap run. |
-| Ring race | Desert, the hanging bridge's east shelf | Aziza, who keeps the brass hoops | I polish those brass hoops every week, and I still don't know what the makers hung them for. Do you? / So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little. |
+| Ring race | Desert, the hanging bridge's east shelf | Aziza, who keeps the brass hoops | I polish those brass hoops every week, and I still don't know what the makers hung them for. Do you? / So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your battery up a little. |
 | Wing drop | Desert, the hanging bridge's west shelf | Zayd, who painted the mesa | I mixed the paint for the pilgrims' bird mark up on the mesa. No bird's landed on it. So we do. / Three drops. Wings open, find the warm air, ride it up, and come down soft on the middle. Soft. It chips. |
 | Drum circle | Desert, the pilgrims' small fire | Hamid, who keeps the camps' drums | I stretched these skins the night the procession set out. Every night since, the old song, round the fire. / Sit with us. When a beat rolls into the ring, strike it. Keep up and the whole camp gets dancing. |
 | Dune skiing | Desert, the Long Dune's crest | Tarek, who made the sand-skis | The children slide down the Long Dune on boards. Boards! So I made skis. Nobody's thanked me yet. / Between every pair of poles. Tuck to go faster, and land your spins. |
@@ -289,14 +289,14 @@ export default {
   `onGround` and call `player.finishFrame(dt, speed)` for the clips (the platformer), or pose the rig
   (`player.char`) and call `player.humanoid.update()` (the skier).
 - **Gear for the run** (`kit/gear.js` `lendItems(ids)`): the registry (`src/items.js`) answers yes for the
-  lent items until the returned function is called (the session's `end()`), so the fluid tool draws the tank,
-  the jets' nozzles or the wings on the back; nothing is written to the save. Set the traveller's own flight
+  lent items until the returned function is called (the session's `end()`), so the fluid tool draws the battery at
+  his hip, the jets under his boots or the wings from his shoulders; nothing is written to the save. Set the traveller's own flight
   state for the pose and the sound (`player.jetFlight`, `thrusting`, `jetPower`; `gliding`, `glideTurn`) and
   call `player.finishFrame(dt, speed)`.
 - **On foot** (`drives: false`): the usual play runs (walking, the blade, the guard, the evade, the fluid gun,
   the lock-on on R3 / Tab) and the session's `update` comes after the camera; `ctx` also has `tool`, `foes`,
   `rig`, `settings`, `state`. `body.mg-onfoot` keeps the crosshair. `kit/onfoot.js`: `lendTool(tool, { max,
-  delay, mode })` lends the backpack for the game (worn and full even on a save that has not found it; its tank's
+  delay, mode })` lends the battery for the game (worn and full even on a save that has not found it; its battery's
   size held against the save's upgrades; `back.set({ max, delay })` for a boon; `back()` puts it all back),
   `tune(table, changes)` changes a tuning table (BLADE, EVADE…) for the game, `standAt(player, pos, heading, rig,
   yaw)`. `kit/labels.js` `WorldLabels`: a "+20" floating up from a point, a speech balloon, a label over a thing (the same words the screen's `words` part, for an engine to draw).
@@ -334,8 +334,8 @@ and require the gate with no fall.
 New desert travellers earn the hoverbike by beating Kamal in one lap of the Two
 Chasms. Kamal stands beside the salvaged bike and his own motor-driven fan sled.
 The tarp reveals the prize and opens his conversation: he found the bike but
-cannot power it, the traveller's fluid backpack can, and he offers a race with
-the bike and backpack at stake. Accepting with a filled tank launches
+cannot power it, the traveller's makers’ battery can, and he offers a race with
+the bike and battery at stake. Accepting with a filled battery launches
 `?game=canyon-rival&from=desert` after the conversation closes, through the shared
 story `playGame` callback (web navigation and Unity `onGame`). There is no free wake,
 loss reward or skip. Results offer Retry; quitting returns without ownership.
@@ -351,7 +351,7 @@ speed and cannot advance during the introduction or pause. The two bikes bump
 closing part of their velocity, each slowed, with the wall's sound and a shake. The visible opponent
 uses the existing character rig and riding pose on the fan sled's seat. Its
 two skids, blunt cowling and rear fan differ from the long-nosed prize bike;
-the sled has its own motor and no fluid tank socket. Passing is
+the sled has its own motor and no battery socket. Passing is
 non-contact; neither rider can win by knocking the other off the road.
 
 A within-frame finish-line comparison decides the winner, independent of update
@@ -360,8 +360,8 @@ order. A dead heat is a retry. Only a winning session writes
 Existing earned saves retain `found`; the original one-time legacy migration is
 preserved. The quest keeps its `find`/`wake` stage IDs for save compatibility.
 An accepted wager sets `desert.bike.race.accepted`. Losing sets `race.debt`:
-Kamal claims both prizes but explicitly lends the tank for a rematch, preserving
-the essential backpack and avoiding a stranded save. Winning clears the claim.
+Kamal claims both prizes but explicitly lends the battery for a rematch, preserving
+the essential battery and avoiding a stranded save. Winning clears the claim.
 Unrelated arcade losses and later practice never revoke earned equipment.
 The borrowed race bike needs no upgrades. Pure/session checks cover fixed rival
 pace at 20–120 fps, a slower/idle rider losing, actual steering/throttle input
@@ -428,15 +428,15 @@ the flight line by 14 m), seven floating rocks round the high part, a start mesa
 (`RING_POINTS`, hand-placed: a slalom down the field, a climb to 110 m, a dive to 30, the long way home; 50 to
 110 m apart, about 1.6 km), each `{ c, n, R: 6.5 }` facing along the line. The flyer is the jets' own model
 (`flyStep`: `jetSteer`, `jetNose`, `jetStep`, `jetDroop` from `src/player.js`, `boost` on all the way: the
-race-tuned jets fly at 31 m/s), lifting off the pad on the first squeeze. The tank burns `RACE.burn` (0.09) a
+race-tuned jets fly at 31 m/s), lifting off the pad on the first squeeze. The battery burns `RACE.burn` (0.09) a
 second at full throttle (about 11 s), each ring gives back `RACE.topUp` (0.28); dry, you glide.
 `raceStep`: the rings in order; the next one passed or missed (`crossRing`: through its plane within R, or
 within 6 R outside it), or one of the two after it went through (those between are missed: +5 s each).
 `hitAt`: the sand, a needle or a rock with the body's 0.7 m reach is a crash: +3 s, again from the last
-ring passed, flying on its way, the tank at least 0.4 full. The boost (`boost`: Shift, RB / R1, run on a touch
+ring passed, flying on its way, the battery at least 0.4 full. The boost (`boost`: Shift, RB / R1, run on a touch
 screen) flies at `RACE.surge` (1.28) of the jets' speed for `RACE.surgeBurn` (2.1) the burn: 31 m/s to 40, the
-tank in about 5 s instead of 11 (under thrust `jetStep` is linear in the velocity: the surge flies it scaled).
-Boosting on the straights with a quarter of the tank kept back is worth about 4 s on the ~54 s course (the tests'
+battery in about 5 s instead of 11 (under thrust `jetStep` is linear in the velocity: the surge flies it scaled).
+Boosting on the straights with a quarter of the battery kept back is worth about 4 s on the ~54 s course (the tests'
 pilot: 50.0 s against 53.9, never dry); boosting every straight to the last drop runs dry and glides for ~4.5 s,
 losing most of that; boosting all the way runs dry and comes down. The camera chases behind the nose (tipped with it,
 rolled a third of the bank); the arrow hangs at the top of the view (4.2 m ahead of the camera) pointing at
@@ -476,7 +476,7 @@ gently, at 60 and 30 fps.
 
 A fairground stall of the Signal Market (its paving, its plaster, its striped valance, a lit sign, shopfronts
 round it), built as its own little level; the afternoon sun comes from over the shoulder into the booth
-(`lightAt`). The traveller stands behind the counter (`STAND`, held there) with the stall's tank lent: six shots,
+(`lightAt`). The traveller stands behind the counter (`STAND`, held there) with the stall's battery lent: six shots,
 full again a second after the last (`GALLERY.tank`). Painted cutouts (`cutout`: fish and birds with bullseyes,
 ink-blot figures, and the friends: Auntie Lumé under her parasol, a cat) slide along two brass rails or flip up
 behind a low fence; four plates spin on sticks (they shatter and come back), two bells swing from the beam on long cords (`BELLS`: down at ~4.3 m, in the view
@@ -595,10 +595,10 @@ right stick or the mouse's ring aims; the blade and the gun take the foe in that
 
 `fight-temples/combat.js` installs run-scoped combat hooks: a roll that swallows a
 non-lingering blow grants three seconds of the existing bright-blade effect and
-one fluid charge (once per roll, capped at the tank maximum). Full charged cuts
+one fluid charge (once per roll, capped at the battery maximum). Full charged cuts
 and ripostes add two base damage against that run's gorged foes. `lendTool` holds
 the refill delay at 0.8 seconds and rate at one charge per second during the run.
-The session restores the hooks and normal tank rules on exit; the shared blade
+The session restores the hooks and normal battery rules on exit; the shared blade
 passes `charged` only for a completely filled charge. Browser and Unity share
 these rules. `tests/fight-temple-combat.test.js` checks eligibility, damage,
 refill, inactive sessions and cleanup; the design note describes the controls.
@@ -712,7 +712,7 @@ no host, no sign in a world. Score: the time (`score.kind: 'time'`).
   promise rejected, `pointerlockerror`) is heard: the visor then says to drag to look.
 - **The arm** (`lens-vault-arm.js`): the fluid glove seen from his eyes as a cannon, in the traveller's own colours
   (the coral sleeve bent down out of the picture at the elbow, the lavender band, the dark glove round a brass barrel,
-  the glass vial of the tank's fluid along its top, three lit knuckle studs round the mouth). Drawn in the world (the
+  the glass vial of the battery's fluid along its top, three lit knuckle studs round the mouth). Drawn in the world (the
   post pass inks it), placed in the camera's frame each frame 0.66 m out (the near plane is 0.3), low and right, turned
   in to the reticle 20 m out; it sways with the bob, kicks back at each shot, and a ball of fluid swells at its mouth
   as the charge fills (teal, gold when full).
@@ -778,7 +778,7 @@ bursts up), drones hover over it, and the hounds run as shadows among the six pi
 `KILL` points × the chain (`chainMult`: a quarter more for each foe cut down within 3 s of the last, to ×3), 30 a
 perfect parry, 5 a block (`player.guard` heard), 100 a wave untouched; the score is `tideScore` (150 a wave
 cleared + style). Between waves: 35% health back and three boons on plinths that rise ahead of you
-(`boonChoice`, `BOONS`: a longer blade, a deeper tank, quick refill, a heavy hand, second wind, light feet, a keen
+(`boonChoice`, `BOONS`: a longer blade, a deeper battery, quick refill, a heavy hand, second wind, light feet, a keen
 guard, and from wave 7 (`from`: once the moths have come) steady eyes, which cuts a flash's white and a harpoon's
 or a root's hold as `Foes.blind` / `Foes.strike` land them (wrapped for the run, put back at its end);
 `boonTunings` turns them into BLADE / EVADE / GUARD / FALL / tank values, put back when the game ends;
@@ -1069,7 +1069,7 @@ bad and there is shimmering on the ship at the beginning."
   | an explosion (a fighter) | +3.1, 0.40 s | +1.1, 0.35 s | the fight temples' kill (foeKill) under a rumble; two at once, the second lighter |
   | off the armour | -2.9, 1.35 s | -10.1, 0.20 s | the blade's glance (foeGlance) |
   | the lock | +1.9, 1.35 s | -11.7, 0.25 s | the lock-on's two notes (`Sound.lockOn`) |
-  | no missiles | -8.1, 1.35 s | -16.0, 0.10 s | the empty tank's sputter (fluidEmpty) |
+  | no missiles | -8.1, 1.35 s | -16.0, 0.10 s | the empty battery's sputter (fluidEmpty) |
   | a repair ring | +1.4, 1.50 s | -6.3, 0.45 s | a run of struck glass (`Sound.ting`, the chimes') |
   | a missile back | -2.5, 1.40 s | -9.8, 0.25 s | a latch, two struck notes |
   | a chain of kills | -3.0, 1.40 s | -10.0, 0.20 s | a struck note a step higher each one |
@@ -1142,7 +1142,7 @@ brake, the laser upgrades); "Not done" below listed the first.
   0.45 s after either is let go (3.8 s from empty); emptied, a sputter, and neither works until it is back over a
   quarter. The feel: the view widens 6° on a boost and narrows 4° on the brake (none under Reduce motion or with Camera
   shake at 0), the flames lengthen or shorten, the dust streams longer, the engine's hum opens; a gush up (the
-  backpack's boost) and a sigh down. The roll left LB and Shift for them (B / ○, X / □, E, the touch ↶).
+  battery's boost) and a sigh down. The roll left LB and Shift for them (B / ○, X / □, E, the touch ↶).
 - **The gun's tiers** (`GUNS`): the twin bolts, rapid fire (a volley every 0.09 s tapped, 0.14 streamed; 0.12 and 0.2),
   the spread shot (two more bolts fanned either side of the nose), the storm guns (quicker still, bigger bolts, a wider
   fan). The bolts warm from pale teal to gold with the tier.

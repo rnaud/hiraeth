@@ -55,13 +55,13 @@ artifact of the **makers**, the people whose sign is the glyph. Nobody has
 seen a maker. They made the giants walk (the giants carried their water
 across the worlds, and lay down where they could go no further), they marked
 everything they made with the glyph, and they left gifts behind them for
-travellers who would come a long way after them: the backpack, its jets and
+travellers who would come a long way after them: the makers’ battery, its jets and
 wings, its lenses and rings, little charms. Each gift waits in a chest:
 - **The look.** The same in every world: a hip-high rounded shell of pale
   cream ceramic like a river stone, the **pale four-point star** on its top, a
   thin brass band round it and, in its front, a round glass lens of glowing jade
-  fluid, the same living jade as the traveller's backpack (made by the same
-  hands). At the heart of each temple waits a rarer one, a bud of white stone and
+  fluid (made by the same hands as the traveller's battery, a turquoise glass
+  cylinder of lavender fluid he wears at the hip). At the heart of each temple waits a rarer one, a bud of white stone and
   gold with jade glass in its seams. A thin ray of light forever travels across
   them. They are very old and have never been broken; up close they hum, the star
   and the lens brighten and the ray crosses more often. Opened, a chest floats
@@ -83,11 +83,11 @@ wings, its lenses and rings, little charms. Each gift waits in a chest:
   Ilen's answer (Nour was right: "whatever brought you down knew their sign"); the
   chests opened for her too, thirty years ago. The glyph means *we heard you*.
 
-**The colours**: the backpack fluid starts two-tone (cyan and violet). Each
+**The colours**: the battery’s fluid starts two-tone (cyan and violet). Each
 world that has a "source" (desert water, Lorn crystal, the buried machine's
 oil-light, the Signal Market's lantern sun: Oyo's last lantern, poured into the
-hose) can add a colour band. By the end the
-tank holds the colours of every world: the tool itself becomes a record of the
+battery) can add a colour band. By the end the
+battery holds the colours of every world: the tool itself becomes a record of the
 journey.
 
 **The recordings** (src/story/calls.js; the full arc is the section "The
@@ -180,7 +180,7 @@ written in).
   (its well and carved stele left the square in v1.49). Once a **ledge jutted out of the burning
   tree's trunk** a few metres up: a plank shelf on a buttress root marked with
   the glyph, cloths tied to its corners. On it, in the open where you see it
-  from the stairs, the makers' chest that holds the backpack; you climb the
+  from the stairs, the makers' chest that holds the battery; you climb the
   root to reach it. Nour's stone bench is below it, under the tree's arm. (It
   was once a little blue shrine; the flag `desert.shrine.gathered` keeps its
   name.)
@@ -211,12 +211,12 @@ written in).
      on the terrace turn and murmur, Hessa calls her grandmother, the tree
      flares. Nour, asked before it opens: it has not opened for anyone in
      living memory; it opens only for "one who fell from the sky".
-  3. `elder`: it opens for the traveller (the backpack). Qanat gathers at the
+  3. `elder`: it opens for the traveller (the battery). Qanat gathers at the
      tree's foot by the dais (the ones in the avenue come up the stairs),
      everyone turns, the tree flares high, and Nour gets off her bench ("Hey you!"),
      comes to you and calls you
      over ("Psst. Child."), but leaves the talk to you: the old words, the singing light the chest hummed back to, the
-     Givers, the star, the tank ("the same water the giants carried"), and the
+     Givers, the star, the battery ("the same water the giants carried"), and the
      one power in the desert, the water that has not risen. She sends you on
      with the Speaker's old verse, the way down: "Where the giant's eyes are
      marked, its mouth is a door." If you like, she has you listen at the dry
@@ -231,7 +231,7 @@ written in).
      dry (damp stains, a pale tide line, no water at all) because a giant's bone
      has fallen across the channel. Pushing it clear (fluid push; without the
      tool, a heave) lets the water run: the stream comes out of the crack, down
-     the channel, and fills the pool; the tree drinks. 7. `fill` (the jar and the tank at the pool), then the
+     the channel, and fills the pool; the tree drinks. 7. `fill` (the jar and the battery at the pool), then the
      spark-stone's errand lights the tree. 8. `ship`: **Qanat repays him.** Because he gave the city back its
      light, the city chooses to help him in return: the ones with something to give go down to his ship and pour
      in what their houses can spare (the camps' share of the Drinking, a street's lamps, the well's first water,
@@ -241,7 +241,7 @@ written in).
   Saves from before (stages `pack`, `camps`, then ama, speaker, well) move to
   `city` or to Nour and skip what they already did (src/story/desert.js
   `migrateDesertQuest`; src/boxes/index.js `migrateSave` marks the shrine's
-  box open for anyone who already carries the backpack).
+  box open for anyone who already carries the battery).
 - **Keepsakes**: *knowing*: "What the giants left" (main quest); *song*: "Teo's
   walking rhythm" (his drum, found under the ribcage). Oum's knotted cord is
   an item, not a keepsake: she tells the rumour of the singing light when you
@@ -302,7 +302,7 @@ as they were, in the one world.)*
   and the cloud will settle.
 - **Quests**: retrieve the clapper from the floating island; carry a monk's
   letter across the aqueduct to the plain; balance the cairn stones.
-- **Keepsake**: *song*: the bell's single note, which plays from the tank
+- **Keepsake**: *song*: the bell's single note, which plays from the battery
   when you shoot afterwards.
 - **Clue**: the tower on the plain holds the same masked face as the desert's
   sleeping head → the giants were here too.
@@ -392,7 +392,7 @@ Market and Zazie in the City-Shaft; none of them mentions the Hangar.)*
   keeper's key; light the oculus.
 - **Keepsake**: *thing*: a rust gear tooth, warm to the touch, the year it
   turned while you were there.
-- **Clue**: oil-light in the oculus adds an amber band to the tank; the
+- **Clue**: oil-light in the oculus adds an amber band to the battery; the
   machine's maker's mark is the glyph.
 
 ### 9b. The Moon Foundry — "The Moon Nobody Came For" (v1.40)
@@ -474,7 +474,7 @@ Market and Zazie in the City-Shaft; none of them mentions the Hangar.)*
   fall silent. The swamp people say it is a piece of something that fell.
 - **Quests**: feed nothing to the plants (a test of patience); bring a crystal
   splinter to the cave; follow the fireflies.
-- **Keepsake**: *thing*: a crystal splinter that harmonises with the tank.
+- **Keepsake**: *thing*: a crystal splinter that harmonises with the battery.
 - **Clue**: the crystal's song matches the "singing light" → it is a fragment
   of whatever passed the ship.
 
@@ -500,7 +500,7 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **Quests**: deliver the unsent recording; tune the antenna; restart the
   broadcast. The broadcast, once restarted, is the father's voice, a recording
   from long ago, sent to someone else's child. Oyo's last lantern, relit the
-  night the sky rang, adds the market's colour band to the tank.
+  night the sky rang, adds the market's colour band to the battery.
 - **Keepsake**: *word*: the broadcast's message.
 - **Clue**: the broadcast was sent from the traveller's home system.
 
@@ -575,7 +575,7 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
   pale coat, goggles on his brow, a brass box that ticks near a splinter. He studies light and has followed the song since
   the night it went over, without knowing what it is. The first fragment you take brings him at a run; he comes aboard,
   lives in the hold among the crates, keeps what you bring in a jar, and works them into your gear for a price in fragments (a
-  heart, the finder, the blade, the tank, the wings, the boots, the guard). He never learns what the light was.
+  heart, the finder, the blade, the battery, the wings, the boots, the guard). He never learns what the light was.
 - **At the Lantern**: the answer is Ilen's. When she owns up to the light she knows its splinters for her own song, one
   line by how many you picked up: none ("Nobody stops for them"), some ("I can hear them from here, in your hold"), every
   one ("Then it's whole again"). (src/story/lantern-data.js `SPLINTERS`.)
@@ -656,11 +656,11 @@ the kit, so a traveller with empty hands can still answer.
 
 **The reward, and the father's charge.** The reliquary holds the colours of the place: Ember in the desert, Reed and
 rust in Lorn, Cab yellow in the City-Shaft. They go on the pack, the blade and the shield, so the kit becomes a
-record of the journey, as the tank does. The colours are exactly what the father means by "something of value":
+record of the journey, as the battery does. The colours are exactly what the father means by "something of value":
 a prize you can show. The quieter thing is the host going back to work: the mill grinds and the cranes move.
 Every spring-house offers both, as every world does.
 
-**The way home.** The colours go home on his back. At the stone Lou sees them before she sees anything else.
+**The way home.** The colours go home at his hip. At the stone Lou sees them before she sees anything else.
 
 **In their words (as built, issue #483).** The hosts never send him to "the altar": each says what the floor does and
 why they want it quiet, each in their own words and with their own last line (Gert: "Empty it, and there's flour
@@ -822,7 +822,7 @@ small round house on a small round hill, and two moons over it. Nobody lives in
 the round house now; there is a stone in its yard. Across the yard, a smaller
 house with its lamp lit."). Choosing it flies there. Out of the jump the ship
 reads out the hold: every keepsake and every one of the makers' small gifts
-(the charms, the lenses, the star; not the backpack and its wings and jets,
+(the charms, the lenses, the star; not the battery and its wings and jets,
 which he wears) goes down with him.
 
 **Home.** Two houses on the hill. The parents' **round house** (a cream dome,
@@ -932,7 +932,7 @@ whistles: the one you ride in Lorn); each sphere remembers the last sound it hea
 out of the sky (the white builders found the spheres and the pyramids already
 there and copied both, and the mark).
 
-More built details: the Great Crystal adds a crystal-violet band to the tank,
+More built details: the Great Crystal adds a crystal-violet band to the battery,
 and Wendel gives a second keepsake ("The patient are never eaten"). Hollin has
 kept the deep wood's lamps for 40 years, and the keepers' light between the
 swamp and the wood; the water-way he lights runs on south to Lorn's landing. The City-Shaft's rule: a light

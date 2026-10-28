@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { buildItemModel, buildSparkles, fluidMaterials, tickItem, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
 import { ChestLight, chestLightK, chestLamp, MOUTHS } from './light.js';
-import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
+import { BEATS, beatFor, timingFor, closingShot, beatPath, stowFor } from './beats.js';
 
 // Opening a box. The makers' chests are big: they wake, unlatch, rock a few times on the
 // ground like a caught thing deciding, and open where they stand, their halves parting like
@@ -699,7 +699,7 @@ export class BoxScene {
       }
     }
     const hold = this.P(...this.near(...B.hold)), since = t - B.act;
-    const stow = B.stow === 'worn' ? hold : this.P(...this.near(...B.stow));
+    const to = stowFor(name, this.def), stow = to === 'worn' ? hold : this.P(...this.near(...to));
     if (m.visible) {
       m.position.copy(this.beatFrom).lerp(hold, toHold);
       // (on the way from the hover a little arc up, so it reads as handed over, not slid)

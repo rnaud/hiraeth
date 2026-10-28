@@ -21,7 +21,7 @@ test('Kamal explains the salvage, fluid requirement and stakes before accepting 
  const r=new DialogueRunner(person,{game:s});
  const pick=text=>{while(!r.lastPage)r.advance();const c=r.choices().find(c=>c.text.includes(text));assert.ok(c,text);r.choose(c.index);};
  pick('Then can I take it');
- assert.match(r.pages.join(' '),/fan sled/);assert.match(r.pages.join(' '),/your backpack/);
+ assert.match(r.pages.join(' '),/fan sled/);assert.match(r.pages.join(' '),/your battery/);
  while(!r.lastPage)r.advance();
  assert.ok(!r.choices().some(c=>c.text.includes('One lap')), 'an empty tank cannot accept');
  fuel=true;pick('One lap');assert.equal(launches,1);assert.equal(s.flag('desert.bike.found'),undefined);

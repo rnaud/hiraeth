@@ -199,7 +199,7 @@ export const UNDERWATER_CONTENT = {
 export const CROWD_LINES = [
   '~neutral~ Mind the tube’s step. It’s wet when the glass sweats.',
   '~happy~ At midday the light comes all the way down through the domes. Look up!',
-  '~curious~ You came down the lock? With that little pack? Brave.',
+  '~curious~ You came down the lock? With just that little battery? Brave.',
   '~whisper~ If you sit still in the café you can hear the manta go over. A sort of hum.',
   '~playful~ My grandfather went up to the surface once. He said it was very bright and very dry and he did not care for it.',
   '~tired~ Hall to hall all day, carrying the post.',

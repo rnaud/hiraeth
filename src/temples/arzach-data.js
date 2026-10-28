@@ -25,7 +25,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~neutral~ (Lark stops sweeping the steps. She looks from you to your tank, then up at the stone wings.)",
+          say: ["~neutral~ (Lark stops sweeping the steps. She looks from you to your battery, then up at the stone wings.)",
             "~solemn~ *The Aerie.* Birds learned here.",
             "~sad~ (She spreads her arms, then lets them drop.) The old bird. Won’t fly."],
           do: { set: { 'met.lark': true } },

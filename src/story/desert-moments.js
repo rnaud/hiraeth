@@ -216,7 +216,7 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         dark(tankLight);
         doFill();
         if (filled.wasDry) toast(FILLED());
-        else if (filled.addColour) toast('The water climbs into your tank. The tank takes its colours.');
+        else if (filled.addColour) toast('The water climbs into your battery. Its glass takes the colours.');
         fillJar();
       },
     });

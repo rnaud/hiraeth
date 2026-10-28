@@ -1687,6 +1687,12 @@ and the backpack's glass looked nothing like the web's.
   goes through port-format.js and `WorldLoader.MakeMaterial` (`_FluidDome`, `_FluidDomeK`), the eye's ray is taken
   into three's object frame through `UNITY_MATRIX_M` with x mirrored on both sides, and Surface.shader keeps the web's
   two rules for it: lit from within (`L ≥ 0.92`) and its glass inked by its outline only.
+- **The makers' battery** (issue #728, 2026-10-28): the round backpack became a battery at the hip. Its glass is the
+  same kind-0 fluid with `uFluidDomeK` set to -1 by `buildFlask` (port-format.js and `WorldLoader.MakeMaterial` already
+  carry it), and Figure.hlsl's `batteryFluid` mirrors materials.js's: the lavender standing to the bar's level under a
+  band of turquoise glass, flat, no march. The battery hangs on `Humanoid.hipAnchor` (on the pelvis), the wings' root
+  and the jets' flames (laid under his feet each frame, in the tool's effects group) are plain scene objects, so the
+  mirror carries them as it carries the rest; the two rules above hold for it unchanged.
 
 ## The onboarding, the observatory and the sky's own (Unity + Puerts, 2026-10-16, issue #264, D16)
 

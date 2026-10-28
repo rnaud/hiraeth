@@ -371,7 +371,7 @@ namespace Hiraeth
                 if (!G.Is("desert.channel.open")) game.hud.Toast("The basin is dry. Damp stains on the stone, a pale line where water stood. Something has stopped it coming.");
                 else if (Q.Has("jar") && !G.Is("desert.jar.filled")) { Q.Take("jar"); Q.Give("water"); G.Set("desert.jar.filled", true); game.hud.Toast($"Ama’s jar fills: {Q.ItemName("water")}"); }
                 // the living water fills the backpack's tank too, and adds a colour to it for good
-                if (G.Is("desert.channel.open") && game.tool && game.tool.Owned && !G.Is("desert.tank.coloured")) { G.Set("desert.tank.coloured", true); game.tool.Refill(true); game.hud.Toast("The tank drinks the living water: a new colour swirls in it."); }
+                if (G.Is("desert.channel.open") && game.tool && game.tool.Owned && !G.Is("desert.tank.coloured")) { G.Set("desert.tank.coloured", true); game.tool.Refill(true); game.hud.Toast("The battery drinks the living water: a new colour swirls in it."); }
             }
             wasInPool = inPool;
 

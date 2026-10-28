@@ -4,11 +4,12 @@
 //   try    a gadget, a gun mode: he tries it once (held out in his right hand, it fires a spray of light ahead of
 //          him, a kick back, its sound). Only what shoots: the backpack and its parts came before the gun, and him
 //          firing them read as shooting with nothing to shoot (the author's playthrough, issues #58 and #70)
-//   none   the backpack: none (he wears it the moment the card goes: on his back, its tank as it is)
+//   none   the makers' battery: none (he wears it the moment the card goes: at his hip, as it is)
 //   wear   a cosmetic (the pale star): he pins it on, and a close look at it worn
 //   keep   a charm or a token: he turns it over in his hand, then pockets it (the act: the pocket)
-//   fit    an upgrade for the tank, a part for the pack (the lift valve, the jets, the wings, the bellows), and the
-//          Givers' blade and guard (onto his back, never swung or fired out of the chest): over his shoulder, a click
+//   fit    an upgrade or a part for the battery (the lift valve, the jets, the wings, the bellows: to the battery at
+//          his hip, FIT_HIP), and the Givers' blade and guard (onto his back, never swung or fired out of the
+//          chest): over his shoulder, a click
 //   point  a finder (the glyph lens, the listening shell): held up, he turns toward where it points
 //          (the nearest unopened box), a thread of light going that way, a faint answer
 //   play   something that sounds (the bell-note whistle, the echo shell): to his lips, a few notes
@@ -19,6 +20,12 @@
 //
 // Box-local coordinates as in scene.js: x his right, y up, z toward the camera side (he stands at
 // z = STAND_AT facing -z, where the box was). `Z` below is STAND_AT.
+
+/** Where a part for the makers' battery (the lift valve, the wings, the bellows, a chamber, the coil) is fitted: the
+ *  battery at his left hip, a little behind it (issue #728; fluid-tool.js TANK.at), not his back. */
+export const FIT_HIP = [-0.11, 0.97, 0.19];
+/** Where a beat's item ends up for this item (`def` its items.js entry). */
+export const stowFor = (beat, def) => (beat === 'fit' && def?.kind !== 'weapon' ? FIT_HIP : BEATS[beat]?.stow);
 
 /** The longest a closing beat may add (s). */
 export const MAX_BEAT = 2;
@@ -33,7 +40,7 @@ export const BEATS = {
   try: { dur: 1.7, act: 0.75, hold: [0.24, 1.2, -0.45], stow: [0.05, 1.3, 0.24], scale: 0.42 },
   wear: { dur: 1.6, act: 0.55, hold: [-0.06, 1.47, -0.16], stow: 'worn', scale: 0.22 },
   keep: { dur: 1.6, act: 1.2, hold: [0.18, 1.18, -0.4], stow: [0.26, 0.96, -0.04], scale: 0.38 },
-  fit: { dur: 1.5, act: 1.25, hold: [0.32, 1.7, 0.02], stow: [0, 1.3, 0.24], scale: 0.4 },
+  fit: { dur: 1.5, act: 1.25, hold: [0.32, 1.7, 0.02], stow: [0, 1.3, 0.24], scale: 0.4 },   // (the blade and the guard: onto his back; the battery's parts: FIT_HIP)
   point: { dur: 1.8, act: 0.6, hold: [0.2, 1.45, -0.32], stow: [0.26, 0.96, -0.04], scale: 0.38 },
   play: { dur: 1.8, act: 0.5, hold: [0.04, 1.56, -0.24], stow: [0.26, 0.96, -0.04], scale: 0.32 },
   none: { dur: 0, act: 0, hold: [0, 1.3, 0.24], stow: 'worn', scale: 1 },

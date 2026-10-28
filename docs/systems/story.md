@@ -242,7 +242,7 @@ Every system talks through it, and its header lists the flags and events.
 - **Calls home** (`src/story/calls.js`): six calls, one waiting after each
   completed world. The father reacts to the latest keepsake's kind; the mother
   joins from the third.
-- **The fluid backpack** (`src/fluid-tool.js`): a lava-lamp tank (`#ifdef FLUID`
+- **The makers’ battery** (`src/fluid-tool.js`, issue #728): a turquoise glass cylinder of lavender lava-lamp fluid clipped at the hip (`#ifdef FLUID`
   in `materials.js`) and a glove on the right hand that drinks from it (no hose since October 2026), which is what shoots. Shoot (G / click while aiming),
   push (a gun mode, fired as a shot) and boost (jump again in the air) share three
   charges, and all three refill 2 s after the last use (for the jets, 2 s after landing). Hits reach `targets.js` as `'shoot'` and
@@ -263,7 +263,7 @@ Every system talks through it, and its header lists the flags and events.
   "The Tree That Drinks" (see the story bible). It has the city of Qanat with the
   burning tree, the pilgrims' camps with positional music, a 72-person procession
   on a 2.1 km loop and the cave in a giant's chest. Pushing the fallen rib clears
-  the channel; the tree drinks and the water refills the tank with a new colour.
+  the channel; the tree drinks and the water refills the battery with a new colour.
   Bringing the water to the ship powers it. There are three side quests.
 
 ### Visible and reachable use targets (issue #636)
@@ -320,7 +320,7 @@ walkthroughs and local names; each data file's header lists its flags.
 | Lorn | make the Great Crystal sing (rain or three shots), carry its splinter to the cave (violet band) | a singing splinter (thing) |
 | Lorn II | relight three dark pools; the saucer answers; it is Odile and Talo's pod | Hollin's lamps (person) |
 | City-Shaft | carry the splinter from the bottom to the palace; the Lodestar brightens | "Look up once a day" (word) |
-| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice; Oyo's last lantern pours into the tank (yellow-green band, `bazaar.tank.lantern`) | "You are not alone" (word) |
+| Signal Market | tune the antenna (three shots at once), play the recording: the father's voice; Oyo's last lantern pours into the battery (yellow-green band, `bazaar.tank.lantern`) | "You are not alone" (word) |
 | Underwater City (v1.48) | *The Wrong Note*: Bastien at the lock, an ear on the window over the deep, in at the Whale-House's door (the temple's quest takes it on) | the whales' answer (song), when the Whale-House's keeper is calmed |
 | Moon Foundry (v1.48) | *Nobody Poured It*: Hedda on the apron, the hung moons seen from the old hoist's first deck, in at the Casting-House's door | a pocket moon (thing), when the Last Founder stops |
 | City Floating in Space (v1.48) | *A Hand's Width a Night*: Rosa on the Pier, a hand on the cables by the Moorings bridge, in at the Mooring-House's door | what the cables are for (knowing), when the Anchor-Warden is resolved |
@@ -351,7 +351,7 @@ carries on from there; the world is still done, and its keepsake given, when the
   The choice is stored as `ending.*`, and play continues afterwards.
   `?level=home&ending=1` replays it.
 - **Home** (`src/levels/home.js`, hidden): a dusk dome house under two moons,
-  with an umbrella tree, a washing line in the backpack's colours, and a landing
+  with an umbrella tree, a washing line in the battery's colours, and a landing
   ring painted with the glyph. The parents are there to talk to.
 - **The bird's promise:** with `bird.promise` set, the whistle calls the Vael
   bird in worlds with open sky and no mount (Viridel, the Garden of Spheres, Home).
@@ -501,7 +501,7 @@ carries on from there; the world is still done, and its keepsake given, when the
   everything (`tokenList`: the keepsakes, then the makers' small gifts in `TOKEN_ITEMS`, each with
   its own line: the stilling lens, the ember ring, the fourth chamber, the quick coil, the lantern
   charm, the glyph lens, the bell-note whistle, the listening shell and the echo shell (since the
-  second story pass), the pale star; not the backpack, jets or wings). He walks to the parents' stone in the front yard and sets each token on
+  second story pass), the pale star; not the battery, jets or wings). He walks to the parents' stone in the front yard and sets each token on
   the slab (`tombSlots`, `tokenModel`; one short line each, `tombLines`, on a brisk
   `tombTimeline`; the camera cuts between over his shoulder, his hands along the slab, his face from
   the headstone and Lou's face as she speaks, at a line's start, 4 s at least each: `tombCuts`,
@@ -510,25 +510,25 @@ carries on from there; the world is still done, and its keepsake given, when the
   the credits ("Left on the stone"). `ending.keepsake` is `all`; saves that ended with one
   keepsake chosen keep it. Coming back later, the stone keeps its tokens.
 
-## The desert reworked: an empty tank, a cold tree, the spark-stone
+## The desert reworked: an empty battery, a cold tree, the spark-stone
 
-(v1.38, the progression rewrite: docs/systems/progression.md. He comes with the sword alone; the chest's tank is dry
+(v1.38, the progression rewrite: docs/systems/progression.md. He comes with the sword alone; the chest's battery is dry
 with no makers' dregs; beside the pool a chest holds the lift valve, the double jump, stage `valve`; in the Hearth's
 hall a chest holds the fluid gun, stage `gun`, whose push rolls the stone ball. `filledText` names the gun's buttons
 only once the gun is carried; the Hearth's ball says where the gun is when E looks at it without one.)
 The desert's main quest (`desert.power`, `src/story/desert-data.js`) now runs: the city, the
-chest (the backpack, **empty**), Nour, the well, Ama's jar, the Speaker, the skull, the rib
-(levered off without fluid), the pool (the tank and the jar fill), **the well filling** while
+chest (the battery, **empty**), Nour, the well, Ama's jar, the Speaker, the skull, the rib
+(levered off without fluid), the pool (the battery and the jar fill), **the well filling** while
 you watch, Nour's story of the **spark-stone**, **Marrow's hoverbike**, the ride to **the
 Givers' Hearth**, its **grille** and the stone, the stone set in the full well (**the tree
 catches**), the ship.
-- **The empty tank** (`src/fluid-tool.js`): game flag `tool.empty` (set when the desert's chest
+- **The empty battery** (`src/fluid-tool.js`): game flag `tool.empty` (set when the desert's chest
   opens on a new save). `tool.dry`: no charges, no refill clock, every press only sputters and
   emits `'tool:dry'` (the desert says why, once in a while); the HUD reads `empty`, the glass is
   empty. Any `refill()` (the giant's pool) fills it and clears the flag for good; the first
-  wade also adds the pool's colour band. An older save never had it set: its tank stays full.
+  wade also adds the pool's colour band. An older save never had it set: its battery stays full.
   `story.world.toolHasPush()` is false while dry, so the drum's knuckle is heaved by hand; the
-  hoverbike won't wake on an empty tank (`desert-bike.js fuelled()`).
+  hoverbike won't wake on an empty battery (`desert-bike.js fuelled()`).
 - **The cold tree** (`src/desert-city.js` `city.setLit(k)`, 0..1): no flame (`FlameBody.lit`
   grows the fire up out of its base), no smoke (`SmokeColumn.light()` starts a column that climbs
   from the fire, one period to the end of the plume; `grow` gates the puffs), no sparks, no burn
@@ -538,7 +538,7 @@ catches**), the ship.
 - **The drain, cleared by hand** (issue #158, v1.51: "not super clear what to do at first … remove the need for the
   lever, just have the player remove the debris on his own"): E on the clogged drain ('look at the drain') opens a
   conversation of one line, "Something is clogging the drain. Remove it?", Yes or No (the game's answers); Yes emits
-  `desert:drain` and the debris is dragged off the trough (`clearChannel('hands')`). A full tank still pushes it. The
+  `desert:drain` and the debris is dragged off the trough (`clearChannel('hands')`). A full battery still pushes it. The
   keepers' pole, the carved post and their three heaves (`setupLever`, `desert.lever`, `desert.pole.tried`) are gone;
   `src/save-migrate.js` step 18 puts down a pole a save was holding.
 - **The roots drinking** (the well's filling until v1.49, issue #161: the well and the stele are gone from the
@@ -573,13 +573,13 @@ catches**), the ship.
 - **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3, now 4: see below): a save whose water had already
   risen (channel open, ship fed, or done) saw the tree burn: `desert.tree.lit` is set and the
   errand's stages (`SPARK_STAGES`) are skipped straight to the ship. Others find the tree cold
-  and do the new errand with the full tank they already had.
+  and do the new errand with the full battery they already had.
 - **The first ten minutes, as World 1-1 (October 2026, `docs/audits/game-v0.97.md` item 3)**:
-  - **The makers' dregs**: the chest's tank is empty but for one shot of old fluid (`tool.dregs` = 1,
-    set with `tool.empty` when the chest opens; `src/fluid-tool.js` `dregs`). The tank stays "dry"
+  - **The makers' dregs**: the chest's battery is empty but for one shot of old fluid (`tool.dregs` = 1,
+    set with `tool.empty` when the chest opens; `src/fluid-tool.js` `dregs`). The battery stays "dry"
     for the story (`dry()`, `toolHasPush()` false, the lever is still the way), but one press of
     shoot fires; a push only sputters ("too little to push with"). Spent (`'tool:dregs'` with
-    `left: 0`), it is gone for good (`desert.dregs.spent`, one toast) until the pool fills the tank as
+    `left: 0`), it is gone for good (`desert.dregs.spent`, one toast) until the pool fills the battery as
     before. The chest's toast names the aim and fire buttons for the input in your hands
     (`dregsText`, `verbKey`), and so does the pool's first fill (`filledText`).
   - **Four talks became two**: Nour has you listen at the dry well with her in her own talk (her
@@ -632,11 +632,11 @@ catches**), the ship.
   - Tests: `tests/desert-spark.test.js` (the merged stage on the jar alone, the jar on the way in, Ama's
     call twice at most and only without the jar, the call-outs out and home and not off the errand), `tests/desert-story.test.js` (the chain: Ama, then the
     way down; the Speaker optional).
-- **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty tank, the lever,
+- **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty battery, the lever,
   the fill, the rise, Nour, Marrow, the bike, the Hearth, the grille, the stone, the lighting,
   the ship); `tests/desert-spark.test.js` covers the migrations, the cold tree (no burn, the
-  ember), the Hearth's order and a save restored part-way, the bike on an empty tank;
-  `tests/fluid-tool.test.js` the empty tank itself.
+  ember), the Hearth's order and a save restored part-way, the bike on an empty battery;
+  `tests/fluid-tool.test.js` the empty battery itself.
 
 ## Quests open in a conversation; people call you over
 Players: "the quest shouldn't just appear. I should talk to someone who gives me a hint about
@@ -682,7 +682,7 @@ giving me access to the quest for the temple first."
 
   | World | First, alone on the map | Then |
   |---|---|---|
-  | the Desert | Marrow, by your ship (the ship's power: the tank is empty, the temple can wait) | Sabri at Qanat's camps: the Rose House, the desert's boxes |
+  | the Desert | Marrow, by your ship (the ship's power: the battery is empty, the temple can wait) | Sabri at Qanat's camps: the Rose House, the desert's boxes |
   | Vael | Lark, by the Aerie (the wings) | Oïa (the bird); Ysel by the Founders' Belfry and Sister Aube on the sky stones |
   | Lorn | Teasel, by the Hush-House | Wendel (the crystal); Briony by the Lamp-House and Hollin in the Deep Wood |
   | Viridel | Sorrel, by the Builders' Greenhouse | Mira |
@@ -696,7 +696,7 @@ giving me access to the quest for the temple first."
   | the Signal Market | Hobb, by the Undertower | Sel |
 
   The desert's lead is Marrow (`opensWith(..., { lead: true })`): nothing in the desert can be done before the ship has
-  power and the tank fluid (Sabri says so herself).
+  power and the battery fluid (Sabri says so herself).
 - **On the map and the scout** (`giverMarks`, `leadGiver`, `objective`): until they are talked to, the givers are marked
   on the game menu's Map (`src/world-map.js` mark kind `giver`, a gold ring that breathes: "the ship heard the light on
   them"; one the way on points at is the way on, saying so; `main.js` and `engine/game.js` mapSource), with the Map's line
@@ -731,7 +731,7 @@ giving me access to the quest for the temple first."
   Aube says she waits by the lone tower), the City-Shaft's Light Nobody Looks At (the wings, since 14 October: the way
   down the shaft is flown terrace by terrace and the way back up is the air pillars, Wren's cab no way through it; Nima
   says "Wings first: the Aerie, on Vael"), the Rose House (the lift valve), the masked head (the gun) and the hoverbike
-  (the backpack). `tests/quest-needs.test.js` checks every quest of every world, and that a step asking for a critical
+  (the battery). `tests/quest-needs.test.js` checks every quest of every world, and that a step asking for a critical
   item in its words belongs to a quest that needs it.
 - Tests: `tests/quest-givers.test.js` (only the temple's giver known on arrival; talking unlocks, the words said; the
   map's marks; the lead alone, then the rest; reaching the goal first; the migration; the lore line),
@@ -830,7 +830,7 @@ happens as an area marker (not a perfect marker)."
   - - *Teo's drum* (desert, `src/story/desert-errands.js`): it stands on its rim under the ribcage,
     pinned against a rib's foot by a knuckle of spine; shoved toward the rib the knuckle only
     jams tighter, shoved from the side it rolls off and the drum rolls out like a wheel (by
-    hand before the backpack). Stage `free`; flag `desert.drum.freed`.
+    hand before the battery). Stage `free`; flag `desert.drum.freed`.
   - *The mask in the sand*: sand has drifted over its eyes like lids; a splash washes one clear
     but the wind sifts it back in seven seconds: clear both at once and it looks at you. Stage
     `eyes`; flag `desert.mask.eyes`.
@@ -952,11 +952,11 @@ idea." "All quests should be solvable by just going to the end if you can."
   `tests/quest-skip.test.js`.
 - **The desert's intro, one person at a time.** Marrow sends you to Qanat's great tree and the chest humming on
   it (not "ask old Nour"); the chest opens and Nour comes to you; she points you straight at the marked skull
-  (her verse, "its mouth is a door") and says the glass on your back fills where the water is. **Ama's jar is no
+  (her verse, "its mouth is a door") and says the glass at your hip fills where the water is. **Ama's jar is no
   step of the main quest** (`ask` is gone, `DESERT_QUEST_V` 5: `STAGE_MERGE` sends a save at `ask`, `well`,
   `ama` or `speaker` to `down`): she gives it to whoever sits at her fire (`jarEarly`, `sent` → `power`,
   `lateJar`) and it fills at the pool too, for the Drinking; she no longer calls you over for it
-  (`amaCallsYou` is false). The pool's step is the tank filled (`desert.pool.tinted`), jar or no jar. The
+  (`amaCallsYou` is false). The pool's step is the battery filled (`desert.pool.tinted`), jar or no jar. The
   Speaker points at the chest, not at Nour, and keeps the old words for whoever walks with him. Later, Nour says
   where Marrow hid the hoverbike herself (the main quest's `bike` step leads to the hollow, `bikeHollow`), and
   the bike's own errand has no "ask Marrow" step (`desert.bike`: `find`, `wake`; Rook says where it is, and a
@@ -972,7 +972,7 @@ idea." "All quests should be solvable by just going to the end if you can."
   says the splinter is in the Upward Shrine's bowl (Ossa keeps it and gives it); the palace gate is no step (Dov knows
   the note and looks the other way); the cab pass is in Tobin's pocket, written on credit, and he hands it over as you
   walk up (no coin carried back to Lio). Viridel: Mira says where the hatch is; no "ask Vey". Lorn: Wendel says what
-  makes the crystal sing (three quick splashes from the tank); Saba's two steps went, what she makes of the new phrase
+  makes the crystal sing (three quick splashes from the battery); Saba's two steps went, what she makes of the new phrase
   is for whoever asks. The Overnight Train: Edda says Solange rides the last roof, and Solange pulls the cord for the
   market's halt herself; Ambrose is no step. Removed steps: `src/save-migrate.js` step 15 (`QUEST_STAGE_MOVES`).
   An opening quest whose talk never came starts past what is done, or ends (`Quests.openAhead`, run by `update`):

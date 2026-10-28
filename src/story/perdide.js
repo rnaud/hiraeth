@@ -212,7 +212,7 @@ export function setupPerdide(ctx) {
   };
   game.on('flag:perdide.heart.rung', (v) => { if (v) ringHeart(); });
   // the cave answers, as the heart's page does (its `do`): the keepsake, then the flag (which rings it). Idempotent.
-  const keepSplinter = () => game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that passed your ship.' });
+  const keepSplinter = () => game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your battery. It sings the phrase of the light that passed your ship.' });
   const rung = () => {
     if (game.flag('perdide.heart.rung')) return false;
     keepSplinter();
@@ -223,7 +223,7 @@ export function setupPerdide(ctx) {
   quests.def(Q).onDone = () => {
     game.set('world.perdide.done', true);
     keepSplinter();
-    toast('The splinter sings with your tank. Something of value? It sings the phrase you heard the night you fell.');
+    toast('The splinter sings with your battery. Something of value? It sings the phrase you heard the night you fell.');
     // (the closing words wait for the cave's moment to end, if it plays)
     const close = () => (moments?.playing ? setTimeout(close, 300) : story.complete?.());
     setTimeout(close, 1200);
@@ -339,7 +339,7 @@ export function setupPerdide(ctx) {
     eye.copy(camPos);
     const dC = flat(player.pos, GREAT);
     // the tank hums back the first time you come close
-    if (dC < 70 && !st.near) { st.near = true; if (!game.flag('perdide.crystal.met')) { game.set('perdide.crystal.met', true); toast('The hum gets into your teeth. Your tank hums back.'); } }
+    if (dC < 70 && !st.near) { st.near = true; if (!game.flag('perdide.crystal.met')) { game.set('perdide.crystal.met', true); toast('The hum gets into your teeth. Your battery hums back.'); } }
     else if (dC > 120) st.near = false;
     // rain: a real shower makes it sing while you are anywhere near
     if (raining() && dC < 400) sing(3, 'rain');

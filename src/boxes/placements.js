@@ -66,7 +66,7 @@ export const PLACEMENTS = {
       // (behind the makers' shrine's door, which a full tank opens: issue #156; it waits shut until the door is open)
       ready: (g, it) => it.has('backpack') && !!g.flag('desert.door.open'),
       sealed: 'The makers’ chest sits shut and silent on its dais.',
-      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), in the makers’ shrine west of the pool, on a dais in a shaft of light. A full tank opens the shrine’s door.' },
+      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), in the makers’ shrine west of the pool, on a dais in a shaft of light. A full battery opens the shrine’s door.' },
     // The same saved gun chest now follows the shield watcher inside the Rose House.
     { id: 'desert.gun', item: 'gun', temple: 'desert', site: findSite('desert', 'gun'),
       ready: g => !!g.flag('item.shield'), sealed: 'The chest waits for the Givers’ guard.',

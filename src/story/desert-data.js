@@ -104,9 +104,9 @@ export const QUESTS = [
       // a full tank (an older save) can still push it
       { id: 'channel', text: 'Clear the clogged drain', label: 'The clogged drain', flag: 'desert.channel.open', at: 'rib', gate: true },
       // the first wade fills the tank (and tints it); Ama's jar, if you took it, fills too
-      { id: 'fill', text: 'Wade in and fill your tank', label: 'The pool', flag: 'desert.pool.tinted', at: 'pool', gate: true },
+      { id: 'fill', text: 'Wade in and fill your battery', label: 'The pool', flag: 'desert.pool.tinted', at: 'pool', gate: true },
       // the makers' shrine by the pool (issue #156): its door hums back at the full tank and opens with it (src/story/desert.js)
-      { id: 'door', text: 'Open the makers’ door with your full tank', label: 'The makers’ door', flag: 'desert.door.open', at: 'shrineDoor', gate: true },
+      { id: 'door', text: 'Open the makers’ door with your full battery', label: 'The makers’ door', flag: 'desert.door.open', at: 'shrineDoor', gate: true },
       // the progression rewrite (v1.38): inside, a makers' chest holds the lift valve (the double jump, the backpack's
       // first strength: src/boxes/placements.js desert.lift)
       { id: 'valve', text: 'Open the chest in the makers’ shrine', label: 'The chest in the shrine', flag: 'item.doublejump', at: 'box.desert.lift', ahead: false, gate: true },
@@ -239,7 +239,7 @@ export const PEOPLE = {
         },
         // (the chest open: word has come down from the city; Nour sends nobody to her now, issue #63)
         sent: {
-          say: ["~surprised~ You opened Nour’s chest? Sixty years, and it opens for a stranger who fell out of the sky.", "~playful~ And it gave you… a glass tank. Empty. A very ancient sort of generosity."],
+          say: ["~surprised~ You opened Nour’s chest? Sixty years, and it opens for a stranger who fell out of the sky.", "~playful~ And it gave you… a glass battery. Empty. A very ancient sort of generosity."],
           next: 'power',
         },
         who: {
@@ -581,7 +581,7 @@ export const PEOPLE = {
           say: [
             { if: { flag: 'desert.shrine.gathered' }, text: "~surprised~ Sixty years I sat beside that chest. Not a squeak. You walk up, and it opens." },
             { if: { not: { flag: 'desert.shrine.gathered' } }, text: "~surprised~ You opened it. Sixty years I waited, and I missed it." },
-            "~playful~ And the Givers left you an empty glass to wear. Centuries to plan a gift, and no instructions.",
+            "~playful~ And the Givers left you an empty glass for your belt. Centuries to plan a gift, and no instructions.",
           ],
           choices: [
             { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' },
@@ -595,7 +595,7 @@ export const PEOPLE = {
         // the one errand: down through the giant's mouth (it was Ama's jar first, and the Speaker's verse, and the old well)
         power: {
           say: ["~solemn~ Only our tree ever held that much power, and it went cold when the water stopped rising. The water’s still down there, inside the giant.",
-            "~neutral~ Its mouth is a door: *the marked skull, past the back gate*. Stand in the water down there and that glass on your back fills. Get our water rising, and Qanat won’t send you off in the dark."],
+            "~neutral~ Its mouth is a door: *the marked skull, past the back gate*. Stand in the water down there and that glass at your hip fills. Get our water rising, and Qanat won’t send you off in the dark."],
           do: [{ set: { 'desert.elder.heard': true } }, { track: Q }],
           choices: [
             { text: '~happy~ The skull past the back gate. Thank you, Nour.', end: true },
@@ -621,7 +621,7 @@ export const PEOPLE = {
             { text: '~curious~ Whose bike is it?', goto: 'marrow' },
           ],
         },
-        marrow: { say: ["~playful~ Kamal’s prize. Win the race, and it is yours. The red-rag hollow, with a full tank."], choices: [{ text: '~solemn~ I’ll bring the stone back.', goto: 'bring' }] },
+        marrow: { say: ["~playful~ Kamal’s prize. Win the race, and it is yours. The red-rag hollow, with a full battery."], choices: [{ text: '~solemn~ I’ll bring the stone back.', goto: 'bring' }] },
         bring: { say: ["~solemn~ Set it in the wet roots. And bring all your fingers back. Legends are careless about fingers."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
         sparkAgain: {
           say: ["~neutral~ Win the bike in the red-rag hollow, then ride east to the Rose House. Bring its spark-stone to the roots."],
@@ -745,12 +745,12 @@ export const PEOPLE = {
         bike: {
           say: ["~playful~ Faster than walking? You’ve come to the right liar. Specialist, I meant.",
             "~whisper~ A *hoverbike*, under a tarp in the hollow with the red rag. Between the camps and your ship. Kamal races there. Beat him and the bike is yours.",
-            "~playful~ Bring a full fluid tank. You can borrow it for the race. Keeping it takes a win."],
+            "~playful~ Bring a full battery. You can borrow the bike for the race. Keeping it takes a win."],
           do: { start: 'desert.bike' },
           choices: [{ text: '~happy~ I’ll go and dig it out.', end: true }, { text: '~curious~ What do you want for it?', goto: 'price' }],
         },
         price: { say: ["~playful~ One race won. Kamal set the price; I merely supplied the tarp. Try again if he beats you."], choices: [{ text: '~happy~ Deal.', end: true }] },
-        bikeWhere: { say: ["~neutral~ Red-rag hollow, between camps and ship. Lift the tarp with *a full fluid tank*. *Beat Kamal* to keep the bike."], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
+        bikeWhere: { say: ["~neutral~ Red-rag hollow, between camps and ship. Lift the tarp with *a full battery*. *Beat Kamal* to keep the bike."], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         bikeAfter: { say: ["~happy~ It’s yours! A kettle with ambitions. Look after it. I’m becoming attached to the idea that I helped."], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         mean: { say: ["~solemn~ Same mark as the giants and old gates. I’ve found it on fallen sky-metal before. Yours is the first example still warm from arrival."], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         before: { say: ["~playful~ Humming glass. A bowl that rings alone. Things like that. I suspect the singing matters. Professional suspicion, complimentary today.",

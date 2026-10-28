@@ -508,7 +508,7 @@ function mainspring(rt, K, M, { brass }) {
   K.both(brass, T(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 18).rotateZ(Math.PI / 2), [SX - 0.25, Y + 6, Z]));
   add(Bank, { id: 'k3', eyes: Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return { at: [SX - 0.4, Y + 6 + Math.cos(a) * 4.1, Z + Math.sin(a) * 4.1], yaw: -Math.PI / 2 }; }), window: VOLLEY,
     unmet: 'The six eyes stay dull. The mainspring hangs slack: its weight isn’t home.',
-    full: 'All six woke round the spring, and went dark again: six in a breath, more than a tank of shots.',
+    full: 'All six woke round the spring, and went dark again: six in a breath, more than the battery holds.',
     fade: 'They woke, and went dark again before the rest.',
     woke: 'The mainspring takes up with a groan, and out on the landing the Clockmaker’s clock begins to tick.' });
   add(Mark, { room: 'mainspring', at: [X0 + 5, Y, Z + 4], yaw: Math.PI / 2 });
@@ -1002,7 +1002,7 @@ function layout(rt) {
   K.both(brass, T(cogGeometry(2.0, 0.5).rotateZ(Math.PI / 6), [0, UP + 6, A - 0.4]));   // (the makers’ great escape wheel, stopped: its six teeth between the eyes)
   K.both(brass, T(new THREE.CylinderGeometry(0.7, 0.7, 0.5, 18).rotateX(Math.PI / 2), [0, UP + 6, A - 0.2]));
   add(Bank, { id: 'k1', eyes: ring6(0, UP + 6, A - 0.4, 4.1, Math.PI), window: VOLLEY,
-    full: 'All six woke, and went dark again: six in a breath, more than a tank of shots.',
+    full: 'All six woke, and went dark again: six in a breath, more than the battery holds.',
     fade: 'They woke, and went dark again before the rest. Six eyes, one breath: three on the boomerang, three splashed.' });
   add(Mark, { room: 'wind', at: [-8, UP, AZ0 + 5], yaw: Math.PI / 2 });
   add(HourGauge, { room: 'wind', at: [9, UP, AZ0 + 4.5], yaw: -Math.PI / 4 });
@@ -1036,7 +1036,7 @@ function layout(rt) {
   const eyes2 = ring6(0, GC.y, GZ - 0.5, 4.9, Math.PI);
   add(Bank, { id: 'k2', eyes: eyes2, size: 1.0, window: VOLLEY, order: () => galleryOrder(rt.greatClock?.hour ?? hourOf(rt.logic.drumT('hour'))),
     unmet: 'The eyes ring under their shutters: the clock’s striking train is not running.',
-    full: 'All six woke round the clock, and went dark again: six in a breath, more than a tank of shots.',
+    full: 'All six woke round the clock, and went dark again: six in a breath, more than the battery holds.',
     fade: 'They woke round the clock, and went dark again before the rest.',
     wrong: 'The eyes ring out of step and all go dark. This clock has lost its hands: count round from the house’s hour.' });
   add(HookBell, { id: 'hb.train', at: [0, GC.y - 7.2, GZ - 0.7], chain: 1.4, yaw: Math.PI, size: 0.6, room: 'gallery', sets: 'train', from: [1.5, UP, F0 + 4.5] });
@@ -1304,7 +1304,7 @@ export const GARAGE_TEMPLE = {
         G.add(0.25, 'volley');
         rt.rumble(0.6, 0.45);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
-      } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the tank is dry: three more on the boomerang.', 'cf.three');
+      } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the battery is dry: three more on the boomerang.', 'cf.three');
     };
     for (let i = 0; i < N; i++) {
       rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.6, position: () => G.model.vent(i, at[i]), enabled: () => G.state === 'open', onHit: (mode) => { if (mode !== 'push') rt.volley(i); return true; } }));

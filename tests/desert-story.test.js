@@ -528,7 +528,7 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.deepEqual(refills.map((e) => e.addColour), [true], 'wading fills the tool, with a new colour the first time');
   assert.equal(game.flag('tool.empty'), false, 'the tank is full now, for good');
   assert.equal(W.dry(), false);
-  assert.ok(toasts.some((t) => /empty tank fills/.test(t)), 'it says so');
+  assert.ok(toasts.some((t) => /empty battery fills/.test(t)), 'it says so');
   step(2);
   // ---- the makers' shrine (issue #156): its door hums back at the full tank, and opens with it
   assert.equal(quests.stage('desert.power'), 'door');

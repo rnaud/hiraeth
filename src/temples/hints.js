@@ -139,7 +139,7 @@ export const BOSS_HINTS = {
   buried: {
     phases: [
       ['After its beam, four vents open. One is on its far side.',
-        'Hit all four vents quickly. Your tank holds three shots: throw a bomb for the ones you can’t splash.',
+        'Hit all four vents quickly. Your battery holds three shots: throw a bomb for the ones you can’t splash.',
         'As its vents open, throw a bomb at its feet ({key:fire}), then splash the vents its blast missed.'],
       ['Now it spins on the big gear in the floor. Jam the gear.',
         'Roll the ball by the west wall into the gear’s teeth to jam it. Then hitting all four vents quickly counts double.',

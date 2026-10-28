@@ -135,13 +135,13 @@ export const swing = (t, a, T = 2.4, p = 0) => a * Math.sin((2 * Math.PI * t) / 
 // ------------------------------------------------------------------ the stallkeeper's patter
 // (every line toned: src/story/tone.js; the market's own patter for the voice, src/story/voice.js)
 export const KEEPER_LINES = {
-  start: ['~shout~ Step up, step up! One minute, one tank, every target you can splash!', '~playful~ Ink blots only, traveller. Mind the parasols!', '~shout~ Roll up! The gallery of the Signal Market never closes!'],
+  start: ['~shout~ Step up, step up! One minute, one battery, every target you can splash!', '~playful~ Ink blots only, traveller. Mind the parasols!', '~shout~ Roll up! The gallery of the Signal Market never closes!'],
   combo: ['~surprised~ Three in a row! The crowd is waking up!', '~happy~ Look at that hand! Steady as a signal mast!', '~shout~ Again! Again!', '~playful~ Are you sure you have never done this before?', '~happy~ Now that is how the market shoots!'],
   friend: ['~angry~ Not Auntie Lumé! She has a parasol!', '~sad~ Oh, the poor cat. Ink blots, traveller, ink blots.', '~scared~ Careful! Those are my customers!', '~angry~ We do not splash the regulars!'],
   gold: ['~surprised~ Gold! Gold on the rail!', '~happy~ A golden one! The whole market heard that.', '~shout~ Gold! Somebody fetch the good prizes!'],
   bell: ['~playful~ Ring it again, they love the bell.', '~happy~ Hear that? Ding! That is a winner’s bell.'],
   plate: ['~shout~ There go my good plates!', '~playful~ Plates are cheaper than cups. Keep going.'],
-  misses: ['~playful~ The targets are in front of you, traveller.', '~tired~ The back wall thanks you for the paint.', '~curious~ Is the tank pointing the right way round?'],
+  misses: ['~playful~ The targets are in front of you, traveller.', '~tired~ The back wall thanks you for the paint.', '~curious~ Is the glove pointing the right way round?'],
   final: ['~shout~ Last round! The golds come out to play!'],
   ten: ['~shout~ Ten seconds! Everything you have!'],
   idle: ['~shout~ Fish of the moons, birds of the signal, blots of the deep! All for you!', '~curious~ Did you see the bells? Nobody ever rings both.', '~playful~ The plates spin faster when nobody is looking.'],

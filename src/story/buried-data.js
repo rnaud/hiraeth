@@ -371,7 +371,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         oil: { say: ["~neutral~ Oil fills the dish and soaks the wick. *Shoot the Wick* to light it: aim with {key:aim}, fire with {key:fire}."], choices: [{ text: '~neutral~ (step back)', end: true }] },
-        lit: { say: ["~solemn~ Amber light rises out of the oculus. *Stand in the light* to let your tank absorb its colour."], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        lit: { say: ["~solemn~ Amber light rises out of the oculus. *Stand in the light* to let your battery absorb its colour."], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
   },

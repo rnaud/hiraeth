@@ -1,8 +1,8 @@
-# Progression: the route, the sword and the backpack's strengths, the cab pass, Vael's bird
+# Progression: the route, the sword and the battery's strengths, the cab pass, Vael's bird
 
 ## First planet: one House, after the race (v1.92, #603)
 
-The fresh main route fills the backpack at Qanat, earns the lift valve, then wins
+The fresh main route fills the battery at Qanat, earns the lift valve, then wins
 Kamal's hoverbike at the red-rag hollow before entering the Rose House. The same
 House now supplies the blade on the balcony, the guard beyond the fire bridge,
 and the push gun beyond the shield watcher's gate. After the Keeper, a final
@@ -65,7 +65,7 @@ nothing in his hands; the order in the desert is:
 
 | what | where | why there |
 |---|---|---|
-| the backpack | Qanat's chest on its dais at the tree's foot (`desert.backpack`; on the tree's ledge until v1.49) | unchanged |
+| the battery | Qanat's chest on its dais at the tree's foot (`desert.backpack`; on the tree's ledge until v1.49) | unchanged |
 | the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Rose House's sand pit wants it (Sabri says so if it isn't had) |
 | the Givers' blade (`sword`) | the Rose House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
 | the Givers' guard (`shield`) | the Rose House, the Watcher's Hall over the Hall of Fires' bridge (`desert.temple.shield`, a `find`) | the Givers' watcher's bolt, sent back into its eye (the hall's east door), the Keeper's charge |
@@ -78,7 +78,7 @@ ship waits for the blade and the guard (below, "Core gadgets: the ship waits for
 Until v1.44 they waited by the ship in the next world instead (`FALLBACKS`, slots 1 and 4), and the author landed in
 Vael beside two free chests (issue #91: "chests should always feel earned").
 
-**Chests earn their place (v1.45, issue #91).** The fallback boxes by the ship (the backpack, the lift valve, the gun)
+**Chests earn their place (v1.45, issue #91).** The fallback boxes by the ship (the battery, the lift valve, the gun)
 are the desert's main quest's three finds, and the ship doesn't fly until that quest is done (`ship.powered`), so a run
 never sees one: they are for a save brought in another way (the worlds menu). Every other chest is a world's own. Measured
 from each route world's ramp foot (flat metres, then height): the nearest are the makers' courts, each a gadget's showcase
@@ -101,7 +101,7 @@ his. Each is taught once when its chest opens (`hint.sword`, `hint.shield`).
 the house or not (since v1.38 both were his from the start: nobody loses a weapon), their chests open; a save with
 ember mode finds the Hearth's chest open; the old house's doors and fires go (the save comes in at the door of the
 remade house), unless the Keeper was calmed (its doors open, its fires lit). A save from before the items still gets
-the backpack (src/boxes/index.js's legacy rule doesn't count the two). Step 14 (`migrateGunChest`, v1.45) gives a save
+the battery (src/boxes/index.js's legacy rule doesn't count the two). Step 14 (`migrateGunChest`, v1.45) gives a save
 that opened either of the Hearth's two v1.44 chests, or has the gun or ember mode, both, the gun's chest open (the gun in
 hand if nothing else was). `tests/save-migrate.test.js`.
 
@@ -117,7 +117,7 @@ so the quest log and the scout show the way. Nobody is handed off to anyone: the
 
 | world | core gadgets | why |
 |---|---|---|
-| the desert | the backpack, the lift valve, the fluid gun; the Givers' blade and guard | the first three are the main quest's (the ship has no power before them); the blade and the guard, off its line in the Rose House, are what every foe and every temple's switches want |
+| the desert | the battery, the lift valve, the fluid gun; the Givers' blade and guard | the first three are the main quest's (the ship has no power before them); the blade and the guard, off its line in the Rose House, are what every foe and every temple's switches want |
 | Vael | the fluid wings (the Aerie) | Vael's own tower, the City-Shaft's air pillars, the trials that are flown |
 
 Every other world's temple gadget is the key to that temple's own rooms and its gifts in the open are extras: nothing
@@ -149,7 +149,7 @@ are while the step is on). Had first, the step is passed over and the gift follo
 (`desert.quest.v` 6, `GIFT_AFTER_GEAR`): one waiting for the gift without them goes back to the Rose House's step; one
 at that step already (fed, the old order) stays there and ends with them (`tests/playthrough-saves.test.js`).
 
-## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
+## The progression rewrite (v1.38): the sword alone, then the battery's strengths
 
 From the author: "We shouldn't get the triple jump automatically, it should be a double jump, have a flip animation
 when doing the second jump and be an item I get to make the backpack stronger. Same for the fluid gun, we shouldn't
@@ -158,8 +158,8 @@ get that by default. By default we should just get the sword."
 | what | where | why there |
 |---|---|---|
 | the fluid sword (and the shield's guard) | from the start | the one thing he carries off the ship |
-| the backpack (the round tank, empty) | Qanat's chest on its dais at the tree's foot (`desert.backpack`), the main quest's `box` stage | as before: the story's first find, a container until the pool |
-| the lift valve: the double jump with a flip, the backpack's first strength | a makers' chest beside the giant's pool (`desert.lift`), the new stage `valve` after `fill` | the tank first fills there, so its first strength wakes beside the water; nothing in the desert before it asks for a second jump, and Vael's tower steps and Vael II's sky stones (each a double jump above the last), Viridel's crown and the kits after it are drawn for it |
+| the battery (the battery, empty) | Qanat's chest on its dais at the tree's foot (`desert.backpack`), the main quest's `box` stage | as before: the story's first find, a container until the pool |
+| the lift valve: the double jump with a flip, the battery's first strength | a makers' chest beside the giant's pool (`desert.lift`), the new stage `valve` after `fill` | the battery first fills there, so its first strength wakes beside the water; nothing in the desert before it asks for a second jump, and Vael's tower steps and Vael II's sky stones (each a double jump above the last), Viridel's crown and the kits after it are drawn for it |
 | the fluid gun (a gadget) | a makers' chest in the Givers' Hearth's hall (`desert.gun`), the new stage `gun` before `stone` | its first use is right there: the push that rolls the stone ball and lifts the grille; everything before it (the rib, the drum) is done by hand, and every world after it wants shots |
 | the wings, the second strength | Vael's Aerie (unchanged) | |
 | the Warden's bellows, the third strength (the wings' steady wash, v1.42; the Warden's harness, jets for the City-Shaft only, v1.38 to v1.41) | the Warden's Well (unchanged chest, `incal.temple.jetpack`) | the temple's great vanes turn under it, the shaft's air pillars carry the wings; the jets anywhere are a debug item |
@@ -171,14 +171,14 @@ hop them with the double jump), so the levels are unchanged. Gun modes, temples'
 runs that shoot or push need the gun (`needs: ['gun', …]`, src/resources.js `meetsWith`); the Rose House (the
 desert's temple, off the route) says so when walked into without it.
 
-**Saves** (src/save-migrate.js step 8): the backpack and a tank that had been filled (it could boost) → the lift
+**Saves** (src/save-migrate.js step 8): the battery and a battery that had been filled (it could boost) → the lift
 valve, its chest open; past the Hearth (its grille up, the stone taken, the tree lit, the desert done, another world
 started, a gun mode or the wings found, the Rose House entered) → the gun too, in hand unless another gadget was.
 An earlier save follows the new order. `tests/save-migrate.test.js`.
 
 **Completability** (`tests/playthrough.test.js`): the agent opens the two chests on the way (`openBox`: somewhere to
 stand by its front, E), checks the double jump and the gun are not had before them, and shoots or pushes only with
-the gun and fluid in the tank; the Hearth's ball wants the gun. The route plays to the end, both homecomings
+the gun and fluid in the battery; the Hearth's ball wants the gun. The route plays to the end, both homecomings
 included.
 
 ## After the bellows (`src/temples/incal.js`)

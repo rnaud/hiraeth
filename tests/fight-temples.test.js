@@ -512,10 +512,10 @@ test('the Items panel: a Colours strip over the gear once a second colour is won
 
 test('the end card colours only what he carries, and the rest once found (issue #480: the run lends a sword and a shield he may not have)', () => {
   const has = (...ids) => (id) => ids.includes(id);
-  assert.equal(coloursLine('Ember', has('backpack', 'sword', 'shield')), 'New colours: Ember, for the backpack, the sword and the shield. Wearing them now; change them in Items.');
+  assert.equal(coloursLine('Ember', has('backpack', 'sword', 'shield')), 'New colours: Ember, for the battery, the sword and the shield. Wearing them now; change them in Items.');
   const some = coloursLine('Ember', has('backpack'));
-  assert.equal(some, 'New colours: Ember, on the backpack now; your sword and your shield will take them once found.');
-  assert.equal(coloursLine('Ember', has()), 'New colours: Ember, for your backpack, your sword and your shield, once you have them.');
+  assert.equal(some, 'New colours: Ember, on the battery now; your sword and your shield will take them once found.');
+  assert.equal(coloursLine('Ember', has()), 'New colours: Ember, for your battery, your sword and your shield, once you have them.');
   // (the run's lent kit is not his: the card asks the save's own items, taken before lendTool lends the rest)
   const src = readFileSync(new URL('../src/fight-temples/session.js', import.meta.url), 'utf8');
   assert.ok(src.indexOf('const own = tool?.items') < src.indexOf('lendTool(tool, {'), 'his own items, read before the kit is lent');

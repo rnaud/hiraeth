@@ -371,7 +371,7 @@ test('playable B3 retains equipment, world binding and authoritative interaction
  const pos=char.root.position.clone(),q=char.root.quaternion.clone();
  const c=createTraveller(char,{gltf,data,report,head,colors:JSON.parse(readFileSync('public/characters/traveller-b3/colors.json'))},{gpu:false,useWorker:false});
  const h=c.humanoid;assert.ok(char.root.position.equals(pos));assert.ok(char.root.quaternion.equals(q));assert.equal(h.body.visible,false);assert.equal(c.mesh.visible,true);assert.equal(c.beltHook,false);
- assert.ok(h.glove.meshes.length>0);assert.ok(h.glove.muzzle);assert.ok(h.tankAt.every(Number.isFinite));
+ assert.ok(h.glove.meshes.length>0);assert.ok(h.glove.muzzle);assert.ok(h.hipAnchor&&h.hipAnchor!==h.chestAnchor&&h.hipAnchor.parent?.name==='pelvis','the makers\' battery\'s hip anchor, on the pelvis (#728)');
  const scene=new T.Scene();scene.add(char.root);const gear=new Gear(scene,h,char);assert.equal(gear.springs.length,0);assert.ok(!gear.device);
  const a=new Animator(lib,char);atClip({char},a,'jog',.25);a.w={walk:0,jog:1,sprint:0};
  const rotations=c.poseArms({animator:a,onGround:true});h.update();c.poseHands(a,rotations);h.hands.update(1/60,{mode:'ground',speed:3.8});c.updateCloth(1/60);

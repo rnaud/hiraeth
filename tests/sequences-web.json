@@ -3107,7 +3107,7 @@
               "skip": false
             },
             "boxCard": {
-              "name": "Magic-fluid backpack",
+              "name": "Makers’ battery",
               "card": true,
               "scene": true
             }
@@ -3658,7 +3658,7 @@
               "Wardrobe"
             ],
             "rows": [
-              "Magic-fluid backpack",
+              "Makers’ battery",
               "Givers’ blade",
               "Givers’ guard",
               "Lift valve",

@@ -235,7 +235,7 @@ export const KEEPER = {
   kind: 'organic', name: 'the Keeper of the cistern', final: 'touch', touch: 'lay a hand on its brow',
   speed: 2.2, wakeTime: 3.2,
   wake: 'Something vast unfolds in the dark of the cistern. It is afraid of you.',
-  openHint: 'It pants, its mouth open: give it water from your tank.',
+  openHint: 'It pants, its mouth open: give it water from your battery.',
   weary: 'It lowers its head to the dry spout, worn out. Go to it.',
   resolved: 'It breathes out, and the stone under the spout begins to sweat.',
   missHint: 'Its forefeet are wedged in the stone, mouth open. Give it water.',
@@ -962,7 +962,7 @@ export const DESERT_TEMPLE = {
     // water from your tank, while it pants (its second phase on): at its mouth, as the hand on its brow at the end
     const m = G.model;
     rt.offs.push(registerInteractable({
-      id: 'temple.desert.water', priority: PRIORITY.use + 3, range: 3.4, prompt: 'give it water from your tank',
+      id: 'temple.desert.water', priority: PRIORITY.use + 3, range: 3.4, prompt: 'give it water from your battery',
       at: () => (rt._wa ??= V()).copy(m.mouth).addScaledVector(UP, 0.8),
       enabled: () => G.state === 'open' && G.phaseIndex >= 1 && G.awake,
       distance: (p) => Math.max(0, Math.hypot(p.pos.x - m.mouth.x, p.pos.z - m.mouth.z) - (m.touchR ?? 0)),

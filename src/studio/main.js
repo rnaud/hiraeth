@@ -893,7 +893,7 @@ const lookDef = (k) => () => subject()?.look?.[k];
 
 // who
 const sWho = section('Who', true);
-check(sWho, 'Fluid backpack', 'backpack', rebuild);
+check(sWho, 'Makers’ battery', 'backpack', rebuild);
 select(sWho, 'Person', 'who', [['traveller', 'The traveller'], ['npc', 'A story person'], ['crowd', 'Someone in the crowd'], ['blank', 'A blank body']], () => { state.lineup = ''; rebuild(); });
 select(sWho, 'World', 'world', COSTUME_WORLDS.map((w) => [w, TITLES[w] ?? w]), () => { state.npc = ''; state.spot = ''; rebuild(); applyLight(); });
 select(sWho, 'Story person', 'npc', () => [['', cast.length ? '(the first)' : '(nobody in this world)'], ...cast.map((d) => [d.id, `${d.name}${d.title ? `, ${d.title}` : ''}`])], () => { state.who = 'npc'; rebuild(); });
@@ -981,10 +981,10 @@ check(sAnim, 'Paused', 'paused');
 slider(sAnim, 'Scrub (clips)', 'time', 0, 1, 0.001, 0, () => { state.paused = true; updatePanel(); });
 check(sAnim, 'Walk over the floor', 'move');
 check(sAnim, 'Plant the feet (traveller)', 'plant');
-check(sAnim, 'Blade in hand (backpack)', 'sword');
+check(sAnim, 'Blade in hand (battery)', 'sword');
 slider(sAnim, 'Blade lit', 'lit', 0, 1, 0.01, 1);
 slider(sAnim, 'Draw from the back', 'draw', 0, 1, 0.01, 0);
-slider(sAnim, 'Shield open (backpack)', 'shield', 0, 1, 0.01, 0);
+slider(sAnim, 'Shield open (battery)', 'shield', 0, 1, 0.01, 0);
 select(sAnim, 'Shield takes', 'guard', [['', 'nothing (held)'], ['block', 'a block'], ['parry', 'a perfect parry'], ['broken', 'a blow that breaks it']]);
 select(sAnim, 'Hands', 'hands', [['auto', 'by what they do (the motion, a prop, the tone talking)'], ...POSE_IDS.map((k) => [k, `pose: ${k}`])]);
 

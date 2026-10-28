@@ -77,7 +77,7 @@ export const ALIENS = {
         { if: { quest: VAEL, stage: 'tower' }, say: '~neutral~ (Its lantern tips toward the lone tower, then rises up its side, swaying, like a thing carried on the wind.) Up.' },
         '~neutral~ (It lowers its lantern to look at you. Then lifts it again.) Small.',
         '~playful~ (It steps over you carefully, one leg at a time, and looks back.) Low.',
-        '~curious~ (It bends its long knees to bring the lantern down to your pack, and looks at the fluid a long time.) Bright.',
+        '~curious~ (It bends its long knees to bring the lantern down to your battery, and looks at the fluid a long time.) Bright.',
         { after: { quest: VAEL, done: true }, say: '~happy~ (Its lantern follows the bird across the sky, a long way.) Chose.' },
       ] },
     },
@@ -113,7 +113,7 @@ export const ALIENS = {
       lines: ['~neutral~ Mind my foot. It is most of me.', '~tired~ Going to the cave. Set out in spring.'],
       talk: { listen: [
         { if: { quest: LAMPS, stage: 'hollin' }, say: '~neutral~ *Out on the island, by the big lamp.* Its keeper has practised “welcome” for forty years. Let him say it.' },
-        { if: { quest: LAMPS, stage: 'pools' }, say: ['~sad~ Three pools along the path went dark when the high sound came. We all pulled in at once.', '~curious~ The pools take colours. Your tank’s colours are bright. *Shoot the dark pools* with it and see.'] },
+        { if: { quest: LAMPS, stage: 'pools' }, say: ['~sad~ Three pools along the path went dark when the high sound came. We all pulled in at once.', '~curious~ The pools take colours. Your battery’s colours are bright. *Shoot the dark pools* with it and see.'] },
         { if: { quest: LAMPS, stage: 'answer' }, say: '~surprised~ Three short, one long, from across the water. My eyes went all the way up. *Whistle for the skiff*.' },
         '~tired~ Hurry is for people without a house. I have mine with me.',
         '~playful~ I am going to the cave. I set out in spring. Don’t wait for me.',
@@ -126,7 +126,7 @@ export const ALIENS = {
       lines: ['~curious~ Hello. Hello.', '~whisper~ The domes are listening. So am I.'],
       talk: { listen: [
         '~whisper~ Pim says nobody built the domes, they were found. My grandmother says otherwise. She was a very large shellback. Don’t tell Pim.',
-        '~curious~ You carry your house on your back too? (It looks at your tank.) A small house. With weather in it.',
+        '~curious~ (It looks at the battery at your hip.) You carry your house with you too? A small house. With weather in it.',
         '~neutral~ (Its eyes go up their stalks, one, then the other.) Hello. Hello.',
         '~playful~ Robin runs. Bram runs. I don’t run. I have never once been late, because I never said when.',
       ] },
@@ -176,7 +176,7 @@ export const ALIENS = {
       lines: ['~shout~ News! Secondhand news! Hardly heard!', '~playful~ Only slightly repeated!'],
       talk: { listen: [
         '~shout~ News! Secondhand news! Hardly heard, only slightly repeated! Half price for things you already know!',
-        '~curious~ Is that a backpack, or is it full of weather? We could sell you a smaller one.',
+        '~curious~ Is that a battery, or is it full of weather? We could sell you a smaller one.',
         '~angry~ There are four of us today. The fifth one is sulking. We are not saying where.',
         { if: { quest: SIGNAL, stage: ['tune', 'play'] }, say: '~whisper~ Up on the balcony, three bulbs. Light them all at once and the tower listens. We heard Ferro say so. Twice. Loudly.' },
       ] },

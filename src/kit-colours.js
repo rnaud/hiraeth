@@ -1,5 +1,5 @@
-// The kit's colours (issue #341, docs/design/fight-temples.md): palettes for the backpack (its brass, its canvas plate,
-// the cloth tied round its neck, the straps), the sword's water and the shield's, won one set per world's fight
+// The kit's colours (issue #341, docs/design/fight-temples.md): palettes for the makers' battery (its brass, its ceramic
+// endcaps, its clip: the parts the round backpack's brass, canvas plate, cloth and straps were), the sword's water and the shield's, won one set per world's fight
 // temple and chosen piece by piece in the Items panel (src/game-menu.js: the Colours row; main.js). The makers' own
 // (jade and brass) is always there. Kept in the save's flags: `kit.colours.<id>` won, `kit.colour.<piece>` chosen.
 //
@@ -13,10 +13,15 @@ import { SWORD_TONES, swordMaterial } from './fluid-sword.js';
 import { shieldMaterial } from './shield.js';
 
 export const PIECES = ['backpack', 'sword', 'shield'];
-export const PIECE_NAME = { backpack: 'Backpack', sword: 'Sword', shield: 'Shield' };
+export const PIECE_NAME = { backpack: 'Battery', sword: 'Sword', shield: 'Shield' };
 
-/** The backpack's own colours (src/fluid-tool.js buildFlask's and buildTank's): what a palette paints over. */
-export const PACK_BASE = { brass: '#acaa78', brassDark: '#6c806b', canvas: '#7d8a5a', canvasDark: '#5f6c44', cloth: '#3f9a92', leather: '#6a4a33' };
+/**
+ * The makers' battery's own colours (src/fluid-tool.js buildFlask, issue #728; the keys kept from the backpack's parts
+ * they replace): its brass rails and rims, the dark brass of its screws and lugs, the cream ceramic endcaps ('canvas')
+ * and the ring sunk in their faces, the clip's olive plate ('cloth') and the hook over the belt ('leather'). What a
+ * palette paints over.
+ */
+export const PACK_BASE = { brass: '#c8903f', brassDark: '#7d5a2e', canvas: '#e4dbbb', canvasDark: '#cdbf94', cloth: '#6f7550', leather: '#5a4030' };
 const toneList = (T) => [T.cream, T.deep, T.pale, T.gold, T.base, T.light];
 
 /**

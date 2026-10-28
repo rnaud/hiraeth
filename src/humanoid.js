@@ -554,10 +554,11 @@ export class Humanoid {
     const hf = this.profile?.headFrame ?? [0, 0.1, 0.01];   // (the skull's centre over the head bone)
     this.headAnchor = anchor(B.Head, new THREE.Vector3(hf[0], restHead.y + hf[1], restHead.z + hf[2]));
     const kit = this.kit;
-    if (kit) {
-      // the traveller: the chest frame behind the pack's front (the tank sits there)
-      this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, kit.chestY, kit.chestZ));
-    } else this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
+    // the chest frame (y 0.74 at the collar, +z forward) and the same frame carried by the hips, `hipAnchor` (the
+    // makers' battery's, issue #728: on his belt, it goes with his pelvis, not with his chest)
+    const chestAt = kit ? new THREE.Vector3(0, kit.chestY, kit.chestZ) : new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0);
+    this.chestAnchor = anchor(B.spine_03, chestAt.clone());
+    this.hipAnchor = B.pelvis ? anchor(B.pelvis, chestAt.clone()) : this.chestAnchor;
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };
     this.hood = [];
     if (this.outfit) {

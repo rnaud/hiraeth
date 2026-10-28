@@ -1,70 +1,64 @@
-# The traveller's kit: rucksack, flask and their hooks
+# The traveller's kit: the makers' battery, its hooks, his clothes
 
 The traveller wears clothes built on the people's own body (`src/traveller.js`
-`travellerKit`, skinned to its bones) and, on his back, an ordinary canvas
-rucksack. The fluid tank (`src/fluid-tool.js`) is a slim glass flask that sits in
-the rucksack's outer face. The look and its reasons:
-`lore/characters/traveller-design.md`.
+`travellerKit`, skinned to its bones; the game's traveller is B3, `src/characters/traveller.js`). The fluid's
+source is **the makers' battery** (`src/fluid-tool.js`, issue #728), worn at his left hip on a belt clip. Nothing
+is worn on his back but the sword's frog. The look and its reasons: `lore/characters/traveller-design.md`.
 
-- **The chest frame** (`Humanoid.chestAnchor`): y 0 at the hips, the collar at
-  0.76, +z forward. The rucksack (`RUCKSACK`: back face, depth, width, bottom,
-  top), the flask (`TANK.at`, `TANK.scale`), the lantern (`LANTERN_AT`) and the
-  makers' star (`TRAVELLER_STAR`) are all placed in it.
-- **The rucksack** is rigid on `spine_03`: body, lid, lid straps and buckles,
-  side pocket, bedroll, plus an outer pocket marked `pack: true`. Those pieces
-  are `Humanoid.packPocket`; `FluidTool.updateWorn` hides them while the flask is
-  on the back (`where === 'back'`) and shows them again when it is not found
-  yet or sits in a vehicle's socket. The rucksack itself never hides.
-- **The round backpack** (v1.38, the progression rewrite; `references/Core Objects/Round Backpack/`: the worn sheet,
-  the sheet's first pick, the states sheets): `buildFlask` builds a glass **dome**, half a sphere 30 cm across
-  (`TANK.radius` 0.19 × `TANK.scale`) standing `TANK.depth` (0.85) of its radius out of a flat brass porthole ring that
-  lies against the back (the tank frame's z = 0 is the ring's plane, the dome out toward -z). The ring: a rim round the
-  glass and a flange tapering back to the plate. A half hoop across the dome's equator carries three charge lights on
-  its outer face (`flask.lights`: lit for the whole units of the magic bar left, as the glove's knuckles are); a boss
-  under the ring; a short capped brass neck on the ring's top with a turquoise cloth tied round it; worn, a slim olive
-  canvas back plate (`TANK.dome.plate`, padded, stitched round, two rivets) and two leather straps from its top corners
-  over the tops of the shoulders and down the chest to a brass buckle (`STRAP_PATH`, in the chest anchor's frame of
-  the body that wears it: between the neck and the shoulder's point, 2–3 cm off the shirt; until v1.45 they ran
-  straight up into the collar and their ends stood by his ears, issue #76; `tests/backpack-straps.test.js` keeps
-  them 4 cm or more from his head upright and on his skin, not under it, in 18 poses). No hose. The same model is the item's picture (`worn: false`, stage 0, turned so its
-  dome faces the icon's camera). It replaced the Ivory and Jade flat flask
-  (`references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`).
-- **Slim, lying flat** (the author on v1.38's first sphere: "it should be a bit slimmer like on the references so it's
-  not protruding out so much … it's a half sphere so it lays flat on the back"): the whole pack stands 0.21 m off the
-  back (plate to dome top), against v1.38's first sphere's 0.36 m. The plate's back is where the sphere's was on the
-  body, so the straps and the shirt are unchanged; `tankGlassMeasure(p)` is the dome's inside test (tests).
-- **Its stages** (`flask.stages`, `setStage`; src/items.js `BACKPACK_STAGES`, `backpackStage`): each strength found adds
-  its parts, as the states sheet's second pick draws them. 1, the lift valve (the double jump): the valve's wheel on
-  the cap, a second half ring over the dome top to bottom, two small brass fins on the band. 2, the wings: folding brass
-  vanes at its sides, folded back along the ring. 3, the Warden's bellows (the wings' third strength, since v1.42; the
-  debug jets count too): a second capped valve on the ring's shoulder, the glass brighter (`STAGE_GLOW`) and its nebula turning quicker
-  (`STAGE_RATE`). A strength found flashes the fluid (FluidTool's item listener).
-- **Its glow and level follow the magic bar**: the nebula stands at the bar's level (empty: dry glass and a dreg;
-  full: up to the neck), and the glass glows from `TANK.glow[0]` empty to `TANK.glow[1]` full (`uGlow`,
-  FluidTool.updateWorn), the nebula brighter with it.
-- **Its fluid is a little nebula** (the author: "the new content looks like a little galaxy inside of the backpack. not
-  a lava lamp anymore"; `materials.js flaskNebula`, kind 0): translucent jade-to-cyan clouds wound in a slow two-armed
-  spiral round a soft bright heart, pale star specks twinkling, all lit from within. The fragment shader marches the
-  dome from the glass inward (six samples, `uFluidDome` its centre and radius, `uFluidDomeK` its depth, set by
-  `buildFlask`; object space through `modelMatrix`): each depth's clouds are turned a little behind the one over it, so
-  the inside has depth as the view moves; the stars sit on three shells, each its own parallax, a speck never under a
-  pixel (it fades instead). Above the fill line the rays see empty glass; a soft bright line marks the surface. One
-  draw, no texture, no extra render target. Its colours are `uFluidBase` (`TANK.base`, or a gun mode's first tone:
-  stilling's blue, ember's orange, bloom's leaf green) and the blend's first tone for the cyan wisps. The glass is lit
-  from within (no shade side, `L` at least 0.92) and **inked by its outline only** (the soft-ink flag with a full pen
-  line, as the makers' boxes: post.js draws no line round its clouds, its fill or its highlights). A pale glowing edge
-  where the glass turns away and a window's highlight on its shoulder finish it. `TANK.straps` is empty: no leather
-  band crosses it.
-- **Where it sits**: `Humanoid.tankAt` overrides `TANK.at`. The coral-shirt traveller
-  (`traveller-v1.js TRAVELLER_V1_TANK_AT`, z -0.1886) has no rucksack, so the dome's canvas plate sits right on his
-  back. The old body keeps `TANK.at` (z -0.245), its ring on its rucksack's outer face. The side struts stand beside the
-  dome (`TANK_RAIL.z` -0.07, between its ring and its top) with short brackets back to the plate, the top one at the
-  dome's middle, and the ring's rim is slim, so the sword's frog behind the right shoulder stays clear
-  (`tests/sword-sheath.test.js`: 1.2 cm at the least, to the ring's rim). The jets clip under the dome. A vehicle's
-  socket and the hand-off keep `TANK.scale` either way.
+- **The chest frame** (`Humanoid.chestAnchor`, on `spine_03`): y 0.74 at the collar, +z forward, his left +x. The
+  old body's rucksack (`RUCKSACK`), the sword's frog (`SHEATH`), the wings' root (`WING_ROOT`) and the makers' star
+  (`TRAVELLER_STAR`) are placed in it.
+- **The hip frame** (`Humanoid.hipAnchor`, issue #728): the same frame at rest, carried by the **pelvis**, so what
+  hangs on his belt goes with his hips (a run's twist of the chest leaves it be). The battery (`TANK.at`) and the
+  lantern charm (`src/boxes/effects.js LANTERN_AT`, on his belt at the small of his back, beside the battery) hang
+  from it. On B3 its y = 0 is 0.7 m over his feet; his belt is at about 0.28.
+- **The old body's rucksack** is rigid on `spine_03`: body, lid, lid straps and buckles, side pocket, bedroll and an
+  outer pocket (`Humanoid.packPocket`). Since #728 nothing sits in it: the pocket always shows.
+- **The makers' battery** (`buildFlask`; `references/Core Objects/Makers Battery/selected-2026-10-28/`, the author's
+  pick: "the one we had earlier was the best one", a hip lantern, no tether): an upright **turquoise glass cylinder**
+  (`TANK.radius` 5 cm, 13 cm of glass) of **lavender fluid**, between two **rounded cream ceramic endcaps** (`TANK.profile`,
+  5.9 cm in radius: a flat face, a ring sunk in it, three screws, a dark lug at each side), a **brass rim** where glass
+  meets ceramic, **two brass rails** standing off its sides and looping over the caps' shoulders into their faces (a
+  dark binding round each at the middle), and on its back (+z of its frame, toward him) **the clip**: two short brass
+  bars out of the rims, an olive plate across them with a brass stud, and a dark hook over his belt. 23 cm endcap to
+  endcap, 14 cm across the rails (`TANK.scale` 1). **No hose, no cord, no strap** (the author: no tether): the glove
+  reads as fed by it through its own vial. The item's picture is the same battery without its clip (`worn: false`,
+  tipped as the reference lies: `src/boxes/model.js tankModel`). It replaced the round backpack (v1.38–2.33: a glass
+  dome on the back, its straps over the shoulders; `references/Core Objects/Round Backpack/`).
+- **Where it sits** (`TANK.at` (0.108, 0.165, -0.186) in the hip frame, turned `TANK.yaw` -30° so its clip faces him):
+  at his left hip, 60° round from his side toward his back, centred on the belt line. The place was measured on B3
+  (`tests/battery-hip.test.js`): his hanging left arm passes his side at 25 cm out and swings back over the hip, so a
+  battery at his side, or less than about 58° round, is in the arm's way (the sprint's swing came 1.5–6 cm into it);
+  lower, the thigh's lift (climbing, the jump's tuck) reaches it. Where it is, none of him comes into its glass,
+  caps or rails in any pose he takes (standing, the gaits, talking, the title's stance, climbing, the ledge, riding,
+  sitting on a bench, the jump, swimming, gliding, the dodge roll): 2.2 cm at rest (his belt, behind the clip), 0.6
+  cm at the closest (the roll's tuck). `Humanoid.tankAt` can still override `TANK.at` for another body.
+- **Its stages** (`flask.stages`, `setStage`; src/items.js `BACKPACK_STAGES`, `backpackStage`): each strength found
+  adds a little brass. 1, the lift valve (the double jump): a valve wheel on the top endcap. 2, the wings: a brass
+  band round the glass's middle. 3, the Warden's bellows (the debug jets count too): a second valve beside the first,
+  the glass brighter (`STAGE_GLOW`) and its fluid quicker (`STAGE_RATE`). A strength found flashes the fluid.
+- **Its fluid shows the magic bar** (`materials.js batteryFluid`, kind 0 with `uFluidDomeK` under 0, set by
+  `buildFlask`; Unity: `Figure.hlsl batteryFluid`): flat print tones as the reference draws them. The lavender
+  (`uFluidBase`, `TANK.base`) stands at the bar's level (`uFluidA.x`, sloshing with his moves), full at `TANK.full`,
+  three quarters up the glass, so a band of **turquoise glass** always shows over it, as in the reference; empty
+  (`tool.empty`, the desert's battery as it comes out of its box) the glass is turquoise with a dreg of lavender at
+  its foot. A paler line marks the surface, a few slow blobs of the blend's tones drift in it (the colour bands
+  magical water adds), the turquoise shows round the fluid where the glass turns away, and a pale streak runs down
+  the glass facing out (`TANK.highlight`). A gun mode leans the lavender toward its first tone (`MODE_TINT`, 0.35:
+  stilling bluer, ember warmer); the push, the gun's default, leaves it as it is (`MODES.push.keepFluid`). The glass
+  glows from `TANK.glow[0]` empty to `TANK.glow[1]` full. Lit from within and **inked by its outline only**, as the
+  round backpack's glass was.
+- **The wings come from nothing on his back** (`fluid-kit.js WING_ROOT`, `FluidWings`): their roots are an empty frame
+  between his shoulder blades, where the round backpack's shoulders were (so the lobes keep their size and timing);
+  folded, nothing is drawn there.
+- **The jets come from under his boots** (`FluidJets`, `JET_SOLE`): no nozzle, nothing worn. Each flame of fluid is
+  laid each frame 7.5 cm under its foot bone (the sole), pointing down his up; nothing shows until they fire.
+- **Vehicles**: boarding a powered one, he takes the battery off his hip and clicks it into the vehicle's socket
+  (`HANDOFF`: the same timings, an arc of 0.3 m and a small turn on the way; the socket, `bike.js buildSocket`, a brass
+  ring and two clamps sized to it); stepping off, he clips it back on his belt. While it is in a socket the tool is
+  unavailable, and the vehicle's engine glows in its tones.
 - **No scout on him**: the drone is not carried (v1.73, issue #294: it comes out of a light when it is
-  needed, docs/systems/scout.md). Its old dock on the rucksack's lid and on the flask's left upright, and
-  the hop onto the cap while the wings were open, are gone.
+  needed, docs/systems/scout.md).
 - **Hair** (`travellerHair`): a scalp shell plus deterministic clumps
   (`clump`): broad, flat, leaf-shaped sheets laid along the skull egg, tapering
   to a point, with a wave and a lift at the end. Each has vertex colours for its
@@ -79,12 +73,12 @@ the rucksack's outer face. The look and its reasons:
   triangle from `GLOVE.cuff` up the forearm to the fingertips) pushed out along the welded normals,
   with the skin's weights, so it bends with every finger; a pale band round the cuff, a capped brass
   fitting on the back of the wrist (`GLOVE.fitting` up the forearm) holding a small glass **vial** of the
-  tank's fluid, a plate on the back of the hand and three knuckle studs. Both travellers
+  battery's fluid, a plate on the back of the hand and three knuckle studs. Both travellers
   wear it: the people's body (`wearOutfit`) and the coral-shirt one (`createTravellerV1`, on his own
-  mesh). `fluid-tool.js` shows it with the tank and only then (`glove.show`: while it is on, the
+  mesh). `fluid-tool.js` shows it with the battery and only then (`glove.show`: while it is on, the
   skin's triangles under the leather are left out of its index, else they show between the
   fingers). Since v1.38 the glove is the fluid gun (a gadget, src/gadgets/gun.js): it shows once the gun is found, with
-  the tank; before, the hand is bare and holds the sword's hilt alone. The knuckles light for the whole units of magic left, the plate in the mode's tone, the vial
+  the battery; before, the hand is bare and holds the sword's hilt alone. The knuckles light for the whole units of magic left, the plate in the mode's tone, the vial
   (`glove.vial`) in the fluid's second tone, brighter as the glass fills and flashing as it fires; the shot,
   the push and a dry press leave from `glove.muzzle`, just in front of the knuckles (the aiming fist's front). It replaces the old wrist bracer, whose brass
   barrel and lens lay along the back of the hand and read as a phone held in it; the old hero's
@@ -111,12 +105,12 @@ the rucksack's outer face. The look and its reasons:
 
 - **On his back** (October 2026, the author: "hide the sword at rest, like move it back to your back?";
   `src/sword-sheath.js`): out of a fight the hilt, its blade withdrawn, sits in a leather **frog** behind his
-  right shoulder, beside the flask's right upright: `SHEATH.at` (-0.205, 0.72, -0.215) in the chest anchor's
-  frame (the tank's), leaning `SHEATH.tilt` (0.2 rad) with the pommel out over the shoulder (its top 8–9 cm
+  right shoulder: `SHEATH.at` (-0.205, 0.72, -0.215) in the chest anchor's
+  frame, leaning `SHEATH.tilt` (0.2 rad) with the pommel out over the shoulder (its top 8–9 cm
   over the collar, seen from the front) and the cup down on the shoulder blade, its flat to his back. The
   frog (`buildFrog`: a dark strip between the grip and his back, two loops round the grip, brass rivets, three
   draw calls) is carried by the chest anchor and stays there when the sword is drawn, empty. The hands are
-  free at rest (`player.swordGrip` 0). The place was measured against the flask (2 cm clear) and his body
+  free at rest (`player.swordGrip` 0). The place was measured against the round backpack (2 cm clear; since #728 nothing else is on his back) and his body
   (3.3 cm clear of the skin at the least, the overshirt about 1.5 cm of that) in every pose he takes:
   standing, walking, jogging, running, talking, the title's stance, climbing, the ledge, riding, in the air,
   swimming and gliding (`tests/sword-sheath.test.js`); lower, the jog's arm and the flask's upright bracket
@@ -134,12 +128,14 @@ the rucksack's outer face. The look and its reasons:
   cut opens (the riposte's wind-up 0.12 s, a first swing's 0.22); the blade lights only once the hilt is
   in the fist. Before, the hilt grew out of the glove's cuff into the fist.
 
-Tests: `tests/sword-sheath.test.js` (where it sits on the back, clear of the flask and of him in every pose, the
+Tests: `tests/battery-hip.test.js` (the battery at his hip, carried by the pelvis, clear of him in every pose; nothing
+on his back), `tests/flask.test.js` (its shape, colours, clip, stages, the item's picture), `tests/sword-sheath.test.js`
+(where it sits on the back, clear of the battery and of him in every pose, the
 draw and the sheathe and their timing, a swing pressed with it on the back cutting on the same frame as one
-already drawn), `tests/glove.test.js` (worn with the tank only, the skin under it, the mouth at the knuckles
-in every aim, the lights, the vial lit by the fluid, no hose anywhere), `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
+already drawn), `tests/glove.test.js` (worn with the battery only, the skin under it, the mouth at the knuckles
+in every aim, the lights, the vial lit by the fluid, no hose anywhere), `tests/traveller.test.js` (fit, rucksack, the battery's place, hair,
 face), `tests/drone.test.js` (nothing of the drone on him),
-`tests/abilities.test.js` (the pocket while the flask comes and goes).
+`tests/abilities.test.js` (the battery found, its hand-off into a vehicle and back, the jets and the wings).
 
 The scout now uses ivory outer petals, sage lower hull, pale green inner petals and aged
 brass rims to match the selected kit. Its four-petal deployment, rotor parking, lens wake

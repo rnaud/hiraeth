@@ -1343,13 +1343,13 @@ export class Player {
     v.board?.(this.pos);
   }
 
-  /** Does this vehicle run on the backpack? (hoverbikes and skiffs; not the bird, who's alive, nor cabs, which drive themselves) */
+  /** Does this vehicle run on the makers' battery? (hoverbikes and skiffs; not the bird, who's alive, nor cabs, which drive themselves) */
   needsPower(v) { return !!v?.powered; }
 
   /**
-   * Get on a vehicle. A powered one needs the backpack: without it, a notice
+   * Get on a vehicle. A powered one needs the battery: without it, a notice
    * and nothing else. With it, the hand-off plays (HANDOFF.board, ~1 s: the
-   * pack swings off into the vehicle's socket, then you climb on); moving
+   * battery comes off his hip into the vehicle's socket, then you climb on); moving
    * skips to the end. Without the fluid tool (tests) or a socket, you just get on.
    */
   board(v) {
@@ -1371,7 +1371,7 @@ export class Player {
     if (B) this.mount_(B.v);
   }
 
-  /** instant: no hand-off back (respawning); the pack is simply on the back again. */
+  /** instant: no hand-off back (respawning); the battery is simply on his hip again. */
   dismount(instant = false) {
     const v = this.ride;
     this.ride = null;
@@ -1382,7 +1382,7 @@ export class Player {
     this.heading = v.heading;
     this.onGround = false;
     this.unstick();
-    // take the backpack back out of its socket and put it on
+    // take the battery back out of its socket and clip it on his belt
     if (!instant && this.needsPower(v) && this.handoff && v.socket && this.has('backpack')) this.unboarding = { v, t: 0, dur: HANDOFF.unboard, k: 0 };
   }
 

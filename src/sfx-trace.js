@@ -3,7 +3,7 @@
 import { screen } from './platform.js';
 
 export const TRACE_LIMIT = 12;
-const NAMES = { jet: 'Backpack jets', roar: 'Ship flight air', hiss: 'Ship flight hiss', rumble: 'Ship rumble', rush: 'Ship passing air', engine: 'Ship engine', static: 'Radio static', rainRoof: 'Rain on roof', cloak: 'Clothing', 'blade-light': 'Light blade strike', 'blade-heavy': 'Heavy blade strike' };
+const NAMES = { jet: 'Fluid jets', roar: 'Ship flight air', hiss: 'Ship flight hiss', rumble: 'Ship rumble', rush: 'Ship passing air', engine: 'Ship engine', static: 'Radio static', rainRoof: 'Rain on roof', cloak: 'Clothing', 'blade-light': 'Light blade strike', 'blade-heavy': 'Heavy blade strike' };
 export const traceName = name => NAMES[name] ?? String(name).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[-_]/g, ' ');
 export function recordedOrigin(manifest, file) {
   const m = manifest?.files?.[file.replace(/\.(mp3|wav)$/i, '')];

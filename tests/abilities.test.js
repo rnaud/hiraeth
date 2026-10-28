@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { FluidTool, TANK, FLUID } from '../src/fluid-tool.js';
+import { FluidTool, TANK, FLUID, MODE_TINT } from '../src/fluid-tool.js';
 import { MODES, HANDOFF, nextMode, ownedModes, STUN_SECONDS } from '../src/fluid-kit.js';
 import { clearTargets, hitTarget, registerTarget, modeFor, raycastTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -12,7 +12,7 @@ import { Flammables, flammableSpots } from '../src/flammable.js';
 import { NPC } from '../src/npc.js';
 import { items, ITEMS, MODE_ITEMS } from '../src/items.js';
 
-// Everything but the sword runs on the magic-fluid backpack (src/items.js): the double jump, the jets,
+// Everything but the sword runs on the makers' battery (src/items.js; once the magic-fluid backpack): the double jump, the jets,
 // the wings, the fluid gun (a gadget, in hand: src/gadgets/gun.js) and its modes, and the powered vehicles.
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -25,7 +25,7 @@ function ground() {
   const m = new THREE.Mesh(new THREE.BoxGeometry(400, 1, 400)); m.position.set(0, -0.5, 0); scene.add(m);
   return new Physics(scene);
 }
-/** Just enough of a humanoid for the tool to wear its tank (chest anchor, both arms). */
+/** Just enough of a humanoid for the tool to wear its battery (chest and hip anchors, both arms). */
 function rig(p) {
   const bone = (parent, x, y, z) => { const b = new THREE.Object3D(); b.position.set(x, y, z); parent.add(b); return b; };
   const chest = bone(p.object, 0, 1.0, 0);
@@ -37,7 +37,8 @@ function rig(p) {
   }
   B.spine_03 = chest;
   const calls = { handOff: 0 };
-  p.humanoid = { chestAnchor: chest, b: B, noShadow: [], imported: false, update() {}, resetFeet() {}, plantFeet() {}, reach() {}, capsules: () => [], handOff() { calls.handOff++; } };
+  const hip = bone(p.object, 0, 1.0, 0);   // (the hip anchor: the chest's frame, carried by the pelvis)
+  p.humanoid = { chestAnchor: chest, hipAnchor: hip, b: B, noShadow: [], imported: false, update() {}, resetFeet() {}, plantFeet() {}, reach() {}, capsules: () => [], handOff() { calls.handOff++; } };
   return calls;
 }
 function setup({ up = null, physics = ground(), mount = null } = {}) {
@@ -57,13 +58,13 @@ function setup({ up = null, physics = ground(), mount = null } = {}) {
   return { p, tool, scene, camera, state, step, calls };
 }
 
-test('no backpack: no tank or glove, nothing fires, nothing throws, one jump; found, it shimmers onto the back; the gun found, it shoots', () => {
+test('no battery: no battery or glove, nothing fires, nothing throws, one jump; found, it shimmers onto his hip; the gun found, it shoots', () => {
   own();
   const { p, tool, step } = setup();
   const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];   // (the rucksack's outer pocket, traveller.js)
   step(5);
   assert.equal(tool.owned, false);
-  assert.equal(tool.tank.group.visible, false, 'a bare back');
+  assert.equal(tool.tank.group.visible, false, 'a bare hip');
   assert.equal(pocket.visible, true, 'the rucksack keeps its outer pocket');
   assert.equal(tool.glove.visible, false, 'a bare hand');
   assert.deepEqual(tool.modes, [], 'no gun modes');
@@ -98,7 +99,8 @@ test('no backpack: no tank or glove, nothing fires, nothing throws, one jump; fo
   assert.ok(tool.glow.list.length > 10, 'a shimmer of fluid');
   step(70);
   assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
-  assert.equal(pocket.visible, false, 'the flask sits over the pocket');
+  assert.equal(pocket.visible, true, 'the battery is at his hip: the rucksack keeps its pocket (#728)');
+  assert.ok(tool.tank.group.parent === p.humanoid.hipAnchor, 'on the hip anchor (carried by the pelvis)');
   assert.equal(tool.glove.visible, false, 'no glove: the gun is a find of its own');
   assert.deepEqual(tool.modes, [], 'nothing to shoot with');
   // the fluid gun found, and in hand (the gadgets' runtime takes the first gadget found in hand: src/gadgets/index.js)
@@ -132,7 +134,7 @@ test('the jets: only with the item; thrust burns the tank as a smooth gauge that
   own('backpack', 'jetpack');
   ({ p, tool, step } = setup());
   step(5);
-  assert.equal(tool.jets.group.visible, true, 'two nozzles under the tank');
+  assert.equal(tool.jets.group.visible, false, 'nothing of the jets shows until they fire: no nozzle (#728)');
   assert.equal(p.char.jetpack.children.length, 0, 'the old canisters are gone');
   p.pos.set(0, 30, 0); p.onGround = false; step(1);
   const u0 = p.pos.y;
@@ -221,7 +223,8 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   step(1, { KeyX: true }); step(1); step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'stun');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.stun.tones[0], 'cold blue in the tank');
-  assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), MODES.stun.tones[0], 'the flask\'s fluid itself turns stilling blue');
+  const lean = new THREE.Color(TANK.base).lerp(new THREE.Color(MODES.stun.tones[0]), MODE_TINT);
+  assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), '#' + lean.getHexString(), 'the battery\'s lavender leans toward stilling blue');
   step(1, { PadModeNext: true }); step(1);
   assert.equal(tool.mode, 'stun', 'D-pad right no longer steps the modes (v1.86, issue #511: they are slots on the gadget wheel)');
   step(1, { KeyX: true }); step(1);
@@ -235,7 +238,7 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   tool.setMode('fire'); step(60); const t1 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t1 > 2, 'ember: boiling');
   assert.deepEqual(events, ['shoot', 'push', 'fire', 'shoot', 'push', 'stun', 'fire', 'shoot', 'stun', 'fire']);
   tool.setMode('shoot'); step(1);
-  assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), TANK.base, 'the flask back to its own green');
+  assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), TANK.base, 'the battery back to its own lavender');
   // a mode lost (the dev menu) falls back to the push
   tool.setMode('fire'); items.revoke('fire'); step(1);
   assert.equal(tool.mode, 'push');
@@ -318,7 +321,7 @@ test('a stilling glob freezes people; an ember glob lights a lamp and burns a br
   if (!hadDoc) delete globalThis.document;
 });
 
-test('vehicles run on the backpack: refused without it; boarding swings the tank into the socket and back on dismount', () => {
+test('vehicles run on the battery: refused without it; boarding clicks it off the hip into the socket and back on dismount', () => {
   own();
   const physics = ground();
   const bike = new Hoverbike(physics);
@@ -347,23 +350,20 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   ({ p, tool, step, calls } = setup({ physics, mount: bike }));
   const frames = (n, ctl = {}) => { for (let i = 0; i < n; i++) { bike.update(DT, p.ride === bike ? ctl : null); p.update(DT, ctl, 0); p.object.parent?.updateMatrixWorld(); tool.update(DT, ctl); } };
   frames(5);
-  const chest = p.humanoid.chestAnchor;
-  const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];
-  assert.equal(tool.tank.group.parent, chest);
+  const hip = p.humanoid.hipAnchor;
+  assert.ok(tool.tank.group.parent === hip);
   frames(1);
-  assert.equal(pocket.visible, false, 'the flask over the rucksack\'s pocket');
   p.interact();
   assert.ok(p.boarding, 'the hand-off starts');
   assert.equal(p.riding, false);
   frames(Math.round(HANDOFF.board * 0.35 / DT));
-  assert.equal(tool.where, 'flight', 'swinging off the back');
-  assert.ok(calls.handOff > 0, 'hands on the tank');
+  assert.equal(tool.where, 'flight', 'taken off the hip');
+  assert.ok(calls.handOff > 0, 'hands on the battery');
   assert.equal(tool.allowed(false), false, 'no tool meanwhile');
   frames(Math.round(HANDOFF.board * 0.4 / DT));
   assert.equal(tool.where, 'socket');
   assert.equal(tool.tank.group.parent, bike.socket, 'slotted into the socket');
-  assert.equal(pocket.visible, true, 'the rucksack stays on, its pocket bare');
-  assert.ok(tool.tank.group.getWorldScale(v()).distanceTo(chest.getWorldScale(v()).multiplyScalar(TANK.scale)) < 1e-6, 'compact pack keeps its size in the vehicle socket');
+  assert.ok(tool.tank.group.getWorldScale(v()).distanceTo(hip.getWorldScale(v()).multiplyScalar(TANK.scale)) < 1e-6, 'the battery keeps its size in the vehicle socket');
   frames(Math.round(HANDOFF.board * 0.3 / DT) + 2);
   assert.equal(p.riding, true, 'and on');
   assert.equal(p.ride, bike);
@@ -371,7 +371,7 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   assert.ok(bike.powerK > 0.5, 'the fluid lights its engine');
   assert.ok(bike.powerLights[0].mesh.material.uniforms.uGlow.value > 0.3);
   assert.equal(tool.allowed(false), false, 'no tool while riding');
-  // off again: the pack comes back
+  // off again: the battery comes back to his hip
   frames(120);
   p.interact();
   assert.equal(p.riding, false);
@@ -379,10 +379,9 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   frames(Math.round(HANDOFF.unboard / DT) + 3);
   assert.equal(p.unboarding, null);
   assert.equal(tool.where, 'back');
-  assert.equal(tool.tank.group.parent, chest, 'on the back again');
-  assert.equal(pocket.visible, false, 'back over the pocket');
+  assert.ok(tool.tank.group.parent === hip, 'on his hip again');
   assert.ok(tool.tank.group.position.distanceTo(v(...TANK.at)) < 1e-6);
-  assert.ok(tool.tank.group.scale.distanceTo(v(TANK.scale, TANK.scale, TANK.scale)) < 1e-6, 'compact pack keeps its size back on the shoulders');
+  assert.ok(tool.tank.group.scale.distanceTo(v(TANK.scale, TANK.scale, TANK.scale)) < 1e-6, 'the battery keeps its size back on the hip');
   assert.equal(tool.allowed(false), true);
   frames(120);
   assert.ok(bike.powerK < 0.1 && Math.abs(bike.speed) < 1, 'unpowered, it settles and stops');
@@ -393,10 +392,10 @@ test('vehicles run on the backpack: refused without it; boarding swings the tank
   frames(1, { KeyW: true });
   assert.equal(p.riding, true, 'skipped');
   frames(1);
-  assert.equal(tool.tank.group.parent, bike.socket);
-  // respawning never strands it: the pack is simply back on
+  assert.ok(tool.tank.group.parent === bike.socket);
+  // respawning never strands it: the battery is simply back on his hip
   p.respawn(v(0, 1, 0)); frames(2);
-  assert.equal(tool.tank.group.parent, chest);
+  assert.ok(tool.tank.group.parent === hip);
   tool.dispose();
 });
 

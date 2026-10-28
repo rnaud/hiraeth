@@ -180,7 +180,7 @@ test('the hoverbike won’t wake on an empty tank', () => {
   assert.equal(e.entry.prompt(), 'look at the hoverbike');
   e.entry.use();
   assert.equal(game.flag('desert.bike.found'), undefined);
-  assert.ok(toasts.at(-1).includes('tank is empty'));
+  assert.ok(toasts.at(-1).includes('battery is empty'));
   assert.equal(items.has('backpack'), true);
   game.reset();
 });

@@ -176,8 +176,8 @@ export function setupHoverbike(ctx) {
     ctx.dialogue.start(wager, rival);
   };
   const raceForBike = () => {
-    if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your back is bare.', 'It runs on fluid, and your back is bare. The city may hold some.')); return; }
-    if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'Your tank is empty. Fill it at the giant’s pool, past Qanat’s back gate.')); return; }
+    if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your belt is bare.', 'It runs on fluid, and your belt is bare. The city may hold some.')); return; }
+    if (!fuelled()) { toast(quietOr('It runs on fluid, and your battery is empty.', 'Your battery is dry. Fill it at the giant’s pool past Qanat’s back gate.')); return; }
     if (typeof ctx.playGame !== 'function') { toast('The race is not available here yet.'); return; }
     ctx.dialogue.start(wager, rival);
   };

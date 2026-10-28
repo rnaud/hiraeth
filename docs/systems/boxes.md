@@ -14,7 +14,7 @@ the exact same in all worlds". There are two kinds and the placement says which 
   gold four-point star on its top (painted by the shader, its points across longer than front to back); a thin brass
   band round it a little under the middle, standing proud of the shell, with a brass hinge on either side; on the band
   at the front a round glass lens of jade fluid in a brass ring, a two-armed swirl with a bright heart and a highlight
-  (the glass backpack's jade). It opens in two: the shell over the band parts on the side hinges like petals, lined
+  (the jade of the old round backpack). It opens in two: the shell over the band parts on the side hinges like petals, lined
   inside in pale jade.
 - **The temple chest** (`temple/sheet-*.jpg`; `TEMPLE_CHEST`), the chest at the heart of each temple: a bud of white
   stone on a low round foot ringed in gold, six petals edged in gold, a gold four-point star with a jade heart on each,
@@ -169,7 +169,7 @@ read as a pop under the side plan, 0.7 m in one frame. There it blends instead, 
 the way between is clear of the room and keeps `CLEAR_OF` (0.35 m) from his upright (`nearPlay`).
 
 **The card** (`card.js`): the item's name and its one description (`ITEMS[id].text`, issue #165), or, for a placement with `found` (an i18n key:
-the desert's backpack, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in
+the desert's battery, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in
 `src/i18n/fr.js`). Its buttons name what to press with the menus' glyphs (`src/pad-glyphs.js`): `A / ×` (Enter on the
 keyboard) on Continue, `B / ○` (Esc) on Skip, nothing on touch (v1.41). **The item comes first** (issue #82: on a
 handheld's screen, under 980 px wide, the card sat in the middle, its words over the lift valve the scene was holding
@@ -197,29 +197,29 @@ to the plan (`closingShot`: mirrored for **left**, swung toward his side for **s
 | Beat | Items | What happens |
 |---|---|---|
 | `try` | gadgets, gun modes (only what shoots) | held out in his right hand, it fires once: a spray of light ahead, a kick back, its sound (the mode's own shot) |
-| `none` | the backpack | no beat: he wears it from the card on |
+| `none` | the battery | no beat: he wears it from the card on |
 | `wear` | cosmetics (the pale star) | pinned on; a close look at it worn on his lapel |
 | `keep` | charms | turned over in his fingers, then pocketed with a soft chime |
-| `fit` | tank upgrades (coil, chamber), the pack's parts (the lift valve, the jets, the wings, the bellows), the Givers' blade and guard | over his shoulder onto the pack, a click; shot from behind him |
+| `fit` | battery upgrades (coil, chamber), the battery's parts (the lift valve, the jets, the wings, the bellows), the Givers' blade and guard | the battery's to the battery at his left hip (`FIT_HIP`, `stowFor`; issue #728), the blade and the guard over his shoulder onto his back, a click; shot from behind him |
 | `point` | the glyph lens, the listening shell | held up, he turns (≤ 70°) toward the nearest box still shut (`pointAt`), a thread of light that way, a faint answer |
 | `play` | the bell-note whistle, the echo shell | to his lips: the bell's note, or a few notes on the shell; notes of light rise |
 
 The item is granted as the beat starts (the star is on him for its look). The item asks for its own
 timing too (`timingFor`): a gadget's box wobbles three quick times, the last the biggest; a charm's or a
-tank part's only twice, gentler, opening 0.7 s sooner (it pays for the beat); the **side** plan holds its
+battery part's only twice, gentler, opening 0.7 s sooner (it pays for the beat); the **side** plan holds its
 reveal 1.15 s (it cuts to a new angle there). E / A on the card plays the beat; Esc / B on the card goes
 past it, and in the beat ends it. After a beat the camera cuts back to play (its closing shot faces him,
 and a blend would swing through him) and hands back in 0.5 s; `fit`, shot from behind, blends.
 `?boxPlan=<name>` forces a plan (the QC script's `--query boxPlan=high`).
 
 Since the author's desert playthrough (October 2026, issues #58 and #70): **nothing is fired before there is
-something to fire it with.** The backpack and its parts used to be `try`, held out and fired: the backpack
+something to fire it with.** The battery and its parts used to be `try`, held out and fired: the battery
 sprayed light out of the city's chest and the lift valve did the same by the pool, long before the gun. Only
 gadgets and gun modes are tried now (`tests/box-beats.test.js` checks every item). **Nothing shrinks away
 into him**: put away in a beat, an item goes at its hold size and is gone; in the hand-back the hovering item
-is simply gone (it flew to his chest and shrank to nothing), being his now, where it lives. **The tank comes
+is simply gone (it flew to his chest and shrank to nothing), being his now, where it lives. **The battery comes
 out as it is**: the desert's placement has `dry` (a function of the game, as `src/story/desert.js` leaves the
-tank: empty unless the pool has risen), and the scene draws the glass empty (`BoxScene.fill`). **Nothing over the
+battery: empty unless the pool has risen), and the scene draws the glass empty (`BoxScene.fill`). **Nothing over the
 card**: toasts wait while `#boxscene` is on (`HOLD_TOASTS`, src/ship/cinema.js) and nobody's balloon shows
 (main.js), so the square's murmurs no longer come up over it.
 
@@ -233,19 +233,19 @@ spike on a brass rod while the hand held a broad blade of living fluid; now:
 | --- | --- | --- |
 | `sword` | the held sword: the wrapped grip, the brass collar and cup, the blade with its currents, ripples, meniscus and breathing glow | `fluid-sword.js buildSword({ key })` |
 | `shield` | the guard open as raised: six brass petals in the riveted ring, the disc of the sword's water round them, its pale lemon rim (issue #284) | `shield.js buildShieldFace` (the held `ShieldDevice`'s face, `poseFace`) |
-| `backpack` | the flask, unworn (no plate, no straps) | `fluid-tool.js buildFlask` (already so) |
+| `backpack` | the makers' battery, unworn (no clip), tipped as its reference lies | `fluid-tool.js buildFlask` (`boxes/model.js tankModel`) |
 
 Each fluid has a material of its own (`key: 'box.item.<id>'`: the same options as the one in use, so the same
 look, but the box winds its clock, not the held sword's). `tickItem(model, fluidMaterials(model), { time, fill })`
-runs a frame of it: each fluid's clock and fill, its kind kept (the box used to write the tank's kind over every
+runs a frame of it: each fluid's clock and fill, its kind kept (the box used to write the battery's kind over every
 fluid), and `userData.tick(time, fill)` on the parts that move of themselves (the blade's breath and its bead, the
 guard's strokes). The scene scales the item (`ITEM_SCALE`, then `HAND.scale` over his open hand), so a model scales itself
 on an inner group. Anselm's upgrades (`light`) and the trials' (`trial`) wrap these models, so they follow.
 `tests/item-reveals.test.js` checks each against its in-use model (the same meshes, the same fluid kind).
 
 Left as they were (issue #283: the author asked for the sword and the guard alone): the wings (three leaves of
-colour on a brass rod: `wingsModel`), the fluid gun's glove (brown with a cream cuff: `gadgets/gun.js gunModel`), the lift valve (its valve, wheel and fins, the parts of the backpack's first stage, on their
-own) and the Warden's bellows (worn, only the backpack's third-stage valve shows: there is nothing on him to match);
+colour on a brass rod: `wingsModel`), the fluid gun's glove (brown with a cream cuff: `gadgets/gun.js gunModel`), the lift valve (its valve, wheel and fins, the parts of the battery's first stage, on their
+own) and the Warden's bellows (worn, only the battery's third-stage valve shows: there is nothing on him to match);
 the gadgets already build their reveal from the model they hold (`bombBody`, `fanModel`, `lensModel`…).
 
 ## The temples' little key chests (issue #274)
@@ -279,7 +279,7 @@ room's axis), in light (a shaft through a crack, a lamp, the open sky), **with n
 ground it stands on: no rocks, rubble, roots, bones, crates or props piled beside it, no wall it is pushed against.
 It faces the way you come to it. Never "on the floor beside" something: a chest at a random spot reads as a dropped
 thing. And it is **there when it makes sense in the story**: one whose gift follows a step (the lift valve after the
-pool has filled your tank) waits, shut, dark and silent, until that step is done (`ready`, below). The lift valve's
+pool has filled your battery) waits, shut, dark and silent, until that step is done (`ready`, below). The lift valve's
 chest (v1.45) stands on its own round dais in the makers' shrine by the giant's pool (since issue #156: below), under a
 fifth crack's shaft of light (`cave.chest`, src/desert-city.js); `tests/desert-cave-exit.test.js`
 checks that nothing stands near it, that it faces the pool and that the light falls on it.
@@ -290,7 +290,7 @@ shut until it holds: no hum, no shudder, no light, no beacon; E on it says `seal
 ## Nothing before the first
 
 `boxesFound(game)` is true once any `box.*` flag is set (a box opened, a temple's chest, an old
-save's backpack). Until then nothing tells of the boxes: the per-world box quests and their
+save's battery). Until then nothing tells of the boxes: the per-world box quests and their
 toast wait, the sketchbook has no "Item boxes" page, the empty gear page says only "Nothing
 yet", and the Qanat pilgrim who tells of the roof box keeps quiet. Since v1.68 (issue #273) a
 world's box quests are given by the local of the box's part's temple (`givenBy`, `boxLine`: they say
@@ -340,10 +340,10 @@ dais in plain sight by the keepers' stair: it stands on its dais inside the make
 `src/desert-city.js`), a round chamber of the builders' stone on the cave's floor west of the pool, 5.2 m high (out of a
 jump's reach: no way out of the cave over it before the double jump, issue #68), open to the vault so the fifth crack's
 shaft still falls on the chest, its doorway toward the pool. The door is a slab of white stone with a glass lens and four
-lines at its heart, dull until your tank is full; then they glow (the fill's moment turns to them: "the makers' door by the
+lines at its heart, dull until your battery is full; then they glow (the fill's moment turns to them: "the makers' door by the
 pool hums back"), and E opens it: the lens drinks, the door sinks into the floor (`src/story/desert.js`, the flag
 `desert.door.open`; its collision is a box the story adds and takes away). The quest has a step for it ("Open the makers'
-door with your full tank") before "Open the chest in the makers' shrine"; the chest's `ready` is the door open. Inside, the
+door with your full battery") before "Open the chest in the makers' shrine"; the chest's `ready` is the door open. Inside, the
 chest has its 3 m clear and faces the door and the pool. `src/save-migrate.js` step 19 opens the door for a save that had
 the lift valve and sends a save waiting at the chest back to the door. `tests/desert-playtest.test.js`,
 `tests/desert-cave-exit.test.js`, `tests/desert-story.test.js`.

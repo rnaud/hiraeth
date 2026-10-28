@@ -47,7 +47,7 @@ export function setupBazaar(ctx) {
   game.on(`flag:${LANTERN_FLAG}`, (v) => {
     if (!v) return;
     game.emit('tool:refill', { addColour: true, tone: LANTERN_TONE });
-    toast('The lantern’s little sun pours into your tank. The tank takes its colour: a bruise, healing.');
+    toast('The lantern’s little sun pours into your battery. Its glass takes the colour: a bruise, healing.');
   });
 
   const onAir = () => !!game.flag('bazaar.broadcast.on');
