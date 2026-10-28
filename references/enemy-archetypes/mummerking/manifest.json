@@ -1,0 +1,23 @@
+{
+  "archetype": "mummerking",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one mummer king, the big chief of a troupe of small ink creatures dressed up in junk, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its throw wind-up, bending back with both arms raised high holding a small kicking mummer above its crown, ready to hurl it. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the king is 2.6 metres tall and much wider than the traveller. Body plan: a heavy pear-shaped body built of junk, an old wooden barrel for a chest bound with rope and patched sackcloth, two short thick legs wrapped in rags with knees bending forward and wide flat ink feet, two long heavy arms with clear elbows and big three-fingered ink hands; its head is a big copper cauldron worn as a mask with two eye holes and two white eyes shining in them, a wooden cart wheel worn on top as a crown with its spokes sticking up, a long curved brass horn slung on a strap across its back, and a long wooden door beam carried as a club. The small mummer it holds is a squat sack creature with a coffee-pot mask. The manifestation: dressed-up ink, black ink seeping from the barrel's staves and the seams of the rags, nothing but wet black under the cauldron. Comic and grand, a folk-play king, not an ogre, not an orc, no teeth, no skin. Desert palette: sun-faded indigo and ochre rags, a dark oak barrel, a green-patina copper cauldron, a pale cart wheel, a bright brass horn, the ink black with a violet sheen. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, ogre, orc, troll, teeth, green skin.",
+      "from": "docs/design/enemy-roster-v2-prompts.md#mummerking",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-27-22-43-54-3591",
+      "candidate": "openai/1",
+      "sha256": "6114b99a988950062a5ce06a8be91376b9d48f656272f692f1bc7c8885d8eacd",
+      "bytes": 254856,
+      "costUSD": 0.041
+    }
+  ]
+}

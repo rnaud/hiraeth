@@ -1,0 +1,27 @@
+{
+  "archetype": "gullet",
+  "created": "2026-10-28",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-27-22-45-00-9c69",
+      "why": "don't like this one, too weird",
+      "date": "2026-10-28",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one gullet, a tall eyeless thirsty creature shaped like a long soft throat, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view with a small round jade shield clearly visible floating inside its see-through belly, and its gulp wind-up, stretched to its full height and leaning far forward with its mouth flared wide open toward the ground in front of it, and leaves, sand and drops of water flying from the ground INTO its open mouth, curved streaks pointing toward the mouth as it sucks them in like a vacuum, nothing coming out. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the gullet is 2.2 metres tall, only a little taller than the traveller, its mouth just above the traveller's head. Body plan: an upright soft tube made of stacked rings with a clear crease between each ring so it can bend anywhere like a neck, standing on one wide round sucker foot like a snail's, a cuff of six soft flaps around the mouth at the top that open like a flower, a long thin tongue coiled inside the mouth, and a rounded belly bulge halfway up; no eyes, no limbs, no teeth. The manifestation: ink gone glassy with thirst, its skin dark smoked glass you can see into, so whatever it has swallowed glows inside it. Lorn palette: smoked green-black glass-ink skin, reed-stem rings, a cuff of pale water-lily flaps, a warm lamp-yellow glow inside the belly, drips of ink at its foot. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, teeth, eyes, worm head, gore.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    },
+    {
+      "batch": "2026-10-27-22-43-54-c4af",
+      "why": "don't like this one, too weird",
+      "date": "2026-10-28",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one gullet, a tall eyeless thirsty creature shaped like a long soft throat, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view with a small round jade shield clearly visible floating inside its see-through belly, and its gulp wind-up, stretched to its full height and leaning far forward over the ground with its mouth flared wide open and streaks of leaves and spray being sucked into it. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the gullet is 2.2 metres tall. Body plan: an upright soft tube made of stacked rings with a clear crease between each ring so it can bend anywhere like a neck, standing on one wide round sucker foot like a snail's, a cuff of six soft flaps around the mouth at the top that open like a flower, a long thin tongue coiled inside the mouth, and a rounded belly bulge halfway up; no eyes, no limbs, no teeth. The manifestation: ink gone glassy with thirst, its skin dark smoked glass you can see into, so whatever it has swallowed glows inside it. Lorn palette: smoked green-black glass-ink skin, reed-stem rings, a cuff of pale water-lily flaps, a warm lamp-yellow glow inside the belly, drips of ink at its foot. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, teeth, eyes, worm head, gore.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

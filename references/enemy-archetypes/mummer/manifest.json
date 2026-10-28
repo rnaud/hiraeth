@@ -1,0 +1,40 @@
+{
+  "archetype": "mummer",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one mummer, a small creature of living ink dressed up in cast-off junk, drawn four times side by side at the same scale on a plain cream background: front view holding a club, side view holding a tent-pole spear, three-quarter view holding a short bow made of a bent spring and a cord, and its club wind-up with both arms raised high and the club drawn back behind its mask, leaning back on its heels so its round belly sticks out. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the mummer is small, only 1.1 metres tall including its mask, the top of its mask level with the traveller's chest, so the traveller is clearly taller than it in every view. Body plan: a squat round body of patched sackcloth and rags stitched together and stuffed with ink, two short bowed stick legs bound in rag with knees bending forward and flat three-toed ink feet, two long thin arms reaching to its knees with clear elbows and three-fingered ink hands gripping the weapon haft, a short neck; its whole head is a big found mask, a dented brass coffee pot turned on its side with two eye holes, two small white eyes shining in the holes. The manifestation: dressed-up ink, black ink seeping from the seams of the sack and dripping from the cuffs, nothing but wet black under the mask. Funny and a little sad, a toy-like folk-play actor, not a goblin, not an orc, no teeth, no ears, no skin. Desert palette: sun-faded indigo and ochre rags, rope bindings, a dented brass mask, a pale driftwood club, the ink black with a violet sheen. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, goblin, orc, pointed ears, teeth, green skin.",
+      "from": "docs/design/enemy-roster-v2-prompts.md#mummer",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-27-22-45-00-4cfa",
+      "candidate": "openai/1",
+      "sha256": "8d9e6f7a7fed2a782e34725457130c63cdfb64018b52a5c0489b66cee418c0f0",
+      "bytes": 201496,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one mummer, a small creature of living ink dressed up in cast-off junk, drawn four times side by side at the same scale on a plain cream background: front view holding a club, side view holding a tent-pole spear, three-quarter view holding a short bow made of a bent spring and a cord, and its club wind-up with both arms raised high and the club drawn back behind its mask, leaning back on its heels so its round belly sticks out. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the mummer is 1.1 metres tall, about the height of the traveller's chest. Body plan: a squat round body of patched sackcloth and rags stitched together and stuffed with ink, two short bowed stick legs bound in rag with knees bending forward and flat three-toed ink feet, two long thin arms reaching to its knees with clear elbows and three-fingered ink hands gripping the weapon haft, a short neck; its whole head is a big found mask, a dented brass coffee pot turned on its side with two eye holes, two small white eyes shining in the holes. The manifestation: dressed-up ink, black ink seeping from the seams of the sack and dripping from the cuffs, nothing but wet black under the mask. Funny and a little sad, a toy-like folk-play actor, not a goblin, not an orc, no teeth, no ears, no skin. Desert palette: sun-faded indigo and ochre rags, rope bindings, a dented brass mask, a pale driftwood club, the ink black with a violet sheen. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, goblin, orc, pointed ears, teeth, green skin.",
+      "from": "docs/design/enemy-roster-v2-prompts.md#mummer",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-27-22-43-54-569b",
+      "candidate": "openai/2",
+      "sha256": "c3fa3691912568c8aa14efbdd6db6c7b9dc185366ad0ca6706b532913e9ce342",
+      "bytes": 198424,
+      "costUSD": 0.041
+    }
+  ]
+}
