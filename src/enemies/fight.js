@@ -22,7 +22,9 @@
 //   follow   { id, on, chance }: after its move `id` misses ('whiff') or a plain guard takes it ('block'), the same move
 //            again at once, its wind-up FOLLOW.wind as long (never under FOLLOW.min s: the body plays the same tell, faster)
 //   evade    { chance, hop }: as your swing begins in its reach and in front of it, it may hop back `hop` m out of it
-//            (EVADE.cool s between): you need a feint, the dash cut, a charged cut, or to catch it after its own blow
+//            (EVADE.cool s between): you need a feint, the dash cut, a charged cut, or to catch it after its own blow;
+//            `time`, `up` its own hop's (s, m); `flip` its body turns over backwards in it (the prowler); `then` the move
+//            it hopped back to make, at once as it lands (the warlord's charge)
 //   backstep the move it steps back to make (its min range): the weighted pick may choose a move out of its range and walk
 //            to where it fits, backing off for a lunge, closing in for a bite (no foe repeats one move at one distance)
 //   alone    what the last of a pack does when its packmates fall: 'flee' (wildlife: it cowers and runs) or 'rage'
@@ -65,6 +67,10 @@ export const FIGHT = {
   sentinel: { mass: 1.4, poise: 5, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'thrust', on: ['whiff', 'block'], chance: 0.5 }, backstep: 'dash' },
   oracle: { mass: 0.8, poise: 3, low: { kind: 'flee', below: 0.4, blink: 7 }, alone: 'flee' },
   crawler: { mass: 0.5, poise: 2, low: { kind: 'last', below: 0.5, attack: 'blast', cling: true }, alone: 'rage' },
+  // (issue #726, the third batch: the prowler back-flips from a swing (`flip`: its body turns over in the hop) and rages
+  // low; the warlord's last stand is its desperation, always seen (`cling`))
+  prowler: { mass: 0.8, poise: 3, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'dart', on: ['whiff'], chance: 0.4 }, evade: { chance: 0.45, hop: 3.0, flip: true, time: 0.55, up: 1.1 }, backstep: 'dart' },
+  warlord: { mass: 4, poise: 9, low: { kind: 'last', below: 0.3, attack: 'whirl', cling: true }, alone: 'rage', follow: { id: 'sweep', on: ['whiff', 'block'], chance: 0.4 }, evade: { chance: 0.3, hop: 3.4, then: 'charge', time: 0.45, up: 0.3 }, backstep: 'charge' },
 };
 
 /**
@@ -156,6 +162,8 @@ export const ARMOUR = {
   crab: { plates: 2, hold: 2, pops: ['fire'], soak: 0, bare: { shell: false, guard: null, heavy: false } },
   tripod: { plates: 3, hold: 2, pops: ['stun'], soak: 0.4, bare: { heavy: false, shoot: 1 } },
   cart: { plates: 2, hold: 3, pops: ['shoot'], soak: 0.4, bare: { heavy: false } },
+  // (issue #726: the warlord's rough bronze: a plate on each shoulder and a greave on each shin)
+  warlord: { plates: 4, hold: 3, pops: ['stun'], soak: 0.4, bare: { stout: false, heavy: false } },
 };
 /** Bare (every plate off): its wind-ups this long (never under `min` s), its waits, its speed, how hard your cuts land. */
 export const BARE = { wind: 0.8, min: 0.5, cool: 0.7, speed: 1.25, takes: 1.25 };
@@ -243,6 +251,8 @@ export const TIERS = {
   sentinel: { combo: ['thrust', 'cut'], words: 'a thrust, then a cut at once' },
   oracle: { combo: ['ward', 'volley'], words: 'it fires a volley as soon as its ward is up' },
   crawler: { combo: ['bite', 'bite'], words: 'it bites twice' },
+  prowler: { combo: ['dart', 'dart'], words: 'it darts at you twice' },
+  warlord: { combo: ['charge', 'overhead'], words: 'out of its charge it brings the glaive down at once' },
 };
 /** The stage of the route a tier first comes in at, and the share of the non-fodder foes in tier by stage (0-4). */
 export const TIER_FROM = 3;

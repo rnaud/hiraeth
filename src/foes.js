@@ -160,7 +160,10 @@ export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Arra
   // roster v4's monsters (issue #726): a band of grunts, then a hulk with two to throw
   ['grunt', 'grunt', 'grunt'], ['hulk', 'grunt', 'grunt'],
   // and its droids: a sentinel with a crawler to call, then an oracle warding a sentinel
-  ['sentinel', 'crawler', 'crawler'], ['oracle', 'sentinel', 'crawler']];
+  ['sentinel', 'crawler', 'crawler'], ['oracle', 'sentinel', 'crawler'],
+  // the third batch: a pair of prowlers, then the warlord with its band
+  ['prowler', 'prowler'], ['warlord', 'grunt', 'grunt']];
+
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /**
  * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
@@ -785,6 +788,10 @@ export class Foe {
     if (this.rng() > E.chance * (env.gentle?.() ? 0.5 : 1)) return false;
     this.evadeCool = HOP_BACK.cool; this.plan = null;
     this.hopBack = { t: 0, from: this.pos.clone(), dir: new THREE.Vector3(-dx / d, 0, -dz / d), dist: E.hop };
+    // (out of reach, the move it hopped back to make: the warlord's charge, #726)
+    const then = E.then && this.def.attacks.find((x) => x.id === E.then);
+    if (then) this.plan = { a: then, t: REACH.time * 2 };
+    this.flips = (this.flips ?? 0) + 1;
     ev.push({ type: 'gesture', kind: 'hop' });
     return true;
   }
@@ -792,11 +799,12 @@ export class Foe {
   hopping(dt, env) {
     const H = this.hopBack;
     H.t += dt;
-    const u = Math.min(1, H.t / HOP_BACK.time), e = 1 - (1 - u) * (1 - u), m = H.dist * e - (H.done ?? 0);
-    H.done = H.dist * e;
+    // (a back-flip, fight.evade `time` and `up`: longer and higher than a hop, #726)
+    const E = this.fight.evade, u = Math.min(1, H.t / (E?.time ?? HOP_BACK.time)), e = 1 - (1 - u) * (1 - u), m = H.dist * e - (H.done ?? 0);
+    H.done = H.dist * e; H.u = u;
     if (m > 0) this.step(H.dir.x * m, H.dir.z * m, env);
-    this.lift = HOP_BACK.up * Math.sin(Math.PI * u);
-    if (u >= 1) { this.hopBack = null; this.lift = 0; this.cool = Math.min(this.cool, 0.5); }
+    this.lift = (E?.up ?? HOP_BACK.up) * Math.sin(Math.PI * u);
+    if (u >= 1) { this.hopBack = null; this.lift = 0; this.cool = Math.min(this.cool, this.plan ? 0 : 0.5); }
   }
   /**
    * A follow-up (fight.follow): its move `a` missed you ('whiff') or a plain guard took it ('block'): the same move again at
@@ -1111,6 +1119,12 @@ export class Foe {
         if (D.flock && walker && d < D.reach + 2 && (this.cool > 0 || !(env.mayStrike?.(this) ?? true))) {
           if (d < D.flock.ring - 0.8 && d > 1e-4) { this.step(-dx / d * D.speed * dt, -dz / d * D.speed * dt, env); this.face(dx, dz, dt, 8); }   // (back out to the ring after a dart)
           else this.circle(P, D.flock.ring, dt, env);
+          break;
+        }
+        // (a prowler circles you at `circles` m while it waits out its cool, never standing still in reach: #726)
+        if (D.circles && walker && d < D.reach && this.cool > 0 && !this.plan) {
+          if (d < D.circles - 0.8 && d > 1e-4) { this.step(-dx / d * this.speedNow * 0.8 * dt, -dz / d * this.speedNow * 0.8 * dt, env); this.face(dx, dz, dt, 8); }
+          else this.circle(P, D.circles, dt, env, 0.7);
           break;
         }
         const keep = D.keep ?? this.hangBack();
@@ -1606,10 +1620,31 @@ export class Foe {
   /** Mashed (def.answerMash: its third light cut in a row): its answer at once, the move's own wind-up (the hulk's stomp). */
   answerMash(P, ev) {
     const M = this.def.answerMash, a = M && this.def.attacks.find((x) => x.id === M.attack);
+    if (M?.evade) return this.flipAway(P, ev, M.then);
     if (!a || this.downT > 0 || this.carry || !(this.state === 'chase' || this.state === 'recover')) return false;
     this.state = 'chase'; this.cool = 0; this.plan = null; this.reel = null;
     this.beginWind(a, P); this.answering = true;
     ev.push('warn'); ev.push({ type: 'answer', atk: a });
+    return true;
+  }
+  /**
+   * Mashed (def.answerMash.evade, the prowler: its second light cut in a row): it hops back out of your combo at once
+   * (fight.evade's hop, its body flipping over: `flip`), whatever its cool or its chance; landed, `then` (its dart back in).
+   */
+  flipAway(P, ev, then = null) {
+    const E = this.fight.evade;
+    // (quick and sly: it gives up its own wind-up to get out, never its strike)
+    if (!E || this.downT > 0 || this.hopBack || this.carriedBy || this.stunned > 0 || !(this.state === 'chase' || this.state === 'recover' || this.state === 'wind')) return false;
+    const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
+    if (d < 1e-4) return false;
+    if (this.state === 'wind') { this.atk = null; this.k = 0; }
+    this.state = 'chase'; this.cool = 0; this.reel = null; this.timer = 0;
+    this.evadeCool = HOP_BACK.cool; this.sawSwing = true;
+    this.hopBack = { t: 0, from: this.pos.clone(), dir: new THREE.Vector3(-dx / d, 0, -dz / d), dist: E.hop };
+    const a = then && this.def.attacks.find((x) => x.id === then);
+    this.plan = a ? { a, t: REACH.time * 2 } : null;
+    this.flips = (this.flips ?? 0) + 1;
+    ev.push({ type: 'gesture', kind: 'hop' });
     return true;
   }
   /** Its sword knocked out of its hand (a perfect parry of a sword blow: onParry 'disarm'), to land at `at`. */

@@ -56,6 +56,9 @@ export const DEFEATS = {
   sentinel: { time: 1.2, sag: { y: -0.55, at: [0, 0.45] }, topple: { angle: 1.3, at: [0.3, 0.9] }, puff: 'vent' },
   oracle: { time: 1.2, land: { at: [0, 0.6] }, roll: { side: 1, angle: 1.2, at: [0.35, 0.9] }, puff: 'vent' },
   crawler: { time: 0.9, sag: { y: -0.25, at: [0, 0.4] }, roll: { side: 1, angle: 1.0, at: [0.2, 0.8] }, puff: 'vent' },
+  // (the prowler crumples and keels over on its side; the warlord sinks to one knee, then falls forward)
+  prowler: { time: 1.0, sag: { y: -0.45, at: [0, 0.45] }, topple: { angle: -1.3, at: [0.3, 0.9] }, puff: 'dust' },
+  warlord: { time: 1.5, sag: { y: -0.6, at: [0, 0.5] }, topple: { angle: 1.25, at: [0.45, 0.95] }, puff: 'dust' },
 };
 
 /** A move's eased progress at u (0..1 over the defeat) for its `at` window. */

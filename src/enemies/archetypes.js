@@ -922,6 +922,72 @@ export const ARCHETYPES = {
     }),
     note: 'A crawler blinking red is about to burst: roll away, or finish it first.',
   },
+  // (roster v4's third batch, issue #726: the prowler, the quick one, and the warlord, the rare elite)
+  //   circles      m it circles you at while it waits out its cool (the prowler: it never stands still in reach)
+  //   answerMash.evade  the answer is a back-flip out of your combo (fight.evade's hop, at once, whatever its cool), then
+  //                `then` (its dart back in)
+  prowler: {
+    name: 'prowler', family: 'monster', plan: 'monster', planNo: 30, role: 'the quick one', tier: 2, ranged: true,
+    status: 'built', kind: 'prowler', was: [], sound: 'scale', drop: 4, art: 'sheet-1',
+    moves: ['darting slash (and a close slash)', 'tail sweep', 'spit'],
+    answers: ['feint a swing, then cut it as it lands its flip', 'jump the tail sweep and cut its back', 'side hop the dart', 'guard the spit, or shoot it as it rears back'],
+    idle: 'paces its ground, its tail swaying, tasting the air',
+    def: S({
+      name: 'prowler', hp: 5, hook: 'light', radius: 0.45, height: 1.8, speed: 4.8, sight: 18, giveUp: 34, reach: 12,
+      tone: '#7fc65a', takes: { shoot: 1, fire: 1.5 },
+      calm: { mode: 'pace', provoke: 9, round: 4, wait: 2, alarm: 16 },
+      circles: 3.4, whiffRecover: 0.4,
+      answerMash: { cuts: 2, within: 1.3, evade: true, then: 'dart' },
+      attacks: [
+        // close: the curved blade drawn back across its chest and slashed out flat
+        { id: 'slash', name: 'slash', shape: 'cone', range: 1.9, angle: 0.9, damage: 0.5, wind: 0.7, strike: 0.22, contact: 0.5, lunge: 0.6, max: 2.2, weight: 2, dodge: 'side',
+          tell: 'it draws the curved blade back across its chest, its head low', counter: 'guard it, or step aside and cut' },
+        // crouched low on bent legs, the blade drawn back, its tail lashing (the sheet's attack pose); then it darts across the gap
+        { id: 'dart', name: 'darting slash', shape: 'cone', range: 1.8, angle: 0.8, damage: 0.5, wind: 0.75, strike: 0.3, contact: 0.55, lunge: 3.6, min: 2.4, max: 5.8, weight: 2.5, dodge: 'side',
+          tell: 'it crouches low on bent legs, the blade drawn back, its tail lashing', counter: 'side hop as it darts, then cut its back' },
+        // it turns side-on and drops low, its tail drawn round behind it; then it spins and the tail sweeps round at your knees
+        { id: 'tail', name: 'tail sweep', shape: 'ring', at: 'self', radius: 2.5, damage: 0.5, wind: 0.85, strike: 0.35, contact: 0.45, ground: true, max: 2.5, weight: 3,
+          tell: 'it turns side-on and sinks, its tail drawn round low behind it', counter: 'jump it, then cut its back' },
+        // its head reared back, its throat swelling; a glob of spit lobbed at the mark
+        { id: 'spit', name: 'spit', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.3, damage: 0.5, wind: 0.95, min: 4, max: 11, weight: 2,
+          tell: 'it rears its head back, its cream throat swelling', counter: 'walk out of the mark, or shoot it as it rears' },
+      ],
+      recover: 0.9, cool: [0.7, 1.4], hit: 0.35,
+    }),
+    note: 'The prowler: it flips back from your combo. Feint, or jump its tail.',
+  },
+  warlord: {
+    name: 'warlord', family: 'monster', plan: 'monster', planNo: 31, role: 'the elite', tier: 4, ranged: false,
+    status: 'built', kind: 'warlord', was: [], sound: 'hide', drop: 9, art: 'sheet-1',
+    moves: ['glaive sweep and overhead', 'charge', 'roar (wakes its band); low, its last stand'],
+    answers: ['roll through the sweep', 'side hop the overhead and cut its back', 'step aside from the charge: it stalls on a wall', 'charged cuts knock its bronze off', 'back off from its last stand'],
+    idle: 'stands guard before its coffer, the glaive grounded, its band about it',
+    def: S({
+      name: 'warlord', hp: 12, hook: 'heavy', radius: 0.85, height: 2.5, speed: 3.2, sight: 20, giveUp: 34, reach: 14, heavy: true, stout: true,
+      tone: '#b8323f', takes: { shoot: 1, fire: 1.2 },
+      calm: { mode: 'stand', provoke: 10, alarm: 25 },
+      whiffRecover: 0.6,
+      attacks: [
+        // the glaive drawn back over its shoulder in both hands, its chest turned away (the sheet's attack pose); a wide sweep
+        { id: 'sweep', name: 'glaive sweep', shape: 'cone', range: 3.6, angle: 1.4, damage: 0.75, wind: 1.0, strike: 0.35, contact: 0.5, knock: 4, max: 3.5, weight: 2.5, dodge: 'back',
+          tell: 'it draws the glaive back over its shoulder in both hands, its chest turned away', counter: 'roll through it, or the air cut over it' },
+        // the glaive raised high over its horns, leaning back; then straight down through it
+        { id: 'overhead', name: 'glaive overhead', shape: 'lane', width: 1.2, range: 4.2, damage: 1, wind: 1.1, strike: 0.3, contact: 0.55, knock: 5, lunge: 0.6, max: 4, weight: 2, dodge: 'side',
+          tell: 'it raises the glaive high over its horns and leans back on its heels', counter: 'side hop, then cut its back' },
+        // the glaive lowered like a lance, its head down and one foot pawing; then it charges through where you stood
+        { id: 'charge', name: 'charge', shape: 'lane', width: 1.6, range: 9, damage: 0.75, knock: 6, wind: 1.2, strike: 0.8, contact: 0.05, lunge: 9, sweep: true, stall: 1.6, min: 3.5, max: 9, weight: 1.6,
+          tell: 'it lowers the glaive like a lance, its horns down, and paws the ground', counter: 'step aside at the last moment; into a wall, it stalls' },
+        // its arms flung wide, its chest out, its maned head thrown back: every one round it within 25 m wakes and comes
+        { id: 'roar', name: 'roar', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.1, instant: true, horn: 25, max: 14, weight: 4, recover: 0.8,
+          tell: 'it flings its arms wide and throws its maned head back', counter: 'cut it before it roars, or ready for its band' },
+        // low (its desperation, fight.low 'last'): the glaive whirled round it twice, its whole body turning; then it sits open
+        { id: 'whirl', name: 'last stand', shape: 'ring', at: 'self', radius: 3.4, damage: 1, knock: 6, wind: 1.3, strike: 0.7, contact: 0.4, opens: 1.6, below: 0.3, max: 3.2, weight: 6,
+          tell: 'it plants its feet wide and swings the glaive back round behind it, roaring', counter: 'get out of its reach, then cut it while it reels' },
+      ],
+      recover: 1.1, cool: [1.1, 2.0], hit: 0.5,
+    }),
+    note: 'The warlord: knock its bronze off. When it whirls its glaive, get clear.',
+  },
 };
 
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);

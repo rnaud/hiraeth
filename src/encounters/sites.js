@@ -15,6 +15,9 @@
 //   ambush   a coffer alone, the bait; a sign before it (the sand twitching, or a shadow on the ground), and the foes come
 //            up round you when you step in to take it.
 //   patrol   a coffer by a cairn; the foes walk a beat before it, end to end, and back.
+//   warlord-hold  a warlord's own place (issue #726, roster v4): it stands guard before its coffer between two banners,
+//            its glaive grounded; its band sits round a fire before it. Its roar (attack.horn) wakes the band. Staged
+//            only (STAGED.roster4): no world's own sites have one yet.
 //
 // SITES[world]: [{ id, kind, at: [x, y, z] (world metres: y its ground), heading (rad, its front), foes: [archetype …],
 // lookout?: archetype (a camp's), sign?: 'sand' | 'shadow' (an ambush's), beat?: m (a patrol's half-length) }]. A
@@ -26,12 +29,15 @@ export const SITE = { near: 70, quiet: 110, build: 160, trigger: 7.5, wake: [0.2
 /** The coffer's purse by the world's stage (chimes): a wandering pack's whole drop is 2–20; a site pays more. */
 export const SITE_PURSE = [20, 25, 30, 40, 50];
 /** The idle each kind of site gives its foes (src/encounters/idle.js), and its lookout's. */
-export const SITE_IDLE = { camp: 'sit', nest: 'sleep', hoard: 'guard', ambush: 'hidden', patrol: 'patrol' };
+export const SITE_IDLE = { camp: 'sit', nest: 'sleep', hoard: 'guard', ambush: 'hidden', patrol: 'patrol', 'warlord-hold': 'guard' };
+/** A site of this kind pays its coffer's purse this many times over (the warlord's hold: the rare elite's). */
+export const SITE_PAYS = { 'warlord-hold': 2 };
 
 /**
  * Foes staged at a site before the worlds' rosters take them (issue #726, roster v4): a site's `staged[flag]` adds its
- * `foes` (and a weapon `rack`, with `unarmed` of its rack-takers starting empty-handed) only with that flag on. All off by
- * default; on in a run with ?staged=roster4 (stagedFrom), or by setting STAGED.roster4 in a test.
+ * `foes` (and a weapon `rack`, with `unarmed` of its rack-takers starting empty-handed) only with that flag on; with
+ * `kind` it becomes a site of that kind and its `foes` replace the site's (the warlord's hold). All off by default; on
+ * in a run with ?staged=roster4 (stagedFrom), or by setting STAGED.roster4 in a test.
  */
 export const STAGED = { roster4: false };
 /** The flags a page's query turns on (?staged=roster4,…) over STAGED. */
@@ -43,7 +49,11 @@ export function stagedFrom(search = '') {
 export function withStaged(s, flags = STAGED) {
   if (!s.staged) return s;
   let out = s;
-  for (const [k, add] of Object.entries(s.staged)) if (flags[k]) out = { ...out, foes: [...out.foes, ...(add.foes ?? [])], rack: add.rack ?? out.rack, unarmed: add.unarmed ?? out.unarmed };
+  for (const [k, add] of Object.entries(s.staged)) {
+    if (!flags[k]) continue;
+    out = add.kind ? { ...out, kind: add.kind, foes: [...(add.foes ?? out.foes)], lookout: undefined }
+      : { ...out, foes: [...out.foes, ...(add.foes ?? [])], rack: add.rack ?? out.rack, unarmed: add.unarmed ?? out.unarmed };
+  }
   return out;
 }
 
@@ -119,6 +129,18 @@ export function layoutSite(s, { hovers = () => false, radius = () => 0.6, racks 
       const path = [W(-L + 1.2, 0.6 * (i % 2)), W(L - 1.2, 0.6 * (i % 2))], at = W(-L * 0.4 + i * 3, 0.6 * (i % 2));
       foes.push({ archetype: a, at, heading: h + Math.PI / 2, idle: idleOf(a, 'patrol'), path });
     });
+  } else if (s.kind === 'warlord-hold') {
+    // the warlord before its coffer between its two banners, looking out down the way in; its band round a fire before
+    // it, off to one side (each facing the flames), so the way to it is open
+    coffer = { at: W(0, -2.4), heading: h };
+    props.push({ type: 'banner', at: W(-2.3, -1.6), heading: h }, { type: 'banner', at: W(2.3, -1.6), heading: h }, { type: 'fire', at: W(-3.4, 3.6), heading: h });
+    const [lord, ...band] = s.foes;
+    foes.push({ archetype: lord, at: W(0, 0.3), heading: h, idle: idleOf(lord, 'guard') });
+    const big = Math.max(0.6, ...band.map(radius)), R = 1.6 + big;
+    band.forEach((a, i) => {
+      const ang = Math.PI * (0.15 + (1.3 * (i + 0.5)) / Math.max(1, band.length)), c = [-3.4, 3.6], at = W(c[0] + Math.sin(ang) * R, c[1] + Math.cos(ang) * R);
+      foes.push({ archetype: a, at, heading: toward(at, W(...c)), idle: idleOf(a, 'sit'), face: W(...c) });
+    });
   } else throw new Error(`a site of no kind: ${s.kind}`);
   return { foes, props, coffer, trigger: s.kind === 'ambush' ? SITE.trigger : null };
 }
@@ -126,7 +148,7 @@ export function layoutSite(s, { hovers = () => false, radius = () => 0.6, racks 
 /** Everything a site puts on the ground, as [x, z] points with the room each needs (m): what the tests stand on the world. */
 export function siteFootprint(s, o) {
   const L = layoutSite(s, o);
-  return [...L.foes.map((f) => ({ at: f.at, r: 1, what: `${f.archetype} (${f.idle})` })), ...L.props.map((p) => ({ at: p.at, r: p.type === 'nest' ? 3.4 : p.type === 'fire' ? 1.4 : p.type === 'rack' ? 0.9 : 0.6, what: p.type })), { at: L.coffer.at, r: 0.9, what: 'coffer' }];
+  return [...L.foes.map((f) => ({ at: f.at, r: 1, what: `${f.archetype} (${f.idle})` })), ...L.props.map((p) => ({ at: p.at, r: p.type === 'nest' ? 3.4 : p.type === 'fire' ? 1.4 : p.type === 'rack' || p.type === 'banner' ? 0.9 : 0.6, what: p.type })), { at: L.coffer.at, r: 0.9, what: 'coffer' }];
 }
 
 // ------------------------------------------------------------------ the sites, world by world
@@ -146,7 +168,9 @@ export const SITES = {
     { id: 'plain-fire', kind: 'camp', at: [-68, 52, -1457], heading: 0.37, foes: ['blot', 'blot', 'heron'], lookout: 'heron' },
     { id: 'ray-shadow', kind: 'ambush', at: [-460, 62.5, -1100], heading: 1.52, foes: ['ray', 'ray'], sign: 'shadow' },
     { id: 'crab-nest', kind: 'nest', at: [51, 40.5, -43], heading: -2.73, foes: ['crab', 'crab', 'crab'] },
-    { id: 'stone-hoard', kind: 'hoard', at: [-278, 76.2, -162], heading: 2.34, foes: ['crab', 'jelly', 'crab'] },
+    { id: 'stone-hoard', kind: 'hoard', at: [-278, 76.2, -162], heading: 2.34, foes: ['crab', 'jelly', 'crab'],
+      // (issue #726: roster v4's warlord holds this place with three grunts round its fire; off until the rosters take them)
+      staged: { roster4: { kind: 'warlord-hold', foes: ['warlord', 'grunt', 'grunt', 'grunt'] } } },
   ],
   perdide: [
     { id: 'toad-fire', kind: 'camp', at: [-133, 1.6, 194], heading: -2.54, foes: ['toad', 'toad', 'rootknot'], lookout: 'heron' },

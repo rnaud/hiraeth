@@ -46,7 +46,11 @@ and are built with the enemy-rework skill (procedural surface mandatory).
    `?staged=roster4`. Still unlike the sheets: the grunt's legs a little short and its hands mitten-like, the hulk's
    head smaller and its arms more tube-like than drawn, the hulk's club studded (the sheet draws only bands).
 2. **Sentinel, oracle, crawler**, in parallel with 1.
-3. **Prowler and warlord.**
+3. **Prowler and warlord.** Built (v2.34): docs/systems/foes.md, "The prowler and the warlord"; the warlord's hold
+   staged in Arzach behind `?staged=roster4`. Still unlike the sheets: the prowler's limbs are tubes (the sheet's are
+   muscled), its head a little small, its belly paler than drawn only in the light; the warlord's mane is tufts, not
+   locks, its horns plain ridged tubes, its pauldrons one dome and one lame (the sheet draws two layers), no buckles on
+   its greaves' straps.
 4. **The world rosters**: every route world's sites and packs from this roster; the per-world animals (crab, lizard,
    toad, worm, centipede, heron, and the rest led by a world) and the mummers move to the Arena list for the debug
    menu. Blots stay as the first world's teacher. The shade, hound, skitters and flyers are reviewed then.

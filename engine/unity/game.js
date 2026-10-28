@@ -837,6 +837,20 @@ function makePlan(args) {
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'monster-moves', move: 'second' }, { kind: 'wait', frames: 40, secs: 0.7 }, { kind: 'foe', what: 'rig' }, ...shot('volley-stomp'),
       { kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'face' }, { kind: 'wait', frames: 20, secs: 0.4 }, { kind: 'foe', what: 'grunt@desert*', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'hulk@desert*', dist: 8, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['grunt'] }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
   }
+  if (fights.includes('roster4b')) {
+    // (-fight roster4b, issue #726: roster v4's prowler and warlord on the humanoid rig: a warlord 7 m ahead and a prowler
+    // 4.5 m ahead (set aside to the traveller's right), standing; their rig said; then the prowler's dart and the warlord's
+    // sweep, pictured at three quarters of the wind-up; then the tail sweep and the charge; then the prowler's back-flip
+    // halfway and the warlord's roar; then both in their banded tier)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-roster4b-${name}.png` }] : []);
+    const moves = (move, frames, secs) => [{ kind: 'foe', what: 'roster4b-moves', move }, { kind: 'wait', frames, secs }, { kind: 'foe', what: 'rig' }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'warlord@desert', dist: 7, hp: 99 }, { kind: 'foe', what: 'prowler@desert', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['prowler'] },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
+      ...moves('first', 34, 0.62), ...shot('windup'),
+      { kind: 'wait', frames: 90, secs: 2.5 }, ...moves('second', 36, 0.65), ...shot('tail-charge'),
+      { kind: 'wait', frames: 120, secs: 3 }, ...moves('third', 16, 0.27), ...shot('flip-roar'),
+      { kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'face' }, { kind: 'wait', frames: 20, secs: 0.4 }, { kind: 'foe', what: 'prowler@desert*', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'warlord@desert*', dist: 8, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['prowler'] }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
+  }
   if (fights.includes('duelists')) {
     // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
     // shade 4 m ahead, standing; their rig said; then each winds up its first blow, pictured at three quarters of it; then
@@ -1366,6 +1380,16 @@ function playFrame(dt) {
         if (f.kind === 'grunt') { f.weapon = id === 'volley' ? 'bow' : 'club'; f.disarmed = null; }
         const a = f.def.attacks.find((x) => x.id === id);
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
+    } else if (step.what === 'roster4b-moves') {
+      // (-fight roster4b, #726: first the prowler's dart and the warlord's sweep; then its tail sweep and the charge; then
+      // its back-flip (Foe.flipAway) and the roar)
+      for (const f of F.list.filter((x) => x.model?.driver && x.alive)) {
+        f.hopBack = null; f.state = 'chase'; f.cool = 0;
+        if (f.kind === 'prowler' && step.move === 'third') { f.flipAway(game.player, []); continue; }
+        const id = f.kind === 'prowler' ? { first: 'dart', second: 'tail' }[step.move] : { first: 'sweep', second: 'charge', third: 'roar' }[step.move];
+        const a = f.def.attacks.find((x) => x.id === id);
+        if (a) f.beginWind(a, game.player);
       }
     } else if (step.what === 'bash') {
       // (-fight duelists, #724 polish: the fencer's shield bash, the shade guarding)

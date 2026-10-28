@@ -645,6 +645,46 @@ SURFACES.oracle['*'] = droidParts(['ceramic', 'joint', 'seam', 'ring']);
 SURFACES.crawler['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss']);
 /** An archetype's own stronger-tier surface instead of the bands (TIER_SURFACE): the droids' scorch. */
 export const TIER_SURFACES = { sentinel: DROID_TIER_SURFACE, oracle: DROID_TIER_SURFACE, crawler: DROID_TIER_SURFACE };
+// The third batch (issue #726; sheets in references/enemy-archetypes/prowler/ and warlord/).
+Object.assign(SURFACES, {
+  prowler: {
+    '*': {
+      // (sheet-1: smooth leaf-green skin, its fine scales only a stipple; paler blotches on its flanks; a soft sheen)
+      skin: {
+        mottle: { color: 'skin2', scale: 0.12, amount: 0.3, soft: 0.16, detail: 0.4, strength: 0.45 },
+        spots2: { color: 'crease', scale: 0.025, share: 0.3, size: 0.35, amount: 0.25 },
+        gloss: { size: 0.02, sky: 0.35, amount: 0.25 },
+      },
+      // (the cream throat, chest, belly and the tail's underside: smooth, a few faint ventral lines across it)
+      belly: { bands: { color: 'belly2', axis: 1, period: 0.05, width: 0.08, ink: 0.06 } },
+      // (polished steel: a bright highlight, faint smudges)
+      steel: { gloss: { size: 0.025, sky: 0.9, amount: 0.8 }, mottle: { color: 'steel*0.78', scale: 0.03, amount: 0.3, soft: 0.2, strength: 0.5 } },
+      leather: { mottle: { color: 'leather*0.7', scale: 0.03, amount: 0.4, soft: 0.1, strength: 0.6 }, gloss: { size: 0.02, sky: 0.4, amount: 0.3 } },
+      bone: { fade: { color: 'bone*0.72', axis: 1, from: -0.02, to: 0.03 } },
+      ink: { gloss: { size: 0.02, sky: 0.6, amount: 0.8 } },
+    },
+  },
+  warlord: {
+    '*': {
+      // (sheet-1: deep crimson, the muscles' creases darker, a fine stipple in the shade)
+      skin: {
+        mottle: { color: 'skin2', scale: 0.18, amount: 0.28, soft: 0.16, detail: 0.4, strength: 0.45 },
+        spots2: { color: 'crease', scale: 0.05, share: 0.35, size: 0.4, amount: 0.4 },
+      },
+      // (the mane: dark brown, combed into long strands, paler streaks through it)
+      mane: { grain: { color: 'mane*0.6', spacing: 0.012, ink: 0.5, warp: 0.9, amount: 0.7 }, mottle: { color: 'mane2', scale: 0.08, amount: 0.35, soft: 0.1, strength: 0.6 } },
+      // (the horns: ridged rings along them, darker at the root)
+      horn: { grain: { color: 'horn2', spacing: 0.022, ink: 0.25, warp: 0.2, amount: 0.55 }, gloss: { size: 0.02, sky: 0.4, amount: 0.3 } },
+      // (rough bronze: blotched darker, pitted, a dull sheen; the plates the same)
+      bronze: { rust: { color: 'bronze2', color2: '#5e4426', amount: 0.2, amount2: 0.08, scale: 0.025, down: 0.3, pits: 0.3 }, gloss: { size: 0.03, sky: 0.45, amount: 0.45 } },
+      plate: { rust: { color: 'bronze2', color2: '#5e4426', amount: 0.2, amount2: 0.08, scale: 0.03, down: 0.3, pits: 0.3 }, gloss: { size: 0.035, sky: 0.45, amount: 0.45 } },
+      // (the loincloth and the belt: coarse, stained)
+      cloth: { mottle: { color: 'cloth*0.75', scale: 0.07, amount: 0.4, soft: 0.1, strength: 0.6 }, ...SPECKS('cloth*0.6', 0.4, 0.025) },
+      wood: { grain: { color: 'wood*0.7', spacing: 0.02, ink: 0.4, warp: 0.3, amount: 0.55 }, mottle: { color: 'wood2', scale: 0.12, amount: 0.3, soft: 0.1, strength: 0.5 } },
+      steel: { gloss: { size: 0.03, sky: 0.8, amount: 0.7 }, mottle: { color: 'steel*0.75', scale: 0.05, amount: 0.3, soft: 0.2, strength: 0.5 } },
+    },
+  },
+});
 
 /** A colour of the table: '#rrggbb', a palette key, darker 'key*0.7', paler 'key+0.3'. */
 export function surfaceColor(c, palette = {}) {

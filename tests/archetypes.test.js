@@ -35,16 +35,16 @@ const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn
 // keep camp in the Desert first, the rest of their worlds and skins to come; until then they stand in fewer worlds)
 const ROLLING_OUT = new Set(['mummer', 'mummerking']);
 // (issue #726: roster v4's monsters, one skin in every world; staged at a site behind a flag until the rosters take them)
-const STAGED_V4 = new Set(['grunt', 'hulk']);
-const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
+const STAGED_V4 = new Set(['grunt', 'hulk', 'prowler', 'warlord']);
+const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'the quick one', 'the elite', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
 // (issue #726: roster v4's droids are met in the Arena alone until the world rosters take them, a later batch)
 const ARENA_ONLY = new Set(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].roster === 'v4'));
 
 // ------------------------------------------------------------------------------------------- the tables
-test('the roster: 30 archetypes, 12 creatures, 9 machines, 7 spirits and 2 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
-  assert.equal(ARCHETYPE_IDS.length, 30);
+test('the roster: 32 archetypes, 12 creatures, 9 machines, 7 spirits and 4 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
+  assert.equal(ARCHETYPE_IDS.length, 32);
   const fam = (f) => ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].family === f);
-  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length, fam('monster').length], [12, 9, 7, 2]);
+  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length, fam('monster').length], [12, 9, 7, 4]);
   assert.equal(new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].role)).size, ARCHETYPE_IDS.length, 'a job each');
   for (const a of ARCHETYPE_IDS) {
     const A = ARCHETYPES[a];
@@ -72,7 +72,7 @@ test('the roster: 30 archetypes, 12 creatures, 9 machines, 7 spirits and 2 monst
     const plans = fam(f).map((a) => ARCHETYPES[a].planNo + ARCHETYPES[a].plan);
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
-  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6, the fencer, the mummers and roster v4\'s monsters and droids: all 30 are built');
+  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6, the fencer, the mummers and roster v4\'s monsters and droids: all 32 are built');
   for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
@@ -248,7 +248,7 @@ test('old saves are unaffected: enemies are never saved, only flags of kinds tha
 test('batches 1 and 2: each attack winds up at least its telegraph minimum; only a lob marks the ground; every move says its tell and its answer', () => {
   for (const a of BUILT) {
     const D = ARCHETYPE_KINDS[ARCHETYPES[a].kind];
-    assert.ok(D.attacks.filter((x) => !x.chain).length >= 2 && D.attacks.filter((x) => !x.chain).length <= (D.weapons ? 5 : 4), `${a}: its attacks (a weapon carrier: one set a weapon)`);
+    assert.ok(D.attacks.filter((x) => !x.chain).length >= 2 && D.attacks.filter((x) => !x.chain && !x.below).length <= (D.weapons ? 5 : 4), `${a}: its attacks (a weapon carrier: one set a weapon; a move kept for when it is low aside)`);
     for (const x of D.attacks) {
       assert.ok(x.wind >= windMin(x) - 1e-9, `${a}.${x.id}: ${x.wind} s ≥ ${windMin(x)} s`);
       assert.ok(x.damage * 4 === Math.round(x.damage * 4) && x.damage <= 1, `${a}.${x.id}: hearts in quarters`);

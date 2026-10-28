@@ -1716,6 +1716,50 @@ a frame on this Mac (High and Deck, headless).
 Still differs from the sheets: the crawler is the plan's knee-high scout (the sheet draws it nearly chest-high); the
 sentinel's resting stance is the library's idle, wider-legged than the sheet's, its blade carried low and point forward (the sheet's hangs point down: it would cut into a slope); the oracle's shell is narrower at the hips
 and its hands are simple; the stains are fainter washes than the sheet's.
+### The prowler and the warlord (v2.34, issue #726, the third batch)
+
+Drawn to their picked sheets (a new `prowler/` and `warlord/` folder under the enemy references), on the humanoid rig,
+one skin (`desert`, `arena: true`), their tier darker and banded. Not on any world's roster.
+
+- **The prowler** (`prowler`, tier 2, role `the quick one`, 5 hp, 1.8 m, seven draws): a lean leaf-green lizard, a long
+  narrow head with a crest of spines and wide-set yellow eyes, a cream throat, belly and tail underside, digitigrade
+  legs (the shin bent back to a raised hock, the instep forward to the ball of the foot: `PROWLER_SHANK`, built on the
+  rig's shin, so its joints stay the traveller's), one steel shoulder guard on a strap, a short curved blade. Its tail is
+  eight segments on joints of their own, sprung (`TailSpring`: a SecondOrder per segment on pitch and yaw, softer down the
+  tail; the body's turn flung out through it, a lash as it winds up, kept off the ground).
+  - It **circles you** at 3.4 m while it waits out its cool (`def.circles`).
+  - It **back-flips** out of your swing (`fight.evade`, chance 0.45, 3 m, `flip`: its body turned over backwards about
+    its hips over the hop, `time` 0.55 s, `up` 1.1 m) and, as its answer to a masher, at once on the second light cut in a
+    row within 1.3 s (`answerMash.evade`, `Foe.flipAway`: out of its own wind-up too, never its strike), then darts back
+    in (`then: 'dart'`).
+  - The **darting slash** (0.75 s, crouched low with the blade back: the sheet's attack pose, then 3.6 m across the gap),
+    the **slash** close (0.7 s), the **tail sweep** (0.85 s: side-on, then a whole turn about its feet with the tail
+    straight out at knee height, `spinAngle`; a ring on the ground: jump it), the **spit** (0.95 s, a lob at 4-11 m).
+  - Low, it rages. Its tier darts twice (`TIERS.prowler` combo).
+- **The warlord** (`warlord`, tier 4, role `the elite`, 12 hp, 2.5 m, `heavy`, `stout`, twelve draws): crimson, a great
+  cat's maned head (`WARLORD_HEAD.scale` 1.45) with two curled ram horns, rough bronze, a wide belt, a loincloth, a long
+  glaive aimed in its body's frame in the held poses (`WARLORD_AIM`: upright at its side, levelled for the charge).
+  - The **glaive sweep** (1.0 s, drawn back over its shoulder, `glaiveHigh`), the **overhead** (1.1 s), the **charge**
+    (1.2 s: levelled like a lance, its head down; the strike runs on the library's sprint, `M.run`, 9 m, stalling on a
+    wall), the **roar** (1.1 s, `horn: 25`: every one within 25 m wakes). It steps back from your swing to charge
+    (`fight.evade` chance 0.3, `then: 'charge'`).
+  - **Armour** (`ARMOUR.warlord`): four bronze plates, the shoulders and the greaves, hold 3, soak 0.4; knocked off,
+    bare, it loses `stout` and `heavy`.
+  - **Desperation** under 30 % (`fight.low` `last`, `cling`): its **last stand**, the glaive whirled round twice
+    (1.3 s wind-up, a 3.4 m ring), then it sits open 1.6 s.
+  - Its tier brings the overhead down out of its charge.
+
+**The warlord's hold** (`'warlord-hold'`, `src/encounters/sites.js`): the warlord on guard before its coffer between
+two banners (`props.js` `banner`), its band of grunts sat round a fire before it; the warlord noticing you does not
+wake the band (`Encounters.alarm`): its roar does. The coffer pays twice (`SITE_PAYS`). Staged in Arzach, the stone
+hoard becoming the hold behind `?staged=roster4` (a staged `kind` replaces the site's own).
+
+Measured (tests/prowler-warlord.test.js, node): neither dies to one light combo at any stage or tier; against the
+masher every signature move fired (four seeds each: the prowler's dart 13, flip 8, spit 4, tail 2, slash 1; the
+warlord's roar 5, charge 4, whirl 2, sweep and overhead, 13 plates off, its band woken 4 of 4). `Foes.look` a frame,
+walking: about 0.04 ms each. The Arena (`arena.mjs`, a still player 24 s): the prowler's wind-ups seen 0.86 s, 20
+attacks a minute; the warlord's 1.13 s, 15 a minute. A pack of two prowlers and a warlord draws as a pack of two
+grunts and a hulk (High 183 against 180 calls, Steam Deck 140 against 138). `-fight roster4b` in Unity.
 
 ## More foes, the perfect parry, combos
 

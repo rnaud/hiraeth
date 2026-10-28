@@ -243,6 +243,18 @@ export const SKINS = {
   hulk: {
     desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#cbd8ec', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
   },
+  // sheet-1 (references/enemy-archetypes/prowler/sheet-1.jpg): smooth leaf-green scaly skin, a shade deeper on its back and
+  // paler on its flanks; a cream throat, chest, belly and tail underside; yellow eyes; a polished steel shoulder guard and
+  // blade, a brown leather strap and grip; pale claws; its spit a sour yellow-green.
+  prowler: {
+    desert: { name: 'prowler', arena: true, palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
+  },
+  // sheet-1 (references/enemy-archetypes/warlord/sheet-1.jpg): deep crimson skin, darker in its creases; a dark brown mane;
+  // ridged tan ram horns; rough bronze, blotched darker; a wide dark leather belt and a brown loincloth; a dark glaive
+  // shaft with steel rings and a grey steel blade; yellow eyes.
+  warlord: {
+    desert: { name: 'warlord', arena: true, palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
+  },
 };
 
 // (issue #726) the makers' defunct droids: one material family, the same in every world (docs/design/enemy-roster-v4.md;

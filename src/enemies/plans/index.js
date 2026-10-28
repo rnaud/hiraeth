@@ -23,7 +23,7 @@ import { marionetteModel } from './strings.js';
 import { wispModel } from './ember.js';
 import { fencerModel } from './fencer.js';
 import { mummerModel, mummerKingModel } from './mummer.js';
-import { gruntModel, hulkModel } from './monster.js';
+import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js';
 import { sentinelModel } from './sentinel.js';
 import { oracleModel } from './oracle.js';
 import { crawlerModel } from './crawler.js';
@@ -56,7 +56,7 @@ import { crawlerModel } from './crawler.js';
 //   ember.js      plan 22  the ember wisp (a stand-in: a shell in two lids round a glowing coal; issue #398)
 //   fencer.js     plan 9   the makers' fencer (a machine's biped: sword and shield; issue #665)
 //   mummer.js     plan 23  the mummer and the mummer king (on the humanoid rig, src/enemies/humanoid-rig.js: clips; issue #724)
-//   monster.js    plans 25, 26  roster v4's grunt and hulk (on the humanoid rig; issue #726)
+//   monster.js    plans 25, 26, 30, 31  roster v4's grunt, hulk, prowler and warlord (on the humanoid rig; issue #726)
 //   droid.js               the makers' defunct droids' one material family (issue #726)
 //   sentinel.js   plan 27  the sentinel (a droid duellist on the humanoid rig: blade and round shield)
 //   oracle.js     plan 28  the oracle (a hovering caster droid: the rig's upper body over a ceramic shell)
@@ -66,7 +66,8 @@ const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, trip
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
   shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
   grunt: gruntModel, hulk: hulkModel,
-  sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel };
+  sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
+  prowler: prowlerModel, warlord: warlordModel };
 
 /** The body of a built archetype's kind in a world's skin (its stronger tier's: `tier`), or null (not one: an old kind draws itself). */
 export function archetypeModel(kind, world, tier = 0) {

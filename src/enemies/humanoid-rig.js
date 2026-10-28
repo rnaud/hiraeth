@@ -159,6 +159,8 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
       if (M.pose) Object.assign(out, { pose: M.pose, phase: f.state === 'wind' && k >= M.release ? 'strike' : f.state, k: f.state === 'wind' && k >= M.release ? out.thrown : f.state === 'wind' ? k : 0 });
       return out;
     }
+    // (a charge, M.run: its wind-up the clip and the pose; its strike run on the library's locomotion, the pose held: #726)
+    if (M.run && f.state === 'strike') return { loop: 'move', pose: M.pose, phase: 'strike', k: f.k ?? 0, load: 1 };
     if (M.pose && M.clip) {
       // (a clip for the body with a procedural pose of the arms over it: the fencer's shield drawn back for its bash)
       const load = f.state === 'wind' ? clamp01((f.k ?? 0) / HOLD_AT) : 1;
@@ -283,6 +285,21 @@ export const PROC_POSES = {
   // leaning back; then down before it
   overhead: { lean: -0.12, r: [[-0.22, 1, -0.12], [-0.05, 1, -0.35]], l: [[0.22, 1, -0.12], [0.05, 1, -0.35]], strike: { r: [[-0.15, 0.1, 1], [-0.05, -0.4, 1]], l: [[0.15, 0.1, 1], [0.05, -0.4, 1]] } },
   stomp: { lean: -0.1, r: [[-0.75, 0.55, 0.3], [-0.35, 0.9, 0.25]], l: [[0.75, 0.55, 0.3], [0.35, 0.9, 0.25]], strike: { r: [[-0.55, -0.7, 0.45], [-0.2, -0.85, 0.5]], l: [[0.55, -0.7, 0.45], [0.2, -0.85, 0.5]] } },
+  // (the prowler's spit, #726) its arms braced low and out, the head reared back (its model's own style), leaning back
+  spit: { lean: -0.18, r: [[-0.45, -0.8, 0.35], [-0.15, -0.55, 0.8]], l: [[0.45, -0.8, 0.35], [0.15, -0.55, 0.8]] },
+  // (the warlord's roar, #726) its arms flung wide and up, its chest thrown out
+  roar: { lean: -0.22, r: [[-0.92, 0.32, 0.18], [-0.75, 0.62, 0.2]], l: [[0.92, 0.32, 0.18], [0.75, 0.62, 0.2]] },
+  // (the warlord's charge, #726) the glaive levelled like a lance: its right fist back by its hip, its left forward along
+  // the shaft, leaning in, its head down (its style); held through the run
+  lance: { lean: 0.22, r: [[-0.35, -0.82, -0.45], [-0.05, -0.15, 1]], l: [[0.25, -0.55, 0.8], [-0.1, -0.2, 1]] },
+  // (the warlord's sweep, #726: the sheet's attack pose) the glaive drawn up and back over its right shoulder in both
+  // fists, its chest turned away; then swung across before it
+  glaiveHigh: { turn: 0.55, r: [[-0.5, 0.45, -0.2], [0.15, 0.95, -0.1]], l: [[0.2, 0.2, 0.75], [-0.55, 0.75, 0.25]],
+    strike: { turn: -0.45, r: [[-0.15, -0.1, 1], [0.6, -0.1, 0.8]], l: [[0.35, -0.2, 0.9], [0.85, -0.1, 0.5]] } },
+  // (the warlord's last stand, #726) braced wide, both fists back round to its right with the glaive behind it; swung
+  // out at its full reach as it whirls
+  whirl: { turn: 0.7, r: [[-0.75, -0.35, -0.55], [-0.45, 0.05, -0.9]], l: [[0.05, -0.45, 0.9], [-0.85, 0.05, -0.5]],
+    strike: { turn: 0, r: [[-0.95, -0.05, 0.3], [-0.85, 0.05, 0.55]], l: [[-0.05, -0.2, 1], [-0.85, 0.05, 0.55]] } },
   // hands clutching its face (the mask knocked off)
   clutch: { l: [[0.3, 0.1, 0.6], [-0.5, 0.8, 0.3]], r: [[-0.3, 0.1, 0.6], [0.5, 0.8, 0.3]] },
 };

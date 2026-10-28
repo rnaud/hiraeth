@@ -118,6 +118,27 @@ export function buildProp(type, { at, heading = 0, ground = null, r = 3.4, seed 
       if (type === 'sand') { P.sign.scale.set(1 + tw * 0.08, 1 + tw * 0.9 + Math.sin(t * 9) * tw * 0.25, 1 + tw * 0.08); P.sign.position.y = tw * 0.05; }
       else { P.sign.position.set(Math.sin(t * 0.37) * 0.8, 0, Math.cos(t * 0.29) * 0.6); P.sign.scale.setScalar(0.9 + 0.12 * Math.sin(t * 0.8) + tw * 0.25); }
     };
+  } else if (type === 'banner') {
+    // a warlord's banner (issue #726): a tall pole with a cross-bar, a long red hide hung from it, a pair of horns at its
+    // top; stones heaped round its foot
+    const y = lift(0, 0);
+    put('bark', T(new THREE.CylinderGeometry(0.07, 0.1, 3.6, 6), [0, y + 1.75, 0]));
+    put('bark', T(new THREE.CylinderGeometry(0.04, 0.04, 1.2, 5), [0, y + 3.3, 0], [0, 0, Math.PI / 2]));
+    for (const s of [-1, 1]) put('bone', T(new THREE.ConeGeometry(0.06, 0.4, 5), [s * 0.16, y + 3.72, 0], [0, 0, -s * 0.6]));
+    for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2; put('stone', T(new THREE.IcosahedronGeometry(0.24, 0), [Math.sin(a) * 0.32, y + 0.1, Math.cos(a) * 0.32], [a, 0, 0], [1, 0.7, 1])); }
+    const hide = new THREE.PlaneGeometry(1.0, 1.7, 3, 4).translate(0, -0.85, 0.03);
+    { const p = hide.attributes.position; for (let i = 0; i < p.count; i++) { const yy = p.getY(i); if (yy < -1.6) p.setY(i, yy + 0.12 * Math.abs(Math.sin(p.getX(i) * 9))); } }
+    hide.deleteAttribute('uv');
+    const flag = new THREE.Mesh(hide, makeMaterial({ color: '#8a2f34', side: THREE.DoubleSide, key: 'site.banner' }));
+    flag.position.set(0, y + 3.28, 0); flag.userData.noCollide = true;
+    group.add(flag);
+    const base = hide.attributes.position.array.slice();
+    P.update = (dt, t, near) => {
+      if (!near) return;
+      const a = hide.attributes.position.array;
+      for (let i = 0; i < a.length; i += 3) { const u = -base[i + 1] / 1.7; a[i + 2] = base[i + 2] + Math.sin(t * 1.9 + u * 3 + base[i] * 2) * 0.07 * u; }
+      hide.attributes.position.needsUpdate = true;
+    };
   } else if (type === 'rack') {
     // a weapon rack (issue #726, the grunts'): two forked posts and a pole across them, a spear leaning on it and a bow
     // hung from it; each gone from it as a grunt takes it (P.rack.stock: src/foes.js RACK, src/encounters/index.js)

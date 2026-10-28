@@ -41,7 +41,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'],
   toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['grip'], brute: ['slam'], drone: ['harpoon'], cart: ['pour'], bell: ['toll'],
   shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'], mummer: ['whack'], mummerking: ['throw'], grunt: ['club', 'lunge'], hulk: ['smash', 'stomp'],
-  sentinel: ['cut'], oracle: ['volley'], crawler: ['call'] };
+  sentinel: ['cut'], oracle: ['volley'], crawler: ['call'], prowler: ['dart', 'tail'], warlord: ['sweep', 'charge'] };
 // (the flyers are shown flying: 'walk' in the gallery is the creature moving)
 const MOVING = new Set(['ray', 'moth', 'jelly', 'drone']);
 // (from above for a flat flyer: its back is what the sheet draws and what you see of it)

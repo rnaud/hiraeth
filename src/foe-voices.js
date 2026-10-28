@@ -122,6 +122,12 @@ export const FOE_VOICES = {
   crawler: { family: 'servo',    // a small dome's tick and a startled chirp; done, a pop and its legs clattering
     hurt: [T('triangle', 1700, 2300, 0.05, 0.06), C(3, 0.06, 3600, 0.02, 0.08, { q: 2, at: 0.1 })],
     burst: [N('bandpass', 1400, 0.25, 0.22, { q: 0.8, rate: 0.6 }), T('square', 420, 70, 0.5, 0.06), C(5, 0.05, 2800, 0.02, 0.08, { f1: 1500, q: 2, at: 0.15 })] },
+  prowler: { family: 'scale',  // a dry hiss through its teeth and a chirp; done, a rattle in its throat and a slither
+    hurt: [N('highpass', 2600, 0.14, 0.08, { rate: 1.2 }), T('triangle', 880, 1240, 0.06, 0.06, { at: 0.04 })],
+    burst: [N('bandpass', 1800, 0.35, 0.1, { rate: 0.8 }), T('square', 220, 120, 0.25, 0.04, { at: 0.12 })] },
+  warlord: { family: 'hide',   // a growl from deep in its chest; done, a great roar dying to a groan and a fall
+    hurt: [T('sawtooth', 140, 115, 0.24, 0.08), N('lowpass', 380, 0.16, 0.12, { rate: 0.7, at: 0.02 })],
+    burst: [T('sawtooth', 160, 70, 1.1, 0.09), N('lowpass', 240, 0.5, 0.2, { rate: 0.5, at: 0.7 })] },
   // ---- the old sets (the makers' machine in the temples, anything without its own)
   machine: { family: 'machine',
     hurt: [T('square', 620, 540, 0.25, 0.06), T('square', 930, 810, 0.25, 0.06, { at: 0.01 })],
