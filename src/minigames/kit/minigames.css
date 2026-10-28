@@ -95,8 +95,8 @@ body.controller #minigame .mg-pause { display: none; }
 #minigame .sheet .buttons button:hover, #minigame .sheet .buttons button:focus, #minigame .sheet .buttons button:focus-visible, #minigame .sheet .buttons button:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
 body.controller #minigame .sheet .buttons button:not(:only-of-type):focus > .lbl, #minigame .sheet .buttons button:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
 #minigame .sheet .buttons button > .glyph { margin: 0; }
-body.controller #minigame .sheet .buttons button > .glyph { background: var(--en-ink, #f7ecd2); }
-body.controller #minigame .sheet .buttons button > .glyph:not([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { color: var(--en-key-ink, #18201f); }
+/* (its ink: the button's own colour, else the dark key ink: --gk, src/pad-glyphs.js; a handheld's had none, issue #737) */
+body.controller #minigame .sheet .buttons button > .glyph { background: var(--en-ink, #f7ecd2); color: var(--gk, var(--en-key-ink, #18201f)); }
 body.controller #minigame .sheet .buttons button > .glyph.keys-only { display: none; }
 body.controller #minigame .sheet .buttons:has(button:not(.main):focus) button.main > .glyph[data-glyph="ok"] { visibility: hidden; }
 /* an option's choices and steppers: small quiet frames, the chosen one turquoise, the focused one ivory */

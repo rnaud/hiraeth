@@ -167,3 +167,27 @@ test('the item viewer full screen: one short line, the rest on request beside th
   assert.match(page, /#full\.more canvas \{ left: min\(380px, 42vw\)/, 'opened, the item moves over beside the words');
   assert.match(page, /@media \(max-height: 480px\)/, 'a handheld\'s small screen: smaller still');
 });
+
+test('a handheld\'s glyphs on the cards\' ivory disc are dark, never ivory on ivory (issue #737: white circles)', async () => {
+  const { padGlyphs, glyphVars, glyphCss, glyphRole } = await import('../src/pad-glyphs.js');
+  const hand = padGlyphs({ layout: 'android', faces: 'nintendo' });
+  assert.equal(hand.ok.colour, '', 'a handheld\'s A has no colour of its own');
+  const vars = glyphVars(hand);
+  assert.match(vars, /--gk-ok: var\(--glyph-key-ink\);/, 'so on a light disc it takes the dark key ink');
+  assert.match(glyphVars(padGlyphs({ family: 'xbox' })), /--gk-ok: #4f9a3c;/, 'an Xbox pad\'s A keeps its green');
+  assert.match(glyphCss(), /--glyph-key-ink: #18201f/);
+  assert.match(glyphCss(), /\.glyph\[data-glyph="ok"\] \{ --gc: var\(--gc-ok\); --gk: var\(--gk-ok\); \}/);
+  const { readFileSync } = await import('node:fs');
+  for (const f of ['../src/hud-look.js', '../src/minigames/kit/minigames.css']) {
+    const s = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.match(s, /color: var\(--gk, /, `${f}: the light disc's ink is --gk`);
+  }
+  // the buttons by position, as the prompts name them: on a Nintendo-lettered handheld the bottom one is printed B
+  assert.equal(hand.south.text, 'B'); assert.equal(hand.east.text, 'A');
+  assert.equal(padGlyphs({ family: 'xbox' }).south.text, 'A');
+  assert.equal(glyphRole('RT / R2'), 'rt'); assert.equal(glyphRole('A / ×'), 'south'); assert.equal(glyphRole('Menu'), 'menu');
+  assert.equal(glyphRole('Left stick'), null);
+  // and a game's hint row draws them as glyphs on a pad (issue #737: "plain text vs being a little icon")
+  const runner = readFileSync(new URL('../src/minigames/kit/runner.js', import.meta.url), 'utf8');
+  assert.match(runner, /const r = kind === 'pad' \? glyphRole\(x\) : null; return r \? glyph\(r\) :/);
+});

@@ -24,8 +24,10 @@ import { padText, labelState, onLabels, padFaces, padLayout, pageFamily } from '
 import { FACE } from './typefaces.js';
 
 /** The roles, and the prompt each stands for (Xbox / PlayStation form; ok / back depend on the faces). */
+// (south and east: the bottom and the right face buttons by position, as a prompt names them, "A / ×" and "B / ○": a
+// handheld with Nintendo letters prints B and A there; ok and back are the menus' printed A and B, wherever they sit)
 export const GLYPH_ROLES = {
-  ok: null, back: null, x: 'X / □', y: 'Y / △', lb: 'LB / L1', rb: 'RB / R1', lt: 'LT / L2', rt: 'RT / R2',
+  ok: null, back: null, south: 'A / ×', east: 'B / ○', x: 'X / □', y: 'Y / △', lb: 'LB / L1', rb: 'RB / R1', lt: 'LT / L2', rt: 'RT / R2',
   view: 'View', menu: 'Menu', l3: 'L3', r3: 'R3', dpad: 'D-pad', lr: 'LB / RB',
 };
 /** The keyboard's key for a role, unless the glyph names its own (data-key). */
@@ -56,7 +58,7 @@ export function padGlyphs({ family = '', faces = 'xbox', layout = 'standard' } =
       text = fam === 'handheld' ? padText(src, 'android', faces) : padText(src, 'standard', faces, fam);
     }
     if (role === 'dpad') text = '✚';
-    const round = ['ok', 'back', 'x', 'y'].includes(role);
+    const round = ['ok', 'back', 'south', 'east', 'x', 'y'].includes(role);
     out[role] = { text, colour: COLOURS[fam]?.[text] ?? '', round, scale: /^[×○□△]$/.test(text) ? 1.3 : 1 };   // (the shapes are small letters)
   }
   return out;
@@ -64,9 +66,20 @@ export function padGlyphs({ family = '', faces = 'xbox', layout = 'standard' } =
 
 const cssString = (s) => `"${String(s).replace(/["\\]/g, '\\$&')}"`;
 
-/** The custom properties for a controller's labels (pure): "--g-ok: "A"; --gc-ok: #4f9a3c; …". */
+/**
+ * The custom properties for a controller's labels (pure): "--g-ok: "A"; --gc-ok: #4f9a3c; …". --gk-<role>: its ink on a
+ * light disc (the cards' ivory prompts, src/hud-look.js enamelPrompt): the button's own colour where it has one, else the
+ * dark key ink (issue #737: a handheld's A and B have no colour, and were the ivory ink on the ivory disc: white circles).
+ */
 export function glyphVars(labels) {
-  return Object.entries(labels).map(([role, l]) => `--g-${role}: ${cssString(l.text)}; --gc-${role}: ${l.colour || 'var(--glyph-ink)'}; --gz-${role}: ${l.scale ?? 1}em;`).join(' ');
+  return Object.entries(labels).map(([role, l]) => `--g-${role}: ${cssString(l.text)}; --gc-${role}: ${l.colour || 'var(--glyph-ink)'}; --gk-${role}: ${l.colour || 'var(--glyph-key-ink)'}; --gz-${role}: ${l.scale ?? 1}em;`).join(' ');
+}
+
+/** The role of a prompt written in Xbox / PlayStation form ("RT / R2", "A / ×", "Menu"), or null (a stick, a word). */
+export function glyphRole(prompt) {
+  const p = String(prompt ?? '').trim();
+  for (const [role, name] of Object.entries(GLYPH_ROLES)) if (name && name === p) return role;
+  return null;
 }
 
 /** A glyph to put inside a button (see the top). */
@@ -78,16 +91,16 @@ export function glyph(role, { focus = false, key = null } = {}) {
 /** The page's style for the glyphs (pure: the tests read it). */
 export function glyphCss(roles = Object.keys(GLYPH_ROLES), keys = GLYPH_KEYS) {
   const rules = roles.map((r) => `body.controller .glyph[data-glyph="${r}"]::before { content: var(--g-${r}); font-size: var(--gz-${r}, 1em); }
-body.controller .glyph[data-glyph="${r}"] { --gc: var(--gc-${r}); }
+body.controller .glyph[data-glyph="${r}"] { --gc: var(--gc-${r}); --gk: var(--gk-${r}); }
 body:not(.controller) .glyph[data-glyph="${r}"]:not([data-key])::before { content: ${keys[r] ? cssString(keys[r]) : '""'}; }
 ${keys[r] ? '' : `body:not(.controller) .glyph[data-glyph="${r}"]:not([data-key]) { display: none; }`}`).join('\n');
-  return `:root { --glyph-ink: #f7ecd2; }
+  return `:root { --glyph-ink: #f7ecd2; --glyph-key-ink: #18201f; }
 .glyph { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.7em; height: 1.7em;
   padding: 0 .4em; margin: 0 .5em 0 0; vertical-align: middle; border-radius: .3em; background: #2b211f; color: var(--gc, var(--glyph-ink));
   font: 700 max(var(--glyph-min, 10px), .68em)/1 ${FACE}; letter-spacing: 0; text-transform: none; text-indent: 0;
   white-space: nowrap; flex: none; pointer-events: none; font-style: normal; }
 .glyph.end { margin: 0 0 0 .5em; }
-body.controller .glyph:is([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { border-radius: 50%; padding: 0; width: 1.7em; font-size: max(calc(var(--glyph-min, 10px) * 1.1), .74em); }
+body.controller .glyph:is([data-glyph="ok"], [data-glyph="back"], [data-glyph="south"], [data-glyph="east"], [data-glyph="x"], [data-glyph="y"]) { border-radius: 50%; padding: 0; width: 1.7em; font-size: max(calc(var(--glyph-min, 10px) * 1.1), .74em); }
 body:not(.controller) .glyph { background: transparent; color: inherit; border: 1.5px solid currentColor; border-bottom-width: 3px; opacity: .8; font-weight: 600; }
 body:not(.controller) .glyph[data-key]::before { content: attr(data-key); }
 body.touch .glyph { display: none !important; }

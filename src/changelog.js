@@ -13,6 +13,7 @@ export const CHANGELOG = [
     items: [
       // the Desert's race
       { text: 'Kamal is a real rival now: his fan sled rides much harder, so only a clean, fast lap beats him, and your bikes bump into each other instead of passing through.', see: 'Race Kamal for the hoverbike: ride into his sled and you both get knocked aside and slowed.' },
+      { text: 'On a handheld like the Retroid, the buttons on a game’s cards (Retry, Quit, Play) show their letters again instead of blank white circles, and while you race or play, the controls at the bottom of the screen show little button icons instead of plain text.', see: 'Finish or lose any race with a controller: Retry and Quit carry their button letters.' },
     ],
   },
   {

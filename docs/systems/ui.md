@@ -903,6 +903,14 @@ Sizes follow the screen's height, as the conversation panel's `--dlg` (2.9 % of 
 Both include `--ts`. A component's other sizes are in `em` of these, its boxes too (a notice at most 40 em
 wide, a game's card 34 em), so a 1440p screen gets the same layout as a 720p one, larger.
 
+**A glyph's ink on a light disc (issue #737).** The cards' prompts (`src/hud-look.js` `enamelPrompt`: a game's start,
+pause and results, the box card, the knock-out's Restart) draw a pad's glyph on an ivory disc. Its letter is `--gk`
+(`src/pad-glyphs.js` `glyphVars`): the button's own colour where the pad has one (an Xbox pad's green A), else the dark
+key ink. A handheld's (the Android app, a Retroid) have no colours, and were the ivory ink on the ivory disc: blank
+white circles. A game's hint row draws a prompt written as a button ("RT / R2", "A / ×") as its glyph on a pad
+(`glyphRole`; `south` and `east` the bottom and right face buttons by position, printed B and A on a Nintendo-lettered
+handheld); a stick or a word stays words.
+
 **Buttons follow the screen too (issue #150).** A button's letter is sized from the screen's height, not from
 the words round it: `--type-key` (2.2 %, 14–34 px) is the round badge's (`.key`: the use prompt, the cue; the
 use prompt's button alone, hints subtle or off, is 1.15 of it), and `--glyph-min` (1.6 %, 11–24 px) the least a

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.35 — 2026-10-28
 
+- On a handheld like the Retroid, the buttons on a game’s cards (Retry, Quit, Play) show their letters again instead of blank white circles, and while you race or play, the controls at the bottom of the screen show little button icons instead of plain text.
 - Kamal is a real rival now: his fan sled rides much harder, so only a clean, fast lap beats him, and your bikes bump into each other instead of passing through.
 
 ## v2.34 — 2026-10-28

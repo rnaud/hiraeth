@@ -52,13 +52,12 @@ ${tab ? `${sel}::after { content: ''; position: absolute; left: -3px; top: 50%; 
  * several (a game's start, pause and results), the pad's focused one is underlined, the one mark (issue #507; with the keys
  * Enter is always the main one's).
  */
-export const PROMPT = Object.freeze({ size: '0.92em', gap: '0.45em', pad: ['ok', 'back', 'x', 'y'] });
+export const PROMPT = Object.freeze({ size: '0.92em', gap: '0.45em' });
 export const enamelPrompt = (sel) => `${sel} { display: inline-flex; align-items: center; gap: ${PROMPT.gap}; margin: 0; padding: 0; min-height: 1.9em; font: 600 ${PROMPT.size}/1.2 var(--face); letter-spacing: 0.04em; text-transform: none; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; transform: none; }
 ${sel}:hover, ${sel}:focus, ${sel}:focus-visible, ${sel}:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
 body.controller ${sel}:not(:only-of-type):focus > .lbl, ${sel}:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
 ${sel} > .glyph { margin: 0; }
-body.controller ${sel} > .glyph { background: ${en('ink')}; }
-body.controller ${sel} > .glyph:not(${PROMPT.pad.map((r) => `[data-glyph="${r}"]`).join(', ')}) { color: ${en('keyInk')}; }
+body.controller ${sel} > .glyph { background: ${en('ink')}; color: var(--gk, ${en('keyInk')}); }
 body.controller ${sel} > .glyph.keys-only { display: none; }`;
 
 /** The item pictures' paper (src/item-icons.js ICON_PAPER): the box card's picture sits in a disc of it (issue #695). */

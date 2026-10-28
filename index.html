@@ -162,8 +162,7 @@
       #restart button:hover, #restart button:focus, #restart button:focus-visible, #restart button:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
       body.controller #restart button:not(:only-of-type):focus > .lbl, #restart button:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
       #restart button > .glyph { margin: 0; }
-      body.controller #restart button > .glyph { background: var(--en-ink, #f7ecd2); }
-      body.controller #restart button > .glyph:not([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { color: var(--en-key-ink, #18201f); }
+      body.controller #restart button > .glyph { background: var(--en-ink, #f7ecd2); color: var(--gk, var(--en-key-ink, #18201f)); }
       body.controller #restart button > .glyph.keys-only { display: none; }
       /* photo mode's keys: a hint like the others (issue #306), the dark strip at the top centre */
       #photo {

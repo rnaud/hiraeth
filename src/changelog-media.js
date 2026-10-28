@@ -1393,6 +1393,9 @@ export const CHANGELOG_MEDIA = {
       { where: 'A full-throttle line', before: 35.1, after: 35.1 },
     ], note: 'Kamal’s throttle off the jumps went 0.72 → 0.92. A plain full-throttle line still beats him, by about 2 s instead of 10: a lap with walls hit or a drift ridden into loses. The bump between the bikes is not in these numbers.' },
   ] },
+  { match: 'On a handheld like the Retroid, the buttons on a game’s cards', shots: [
+    { name: 'results-glyphs', size: [1280, 720], caption: 'Kamal’s wager’s results card with a Retroid’s labels (a handheld, Nintendo letters): before, Retry and Quit carried two blank ivory discs (the letters in the ivory ink on the ivory disc); after, A and B in the dark ink', from: 'The web game in muted headless Chrome (--mute-audio, hiraeth.muted and the volumes at 0), 1280 × 720, ?level=desert&game=canyon-rival, the race started then finished lost from the console; a pad connected by a stand-in navigator.getGamepads and the handheld labels set from src/pad-glyphs.js padGlyphs({ layout: android, faces: nintendo }) (the Android app sets them from the device), body.controller. Before: 68f12bb8b (git archive, Vite 5471); after: this change on it (Vite 5495). 28 October 2026.', view: 'The results card; the computed ink of the A and B glyphs: before rgb(247, 236, 210) on rgb(247, 236, 210), after rgb(24, 32, 31). Not on the device itself.' },
+  ] },
   ],
   '2.34': [
   { match: 'The yellow relics are gone from every world', shots: [

@@ -26,7 +26,7 @@ import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { awardOutfit, rewardFor, prizeRule } from './rewards.js';
 import { inputKind, escapeHtml, keyText, hasKeys } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
-import { glyph } from '../../pad-glyphs.js';
+import { glyph, glyphRole } from '../../pad-glyphs.js';
 import { stripTone } from '../../story/tone.js';
 import { screen } from '../../platform.js';
 import { COUNT, FINISH_WAIT, countNumeral, controlsFor, hintRow, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions, promptRole, promptKey, PROMPT_KEYS } from './flow.js';
@@ -208,7 +208,9 @@ export class MinigameRunner {
     const sig = `${kind}|${this.hintNote ?? ''}|${row.off}|${row.items.map((i) => +i.gone).join('')}`;
     if (sig === this._hintSig) return;
     this._hintSig = sig;
-    const keys = (x) => keyText(h(x), { kind, html: true, teach: true });
+    // (on a pad, a button named as a prompt is its glyph, as on the cards and the menus, issue #737: "the button hints are plain
+    // text vs being a little icon for what the button is"; a stick or a word stays words)
+    const keys = (x) => { const r = kind === 'pad' ? glyphRole(x) : null; return r ? glyph(r) : keyText(h(x), { kind, html: true, teach: true }); };
     const items = row.items.map((i) => `<span class="${i.gone || row.off ? 'gone' : ''}" data-hint="${h(i.id)}"><b>${keys(i.k)}</b>${h(i.w)}</span>`).join('');
     this.hintsEl.innerHTML = `<div class="mg-hint-row${row.off ? ' gone' : ''}">${items}</div>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
   }
