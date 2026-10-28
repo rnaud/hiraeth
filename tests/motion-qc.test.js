@@ -482,21 +482,20 @@ test('the worlds\' course stands long enough to see a stop settle, and the Arena
   assert.match(WORLDS.find((s) => s.world === 'arena').setup ?? '', /setPractice/, 'the Arena: the waves held off (one came up beside him and shoved him as he stood)');
 });
 
-// Kevin Iglesias's sprint, the game's since issue #709 (src/animator.js SPRINTS, sprintSetting): the course with it is green
-// but for four runs that sprint, held where they are: his foot comes down flatter in a frame at a touchdown (pops 4-6 a
-// minute against the library's 0-1), a stairs' run jolts a ball 3-4 cm, the 180° at a sprint slides a step 6.8 cm (p95).
-// The stop from a run no longer jumps his high-pumping hand: the stop's capture eases in over 0.2 s (src/loco-moves.js
-// MOVES.stop.blendIn; 5-9 cm in a frame before).
-test('Kevin Iglesias\'s sprint, the default (issue #709): the course green but four sprinting runs, held; no jolt at a stop', { timeout: 300000 }, async () => {
-  const OPEN = { 'walk → run → 180° turn → stop': 1, 'starts and stops, walk and run': 1, 'pivot 180° at a jog, and at a sprint': 1, 'stairs at a run': 1 };
+// Kevin Iglesias's sprint, the game's since issue #709 (src/animator.js SPRINTS, sprintSetting): the course with it was green
+// but for four runs that sprint (issue #721): his foot, held to turning 12 rad/s against the body, fell 0.5 rad behind his
+// clip's through the swing (his flicks up at 20 rad/s) and caught up as it touched down, then stopped dead, 20-25 rad/s
+// against the calf, a pop at every touchdown (src/feet.js followFoot, FEET.footAccel); the stairs at a run's knee
+// (FEET.softFlight). The stop from a run no longer jumps his high-pumping hand: the stop's capture eases in over 0.2 s
+// (src/loco-moves.js MOVES.stop.blendIn; 5-9 cm in a frame before), the running 180°'s over 0.15 s.
+test('Kevin Iglesias\'s sprint, the default (issues #709, #721): the whole course green; no jolt at a stop', { timeout: 300000 }, async () => {
   const said = [];
   for (const [name, sc] of Object.entries(COURSE)) {
     const { r } = await runWay(sc, 'moves');
     const m = r.measures;
     said.push(`${name}: ${r.green ? 'green' : r.fails.join(',')}`);
     assert.ok(m.boundaryMax <= LIMITS.boundary, `${name}: boundary ${(m.boundaryMax * 100).toFixed(1)} cm`);
-    if (!OPEN[name]) { assert.ok(r.green, `${name}: green (${r.fails.join(', ')})`); continue; }
-    assert.ok(m.popsPerMin <= 6 && m.joltsPerMin <= 4 && m.slideP95 <= 0.07 && m.held <= LIMITS.held, `${name}: pops ${m.popsPerMin}/min, jolts ${m.joltsPerMin}/min, slide p95 ${(m.slideP95 * 100).toFixed(1)} cm, held ${(m.held * 100).toFixed(1)} cm`);
+    assert.ok(r.green, `${name}: green (${r.fails.join(', ')}; pops ${m.popsPerMin}/min, jolts ${m.joltsPerMin}/min, slide p95 ${(m.slideP95 * 100).toFixed(1)} cm)`);
   }
   assert.ok(said.length >= 17, said.join('\n'));
 });

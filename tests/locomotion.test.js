@@ -11,9 +11,8 @@ const W = { KeyW: true }, R = { KeyW: true, ShiftLeft: true }, SR = { KeyS: true
 const report = (name, r) => console.log(`  ${name}: held ${r.heldSlide.toFixed(4)} m, slide max ${r.maxSlide.toFixed(3)} mean ${r.meanSlide.toFixed(3)} m (${r.contacts} contacts), sink ${r.sink.toFixed(3)} m, jerk pelvis ${r.jitterPelvis.toFixed(2)} head ${r.jitterHead.toFixed(2)} km/s³, max bone turn ${r.maxTurn.toFixed(2)} rad/frame`);
 
 test('walk -> run -> sharp turn -> stop: planted feet stay put, nothing pops, the turn answers at once', async () => {
-  // (measured on the library's sprint; Kevin Iglesias's, the default since issue #709, skids a foot 20.6 cm over a contact
-  // here: tests/motion-qc.test.js holds his course, docs/systems/animation.md)
-  const p = await traveller(course(), new THREE.Vector3(0, 0, -60), { sprint: 'ual' });
+  // (Kevin Iglesias's sprint, the default since issue #709: it skidded a foot 20.6 cm over a contact here till issue #721)
+  const p = await traveller(course(), new THREE.Vector3(0, 0, -60));
   const r = drive(p, [[1, none, 'idle'], [2, W, 'walk'], [2, R, 'run'], [1.5, SR, 'turn180'], [2.5, none, 'stop']]);
   report('sequence', r);
   assert.ok(r.contacts >= 16, 'the feet touch down all along');

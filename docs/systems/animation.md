@@ -1479,6 +1479,54 @@ harness (tests/gait-sim.js) sprints his by default; the motion QC's ways all spr
 | stairs at a run | green: 3.6/3.6, 1, 2.8 | red: 4.8/4.8, 6 pops, 4 jolts, 2.3 |
 | the other 13 | green | green |
 
+**Issue #721: his sprint's reds** (2026-10-28). The four runs left red by #709, and the tests held on the library's sprint,
+back at their limits with his.
+
+- **The touchdown flicks: the foot's rate limit, not his clip.** The drawn foot was held to turning `FEET.footRate` (12 rad/s)
+  against the body, a cap meant for the library loops' foot slapping flat in a frame. His foot turns 20-23 rad/s, smoothly,
+  as his leg reaches in the late swing; held to 12 it fell 0.5 rad behind (the cap `footLag`) and caught up as it touched
+  down, at 12 rad/s till it met the clip's and then not at all: 20-25 rad/s against the calf in that frame, 5 in the next,
+  a pop at every touchdown at a sprint. His clip itself turns the foot 1-6 rad/s against the calf there. Now
+  (`followFoot`, `FEET.footAccel` 440 rad/s², `footTrack` 15/s, `footCap` 1.3) the drawn foot carries the clip's own turn
+  through (the clip's foot before the hold's yaw and tilt), closes what it is off the clip's (no faster than it can stop by
+  the time it is there), turns no faster than 1.3 times footRate or the clip's own turn, and its turn changes by at most
+  footAccel a second: a turn that starts or stops in a frame is spread over a few, a quick smooth one is drawn as it is.
+  A pivot's step round keeps the old rate limit (its turn is feet.js's own; followed, it fell behind and the ankle crossed
+  the other foot), and so does walking back locked on (the gait run backwards: followed, 5 calf pops in 8 s against 3,
+  tests/strafe.test.js), the follower taking over from the turn it has. `footAccel: 0` is the old way. A window: 420-440 is green
+  for both sprints; 400 leaves the old sprint's running 180° a 3.2 cm knee jolt, 460 brings back flicks on the stairs and
+  the ramp; a follower without the cap swung the calf catching up a slope's tilt set at a plant.
+- **The 180° at a sprint's slide** went with it (6.8 → 3.5 cm p95): the step that slid 6 cm was a touchdown whose foot,
+  lagging the clip's, put the ball 2.5 cm off where it came down. Its last 6.8 cm step (the reversal's first, the jog and
+  his sprint blended, the clip's foot still moving forward as it is planted) is left; with 30 steps it is no longer the p95.
+- **The stairs at a run**: `FEET.softFlight`'s share 0.12 → 0.16; his stride reaches the tread below with a straighter leg
+  and the body coming down onto it bent the knee 15-17 rad/s.
+- **The moves' bone turn** (tests/loco-moves.test.js): not his foot but his upper arm, 0.45 rad a frame, as the running 180°'s
+  capture was laid over his high-pumping arms in 0.1 s: `MOVES.pivot.blendIn` 0.15 s (0.42).
+- **The bracer's strap** (tests/blade-grip.test.js, 2.0 mm into the forearm): B3's source skin left the arm partly on
+  spine_02 / spine_03 out to the wrist (8-18 % under the bound T-pose's forearm), so his wide pump pulled the forearm's
+  underside 5 mm toward the chest. `armsOffTorso` (src/characters/traveller-b3-fit.js) fades the torso's share out from
+  |x| 0.26 to 0.36 m (bound) onto the arm's bones, by position so the elbow stays one skin (by the leading bone it tore an
+  edge at the elbow ten times its length); tests/traveller-b3.test.js. The cycles' worst edge stretch is unchanged (walk 2.44
+  → 2.21).
+- **Matching** (tests/mocap.test.js): with his sprint (the loops' fallback) the worst contact is 0.17 m and the sole 2.6 cm
+  (0.87 m and 3.9 cm at #709); the test runs his sprint at its old bounds.
+
+| scenario (his sprint, the default) | before | after |
+|---|---|---|
+| walk → run → 180° turn → stop | red: 4 pops, slide 4.1/7.5 cm | green: 2 pops, 3.5/7.8 |
+| starts and stops, walk and run | red: 6 pops, 3.9/5.2 | green: 2 pops, 3.2/3.7 |
+| pivot 180° at a jog, and at a sprint | red: slide p95 6.8 cm | green: 3.5 (max 6.8) |
+| stairs at a run | red: 6 pops, 4 jolts | green: 3, 3 |
+| down the ramp, stop on it | green: 1 pop | green: 3 pops (at the limit) |
+| the other 12 | green | green |
+
+17 of 17 green with his sprint and with the old one (`--ways ual`). The worlds' course on the flat at the game's uneven
+frames (six seeds): red 3 → 2, flicks 1.7 → 0.8 a minute, slide p95 4.5 → 4.1 cm; the two left are the old ones, a hand
+3.1-3.2 cm off its curve as the sprint reversed blends jog and sprint. In the game (muted headless Chrome, Medium, this Mac;
+before twice, after three times): flicks a minute, desert 5-6 → 0-3, Signal Market 0-2 → 1-2, Arena 2-4 → 2-3; the desert's
+sprint reversed still jolts a ball or foot 3.6-4.0 cm at a blend, before and after (limit 3).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

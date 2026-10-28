@@ -175,9 +175,8 @@ for (const body of ['b3', 'plain']) {
 
 for (const body of ['b3', 'plain']) {
   test(`${body} traveller: at rest the bracer's strap wraps the forearm's skin standing, walking, running and turning, the hub on its outside`, async () => {
-    // (the library's sprint, as measured: with Kevin Iglesias's, the default since issue #709, his elbow's deeper bend
-    // sinks the strap 2.0 mm into B3's forearm for a frame running, against 1.5)
-    const { p, tool, tick } = await armed(body, { sprint: 'ual' });
+    // (Kevin Iglesias's sprint, the default since issue #709)
+    const { p, tool, tick } = await armed(body);
     const H = p.humanoid, B = H.b, D = tool.blade.device;
     for (let i = 0; i < 10; i++) tick({});
     assert.ok(D.wrap && D.wrap.rows.every((r) => r.samples.filter(Boolean).length >= STRAP.sectors - 2), 'the skin read all round the forearm');

@@ -64,8 +64,9 @@ export const FEET = {
   softStand: [0.3, 1, 0.02],     // m/s, m/s, share: under the first speed (standing) it narrows to this, eased in by the second
   softFast: [4, 7, 0.05],        // m/s, m/s, share: from the first speed to the second it widens to this (a sprint's hips go 14 cm a frame, through the
                                  // whole of a 2 % zone in one; standing, a wide one keeps the legs from their rest length and they twitch)
-  softFlight: [0.15, 0.4, 0.12], // pitch, pitch, share: up or down a flight at a run (o.flight, the stairs' line's rise a metre), from the first pitch
-                                 // to the second it widens to this (null: as on the level)
+  softFlight: [0.15, 0.4, 0.16], // pitch, pitch, share: up or down a flight at a run (o.flight, the stairs' line's rise a metre), from the first pitch
+                                 // to the second it widens to this (null: as on the level; 0.12 before issue #721: Kevin Iglesias's sprint
+                                 // reaches the tread below with a straighter leg, and the knee flicked 15-17 rad/s as the body came down onto it)
   pushOff: [4.5, 7, 0.05, 0.05, 0.03], // m/s, m/s, s, share, s: from the first speed to the second a moving held foot lets go once the hips, this far ahead
                                  // at the body's speed, would have its leg within this share of its full length (the release's spring takes the rest)
   relockSlow: [3, 0.03, 5],      // m/s, m (x size), m/s: under this speed a foot let go out of reach (pushOff) at over the third, the contact still full,
@@ -85,7 +86,10 @@ export const FEET = {
   ballTurn: [0.4, 14],           // rad, rad/s: moving, a held foot turned more than this from the clip's way turns on its ball toward it this fast (null: never)
   lateRelease: [0.1, 0.15],      // s, share: a foot let go this soon before the clip's touchdown lands only once this little is left on its old hold (null: as any)
   relockKeep: 0.05,              // a foot planted and let go in one frame, this much or more on its old hold, goes on easing off it
-  footRate: 12,                  // rad/s: the most a foot turns against the body (0: as the clip)
+  footRate: 12,                  // rad/s: the most a foot turns against the body (0: as the clip; with no footAccel)
+  footAccel: 440, footTrack: 15, // rad/s², 1/s: the drawn foot's turn against the body changes no faster than this, and closes on the clip's
+                                 // at this rate (0: held to footRate instead; followFoot)
+  footCap: 1.3,                  // and turns no faster than this times footRate or the clip's own turn, whichever is the more
   footLag: 0.5,                  // rad: and it falls no further than this behind (0: any, set to the clip's past 1.5 rad)
   rideRate: 25, rideUp: 0,       // 1/s: a free foot follows a fall / a rise of the floor's height under it (a stair) this fast (0: at once)
   rideSpring: true,              // as a critically damped spring (false: eased at the rate, a step in its speed)
@@ -146,6 +150,46 @@ function pivotYaw(yaw, way, up, dt) {
   yaw.applyAxisAngle(up, Math.sign(a) * max);
 }
 
+const _fv = new THREE.Vector3(), _fw = new THREE.Vector3(), _fq = new THREE.Quaternion(), _fq2 = new THREE.Quaternion();
+/** A unit quaternion's rotation vector (axis x angle, rad), into `out`. */
+function rotVec(q, out) {
+  const w = q.w < 0 ? -1 : 1, s = Math.hypot(q.x, q.y, q.z);
+  if (s < 1e-9) return out.set(0, 0, 0);
+  const a = 2 * Math.atan2(s, Math.abs(q.w)) * w / s;
+  return out.set(q.x * a, q.y * a, q.z * a);
+}
+/**
+ * The drawn foot (F.footQ, in the body's frame) following the clip's (`rel`) with its angular velocity changing no faster
+ * than FEET.footAccel: the clip's own turn carried through (so a quick but smooth one, Kevin Iglesias's foot flicking up at
+ * 20 rad/s as his leg reaches, is drawn as it is), what it is off the clip's closed at FEET.footTrack, and a turn that
+ * starts or stops in a frame (the library's loops' foot slapping flat at a touchdown) spread over a few. (Held to a rate,
+ * 12 rad/s, his foot fell 0.5 rad behind through the swing and caught up as it touched down, then stopped dead: 20-25 rad/s
+ * against the calf in the frame before, 5 in the frame after, a pop at every touchdown at a sprint, issue #721.)
+ */
+function followFoot(F, rel, raw, dt) {
+  const v = (F.footV ??= new THREE.Vector3());
+  // the clip's own turn this frame
+  // (the clip's alone: the hold's tilt onto a slope comes in at once as the foot is planted, and carried through it turned the
+  // foot 36 rad/s in that frame; what it is off the clip's then, the follow closes)
+  if (F.relWas) rotVec(_fq.copy(raw).multiply(_fq2.copy(F.relWas).invert()), _fw).divideScalar(dt); else _fw.set(0, 0, 0);
+  (F.relWas ??= new THREE.Quaternion()).copy(raw);
+  // and what the drawn foot is off it
+  // (closed at footTrack, but no faster than it can stop by the time it is there: at footTrack alone, the turn's change held
+  // to footAccel overshot and swung back and forth about the clip's at a sprint)
+  const err = rotVec(_fq.copy(rel).multiply(_fq2.copy(F.footQ).invert()), _fv), e = err.length();
+  const own = _fw.length();
+  if (e > 1e-9) _fw.addScaledVector(err, Math.min(FEET.footTrack, Math.sqrt(2 * FEET.footAccel / e) * 0.7));
+  // (and no faster than footRate or the clip's own turn, whichever is the more: catching up the hold's tilt onto a slope, set
+  // in a frame as the foot is planted, on top of the clip's turn, it swung the calf 23 rad/s down the ramp)
+  const cap = Math.max(FEET.footRate, own) * FEET.footCap;
+  if (_fw.length() > cap) _fw.setLength(cap);
+  const dv = _fw.sub(v), max = FEET.footAccel * dt;
+  if (dv.length() > max) dv.setLength(max);
+  v.add(dv);
+  const a = v.length() * dt;
+  if (a > 1e-9) F.footQ.premultiply(_fq.setFromAxisAngle(_fv.copy(v).normalize(), a)).normalize();
+}
+
 /** Signed angle (about up) from a to b, both flat. */
 function yawBetween(a, b, up) {
   if (a.lengthSq() < 1e-8 || b.lengthSq() < 1e-8) return 0;
@@ -195,7 +239,7 @@ function legIK(H, s, target, pole, soft = FEET.soft) {
 export function resetFeet(H) {
   const S = H._feet;
   if (!S) return;
-  for (const s of ['l', 'r']) Object.assign(S[s], { locked: false, w: 0, wv: 0, dropIn: 0, shown: null, shownV: 0, dragged: false, gRideV: 0, footQ: null, released: false, lastHeight: undefined, step: null, lift: 0, lastSwing: null, gRide: undefined });
+  for (const s of ['l', 'r']) Object.assign(S[s], { locked: false, w: 0, wv: 0, dropIn: 0, shown: null, shownV: 0, dragged: false, gRideV: 0, footQ: null, footV: null, relWas: null, released: false, lastHeight: undefined, step: null, lift: 0, lastSwing: null, gRide: undefined });
   S.drop = 0; S.cool = 0; S.lastRoot = null;
 }
 
@@ -551,16 +595,30 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     F.corr = null;
     if (FEET.footRate > 0 && dt > 0) {
       const rootQ = worldQuat(H.char.root, _qr), clipQ = worldQuat(B[`foot_${s}`], _qc);
+      // (the clip's own foot in the body's frame, before the hold's turn and tilt: what followFoot carries through)
+      const raw = (F.rawQ ??= new THREE.Quaternion()).copy(rootQ).invert().multiply(clipQ);
       if (F.w > 0.01) { clipQ.premultiply(_qd.setFromAxisAngle(up, yaw * F.w)); if (F.n) clipQ.premultiply(_qd.setFromUnitVectors(up, F.n).slerp(_q3.identity(), 1 - F.w)); }
       const rel = clipQ.premultiply(_qd.copy(rootQ).invert());   // (now the body's frame)
       // (never more than FEET.footLag behind: a pivot's step round turns the foot half a turn in 0.17 s, 35 rad/s, and held to
       // 12 rad/s it fell 1.5 rad behind and was set to the clip's in a frame, 85-93 rad/s, setting off the other way, issue #47)
       const gap = F.footQ ? F.footQ.angleTo(rel) : Infinity;
       if (gap < 1.5) {
-        F.footQ.rotateTowards(rel, Math.max(FEET.footRate * dt, FEET.footLag > 0 ? gap - FEET.footLag : 0));
+        // (followed (followFoot), but held to footRate in a pivot's step round, as before: its turn is feet.js's own, half a turn
+        // in 0.17 s, and followed it fell behind (the ankle, turned about the ball, crossed the other foot) or, followed faster,
+        // swung the calf about, issue #721; and walking back, locked on (o.reverse): the gait run backwards lifts the foot where it
+        // came down, slapping up off the floor, and followed the calf popped 5 times in 8 s against 3; the follower takes over
+        // from the turn it has)
+        if (FEET.footAccel > 0 && !(F.step?.quick || pivoting || o.reverse)) {
+          followFoot(F, rel, raw, dt);
+          if (FEET.footLag > 0) { const g = F.footQ.angleTo(rel); if (g > FEET.footLag) F.footQ.rotateTowards(rel, g - FEET.footLag); }
+        } else {
+          const was = FEET.footAccel > 0 ? _q2.copy(F.footQ) : null;
+          F.footQ.rotateTowards(rel, Math.max(FEET.footRate * dt, FEET.footLag > 0 ? gap - FEET.footLag : 0));
+          if (was) { rotVec(_q3.copy(F.footQ).multiply(was.invert()), F.footV ??= new THREE.Vector3()).divideScalar(dt); (F.relWas ??= new THREE.Quaternion()).copy(raw); }
+        }
         F.corr = (F.corrQ ??= new THREE.Quaternion()).copy(rootQ).multiply(F.footQ).multiply(rel.invert()).multiply(_qd.copy(rootQ).invert());
         offset.applyQuaternion(F.corr);
-      } else (F.footQ ??= new THREE.Quaternion()).copy(rel);
+      } else { (F.footQ ??= new THREE.Quaternion()).copy(rel); F.footV?.set(0, 0, 0); F.relWas = null; }
     }
     const lockedAnkle = F.pos.clone().add(offset);
     // (a foot that met the ground a little up comes down onto its hold: a critically damped spring from its fall)

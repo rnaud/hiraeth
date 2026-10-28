@@ -43,6 +43,18 @@ test('B3 full locomotion cycles keep mesh deformation finite and seams bounded',
  for(const [motion,s]of Object.entries(stats))assert.ok(s.max<5,`${motion} severe edge stretch ${s.max}`);
 });
 
+test('B3 forearms and hands carry no torso weight (issue #721: the chest pulled a pumping forearm out of shape)',()=>{
+ const c=create(),m=c.mesh,j=m.geometry.attributes.skinIndex,w=m.geometry.attributes.skinWeight,names=m.skeleton.bones.map(b=>b.name);
+ let arm=0,torso=0;
+ for(let i=0;i<j.count;i++){
+  let top=-1,lead=-1;for(let k=0;k<4;k++)if(w.getComponent(i,k)>top){top=w.getComponent(i,k);lead=j.getComponent(i,k)}
+  if(!/^(lowerarm|hand)_/.test(names[lead]))continue;arm++;
+  for(let k=0;k<4;k++)if(w.getComponent(i,k)>0&&/^(pelvis|spine|neck|clavicle|Head)/.test(names[j.getComponent(i,k)]))torso++;
+  assert.ok(Math.abs([0,1,2,3].reduce((n,k)=>n+w.getComponent(i,k),0)-1)<1e-5,'its weights still sum to one');
+ }
+ assert.ok(arm>400,`the forearms and hands (${arm} vertices)`);assert.equal(torso,0,'none on the spine, the neck or a clavicle (243 a side before; src/characters/traveller-b3-fit.js armsOffTorso)');
+});
+
 // These regions are on separated fingertip surfaces, independent of the
 // nearest-chain weighting implementation. Curling one finger cannot drag them.
 test('B3 fingers curl independently without pulling neighboring fingertips',()=>{

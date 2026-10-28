@@ -84,3 +84,28 @@ export function travellerB3Weights(p,skeleton){
  }
  return sums;
 }
+
+/**
+ * The arms off the torso (issue #721): B3's source skin leaves the arm out to the wrist partly on spine_02 / spine_03 (its
+ * underside in the bound T-pose, y 1.25-1.34: 8-18 % at the forearm), so as a sprint's arms pumped wide the chest pulled the
+ * forearm 5 mm out of shape and the bracer's strap sank 2 mm into it. Out from the shoulder (|x| `from` to `to` m, bound)
+ * the torso's share fades to nothing, given to the arm's own bones; by position, not by the bone that leads, so the elbow,
+ * where the lead changes, stays one smooth skin. In place; returns how many vertices changed.
+ */
+export function armsOffTorso(geometry,skeleton,{from=.26,to=.36}={}){
+ const P=geometry.attributes.position,J=geometry.attributes.skinIndex,W=geometry.attributes.skinWeight,names=skeleton.bones.map(b=>b.name);
+ const torso=names.map(n=>/^(pelvis|spine|neck|clavicle|Head)/.test(n)),arm=names.map(n=>/^(upperarm|lowerarm|hand|thumb|index|middle|ring|pinky)_/.test(n));
+ let changed=0;
+ for(let i=0;i<J.count;i++){
+  const k0=T.MathUtils.smoothstep(Math.abs(P.getX(i)),from,to);
+  if(!(k0>0))continue;
+  let off=0,limb=0;for(let k=0;k<4;k++){const b=J.getComponent(i,k),w=W.getComponent(i,k);if(torso[b])off+=w;else if(arm[b])limb+=w}
+  if(!(off>0)||!(limb>0))continue;
+  // (the torso's share times k0 moves onto the arm's bones, in proportion to theirs)
+  const give=off*k0;
+  for(let k=0;k<4;k++){const b=J.getComponent(i,k),w=W.getComponent(i,k);W.setComponent(i,k,torso[b]?w*(1-k0):arm[b]?w+give*w/limb:w)}
+  changed++;
+ }
+ if(changed)W.needsUpdate=true;
+ return changed;
+}

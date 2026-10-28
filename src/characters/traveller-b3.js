@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {loadBody,makeBody} from '../makehuman/body.js';
 import {Humanoid} from '../humanoid.js';
 import {HAND_POSES} from '../hands.js';
-import {fitTravellerB3,travellerB3Weights} from './traveller-b3-fit.js';
+import {fitTravellerB3,travellerB3Weights,armsOffTorso} from './traveller-b3-fit.js';
 import {makePortraitHead,wearPortraitHeadFace,PORTRAIT_HEAD} from './portrait-head.js';
 import {makeReviewInkMaterial} from './tripo-material.js';
 import {compactGeometry,makeTripoClothSteps} from './tripo-cloth.js';
@@ -33,7 +33,7 @@ export function* createTravellerB3Steps(char,{gltf,data,report,head:headAsset,ha
   root.traverse(o=>{if(o.isMesh)o.visible=false});
   const skins=[];gltf.scene.traverse(o=>{if(o.isSkinnedMesh)skins.push(o)});if(skins.length!==1||colors?.length!==skins[0].geometry.attributes.position.count)throw new Error('B3 needs its matching skinned source and colours');
   const source=skins[0],mesh=new T.SkinnedMesh(source.geometry.clone(),source.material.clone());
-  mesh.name='TravellerB3Body';mesh.frustumCulled=false;humanoid.body.parent.add(mesh);mesh.bind(humanoid.body.skeleton,humanoid.body.bindMatrix);
+  mesh.name='TravellerB3Body';mesh.frustumCulled=false;humanoid.body.parent.add(mesh);mesh.bind(humanoid.body.skeleton,humanoid.body.bindMatrix);armsOffTorso(mesh.geometry,mesh.skeleton);
   humanoid.body.skeleton.pose();root.updateMatrixWorld(true);
   const cloth=yield* makeTripoClothSteps(mesh,colors,{...options,fit:{
    top:1.20,bottom:.825,freeHeight:.18,preservePinNormals:true,detailCollisions:false,

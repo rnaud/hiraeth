@@ -91,7 +91,9 @@ export const MOVES = {
   stop: { legs: false, walk: 'stop_walking', run: 'run_to_stop', runFrom: 2.8, from: 0.9, brake: 16, minRate: 0.7, maxRate: 2.5, blendIn: 0.2 },
   turn: { legs: false, from: 0.75, maxSpeed: 2.0, outSpeed: 2.8, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], minRate: 0.9, maxRate: 3.2 },
   // (rateEase, 1/s: the pivot's playback speed follows the body's turn toward its new rate this fast, not at once)
-  pivot: { legs: false, clip: 'running_turn_180', speed: 4.2, from: 2.4, minRate: 0.8, maxRate: 1.8, rateEase: 10 },
+  // (blendIn: its own too, issue #721: over Kevin Iglesias's high-pumping arms the capture's laid on in 0.1 s turned the upper
+  // arm 0.45 rad in a frame)
+  pivot: { legs: false, clip: 'running_turn_180', speed: 4.2, from: 2.4, minRate: 0.8, maxRate: 1.8, rateEase: 10, blendIn: 0.15 },
 };
 
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
