@@ -869,6 +869,23 @@ New in the rig for them:
 | hulk: stomp (1.0 s) | `ss_block_idle`'s braced stance | `stomp`: the arms flung up and out, down in the strike; its right leg by its own `style` (`HULK_STANCE.stomp`: thigh up 1.5 rad, knee 1.55), the body leaning over the other foot, stamped down in the strike's first third |
 | hulk: standing, walking | the library's | `HULK_STANCE.hunch` 0.26 rad forward over the clip's chest, the head brought back up 0.3 to look ahead; its kilt counter-turned so it hangs from the hips |
 
+**The prowler and the warlord** (v2.34, issue #726; plans/monster.js, tests/prowler-warlord.test.js):
+
+| move | clip | by hand |
+|---|---|---|
+| prowler: dart, slash | `gs_slide_attack` (as the grunt's lunge), `ss_slash_1` | its stance: leaning forward 0.2 rad, the head back up, the knees bent |
+| prowler: tail sweep | `ss_block_idle`'s braced stance | `spinAngle`: side-on by 1.2 rad at 75 % and held, a whole turn through the strike; the tail straight out at knee height (`TailSpring` sweep) |
+| prowler: spit | `ss_block_idle`, thrown at `release` 0.78 | `spit`: arms braced low, the head reared back 0.6 rad |
+| prowler: back-flip | none (the evade's hop) | the body turned over backwards about the hips over the hop, legs tucked, the tail curled |
+| warlord: sweep, overhead | `gs_slash_3`, `gs_slash_1` | `glaiveHigh` over the sweep's wind-up; the glaive aimed (`WARLORD_AIM`) |
+| warlord: charge | `ss_block_idle`, then the sprint loop through the strike (`M.run`) | `lance`, the head down |
+| warlord: roar | `gesture_yelling` | `roar`: arms flung wide, the head thrown back |
+| warlord: last stand | `ss_block_idle` | `whirl`, `spinAngle` two turns |
+
+The prowler's tail: eight segments of 0.17 m on their own joints (skinned with the body), each a SecondOrder on pitch
+and yaw (3.2 → 1.2 Hz down the tail, ζ 0.45-0.55): its rest curve down to the ground, the body's turn rate flung out
+through it, a lash running down it (idle 0.18, winding up 0.6, the dart 1), lifted off the ground it stands on.
+
 Still not captured: a real bow draw, a horn blown, an overhand rock throw, sitting and sleeping clips; a two-handed hop
 for the whack (the charged cut's overhead is used, the hop is the mind's lunge).
 

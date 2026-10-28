@@ -4,7 +4,7 @@ import { ARCHETYPES, spawnKindOf } from '../enemies/archetypes.js';
 import { FOES } from '../foes.js';
 import { rosterOf } from '../foe-worlds.js';
 import { hintsFor } from '../hint-level.js';
-import { SITE, SITE_PURSE, sitesOf, layoutSite, siteFlag, cofferFlag, stagedFrom } from './sites.js';
+import { SITE, SITE_PURSE, SITE_PAYS, sitesOf, layoutSite, siteFlag, cofferFlag, stagedFrom } from './sites.js';
 import { makeIdle, restPose, CALLS } from './idle.js';
 import { buildProp, sleepMarks, SAND_TONES } from './props.js';
 
@@ -36,7 +36,7 @@ export class Encounters {
     const stage = rosterOf(levelId).stage ?? 1;
     this.sites = sitesOf(levelId, staged).map((s, n) => ({
       ...s, n, pos: new THREE.Vector3(...s.at), lay: layoutSite(s, BODIES), out: [], killed: new Set(), props: null, coffer: null,
-      sprung: false, purse: SITE_PURSE[Math.max(0, Math.min(SITE_PURSE.length - 1, stage))],
+      sprung: false, purse: SITE_PURSE[Math.max(0, Math.min(SITE_PURSE.length - 1, stage))] * (SITE_PAYS[s.kind] ?? 1),
     }));
     this.marks = [];
     // (no wandering pack round a site still to clear: its foes are the life there)
@@ -121,6 +121,8 @@ export class Encounters {
 
   /** One noticed you: the rest of the site wake, a moment apart (a lookout's, a guard's or a patrol's call: at once). */
   alarm(s, by) {
+    // (a warlord's hold: the warlord noticing you keeps its band sat by the fire until it roars, its horn: #726)
+    if (s.kind === 'warlord-hold' && by.def?.attacks?.some((a) => a.horn)) return;
     const calls = CALLS.has(by.idle?.mode);
     for (const f of s.out) {
       if (!f || f === by || f.provoked || !f.alive) continue;
@@ -212,7 +214,7 @@ export class Encounters {
     this.game?.set?.(siteFlag(this.levelId, s.id), true);
     s.out = []; s.killed.clear();
     this.sound?.chime?.();
-    this.toast?.(s.kind === 'camp' ? 'The camp is quiet. Its coffer is yours.' : s.kind === 'nest' ? 'The nest is empty. Its coffer is yours.' : 'They are beaten. Their coffer is yours.');
+    this.toast?.(s.kind === 'camp' ? 'The camp is quiet. Its coffer is yours.' : s.kind === 'nest' ? 'The nest is empty. Its coffer is yours.' : s.kind === 'warlord-hold' ? 'The warlord has fallen. Its coffer is yours.' : 'They are beaten. Their coffer is yours.');
   }
 
   /** The first sneak strike on a sleeper: said once (hints full). */

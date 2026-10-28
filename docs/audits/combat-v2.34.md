@@ -286,3 +286,25 @@ placement after a capped pack (v1.90 met the same contamination), not a game fau
 
 No game code changed in this review: nothing found was a small, clear tuning bug. The closest, the mummer's 2 hp, is a
 design choice for the teaching worlds (recommendation 1), not a slip.
+
+## Addendum: roster v4's prowler and warlord (issue #726, 2026-10-28)
+
+Built after this review, to its findings; `arena.mjs --kinds prowler,warlord,grunt,hulk` (24 s each, a still player,
+muted headless Chrome) and the node fights in `tests/prowler-warlord.test.js`. Not on any world's roster yet, so the
+script's "combines" (from the worlds that field a kind) reads 1-2 for both; by eye 4 for each, as for the mummer king:
+the warlord's roar wakes its band and its hold is fought as a group, the prowler spits from behind a melee and flips out
+of the combo that kills its packmates.
+
+- **The prowler**: readability 4 (wind-ups seen 0.86 s, the dart's crouch and the tail's side-on coil held from 75 %),
+  counterplay 5, space 3, fairness 4 (2.92 hearts a minute to a still player, 20 attacks a minute), identity 4, combines
+  1 ✎4: mean 3.5 ✎4.0. Rec. 2 (answer mashing): the second light cut in a row and it flips 3 m back and darts in; against
+  the masher it flipped 8 times in four fights. Rec. 1: no one combo kills it at any stage. The times to kill above
+  (combo 1.91 s) strike it without its mind running, so they miss the flip: a script note, as for the hound.
+- **The warlord**: readability 5 (1.13 s), counterplay 5 (plates, the stall, the open after its last stand), space 4,
+  fairness 5 (1.88 hearts a minute), identity 4, combines 2 ✎4: mean 4.2 ✎4.5. Its plates make the charged cut the
+  breaker (combo 6.5 s against charged 4.4 s); its last stand began twice in four masher fights, its charge four times
+  (stepping back from a swing to make it, rec. 3's dead time spent on a move).
+- Weakest of the two: the prowler's slash and tail sweep fire rarely against a masher (1 and 2 in four fights; the dart
+  and its follow-up take the turns). Worth a look when the rosters field it.
+
+![The four monsters at the height of a wind-up in the Arena: the prowler's dart, the warlord's sweep, the grunt, the hulk](combat-v2.34/telegraphs-roster4b.webp)

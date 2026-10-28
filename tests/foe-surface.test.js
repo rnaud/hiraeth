@@ -40,6 +40,12 @@ const planSources = {
   mummerking: readFileSync(new URL('../src/enemies/plans/mummer.js', import.meta.url), 'utf8'),
   grunt: readFileSync(new URL('../src/enemies/plans/monster.js', import.meta.url), 'utf8'),
   hulk: readFileSync(new URL('../src/enemies/plans/monster.js', import.meta.url), 'utf8'),
+  // (issue #726: the droids' parts are named in their one material family, src/enemies/plans/droid.js, and their own)
+  sentinel: readFileSync(new URL('../src/enemies/plans/droid.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/sentinel.js', import.meta.url), 'utf8'),
+  oracle: readFileSync(new URL('../src/enemies/plans/droid.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/oracle.js', import.meta.url), 'utf8'),
+  crawler: readFileSync(new URL('../src/enemies/plans/droid.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/crawler.js', import.meta.url), 'utf8'),
+  prowler: readFileSync(new URL('../src/enemies/plans/monster.js', import.meta.url), 'utf8'),
+  warlord: readFileSync(new URL('../src/enemies/plans/monster.js', import.meta.url), 'utf8'),
 };
 assert.deepEqual(Object.keys(planSources).sort(), [...BUILT].sort(), 'every surface archetype has exactly one source');
 

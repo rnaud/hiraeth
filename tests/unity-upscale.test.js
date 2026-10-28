@@ -74,9 +74,9 @@ test('placement (a): the G-buffer and the glow at gbufferScale, the composite\'s
   assert.match(feature, /if \(s >= 0\.999f \|\| s <= 0\) return new Vector2Int\(w, h\);/);
 });
 
-test('Android\'s Handheld: FSR 1 by default (bilinear at a larger screen\'s floor), RCAS at 0.6; -upscale off and -render-scale override', () => {
+test('Android\'s Handheld: FSR 1 by default (bilinear at a larger screen\'s low levels), RCAS at 0.6; -upscale off and -render-scale override', () => {
   assert.match(runner, /public static string HandheldUpscale\(int w, int h\) => "fsr";/, 'FSR on every screen (issue #716: the Odin 3\'s 1080p too)');
-  assert.match(runner, /public static string UpscalerAt\(int i, float max, float min\) => Count\(max, min\) > 1 && i >= Count\(max, min\) - 1 \? "linear" : "fsr";/, 'a larger screen at its floor: bilinear, as the Thor before');
+  assert.match(runner, /public static string UpscalerAt\(int i, float max, float min, float linearAt\) => Count\(max, min\) > 1 && \(i >= Count\(max, min\) - 1 \|\| Level\(i, max, min\) <= linearAt \+ 0\.001f\) \? "linear" : "fsr";/, 'a larger screen at and under 960 × 540\'s pixels: bilinear, as the Thor before (issue #727)');
   assert.match(runner, /public const string HandheldSharpness = "0\.6";/);
   assert.match(runner, /if \(upAsked == null && BridgeArgs\.Quality == "handheld" && HandheldUpscale\(Screen\.width, Screen\.height\) is string hu\) \{ upAsked = hu; sharpAsked \?\?= HandheldSharpness; \}/,
     'only when -upscale is not given: -upscale off keeps URP\'s bilinear blit');

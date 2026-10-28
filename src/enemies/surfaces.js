@@ -236,6 +236,11 @@ Object.assign(SURFACES, {
       frame: { mottle: { color: 'frame*0.8', scale: 0.08, amount: 0.3, soft: 0.2, strength: 0.4 } },
     },
   },
+  // ----------------------------------------------------------------------------- the makers' defunct droids (issue #726)
+  // one surface for the family (DROID_SURFACE, below): the sentinel, the oracle and the crawler wear it in every skin
+  sentinel: { '*': null },
+  oracle: { '*': null },
+  crawler: { '*': null },
   brute: {
     '*': {
       // (sheet-1: old ivory cracked all over like a dropped jar, fine dark seams, the widest cracks glowing violet; tar
@@ -600,6 +605,87 @@ Object.assign(SURFACES, {
   },
 });
 
+/**
+ * The droids' one surface (issue #726; src/enemies/plans/droid.js; their sheets): the ivory ceramic weathered as the sheets
+ * paint it, warm grey-brown stains in soft blotches, grime and a little moss gathered low on each panel, small dark chips
+ * flaked off the glaze, a dull glaze's shine; the dark joints worn to a grey here and there; the seams lit; the moss in
+ * tufts. Their stronger tier (DROID_TIER_SURFACE): the ceramic scorched, soot over it in blotches and low on each panel,
+ * a net of fine cracks glowing red through it, chips charred black.
+ */
+export const DROID_SURFACE = {
+  ceramic: {
+    // (soft edges: the sheets wash their stains on, no pen line round them)
+    mottle: { color: 'stain', scale: 0.18, amount: 0.38, soft: 0.5, detail: 0.6, strength: 0.65 },
+    // (grime low on each panel: the drips' runs, faint, under the stains)
+    drips: { color: 'stain+0.15', width: 0.07, from: 0.6, length: 0.25, bulb: 0.1, amount: 0.3 },
+    spots2: { color: 'stain*0.75', scale: 0.03, share: 0.08, size: 0.4, amount: 0.45, soft: 0.6 },
+    gloss: { size: 0.03, sky: 0.45, amount: 0.4 },
+  },
+  ring: { mottle: { color: 'stain', scale: 0.08, amount: 0.25, soft: 0.2, strength: 0.5 }, gloss: { size: 0.02, sky: 0.5, amount: 0.5 } },
+  joint: { mottle: { color: 'joint2', scale: 0.05, amount: 0.3, soft: 0.2, strength: 0.6 }, gloss: { size: 0.02, sky: 0.5, amount: 0.45 } },
+  seam: { glow: { color: 'seam', amount: 0.6, rim: 0.3, core: 2, emit: 0.5, pulse: 1.4 } },
+  moss: { mottle: { color: 'moss*0.68', scale: 0.025, amount: 0.45, soft: 0.1 }, ...SPECKS('moss+0.35', 0.5, 0.012) },
+  steel: { gloss: { size: 0.02, sky: 0.9, amount: 0.85 }, rust: { color: 'stain*0.7', color2: 'stain', amount: 0.08, amount2: 0.04, scale: 0.05, down: 0.3, pits: 0.4 } },
+};
+export const DROID_TIER_SURFACE = {
+  ceramic: {
+    mottle: { color: '#2a221c', scale: 0.14, amount: 0.3, soft: 0.6, detail: 0.6, strength: 0.6 },
+    rust: { color: '#231b16', color2: 'stain', amount: 0.15, amount2: 0.1, scale: 0.08, down: 0.85, pits: 0.6 },
+    cracks: { color: 'seam', ink: '#14100e', inkAmount: 0.6, scale: 0.12, width: 0.02, tone: 0.04, veins: 0.32, vein: 0.03, glow: 0.7, share: 0.3 },
+    gloss: { size: 0.03, sky: 0.3, amount: 0.25 },
+  },
+  ring: { mottle: { color: '#1d1714', scale: 0.08, amount: 0.4, soft: 0.2, strength: 0.7 } },
+  joint: { mottle: { color: '#0e0c0c', scale: 0.05, amount: 0.4, soft: 0.2, strength: 0.6 } },
+  moss: { mottle: { color: '#1d1714', scale: 0.025, amount: 0.5, soft: 0.1 } },
+  steel: { mottle: { color: '#1d1714', scale: 0.04, amount: 0.4, soft: 0.2 } },
+};
+const droidParts = (names) => Object.fromEntries(names.map((n) => [n, DROID_SURFACE[n]]));
+SURFACES.sentinel['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss', 'steel']);
+SURFACES.oracle['*'] = droidParts(['ceramic', 'joint', 'seam', 'ring']);
+SURFACES.crawler['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss']);
+/** An archetype's own stronger-tier surface instead of the bands (TIER_SURFACE): the droids' scorch. */
+export const TIER_SURFACES = { sentinel: DROID_TIER_SURFACE, oracle: DROID_TIER_SURFACE, crawler: DROID_TIER_SURFACE };
+// The third batch (issue #726; sheets in references/enemy-archetypes/prowler/ and warlord/).
+Object.assign(SURFACES, {
+  prowler: {
+    '*': {
+      // (sheet-1: smooth leaf-green skin, its fine scales only a stipple; paler blotches on its flanks; a soft sheen)
+      skin: {
+        mottle: { color: 'skin2', scale: 0.12, amount: 0.3, soft: 0.16, detail: 0.4, strength: 0.45 },
+        spots2: { color: 'crease', scale: 0.025, share: 0.3, size: 0.35, amount: 0.25 },
+        gloss: { size: 0.02, sky: 0.35, amount: 0.25 },
+      },
+      // (the cream throat, chest, belly and the tail's underside: smooth, a few faint ventral lines across it)
+      belly: { bands: { color: 'belly2', axis: 1, period: 0.05, width: 0.08, ink: 0.06 } },
+      // (polished steel: a bright highlight, faint smudges)
+      steel: { gloss: { size: 0.025, sky: 0.9, amount: 0.8 }, mottle: { color: 'steel*0.78', scale: 0.03, amount: 0.3, soft: 0.2, strength: 0.5 } },
+      leather: { mottle: { color: 'leather*0.7', scale: 0.03, amount: 0.4, soft: 0.1, strength: 0.6 }, gloss: { size: 0.02, sky: 0.4, amount: 0.3 } },
+      bone: { fade: { color: 'bone*0.72', axis: 1, from: -0.02, to: 0.03 } },
+      ink: { gloss: { size: 0.02, sky: 0.6, amount: 0.8 } },
+    },
+  },
+  warlord: {
+    '*': {
+      // (sheet-1: deep crimson, the muscles' creases darker, a fine stipple in the shade)
+      skin: {
+        mottle: { color: 'skin2', scale: 0.18, amount: 0.28, soft: 0.16, detail: 0.4, strength: 0.45 },
+        spots2: { color: 'crease', scale: 0.05, share: 0.35, size: 0.4, amount: 0.4 },
+      },
+      // (the mane: dark brown, combed into long strands, paler streaks through it)
+      mane: { grain: { color: 'mane*0.6', spacing: 0.012, ink: 0.5, warp: 0.9, amount: 0.7 }, mottle: { color: 'mane2', scale: 0.08, amount: 0.35, soft: 0.1, strength: 0.6 } },
+      // (the horns: ridged rings along them, darker at the root)
+      horn: { grain: { color: 'horn2', spacing: 0.022, ink: 0.25, warp: 0.2, amount: 0.55 }, gloss: { size: 0.02, sky: 0.4, amount: 0.3 } },
+      // (rough bronze: blotched darker, pitted, a dull sheen; the plates the same)
+      bronze: { rust: { color: 'bronze2', color2: '#5e4426', amount: 0.2, amount2: 0.08, scale: 0.025, down: 0.3, pits: 0.3 }, gloss: { size: 0.03, sky: 0.45, amount: 0.45 } },
+      plate: { rust: { color: 'bronze2', color2: '#5e4426', amount: 0.2, amount2: 0.08, scale: 0.03, down: 0.3, pits: 0.3 }, gloss: { size: 0.035, sky: 0.45, amount: 0.45 } },
+      // (the loincloth and the belt: coarse, stained)
+      cloth: { mottle: { color: 'cloth*0.75', scale: 0.07, amount: 0.4, soft: 0.1, strength: 0.6 }, ...SPECKS('cloth*0.6', 0.4, 0.025) },
+      wood: { grain: { color: 'wood*0.7', spacing: 0.02, ink: 0.4, warp: 0.3, amount: 0.55 }, mottle: { color: 'wood2', scale: 0.12, amount: 0.3, soft: 0.1, strength: 0.5 } },
+      steel: { gloss: { size: 0.03, sky: 0.8, amount: 0.7 }, mottle: { color: 'steel*0.75', scale: 0.05, amount: 0.3, soft: 0.2, strength: 0.5 } },
+    },
+  },
+});
+
 /** A colour of the table: '#rrggbb', a palette key, darker 'key*0.7', paler 'key+0.3'. */
 export function surfaceColor(c, palette = {}) {
   if (typeof c !== 'string' || c.startsWith('#')) return c;
@@ -635,8 +721,9 @@ export function surfaceFor(archetype, skin, name) {
   // (numbered parts, a jelly's light0…2, wear their family's: 'light')
   const base = name.replace(/\d+$/, ''), pick = (t) => t?.[name] ?? t?.[base];
   // (a plate of armour, issue #722: riveted, worn, its own unless the archetype paints it; a tier's parts banded: TIER_SURFACE)
-  const merged = { ...(base === 'plate' && !pick(T['*']) ? PLATE_SURFACE : {}), ...(pick(T['*']) ?? {}), ...(pick(T[skin.id]) ?? {}),
-    ...(skin.tier && !TIER_BARE.test(base) ? TIER_SURFACE : {}) };
+  // (an archetype with a tier surface of its own, the droids' scorch: that, part by part, instead of the bands)
+  const own = TIER_SURFACES[archetype], tierPaint = !skin.tier ? {} : own ? pick(own) ?? {} : !TIER_BARE.test(base) ? TIER_SURFACE : {};
+  const merged = { ...(base === 'plate' && !pick(T['*']) ? PLATE_SURFACE : {}), ...(pick(T['*']) ?? {}), ...(pick(T[skin.id]) ?? {}), ...tierPaint };
   const out = {};
   for (const [k, v] of Object.entries(merged)) {
     if (!v) continue;

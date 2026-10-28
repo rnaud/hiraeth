@@ -243,7 +243,34 @@ export const SKINS = {
   hulk: {
     desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#cbd8ec', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
   },
+  // sheet-1 (references/enemy-archetypes/prowler/sheet-1.jpg): smooth leaf-green scaly skin, a shade deeper on its back and
+  // paler on its flanks; a cream throat, chest, belly and tail underside; yellow eyes; a polished steel shoulder guard and
+  // blade, a brown leather strap and grip; pale claws; its spit a sour yellow-green.
+  prowler: {
+    desert: { name: 'prowler', arena: true, palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
+  },
+  // sheet-1 (references/enemy-archetypes/warlord/sheet-1.jpg): deep crimson skin, darker in its creases; a dark brown mane;
+  // ridged tan ram horns; rough bronze, blotched darker; a wide dark leather belt and a brown loincloth; a dark glaive
+  // shaft with steel rings and a grey steel blade; yellow eyes.
+  warlord: {
+    desert: { name: 'warlord', arena: true, palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
+  },
 };
+
+// (issue #726) the makers' defunct droids: one material family, the same in every world (docs/design/enemy-roster-v4.md;
+// src/enemies/plans/droid.js). Their sheets (sheet-1 each) draw weathered ivory ceramic panels with warm grey-brown stains,
+// near-black joints, amber seams and one amber eye, a little moss. One skin each, met only in the Arena until the world
+// rosters take them (keyed to the first world: everywhere the same). Their stronger tier (`tier`): scorched darker ceramic,
+// a red eye and red seams instead of amber, laid over tierSkin's dimmed palette.
+export const DROID_PALETTE = {
+  ceramic: '#ebe2cb', ceramic2: '#f6efdc', stain: '#b49c74', joint: '#2b2a2f', joint2: '#4a4850', seam: '#ffae36',
+  eye: '#ffa51f', flare: '#fff0b8', moss: '#7d9748', steel: '#d4d6d8', ring: '#ddd3bb',
+};
+export const DROID_TIER = { ceramic: '#7a7064', ceramic2: '#8c8274', stain: '#2b231d', joint: '#1a1817', joint2: '#2c2826', seam: '#ff4a2e', eye: '#ff3324', flare: '#ffc2b0', moss: '#4a5032', ring: '#6e665a', steel: '#9a9890' };
+const droid = (name) => ({ desert: { name, arena: true, palette: { ...DROID_PALETTE }, props: [], tier: { palette: DROID_TIER } } });
+SKINS.sentinel = droid('sentinel');
+SKINS.oracle = droid('oracle');
+SKINS.crawler = droid('crawler');
 
 // The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in
 // Lorn, rust in the Hangar). Its skins are made from this table of edge colours.
@@ -284,7 +311,7 @@ export function skinOf(a, world, tier = 0) {
   if (!id) return null;
   const S = SKINS[a][id], home = SKINS[a][HOME_SKIN[a]];
   const out = { id, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: S.scale ?? 1, arena: !!S.arena };
-  return tier ? tierSkin(out) : out;
+  return tier ? tierSkin(out, S.tier) : out;
 }
 
 /**
@@ -293,10 +320,12 @@ export function skinOf(a, world, tier = 0) {
  * (`key`) and its own name ('banded …').
  */
 export const TIER_LOOK = { dark: 0.52, keep: /^(eye|glow|lamp|core|lip|brew|slag|fire|flame|light|spirit|eyes|seam|glint|flare|spore|spot|ward|line|ink)/ };
-export function tierSkin(s) {
+export function tierSkin(s, own = null) {
   const dim = (hex) => { const n = parseInt(hex.slice(1), 16), k = TIER_LOOK.dark; const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((x) => Math.round(x * k)); return `#${c.map((x) => x.toString(16).padStart(2, '0')).join('')}`; };
   const palette = Object.fromEntries(Object.entries(s.palette).map(([k, v]) => [k, typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) && !TIER_LOOK.keep.test(k) ? dim(v) : v]));
-  return { ...s, palette, tier: 1, key: `${s.id}~tier`, name: `banded ${s.name}` };
+  // (a skin's own tier colours over the dimmed ones: the droids' scorched ceramic and red eye, issue #726)
+  if (own?.palette) Object.assign(palette, own.palette);
+  return { ...s, palette, tier: 1, key: `${s.id}~tier`, name: own?.name ?? `${own ? 'scorched' : 'banded'} ${s.name}` };
 }
 
 /** A skin's name for a kind (by the archetype it is): 'crab', 'saltharbour' → 'anchor crab'; else the archetype's name. */

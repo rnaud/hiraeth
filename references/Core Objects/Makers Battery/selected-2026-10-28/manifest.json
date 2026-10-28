@@ -1,0 +1,30 @@
+{
+  "created": "2026-10-28",
+  "issue": "https://github.com/rnaud/hiraeth/issues/728",
+  "status": "approved-reference-only",
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "title": "Makers’ battery — approved hip-lantern reference",
+      "service": "Midjourney in the visible Codex browser",
+      "provider": "midjourney",
+      "providerLabel": "Midjourney",
+      "model": "v7",
+      "date": "2026-10-28",
+      "jobUrl": "https://www.midjourney.com/jobs/de9db4aa-c35e-403f-952b-809076f4117c?index=2",
+      "jobId": "de9db4aa-c35e-403f-952b-809076f4117c",
+      "imageIndex": 2,
+      "prompt": "Moebius ligne claire comic drawing. Fine black ink outlines, flat pastel colour, sparse hatching on ivory paper. A pocket-sized futuristic power cell worn at the hip: one upright turquoise glass capsule containing lavender liquid, smooth rounded cream ceramic endcaps, two thin brass ribs, discreet rigid belt clip. Broad clean surfaces, gentle strange technology. Single object study.",
+      "parameters": {
+        "ar": "4:3",
+        "v": 7,
+        "no": "cables, hoses, handles, gears, filigree, photography, 3d render"
+      },
+      "why": "The author hearted this original design, explored simpler alternatives, then explicitly chose the earlier original as the final reference. Hip lantern; no tether. Later simplifications do not supersede this selection.",
+      "sha256": "1305d60f9ba045b00993894bb3a4388b1377671a33eef72a83baa2e4a7b0643c",
+      "bytes": 981880,
+      "width": 1232,
+      "height": 928
+    }
+  ]
+}

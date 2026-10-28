@@ -112,6 +112,22 @@ export const FOE_VOICES = {
   hulk: { family: 'flesh',     // a heavy slap on a great flank and a grunt from deep in its chest; done, a long groan and a fall
     hurt: [N('lowpass', 260, 0.14, 0.22, { rate: 0.7 }), T('sawtooth', 110, 90, 0.2, 0.06, { at: 0.03 })],
     burst: [T('sawtooth', 120, 60, 0.9, 0.08), N('lowpass', 200, 0.4, 0.22, { rate: 0.5, at: 0.6 })] },
+  // ---- the makers' defunct droids (issue #726): ceramic over servos
+  sentinel: { family: 'ceramic', // a glazed plate chinking and a servo's short grind; done, the panels cracking off and its whine running down
+    hurt: [R(1240, CLAY, 0.28, 0.05), T('square', 380, 330, 0.09, 0.025, { at: 0.015 }), N('highpass', 4200, 0.06, 0.05, { at: 0.12 })],
+    burst: [C(7, 0.06, 2100, 0.03, 0.09, { f1: 1300, q: 3 }), T('sawtooth', 820, 90, 1.0, 0.04, { at: 0.08 }), R(640, CLAY, 0.5, 0.05, { at: 0.2 })] },
+  oracle: { family: 'ceramic',   // a hollow shell knocked and its light's hum wavering; done, the hum rising to a ring and the shell dropping
+    hurt: [R(720, GLASS, 0.24, 0.045), T('sine', 520, 610, 0.18, 0.04, { at: 0.02 })],
+    burst: [T('sine', 600, 1500, 0.7, 0.05), R(1800, GLASS, 0.6, 0.035, { at: 0.25 }), N('lowpass', 700, 0.4, 0.14, { rate: 0.5, at: 0.6 })] },
+  crawler: { family: 'servo',    // a small dome's tick and a startled chirp; done, a pop and its legs clattering
+    hurt: [T('triangle', 1700, 2300, 0.05, 0.06), C(3, 0.06, 3600, 0.02, 0.08, { q: 2, at: 0.1 })],
+    burst: [N('bandpass', 1400, 0.25, 0.22, { q: 0.8, rate: 0.6 }), T('square', 420, 70, 0.5, 0.06), C(5, 0.05, 2800, 0.02, 0.08, { f1: 1500, q: 2, at: 0.15 })] },
+  prowler: { family: 'scale',  // a dry hiss through its teeth and a chirp; done, a rattle in its throat and a slither
+    hurt: [N('highpass', 2600, 0.14, 0.08, { rate: 1.2 }), T('triangle', 880, 1240, 0.06, 0.06, { at: 0.04 })],
+    burst: [N('bandpass', 1800, 0.35, 0.1, { rate: 0.8 }), T('square', 220, 120, 0.25, 0.04, { at: 0.12 })] },
+  warlord: { family: 'hide',   // a growl from deep in its chest; done, a great roar dying to a groan and a fall
+    hurt: [T('sawtooth', 140, 115, 0.24, 0.08), N('lowpass', 380, 0.16, 0.12, { rate: 0.7, at: 0.02 })],
+    burst: [T('sawtooth', 160, 70, 1.1, 0.09), N('lowpass', 240, 0.5, 0.2, { rate: 0.5, at: 0.7 })] },
   // ---- the old sets (the makers' machine in the temples, anything without its own)
   machine: { family: 'machine',
     hurt: [T('square', 620, 540, 0.25, 0.06), T('square', 930, 810, 0.25, 0.06, { at: 0.01 })],
