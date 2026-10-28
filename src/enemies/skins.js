@@ -241,7 +241,7 @@ export const SKINS = {
   // sheet-1 (references/enemy-archetypes/hulk/sheet-1.jpg): slate-blue skin with lilac in its shadows, a pale icy belly,
   // an ivory horn; a ragged kilt of hide patches (brown, olive, tan) on a rope belt; a long dark club with iron bands.
   hulk: {
-    desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#cbd8ec', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#bfcde8', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/prowler/sheet-1.jpg): smooth leaf-green scaly skin, a shade deeper on its back and
   // paler on its flanks; a cream throat, chest, belly and tail underside; yellow eyes; a polished steel shoulder guard and

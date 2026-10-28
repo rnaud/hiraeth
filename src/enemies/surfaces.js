@@ -587,8 +587,9 @@ Object.assign(SURFACES, {
         mottle: { color: 'skin2', scale: 0.22, amount: 0.3, soft: 0.16, detail: 0.4, strength: 0.5 },
         spots2: { color: 'crease', scale: 0.06, share: 0.35, size: 0.4, amount: 0.4 },
       },
-      // (the belly: pale icy blue, smooth, a soft shine)
-      belly: { ...SPECKS('crease', 0.2, 0.05) },
+      // (the belly: pale icy blue, smooth, washed a little bluer toward its edges; its shade lifted and its hue kept, so
+      // the light falls on it softly instead of a flat white band beside a grey one)
+      belly: { mat: { shade: 0.6, shadeHue: 0.7 }, mottle: { color: 'belly*0.9', scale: 0.22, amount: 0.35, soft: 0.45, detail: 0.4, strength: 0.5 }, ...SPECKS('crease', 0.2, 0.05) },
       // (the kilt: hide patches in brown, olive and tan, a stitched line round each, ragged and stained)
       hide: {
         scales: { color: 'hide2', size: 0.26, ink: 0.55, tone: 0.35, amount: 0.3, mode: 1 },
@@ -656,9 +657,11 @@ Object.assign(SURFACES, {
         gloss: { size: 0.02, sky: 0.35, amount: 0.25 },
       },
       // (the cream throat, chest, belly and the tail's underside: smooth, a few faint ventral lines across it)
-      belly: { bands: { color: 'belly2', axis: 1, period: 0.05, width: 0.08, ink: 0.06 } },
+      // (its shade lifted and its hue kept: cream in the back light too, never grey)
+      belly: { mat: { shade: 0.45, shadeHue: 0.8 }, bands: { color: 'belly2', axis: 1, period: 0.05, width: 0.08, ink: 0.06 } },
       // (polished steel: a bright highlight, faint smudges)
-      steel: { gloss: { size: 0.025, sky: 0.9, amount: 0.8 }, mottle: { color: 'steel*0.78', scale: 0.03, amount: 0.3, soft: 0.2, strength: 0.5 } },
+      // (its shade lifted: the blade's flat stays bright steel turned from the sun, not a dark blue slab)
+      steel: { mat: { shade: 0.5, shadeHue: 0.6 }, gloss: { size: 0.025, sky: 0.9, amount: 0.8 }, mottle: { color: 'steel*0.78', scale: 0.03, amount: 0.3, soft: 0.2, strength: 0.5 } },
       leather: { mottle: { color: 'leather*0.7', scale: 0.03, amount: 0.4, soft: 0.1, strength: 0.6 }, gloss: { size: 0.02, sky: 0.4, amount: 0.3 } },
       bone: { fade: { color: 'bone*0.72', axis: 1, from: -0.02, to: 0.03 } },
       ink: { gloss: { size: 0.02, sky: 0.6, amount: 0.8 } },

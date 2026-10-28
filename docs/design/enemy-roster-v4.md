@@ -43,14 +43,14 @@ and are built with the enemy-rework skill (procedural surface mandatory).
 ## Order
 
 1. **Grunt and hulk** (the backbone; the hulk's throw reuses the mummer king's). Arena, gallery, tests, Unity. Built (v2.34): docs/systems/foes.md, "Roster v4's monsters"; staged in the Desert's mummer camp behind
-   `?staged=roster4`. Still unlike the sheets: the grunt's legs a little short and its hands mitten-like, the hulk's
-   head smaller and its arms more tube-like than drawn, the hulk's club studded (the sheet draws only bands).
+   `?staged=roster4`. The shape pass (docs/systems/foes.md, "The shape pass") gave them lofted limbs, the grunt
+   clawed fingers and round shoulders, the hulk a jutting head and muscled arms; still unlike the sheets: the grunt's
+   knees higher than drawn, both monsters' skin stepping hard from light to shade.
 2. **Sentinel, oracle, crawler**, in parallel with 1.
 3. **Prowler and warlord.** Built (v2.34): docs/systems/foes.md, "The prowler and the warlord"; the warlord's hold
-   staged in Arzach behind `?staged=roster4`. Still unlike the sheets: the prowler's limbs are tubes (the sheet's are
-   muscled), its head a little small, its belly paler than drawn only in the light; the warlord's mane is tufts, not
-   locks, its horns plain ridged tubes, its pauldrons one dome and one lame (the sheet draws two layers), no buckles on
-   its greaves' straps.
+   staged in Arzach behind `?staged=roster4`. Since the shape pass: lean lofted limbs and a long wedge head for the
+   prowler, big lofted ram horns, long locks, two-layer pauldrons and buckled greave straps for the warlord. Still
+   unlike the sheets: the prowler's crest and plain neck, the warlord's mane thinner round its face.
 4. **The world rosters**: every route world's sites and packs from this roster; the per-world animals (crab, lizard,
    toad, worm, centipede, heron, and the rest led by a world) and the mummers move to the Arena list for the debug
    menu. Blots stay as the first world's teacher. The shade, hound, skitters and flyers are reviewed then.

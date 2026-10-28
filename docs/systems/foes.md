@@ -1648,7 +1648,7 @@ step darker, banded). On the humanoid rig (procedural-animation.md, "The humanoi
   clubs at once (`TIERS.grunt` combo).
 - **The hulk** (`hulk`, tier 3, role `the heavy`, 8 hp, 2.7 m, `stout`, `heavy`, nine draws): slate blue, a pale belly,
   hunched (`HULK_STANCE.hunch` over the clip's chest, its kilt kept hanging from its hips), one ivory horn, long arms, a
-  hide-patch kilt on a rope belt, a long banded club with a few studs. The **smash** (1.15 s, side hop), the **sweep**
+  hide-patch kilt on a rope belt, a long club with iron bands (no studs: the shape pass). The **smash** (1.15 s, side hop), the **sweep**
   (1.1 s, roll), the **stomp** (1.0 s: one foot raised high by its own `style` over the guard's braced stance, the arms
   flung up, `PROC_POSES.stomp`; a ring round it on the ground, `ground`: a jump clears it; its tier's sends a quake), and
   **throw a grunt** (the mummer king's `throwsAlly` and `CARRY`, `def.throws: 'grunt'`). Low, it rages.
@@ -1675,6 +1675,40 @@ more than five sits in a wider ring). The Arena: a band of three grunts, a hulk 
 Unity.
 
 Tests: `tests/monsters.test.js`.
+
+**The shape pass** (v2.34, issue #726; `tests/monster-shapes.test.js`): the four monsters' bodies drawn closer to their
+sheets, the rig's joints, clips, wind-ups, hitboxes and draws unchanged.
+
+- **Lofted limbs** (`loftLimb`: rings down a joint, each an ellipse moved forward or out, eased between keys, capped; and
+  `loftAlong`: a tube on a curve, its section by keys, for horns, heads, locks and hooked claws): the shoulders' and
+  thighs' masses, a biceps, a forearm swelling under the elbow, a calf, a narrow ankle, instead of cylinders.
+- **Grunt:** round sloping shoulders (a domed upper arm, the torso's top falling into it), long jointed clawed fingers
+  (`clawHand`, shared with the hulk and the warlord), the loincloth's hem at mid-thigh so the legs show; in the
+  overhead's wind-up the club tilts back over its right shoulder (`GRUNT_AIM`, `aimGrip` in the torso's frame, eased off
+  as it swings).
+- **Hulk:** the head bigger and thrust forward and low on a longer neck, a heavy underslung jaw (`HULK_HEAD`); the kilt
+  hung from the hips (`hangFromHips`: the hips' turn, then its sway; the grunt's and the warlord's too) and close round
+  them; the club banded only; the belly's shade lifted with its hue kept (`mat: { shade, shadeHue }` in its surface) so
+  the light falls on it softly; in the stomp it rises on its standing leg (`liftOver`: the hips raised as far as that leg
+  reaches, the foot kept by two-bone IK) and swings the other up and out (`HULK_STANCE.stomp`).
+- **Prowler:** a long lofted wedge of a head and a cream jaw under it (`PROWLER_HEAD`, at 1.3 × a person's), longer crest
+  spines, hooked claws on hands and feet, the blade broader and curved, carried with its flat out; its belly's and its
+  steel's shade lifted (cream and steel in the back light, not grey).
+- **Warlord:** lofted ram horns (`ramHorn`, `WARLORD_HORN`: a curl of 0.82 turn round its ear, its axis out and a little
+  forward, broad, ridged, tapering) that stand out past its mane from the front; the mane long flat locks over a mass
+  behind its head (not cone tufts), its chest's and back's the same; two-layer pauldrons (a dome, a wider plate stepped
+  out under it, a lame); a bronze buckle on each greave strap; the sweep's wind-up aims the glaive over its shoulder on
+  the sheet's diagonal (`WARLORD_AIM.sweep`).
+
+Measured: the horns show 0.14 m² from the front (0.10 before) and 0.11 m² from the side (0.07); the prowler's snout 0.14
+m deep 0.12 m from its tip (0.06); the hulk's face 9 cm before its chest (3 cm). Vertices: grunt 27.3k → 29.3k, hulk
+20.7k → 23.3k, prowler 23.8k → 24.6k, warlord 35.1k → 34.8k (the old horns were heavy); meshes unchanged. `Foes.look` a
+frame, walking (node, alternating with a607ab40c): grunt +0.005 ms, hulk +0.005 ms, prowler and warlord +0.001 ms.
+
+Still unlike the sheets: the grunt's legs are as long as its joints allow (its knees sit higher than drawn); the
+hulk's and the grunt's skin still steps from light to shade in a hard toon band; the prowler's crest is a row of spines,
+not the sheet's few long ones, and its torso and neck are still plain; the warlord's mane is thinner round its face than
+drawn and its glaive's blade reads as a spear head from the front.
 
 ## The makers' droids (v2.34, issue #726)
 
@@ -1736,7 +1770,7 @@ one skin (`desert`, `arena: true`), their tier darker and banded. Not on any wor
     straight out at knee height, `spinAngle`; a ring on the ground: jump it), the **spit** (0.95 s, a lob at 4-11 m).
   - Low, it rages. Its tier darts twice (`TIERS.prowler` combo).
 - **The warlord** (`warlord`, tier 4, role `the elite`, 12 hp, 2.5 m, `heavy`, `stout`, twelve draws): crimson, a great
-  cat's maned head (`WARLORD_HEAD.scale` 1.45) with two curled ram horns, rough bronze, a wide belt, a loincloth, a long
+  cat's maned head (`WARLORD_HEAD.scale` 1.45) with two curled ram horns (lofted since the shape pass, above), rough bronze, a wide belt, a loincloth, a long
   glaive aimed in its body's frame in the held poses (`WARLORD_AIM`: upright at its side, levelled for the charge).
   - The **glaive sweep** (1.0 s, drawn back over its shoulder, `glaiveHigh`), the **overhead** (1.1 s), the **charge**
     (1.2 s: levelled like a lance, its head down; the strike runs on the library's sprint, `M.run`, 9 m, stalling on a

@@ -877,7 +877,7 @@ New in the rig for them:
 | prowler: tail sweep | `ss_block_idle`'s braced stance | `spinAngle`: side-on by 1.2 rad at 75 % and held, a whole turn through the strike; the tail straight out at knee height (`TailSpring` sweep) |
 | prowler: spit | `ss_block_idle`, thrown at `release` 0.78 | `spit`: arms braced low, the head reared back 0.6 rad |
 | prowler: back-flip | none (the evade's hop) | the body turned over backwards about the hips over the hop, legs tucked, the tail curled |
-| warlord: sweep, overhead | `gs_slash_3`, `gs_slash_1` | `glaiveHigh` over the sweep's wind-up; the glaive aimed (`WARLORD_AIM`) |
+| warlord: sweep, overhead | `gs_slash_3`, `gs_slash_1` | the glaive aimed over its shoulder on a slant through the sweep's wind-up (`WARLORD_AIM.sweep`, eased in to 75 %, out as it swings) |
 | warlord: charge | `ss_block_idle`, then the sprint loop through the strike (`M.run`) | `lance`, the head down |
 | warlord: roar | `gesture_yelling` | `roar`: arms flung wide, the head thrown back |
 | warlord: last stand | `ss_block_idle` | `whirl`, `spinAngle` two turns |
@@ -885,6 +885,11 @@ New in the rig for them:
 The prowler's tail: eight segments of 0.17 m on their own joints (skinned with the body), each a SecondOrder on pitch
 and yaw (3.2 → 1.2 Hz down the tail, ζ 0.45-0.55): its rest curve down to the ground, the body's turn rate flung out
 through it, a lash running down it (idle 0.18, winding up 0.6, the dart 1), lifted off the ground it stands on.
+
+The shape pass (issue #726): the grunt's club aimed back over its shoulder in the overhead's wind-up (`GRUNT_AIM`); the
+hulk's stomp raises its hips over its standing leg as far as the leg reaches, that foot held where the clip set it by
+two-bone IK (`liftOver`), the raised leg swung out to its side half bent; the kilts and loincloths hang from the hips
+(`hangFromHips`), not from the hunched or bent chest.
 
 Still not captured: a real bow draw, a horn blown, an overhand rock throw, sitting and sleeping clips; a two-handed hop
 for the whack (the charged cut's overhead is used, the hop is the mind's lunge).
