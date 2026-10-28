@@ -365,9 +365,12 @@ near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed,
   `loadTitleTheme`, which reads `music/title.mp3` (`themeSources`: the bundle's file, on the web the site's),
   decodes it and balances and joins it like a world's theme (`prepareSoundtrack`: -21 dB RMS with a peak cap,
   the last two seconds crossfaded into the opening).
-- **Takeover** (`Sound.playTitleTheme`): the recording loops on the menu bus, faded in over two seconds while the
-  procedural tune (its own gain, `menuSynth`, and its small room) fades out under it; its scheduler stops once
-  the last notes have faded and doesn't come back. The recording goes into the bus dry. The menu bus keeps the
+- **Takeover** (`Sound.playTitleTheme`): the recording loops on the menu bus. One after the other, never the two at
+  once (issue #742: on the site the recording arrived over the tune and both played): the procedural tune (its own
+  gain, `menuSynth`, and its small room) goes out first (`TITLE_HANDOVER.out` 0.8 s, at once if it is not heard),
+  then the recording starts from its opening and fades in (`TITLE_HANDOVER.in` 2 s). Both are the menu lane's, so the
+  music owner can't keep them apart: this does (`tests/soundtracks.test.js` samples both gains through it). The
+  tune's scheduler stops once its last notes have faded and doesn't come back. The recording goes into the bus dry. The menu bus keeps the
   music volume (`setVolumes`), mute and the guard (master), so the settings work as before.
 - **Leaving**: `choose()` turns the menu music off (the bus fades out, ~1 s) and disposes the title's sound;
   the world's own sound (its theme, or the opening) starts in the game. Back on the title (a new page), it loads

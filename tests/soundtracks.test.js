@@ -181,7 +181,7 @@ test('loadTitleTheme hands the balanced, looped recording over; a failure keeps 
   } finally { console.warn = warn; }
 });
 
-test('the title\'s recording takes over from the procedural tune on the menu bus, faded, once', async (t) => {
+test('the title\'s recording takes over from the procedural tune on the menu bus, the tune out before it comes in, once', async (t) => {
   t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
   const { Sound } = await import('../src/audio.js');
   const ctx = new AudioContext({ sampleRate: 8000 });
@@ -193,6 +193,15 @@ test('the title\'s recording takes over from the procedural tune on the menu bus
   assert.ok(s.menuTimer, 'the procedural tune plays until the recording is ready');
   assert.equal(s.menuSynth.gain.value, 1);
   assert.equal(s.playTitleTheme(buffer), true);
+  // (issue #742: one after the other, never the two at once: the tune silent before the recording is heard)
+  const { TITLE_HANDOVER } = await import('../src/audio.js'), { MUSIC_EPS } = await import('../src/music-owner.js');
+  const t0 = ctx.currentTime, H = TITLE_HANDOVER;
+  for (let k = 0; k <= 40; k++) {
+    const t = t0 + (H.out + H.in) * k / 40, tune = s.menuSynth.gain.at(t), rec = s.titleTrackGain.gain.at(t);
+    assert.ok(tune <= MUSIC_EPS || rec <= MUSIC_EPS, `at +${(t - t0).toFixed(2)} s the tune ${tune.toFixed(3)} and the recording ${rec.toFixed(3)} both heard`);
+  }
+  assert.ok(s.titleTrackGain.gain.at(t0 + H.out + H.in) > 0.99, 'the recording up');
+  assert.ok(s.menuSynth.gain.at(t0 + H.out) <= 1e-6, 'the tune out');
   assert.equal(s.titleTrack.buffer, buffer);
   assert.equal(s.titleTrack.loop, true, 'looped (its tail is joined to its opening)');
   assert.equal(s.playTitleTheme(buffer), false, 'once');

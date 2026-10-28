@@ -877,7 +877,8 @@ function layout(rt) {
   seg.moveTo(half, -F); seg.absarc(0, 0, RB, -fa, -Math.PI + fa, true); seg.closePath();
   K.climbable('the Climb: the block\'s straight face, from the well\'s floor to the balcony', () => K.both(M.wallGlyph, T(new THREE.ExtrudeGeometry(seg, { depth: 11, bevelEnabled: false, curveSegments: 40 }).rotateX(-Math.PI / 2), [0, 0, C2])));
   K.add(M.trim, box(2 * half - 0.4, 0.3, 0.5, 0, 11.05, C2 + F + 0.1));   // its lip
-  for (let i = 0; i < 4; i++) K.add(M.trim, box(3.2, 0.22, 0.3, (i % 2 ? 1.6 : -1.6), 2.4 + i * 2.2, C2 + F - 0.12));   // handholds up the face
+  // handholds up the face, sunk into it to a lip of a few centimetres (drawn only: standing out they were climbed through, #740)
+  for (let i = 0; i < 4; i++) K.add(M.trim, box(3.2, 0.22, 0.3, (i % 2 ? 1.6 : -1.6), 2.4 + i * 2.2, C2 + F + 0.12));
   // the ball's groove along the balcony, the plate at its end; a slot across it near its start, whose stones stand only
   // while the vane in the well's floor at the face's foot turns (splash it from up here, or before you climb)
   const GZ = C2 + CLIMB.groove, S0 = -3.2, S1 = 3.2, SL = [-2.15, -0.25];

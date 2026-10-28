@@ -508,8 +508,9 @@ function layout(rt) {
     back: 'The weight tumbles into the sand, and is back on the pier where it lay.' });
   // (its side walls glazed: no climbing round the pit; the gallery's face, past it, is the climb)
   add(Glazed, { min: [CH.x0 - 0.5, -10, CH.ledge - 0.1], max: [CH.x1 + 0.5, 18, CH.landing + 0.1], said: 'The channel’s walls are glazed smooth by the water that once ran here. Nothing to hold.' });
-  // handholds: a row of glyph ledges up the gallery's face (the house's one climb: its other walls are not, issue #115)
-  for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, XW, 1.8 + i * 1.8, CH.gallery - 0.22));
+  // handholds: a row of glyph ledges up the gallery's face (the house's one climb: its other walls are not, issue #115),
+  // sunk into it to a lip of a few centimetres: drawn only, so standing out they were climbed through (issue #740)
+  for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, XW, 1.8 + i * 1.8, CH.gallery + 0.17));
   K.frieze([CH.x0 + 0.1, 58], [CH.x0 + 0.1, 95], 11, 'e', 6);
   add(Door, { id: 'dc', at: [GH.x0 - 0.6, BA.y, CH.door], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.3, lamps: [{ pressed: 'pp' }] });
   add(Mark, { room: 'channel', at: [XW - 6.5, 0, 58.5], yaw: Math.PI / 2 });   // (off the wall: the camera has room behind you when you come back here, issue #195)

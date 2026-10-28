@@ -1593,6 +1593,12 @@ other eight houses have none (the Clock-House's Winding Well block went in v1.83
 in its place). `tests/temple-climb.test.js` pushes a real `Player` into the wall beside every lock's
 doorway, both faces, and into whatever a key stands up on, in every temple: he never takes hold.
 
+**Nothing on a climb you pass through** (issue #740: "it has some planks on the wall so I go through them as I'm
+climbing"). A drawn piece on a climb's face has no collision of its own, so the climber's body goes through it:
+handholds are cut into the face (a lip of a few centimetres: the Rose House's gallery, the Warden's Well's Climb), never
+boards or ledges standing out. `tests/climb-faces.test.js` builds every house with its kit watched and fails on any drawn
+piece standing 0.12 to 1 m out of a climb's face, over its height, in no solid of its own.
+
 ## Hubs, keys and arenas (v1.48, issue #23)
 
 A temple to explore, not a corridor of rooms in order: a hub with wings, keys found in one room for locks in another,

@@ -1,5 +1,5 @@
 import { SceneMusic } from './scene-music.js';
-import { MusicOwner } from './music-owner.js';
+import { MusicOwner, MUSIC_EPS } from './music-owner.js';
 import { SfxTrace } from './sfx-trace.js';
 // Recorded world soundtracks with procedural fallback, ambience and effects.
 // Mixed with Web Audio. Starts on the first click or
@@ -89,6 +89,8 @@ export const MENU_SCORE = {
 export const SEATED_SWELL = { lift: 2, duck: 0.35, rise: 1.4, fall: 1.1 };
 export const MENU_HUSH = 0.16;     // the world's sound under a menu (× its usual level)
 const MENU_LEVEL = 0.9;            // the menu bus against the music volume setting
+/** The title's procedural tune out (s), then its recording in (s): one after the other, never summed (issue #742). */
+export const TITLE_HANDOVER = { out: 0.8, in: 2 };
 const SPOT_FX = 0.5;               // a placed sound into the effects bus (1.6 ×): 0.8, as loud as on the music's default (spot)
 
 /** The menu music's frequency for a scale degree (octave: up or down from D3). */
@@ -672,27 +674,31 @@ export class Sound {
 
   /**
    * The title's recording (src/soundtracks.js loadTitleTheme: balanced, its tail joined to its opening) takes over
-   * from the procedural menu music: looped on the menu bus, faded in over two seconds while the tune fades out
-   * under it and stops. The bus keeps the music volume, mute and the fade out as the title hands over to the game.
+   * from the procedural menu music: looped on the menu bus. The tune goes out first (TITLE_HANDOVER.out, its notes'
+   * room with it), and the recording starts from its opening once the tune is silent, fading in over TITLE_HANDOVER.in:
+   * never the two at once (issue #742; the rule of #711, src/music-owner.js: both are the menu lane's, so the owner
+   * can't keep them apart). The bus keeps the music volume, mute and the fade out as the title hands over to the game.
    * False (nothing changes) once the sound is gone, the title is leaving, or a recording already plays.
    */
   playTitleTheme(buffer) {
     const ctx = this.ctx;
     if (!ctx || !buffer || this._disposed || !this.menuOn || this.titleTrack || ctx.state === 'closed') return false;
     this.menuBusEnsure();
-    const t = ctx.currentTime;
+    const t = ctx.currentTime, g = this.menuSynth.gain;
+    // (the tune out first, only as long as it is heard: a tune not yet started hands over at once)
+    const out = this.menuTimer && g.value > MUSIC_EPS ? TITLE_HANDOVER.out : 0, at = t + out;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, at);
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(1, t + 2);
+    gain.gain.setValueAtTime(0, at);
+    gain.gain.linearRampToValueAtTime(1, at + TITLE_HANDOVER.in);
     gain.connect(this.menuBus);
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = true;
     source.connect(gain);
-    source.start(t);
+    source.start(at);
     this.titleTrack = source; this.titleTrackGain = gain;
-    const g = this.menuSynth.gain;
-    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 2);
     this.menuMusic(this.menuOn);   // (stops scheduling the tune once its last notes have faded)
     return true;
   }
