@@ -18,7 +18,21 @@ float4 _GPixelScale;
 float4 GAt(float4 cs)
 {
   float2 k = _GPixelScale.x > 0.0 ? _GPixelScale.xy : float2(1.0, 1.0);
-  int2 p = int2(cs.xy * k);
+  float2 q = cs.xy;
+  #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    // (a back buffer the display rotates (Vulkan's swap-chain pre-transform, the AYN Odin 3's portrait panel; issue #725):
+    // SV_Position is the panel's pixel, a quarter (or half) turn from the picture's; turned back here, in the sense the
+    // composite's _TargetFlip and this _GFlip fix on a screen that is not rotated. 0 into a texture and on other screens)
+    if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM != UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0)
+    {
+      uint rw, rh; _GNormalTex.GetDimensions(rw, rh);
+      float2 L = float2(rw, rh) / k;   // (the target's own size, the picture's way round)
+      bool halfTurn = UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180;
+      float2 n = q / (halfTurn ? L : L.yx);
+      q = (halfTurn ? 1.0 - n : UNITY_DISPLAY_ORIENTATION_PRETRANSFORM == UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90 ? float2(n.y, 1.0 - n.x) : float2(1.0 - n.y, n.x)) * L;
+    }
+  #endif
+  int2 p = int2(q * k);
   if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; }
   return _GNormalTex.Load(int3(p, 0));
 }

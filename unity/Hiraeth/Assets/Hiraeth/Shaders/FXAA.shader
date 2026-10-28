@@ -26,6 +26,11 @@ Shader "Hidden/Hiraeth/FXAA"
           o.pos.y = -o.pos.y;
         #endif
         if (_TargetFlip > 0.5) o.pos.y = -o.pos.y;   // (straight into a player's back buffer: the other way up)
+        // (a back buffer the display rotates (Vulkan's swap-chain pre-transform, the AYN Odin 3's portrait panel): the
+        // triangle turned with it, as URP's own blit does (issues #716, #725); 0 into a texture and on other screens)
+        #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+          o.pos = ApplyPretransformRotation(o.pos);
+        #endif
         o.uv = uv; return o;
       }
       float3 S(float2 uv) { return _FxaaSrc.SampleLevel(sampler_linear_clamp, uv, 0).rgb; }

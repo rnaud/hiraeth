@@ -78,6 +78,11 @@ Shader "Hidden/Hiraeth/Composite"
           o.pos.y = -o.pos.y;
         #endif
         if (_TargetFlip > 0.5) o.pos.y = -o.pos.y;   // (straight into a player's back buffer: the other way up)
+        // (a back buffer the display rotates (Vulkan's swap-chain pre-transform, the AYN Odin 3's portrait panel): the
+        // triangle turned with it, as URP's own blit does (issues #716, #725); 0 into a texture and on other screens)
+        #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+          o.pos = ApplyPretransformRotation(o.pos);
+        #endif
         o.uv = uv;
         return o;
       }
@@ -559,6 +564,12 @@ Shader "Hidden/Hiraeth/Composite"
       {
         float2 uv = i.uv;
         float2 fc = i.pos.xy / _PixelRatio;
+        #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+          // (the weather's streaks are laid out in the picture's own pixels: on a rotated back buffer SV_Position is the
+          // panel's, turned a quarter, so the pixel the picture would have had is worked out from uv (issue #725))
+          if (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM != UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0)
+            fc = float2(uv.x, _TargetFlip > 0.5 ? 1.0 - uv.y : uv.y) * _Res.xy / _PixelRatio;
+        #endif
         float4 A = tA(uv);
         A.a = lightOf(A.a);   // (the line step over it: 1b)
         float4 N = tN(uv);

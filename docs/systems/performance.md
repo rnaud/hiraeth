@@ -4292,9 +4292,14 @@ two or three levels at once (18-20 ms while it loads), climbing back one level e
 on (ProjectSettings `vulkanEnablePreTransform`). Our own upscale pass (Hidden/Hiraeth/Upscale) wrote its full-screen
 triangle to the back buffer without the display's rotation: the world lay on its side under an upright HUD (first seen
 with this change, the first to put FSR on the Odin). Its vertex shader now applies `ApplyPretransformRotation`, as URP's
-blit does (tests/unity-upscale.test.js). **Still open**: at render scale 1 (the High preset, `-render-scale 1`) the
-composite, FXAA and water-over passes write the back buffer the same way and show the same sideways picture on the Odin;
-their fragments read `SV_Position`, so the same fix there needs their pixel maths checked.
+blit does (tests/unity-upscale.test.js). At render scale 1 (the High preset, `-render-scale 1`, `-ink-full`) the
+composite, water-over and FXAA passes wrote the back buffer the same way (issue #725): they now turn their triangle too.
+Their own lookups go by the interpolated uv, so only two reads of `SV_Position` needed turning back: the composite's
+weather streaks (laid out in the picture's pixels; under pre-rotation worked out from uv) and `GAt.hlsl` (what is laid
+over the page reads the G-buffer's depth at its own pixel: the panel's pixel turned back by the display's quarter or half
+turn, in the sense `_TargetFlip` and `_GFlip` fix on an unrotated back buffer). The crease shading's quad mean keeps the
+panel's pixel with its derivatives. Every branch sits under `UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION` and a non-zero
+constant, so a screen without pre-rotation runs the same code as before (tests/unity-pretransform.test.js).
 
 ### Unity on the Retroid, round 8: spatial upscalers, FSR 1 against Snapdragon GSR 1 (issue #392, 2026-10-16)
 

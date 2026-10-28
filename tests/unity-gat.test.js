@@ -34,7 +34,7 @@ test('GAt scales the target\'s pixel to the G-buffer\'s, 1 while unset, and flip
   assert.match(GAT, /float4 _GPixelScale;/);
   assert.match(GAT, /_GPixelScale\.x > 0\.0 \? _GPixelScale\.xy : float2\(1\.0, 1\.0\)/);
   const body = GAT.slice(GAT.indexOf('float4 GAt('));
-  assert.ok(body.indexOf('cs.xy * k') < body.indexOf('gh - 1 - p.y'), 'scaled, then the row turned in the G-buffer\'s rows');
+  assert.ok(body.indexOf('q * k') < body.indexOf('gh - 1 - p.y'), 'scaled, then the row turned in the G-buffer\'s rows');
 });
 
 test('the composite sets _GPixelScale from the G-buffer\'s size over its target\'s', () => {
