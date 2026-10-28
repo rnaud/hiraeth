@@ -1,5 +1,6 @@
-// The Arena (docs/systems/foes.md "The Arena"): its waves cycle through every kind, then every built archetype in
-// each of its skins, then each world's archetypes and packs (src/foe-worlds.js); the FOES list, grouped by world, with
+// The Arena (docs/systems/foes.md "The Arena"): its old cycle ("Waves from here") through every kind, then every built
+// archetype in each of its skins, then each world's archetypes and packs (src/foe-worlds.js; its default run of one foe
+// at a time: tests/arena-run.test.js); the FOES list, grouped by world, with
 // a search and a world filter; the temple guardians called into a ring on the sand.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,9 +40,10 @@ test('the Arena’s waves: the ink and the worlds’ kinds first, then each buil
   assert.ok(ARENA_WAVES.flat().every((k) => !k.includes('/')), 'no world enemy ids');
 });
 
-test('the waves come in that order in a running Arena, and say what and from where', () => {
+test('the old cycle (the FOES list’s “Waves from here”) comes in that order in a running Arena, and says what and from where', () => {
   clearTargets();
   const notes = [], P = player(), foes = world(P, notes);
+  foes.startWaves('desert');   // (the cycle, not the run of one foe at a time: tests/arena-run.test.js)
   foes.wave = WAVES.length - 1;   // (the last of the old waves)
   const seen = [];
   for (let n = 0; n < 3; n++) {

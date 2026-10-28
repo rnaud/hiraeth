@@ -126,6 +126,11 @@ test('the Arena in the engine: its list of foes is the menus\' page (K, D-pad â†
   assert.ok(g.foeList && g.combat, 'the list attached to the fight\'s foes');
   run(g, 20);
   assert.equal(JSON.stringify(S.state.foeTab), JSON.stringify({ text: 'FOES â–¸', key: 'K' }), 'the tab says how to open it');
+  // the run (issue #743): one foe of every enemy in the game, the fight held on (the battle music's flag)
+  run(g, 100);
+  assert.equal(g.foes.run?.n, 1, 'the first of the run come in');
+  assert.equal(g.foes.list.filter((f) => f.alive).length, g.foes.run.order[0].length, 'one foe');
+  assert.ok(g.foes.fighting, 'a fight on from the first');
   tap(g, 'KeyK');
   assert.equal(menus.mode, 'foes', 'K opens it');
   const v = menus.view();

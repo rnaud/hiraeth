@@ -741,7 +741,7 @@ export function hurtReactions({ player, sound, potion = null, tool = () => null,
  *   fight.padLook = () => stick                    the right stick's tilt (aiming locked on, it shifts the aim)
  */
 export function wireFight({ scene, level, levelId, content, physics, player, tool = null, sound = null, npcs, settings, camera, rig, lib, humans, waters, game, toast = () => {}, teach = toast, health = null, lowParent = undefined }) {
-  const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans, waters, notice: teach });   // (its notices teach: paced as hints)
+  const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans, waters, notice: (t, o) => (o?.news ? toast(t) : teach(t)) });   // (its notices teach: paced as hints; the Arena's run says each foe as news)
   // chimes, the currency: a foe cut down scatters a few (by its weight), a guardian a purse once; walked over or drawn
   // in, they ring into the wallet (src/resources.js); none from a game's own foes (Ink tide)
   const chimePolicy = dropPolicy(level);

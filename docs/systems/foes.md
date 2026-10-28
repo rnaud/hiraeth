@@ -2147,11 +2147,27 @@ it). Building it costs ~50 ms on the Mac at load. Tests: `tests/arena-floor.test
 wall, the markings painted where the strips were with soft edges, the wall and tiers round it and the gates open, no
 light, no flowers inside). The desert's golden sand stays the
 ground under it (flat out to 150 m) under an open sky. `level.foes.waves` makes
-`Foes` send the Arena's cycle round you, whatever the setting, `WAVE.rest` s after the last one falls (`ARENA_WAVES`,
-`arenaWave(n)`, v1.5): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine, a shade,
-flyers, … then each world's own kinds and a mixed wave), then (v1.8) each built archetype alone in each of its
-skins, then each world's own (`worldWaves`: each of its archetypes alone in its skin, then two of its packs); then
-round again. A wave says what and from where ("Wave 40 · The Signal Market: 2 coin lizards."; `waveText`).
+`Foes` send the Arena's foes round you, whatever the setting.
+
+**The run** (issue #743, the default): every enemy in the game, **one at a time**, in a shuffled order
+(`ARENA_FOES`, `shuffled` on the Foes' rng: `Math.random` in the game, a new order each visit; tests inject a seed).
+The list is each built archetype in each of its skins (`skinWorlds`), then any kind that is no archetype's skin (the
+makers' machine; a bare archetype kind is its home skin, already there): 138 now. One enemy is one body (`oneFoe`), a
+pair or a trio kind alone too; the skitters come as three (`ARENA_RUN.flock`: a swarm is the foe, a lone skitter never
+makes its heap, which needs two flock-mates, and falls to any cut), the jelly and the marionette with their escort
+(`def.escort`: a support needs someone to ward, a puppeteer something to drive). The next comes in `ARENA_RUN.rest`
+(2 s) after the last falls, with a notice ("Foe 3 of 138 · The Signal Market: coin lizard."; said as news, not paced
+as a hint); after the last, "All 138 foes beaten. Again, in a new order." and a fresh shuffle. The FOES list's
+choices clear the field: the run's foe taken away unbeaten comes again with "Waves again". **The battle music is
+held** from the first foe in: while the Arena's waves run (not a practice of one kind, not Ink tide's own waves)
+`Foes.update`'s `fighting` stays on between foes, so the battle recording never releases and starts again (paused,
+knocked out or riding: off, as anywhere). Tests: `tests/arena-run.test.js`.
+
+**The old cycle** (`ARENA_WAVES`, `arenaWave(n)`, v1.5), from a world's "Waves from here" in the FOES list
+(`Foes.startWaves(world)`): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine,
+a shade, … then each world's own kinds and mixed waves), then each built archetype alone in each of its skins, then
+each world's own (`worldWaves`: each of its archetypes alone in its skin, then two of its packs); then round again,
+`WAVE.rest` s apart, each said ("Wave 40 · The Signal Market: 2 coin lizards."; `waveText`).
 `?enemy=lizard@bazaar` and `?enemyWorld=bazaar` (the Creatures & spirits page's links) run one archetype in a skin,
 or one world's waves, instead.
 
@@ -2169,9 +2185,9 @@ kinds no archetype uses), then a section per world with its archetypes in its sk
 and a "Waves from here" that runs that world's waves: `Foes.startWaves(world)`), then the temple guardians. A search (a name, a world, a kind, a move: every word must match) and a world filter
 (chips: All, Roster, each world, Guardians; LB / RB or Page Up / Down turn it) narrow it (`filterSections`). Choosing a
 foe stops the waves (`Foes.setPractice(kind)`, a kind in a skin too: `tripod@underwater`): it comes in 9 m ahead of you, and again
-each time it falls. "Waves again" brings the waves back where they were, "Clear the field" leaves it empty.
+each time it falls. "Waves again" brings the run back where it was, "Clear the field" leaves it empty.
 `?level=arena&foe=crab` (or `crab@saltharbour`) starts on one kind; in any world the console can call
-`foes.spawnKind('brute@glassdunes')`. Tests: `tests/arena.test.js` (the cycle's order, the waves in a running Arena, the
+`foes.spawnKind('brute@glassdunes')`. Tests: `tests/arena.test.js` (the old cycle's order, its waves in a running Arena, the
 sections, the search and filter, the choices), `tests/foe-kinds.test.js` (practice).
 
 **The guardians** (`src/arena-guardians.js`, v1.5): the list's Guardians section calls each temple's guardian (the
