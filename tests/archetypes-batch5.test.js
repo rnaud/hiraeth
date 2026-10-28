@@ -54,16 +54,16 @@ test('every world runs on the new roster: its packs and placed ones are built ar
   for (const w of Object.keys(WORLDS)) {
     const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...Object.keys(R.late ?? {}), ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
     for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)]?.status, 'built', `${w}: ${k}`);
-    for (const a of worldArchetypes(w)) assert.ok(kinds.has(ARCHETYPES[a].kind) || ARCHETYPES[a].family === 'spirit' || WORLDS[w].late?.includes(a), `${w}: ${a} spawns`);
+    for (const a of worldArchetypes(w)) assert.ok(kinds.has(ARCHETYPES[a].kind) || ARCHETYPES[a].family === 'spirit' || WORLDS[w].late?.includes(a) || WORLDS[w].sites?.includes(a), `${w}: ${a} spawns (or keeps to its sites)`);
     for (let n = 0; n < 40; n++) for (const k of packOf(n, w, () => (n * 0.137) % 1)) assert.ok(FOES[k], `${w} pack ${n}: ${k}`);
     // its own waves in the Arena: each archetype alone in the world's skin
     for (const wave of worldWaves(w)) for (const k of wave) assert.ok(FOES[parseKind(k).kind], `${w}: wave ${k}`);
   }
-  // the shades walk their worlds (later packs, rarely in Lorn II); the roller leads the Garden; the marionette is late there
-  assert.ok(ROSTERS.perdide2.wild.shade > 0 && ROSTERS.eclipse.wild.shade > 0);
-  assert.equal(ROSTERS.spheres.first, 'roller');
-  assert.ok(ROSTERS.spheres.late.marionette && ROSTERS.bazaar.late.marionette, 'the marionette comes late');
-  assert.deepEqual(PLACED.spheres.map((p) => p.archetype), ['marionette'], 'the Garden’s glass puppet is placed by hand');
+  // (issue #726, roster v4: the shade, the roller and the marionette left the route; the shades still walk the Eclipse;
+  // the prowler leads the Garden; its white archway an oracle's, where the glass puppet hung)
+  assert.ok(!ROSTERS.perdide2.wild.shade && ROSTERS.eclipse.wild.shade > 0 && WORLDS.bazaar.horde.marionette);
+  assert.equal(ROSTERS.spheres.first, 'prowler');
+  assert.deepEqual(PLACED.spheres.map((p) => p.archetype), ['oracle'], 'the Garden’s archway: an oracle, placed by hand');
   // every world's `placed` is placed: the Desert's cistern pump on the basin's far shore (v1.26)
   for (const [w, W] of Object.entries(WORLDS)) for (const a of W.placed ?? []) assert.ok(PLACED[w]?.some((p) => p.archetype === a), `${w}: its ${a} placed`);
   const { BASIN } = await import('../src/desert-vistas.js');

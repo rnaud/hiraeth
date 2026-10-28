@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { Fireball, FIREBALL, catchable, aimAt } from '../src/fireballs.js';
 import { Foes, FOES, attackOf } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
-import { worldArchetypes } from '../src/foe-worlds.js';
+import { WORLDS, worldArchetypes } from '../src/foe-worlds.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { BALL_VOICES, CUES, FOE_VOICES } from '../src/foe-voices.js';
@@ -45,7 +45,9 @@ test('the ember wisp: a spirit of the roster, built, a flyer for the hook, out o
   assert.ok(F.tell && F.counter && CUES[F.cue], 'its tell, its answer, its sound');
   assert.ok(FOE_VOICES.wisp, 'its own voice');
   for (const k of ['throw', 'hum', 'tink', 'back', 'stun']) assert.ok(BALL_VOICES[k]?.length, `the ball's ${k}`);
-  for (const w of ['moonfoundry', 'perdide2', 'eclipse']) assert.ok(worldArchetypes(w).includes('wisp'), `met in ${w}`);
+  // (issue #726, roster v4: retired from the route; the Eclipse still fields it, the Pour Floor and Lorn II's hordes too)
+  assert.ok(worldArchetypes('eclipse').includes('wisp') && WORLDS.moonfoundry.horde.wisp && WORLDS.perdide2.horde.wisp, 'met in the Eclipse and the hordes');
+  for (const w of ['moonfoundry', 'perdide2']) assert.ok(!worldArchetypes(w).includes('wisp'), `off ${w}'s roster`);
   const kinds = MOONFOUNDRY_FIGHT.rooms.flatMap((r) => r.waves.flat().map((x) => x[0]));
   assert.ok(kinds.includes('wisp'), 'in the Pour Floor’s waves');
 });

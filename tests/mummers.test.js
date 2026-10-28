@@ -12,7 +12,7 @@ import { Foes, FOES, WAVES, CARRY, BLIND, pickWeight } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { FIGHT, TIERS, tierDef } from '../src/enemies/fight.js';
 import { SITES, layoutSite } from '../src/encounters/sites.js';
-import { WORLDS, ROSTERS, worldArchetypes, packOf } from '../src/foe-worlds.js';
+import { WORLDS, ROSTERS, worldArchetypes } from '../src/foe-worlds.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { skinWorlds } from '../src/enemies/skins.js';
 import { windMin } from '../src/telegraph.js';
@@ -158,18 +158,19 @@ test('the mummer king: its horn wakes every mummer within 25 m; it picks one up,
   done();
 });
 
-test('the Desert: the mummers\' camp (the blots\' old fire) with its lookout and its king, a pair of them out walking; the Arena fields both', () => {
-  const S = SITES.desert.find((s) => s.id === 'mummer-camp');
-  assert.ok(S && S.kind === 'camp' && S.lookout === 'mummer', 'a camp with a lookout');
-  assert.deepEqual([...new Set(S.foes)].sort(), ['mummer', 'mummerking']);
+test('the Desert: the mummers\' camp became the grunts\' (roster v4, #726); the mummers kept in the Arena, the debug menu and the Sunken Hall\'s horde', () => {
+  const S = SITES.desert.find((s) => s.kind === 'camp');
+  assert.ok(S && S.lookout === 'grunt' && S.rack, 'the camp: grunts, a lookout and their rack');
+  assert.deepEqual([...new Set(S.foes)].sort(), ['grunt', 'hulk']);
   const L = layoutSite(S, { radius: (a) => FOES[a].radius });
   assert.equal(L.foes.filter((f) => f.idle === 'sit').length, S.foes.length, 'round the fire');
-  assert.ok(L.foes.some((f) => f.idle === 'lookout' && f.archetype === 'mummer'));
-  assert.ok(worldArchetypes('desert').includes('mummerking') && !ROSTERS.desert.wild.mummerking, 'the king only at its camp, never in a pack');
-  assert.ok(ROSTERS.desert.wild.mummer > 0 && ROSTERS.desert.first === 'blot', 'the blot still leads: the Desert teaches');
+  for (const a of ['mummer', 'mummerking']) {
+    assert.ok(!worldArchetypes('desert').includes(a) && !ROSTERS.desert.wild[a], `${a}: off the Desert's roster`);
+    assert.ok(Object.values(SITES).flat().every((s) => !s.foes.includes(a) && s.lookout !== a), `${a}: at no site`);
+  }
+  assert.ok(ROSTERS.desert.first === 'blot', 'the blot still leads: the Desert teaches');
   assert.equal(WORLDS.desert.stage, 0);
-  const packs = Array.from({ length: 60 }, (_, n) => packOf(n, 'desert', () => ((n * 0.371) % 1)));
-  for (const p of packs) if (p.includes('mummer')) assert.deepEqual(p, ['mummer', 'mummer'], 'a pair of mummers, alone');
+  assert.ok(WORLDS.desert.horde.mummer, 'the Sunken Hall\'s horde keeps them');
   assert.ok(WAVES.some((w) => w.includes('mummer')) && WAVES.some((w) => w.includes('mummerking')), 'the Arena\'s waves');
 });
 

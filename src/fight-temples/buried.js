@@ -2,7 +2,7 @@
 // the canyon's teeth, brass and rust, a great gear half sunk beside it, rails laid across its floors from wall to wall.
 // The ore carts still run them (hazards.js 'cart'): the lamp at a rail's head blinks, then a cart runs the rail's
 // length, a heart and thrown aside unless he steps off the rail or rolls, three cuts to every foe on it. The rails are
-// there from the start: the floor is read before the fight. Its foes are the Buried Machine's own (src/foe-worlds.js:
+// there from the start: the floor is read before the fight. Its foes are the Buried Machine's own (its horde, src/foe-worlds.js:
 // mound worms, skitters in swarms, horn lizards, crucible carts), light, many; the last wave brings three centipedes
 // whole. The reward: Brass tooth (src/kit-colours.js).
 //

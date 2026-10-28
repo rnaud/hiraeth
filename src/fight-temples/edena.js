@@ -3,7 +3,7 @@
 // lanes of the floor the eyes open one by one and then flash (hazards.js 'bloom'): caught in it he is dazzled (the
 // screen white a moment, a little harm) unless he rolls through; every foe in it is stunned and cut, and the moths
 // are drawn into it from a little way off, so a swarm is led onto a bed before it opens. Its foes are Viridel's own
-// (src/foe-worlds.js: signal moths in threes, root knots, blots), light, many; the last wave brings a furnace brute
+// (its horde, src/foe-worlds.js: signal moths in threes, root knots, blots), light, many; the last wave brings a furnace brute
 // out of the boiler room and a whole root knot. The reward: Leafglass (src/kit-colours.js).
 //
 // Its rooms: the potting cellar (no eyes yet), the long bed (two beds down its length), the boiler room (pipes for

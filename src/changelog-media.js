@@ -1388,6 +1388,15 @@ const KIT728 = 'the Desert by the ship, the traveller standing (an idle frame), 
 /** (v2.34, issue #727: the Thor at 60) */
 const FROM727 = 'The bench’s own frame captures (host.Shot, the game’s 1920 × 1080 picture as the screen shows it, without the HUD) on the AYN Thor (Adreno 740, 1920 × 1080), Handheld as Android picks it, muted, a review store, the same pinned camera, 28 October 2026, scaled to 1280 × 720. Before: the Unity testers’ APK 2.34 (versionCode 2961, CI-built from 5872f4a80) at its 0.5 floor; after: this branch’s release APK (versionCode 2964, built locally with the same signing key) at its new floor of a third. The people and the water move between the two runs; the after is softer by design';
 const SRC727 = 'the bench (-bench 6, one 6 s run per view, muted, a review store), every route world, Home and the ship, one sweep before and one after, 28 October 2026; docs/systems/performance.md, “Unity on the AYN Thor: every level at 60”';
+/** (v2.35, issue #726: the world rosters) */
+const ROSTER726 = { commit: '45e6ab4b8', before: 'a607ab40c' };
+// (the Desert's camp moved off the salt pan in #738 before this landed: its before is that main, the mummers at the new spot)
+const CAMP738 = { commit: '45e6ab4b8', before: '68f12bb8b' };
+const SAVE726 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.sword': true, 'item.shield': true }, keepsakes: [] };
+const SITES726 = 'scripts/changelog-shots.mjs at this change and its parent (a607ab40c; the Desert’s camp against main at 68f12bb8b, where #738 had moved it off the salt pan), muted headless Chrome, High, 1280 × 720, 10:00, clear, a save holding the sword and the shield (so the sites’ foes come out), the camera pinned, the traveller set down out of the site’s sight (30 m in front, 24 m at a post), 8 s after the world came up; the same spot before and after. The foes sit, sleep or stand as the site keeps them; a frame now and then catches one turning';
+const UNITY726C = 'Issue #726, the world rosters: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level desert -fight site:grunt-camp,site:droid-hoard, an APFS clone of the main checkout’s Library, deleted after), its follow camera and HUD at 1280 × 720 (scaled from the run), the traveller set down 16 m in front of each site by the script, 3 s after; 28 October. After only; the same JS through engine/, not a device performance claim; cwebp -q 72';
+const BENCH726 = 'the combat review v2.34’s fight-core bench (node, no browser: real Foes on flat ground; every route world’s packs 0–5 from packOf, three seeds each, 216 packs; every encounter site once, 50), the masher (the light combo at the blade’s cadence, never guarding) and the guard (every blow blocked, every other one a perfect parry and its riposte), with the hearts he has on arriving; before a607ab40c, after this change; docs/design/enemy-roster-v4.md, “The curve, measured”';
+
 export const CHANGELOG_MEDIA = {
   '2.35': [
   { match: 'Kamal is a real rival now', numbers: [
@@ -1399,6 +1408,57 @@ export const CHANGELOG_MEDIA = {
   { match: 'On a handheld like the Retroid, the buttons on a game’s cards', shots: [
     { name: 'results-glyphs', size: [1280, 720], caption: 'Kamal’s wager’s results card with a Retroid’s labels (a handheld, Nintendo letters): before, Retry and Quit carried two blank ivory discs (the letters in the ivory ink on the ivory disc); after, A and B in the dark ink', from: 'The web game in muted headless Chrome (--mute-audio, hiraeth.muted and the volumes at 0), 1280 × 720, ?level=desert&game=canyon-rival, the race started then finished lost from the console; a pad connected by a stand-in navigator.getGamepads and the handheld labels set from src/pad-glyphs.js padGlyphs({ layout: android, faces: nintendo }) (the Android app sets them from the device), body.controller. Before: 68f12bb8b (git archive, Vite 5471); after: this change on it (Vite 5495). 28 October 2026.', view: 'The results card; the computed ink of the A and B glyphs: before rgb(247, 236, 210) on rgb(247, 236, 210), after rgb(24, 32, 31). Not on the device itself.' },
   ] },
+  { match: 'The same foes in every world: the camps', shots: [
+    { name: 'camp-desert', title: 'The Desert', caption: 'The Desert’s camp: before, the mummers and their king round the fire; after, two grunts and the hulk sat round it, a grunt on lookout by its post and their rack of a spear and a bow', ...CAMP738, from: SITES726,
+      view: { level: 'desert', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [354.41, 21.7, 214.35], target: [361, 16.6, 202], player: [346.88, 15.9, 228.47] } },
+    { name: 'camp-lorn', title: 'Lorn', caption: 'Lorn’s camp by the swamp: before, two bellows toads and a root knot round the fire, a heron on lookout; after, the grunts and their hulk, the rack by the way in', ...ROSTER726, from: SITES726,
+      view: { level: 'perdide', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [-140.92, 7.6, 182.46], target: [-133, 2.5, 194], player: [-149.98, 1.8, 169.27] } },
+    { name: 'camp-shaft', title: 'The City-Shaft', caption: 'The City-Shaft’s camp: before, horn lizards and a toad with a lamp tripod on lookout; after, three grunts and the hulk', ...ROSTER726, from: SITES726,
+      view: { level: 'incal', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [250.44, 206, 181.1], target: [262, 200.9, 189], player: [237.23, 200.2, 172.08] } },
+    { name: 'camp-market', title: 'The Signal Market', caption: 'The Signal Market’s camp: before, coin lizards, a crab and a bell walker on lookout; after, the same grunts and hulk as in the Desert, met here in their darker, banded kind now and then', ...ROSTER726, from: SITES726,
+      view: { level: 'bazaar', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [-80.0, 6, -0.27], target: [-94, 0.9, 0], player: [-64.01, 0.2, -0.58] } },
+    { name: 'camp-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'Unity: the Desert’s camp from the traveller’s follow camera, the same grunts and hulk (awake: the lookout has seen him)', from: UNITY726C, view: 'The Desert, 16 m in front of the grunt camp at its #738 spot (361, 202), the follow camera; rerun at 45e6ab4b8.' },
+  ] },
+  { match: 'The ruins and the makers’ old places', shots: [
+    { name: 'ruin-desert', title: 'The Desert', caption: 'The Desert’s guarded coffer: before, two ink blots and a stilt heron; after, a sentinel with its shield and two crawlers', ...ROSTER726, from: SITES726,
+      view: { level: 'desert', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [352.45, 4.5, 445.11], target: [354, 1.4, 456], player: [349.77, 0.7, 426.3] } },
+    { name: 'ruin-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'Unity: the same ruin from the traveller’s follow camera, the sentinel by the coffer and a crawler either side', from: UNITY726C, view: 'The Desert, 16 m in front of the droid hoard, the follow camera.' },
+  ] },
+  { match: 'From Vael on, every world has one warlord', shots: [
+    { name: 'hold-viridel', title: 'Viridel', caption: 'Viridel: before, a furnace brute and a root knot before a coffer; after, the warlord on guard between its two banners, its band of grunts round their fire', ...ROSTER726, from: SITES726,
+      view: { level: 'edena', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [70.7, 23.1, 334.94], target: [61, 19.0, 342], player: [85.25, 18.3, 324.34] } },
+  ], see: 'From Vael on, each world’s warlord stands where one of its guarded coffers stood.' },
+  { match: 'The crabs, horn lizards, toads',
+    see: 'The old creatures are still in each world’s fight temple and in the Arena (the Debug menu’s foe list). The sentinel stands at the post on the lit path in Lorn’s deep wood, between the root arches past the glass dome; the oracle hangs at the Garden of Spheres’ white archway in the android wood.' },
+  { match: 'Out in the open you meet grunts', numbers: [
+    { title: 'Hearts lost to a wandering pack, careless (the masher)', unit: 'hearts', better: 'lower', device: 'node bench', source: BENCH726, rows: [
+      { where: 'The Desert', before: 0.0, after: 0.22 },
+      { where: 'Vael', before: 0.69, after: 0.81 },
+      { where: 'Lorn', before: 0.63, after: 0.83 },
+      { where: 'Viridel', before: 0.65, after: 0.93 },
+      { where: 'The Underwater City', before: 3.28, after: 1.6 },
+      { where: 'The City-Shaft', before: 1.94, after: 1.17 },
+      { where: 'The Glass Dunes', before: 4.14, after: 1.79 },
+      { where: 'The Buried Machine', before: 3.96, after: 1.82 },
+      { where: 'The Moon Foundry', before: 5.08, after: 2.06 },
+      { where: 'The Garden of Spheres', before: 5.79, after: 3.19 },
+      { where: 'The City Floating in Space', before: 3.68, after: 3.17 },
+      { where: 'The Signal Market', before: 8.18, after: 5.58 },
+    ] },
+    { title: 'Hearts lost to a wandering pack, careful (the guard)', unit: 'hearts', better: 'lower', device: 'node bench', source: BENCH726, rows: [
+      { where: 'The Glass Dunes', before: 2.22, after: 0.64 },
+      { where: 'The Moon Foundry', before: 2.93, after: 0.56 },
+      { where: 'The Garden of Spheres', before: 2.03, after: 1.31 },
+      { where: 'The Signal Market', before: 6.25, after: 2.31 },
+    ] },
+  ], see: 'Walk out from the landing in any world: the packs are grunts, prowlers and pairs of crawlers, darker and banded more often in the last worlds.' },
+  { match: 'Grunts no longer fall to one mashed combo', numbers: [
+    { title: 'Foes that die inside one light combo (packs)', unit: '%', better: 'lower', device: 'node bench', source: BENCH726, rows: [
+      { where: 'The Desert', before: 100, after: 87 },
+      { where: 'Vael', before: 100, after: 60 },
+      { where: 'Lorn', before: 89, after: 64 },
+    ] },
+  ], see: 'Find a grunt and cut it twice in a row: it hops back out of reach, then lunges in again.' },
   { match: 'The magic-fluid backpack is now the makers’ battery', tags: ['characters', 'menus'], shots: [
     { name: 'battery-stand', size: [1280, 720], caption: 'The traveller from the front three-quarter, the side and the back three-quarter: before, the round glass backpack on his back, its straps over his shoulders; after, nothing on his back but the sword, the makers’ battery on his belt at the left hip, a little behind it, the lavender standing under a band of turquoise glass', from: FROM728, view: `${KIT728}, three panels at yaw 0.7, π/2 and 2.45, 1.5–2.4 m off`,
       reference: { sheet: 'references/Core Objects/Makers Battery/selected-2026-10-28/approved-reference.png', caption: 'The reference the battery was built to (the author’s pick on 28 October, Midjourney): the turquoise glass, the lavender fluid, the cream ceramic endcaps, the brass rails and the clip; worn at the hip, no cord' } },

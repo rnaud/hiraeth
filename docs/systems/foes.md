@@ -1130,9 +1130,9 @@ the engines' bundle, the blade pressed on the keys).
 - **Placed by hand** (v1.16, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
-  `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
-  arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.18) hangs by the white archway in the
-  android wood, just clear of its arch; the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
+  `foes.<world>.p<i>`). On Lorn II's dry bank of the lit path between the root arches past the glass dome a sentinel
+  stands guard (the wood cutter, a furnace brute, until roster v4: #726); by the Garden of Spheres' white archway in the
+  android wood an oracle hangs over the threshold (the glass puppet, a marionette, until then); the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
   mineral basin under the lavender cliffs (src/desert-vistas.js `BASIN`, opposite the fishing sign), its lamp turned
   out over the water: the one deep water the dunes hold.
 
@@ -1150,8 +1150,9 @@ the engines' bundle, the blade pressed on the keys).
 ## Encounter sites (v2.33, issue #722, `src/encounters/`)
 
 The foes live somewhere now. Every world on the route has three to six **sites** (`src/encounters/sites.js` `SITES`,
-48 in all), each built from the world's own archetypes (the roster of the part it stands in, `level.foes.partAt`) on its
-own ground, and each pays when it is cleared. Before them a fight was a pack spawned on a ring round you, 35–55 s apart,
+50 in all), each built from the world's own archetypes (the roster of the part it stands in, `level.foes.partAt`) on its
+own ground, and each pays when it is cleared. Since roster v4 the same foes keep the same kind of place everywhere
+("The world rosters" below). Before them a fight was a pack spawned on a ring round you, 35–55 s apart,
 with nothing round it.
 
 - **The kinds** (`layoutSite` lays each out round its centre, `heading` its front, the side you come from):
@@ -1635,7 +1636,7 @@ Tests: `tests/mummers.test.js` (weapons, the guarded club, the mask, the king's 
 The first two of [design/enemy-roster-v4.md](../design/enemy-roster-v4.md): monsters (family `monster`), one skin in
 every world, its colour the tier (`tierSkin`'s darker palette and `TIER_SURFACE`'s bands: the same red or slate blue, a
 step darker, banded). On the humanoid rig (procedural-animation.md, "The humanoid foe rig"), drawn to their picked sheets
-(a new `grunt/` and `hulk/` folder under the enemy references). Not on any world's roster yet.
+(a new `grunt/` and `hulk/` folder under the enemy references). In every route world since v2.35 ("The world rosters").
 
 - **The grunt** (`grunt`, tier 1, role `rank and file`, 2 hp, 1.3 m, eight draws): a tomato-red monster, all head and
   belly, long pointed ears, a pig snout, two small tusks; a khaki loincloth, a leather strap with an iron ring. It
@@ -1668,11 +1669,10 @@ Measured (tests/monsters.test.js, node): a camp of four grunts (two empty-handed
 combo at the blade's cadence, never guarding): 2.58 attacks begun a grunt, mean of three seeds. `Foes.look` a frame,
 walking: grunt 0.03 ms, hulk 0.03 ms.
 
-**Staged in the Desert** (`src/encounters/sites.js` `STAGED`, `withStaged`): the mummer camp's `staged.roster4` adds
-three grunts and a hulk round the fire beside the mummers, with the rack by the way in (`props.js` `rack`: its spear and
-bow gone as they are taken) and two of the grunts empty-handed; off by default, on with `?staged=roster4` (a camp of
-more than five sits in a wider ring). The Arena: a band of three grunts, a hulk with two grunts; `-fight monsters` in
-Unity.
+**At every camp** (v2.35): grunts round the fire with a hulk, the rack by the way in (`props.js` `rack`: its spear and
+bow gone as they are taken) and one or two of the grunts empty-handed for it (a site's `rack` and `unarmed`; a camp of
+more than five sits in a wider ring). Staged first in the Desert's mummer camp behind `?staged=roster4` (v2.34; the
+switch is gone). The Arena: a band of three grunts, a hulk with two grunts; `-fight monsters` in Unity.
 
 Tests: `tests/monsters.test.js`.
 
@@ -1717,8 +1717,8 @@ Roster v4's defunct droids ([design/enemy-roster-v4.md](../design/enemy-roster-v
 `src/enemies/plans/droid.js` (`droidMaterials`, `droidGlow`; the palette `DROID_PALETTE` and its tier's `DROID_TIER` in
 src/enemies/skins.js; the surface `DROID_SURFACE` in src/enemies/surfaces.js): weathered ivory ceramic (soft stains, faint
 grime runs, a few chips, a dull glaze) over near-black joints, amber seams, one amber eye, a little moss. The fencer and the
-lamp tripod can take it later. One skin each (`desert`, `arena: true`): met only in the Arena (its waves, its foe list, the
-creatures gallery) until the world rosters take them (`roster: 'v4'`). Their tier (`skinOf(a, w, 1)`): the palette dimmed,
+lamp tripod can take it later. One skin each (`desert`), worn in every world (`roster: 'v4'`): the crawlers in the packs,
+all three at the ruins and the makers' places since v2.35 ("The world rosters"); the Arena too. Their tier (`skinOf(a, w, 1)`): the palette dimmed,
 then `DROID_TIER` over it (scorched grey-brown ceramic, red seams, a red eye: `tierSkin(s, own)`), painted with
 `TIER_SURFACES` (soot and a net of red-glowing cracks) instead of the bands.
 
@@ -1752,7 +1752,7 @@ and its hands are simple; the stains are fainter washes than the sheet's.
 ### The prowler and the warlord (v2.34, issue #726, the third batch)
 
 Drawn to their picked sheets (a new `prowler/` and `warlord/` folder under the enemy references), on the humanoid rig,
-one skin (`desert`, `arena: true`), their tier darker and banded. Not on any world's roster.
+one skin (`desert`), their tier darker and banded. In every route world since v2.35 ("The world rosters").
 
 - **The prowler** (`prowler`, tier 2, role `the quick one`, 5 hp, 1.8 m, seven draws): a lean leaf-green lizard, a long
   narrow head with a crest of spines and wide-set yellow eyes, a cream throat, belly and tail underside, digitigrade
@@ -1784,8 +1784,8 @@ one skin (`desert`, `arena: true`), their tier darker and banded. Not on any wor
 
 **The warlord's hold** (`'warlord-hold'`, `src/encounters/sites.js`): the warlord on guard before its coffer between
 two banners (`props.js` `banner`), its band of grunts sat round a fire before it; the warlord noticing you does not
-wake the band (`Encounters.alarm`): its roar does. The coffer pays twice (`SITE_PAYS`). Staged in Arzach, the stone
-hoard becoming the hold behind `?staged=roster4` (a staged `kind` replaces the site's own).
+wake the band (`Encounters.alarm`): its roar does. The coffer pays twice (`SITE_PAYS`). One a world from Vael on since
+v2.35 (staged first in Vael's stone hoard behind `?staged=roster4`, v2.34).
 
 Measured (tests/prowler-warlord.test.js, node): neither dies to one light combo at any stage or tier; against the
 masher every signature move fired (four seeds each: the prowler's dart 13, flip 8, spit 4, tail 2, slash 1; the
@@ -1793,6 +1793,32 @@ warlord's roar 5, charge 4, whirl 2, sweep and overhead, 13 plates off, its band
 walking: about 0.04 ms each. The Arena (`arena.mjs`, a still player 24 s): the prowler's wind-ups seen 0.86 s, 20
 attacks a minute; the warlord's 1.13 s, 15 a minute. A pack of two prowlers and a warlord draws as a pack of two
 grunts and a hulk (High 183 against 180 calls, Steam Deck 140 against 138). `-fight roster4b` in Unity.
+
+## The world rosters (v2.35, issue #726)
+
+The author's rule (2026-10-28): the same foes in every world; tiers, not new looks, carry the later worlds. Every route
+world (src/foe-worlds.js `WORLDS`, src/encounters/sites.js `SITES`) is on roster v4
+([design/enemy-roster-v4.md](../design/enemy-roster-v4.md), "Each foe's place": every decision, the world table and the
+bench before and after).
+
+- **Packs**: grunts, prowlers and crawlers (the prowler 1.5 places and from the second pack; crawlers in pairs), with
+  the flyers (the sky ray, the ring drone) and the skitters' swarm where they were, and the blot in the Desert alone,
+  its teacher. The grunt leads to the City-Shaft, the prowler from the Buried Machine.
+- **Sites**: each where it was, its kind kept. Camps grunts and a hulk with their rack; nests and ambushes prowlers;
+  hoards and patrols droids (sentinel, oracle, crawlers, with the fencer and the lamp tripod), a nest of dormant droids
+  where a world had no ruin site; one warlord's hold a world from Vael on. Ids renamed for what holds them.
+- **Retired** (`RETIRED`): the per-world animals and the mummers, the shade, hound, moth, roller, bell, brute, cart,
+  jelly, wisp, marionette and root knot. Kept in the Arena, the debug menu's roster, the side worlds and each world's
+  fight-temple horde (`WORLDS[w].horde`, tests/fight-temples-worlds.test.js), with their skins.
+- **Placed**: Lorn II's post a sentinel, the Garden's archway an oracle; the Desert's cistern pump a lamp tripod still.
+- **Pay** (src/chimes.js `DROP_BY_STAGE`): a foe's drop × its stage's `TIER.hp` (the 'foe:burst' event's `stage`).
+- **The grunt** answers a mashed combo: on its second light cut in a row it scrambles back (`answerMash.evade`, the
+  prowler's) and lunges back in.
+- v4's skins lost their `arena` mark: one skin, worn everywhere.
+
+Tests: tests/archetypes.test.js (the tables: v4's or kept in every route world, the retired off it), tests/encounters.test.js
+(each kind of site's foes), tests/monsters.test.js (every camp), tests/prowler-warlord.test.js (a hold a world),
+tests/droids.test.js, tests/route-worlds.test.js (every piece of every site on its world's ground).
 
 ## More foes, the perfect parry, combos
 
@@ -2209,7 +2235,8 @@ they go into the wallet but are not counted as earned (`res.chimes.earned`).
 ## Each world's foes (v0.93)
 
 The loose ink takes the shape of what is round it: each world has a foe of its own, and its packs
-and temple rooms draw from its roster.
+and temple rooms draw from its roster. (History: since v2.35 the route's worlds share roster v4, "The world rosters"
+above; the side worlds and the fight temples' hordes keep their own.)
 
 - **Attacks** (`def.attacks`, the fields are listed at the top of `src/foe-kinds.js`): every kind has a list;
   `Foe.chooseAttack(d)` picks one whose `[min, max]` holds the distance, by weight, the last one used less

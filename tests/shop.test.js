@@ -15,7 +15,7 @@ const { shopHtml, warePicture, keeperLine, ShopPanel, stockText } = await import
 const { SHOPKEEPERS, SHOP_LINES } = await import('../src/story/shop-data.js');
 const { buildShop, SHOP_ROOM } = await import('../src/shop-world.js');
 const { interiorAt } = await import('../src/interior-kit.js');
-const { DROP_OF, PURSE } = await import('../src/chimes.js');
+const { DROP_OF, PURSE, DROP_BY_STAGE } = await import('../src/chimes.js');
 const { parseLine } = await import('../src/story/tone.js');
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
@@ -116,8 +116,8 @@ test('the potion switch: finite since the first shop; a save from before gets a 
 });
 
 test('the prices, against the drop table: a heart in a few fights, never a grind; a potion about one fight', () => {
-  // an early fight: three or four foes (ink blots, a stilt heron, a sky ray)
-  const fight = DROP_OF.blot * 2 + DROP_OF.heron + DROP_OF.ray;
+  // an early fight: three or four foes (roster v4, #726: two grunts, a prowler, an ink blot)
+  const fight = DROP_OF.grunt * 2 + DROP_OF.prowler + DROP_OF.blot;
   assert.ok(fight >= 8 && fight <= 16, `a fight: ${fight} chimes`);
   const fights = (n) => n / fight;
   assert.ok(fights(PRICES.potion) <= 1.2, 'a potion: about one fight');
@@ -318,7 +318,8 @@ test('the prices up the route: every container a few dozen packs of its own worl
   const pack = (w) => {
     const R = rosterOf(w), e = Object.entries(R.wild), tot = e.reduce((a, [, x]) => a + x, 0);
     const [lo, hi] = BUDGET[R.stage];
-    return e.reduce((a, [k, x]) => a + (DROP_OF[k] ?? 1) * x, 0) / tot * (lo + hi) / 2;
+    // (a foe pays as much more along the route as it is tougher there: DROP_BY_STAGE, issue #726)
+    return e.reduce((a, [k, x]) => a + (DROP_OF[k] ?? 1) * x, 0) / tot * (lo + hi) / 2 * DROP_BY_STAGE[R.stage];
   };
   const bought = { heart: 0, magic: 0 };
   for (const w of ORDER) for (const ware of shopOf(w).wares) {

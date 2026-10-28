@@ -2,7 +2,7 @@
 // the glass, the sea beyond the domes' ribs, the lamps on their posts all that keeps the deep's dark out. Every so often
 // the lamps flicker and go out (hazards.js 'dark'): the floor goes black but for the discs of light under them, and out
 // of the light the cold takes a little of him each second; the foes caught in a lamp's disc are scalded, so the fight is
-// fought from the lamps and the crowd drawn into them. Its foes are the city's own (src/foe-worlds.js: glass crabs,
+// fought from the lamps and the crowd drawn into them. Its foes are the city's own (its horde, src/foe-worlds.js: glass crabs,
 // lantern jellies, sky rays), light, many; the last wave brings a lamp tripod and a whole crab. The reward: Pearl and
 // tide (src/kit-colours.js).
 //

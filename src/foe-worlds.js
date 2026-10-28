@@ -9,10 +9,13 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 //            4: the Signal Market alone; side worlds 2): its packs' places (BUDGET), and from 3 the turns and the harm
 //            of src/foes.js (TURNS.late, HARM_BY_STAGE)
 //   budget   [lo, hi] places when a world's differ from its stage's (v1.22: docs/audits/combat-v1.22.md)
-//   lead     the pack lead: the most common archetype there (no two route worlds in a row share one)
+//   lead     the pack lead: the most common archetype there, and a visit's first pack, alone (the same few on the route
+//            since roster v4: the blot in the Desert, the grunt, the prowler in the last worlds)
 //   roster   its archetypes by weight (how often each leads a pack)
 //   late     archetypes that lead only from the third pack on; placed: one met where it is placed, not in packs
-//   sites    archetypes met only at its encounter sites (src/encounters/sites.js), never in a pack: the Desert's mummer king
+//   sites    archetypes met only at its encounter sites (src/encounters/sites.js), never in a pack: the hulk, the warlord,
+//            the sentinel and the oracle (and the Desert's prowlers, at its nest and its ambush before any pack)
+//   horde    the pre-v4 roster its fight temple breeds (tests/fight-temples-worlds.test.js), the archetypes RETIRED kept
 //   temple   the kinds in its temple rooms (no archetype in its echo guardian's temple: the makers' machines stay)
 // Since batch 5 (v1.18) every archetype is built on its own body: no stand-in is left, and every world runs on the new
 // roster (an archetype not built would run on a stand-in's body, src/enemies/archetypes.js `kind`, or wait, `planned`).
@@ -23,30 +26,44 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 //   temple   the kinds in the temple rooms, room by room (the relics' guards went with the relics in v2.34, #732)
 
 export const WORLDS = {
-  // the route
-  // (issue #724: the mummers keep camp in the dunes, a pair of them now and then out walking; the blot still leads)
-  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, heron: 2, skitter: 2, mummer: 1.5 }, placed: ['tripod'], sites: ['mummerking'] },
-  arzach: { stage: 0, lead: 'ray', roster: { ray: 4, heron: 2, blot: 3 } },
-  arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
-  perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
-  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5 }, placed: ['brute'] },
-  edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
-  // (v1.40: the Underwater City between Viridel and the City-Shaft: crabs and jellies in the halls, a lamp tripod or two)
-  underwater: { stage: 2, budget: [3, 4], lead: 'crab', roster: { crab: 4, ray: 2.5, jelly: 3, tripod: 2 } },
-  incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 1, lizard: 3.5, toad: 2.5, shade: 2.5 }, temple: ['machine', 'drone'] },
+  // the route (issue #726, roster v4, the author's rule of 2026-10-28: the same foes in every world; tiers, not new looks,
+  // carry the later worlds; docs/design/enemy-roster-v4.md, "Where they live" and "Each foe's place"). The packs are
+  // grunts, prowlers and crawlers, mixed by the world's stage; the sites hold the rest (`sites`: the hulk at a camp, the
+  // sentinel and the oracle at a makers' place, the warlord at its hold from the second world on). Kept beside them,
+  // for the roles v4 has no foe for: the blot (the first world's teacher), the sky ray and the ring drone (the flyers),
+  // the skitters (the swarm, in the two machine-works) and the lamp tripod and the makers' fencer (droids already).
+  // `horde`: the world's pre-v4 roster, the animals its fight temple still breeds (src/fight-temples/<world>.js), kept
+  // as it was with their skins (RETIRED below).
+  desert: { stage: 0, lead: 'blot', roster: { blot: 4, grunt: 4, crawler: 2, prowler: 1.5 }, placed: ['tripod'], sites: ['hulk', 'sentinel'],
+    horde: { blot: 4, worm: 3, heron: 2, skitter: 2, mummer: 1.5 } },
+  arzach: { stage: 0, lead: 'grunt', roster: { grunt: 4, crawler: 2.5, ray: 2, prowler: 1.5 }, sites: ['hulk', 'warlord', 'sentinel'],
+    horde: { ray: 4, heron: 2, blot: 3 } },
+  arzach2: { stage: 1, lead: 'grunt', roster: { grunt: 3.5, prowler: 2.5, crawler: 2, ray: 2.5 }, sites: ['hulk', 'warlord', 'sentinel'],
+    horde: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
+  perdide: { stage: 1, lead: 'grunt', roster: { grunt: 4, prowler: 2.5, crawler: 2.5 }, sites: ['hulk', 'warlord', 'sentinel'],
+    horde: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
+  perdide2: { stage: 1, lead: 'grunt', roster: { grunt: 3.5, prowler: 3, crawler: 2.5 }, placed: ['sentinel'], sites: ['hulk', 'warlord'],
+    horde: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5 } },
+  edena: { stage: 2, budget: [3, 4], lead: 'grunt', roster: { grunt: 4, prowler: 3, crawler: 2.5, drone: 1.5 }, sites: ['hulk', 'warlord', 'sentinel', 'oracle'],
+    horde: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
+  underwater: { stage: 2, budget: [3, 4], lead: 'grunt', roster: { grunt: 3.5, prowler: 3, crawler: 2.5, ray: 2 }, sites: ['warlord', 'sentinel', 'oracle', 'tripod'],
+    horde: { crab: 4, ray: 2.5, jelly: 3, tripod: 2 } },
+  incal: { stage: 2, lead: 'grunt', roster: { grunt: 4, prowler: 3, crawler: 3, drone: 1.5 }, sites: ['hulk', 'warlord', 'sentinel', 'tripod'], temple: ['machine', 'drone'],
+    horde: { tripod: 4, drone: 1, lizard: 3.5, toad: 2.5, shade: 2.5 } },
   // (the Sealed Hangar, dismissed in October 2026: its table kept with its skins, src/levels/dismissed/)
   garage: { stage: 2, budget: [4, 5], lead: 'drone', roster: { drone: 4, cart: 3.5, crab: 2.5, roller: 2, ray: 1, shade: 2.5 }, temple: ['machine', 'drone'] },
-  // (the Glass Dunes in the Hangar's slot since October 2026: its own glass crabs, mantas and worms, its furnace walkers
-  // and nomads, and the Clock-House's drones, which came with the house; its rooms the makers' machines and drones)
-  glassdunes: { stage: 2, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
-  buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
-  // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
-  // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
-  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2, wisp: 2.5, fencer: 1.5 }, temple: ['machine', 'drone'] },
-  spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
-  // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
-  spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3, fencer: 2 }, temple: ['machine', 'drone'] },
-  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5, fencer: 1.5 }, late: ['marionette', 'fencer'] },
+  glassdunes: { stage: 2, budget: [4, 5], lead: 'grunt', roster: { grunt: 4, prowler: 3, crawler: 2.5, drone: 1.5, ray: 1.5 }, sites: ['hulk', 'warlord', 'sentinel', 'oracle'], temple: ['machine', 'drone'],
+    horde: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 } },
+  buried: { stage: 3, lead: 'prowler', roster: { grunt: 3.5, prowler: 3.5, crawler: 3, skitter: 2 }, sites: ['hulk', 'warlord', 'sentinel', 'oracle'], temple: ['machine', 'drone'],
+    horde: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 } },
+  moonfoundry: { stage: 3, lead: 'grunt', roster: { grunt: 3.5, prowler: 3.5, crawler: 3, skitter: 2 }, sites: ['hulk', 'warlord', 'sentinel', 'fencer'], temple: ['machine', 'drone'],
+    horde: { cart: 4, skitter: 3, lizard: 2.5, brute: 2, wisp: 2.5, fencer: 1.5 } },
+  spheres: { stage: 3, budget: [4, 6], lead: 'prowler', roster: { grunt: 3.5, prowler: 4, crawler: 3, drone: 1.5 }, placed: ['oracle'], sites: ['hulk', 'warlord', 'sentinel'],
+    horde: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 } },
+  spacecity: { stage: 3, budget: [4, 6], lead: 'grunt', roster: { grunt: 3, prowler: 4, crawler: 3, drone: 2.5 }, sites: ['warlord', 'fencer'], temple: ['machine', 'drone'],
+    horde: { drone: 4, moth: 3, roller: 3, fencer: 2 } },
+  bazaar: { stage: 4, lead: 'prowler', roster: { grunt: 3.5, prowler: 4, crawler: 3, drone: 1.5 }, sites: ['hulk', 'warlord', 'sentinel', 'oracle'],
+    horde: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5, fencer: 1.5 } },
   // the side worlds (all discarded, names.js DISCARDED: their tables stay as they are)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   waterfall: { stage: 2, lead: 'toad', roster: { toad: 4, centipede: 2, brute: 2, rootknot: 2 } },
@@ -60,34 +77,43 @@ export const WORLDS = {
 /**
  * The encounters placed by hand (WORLDS[w].placed: one met where it stands, not in a pack): where each stands (x, z: its
  * ground found under it) and which way it faces (rad); met calm, as its archetype keeps to itself (src/foes.js
- * Foes.updatePosts); once cut down, gone for good (a flag per save). Lorn II's wood cutter stands rusted mid-task on the
- * dry bank of the lit path, between the root arches past the glass dome; the Garden of Spheres' glass puppet hangs at the
- * white archway in the android wood (src/levels/spheres.js), just clear of its arch, swaying like a coat on a hook. The
- * Desert's cistern pump, a makers' lamp tripod, keeps the one deep water the dunes hold: the mineral basin under the
- * lavender cliffs (src/desert-vistas.js BASIN), on its far shore from the fishing sign, its lamp turned out over the water.
+ * Foes.updatePosts); once cut down, gone for good (a flag per save). The Desert's cistern pump, a makers' lamp tripod,
+ * keeps the one deep water the dunes hold: the mineral basin under the lavender cliffs (src/desert-vistas.js BASIN), on
+ * its far shore from the fishing sign, its lamp turned out over the water. Since roster v4 (issue #726) Lorn II's post on
+ * the dry bank of the lit path, between the root arches past the glass dome, is a sentinel's, standing guard where the
+ * wood cutter (a furnace brute) stood; the Garden of Spheres' white archway in the android wood an oracle's, hanging over
+ * its threshold where the glass puppet (a marionette) swayed.
  */
 export const PLACED = {
   desert: [{ archetype: 'tripod', at: [-489.0, -187.0], heading: Math.PI / 2 }],
-  perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }],
-  spheres: [{ archetype: 'marionette', at: [-108.0, -411.7], heading: 1.4 }],
+  perdide2: [{ archetype: 'sentinel', at: [13.7, -280.0], heading: -1.03 }],
+  spheres: [{ archetype: 'oracle', at: [-108.0, -411.7], heading: 1.4 }],
 };
+
+/**
+ * The archetypes roster v4 retired from the route (issue #726): the per-world animals and the mummers, no longer met in
+ * a route world's packs, sites or posts. Kept with their code and skins: the Arena's list, the debug menu's foes (the
+ * roster), the discarded side worlds' tables and the fight temples' hordes (WORLDS[w].horde) still field them.
+ */
+export const RETIRED = ['crab', 'lizard', 'toad', 'worm', 'centipede', 'heron', 'mummer', 'mummerking', 'shade', 'hound', 'moth', 'roller',
+  'bell', 'brute', 'cart', 'jelly', 'wisp', 'marionette', 'rootknot'];
 
 /** Worlds with no table of their own (a minigame's field, a test's): ink blots. */
 export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', temple: ['machine'], shade: 0, stage: 1 };
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
-export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2 };
+export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2, crawler: 2 };
 /** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
-export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2, mummer: 2 };
-export const FROM = { wisp: 1, skitter: 1, mummer: 1, mummerking: 3, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
+export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2, mummer: 2, crawler: 2 };
+export const FROM = { wisp: 1, skitter: 1, mummer: 1, mummerking: 3, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2, prowler: 1 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { mummerking: 2, machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
+export const COSTS = { mummerking: 2, machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2, prowler: 1.5 };
 /** The places a kind takes in a pack: a group its group's, a big lead its own, else one. */
 export const costOf = (k) => (GROUP[k] ? GROUP_COST[k] ?? GROUP[k] : COSTS[k] ?? 1);
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
 export const BUDGET = [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */
-export const rangedKind = (k) => !!ARCHETYPES[archetypeOfKind(k)]?.ranged && k !== 'blot';   // (the blot's spit is a teacher's, not a ranged role)
+export const rangedKind = (k) => !!ARCHETYPES[archetypeOfKind(k)]?.ranged && k !== 'blot' && k !== 'grunt';   // (the blot's spit is a teacher's, the grunt's rock its empty hands': not a ranged role)
 
 /** The kinds a world's table fields (each archetype's own or its stand-in), weighted; planned ones dropped. */
 function kindsOf(table, { late = false } = {}) {

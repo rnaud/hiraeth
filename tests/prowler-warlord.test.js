@@ -2,8 +2,8 @@
 // The prowler circles you, back-flips out of your combo (its second light cut in a row) and darts back in, slashes,
 // sweeps its tail round at your knees (jump it), spits at range, rages low; its tier darts twice. The warlord sweeps,
 // brings its glaive down overhead, charges, roars (every one round it wakes), wears four bronze plates that come off,
-// and low makes its last stand (always seen). It holds a place of its own with a coffer (a 'warlord-hold' site), staged
-// in Arzach behind ?staged=roster4. The combat review v2.34's asks, measured: no foe dies to one combo; short recovery
+// and low makes its last stand (always seen). It holds a place of its own with a coffer (a 'warlord-hold' site), one in
+// every route world from the second (the world rosters, #726). The combat review v2.34's asks, measured: no foe dies to one combo; short recovery
 // after a miss; each signature move fires in a fight against a masher.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +11,8 @@ import * as THREE from 'three';
 import { Foes, FOES, WAVES, CARRY } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { FIGHT, TIERS, ARMOUR, tierDef } from '../src/enemies/fight.js';
-import { SITES, STAGED, SITE_IDLE, SITE_PAYS, layoutSite, sitesOf, stagedFrom, siteFootprint } from '../src/encounters/sites.js';
+import { SITES, SITE_IDLE, SITE_PAYS, layoutSite, sitesOf, siteFootprint } from '../src/encounters/sites.js';
+import { ORDER, ROUTE_PARTS, SIDE } from '../src/levels/names.js';
 import { BODIES } from '../src/encounters/index.js';
 import { worldArchetypes, WORLDS } from '../src/foe-worlds.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
@@ -70,7 +71,9 @@ test('the prowler and the warlord on the roster: monsters on the humanoid rig, b
   assert.ok(WAVES.some((w) => w.includes('prowler')) && WAVES.some((w) => w.includes('warlord')), 'the Arena\'s waves');
   const list = foeSections().find((s) => s.id === 'roster').items.map((i) => i.kind);
   assert.ok(list.includes('prowler@desert') && list.includes('warlord@desert'), 'the Arena\'s foe list');
-  for (const w of Object.keys(WORLDS)) assert.ok(!worldArchetypes(w).includes('prowler') && !worldArchetypes(w).includes('warlord'), `${w}: not on its roster`);
+  // (the world rosters, #726: the prowler in every route world's packs, the warlord at its hold from the second world; no side world)
+  for (const w of ROUTE_PARTS) assert.ok(WORLDS[w].roster.prowler, `${w}: the prowler in its packs`);
+  for (const w of SIDE) assert.ok(!worldArchetypes(w).includes('prowler') && !worldArchetypes(w).includes('warlord'), `${w}: a discarded world, as it was`);
 });
 
 test('every move is a shipped clip (a pose of the arms, a spin or a run over it at most); the wind-ups pinned', () => {
@@ -245,22 +248,23 @@ test('against a masher every signature move fires: the prowler\'s dart, slash, t
   for (const id of ['sweep', 'overhead', 'charge', 'roar', 'whirl', 'plate', 'woke']) assert.ok(seen.warlord.get(id) > 0, `the warlord's ${id} fired`);
 });
 
-test('the warlord holds a place of its own (a warlord-hold site with a coffer), staged in Arzach behind a site flag, off by default', () => {
-  assert.equal(STAGED.roster4, false);
+test('the warlord holds a place of its own (a warlord-hold site with a coffer) in every route world from the second (#726)', () => {
   assert.equal(SITE_IDLE['warlord-hold'], 'guard'); assert.ok(SITE_PAYS['warlord-hold'] > 1, 'its coffer pays more');
-  for (const w of Object.keys(SITES)) for (const s of sitesOf(w)) assert.ok(s.kind !== 'warlord-hold' && !s.foes.includes('warlord'), `${w}.${s.id}: no warlord by default`);
-  const holds = Object.keys(SITES).flatMap((w) => sitesOf(w, stagedFrom('?staged=roster4')).filter((s) => s.kind === 'warlord-hold').map((s) => [w, s]));
-  assert.equal(holds.length, 1, 'one hold');
-  const [world, hold] = holds[0];
-  assert.equal(world, 'arzach', 'the second world');
-  assert.equal(hold.foes[0], 'warlord'); assert.ok(hold.foes.slice(1).every((a) => a === 'grunt') && hold.foes.length >= 3, 'its band of grunts');
-  const L = layoutSite(hold, BODIES);
-  assert.ok(L.coffer && L.props.filter((p) => p.type === 'banner').length === 2 && L.props.some((p) => p.type === 'fire'), 'its coffer between two banners, its band\'s fire');
-  const lord = L.foes[0], c = L.coffer.at;
-  assert.ok(lord.idle === 'guard' && Math.hypot(lord.at[0] - c[0], lord.at[1] - c[1]) < 3.2, 'the warlord on guard before its coffer');
-  assert.ok(L.foes.slice(1).every((f) => f.idle === 'sit'), 'its band sat round the fire');
-  // (a compact place: everything within the hoard's own room, so it stands where the hoard stood)
-  for (const p of siteFootprint(hold, BODIES)) assert.ok(Math.hypot(p.at[0] - hold.at[0], p.at[1] - hold.at[2]) < 7, `${p.what}: near its centre`);
+  for (const [i, w] of ORDER.entries()) {
+    const holds = sitesOf(w).filter((s) => s.kind === 'warlord-hold');
+    assert.equal(holds.length, i ? 1 : 0, `${w}: ${i ? 'one hold' : 'none in the first world'}`);
+    for (const s of sitesOf(w)) if (s.kind !== 'warlord-hold') assert.ok(!s.foes.includes('warlord'), `${w}.${s.id}: the warlord only at its hold`);
+    for (const hold of holds) {
+      assert.equal(hold.foes[0], 'warlord'); assert.ok(hold.foes.slice(1).every((a) => a === 'grunt') && hold.foes.length >= 3, 'its band of grunts');
+      const L = layoutSite(hold, BODIES);
+      assert.ok(L.coffer && L.props.filter((p) => p.type === 'banner').length === 2 && L.props.some((p) => p.type === 'fire'), 'its coffer between two banners, its band\'s fire');
+      const lord = L.foes[0], c = L.coffer.at;
+      assert.ok(lord.idle === 'guard' && Math.hypot(lord.at[0] - c[0], lord.at[1] - c[1]) < 3.2, 'the warlord on guard before its coffer');
+      assert.ok(L.foes.slice(1).every((f) => f.idle === 'sit'), 'its band sat round the fire');
+      // (a compact place: everything within the old site's own room, so it stands where the hoard, the beat or the nest stood)
+      for (const p of siteFootprint(hold, BODIES)) assert.ok(Math.hypot(p.at[0] - hold.at[0], p.at[1] - hold.at[2]) < 7, `${w}: ${p.what} near its centre`);
+    }
+  }
 });
 
 test('at the hold the warlord noticing you does not wake its band: its roar does', async () => {
@@ -269,7 +273,7 @@ test('at the hold the warlord noticing you does not wake its band: its roar does
   P.pos.set(0, 0, 30);
   const hold = { id: 'test-hold', kind: 'warlord-hold', at: [0, 0, 0], heading: 0, foes: ['warlord', 'grunt', 'grunt'] };
   const saved = SITES.arena; SITES.arena = [hold];
-  const E = new Encounters({ foes, levelId: 'arena', player: P, game: foes.game, staged: STAGED });
+  const E = new Encounters({ foes, levelId: 'arena', player: P, game: foes.game });
   E.update(DT); E.update(DT);
   const s = E.sites[0];
   for (let i = 0; i < 30; i++) { E.update(DT); foes.update(DT); }

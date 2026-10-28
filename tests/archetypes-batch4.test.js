@@ -52,7 +52,8 @@ test('batch 4: the furnace brute, the ring drone, the crucible cart and the bell
     const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
     for (const k of kinds) if (!(w === 'perdide2' && k === 'shade')) assert.equal(ARCHETYPES[archetypeOfKind(k)].status, 'built', `${w}: ${k}`);
   }
-  assert.ok(Object.keys(ROSTERS.edena.wild).includes('brute'), 'Viridel fields its pruning machines');
+  // (issue #726, roster v4: the pruning machines left Viridel's packs; its fight temple's horde still has them)
+  assert.ok(!Object.keys(ROSTERS.edena.wild).includes('brute') && WORLDS.edena.horde.brute, 'Viridel\'s pruning machines kept in its horde');
 });
 
 test('batch 4: every move winds up at least its minimum and says its tell and its answer; only the brute’s hurled slab marks the ground; drops by weight', () => {
@@ -211,10 +212,10 @@ test('cheap to draw: each of batch 4 is a handful of meshes (its moving parts sk
   m.dispose?.();
 });
 
-test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-worlds.js PLACED), it comes out calm as you come near and stands rusted mid-task; cut down, it is gone for good', async () => {
+test('Lorn II’s post on the lit path’s bank (src/foe-worlds.js PLACED): a sentinel since roster v4 (the wood cutter’s), it comes out calm as you come near and stands guard; cut down, it is gone for good', async () => {
   const { PLACED } = await import('../src/foe-worlds.js');
-  assert.deepEqual(PLACED.perdide2.map((p) => p.archetype), ['brute']);
-  assert.ok(WORLDS.perdide2.placed.includes('brute'));
+  assert.deepEqual(PLACED.perdide2.map((p) => p.archetype), ['sentinel']);
+  assert.ok(WORLDS.perdide2.placed.includes('sentinel'));
   clearTargets();
   // (PLACED is in the Deep Wood's own frame; it lies 480 m south in Lorn now, src/levels/names.js PART_OFFSET, and so on its own)
   const game = new GameState(null), P = player(v(13.7, 0, -680));
@@ -224,10 +225,10 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
   assert.equal(foes.list.filter((f) => f.post).length, 0, 'far off: not out');
   P.pos.set(13.7, 0, -720); foes.update(DT);
   const w = foes.list.find((f) => f.post);
-  assert.ok(w && w.kind === 'brute' && w.skin === 'perdide2', 'near: the wood cutter, in its own skin');
+  assert.ok(w && w.kind === 'sentinel', 'near: the sentinel, in its one skin');
   assert.ok(Math.hypot(w.pos.x - 13.7, w.pos.z + 760) < 0.5 && w.state === 'idle', 'standing where it was placed, calm');
   for (let i = 0; i < 60; i++) foes.update(DT);
-  assert.equal(w.state, 'idle', 'it stands where it stopped working');
+  assert.equal(w.state, 'idle', 'it stands at its post');
   while (w.alive) foes.hurt(w, 'blade', v(0, 0, 1), { damage: 2, breaks: true });
   for (let i = 0; i < 60; i++) foes.update(DT);
   foes.dispose(); clearTargets();

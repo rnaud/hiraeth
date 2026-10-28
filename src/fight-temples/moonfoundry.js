@@ -2,7 +2,7 @@
 // house, where the moons' metal was poured, the house still pouring by itself. Its floors are cut with channels, drawn
 // from the start (hazards.js 'pour': a channel's rim glows, then the slag runs down it and lies there a while): in it
 // you burn, half a heart a tick, unless you are out of it or roll across; every foe in it burns too. The floor is read
-// before the fight: where the channels run, and where to stand. Its foes are the Foundry's own (src/foe-worlds.js:
+// before the fight: where the channels run, and where to stand. Its foes are the Foundry's own (its horde, src/foe-worlds.js:
 // crucible carts, skitters in the rails, horn lizards; cinder wisps over the heat since issue #398), light, many; the last wave brings a furnace brute and two
 // whole carts. The reward: Moon slag (src/kit-colours.js).
 //
