@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.35 — 2026-10-28
 
+- Every armed enemy now holds its weapon like a fighter: its fingers close round the haft, and the weapon points where the move needs it. The hulk and the grunt grip their clubs in both fists to raise them up and back over a shoulder, the sentinel and the fencer lift their blades high before a cut, the warlord holds its glaive upright at its side and in both hands to sweep or charge, and the mummer archers hold their bow by the middle and draw the cord back to their hand. Empty hands open again. Every attack takes as long and reaches as far as before.
 - Kamal is a real rival now: his fan sled rides much harder, so only a clean, fast lap beats him, and your bikes bump into each other instead of passing through.
 
 ## v2.34 — 2026-10-28

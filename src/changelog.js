@@ -13,6 +13,8 @@ export const CHANGELOG = [
     items: [
       // the Desert's race
       { text: 'Kamal is a real rival now: his fan sled rides much harder, so only a clean, fast lap beats him, and your bikes bump into each other instead of passing through.', see: 'Race Kamal for the hoverbike: ride into his sled and you both get knocked aside and slowed.' },
+      // the foes
+      { text: 'Every armed enemy now holds its weapon like a fighter: its fingers close round the haft, and the weapon points where the move needs it. The hulk and the grunt grip their clubs in both fists to raise them up and back over a shoulder, the sentinel and the fencer lift their blades high before a cut, the warlord holds its glaive upright at its side and in both hands to sweep or charge, and the mummer archers hold their bow by the middle and draw the cord back to their hand. Empty hands open again. Every attack takes as long and reaches as far as before.', see: 'In the Arena, pick the hulk, the sentinel or a mummer with a bow from the foe list and watch its hands as it winds up an attack.' },
     ],
   },
   {

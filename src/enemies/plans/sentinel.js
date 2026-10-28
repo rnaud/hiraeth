@@ -3,6 +3,7 @@ import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, many, skinBy, pivot, ease, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 import { humanoidSkeleton, HumanoidDriver, PROC_POSES } from '../humanoid-rig.js';
+import { Wielder, SWORD_WRIST } from '../wield.js';
 import { droidMaterials, droidGlow, lathe, lensParts } from './droid.js';
 
 // The sentinel (issue #726, docs/design/enemy-roster-v4.md; its sheet: a new `sentinel/` folder under the enemy
@@ -50,6 +51,23 @@ export const SENTINEL_MOVES = {
   dash: { clip: 'ss_block_idle', from: 0, load: 0.5, cut: 0.7, to: 1.0, pose: 'dashLow', lean: 0.2 },
 };
 const SPEEDS = { walk: 1.1, jog: 2.8, sprint: 5.5 };
+/**
+ * How it holds its blade (src/enemies/wield.js, #744; dirs in the chest's frame: x its left, y up, z ahead): carried
+ * point down and forward; the cut raised up and back over its right shoulder (the sheet's wind-up), then across to its
+ * left; the riposte's backhand from over its left shoulder out to its right; the thrust's point ahead, drawn back low at
+ * its hip, then in; the dash laid back along its side, then swept past you; in its guard drawn back over its shoulder,
+ * the point at you over the shield.
+ */
+export const SENTINEL_HOLD = {
+  blade: { side: 0, r: 0.021, wrist: SWORD_WRIST, reach: [1.03, 0.14], carry: { dir: [0, -0.6, 0.8] },
+    moves: {
+      cut: { wind: [-0.35, 0.8, -0.48], via: [-0.68, 0.3, 0.67], hit: [0.75, -0.1, 0.65], follow: [0.6, -0.6, 0.5] },
+      riposte: { wind: [0.55, 0.62, -0.56], via: [0.4, 0.2, 0.9], hit: [-0.8, 0, 0.6] },
+      thrust: { wind: [0, 0.03, 1], hit: [0, 0.05, 1] },
+      dash: { wind: [-0.1, 0.05, -1], hit: [-0.45, 0, 0.9] },
+    },
+    poses: { swordBack: { dir: [0.12, 0.3, 1] }, flung: { dir: [-0.7, 0.55, 0.3] } } },
+};
 
 /** The round shield: a shallow dish with three raised rings and a boss, face +z, `r` its radius. */
 function shieldParts(r) {
@@ -66,6 +84,8 @@ function bladeParts(L = BLADE) {
   const tip = new THREE.CylinderGeometry(0.001, 0.03, 0.12, 3).scale(1, 1, 0.2).translate(0.015, 0.1 + L + 0.06, 0);
   const hilt = [new THREE.CylinderGeometry(0.02, 0.022, 0.17, 8).translate(0, -0.02, 0), new THREE.BoxGeometry(0.1, 0.03, 0.05).translate(0, 0.08, 0), new THREE.SphereGeometry(0.03, 8, 6).translate(0, -0.11, 0)];
   const edge = [new THREE.BoxGeometry(0.008, L * 0.9, 0.016).translate(-0.031, 0.12 + L * 0.45, 0)];
+  // (its sharp edge, +x as built, turned to +z: the grip's knuckles' way, so the edge leads the cut, #744)
+  for (const geo of [blade, tip, ...hilt, ...edge]) geo.rotateY(-Math.PI / 2);
   return { steel: [blade, tip], hilt, edge };
 }
 
@@ -134,6 +154,7 @@ export function sentinelModel(skin) {
   many(hull, [new THREE.SphereGeometry(0.035, 6, 5).scale(1.4, 0.6, 1).translate(0.07, 0.565, 0.07), new THREE.SphereGeometry(0.03, 6, 5).scale(1.3, 0.6, 1).translate(-0.06, 0.57, 0.08), new THREE.SphereGeometry(0.03, 6, 5).scale(1, 0.7, 1.2).translate(0.13, 0.04, 0.06)], Mo);
   many(J.knees[0], [new THREE.SphereGeometry(0.025, 6, 5).scale(1.4, 0.7, 1).translate(0.03, -0.06, 0.05)], Mo);
   const driver = new HumanoidDriver(J, rig, { moves: SENTINEL_MOVES, speeds: SPEEDS });
+  const wield = new Wielder(J, driver, { grips: [grip, null], at: [[0, -0.05, 0.01], null], weapons: SENTINEL_HOLD });
   const gaze = [gazePart(g, head, { mode: 'turn' })];
   skinBy(g, [...X.sets, { from: [steelB], into: steelM }]);
   finish(g);
@@ -144,7 +165,7 @@ export function sentinelModel(skin) {
   let guard = 0, broke = 0, over = 0;
   return {
     group: g, gaze, body: rig, rig: null, upright: true, parts, eyeMat: X.eye, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.ceramic, P.seam, P.joint],
-    driver, joints: J, height: SENTINEL_HEIGHT,
+    driver, joints: J, height: SENTINEL_HEIGHT, wield,
     tell: (id) => (id === 'bash' ? strap : grip),
     anim(f, c) {
       const dt = Math.max(c.dt, 1e-4);
@@ -153,13 +174,8 @@ export function sentinelModel(skin) {
       const guarding = guard > 0.01 && f.state !== 'wind' && f.state !== 'strike' && !(f.downT > 0);
       const want = driver.update(f, c, { upper: guard > 0.01 ? { clip: 'ss_block_idle', w: Math.min(1, guard) } : null, pose: broke > 0.01 ? 'flung' : guarding ? 'swordBack' : null, poseW: broke > 0.01 ? broke : Math.min(1, guard) });
       const moving = want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover';
-      grip.rotation.set(Math.PI - 1.25, 0, -0.08);   // (carried point down and forward, clear of the ground on a slope)
-      driver.gripFrom(grip, 0, moving ? driver.moveW : 0);
-      if (guarding && broke < 0.5) {
-        hull.getWorldQuaternion(_qa); _qa.multiply(_qb.setFromUnitVectors(UPV, _dir.set(0.12, 0.3, 1).normalize()));
-        grip.parent.getWorldQuaternion(_q).invert();
-        grip.quaternion.slerp(_q.multiply(_qa), Math.min(1, guard));
-      }
+      // the blade in its fist (SENTINEL_HOLD)
+      wield.update(f, want, c, 'blade');
       // the shield kept facing out before it: the chest's heading, a little out to its left at rest, square in its guard
       // and its bash, flung out when broken; strapped along its forearm lying down
       g.updateMatrixWorld(true);

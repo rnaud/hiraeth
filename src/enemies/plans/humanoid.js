@@ -4,6 +4,7 @@ import { VerletChain } from '../../motion-kit/chain.js';
 import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, smooth, finish, V, outerPoints, frameIn } from './kit.js';
 import { gazePart } from '../gaze.js';
 import { humanoidSkeleton, HumanoidDriver } from '../humanoid-rig.js';
+import { Wielder, SWORD_WRIST } from '../wield.js';
 
 // Plan 9, the humanoid spirit (docs/systems/procedural-animation.md §4, the kit's `humanoid`): the shade
 // (docs/design/enemy-roster.md, archetype 19), drawn to its sheets (references/enemy-archetypes/shade/: sheet-1 Lorn II's
@@ -172,6 +173,21 @@ export const SHADE_MOVES = {
   recut: { clip: 'ss_slash_3', from: 0.2, load: 0.55, cut: 0.82, to: 1.05 },
   feint: { clip: 'ss_slash_1', from: 0.1, half: 0.3, load: 0.45, cut: 0.6, to: 0.85, feint: { clip: 'ss_block_idle', at: 0.5, pose: 'thrust' } },
 };
+/**
+ * How it holds its ink sword (src/enemies/wield.js, #744; dirs in the chest's frame: x its left, y up, z ahead): carried
+ * low and forward out of the gauntlet; the cut drawn back up over its right shoulder, then across to its left; the recut
+ * a backhand from over its left shoulder; the feint's stopped cut, then dropped to its hip point ahead and thrust
+ * straight in; its guard up across its body to its left.
+ */
+export const SHADE_HOLD = {
+  sword: { side: 0, r: 0.022, wrist: SWORD_WRIST, reach: [1.12, 0.05], carry: { dir: [0, -0.5, 0.86] },
+    moves: {
+      cut: { wind: [-0.3, 0.78, -0.55], via: [-0.62, 0.3, 0.72], hit: [0.75, -0.1, 0.65] },
+      recut: { wind: [0.5, 0.62, -0.6], via: [0.35, 0.2, 0.9], hit: [-0.8, 0, 0.6] },
+      feint: { wind: [-0.3, 0.78, -0.55], thrust: { wind: [0, -0.05, 1], hit: [0, 0, 1] } },
+    },
+    poses: { swordGuard: { dir: [0.45, 0.85, 0.25] } } },
+};
 /** Its walk, jog and sprint (m/s): it glides, the library's walk stretched up to most of its chase, the jog only at its fastest. */
 const SHADE_SPEEDS = { walk: 1.6, jog: 4.2, sprint: 6.5 };
 /** Its boots float: how far its body hangs over them (m), and the slow rise and fall of it; `upright`: the share of the clip's lean of the chest and the head it keeps (it glides upright, the cloak hanging straight). */
@@ -287,6 +303,7 @@ export function shadeModel(skin) {
     if (!want.clip) { keep(J.torso); keep(J.head); }   // (walking, standing: upright; its cuts keep the clip's lean)
   };
   const driver = new HumanoidDriver(J, rig, { moves: SHADE_MOVES, speeds: SHADE_SPEEDS, style });
+  const wield = new Wielder(J, driver, { grips: [grip, null], at: [[0, -0.06, 0.02], null], weapons: SHADE_HOLD });
   // the pool it sinks into for the step (its own: it slides round beside you)
   const pool = add(g, new THREE.CircleGeometry(0.55, 18).rotateX(-Math.PI / 2), poolM, 0, 0.03, 0); pool.visible = false;
   // its hood turns to keep you in sight once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
@@ -308,7 +325,7 @@ export function shadeModel(skin) {
   const local = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3();
   return {
     group: g, gaze, body: rig, rig: null, upright: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.cloak, P.smoke, P.face],
-    driver, joints: J,
+    driver, joints: J, wield,
     tell: (id) => (id === 'step' ? T : sword),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';
@@ -359,10 +376,7 @@ export function shadeModel(skin) {
       if (swordS) swordS.visible = drawn > 0.04;
       // carried low and forward out of the fist; straight out of it along the arm for the thrust; up across its body in
       // its guard; in a cut, as the clip's fist holds the traveller's sword
-      if (want.feint === 'thrust') grip.rotation.set(Math.PI - 0.6, 0, 0);
-      else grip.rotation.set(2.2 - ward * 0.6, 0, -ward * 0.9);
-      const cutting = !want.feint && (want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover');
-      driver.gripFrom(grip, 0, cutting ? driver.moveW : 0);
+      wield.update(f, want, c, 'sword');
       // the feint: the hood tilts as the cut stops
       const A = f.atk?.feint ?? 0.45;
       const tilt = id === 'feint' && wind ? smooth(k, A - 0.05, A + 0.08) * (1 - smooth(k, A + 0.3, 0.75)) * 0.4 : 0;
