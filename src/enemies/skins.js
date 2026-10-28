@@ -215,6 +215,21 @@ export const SKINS = {
     perdide2: { name: 'marsh wisp', palette: { shell: '#2e3527', shell2: '#25322c', rim: '#a8905e', ring: '#c4a468', core: '#8ed49c', fire: '#e2f4d2', eye: '#bfe8a8', smoke: '#23251b', lichen: '#a6a67a' }, props: ['moss', 'brass'] },
     eclipse: { name: 'corona wisp', palette: { shell: '#15121c', shell2: '#2e2444', rim: '#d6c2ff', ring: '#f4ecff', core: '#ffcf6a', fire: '#fff4d0', eye: '#d6c2ff', smoke: '#100c18' }, props: ['corona'] },
   },
+  // (issue #724) sheet-1 (references/enemy-archetypes/mummer/sheet-1.jpg) is the Desert's dune mummer: a sack of
+  // sun-faded indigo patched with ochre and a pale sand cloth, tan rag tatters, rope bindings, a dented brass coffee pot,
+  // glossy ink limbs with a violet sheen, a pale driftwood club; sheet-2 its bleached twin (the Glass Dunes'): a cream
+  // sack patched sky blue and saffron, pale tatters, a taller and lighter pot, the bow's spring brighter.
+  mummer: {
+    desert: { name: 'dune mummer', palette: { sack: '#6c78a4', patch: '#cf9a43', patch2: '#d8c9a2', rag: '#ad9264', rope: '#b0844c', brass: '#b8963f', verd: '#7d8e5a', ink: '#17131f', sheen: '#6a58a8', wood: '#d8ccb0', iron: '#8a8172', eye: '#fbf6e8', flare: '#ffcf6a', rock: '#c2a27a' }, props: [] },
+    // (met only in the Arena until the mummers take their camps in the Glass Dunes: the roster v3's order, world by world)
+    glassdunes: { name: 'bleached mummer', arena: true, palette: { sack: '#d8c8a3', patch: '#8fb1d2', patch2: '#e3ae4f', rag: '#c2ae86', rope: '#c09a62', brass: '#cbb062', verd: '#8a9a6a', ink: '#15121c', sheen: '#7a6ab8', wood: '#e2d7bd', iron: '#a7a196', eye: '#fbf6e8', flare: '#ffcf6a', rock: '#cbb898' }, props: ['tall'] },
+  },
+  // sheet-1 (references/enemy-archetypes/mummerking/sheet-1.jpg) is the Desert's mummer king: a dark oak barrel with iron
+  // hoops for a chest, rag in indigo, ochre and sand over it, a green-patina copper cauldron, a pale cart wheel crown, a
+  // bright brass horn, glossy ink limbs, a door beam of weathered oak.
+  mummerking: {
+    desert: { name: 'mummer king', palette: { sack: '#56649a', patch: '#c98d36', patch2: '#d7c3a0', rag: '#a98f62', rope: '#b08850', brass: '#d9b048', verd: '#5f9a84', ink: '#141020', sheen: '#6a58a8', wood: '#8b6239', wood2: '#d6c6a4', iron: '#4e4842', copper: '#7fae9a', copper2: '#b8703f', eye: '#fbf6e8', flare: '#ffcf6a' }, props: [] },
+  },
 };
 
 // The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in

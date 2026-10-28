@@ -110,7 +110,8 @@ export function siteFootprint(s, o) {
 // looked at in the running game; see tests/encounters.test.js for what every one must keep clear of)
 export const SITES = {
   desert: [
-    { id: 'blot-fire', kind: 'camp', at: [312, 14.8, 176], heading: -0.49, foes: ['blot', 'blot', 'blot'], lookout: 'heron' },
+    // (issue #724: the blots' fire became the mummers' camp: three round the fire with their king, a lookout on the post)
+    { id: 'mummer-camp', kind: 'camp', at: [312, 14.8, 176], heading: -0.49, foes: ['mummer', 'mummerking', 'mummer', 'mummer'], lookout: 'mummer' },
     { id: 'twitching-sand', kind: 'ambush', at: [515, 37.4, 288], heading: -0.51, foes: ['worm', 'worm'], sign: 'sand' },
     { id: 'skitter-nest', kind: 'nest', at: [263, 1.2, 309], heading: -1.18, foes: ['skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
     { id: 'heron-hoard', kind: 'hoard', at: [354, 0.5, 456], heading: -3, foes: ['blot', 'heron', 'blot'] },

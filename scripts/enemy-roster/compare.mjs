@@ -38,7 +38,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the wind-ups each sheet draws (attack ids), and the yaw of each view (0: from the front; π/2: side, facing left)
 const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'],
   toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['grip'], brute: ['slam'], drone: ['harpoon'], cart: ['pour'], bell: ['toll'],
-  shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'] };
+  shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'], mummer: ['whack'], mummerking: ['throw'] };
 // (the flyers are shown flying: 'walk' in the gallery is the creature moving)
 const MOVING = new Set(['ray', 'moth', 'jelly', 'drone']);
 // (from above for a flat flyer: its back is what the sheet draws and what you see of it)
@@ -75,6 +75,7 @@ try {
   await send('Page.enable'); await send('Runtime.enable');
   await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/enemies.html` });
   for (let i = 0; i < 240; i++) { try { if (await ev('!!window.enemyViewer')) break; } catch { /* loading */ } await sleep(500); }
+  await ev('Promise.resolve(window.enemyViewer.clips).then(() => true)');   // (the humanoid foes' clips: src/enemies/humanoid-rig.js)
   await sleep(1500);
   await ev('window.requestAnimationFrame = () => 0, true');
   mkdirSync(OUT, { recursive: true });

@@ -1593,6 +1593,44 @@ every blow, cuts while it is open) beat it in 7.0 s without a blow taken (a floo
 parry); one who only spams the combo had 5 cuts turned off the shield, took 2 blows (its bash, its leap) and still won in
 9.1 s (no stalemate: its cuts land while it recovers from its own blows). Measured 2026-10-25 on this branch.
 
+## The mummers (v2.33, issue #724, `src/enemies/plans/mummer.js`)
+
+The camp tribe of docs/design/enemy-roster-v2.md, the first humanoids on clips (docs/design/enemy-roster-v3.md; the rig:
+docs/systems/procedural-animation.md, "The humanoid foe rig"). Spirits: the dark playing at being people, dressed up in
+junk. Drawn to their picked sheets (a new `mummer/` and `mummerking/` folder under the enemy references).
+
+- **The mummer** (`mummer`, tier 1, role `camp rank and file`, 2 hp, 1.1 m): a patched sack on bowed stick legs, long ink
+  arms, a dented brass coffee pot for a head with two white eyes. Skins: the Desert's dune mummer (sheet 1) and the
+  bleached mummer (sheet 2, met only in the Arena until the mummers take camps in the Glass Dunes). About nine draws.
+- **One weapon each** (`def.weapons` by weight: club 3, spear 2, bow 1.5; `Foe.weapon`, a separate part it drops and
+  picks up): a move with `attack.weapon` only with that one in hand. The **overhead whack** (club, 0.75 s: both arms up,
+  the club behind its pot, leaning back; `guardDisarms`: a plain guard knocks the club out of its hands, not only a
+  parry), the **spear jab** (0.7 s: the pole drawn back under its arm; a parry knocks it away), the **volley** (bow, 5-16 m,
+  0.95 s: the bow sideways, the cord at its pot; a stick flies straight, no mark). Disarmed (`f.disarmed`, the fencer's
+  `seekSword`): it lobs **rocks** (0.85 s, the one lob: its mark shows) and runs for its weapon.
+- **Its mask** (`def.mask { below, hits }`, `Foes.maskBlow`, `Foes.unmask`): a headshot (the #722 head zone), a charged
+  cut or a riposte knocks the pot flying, and so does its low change (`FIGHT.mummer.low` 'flee' under half): it drops
+  what it holds, clutches its blank wet face and runs (`RUN`), then comes back blind: its blows go `BLIND.wide` (1.1 rad)
+  wide of you. Its stronger tier (`TIERS.mummer`, "masked in metal") takes two headshots and whacks twice.
+- **The mummer king** (`mummerking`, tier 3, role `camp chief`, 7 hp, 2.6 m, `stout`, `heavy`): a barrel chest in patched
+  rag, a copper cauldron for a mask, a cart wheel for a crown, a brass horn on its back, a door beam for a club. The
+  **door-beam smash** (1.1 s: the beam high over its crown, leaning back; side hop), the **royal swing** (1.1 s: the beam
+  over its shoulder, its barrel twisted away; back flip), the **horn call** (`attack.horn` 25 m: `Foes.horn` →
+  `Foes.alarm(f, reach)` wakes every foe within it; once when it comes on and once more at half), and **throw a
+  mummer** (`attack.throwsAlly`, `def.throws`: the nearest mummer within `CARRY.reach` 5 m is picked up, held over its
+  crown in its fists (`Foes.carryUpdate`; a held one skips its own mind and is left out of `keepApart`), flung along the
+  lob's arc to its mark and lands dazed `CARRY.daze` 1.6 s, `Foes.landThrown`; nothing near it: no throw).
+- **Where**: the Desert keeps their camp (`SITES.desert` `mummer-camp`, the blots' old fire: three mummers round it with
+  their king, a mummer on the lookout); a pair of mummers now and then walks the dunes (`WORLDS.desert` roster 1.5,
+  `GROUP` 2, never the first pack); the king only at the camp (`WORLDS.desert.sites`: met at a site, never in a pack).
+  The blot still leads: the Desert teaches. The Arena: two waves (a troupe of three; the king with two to throw).
+- Their sites' idles are clips (squatting by the fire, asleep on the back, looking out: `model.ownRest`, so
+  `restPose` lays nothing over them); on a slope they stand upright (`model.upright`: no `tiltRoot`), their feet reaching
+  the ground's plane.
+
+Tests: `tests/mummers.test.js` (weapons, the guarded club, the mask, the king's horn and throw, the Desert's camp),
+`tests/humanoid-rig.test.js` (the rig).
+
 ## More foes, the perfect parry, combos
 
 - **Spitter:** keeps `keep` (6.5 m) away, backing off. It lobs a glob (drawn arcing over the second half of

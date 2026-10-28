@@ -31,6 +31,7 @@ import { PLANS } from './motion-kit/plans.js';
 import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, parseKind, skinned } from './enemies/archetypes.js';
 import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
 import { archetypeModel } from './enemies/plans/index.js';
+import { setFoeClips } from './enemies/humanoid-rig.js';
 import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
 import { partsOf, shiftAt } from './levels/names.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
@@ -116,6 +117,22 @@ export const PACK = { size: [2, 3], first: 1, near: 18, far: 26, settle: 3, rest
 export function packKinds(n, levelId, rng = Math.random) { return packOf(n, levelId, rng); }
 const STILL = 3.5;   // s a stilling glob holds a foe
 const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
+/**
+ * The mummer king's throw (issue #724, attack.throwsAlly): m round it it picks a mummer from; the share of the wind-up it
+ * lifts it over its crown by, and the share it is held to before it flies (the held pose: the tell); m over its crown (a
+ * body without hands to hold it), or the share of its height under its fists it is held by; s the thrown one lies dazed
+ * where it lands.
+ */
+export const CARRY = { reach: 5, lift: 0.35, fly: 0.78, over: 0.5, grip: 0.3, daze: 1.6 };
+/** A mummer with its mask knocked off can hardly see: its blows go this wide of you (rad, the whole spread). */
+export const BLIND = { wide: 1.1 };
+/** A weighted pick from { key: weight } (rng 0..1). */
+export function pickWeight(w, rng = Math.random) {
+  const e = Object.entries(w).filter(([, x]) => x > 0);
+  let x = rng() * e.reduce((a, [, v]) => a + v, 0);
+  for (const [k, v] of e) if ((x -= v) <= 0) return k;
+  return e.at(-1)?.[0] ?? null;
+}
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
 // (the spitting blot, the blot swarm and the root stalker came here first; the bellows toad, the skitters and the root
 // knot took their places in v1.12; the furnace brute and the crucible cart took the glass golem's and the slag walker's
@@ -124,7 +141,9 @@ export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Arra
   // then the worlds' (the archetypes and their stand-ins: src/enemies/archetypes.js, src/foe-kinds.js)
   ['worm'], ['brute'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['rootknot', 'blot'], ['heron'], ['crab', 'crab'], ['cart'], ['hound', 'hound'], ['lizard', 'lizard'], ['tripod'], ['tripod', 'lizard', 'lizard'], ['bell'], ['brute', 'crab', 'drone', 'hound'], ['cart', 'drone', 'lizard'],
   // batch 5 (v1.18): the pearl roller, the marionette with creatures to drive, the shade on its new body with company
-  ['roller'], ['roller', 'roller', 'blot'], ['marionette', 'crab'], ['marionette', 'lizard', 'lizard'], ['shade', 'roller']];
+  ['roller'], ['roller', 'roller', 'blot'], ['marionette', 'crab'], ['marionette', 'lizard', 'lizard'], ['shade', 'roller'],
+  // the humanoid foes on clips (issue #724): a mummer camp's troupe, then its king with two to throw
+  ['mummer', 'mummer', 'mummer'], ['mummerking', 'mummer', 'mummer']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /**
  * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
@@ -440,6 +459,8 @@ export class Foe {
     if (this.tierN) this.def = tierDef(this.archetype, this.def);
     this.tierChained = 0;
     this.moves = this.skin && this.archetype ? skinOf(this.archetype, this.skin)?.moves ?? [] : [];   // (its skin's own moves)
+    // (a mummer's weapon, issue #724: one of its kind's, by weight; attack.weapon only with it in hand)
+    this.weapon = this.def.weapons ? pickWeight(this.def.weapons, rng) : null; this.unmasked = false; this.maskHits = 0; this.carry = null; this.carriedBy = null; this.horns = 0;
     this.templeOnly = templeOnly ?? this.kind === 'machine';
     this.id = id; this.rng = rng;
     // out in the wilds (calm: a pack, Foes.spawnPack) a kind with a calm (def.calm) keeps to it until provoked:
@@ -652,12 +673,16 @@ export class Foe {
       && (!a.dark || !(this.lit > 0))                                             // (lit, a shade is solid: it can't step)
       && (!a.ball || !this.ballOut)                                               // (one fireball of its own in the air at a time)
       && (!a.armed || !this.disarmed) && (!a.unarmed || !!this.disarmed)          // (its sword knocked away: only its shield's blows)
+      && (!a.weapon || a.weapon === this.weapon)                                  // (a mummer's move with the weapon it carries)
+      && (!a.horn || this.horns < (this.hp <= D.hp * 0.5 + 1e-9 ? 2 : 1))         // (its horn: when it first comes on, and once more at half)
+      && (!a.throwsAlly || !!this.allyFor(a))                                     // (a mummer near it to pick up and throw)
       && !a.answer                                                                // (only as an answer: a guard's counter, a bash at a raised guard: tendGuard, punishTurtle)
       && (!a.possess || (!this.hosting && !!this.allyFor(a)))                     // (a marionette's strings: a creature to drop them on)
       && (!a.alone || (!this.hosting && !this.allyFor(this.def.attacks.find((x) => x.possess) ?? {}))));   // (its dance: nothing to hold)
   }
   /** The neighbour a support's move (attack.ward / attack.mend) would go to, or null: one not yet warded while a lantern is free; one hurt. */
   allyFor(a) {
+    if (a.throwsAlly) return (this.allies ?? []).filter((x) => x.kind === a.throwsAlly && x.alive && x.dead === undefined && !x.dying && !x.carriedBy && !x.carry && x.pos.distanceTo(this.pos) <= CARRY.reach).sort((p, q) => p.pos.distanceTo(this.pos) - q.pos.distanceTo(this.pos))[0] ?? null;
     if (a.possess) return (this.allies ?? []).find((x) => x.alive && x.dead === undefined && !x.possessed && x.pos.distanceTo(this.pos) <= a.possess.range) ?? null;
     if (!a.ward && !a.mend) return null;
     const near = (x) => x.alive && x.pos.distanceTo(this.pos) <= (a.ward ?? a.mend).range;
@@ -786,9 +811,13 @@ export class Foe {
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false; this.answering = false; this.turtle = 0;
     this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
     this.ring = null;
-    this.allyTarget = a.ward || a.mend || a.possess ? this.allyFor(a) : null;   // (a support's move, a marionette's strings: to a neighbour)
+    this.allyTarget = a.ward || a.mend || a.possess || a.throwsAlly ? this.allyFor(a) : null;   // (a support's move, a marionette's strings: to a neighbour)
+    // (the mummer king picks up the mummer it throws; its horn counted, issue #724)
+    if (a.throwsAlly && this.allyTarget) { this.carry = this.allyTarget; this.carry.carriedBy = this; this.carry.carryFrom = this.carry.pos.clone(); }
+    if (a.horn) this.horns++;
     this.bounced = 0;
     this.attackH = this.heading + (a.back ? Math.PI : 0);   // (a tail whip: behind it)
+    if (this.unmasked && !a.at) this.attackH += (this.rng() - 0.5) * BLIND.wide;   // (its mask knocked off, it can't see well: it swings wide)
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
     if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
     this.farFor = 0;
@@ -869,7 +898,7 @@ export class Foe {
     // (its stronger tier's new move, #722 D13: after its move a, its b at once, its wind-up quicker, once: TIERS combo)
     const C = this.tierN ? TIERS[this.archetype]?.combo : null;
     if (!n && C && a.id === C[0] && !this.tierChained && !P.dead && !P.down && this.state !== 'dead' && !(this.stunned > 0)) {
-      const b = this.def.attacks.find((x) => x.id === C[1] && (!x.skins || this.moves.includes(x.id)) && (!x.armed || !this.disarmed) && (!x.ball || !this.ballOut));
+      const b = this.def.attacks.find((x) => x.id === C[1] && (!x.skins || this.moves.includes(x.id)) && (!x.armed || !this.disarmed) && (!x.weapon || x.weapon === this.weapon) && (!x.ball || !this.ballOut) && (!x.throwsAlly || !!this.allyFor(x)));
       if (b) { this.beginWind(b, P, true); this.tierChained = 1; ev.push('warn'); ev.push({ type: 'tier', atk: b }); return; }
     }
     // (it missed you: the same move again, quicker, now and then: fight.follow, #722)
@@ -903,6 +932,8 @@ export class Foe {
     if ((a.ward || a.mend) && this.allyTarget?.alive) ev.push({ type: a.ward ? 'ward' : 'mend', target: this.allyTarget, atk: a });
     if (a.possess && this.allyTarget?.alive && !this.allyTarget.possessed) ev.push({ type: 'possess', target: this.allyTarget, atk: a });   // (Foes.possess)
     if (a.ball && playerOk) ev.push({ type: 'ball', atk: a });   // (the ember wisp's fireball: Foes.throwBall, src/fireballs.js)
+    if (a.horn) ev.push({ type: 'horn', atk: a });   // (the mummer king's horn: Foes.alarm, its reach)
+    if (a.throwsAlly && this.carry) ev.push({ type: 'hurled', target: this.carry, atk: a });   // (the mummer it threw lands: Foes.landThrown)
     if (a.damage > 0 || a.slip || a.blur) {
       const pts = this.attackPts ?? [this.attackAt];
       const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
@@ -927,6 +958,7 @@ export class Foe {
   update(dt, P, env = {}) {
     const D = this.def, ev = [];
     if (!this.alive) return ev;
+    if (this.carriedBy) return ev;   // (held up by the mummer king: Foes.carryUpdate moves it)
     this.flash = Math.max(0, this.flash - dt * 4);
     // coming out of its cloud (src/foe-entrance.js ENTRANCE.hold): it only turns to you; its cool starts after
     if (this.arriving > 0) { this.arriving = Math.max(0, this.arriving - dt); this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 3); return ev; }
@@ -1521,6 +1553,7 @@ export class Foe {
   disarm(at) {
     if (!this.alive || this.disarmed) return;
     this.disarmed = { at: at.clone(), from: this.pos.clone().setY(this.pos.y + this.def.height), t: 0 };
+    this.droppedWeapon = this.weapon;
   }
   /**
    * Disarmed, chasing: it runs for its sword, the shield toward you; with you in reach and its turn come, it fights shield
@@ -2204,6 +2237,7 @@ export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
     Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.balls = []; this.group = new THREE.Group(); this.group.name = 'Foes';
+    setFoeClips(lib);   // (the humanoid foes' clips: src/enemies/humanoid-rig.js)
     this.shapes = new Map();   // (kind@skin → the geometries its foes share: src/foe-shapes.js)
     this.spares = new Map();   // (kind@skin → a body built for the load's warm, kept for the first foe of it: warmModels)
     this.group.userData.noCollide = true;
@@ -3013,6 +3047,8 @@ export class Foes {
       // (#722: its poise broken, its low-health change: src/enemies/fight.js)
       if (f.brokeNow && f.alive) this.poiseBroken?.(f, dir);
       if (f.lowNow && f.alive) this.lowChange?.(f);
+      // (a mummer's mask: a headshot, a charged cut or a riposte knocks it off, issue #724)
+      if (f.alive && f.def.mask && !f.unmasked && (f.headNow || (mode === 'blade' && info?.breaks))) this.maskBlow(f, !!f.headNow);
       f.brokeNow = false; f.lowNow = null;
     }
   }
@@ -3311,6 +3347,9 @@ export class Foes {
       if (f.def.support) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.def.support && x.pos.distanceTo(f.pos) < 12);
       // a puppeteer sees the creatures near it it could drop its strings on (the marionette: wildlife, a calm one too)
       if (f.def.puppeteer) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && ARCHETYPES[x.archetype]?.family === 'creature' && !x.riding && x.pos.distanceTo(f.pos) < 14);
+      // a thrower sees the small ones near it it could pick up (the mummer king: its mummers)
+      if (f.def.throws) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && x.kind === f.def.throws && x.pos.distanceTo(f.pos) < CARRY.reach + 1);
+      if (f.carry) this.carryUpdate(f);
       // a flock knows how many of its own are near to climb into a heap with (attack.pile)
       if (f.def.flock) f.mates = this.list.filter((x) => x !== f && x.kind === f.kind && x.alive && x.dead === undefined && !x.riding && x.pos.distanceTo(f.pos) < PILE.near).length;
       // (a spell's slow tide round it: its own time runs slower, src/spells/caster.js; the look with it)
@@ -3324,6 +3363,8 @@ export class Foes {
         if (e?.type === 'possess') { this.possess(f, e.target, e.atk); continue; }
         if (e?.type === 'shatter') { this.shatter(f, e.atk); continue; }
         if (e?.type === 'ball') { this.throwBall(f, e.atk); continue; }
+        if (e?.type === 'horn') { this.horn(f, e.atk); continue; }
+        if (e?.type === 'hurled') { this.landThrown(f, e.target); continue; }
         if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
         if (f.kind === 'shade') this.slashTrail(f);
@@ -3372,6 +3413,7 @@ export class Foes {
     for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
       const a = L[i], b = L[j];
       if (!a.alive || !b.alive || a.riding || b.riding) continue;   // (a heap's riders sit on the one under them)
+      if (a.carriedBy || b.carriedBy) continue;   // (a mummer held up by its king: over it, not beside it)
       const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z, d = Math.hypot(dx, dz), want = a.def.radius + b.def.radius + TURNS.apart;
       if (d >= want || d < 1e-4) continue;
       const push = (want - d) / 2 / d;
@@ -3508,7 +3550,7 @@ export class Foes {
       else if (a.onParry === 'open') { f.open = perfect ? OPEN.perfect : OPEN.guard; f.stunned = Math.max(f.stunned, f.open); }
       // a sky ray's skim parried: it ploughs into the ground and lies there, open
       // a fencer's sword parried: knocked out of its hand, it lands a few metres off (issue #665); shield alone, it runs for it
-      else if (a.onParry === 'disarm' && perfect && f.alive) {
+      else if (a.onParry === 'disarm' && (perfect || a.guardDisarms) && f.alive) {
         f.disarm(this.swordSpot(f)); this.sparks(f, f.chest); kick(0.2);
         if (!this.game.flag('foes.disarmed') && hintsFor('tip')) { this.game.set('foes.disarmed', true); this.notice?.('Its sword is knocked away. Catch it as it bends to pick it up.'); }
       }
@@ -3997,12 +4039,71 @@ export class Foes {
    * One provoked (it noticed you, or you hurt it): those of its own kind near it that keep a calm are provoked too
    * (def.calm.alarm m: a lizard's partner, a crab's neighbours, the hounds of a pair).
    */
-  alarm(f) {
+  // ------------------------------------------------------------------ the mummers (issue #724)
+  /** A blow at a mummer's mask (a headshot: `def.mask.hits` of them; a charged cut or a riposte: at once). */
+  maskBlow(f, head) {
+    f.maskHits = (f.maskHits ?? 0) + 1;
+    if (!head || f.maskHits >= (f.def.mask.hits ?? 1)) this.unmask(f);
+    else { this.sparks(f, f.chest); worldSnd.thud(this.sound, 0.25); }   // (the metal mask rings: once more)
+  }
+  /** Its mask knocked flying: it drops what it holds, clutches its face and runs (then comes back blind: BLIND). */
+  unmask(f) {
+    if (f.unmasked || !f.alive) return;
+    f.unmasked = true;
+    if (f.weapon && !f.disarmed) f.disarm(this.swordSpot(f));
+    if (!(f.fleeT > 0)) { f.fleeT = RUN.time; f.fled = false; f.plan = null; }
+    this.gesture(f, 'cower');
+    this.sparks(f, f.chest); kick(0.12);
+    if (!this.game.flag('foes.unmasked') && hintsFor('tip')) { this.game.set('foes.unmasked', true); this.notice?.('Its mask is knocked off: it can hardly see, and it runs.'); }
+  }
+  /** The mummer king's horn (attack.horn): every one round it within its reach wakes and comes. */
+  horn(f, a) {
+    this.alarm(f, a.horn ?? 0);
+    this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.9, () => f.chest, 'quake');
+    kick(0.08);
+  }
+  /** A mummer held by the mummer king (f.carry): lifted over its crown, held, then flying at the mark; let go if it stops. */
+  carryUpdate(f) {
+    const x = f.carry;
+    if (!x?.alive || x.dead !== undefined || x.dying) { if (x) x.carriedBy = null; f.carry = null; return; }
+    if (!f.alive || f.dying || (f.state !== 'wind' && f.state !== 'strike')) { this.dropCarried(f); return; }
+    const k = f.state === 'wind' ? f.k ?? 0 : 1, top = _w.set(f.pos.x, f.pos.y + f.def.height + CARRY.over, f.pos.z);
+    // (in its fists, where its body has them: the held one's sack between its hands)
+    const H = f.model?.joints?.hands;
+    if (H) { f.model.group.updateMatrixWorld(true); top.copy(H[0].getWorldPosition(_v)).add(H[1].getWorldPosition(_gl)).multiplyScalar(0.5); top.y -= CARRY.grip * (x.def.height ?? 1); }
+    if (k < CARRY.lift) x.pos.lerpVectors(x.carryFrom, top, THREE.MathUtils.smoothstep(k / CARRY.lift, 0, 1));
+    else if (k < CARRY.fly) x.pos.copy(top);
+    else {
+      const u = (k - CARRY.fly) / (1 - CARRY.fly);
+      x.pos.lerpVectors(top, f.attackAt, u); x.pos.y += Math.sin(Math.PI * u) * 2.5;
+    }
+    x.heading = f.heading + Math.PI; x.state = 'recover'; x.k = 0; x.stunned = Math.max(x.stunned, 0.2);
+  }
+  /** Let go of what it holds: dropped at its feet, a little dazed. */
+  dropCarried(f) {
+    const x = f.carry; f.carry = null;
+    if (!x) return;
+    x.carriedBy = null;
+    x.pos.set(f.pos.x + Math.sin(f.heading) * (f.def.radius + 0.6), f.pos.y, f.pos.z + Math.cos(f.heading) * (f.def.radius + 0.6));
+    const y = this.env.ground(x.pos.x, x.pos.y + 2, x.pos.z); if (y != null) x.pos.y = y;
+    x.stunned = Math.max(x.stunned, 0.6);
+  }
+  /** The thrown mummer lands at the mark, dazed (an easy cut). */
+  landThrown(f, x) {
+    f.carry = null;
+    if (!x?.alive) return;
+    x.carriedBy = null;
+    x.pos.copy(f.attackAt);
+    const y = this.env.ground(x.pos.x, x.pos.y + 2, x.pos.z); if (y != null) x.pos.y = y;
+    x.stunned = Math.max(x.stunned, CARRY.daze); x.timer = Math.max(x.timer, CARRY.daze); x.state = 'recover'; x.provoked = true;
+    this.animKit(x, 0, {}).dust(x.pos, '#cdb89a', 10, 0.8); worldSnd.thud(this.sound, 0.5); kick(0.15);
+  }
+  alarm(f, reach = 0) {
     for (const x of this.list) {
       if (x === f || !x.alive || x.dead !== undefined || x.dying) continue;
       // (#722: its call wakes its whole pack, any kind, within ALERT.pack m (or its own kind's alarm, if wider); each with
       // its own alert beat a moment after, not all in step)
-      const own = (x.kind === f.kind || x.def.calm?.joins) && x.def.calm?.alarm ? x.def.calm.alarm : 0, r = Math.max(own, f.wilds || x.wilds ? ALERT.pack : 0);
+      const own = (x.kind === f.kind || x.def.calm?.joins) && x.def.calm?.alarm ? x.def.calm.alarm : 0, r = Math.max(own, reach, f.wilds || x.wilds ? ALERT.pack : 0);
       if (!r || x.pos.distanceTo(f.pos) > r) continue;
       if (x.provoked && x.state !== 'idle') continue;
       x.provoked = true; x.watcher = false;
@@ -4056,6 +4157,7 @@ export class Foes {
     const k = f.lowNow;
     if (k === 'enrage') this.gesture(f, 'rage');
     else if (k === 'flee') {
+      if (f.def.mask && !f.unmasked) this.unmask(f);   // (a mummer's mask comes off as it breaks and runs, issue #724)
       const near = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.dying && x.pos.distanceTo(f.pos) < RUN.ally).sort((p, q) => p.pos.distanceTo(f.pos) - q.pos.distanceTo(f.pos))[0];
       f.fleeTo = near ?? null;
       if (near) this.alarm(f);
@@ -4163,7 +4265,7 @@ export class Foes {
       if (M.gaze) gazeAim(f, this.player, dt);
       M.anim(f, kit);
       if (M.gaze && f.dist < GAZE.far) gazeApply(M.gaze, f.gaze.at, dt, !f.gaze.watching);
-      if (SL && !M.rig) tiltRoot(g, SL);
+      if (SL && !M.rig && !M.upright) tiltRoot(g, SL);   // (a humanoid on clips stands upright: its feet reach the slope, src/enemies/humanoid-rig.js)
       if (f.possessed && M.eyeMat?.uniforms?.uColor) M.eyeMat.uniforms.uColor.value.set(POSSESS_EYE);   // (driven by strings: its eyes go black)
       if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? f.restPose ?? null);   // (a body with no legs to solve: after its pose)
       if (DP) this.falling(f, DP, kit);

@@ -45,7 +45,7 @@ const at = (secs) => Math.round(secs * RATE);
 const BUILT = Object.entries(ARCHETYPES).filter(([, A]) => A.status === 'built');
 
 test('every archetype has a voice of its own, in its sound family (src/enemies/archetypes.js sound)', () => {
-  assert.equal(BUILT.length, 23);
+  assert.equal(BUILT.length, 25);
   const seen = { hurt: new Map(), burst: new Map() };
   for (const [id, A] of BUILT) {
     const V = FOE_VOICES[A.kind];

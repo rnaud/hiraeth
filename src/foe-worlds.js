@@ -12,6 +12,7 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 //   lead     the pack lead: the most common archetype there (no two route worlds in a row share one)
 //   roster   its archetypes by weight (how often each leads a pack)
 //   late     archetypes that lead only from the third pack on; placed: one met where it is placed, not in packs
+//   sites    archetypes met only at its encounter sites (src/encounters/sites.js), never in a pack: the Desert's mummer king
 //   temple   the kinds in its temple rooms (no archetype in its echo guardian's temple: the makers' machines stay)
 // Since batch 5 (v1.18) every archetype is built on its own body: no stand-in is left, and every world runs on the new
 // roster (an archetype not built would run on a stand-in's body, src/enemies/archetypes.js `kind`, or wait, `planned`).
@@ -23,7 +24,8 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 
 export const WORLDS = {
   // the route
-  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, heron: 2, skitter: 2 }, placed: ['tripod'] },
+  // (issue #724: the mummers keep camp in the dunes, a pair of them now and then out walking; the blot still leads)
+  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, heron: 2, skitter: 2, mummer: 1.5 }, placed: ['tripod'], sites: ['mummerking'] },
   arzach: { stage: 0, lead: 'ray', roster: { ray: 4, heron: 2, blot: 3 } },
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
   perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
@@ -74,12 +76,12 @@ export const PLACED = {
 export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', guards: ['blot', 'blot'], temple: ['machine'], shade: 0, stage: 1 };
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
-export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2 };
+export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2 };
 /** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
-export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2 };
-export const FROM = { wisp: 1, skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
+export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2, mummer: 2 };
+export const FROM = { wisp: 1, skitter: 1, mummer: 1, mummerking: 3, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
+export const COSTS = { mummerking: 2, machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
 /** The places a kind takes in a pack: a group its group's, a big lead its own, else one. */
 export const costOf = (k) => (GROUP[k] ? GROUP_COST[k] ?? GROUP[k] : COSTS[k] ?? 1);
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
@@ -172,4 +174,4 @@ export function templeKind(levelId, i) {
 }
 
 /** The archetypes a world fields (its table's, placed ones too), in its table's order. */
-export const worldArchetypes = (w) => (WORLDS[w] ? [...new Set([...Object.keys(WORLDS[w].roster), ...(WORLDS[w].placed ?? [])])] : []);
+export const worldArchetypes = (w) => (WORLDS[w] ? [...new Set([...Object.keys(WORLDS[w].roster), ...(WORLDS[w].placed ?? []), ...(WORLDS[w].sites ?? [])])] : []);

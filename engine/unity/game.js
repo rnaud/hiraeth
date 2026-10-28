@@ -815,6 +815,15 @@ function makePlan(args) {
       { kind: 'foe', what: 'strip' }, { kind: 'wait', frames: 100, secs: 2 }, ...shot('off'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'bell@bazaar*', dist: 5, hp: 99 }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
   }
+  if (fights.includes('mummers')) {
+    // (-fight mummers, issue #724: the humanoid foes on clips, src/enemies/humanoid-rig.js: a mummer king 7 m ahead and a
+    // mummer 4.5 m ahead, standing; their rig said (the clips in, the state's clip); then each winds up its first blow,
+    // pictured at three quarters of it: the clip's loaded pose held)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-mummers-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'mummerking@desert', dist: 7, hp: 99 }, { kind: 'foe', what: 'mummer@desert', dist: 4.5, hp: 99 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
+      { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('windup'));
+  }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
   for (const f of fights.filter((x) => x.startsWith('site:'))) {
@@ -1266,6 +1275,11 @@ function playFrame(dt) {
         game.player.heading = Math.atan2(c.x - at.x, c.z - at.z); game.rig.yaw = game.player.heading + Math.PI;
         console.log(`[unity] in ${T.id}'s arena (${G.state})`);
       }
+    } else if (step.what === 'rig') {
+      // (-fight mummers: each humanoid's rig, issue #724: its own Animator on the shared clips, what its state plays)
+      for (const f of F.list.filter((x) => x.model?.driver)) console.log(`[unity] ${f.kind} rig: clips ${!!f.model.driver.A}, ${f.state}, plays ${JSON.stringify(f.model.driver.chosen)}, ${f.model.driver.cost.toFixed(3)} ms`);
+    } else if (step.what === 'windup') {
+      for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }
     } else if (step.what === 'clear') {
       for (const f of F.list.slice()) F.remove(f);
       console.log('[unity] the foes cleared');

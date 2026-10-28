@@ -155,7 +155,8 @@ export class Encounters {
         if (f.provoked && !f.called) { f.called = true; this.alarm(s, f); }
         // back home after you left it be: it settles back into its life there (sat by the fire, asleep again)
         if (f.provoked && f.state === 'idle' && f.idle && Math.hypot(P.pos.x - f.pos.x, P.pos.z - f.pos.z) > 25) { f.provoked = false; f.called = false; }
-        f.restPose = restPose(f, dt, f.restPose ?? {});
+        // (a humanoid on clips sits and sleeps in its own clips: src/enemies/humanoid-rig.js; no lowering laid over them)
+        f.restPose = f.model?.ownRest ? null : restPose(f, dt, f.restPose ?? {});
       });
       if (s.killed.size >= s.lay.foes.length) { this.clear(s); continue; }
       if (!any && s.sprung && d > SITE.drop) s.sprung = false;

@@ -672,6 +672,80 @@ export const ARCHETYPES = {
     }),
     note: 'An ember wisp: cut its fireball as it reaches you, and it flies back.',
   },
+  // ----------------------------------------------------------------------------- the humanoid foes on clips (issue #724)
+  // The camp tribe of docs/design/enemy-roster-v2.md, on the humanoid rig (src/enemies/humanoid-rig.js: the traveller's
+  // clips retargeted onto their own proportions; docs/design/enemy-roster-v3.md). Bodies: src/enemies/plans/mummer.js.
+  //   weapons     what it may carry, by weight (a mummer: one each, picked as it comes: Foe.weapon); attack.weapon: only
+  //               with that one in hand; attack.armed / attack.unarmed as the fencer's (its weapon knocked away)
+  //   attack.guardDisarms   a plain guard knocks the weapon out of its hand too, not only a perfect parry (the club)
+  //   mask        { below, hits } its mask is knocked off (f.unmasked): under `below` of its health, by a headshot (`hits`
+  //               of them: the stronger tier's metal mask takes two), a charged cut or a riposte: it drops what it holds,
+  //               clutches its face and runs, then fights blind (its blows go wide)
+  //   attack.horn  m round it that its call wakes (Foes.alarm), once when it first comes on and once more at half health
+  //   attack.throwsAlly   the kind it picks up near it (within 5 m: def.throws, the kind it looks for) and hurls at the
+  //               mark (a lob): the thrown one lands dazed (src/foes.js CARRY, Foes.carryUpdate, Foes.landThrown)
+  mummer: {
+    name: 'mummer', family: 'spirit', plan: 'mummer', planNo: 23, role: 'camp rank and file', tier: 1, ranged: true,
+    status: 'built', kind: 'mummer', was: [], sound: 'junk', drop: 2, art: { main: 'desert', alt: 'glassdunes' },
+    manifestation: 'dressed-up ink: a sack of rags stuffed with ink and a found pot for a face, playing at keeping camp',
+    moves: ['its weapon’s blow (a club’s overhead whack, a spear’s jab, a bow’s volley)', 'rock (with nothing in its hands)'],
+    answers: ['knock the mask off (a headshot, a charged cut, a riposte)', 'guard the club: it flies out of its hands', 'shoot the archer', 'reach the lookout before its horn'],
+    idle: 'squats round a fire it does not need, rocking; one dozes on its back; a lookout keeps watch and calls the camp',
+    def: S({
+      name: 'mummer', hp: 2, hook: 'light', radius: 0.42, height: 1.1, speed: 3.4, sight: 17, giveUp: 34, reach: 16, clamber: true,
+      tone: '#c9973f', takes: { shoot: 1, fire: 1.5 },
+      calm: { mode: 'sit', provoke: 7, alarm: 14 },
+      weapons: { club: 3, spear: 2, bow: 1.5 },
+      mask: { below: 0.5, hits: 1 },
+      // its weapon knocked away (a parried or guarded blow): it lands `dist` m off; it runs for it and bends to pick it up
+      disarm: { dist: 2.8, fly: 0.5, pickup: 1.1 },
+      attacks: [
+        // both arms high, the club behind its mask, leaning back on its heels so its belly sticks out; a hop forward as it swings
+        { id: 'whack', name: 'overhead whack', weapon: 'club', armed: true, shape: 'cone', range: 2.1, angle: 0.75, damage: 0.5, wind: 0.75, strike: 0.3, contact: 0.55, lunge: 1.3, max: 2.2, weight: 2.5, dodge: 'side', onParry: 'disarm', guardDisarms: true,
+          tell: 'both arms go up, the club behind its mask; it leans back on its heels, belly out', counter: 'guard it and the club flies out of its hands; or step aside' },
+        // it plants its feet, draws the pole back under its arm, the pot tipped down along it; then the jab
+        { id: 'jab', name: 'spear jab', weapon: 'spear', armed: true, shape: 'lane', width: 0.8, range: 2.5, damage: 0.5, wind: 0.7, strike: 0.2, contact: 0.5, lunge: 0.6, max: 2.6, weight: 2.5, dodge: 'side', onParry: 'disarm',
+          tell: 'it plants its feet and draws the pole back under its arm, the pot tipped down along it', counter: 'parry it (the pole flies), or step inside its reach' },
+        // the bow held sideways, leaning back with the cord at its mask; a sharpened stick flies straight (no mark)
+        { id: 'volley', name: 'volley', weapon: 'bow', armed: true, shape: 'lane', width: 0.7, range: 16, damage: 0.5, wind: 0.95, strike: 0.2, contact: 0.6, track: 0.6, min: 5, max: 16, weight: 3, onParry: 'cut',
+          tell: 'it holds the bow sideways and leans back, the cord drawn to its mask', counter: 'guard the stick, shoot the archer, or close in' },
+        // with nothing in its hands: it squats, digs both hands in, lifts a rock over its mask; a lob, its mark shown
+        { id: 'rock', name: 'rock', unarmed: true, shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.3, damage: 0.5, wind: 0.85, min: 3, max: 14, weight: 2,
+          tell: 'it squats, digs both hands into the ground and lifts a rock over its mask', counter: 'walk out of the mark, or cut the rock back' },
+      ],
+      recover: 1.0, cool: [1.3, 2.4], hit: 0.35,
+    }),
+    note: 'Mummers: knock the mask off and they run. Guard a club and it flies.',
+  },
+  mummerking: {
+    name: 'mummer king', family: 'spirit', plan: 'mummerking', planNo: 24, role: 'camp chief', tier: 3, ranged: true,
+    status: 'built', kind: 'mummerking', was: [], sound: 'junk', drop: 8, art: 'sheet-1',
+    manifestation: 'the troupe’s big role: two or three mummers’ worth of junk in one body, the one who wears the crown in the play',
+    moves: ['door-beam smash and royal swing', 'horn call', 'throw a mummer'],
+    answers: ['cut down the troupe before it can throw them', 'roll through the royal swing', 'side hop the smash and cut its back', 'get out from under a thrown mummer'],
+    idle: 'sits by the fire with the beam across its knees while its troupe keeps camp',
+    def: S({
+      name: 'mummer king', hp: 7, hook: 'heavy', radius: 0.95, height: 2.6, speed: 2.7, sight: 18, giveUp: 34, reach: 12, heavy: true, stout: true, throws: 'mummer',
+      tone: '#7fae9a', takes: { shoot: 1, fire: 1.5 },
+      calm: { mode: 'sit', provoke: 9, alarm: 25 },
+      attacks: [
+        // the beam hoisted high over its crown in both fists, leaning back; then down through it
+        { id: 'smash', name: 'door-beam smash', shape: 'lane', width: 1.4, range: 3.8, damage: 1, wind: 1.1, strike: 0.3, contact: 0.55, knock: 5, lunge: 0.6, max: 3.6, weight: 2.5, dodge: 'side',
+          tell: 'it hoists the door beam high over its crown in both fists and leans back', counter: 'side hop, then cut its back' },
+        // the beam over its shoulder, its whole barrel twisted away from you; a wide sweep
+        { id: 'swing', name: 'royal swing', shape: 'cone', range: 4, angle: 1.35, damage: 0.75, wind: 1.1, strike: 0.35, contact: 0.5, knock: 4, max: 3.9, weight: 2, dodge: 'back',
+          tell: 'it hoists the beam over its shoulder and twists its whole barrel away from you', counter: 'roll through it, or the air cut over it' },
+        // the long horn brought round to its cauldron: every mummer within 25 m wakes and comes
+        { id: 'horn', name: 'horn call', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.2, instant: true, horn: 25, max: 12, weight: 4, recover: 0.8,
+          tell: 'it brings the long brass horn round to its cauldron', counter: 'cut it before it blows, or ready for the troupe' },
+        // it scoops up the nearest small mummer and holds it high over its crown, kicking; then hurls it at the mark
+        { id: 'throw', name: 'throw a mummer', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.6, damage: 0.5, knock: 3, wind: 1.0, min: 3.5, max: 12, weight: 3, throwsAlly: 'mummer',
+          tell: 'it bends, scoops up a mummer and holds it high over its crown, kicking', counter: 'get out from under the mark; the thrown one lands dazed' },
+      ],
+      recover: 1.3, cool: [1.4, 2.4], hit: 0.5,
+    }),
+    note: 'The mummer king: cut down its troupe, or it throws them at you.',
+  },
 };
 
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);

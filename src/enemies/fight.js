@@ -54,6 +54,9 @@ export const FIGHT = {
   hound: { mass: 0.9, poise: 3, low: { kind: 'last', below: 0.67, attack: 'rake' }, alone: 'rage', follow: { id: 'pounce', on: ['whiff'], chance: 0.4 }, evade: { chance: 0.3, hop: 2.5 } },
   marionette: { mass: 0.6, poise: 3, low: { kind: 'flee', below: 0.4 }, alone: 'flee' },
   wisp: { mass: 0.5, poise: 3, low: { kind: 'enrage', below: 0.4 }, alone: 'rage' },
+  // (issue #724: the mummers' low change is the mask knocked off, src/foes.js Foes.unmask: it drops what it holds and runs)
+  mummer: { mass: 0.7, poise: 2, low: { kind: 'flee', below: 0.5 }, alone: 'flee', follow: { id: 'whack', on: ['whiff'], chance: 0.4 }, evade: { chance: 0.2, hop: 1.8 }, backstep: 'volley' },
+  mummerking: { mass: 3.5, poise: 7, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'smash', on: ['whiff'], chance: 0.4 } },
 };
 
 /**
@@ -223,6 +226,9 @@ export const TIERS = {
   hound: { combo: ['pounce', 'bite'], words: 'it bites as it lands its pounce' },
   marionette: { combo: ['yank', 'yank'], words: 'its strings yank twice' },
   wisp: { combo: ['fireball', 'flare'], words: 'it flares after its fireball' },
+  // (the doc's tier 2, "masked in metal": its mask takes two headshots (def.mask.hits), and it whacks twice)
+  mummer: { combo: ['whack', 'whack'], mask: 2, words: 'masked in metal (two headshots to knock it off); it whacks twice' },
+  mummerking: { combo: ['throw', 'smash'], words: 'it throws a mummer and comes in behind it with the beam' },
 };
 /** The stage of the route a tier first comes in at, and the share of the non-fodder foes in tier by stage (0-4). */
 export const TIER_FROM = 3;
@@ -240,7 +246,7 @@ export function tierDef(archetype, def) {
     if (T.unlock === a.id && x.skins) { const { skins, ...rest } = x; x = rest; }
     return x;
   });
-  return { ...def, attacks, attack: attacks[0] };
+  return { ...def, attacks, attack: attacks[0], ...(T.mask && def.mask ? { mask: { ...def.mask, hits: T.mask } } : {}) };
 }
 /** Is this move its tier's new one (its flare plays on its wind-up)? */
 export const tierMove = (archetype, id, chained = false) => {

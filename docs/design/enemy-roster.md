@@ -897,6 +897,15 @@ About 12–13 sessions alongside the kit's 8–11. Phases 2–4 put the whole fi
 
 ## Status (the build, 2026-10-09)
 
+**v2.33 (issue #724): the 24th and 25th, the mummer and the mummer king** (`mummer`, `mummerking`: spirits, roles `camp
+rank and file` and `camp chief`, tiers 1 and 3, plans `mummer` and `mummerking`; docs/design/enemy-roster-v2.md and v3),
+the first humanoids on clips (src/enemies/humanoid-rig.js). Drawn to their picked sheets (the mummer's both: the dune
+mummer, the Desert's, and the bleached one; the king's one): the silhouette, the patched sack, the coffee pot and the
+cauldron, the crown, the horn and the beam match; still differing: the patches are painted on smooth lathes (no torn
+edges or seams in the geometry), the king's arms are straight tubes, not the sheet's tapering ink, its barrel shows as a
+band between its rag belly and its mantle, and the mummer's rags are cones. In the Desert only for now (its camp, a pair
+in the dunes; the king at the camp alone); their other worlds and skins come world by world (enemy-roster-v3.md, "Order").
+
 **v2.27 (issue #665): a 23rd archetype, the makers' fencer** (`fencer`: a machine, role `mirror`, tier 3, plan `fencer`),
 a sword-and-shield duelist that mirrors the traveller's kit, in the Moon Foundry, the City Floating in Space and the
 Signal Market. No reference sheet was generated or picked for it (`art: 'pending'`): its body is built from the

@@ -36,6 +36,8 @@ const planSources = {
   marionette: readFileSync(new URL('../src/enemies/plans/strings.js', import.meta.url), 'utf8'),
   wisp: readFileSync(new URL('../src/enemies/plans/ember.js', import.meta.url), 'utf8'),
   fencer: readFileSync(new URL('../src/enemies/plans/fencer.js', import.meta.url), 'utf8'),
+  mummer: readFileSync(new URL('../src/enemies/plans/mummer.js', import.meta.url), 'utf8'),
+  mummerking: readFileSync(new URL('../src/enemies/plans/mummer.js', import.meta.url), 'utf8'),
 };
 assert.deepEqual(Object.keys(planSources).sort(), [...BUILT].sort(), 'every surface archetype has exactly one source');
 

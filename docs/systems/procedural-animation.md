@@ -790,6 +790,48 @@ body's height and tilt are measured against it (`BodyFromFeet.update(…, plane)
 of it, and the tracks and the metachronal legs read it too (`TrackDrive.plane`, `WaveLegs.plane`). With no plane (the
 guardians, Moustache, the traveller's kit) nothing changes. docs/systems/foes.md, "On a slope".
 
+### The humanoid foe rig (v2.33, issue #724, `src/enemies/humanoid-rig.js`)
+
+The roster's humanoids move on clips, not on the kit's gait planner (docs/design/enemy-roster-v3.md): one skeleton
+(`humanoidSkeleton(parent, D)`: the Animator's joints, `body`, `torso`, `head`, two `arms`, `elbows`, `hands`, `legs`,
+`knees`, `feet`, each limb hanging down its own length, index 0 the right side) driven by the traveller's own
+`Animator` (src/animator.js): a hidden copy of the clip library's skeleton plays the clips, each of our limbs is aimed
+along the library bone's motion from its rest, so a 1.1 m mummer and a 2.6 m king play the same walk on their own
+proportions (`legRatio` from the legs: the stride and the cadence follow them). One Animator a foe (its own hidden
+skeleton and mixer), the clips shared (one `AnimationClip` each, parsed once): `setFoeClips(lib)` (src/foes.js from its
+`lib`; the creatures gallery loads the library itself). `HumanoidDriver.update(f, c)` each frame:
+
+| state (src/foes.js, src/encounters/idle.js) | what plays (`STATE_CLIPS`, `stateClip`) |
+|---|---|
+| idle, chase, home, flee, a patrol | the library's idle / walk / jog / sprint by its speed (`speeds`: its own walk, jog and sprint) |
+| circling while it waits its turn (sideways > 60 %) | `ss_strafe_1` (mirrored for the other way) |
+| wind (each attack's clip, `MOVES[id]`: `{ clip, from, load, cut, to, lean }`) | the clip from `from` to its loaded pose `load`, stretched over the first `HOLD_AT` (75 %) of the foe's own wind-up and held (`windClipTime`), the move's `lean` and a push laid over it |
+| strike | `load` → `cut` at the attack's `contact` share → `to` (`strikeClipTime`) |
+| recover | the follow-through held, easing out (`BLEND.out`) |
+| stunned (a stagger, a parry) | `ss_impact_1` |
+| down (#722 poise broken) | `get_up_back`: lying, then the get-up over its last 0.9 s |
+| pickup (its weapon) | `kneeling_inspecting` |
+| sit / sleep / lookout / guard (a site) | `kneeling_inspecting` back and forth (squatting by the fire) / `get_up_back` held on its back / the library's look round / idle |
+| a move no clip has (`{ pose }`) | the idle, the arms held by hand: `PROC_POSES` bow (drawn, sideways), lob (a rock over its head), horn (to the mask), throw (a mummer over its crown), point, clutch (its face, unmasked) |
+
+The mind's timing is never touched: the rig reads the foe's clock (`f.k`, `f.timer`, `f.downT`). Moves blend in over
+`BLEND.in` 0.12 s and out over 0.22 s. On top: the head turns to the traveller (src/enemies/gaze.js, after the pose); on
+a slope the body stands upright (`model.upright`), lowered to the lower foot's ground and each leg reached to its own by
+two-bone IK, the soles laid on the plane (`plant`: the plane the foe already reads, no ray of its own); springs swing the
+hems, the crown and the horn (`Sway`); a held weapon is turned as the clip's fist holds the library's sword (`gripFrom`:
+out of the thumb side) in a move, carried its own way otherwise; the model's own stance (`style`: the mummers' bowed
+legs). Far off it is made every 2nd (past `RIG_LOD.mid` 22 m) or 4th frame (past 40 m). With no clips (node, a page
+without the library) a stance and a walk by hand (`fallbackPose`).
+
+**Clips still missing** (held procedurally for now): a bow's draw and release, a throw (the rock, the mummer), a horn
+blown, sitting on the ground (the kneel stands in), sleeping (the get-up's first frame), a fall onto the back (it drops
+into the lying frame), turning on the spot, a two-handed overhead hop for the whack (the jump attack leaned the whole
+body back; the charged cut's overhead is used, the hop is the mind's lunge).
+
+**Cost** (one Animator a foe): the rig's own update 0.02-0.06 ms a foe in node and in Unity's V8 (its `cost`, the log of
+`-fight mummers`); a pack of 8 mummers in the Arena on this Mac (Chrome, High) 0.3 ms a frame all eight together, median
+(0.5 ms at the 90th percentile). Next: the shade and the fencer moved onto it (their walks replaced by clips).
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--skins] [--pack] [--cost] [--pace=0.5] [--json]` walks the archetypes

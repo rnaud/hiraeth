@@ -9,6 +9,9 @@ import { TITLES } from '../levels/names.js';
 import { sharedUniforms } from '../materials.js';
 import { fitShadowExtent, FINE_CASCADE } from '../shadows.js';
 import { GalleryFrame, visibleBox } from './frame.js';
+import { loadAnimationLibrary } from '../animator.js';
+import { loadMotionLibrary } from '../motion-match.js';
+import { setFoeClips } from './humanoid-rig.js';
 
 // The creatures and spirits gallery (enemies.html): the enemy roster's archetypes (src/enemies/archetypes.js), each in
 // every world's skin (src/enemies/skins.js), turning, standing, walking on the locomotion kit or winding up each of
@@ -16,6 +19,8 @@ import { GalleryFrame, visibleBox } from './frame.js';
 // not built yet show the old kind standing in for them.
 
 const $ = (id) => document.getElementById(id);
+// the humanoid foes' clips (src/enemies/humanoid-rig.js): the library and the captured moves, as the game loads them
+const clips = loadAnimationLibrary().then((lib) => { setFoeClips(lib); return loadMotionLibrary(lib).then(() => lib); }).catch((e) => { console.warn('the clips did not load', e); return null; });
 const query = new URLSearchParams(location.search);
 const worldName = (w) => (w === 'roster' ? 'The roster (each in its own skin)' : TITLES[w] ?? w);
 /** The rows of a world: { id (the kind to add, in its skin), archetype, name }. 'roster': each archetype in its own skin. */
@@ -64,6 +69,7 @@ class EnemyViewer extends ItemViewer {
     let phase = held ? (held === 'broken' ? 'recover' : 'chase') : this.fixed?.state ?? this.mode, k = this.fixed?.k ?? 0, a = null;
     if (this.mode.startsWith('attack')) {
       a = movesOf(f)[Number(this.mode.slice(6))] ?? f.def.attack;
+      if (a.weapon) f.weapon = a.weapon;   // (a mummer's move with the weapon it needs in hand)
       const cycle = a.wind + (a.strike ?? 0.3) + (a.recover ?? f.def.recover), u = this.time % cycle;
       if (f.atk !== a) { f.atk = a; P.pos.set(0, 0, Math.max(3, Math.min(a.max ?? f.def.reach, 6))); f.attackH = f.heading + (a.back ? Math.PI : 0); f.placeArea(a, P); }
       if (!this.fixed) { phase = u < a.wind ? 'wind' : u < a.wind + (a.strike ?? 0.3) ? 'strike' : 'recover'; k = phase === 'wind' ? u / a.wind : phase === 'strike' ? (u - a.wind) / (a.strike ?? 0.3) : 0; }
@@ -142,7 +148,7 @@ let last = performance.now();
 function frame(now) { viewer.time += Math.min(0.05, (now - last) / 1000); last = now; viewer.setSize($('stage').clientWidth, $('stage').clientHeight); viewer.render(chosen); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 window.enemyViewer = {
-  viewer, choose, roster: ALL, skins: SKINS,
+  viewer, choose, roster: ALL, skins: SKINS, clips,
   capture(id, { state = 'idle', k = 0, attack = 0, yaw = 0.45 } = {}) {
     choose(id); viewer.mode = ['wind', 'strike', 'recover'].includes(state) ? 'attack' + attack : state; viewer.fixed = { state, k }; viewer.orbit.yaw = yaw; viewer.time = 1; viewer.setSize(900, 800); viewer.render(id);
     return viewer.renderer.domElement.toDataURL('image/png');

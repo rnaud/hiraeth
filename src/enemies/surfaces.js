@@ -512,6 +512,49 @@ Object.assign(SURFACES, {
   },
 });
 
+// The mummers (issue #724): patched sack, torn rag, rope, a dented brass pot, wet glossy ink, driftwood (sheets in
+// references/enemy-archetypes/mummer/ and mummerking/).
+Object.assign(SURFACES, {
+  mummer: {
+    '*': {
+      // (sheet-1: the sack stitched from big patches, sun-faded indigo with ochre and sand-pale ones, a pen line of
+      // stitches round each; ink seeping from the seams and running down)
+      sack: {
+        scales: { color: 'patch2', size: 0.2, ink: 0.55, tone: 0.3, amount: 0.22, mode: 1 },
+        mottle: { color: 'patch', scale: 0.19, amount: 0.34, soft: 0.02, detail: 0.2, strength: 0.95 },
+        drips: { color: 'ink', width: 0.07, from: 0.0, length: 0.14, bulb: 0.3, amount: 0.55 },
+      },
+      rag: { mottle: { color: 'rag*0.78', scale: 0.05, amount: 0.4, soft: 0.1, strength: 0.6 }, stripes: { color: 'rag*0.7', axis: 1, period: 0.05, width: 0.15, ink: 0.15 }, ...SPECKS('rag*0.6', 0.4, 0.03) },
+      rope: { mottle: { color: 'rope*0.72', scale: 0.012, amount: 0.45, soft: 0.1, strength: 0.7 }, ...SPECKS('rope*0.55', 0.5, 0.01) },
+      // (the pot: brass worn bright on its dents, tarnished in its creases, a little verdigris at the seams; a crisp glint)
+      brass: { rust: { color: 'brass*0.68', color2: 'verd', amount: 0.16, amount2: 0.06, scale: 0.06, down: 0.5, pits: 0.4 }, gloss: { size: 0.03, sky: 0.55, amount: 0.75 } },
+      // (the ink: wet, black with a violet sheen)
+      ink: { gloss: { size: 0.035, sky: 0.7, amount: 0.95, color: 'sheen+0.3' } },
+      wood: { grain: { color: 'wood*0.78', spacing: 0.02, ink: 0.4, warp: 0.6, amount: 0.55 } },
+      iron: { rust: { color: 'iron*0.7', color2: '#9a6a3a', amount: 0.25, amount2: 0.15, scale: 0.05, down: 0.4, pits: 0.4 }, gloss: { size: 0.02, sky: 0.5, amount: 0.5 } },
+    },
+  },
+  mummerking: {
+    '*': {
+      sack: {
+        scales: { color: 'patch2', size: 0.42, ink: 0.55, tone: 0.3, amount: 0.22, mode: 1 },
+        mottle: { color: 'patch', scale: 0.4, amount: 0.38, soft: 0.02, detail: 0.2, strength: 0.95 },
+        drips: { color: 'ink', width: 0.12, from: 0.1, length: 0.3, bulb: 0.3, amount: 0.55 },
+      },
+      rag: { mottle: { color: 'rag*0.78', scale: 0.1, amount: 0.4, soft: 0.1, strength: 0.6 }, stripes: { color: 'rag*0.7', axis: 1, period: 0.1, width: 0.15, ink: 0.15 }, ...SPECKS('rag*0.6', 0.4, 0.05) },
+      rope: { mottle: { color: 'rope*0.72', scale: 0.02, amount: 0.45, soft: 0.1, strength: 0.7 }, ...SPECKS('rope*0.55', 0.5, 0.015) },
+      brass: { rust: { color: 'brass*0.7', color2: 'verd', amount: 0.1, amount2: 0.05, scale: 0.08, down: 0.5, pits: 0.3 }, gloss: { size: 0.04, sky: 0.6, amount: 0.85 } },
+      // (the cauldron: green patina over copper, the copper showing where it is worn, dark at its rim)
+      copper: { rust: { color: 'copper2', color2: 'copper*0.75', amount: 0.22, amount2: 0.2, scale: 0.09, down: 0.3, pits: 0.5 }, gloss: { size: 0.04, sky: 0.4, amount: 0.5 } },
+      ink: { gloss: { size: 0.05, sky: 0.7, amount: 0.95, color: 'sheen+0.3' } },
+      // (the barrel's staves: dark oak in vertical boards, inked between; the crown and the beam paler, weathered)
+      wood: { stripes: { color: 'wood*0.62', axis: 4, period: 0.6, width: 0.08, ink: 0.5 }, grain: { color: 'wood*0.8', spacing: 0.03, ink: 0.35, warp: 0.5, amount: 0.5 } },
+      iron: { rust: { color: 'iron*0.8', color2: '#8a5a3a', amount: 0.25, amount2: 0.15, scale: 0.08, down: 0.4, pits: 0.5 } },
+      pale: { grain: { color: 'wood2*0.75', spacing: 0.035, ink: 0.4, warp: 0.5, amount: 0.55 } },
+    },
+  },
+});
+
 /** A colour of the table: '#rrggbb', a palette key, darker 'key*0.7', paler 'key+0.3'. */
 export function surfaceColor(c, palette = {}) {
   if (typeof c !== 'string' || c.startsWith('#')) return c;

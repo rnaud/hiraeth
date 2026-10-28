@@ -45,6 +45,9 @@ export const DEFEATS = {
   hound: { time: 1.2, sag: { y: -0.3, at: [0, 0.35] }, roll: { side: 1, angle: 1.4, at: [0.25, 0.7] }, curl: [0.4, 0.9, 0.6], puff: 'ink' },
   marionette: { time: 1.3, land: { at: [0.15, 0.45], to: 0 }, slack: true, puff: 'ink' },
   wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, roll: { side: 1, angle: 0.7, at: [0.1, 0.6] }, puff: 'ink' },
+  // (issue #724: a mummer's sack slumps to the sand and empties; the king sags onto its knees and topples back, its junk let go)
+  mummer: { time: 0.9, sag: { y: -0.3, at: [0, 0.4] }, squash: { sy: 0.35, sxz: 1.5, at: [0.3, 0.9] }, puff: 'ink' },
+  mummerking: { time: 1.4, sag: { y: -0.6, at: [0, 0.45] }, topple: { angle: -1.0, at: [0.35, 0.95] }, puff: 'ink' },
 };
 
 /** A move's eased progress at u (0..1 over the defeat) for its `at` window. */

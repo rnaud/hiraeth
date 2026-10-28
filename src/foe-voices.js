@@ -98,6 +98,13 @@ export const FOE_VOICES = {
   wisp: { family: 'ember',    // a coal knocked: a hiss of sparks over a hollow knock of the shell; done, the coal gutters out
     hurt: [N('highpass', 2800, 0.18, 0.1, { rate: 1.4 }), R(420, CLAY, 0.22, 0.06), T('triangle', 260, 180, 0.1, 0.05)],
     burst: [N('bandpass', 900, 0.9, 0.16, { f1: 220, q: 0.9, rate: 0.6 }), N('highpass', 3200, 0.5, 0.08, { rate: 1.5 }), T('sine', 520, 120, 0.8, 0.06, { at: 0.1 })] },
+  // ---- the camp tribe (issue #724): junk worn by ink
+  mummer: { family: 'junk',    // its brass pot bonked and the stuffed sack thumped; done, the pot clanks down rolling and the ink splats
+    hurt: [R(560, CLAY, 0.2, 0.06), N('lowpass', 900, 0.12, 0.12, { rate: 0.8, at: 0.02 })],
+    burst: [R(520, CLAY, 0.5, 0.06), C(3, 0.12, 1500, 0.02, 0.08, { f1: 900, q: 3, at: 0.15 }), N('lowpass', 1000, 0.35, 0.16, { q: 0.7, rate: 0.5, at: 0.3 })] },
+  mummerking: { family: 'junk', // the barrel's hollow boom and the cauldron's dull clang; done, staves cracking and the cauldron rolling off
+    hurt: [R(120, CLAY, 0.3, 0.08), T('square', 210, 180, 0.16, 0.03, { at: 0.02 })],
+    burst: [R(105, CLAY, 1.0, 0.09), C(6, 0.07, 700, 0.03, 0.1, { f1: 420, q: 2, at: 0.1 }), R(240, BRONZE, 0.9, 0.04, { at: 0.35 })] },
   // ---- the old sets (the makers' machine in the temples, anything without its own)
   machine: { family: 'machine',
     hurt: [T('square', 620, 540, 0.25, 0.06), T('square', 930, 810, 0.25, 0.06, { at: 0.01 })],
