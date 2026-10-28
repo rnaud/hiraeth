@@ -2188,6 +2188,36 @@ for (const w of Object.keys(WORLDS)) { WORLD_START[w] = ARENA_WAVES.length; AREN
 export const arenaWave = (n) => ARENA_WAVES[((n % ARENA_WAVES.length) + ARENA_WAVES.length) % ARENA_WAVES.length];
 /** Where a world's waves start in the cycle (its first archetype alone); -1 for none. */
 export const arenaWaveOf = (world) => WORLD_START[world] ?? -1;
+/**
+ * The Arena's run (issue #743): every enemy in the game once, one at a time, in a new order each time round. How long
+ * after one falls the next comes in (s); how many skitters make one (a flock's foe is the swarm: a lone skitter never
+ * climbs into its heap, attack.pile, which needs two flock-mates, and falls to any cut: three, its smallest heap).
+ */
+export const ARENA_RUN = { rest: 2, flock: 3 };
+/** One enemy of the run in skin w: one body (a flock its smallest heap), a support or a puppeteer with its escort. */
+export function oneFoe(k, w = null) {
+  const D = FOES[k];
+  return [...Array(D?.flock ? ARENA_RUN.flock : 1).fill(skinned(k, w)), ...(D?.escort ? [skinned(D.escort, w)] : [])];
+}
+/**
+ * Every enemy in the game, once each: each built archetype in each of its skins (src/enemies/skins.js), then any kind
+ * that is no archetype's skin (the makers' machine); a bare archetype kind is its home skin, already there.
+ */
+export const ARENA_FOES = (() => {
+  const out = BUILT.flatMap((a) => skinWorlds(a).map((w) => oneFoe(ARCHETYPES[a].kind, w)));
+  const seen = new Set(out.map((x) => x[0]));
+  for (const k of new Set([...WAVES.flat(), ...Object.keys(FOES).filter((x) => !FOES[x].noWild)])) {
+    const a = archetypeOfKind(k), id = a && BUILT.includes(a) ? skinned(k, skinFor(a, null)) : k;
+    if (!seen.has(id)) { seen.add(id); out.push(oneFoe(k)); }
+  }
+  return out;
+})();
+/** A list in a new order (Fisher–Yates on rng 0..1); the list itself untouched. */
+export function shuffled(list, rng = Math.random) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.min(i, Math.floor(rng() * (i + 1))); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
 /** A wave in words, a world's skins by name: "2 coin lizards and 1 ink blot". */
 export const waveText = (kinds) => waveWords(kinds);
 
@@ -2949,30 +2979,66 @@ export class Foes {
     }
   }
 
-  /** The Arena: once the last wave is down, a short rest, then the next round you (ARENA_WAVES, round and round). */
+  /**
+   * The Arena: once the last foe is down, a short rest, then the next. Its run by default (issue #743: ARENA_FOES, one
+   * enemy at a time in a shuffled order, a fresh order once all are beaten); a world's waves, one archetype again and
+   * again (enemies.html's links), or the old cycle from a world (the FOES list's "Waves from here": ARENA_WAVES).
+   */
   updateWaves(dt) {
-    if (this.list.some((f) => f.alive)) { this.waveRest = WAVE.rest; return; }
-    this.waveRest -= dt;
-    if (this.waveRest > 0) return;
     // (enemies.html's links: ?enemy= one archetype in a skin again and again, ?enemyWorld= that world's waves round)
     const world = WORLDS[this.level?.foes?.world] ? this.level.foes.world : null, single = this.level?.foes?.kind && FOES[parseKind(this.level.foes.kind).kind] ? this.level.foes.kind : null;
+    const run = !world && !single && !this.cycle;
+    if (this.list.some((f) => f.alive)) { this.waveRest = run ? ARENA_RUN.rest : WAVE.rest; return; }
+    const R = this.run;
+    if (run && R && R.n >= R.order.length && !R.done) {   // (the last one down: said at once, a longer breath before the next order)
+      R.done = true; this.waveRest = ARENA_RUN.rest * 2;
+      this.notice?.(`All ${R.order.length} foes beaten. Again, in a new order.`, { news: true });
+    }
+    this.waveRest -= dt;
+    if (this.waveRest > 0) return;
+    this.arenaOn = true;   // (from the first that comes in, the Arena is one fight: its music held, Foes.update)
+    if (run) return this.nextFoe();
     const ww = world ? worldWaves(world) : null;
-    const P = this.player, kinds = single ? Array(FOES[parseKind(single).kind].group ?? 1).fill(single) : ww ? ww[this.wave % ww.length] : arenaWave(this.wave), base = this.rng() * Math.PI * 2;
-    kinds.forEach((kind, i) => {
-      const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
-      this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40), { entrance: true });
-    });
+    const kinds = single ? Array(FOES[parseKind(single).kind].group ?? 1).fill(single) : ww ? ww[this.wave % ww.length] : arenaWave(this.wave);
     this.wave++;
+    this.bringIn(kinds);
     this.waveRest = WAVE.rest;
     const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
     this.notice?.(`Wave ${this.wave}${from ? ` · ${from}` : ''}: ${waveText(kinds)}.`);
   }
-  /** The Arena's waves again, from a world's first enemy (the FOES list), or on from where they were; the field cleared. */
+  /** The run's next foe (a new shuffle of ARENA_FOES on the Foes' rng at the start and after the last): "Foe 3 of 138 · Desert: dune grunt." */
+  nextFoe() {
+    if (!this.run || this.run.n >= this.run.order.length) this.run = { order: shuffled(ARENA_FOES, this.rng), n: 0, done: false };
+    const R = this.run, kinds = R.order[R.n++];
+    for (const f of this.bringIn(kinds)) f.ofRun = true;
+    this.waveRest = ARENA_RUN.rest;
+    const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
+    this.notice?.(`Foe ${R.n} of ${R.order.length}${from ? ` · ${from}` : ''}: ${waveText(kinds).replace(/(^|, | and )1 /g, '$1')}.`, { news: true });
+    return kinds;
+  }
+  /** A wave comes in round you, WAVE.near..far m out, with its entrance. */
+  bringIn(kinds) {
+    const P = this.player, base = this.rng() * Math.PI * 2;
+    return kinds.map((kind, i) => {
+      const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
+      return this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40), { entrance: true });
+    });
+  }
+  /**
+   * The Arena's waves again, the field cleared: with a world, the old cycle from its first enemy (the FOES list's "Waves
+   * from here"); without, the run, on from where it was ("Waves again").
+   */
   startWaves(world = null) {
-    for (const f of this.list.slice()) if (f.dead === undefined) this.remove(f);
+    this.clearField();
     this.practice = null; this.waveRest = WAVE.rest;
     const at = world ? arenaWaveOf(world) : -1;
+    this.cycle = at >= 0;
     if (at >= 0) this.wave = at;
+  }
+  /** The field cleared (the FOES list's choices): the run's foe taken away unbeaten comes again when the run goes on. */
+  clearField() {
+    if (this.run?.n > 0 && this.list.some((f) => f.alive && f.ofRun)) { this.run.n--; this.run.done = false; }
+    for (const f of this.list.slice()) if (f.dead === undefined) this.remove(f);
   }
 
   /** Where a blot (or a shade) is cut down, its ink stains the ground: a few dark pools that fade (ShadePools). */
@@ -3493,7 +3559,10 @@ export class Foes {
     // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
     const guardian = this.level?.temple?.guardian;
     const guardianFighting = guardian && !guardian.def?.helper && ['wake', 'fight', 'open', 'shift'].includes(guardian.state) && this.level.temple.inside?.(P.pos);
-    const fighting = !P.dead && !P.ride && (!!guardianFighting || this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28));
+    // (the Arena's waves are one fight, issue #743: from the first foe in, the battle music held between foes, never
+    // let go and started again; a practice of one kind, the Ink tide's own waves and every other world as they were)
+    const arena = this.waves && !this.own && !this.practice && !!this.arenaOn;
+    const fighting = !P.dead && !P.ride && (arena || !!guardianFighting || this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28));
     this.sound?.combat?.(fighting);
     this.fighting = fighting || !!this.lock;
     if (typeof document !== 'undefined') document.body.classList.toggle('combat', this.fighting);
@@ -4329,7 +4398,7 @@ export class Foes {
   setPractice(kind = null) {
     if (kind === null) { this.practice = null; this.waveRest = WAVE.rest; return; }
     this.practice = { kind: kind || null, rest: 0.5 };
-    for (const f of this.list.slice()) if (f.dead === undefined) this.remove(f);
+    this.clearField();
     if (kind) this.spawnKind(kind);
   }
   updatePractice(dt) {
