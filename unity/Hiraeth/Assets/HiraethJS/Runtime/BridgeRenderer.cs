@@ -697,7 +697,7 @@ namespace Hiraeth.Bridge
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
             // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept; the
             // see-through hole of a fight temple's wall, materials.js SEE_HOLE, is a cut of the same kind, drawn there too)
-            if (leanRare && (why == "scrub" || why == "glass" || why == "see") && mode != 1 && mode != 3 && RareCount(m) == 1)
+            if (leanRare && (why == "scrub" || why == "glass" || why == "see" || why == "veil") && mode != 1 && mode != 3 && RareCount(m) == 1)
                 kw = why == "scrub" ? (leanScrub ? "HIRAETH_LEAN_SCRUB" : null) : (leanGlass ? "HIRAETH_LEAN_GLASS" : null);
             bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0
                 && V(m, "_ShellCenter").w <= 0.5f   // (a landmark's shell sutures: drawn with a wall's marks, issue #264)
@@ -706,17 +706,39 @@ namespace Hiraeth.Bridge
                 && V(m, "_Interior").x <= 0f && V(m, "_Sheet").x <= 0f && V(m, "_Timber").w <= 0f && V(m, "_RockTop").w <= 0f && V(m, "_Beds").w <= 0f   // (a room's tiles, sheet metal, timber: #669; a rock's top: #685; garden beds: #691)
                 && V(m, "_SeaWall").x <= 0f && V(m, "_PaleStone").x <= 0f && V(m, "_Buried").x <= 0f && V(m, "_Domes").w <= 0f && V(m, "_Channel").w <= 0f   // (#677's)
                 && V(m, "_FacetMarks").w <= 0f;   // (and Lorn's faceted crystals, #686)
+            // (issue #727: a wall's marks, but only the older ones and paving, the variant without the newer marks' code, HIRAETH_WALLS;
+            // and none of what only a few others draw: a person's outfit, folds and creases, the coral-shirt traveller's colours, a
+            // trail, the Glass Dunes' glass, plating, OTHERK; plain or strata mode. HIRAETH_BARE: a plain one; HIRAETH_WALLS: a room's
+            // light neither)
+            bool fewOk = (mode == 0 || mode == 2) && F(m, "_Folds") <= 0 && F(m, "_Creases") <= 0 && V(m, "_Lining").w <= 0.5f && F(m, "_ToDisplay") <= 0.5f
+                && F(m, "_DuneOn") <= 0.5f && F(m, "_Plates") <= 0.5f;
+            bool bareOk = plainOk && walls && kw == "HIRAETH_LEAN" && fewOk;
+            bool wallsOk = kw == "HIRAETH_LEAN" && !plainOk && walls && fewOk && V(m, "_Room").w <= 0f
+                && V(m, "_ShellCenter").w <= 0.5f && V(m, "_Stone").w <= 0.5f
+                && V(m, "_Interior").x <= 0f && V(m, "_Sheet").x <= 0f && V(m, "_Timber").w <= 0f && V(m, "_RockTop").w <= 0f && V(m, "_Beds").w <= 0f
+                && V(m, "_SeaWall").x <= 0f && V(m, "_PaleStone").x <= 0f && V(m, "_Buried").x <= 0f && V(m, "_Domes").w <= 0f && V(m, "_Channel").w <= 0f
+                && V(m, "_FacetMarks").w <= 0f;
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
             // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
-            // always plain, so the plain lean materials' only)
-            if (kw == "HIRAETH_LEAN" && slim && (!plainOk || slimOnPlain) && Slim(m, mode)) kw = "HIRAETH_LEAN_SLIM";
+            // always plain, so the plain lean materials' only; nor with HIRAETH_WALLS: no faster on the Thor, and the slim variant with
+            // another fragment keyword is what stalled the Retroid)
+            if (kw == "HIRAETH_LEAN" && slim && (!plainOk || slimOnPlain) && !wallsOk && Slim(m, mode)) kw = "HIRAETH_LEAN_SLIM";
             if (kw != null) { m.EnableKeyword(kw); leanWhy.TryGetValue(kw, out int k); leanWhy[kw] = k + 1; }
             else { leanWhy.TryGetValue(why, out int c); leanWhy[why] = c + 1; }
             // (and none of a wall's marks: the variant without their code, HIRAETH_PLAIN, issue #262)
-            if (plainOk)
+            if (bareOk)
+            {
+                m.EnableKeyword("HIRAETH_BARE"); leanWhy.TryGetValue("bare", out int bc); leanWhy["bare"] = bc + 1;
+            }
+            else if (plainOk)
             {
                 m.EnableKeyword("HIRAETH_PLAIN"); leanWhy.TryGetValue("plain", out int pc); leanWhy["plain"] = pc + 1;
             }
+            else if (wallsOk)
+            {
+                m.EnableKeyword("HIRAETH_WALLS"); leanWhy.TryGetValue("walls", out int wc); leanWhy["walls"] = wc + 1;
+            }
+            if (wallsCensus && kw != null) WallsCensus(m, mode, plainOk, bareOk || wallsOk);
         }
         /// <summary>How many of the full variant's rare paths a material uses (a cut: the glass's or a see-through hole's; veil, dissolve,
         /// fluid, drawn face, veins, box, scrub, a fall).</summary>
@@ -746,6 +768,30 @@ namespace Hiraeth.Bridge
         /// fold and form interpolators and keep a wall's marks: on Android under Vulkan (the Retroid's GPU up to 1 ms a frame,
         /// issue #262, docs/systems/performance.md "Unity on the Retroid, round 7"), -slim elsewhere, -no-slim off. Its variants
         /// are in Android's Vulkan builds only (BridgeShaderStrip: -keep-slim at the build for -slim elsewhere).</summary>
+        /// <summary>The lean variant with only the older wall marks and paving (HIRAETH_WALLS: Surface.shader) for the lean and slim
+        /// materials that draw a wall's marks but none of the landmarks' or #669-#691's: on Android (issue #727), -walls elsewhere,
+        /// -no-walls off.</summary>
+        /// <summary>(-walls-census: a log line for each lean material's features, to tell what keeps it off HIRAETH_WALLS, issue #727)</summary>
+        public static bool wallsCensus;
+        static void WallsCensus(Material m, int mode, bool plainOk, bool wallsOk)
+        {
+            var f = new List<string>();
+            void T(bool on, string k) { if (on) f.Add(k); }
+            T(mode != 0, "mode" + mode); T(F(m, "_Folds") > 0, "folds"); T(F(m, "_Creases") > 0, "creases"); T(V(m, "_Lining").w > 0.5f, "lining"); T(F(m, "_ToDisplay") > 0.5f, "display");
+            T(F(m, "_DuneOn") > 0.5f, "dune"); T(V(m, "_Room").w > 0, "room"); T(F(m, "_Plates") > 0.5f, "plates"); T(V(m, "_ShellCenter").w > 0.5f, "shell"); T(V(m, "_Stone").w > 0.5f, "stone");
+            T(V(m, "_Interior").x > 0, "interior"); T(V(m, "_Sheet").x > 0, "sheet"); T(V(m, "_Timber").w > 0, "timber"); T(V(m, "_RockTop").w > 0, "rocktop"); T(V(m, "_Beds").w > 0, "beds");
+            T(V(m, "_SeaWall").x > 0, "seawall"); T(V(m, "_PaleStone").x > 0, "palestone"); T(V(m, "_Buried").x > 0, "buried"); T(V(m, "_Domes").w > 0, "domes"); T(V(m, "_Channel").w > 0, "channel"); T(V(m, "_FacetMarks").w > 0, "facets");
+            T(F(m, "_Pattern") > 0.5f, "pattern" + (int)(F(m, "_Pattern") + 0.5f)); T(F(m, "_Weather") > 0, "weather"); T(V(m, "_Detail").x > 0.5f, "detail"); T(F(m, "_Patch") > 0, "patch"); T(V(m, "_Paving").x > 0, "paving");
+            T(F(m, "_Glyphs") > 0, "glyphs"); T(F(m, "_Grid") > 0, "grid"); T(V(m, "_Metal").w > 0, "metal"); T(F(m, "_Flat") > 0.5f, "flat"); T(F(m, "_PaletteSize") > 0.5f, "palette"); T(F(m, "_MapOn") > 0.5f, "map");
+            T(F(m, "_Halftone") > 0, "halftone"); T(F(m, "_Bounce") > 0, "bounce"); T(V(m, "_Shade").w > 0, "strataHatch"); T(V(m, "_Shade").z > 1, "dense"); T(V(m, "_LampTint").w > 0, "lampTint"); T(F(m, "_NightOn") > 0.5f, "night");
+            Debug.Log($"Hiraeth bridge: walls census {(plainOk ? "plain" : wallsOk ? "walls" : "marks")} {string.Join(",", m.shaderKeywords)} [{string.Join(" ", f)}] {m.name}");
+        }
+        public static bool walls =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
         public static bool slim =
 #if UNITY_ANDROID && !UNITY_EDITOR
             SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;   // (OpenGL ES 3's builds have none)

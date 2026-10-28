@@ -491,16 +491,37 @@ Shader "Hiraeth/Surface"
       // colour patches: BridgeRenderer.Lean), on a variant without their code. Never drawn there, they still cost every
       // pixel of the ground, the people and the props the registers of the walls' heaviest paths, and the GPU its waves
       // in flight: 0.7-1.4 ms of the Retroid's GPU a frame (issue #262). The same picture. Given on Android (-plain elsewhere).
-      #pragma multi_compile_local_fragment _ HIRAETH_PLAIN
+      // HIRAETH_WALLS (fragment only): a lean material with a wall's marks, but only the older ones (pattern, weathering, pen
+      // detail, colour patches) and paving's flagstones: none of the landmarks' shells and cut stone nor the surface marks of
+      // #669-#691 (rooms, sheet metal, timber, sea walls, pale stone, the buried city, channels, rock tops, garden beds, domes,
+      // facets), whose code is left out (MARKSK false): the City-Shaft's towers and plazas (BridgeRenderer.Lean, issue #727).
+      // HIRAETH_BARE (fragment only): HIRAETH_PLAIN for a material that is also none of the few that need the rest: no person (an
+      // outfit or eyes, folds, creases, the coral-shirt traveller's lining and colours), no trail, no Glass Dunes' glass, no plating
+      // (OTHERK false); plain or strata mode only. HIRAETH_WALLS leaves those out too, and a room's light. Every lean variant
+      // carried their code, and the registers of their heaviest paths cost every pixel of every surface the GPU's waves in flight:
+      // the Floating city's start 2.7 ms of the Thor's GPU at 0.385, Lorn's 1 (docs/systems/performance.md). The same picture.
+      #pragma multi_compile_local_fragment _ HIRAETH_PLAIN HIRAETH_WALLS HIRAETH_BARE
       // (the primitive's number in the fragment stage, for a two-sided material's face: everywhere but Android and OpenGL ES,
       // issue #536; BridgeSided.ById says the same on the C# side)
       #if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLES)
         #define SIDES_BY_ID 1
       #endif
-      #if defined(HIRAETH_PLAIN) || defined(HIRAETH_SKIN)
+      #if defined(HIRAETH_PLAIN) || defined(HIRAETH_BARE) || defined(HIRAETH_SKIN)
         #define WALLK false
       #else
         #define WALLK true
+      #endif
+      #if defined(HIRAETH_WALLS)
+        #define MARKSK false
+        #define ROOMK false
+      #else
+        #define MARKSK WALLK
+        #define ROOMK true
+      #endif
+      #if defined(HIRAETH_WALLS) || defined(HIRAETH_BARE)
+        #define OTHERK false
+      #else
+        #define OTHERK true
       #endif
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
@@ -645,7 +666,12 @@ Shader "Hiraeth/Surface"
       float _MSurfaceDebug;   // (global: BridgeRunner -surface-debug)
       float _MSurfaceSkip;    // (global: BridgeRunner -surface-skip N, a test of what each part costs the GPU (issue #262), the
                               // parts left out by bit: 1 patterns, 2 weathering, 4 pen detail, 8 colour patches, 16 hatching,
-                              // 32 the sun's shadow, 64 the local lights, 128 the ground's marks, 256 the shade's tone)
+                              // 32 the sun's shadow, 64 the local lights, 128 the ground's marks, 256 the shade's tone,
+                              // 512 the carved glyphs, 1024 the grid's and plates' lines, 2048 the metals, 4096 the surface
+                              // marks of #669-#691 (rooms, sheets, timber, sea walls, pale stone, rock tops, beds, domes, facets),
+                              // 8192 cut stone, shells and paving, 16384 the hatching's strokes and their coordinates,
+                              // 32768 the palette's nearest tone, 65536 the scrub's strokes, 131072 the strata's bands and
+                              // fissures, 262144 the ground's patches and blobs; issue #727)
 
       Varyings vert(Attributes v)
       {
@@ -1236,7 +1262,11 @@ Shader "Hiraeth/Surface"
           d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(SafeNormalize(i.normal), i.viewDepth); d.hatch = 0;
           return d;
         }
-        int mode = (int)(_Mode + 0.5);
+        #if defined(HIRAETH_WALLS) || defined(HIRAETH_BARE)
+          int mode = _Mode > 1.5 ? MODE_STRATA : MODE_PLAIN;   // (plain or strata only, BridgeRenderer.Lean: the rest's code left out)
+        #else
+          int mode = (int)(_Mode + 0.5);
+        #endif
         // the ground's middle distance: the paler patches' field once, for the tone and the ink (src/surface-marks.js, issue #694)
         float gmV1 = 0.0;
         UNITY_BRANCH if (TERRAINK && _GroundMid.w > 0.0) gmV1 = groundMidPale(i.worldPos.xz);
@@ -1277,7 +1307,7 @@ Shader "Hiraeth/Surface"
         // finished picture (Hiraeth/Veil). Not in the lean variants (BridgeRenderer.Lean gives a veiled material the full
         // one, as the glass): a discard there, even one never taken, costs every lean surface the GPU's early depth test,
         // the City-Shaft's rim 21 ms of GPU a frame on the Xbox against 14 (issue #263)
-        UNITY_BRANCH if (LEANK && _Veil > 0.0 && _MSurfaceDebug < 3.5 && abs(dot(normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos))) > _Veil) discard;
+        UNITY_BRANCH if (GLASSK && _Veil > 0.0 && _MSurfaceDebug < 3.5 && abs(dot(normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos))) > _Veil) discard;
         // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
         float dEdge = 0.0;
         if (LEANK && _Dissolve.x > 0.0 && _MSurfaceDebug < 3.5)
@@ -1335,7 +1365,8 @@ Shader "Hiraeth/Surface"
         // round its centre and the chambers' seams across them, a little darker and in the pen's detail; not on the plain
         // variant (BridgeRenderer.Lean keeps such a material off it). A uniform branch (issue #264)
         float shellInk = 0.0;
-        UNITY_BRANCH if (WALLK && _ShellCenter.w > 0.5)
+        int skip = (int)(_MSurfaceSkip + 0.5);
+        UNITY_BRANCH if (MARKSK && _ShellCenter.w > 0.5 && (skip & 8192) == 0)
         {
           float2 shellP = (i.worldPos.xy - _ShellCenter.xy) / float2(20.0, 25.0);
           float shellR = length(shellP), shellA = atan2(shellP.y, shellP.x);
@@ -1352,7 +1383,7 @@ Shader "Hiraeth/Surface"
         // the pen's detail, filtered by the pixel's size. The web splices it into its shader's text (no uniform: issue #538);
         // the same arithmetic, a uniform branch, not on the plain variant (BridgeRenderer.Lean)
         float stoneInk = 0.0;
-        UNITY_BRANCH if (WALLK && _Stone.w > 0.5)
+        UNITY_BRANCH if (MARKSK && _Stone.w > 0.5 && (skip & 8192) == 0)
         {
           float3 stoneN = abs(SafeNormalize(i.normal));
           float2 stoneP = stoneN.y > 0.7 ? i.worldPos.xz : float2(stoneN.x > stoneN.z ? i.worldPos.z : i.worldPos.x, i.worldPos.y);
@@ -1386,7 +1417,7 @@ Shader "Hiraeth/Surface"
         }
         #endif
         float3 instColor = i.instColor;
-        if (_PaletteSize > 0.5) {
+        if (_PaletteSize > 0.5 && (skip & 32768) == 0) {
           float best = 1e9;
           for (int k = 0; k < 12; k++) {
             if (k >= (int)_PaletteSize) break;
@@ -1405,14 +1436,14 @@ Shader "Hiraeth/Surface"
           albedo = patches > 0.6 ? c2 : c1;
           if (slope > 0.42) albedo = c3;
           else if (slope > 0.30 && patches < 0.45) albedo = lerp(c1, c3, 0.5);
-          if (_SandInk < 0.5)
+          if (_SandInk < 0.5 && (skip & 262144) == 0)
           {
             float2 fwp = fwidth(i.worldPos.xz);
             float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
             albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
           }
           if (_GroundMid.w > 0.0) albedo = groundMidTone(i.worldPos.xz, gmV1, gmF1, albedo);   // (src/surface-marks.js, issue #669)
-        } else if (mode == MODE_STRATA) {
+        } else if (mode == MODE_STRATA && (skip & 131072) == 0) {
           albedo = strata(_StrataObject > 0.5 ? i.objPos : i.worldPos);   // (in its uniform branch: strata() takes derivatives)
         } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
@@ -1433,7 +1464,6 @@ Shader "Hiraeth/Surface"
         float wfy = length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y)));
         float2 wfqA = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), wfy), wfqB = float2(length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))), wfy);
         // colour across a wall (materials.js PATCH): big flat patches, each building its own; none far off
-        int skip = (int)(_MSurfaceSkip + 0.5);
         UNITY_BRANCH if (WALLK && _Patch > 0.0 && i.viewDepth < 380.0 && (skip & 8) == 0)
         {
           float pk = 1.0 - smoothstep(260.0, 380.0, i.viewDepth);
@@ -1489,7 +1519,7 @@ Shader "Hiraeth/Surface"
         // paving (src/paving-shader.js, generated: Paving.hlsl): flagstones on a paved material's upward faces, a uniform branch
         // (its metres per px taken in it), not on the plain variant (BridgeRenderer.Lean)
         float paveUp = 0.0;
-        UNITY_BRANCH if (WALLK && _Paving.x > 0.0)
+        UNITY_BRANCH if (WALLK && _Paving.x > 0.0 && (skip & 8192) == 0)
         {
           float2 paveFw = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
           paveUp = smoothstep(0.7, 0.85, n.y);
@@ -1503,7 +1533,7 @@ Shader "Hiraeth/Surface"
         }
         // the surface marks of issue #669 (src/surface-marks.js, generated: SurfaceMarks.hlsl), each in its uniform branch
         float interiorOn = 0.0;
-        UNITY_BRANCH if (WALLK && _Interior.x > 0.0)
+        UNITY_BRANCH if (MARKSK && _Interior.x > 0.0 && (skip & 4096) == 0)
         {
           interiorOn = 1.0;
           float3 oFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
@@ -1513,7 +1543,7 @@ Shader "Hiraeth/Surface"
           if (n.y > 0.7) patInk = max(patInk, interiorFloor(i.objPos.xz, oFw.xz, oSun.xz, albedo));
           else if (abs(n.y) < 0.3) patInk = max(patInk, ron.x > ron.z ? interiorWall(i.objPos.z, i.objPos.y, oFw.zy, albedo) : interiorWall(i.objPos.x, i.objPos.y, oFw.xy, albedo));
         }
-        UNITY_BRANCH if (WALLK && _Sheet.x > 0.0)
+        UNITY_BRANCH if (MARKSK && _Sheet.x > 0.0 && (skip & 4096) == 0)
         {
           float3 sFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
           if (abs(n.y) < 0.55)
@@ -1524,7 +1554,7 @@ Shader "Hiraeth/Surface"
             patInk = max(patInk, si * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
           }
         }
-        UNITY_BRANCH if (WALLK && _Timber.w > 0.0)
+        UNITY_BRANCH if (MARKSK && _Timber.w > 0.0 && (skip & 4096) == 0)
         {
           float3 tFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
           float3 ta = abs(SafeNormalize(on));
@@ -1532,7 +1562,7 @@ Shader "Hiraeth/Surface"
           patInk = max(patInk, timber(i.objPos, tFace, tFw, n.y, albedo));
         }
         // and issue #677's (sea walls, pale stone, the buried city, a water channel, panelled domes), each in its uniform branch
-        UNITY_BRANCH if (WALLK && (_SeaWall.x > 0.0 || _PaleStone.x > 0.0 || _Buried.x > 0.0 || _Channel.w > 0.0))
+        UNITY_BRANCH if (MARKSK && (_SeaWall.x > 0.0 || _PaleStone.x > 0.0 || _Buried.x > 0.0 || _Channel.w > 0.0) && (skip & 4096) == 0)
         {
           float3 mFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
           float3 mOFw = float3(length(float2(ddx(i.objPos.x), ddy(i.objPos.x))), length(float2(ddx(i.objPos.y), ddy(i.objPos.y))), length(float2(ddx(i.objPos.z), ddy(i.objPos.z))));
@@ -1542,13 +1572,13 @@ Shader "Hiraeth/Surface"
           UNITY_BRANCH if (_Channel.w > 0.0) patInk = max(patInk, channel(i.objPos, mOFw, _MTime, albedo));
         }
         // and issue #685's: a rock's walked top (patches, cracks, fissures, pebbles; its sides keep their strata), its uniform branch
-        UNITY_BRANCH if (WALLK && _RockTop.w > 0.0)
+        UNITY_BRANCH if (MARKSK && _RockTop.w > 0.0 && (skip & 4096) == 0)
         {
           float3 rFw = float3(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
           patInk = max(patInk, rockTop(i.worldPos, rFw, n, _SunDir.xz / max(length(_SunDir.xz), 1e-3), pebbleShadow(_SunDir.y), albedo));
         }
         // and issue #691's: garden beds on the upward faces (furrows, plants, dry patches, pebbles), its uniform branch
-        UNITY_BRANCH if (WALLK && _Beds.w > 0.0)
+        UNITY_BRANCH if (MARKSK && _Beds.w > 0.0 && (skip & 4096) == 0)
         {
           float2 bFw = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))));
           float bUp = smoothstep(0.7, 0.85, n.y);
@@ -1557,7 +1587,7 @@ Shader "Hiraeth/Surface"
           albedo = lerp(albedo, ba, bUp);
           patInk = max(patInk, bi * bUp);
         }
-        UNITY_BRANCH if (WALLK && _Domes.w > 0.0)
+        UNITY_BRANCH if (MARKSK && _Domes.w > 0.0 && (skip & 4096) == 0)
         {
           // (a dome's azimuth per px, its own seam left out: the other branch's derivative there)
           float domPhi = atan2(i.objPos.z, i.objPos.x) / 6.28318;
@@ -1565,7 +1595,7 @@ Shader "Hiraeth/Surface"
           patInk = max(patInk, domes(i.objPos, domFphi, domFrc, domMpp, albedo));
         }
         // and issue #686's: Lorn's crystals, faceted (their uv in the form's slot: never on the slim variant, BridgeRenderer.Slim)
-        UNITY_BRANCH if (WALLK && _FacetMarks.w > 0.0)
+        UNITY_BRANCH if (MARKSK && _FacetMarks.w > 0.0 && (skip & 4096) == 0)
         {
           float2 cfu = I_FORM.xy;
           float3 cFw = float3(fwidth(cfu.x), fwidth(cfu.x - cfu.y), fwidth(cfu.y));
@@ -1588,8 +1618,8 @@ Shader "Hiraeth/Surface"
           patInk = max(patInk, foeSurface(albedo, emit, n));
         #endif
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
-        if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
-        if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
+        if (OTHERK && _Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
+        if (OTHERK && _ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
         // the coral-shirt traveller's drawn face (tripo-face.js, generated: TripoFace.hlsl), after his colours are display values
         UNITY_BRANCH if (LEANK && _TripoFace > 0.5)
         {
@@ -1633,7 +1663,7 @@ Shader "Hiraeth/Surface"
           emit = max(emit, max(ray.x * 0.97, max(ray.y * 0.75, ray.z * 0.4)));
         }
         float plateInk = 0.0;
-        UNITY_BRANCH if (_Plates > 0.5 && _Grid > 0.0)
+        UNITY_BRANCH if (OTHERK && _Plates > 0.5 && _Grid > 0.0 && (skip & 1024) == 0)
         {
           float plateTone;
           float3 pq = i.objPos / max(_Grid, 1e-3), pfw = fwidth(pq), pw = pow(abs(SafeNormalize(on)), 6.0); pw /= max(pw.x + pw.y + pw.z, 1e-6);
@@ -1643,8 +1673,16 @@ Shader "Hiraeth/Surface"
         #if defined(HIRAETH_CROWD)
         if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, I_BIND);
         #endif
-        if (_Folds > 0.0) albedo = (I_FOLD.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
+        if (OTHERK && _Folds > 0.0) albedo = (I_FOLD.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
 
+        // (-surface-debug 14: the albedo as worked out so far, lit by the plain lambert, nothing after: issue #727's measure of
+        // what the shading, the shadow and the ink's detail after it cost)
+        UNITY_BRANCH if (_MSurfaceDebug > 13.5 && _MSurfaceDebug < 14.5)
+        {
+          GBufferOut d14;
+          d14.albedoLight = float4(albedo, saturate(dot(n, _SunDir) * 0.5 + 0.5)); d14.normalDepth = float4(n, i.viewDepth); d14.hatch = 0;
+          return d14;
+        }
         float ndl = dot(n, _SunDir);
         // a flat facet edge-on to the sun goes to shade, whole (materials.js FACET_EDGE)
         if (_Flat > 0.5 && ndl < 0.03) ndl = min(ndl, -0.03);
@@ -1660,7 +1698,7 @@ Shader "Hiraeth/Surface"
         float L = lerp(min(lambert, 0.38), lambert, sh);
         // a room in a hull (materials.js ROOM_LIGHT, issue #338): its own soft key from the windows in place of the sun, the
         // key-lit faces a little of the sky's colour (the web's numbers; the web also lowers the key at night)
-        UNITY_BRANCH if (_Room.w > 0.0)
+        UNITY_BRANCH if (ROOMK && _Room.w > 0.0)
         {
           float roomKey = smoothstep(-0.1, 0.6, dot(normalize(i.objNormal), _Room.xyz));
           L = lerp(L, lerp(0.28, 0.74, roomKey), _Room.w);
@@ -1668,7 +1706,7 @@ Shader "Hiraeth/Surface"
         }
         L = lerp(L, 1.0, max(_Glow, emit));
         // the Glass Dunes' glass as the plates print it, and the light come through it pooled on the sand (src/dune-glass-shader.js)
-        UNITY_BRANCH if (_DuneOn > 0.5)
+        UNITY_BRANCH if (OTHERK && _DuneOn > 0.5)
         {
           float4 G = I_FORM;
           float dSun = smoothstep(-0.02, 0.1, _SunDir.y) * (1.0 - _Night);
@@ -1734,25 +1772,25 @@ Shader "Hiraeth/Surface"
           if (d < _MLights[li].w) {
             float att = pow(1.0 - d / _MLights[li].w, 2.0);
             // (a room's lamps hang in shades, ROOM_LIGHT: what is under them and faces them)
-            local = max(local, att * (_Room.w > 0.0 ? smoothstep(0.25, 0.75, dl.y / d) * (0.12 + 0.88 * max(dot(n, dl / d), 0.0)) : 0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
+            local = max(local, att * (ROOMK && _Room.w > 0.0 ? smoothstep(0.25, 0.75, dl.y / d) * (0.12 + 0.88 * max(dot(n, dl / d), 0.0)) : 0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
           }
         }
         // the makers' carved inscriptions (src/glyphs.js, materials.js carve): on upright faces in cells of _Glyphs metres, the
         // groove's shadowed side dropped into the shadow tone, its lit lip a shade lighter, a fine outline round the cut
         float3 carve = 0.0;
-        UNITY_BRANCH if (_Glyphs > 0.0)
+        UNITY_BRANCH if (_Glyphs > 0.0 && (skip & 512) == 0)
         {
           float3 gg = i.objPos / max(_Glyphs, 1e-3), ggfw = fwidth(gg), cw = pow(abs(SafeNormalize(on)), 6.0); cw /= max(cw.x + cw.y + cw.z, 1e-6);
           if (cw.y < 0.5) carve = glyphCarve(cw.x > cw.z ? gg.zy : gg.xy, cw.x > cw.z ? ggfw.zy : ggfw.xy);
           L = lerp(L, min(L, _Toon - 0.14), carve.y);
           albedo *= 1.0 + 0.05 * (carve.x - carve.y);
         }
-        L = max(L, _Room.w > 0.0 ? lerp(L, 0.95, smoothstep(0.06, 0.6, local)) : lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
+        L = max(L, ROOMK && _Room.w > 0.0 ? lerp(L, 0.95, smoothstep(0.06, 0.6, local)) : lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
         // a lamp's pool in its own colour (materials.js LAMP_TINT: the lamp-lit worlds' street lamps, its share dimmed by day)
         albedo = lerp(albedo, _LampTint.rgb * lerp(0.55, 1.0, dot(albedo, float3(0.3, 0.55, 0.15))), _LampTint.a * _LampsOn * smoothstep(0.08, 0.55, local));
         if (mode == MODE_WATER && _WaterOpt.x > 0.0) L = lerp(L, max(L, 0.8), waterLit);
         float metalInk = 0.0;
-        UNITY_BRANCH if (_Metal.w > 0.0)
+        UNITY_BRANCH if (_Metal.w > 0.0 && (skip & 2048) == 0)
         {
           float3 metalT = normalize(toThree(TransformObjectToWorldDir(toThree(_BrushAxis.xyz))));
           albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, i.worldPos, i.objPos, i.objNormal, metalT, metalInk);
@@ -1774,10 +1812,10 @@ Shader "Hiraeth/Surface"
         float detail = max(max(skinInk, shellInk * 0.13), stoneInk);
         // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
         // fine there, issue #262)
-        UNITY_BRANCH if (_Grid > 0.0)
+        UNITY_BRANCH if (_Grid > 0.0 && (skip & 1024) == 0)
         {
           float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(SafeNormalize(on)), 6.0); gw /= max(gw.x + gw.y + gw.z, 1e-6);
-          if (_Grid > 0.0) detail = (_Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw)) * (1.0 - paveUp) * (1.0 - interiorOn);   // (a paved top: its flagstones; a room: its tiles and bands)
+          if (_Grid > 0.0) detail = (OTHERK && _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw)) * (1.0 - paveUp) * (1.0 - interiorOn);   // (a paved top: its flagstones; a room: its tiles and bands)
         }
         detail = max(detail, carve.z * 0.62);   // (the carved inscriptions' outline: above)
         float2 gp = i.worldPos.xz;
@@ -1821,7 +1859,7 @@ Shader "Hiraeth/Surface"
           }
         } else if (mode == MODE_WATER) {
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);
-        } else if (mode == MODE_STRATA) {
+        } else if (mode == MODE_STRATA && (skip & 131072) == 0) {
           float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
           float fissFw = fwidth(faceX) / 9.0;
           if (abs(SafeNormalize(on).y) < 0.6)
@@ -1830,14 +1868,14 @@ Shader "Hiraeth/Surface"
             if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
           }
         }
-        UNITY_BRANCH if (SCRUBK && _Scrub > 0.0) {
+        UNITY_BRANCH if (SCRUBK && _Scrub > 0.0 && (skip & 65536) == 0) {
           float2 sc = strokeCoord(i.objPos, strokeWeights(on, mode), float2(0.766, 0.643));
           float sfw = fwidth(sc.x);
           float dashN = smoothstep(0.42, 0.6, vnoise(float2(sc.x * 2.5, sc.y * 9.0)));
           float dk0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
           detail = max(detail, strokes(sc, sfw, lerp(6.0, 3.5, dk0), lerp(0.8, 1.3, dk0)) * dashN * (0.6 + 0.4 * dk0));
         }
-        if (_Folds > 0.0) {
+        if (OTHERK && _Folds > 0.0) {
           float foldU = I_FOLD.x * _Folds;
           float foldFw = fwidth(foldU);
           float colI = floor(foldU + 0.5);
@@ -1847,7 +1885,7 @@ Shader "Hiraeth/Surface"
           detail = max(detail, inkLine(d, lerp(1.3, 0.7, I_FOLD.y)) * run * step(0.25, h2 + 0.3));
         }
         // the people: the suit's creases (creases.js) and the face (materials.js faceInk)
-        if (_Creases > 0.0) detail = max(detail, outfitCreases(I_BIND, SafeNormalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
+        if (OTHERK && _Creases > 0.0) detail = max(detail, outfitCreases(I_BIND, SafeNormalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
         if (mode == MODE_OUTFIT)
         {
           float fwBind = max(fwidth(I_BIND.y), fwidth(I_BIND.x));
@@ -1877,6 +1915,10 @@ Shader "Hiraeth/Surface"
           return o;
         #endif
 
+        // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
+        float hDense = max(_Shade.z, 1.0);
+        UNITY_BRANCH if ((skip & 16384) == 0)
+        {
         // the strokes' coordinates and footprints, worked out here where the hatching draws them (uniform control flow)
         float3 tw = strokeWeights(on, mode);
         float2 ce1 = strokeCoord(i.objPos, tw, float2(0.766, 0.643));
@@ -1888,8 +1930,6 @@ Shader "Hiraeth/Surface"
         float3 formDx = ddx(I_FORM.xyz), formDy = ddy(I_FORM.xyz);
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
-        // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
-        float hDense = max(_Shade.z, 1.0);
         float hsp0 = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth));
         float hsp = max(max(hsp0 / min(hDense, 1.3), min(hsp0, 4.5)), _SurfD.x);   // (never closer than a pen can draw: HATCH_DENSE.minPx; a room's least, uHatchPx)
         float dark = min(dark0 * (1.0 + (hDense - 1.0) * 0.9), 1.0);
@@ -1915,7 +1955,7 @@ Shader "Hiraeth/Surface"
         // rock in light keeps runs of strokes along its beds (materials.js strataHatch)
         // (strokes along the beds of rock, the strata's wavy horizontals: only strata rock reads them, worked out in its own
         // uniform branch (its derivatives fine there), as the web compiles them under S_STRATA alone, #262)
-        UNITY_BRANCH if (mode == MODE_STRATA && _Shade.w > 0.0)
+        UNITY_BRANCH if (mode == MODE_STRATA && _Shade.w > 0.0 && (skip & 131072) == 0)
         {
           float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
           float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
@@ -1927,6 +1967,7 @@ Shader "Hiraeth/Surface"
           float runs = smoothstep(0.42, 0.66, vnoise(float2(strataCo.y * 0.09, strataCo.x * 0.55)));
           o.hatch.r = max(o.hatch.r, strokes(strataCo, strataFw, hsp * 1.25, 0.85) * runs * upright * _Shade.w);
           }
+        }
         }
         if (facePart) o.hatch.rg = 0;
         // the shade's tone (materials.js SHADE), packed over the strokes: the material's lift, the half-tone of a form
@@ -1995,7 +2036,7 @@ Shader "Hiraeth/Surface"
         #else
           #define BLADEPP false
         #endif
-        void fragEntry(DepthVaryings i) { if ((GLASSK && (_Glass > 0.0 || (_SeeOn > 0.5 && _SeeK.x > 0.001))) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5 || (_Mode > 4.5 && _Mode < 5.5))) || BLADEPP) discard; }
+        void fragEntry(DepthVaryings i) { if ((GLASSK && (_Glass > 0.0 || _Veil > 0.0 || (_SeeOn > 0.5 && _SeeK.x > 0.001))) || (LEANK && (_Dissolve.x > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5 || (_Mode > 4.5 && _Mode < 5.5))) || BLADEPP) discard; }
       #else
         // (the traveller's own surfaces while the lens is in his body, materials.js uHeroCut × uCutMe: past the clip volume, so
         // none of him is drawn; his shadow is the ShadowCaster's, kept)

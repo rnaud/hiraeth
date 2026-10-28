@@ -13,7 +13,7 @@ const frag = surface.slice(surface.indexOf('GBufferOut frag('), surface.indexOf(
 test('the plain variant: a fragment keyword of its own, every wall mark behind it', () => {
   assert.match(surface, /#pragma multi_compile_local_fragment _ HIRAETH_PLAIN/);
   // (a temple skin has none of a wall's marks either: its own pattern stands for them, issue #342)
-  assert.match(surface, /#if defined\(HIRAETH_PLAIN\)( \|\| defined\(HIRAETH_SKIN\))?\s+#define WALLK false\s+#else\s+#define WALLK true/);
+  assert.match(surface, /#if defined\(HIRAETH_PLAIN\)( \|\| defined\(HIRAETH_BARE\))?( \|\| defined\(HIRAETH_SKIN\))?\s+#define WALLK false\s+#else\s+#define WALLK true/);
   assert.match(frag, /UNITY_BRANCH if \(WALLK && _Patch > 0\.0/, 'the colour patches');
   assert.match(frag, /if \(\(skip & 1\) != 0 \|\| !WALLK\) pattern = 0;/, 'the patterns');
   assert.match(frag, /UNITY_BRANCH if \(WALLK && _Weather > 0\.0/, 'the weathering');
@@ -32,7 +32,8 @@ test('the bridge gives a lean material the plain variant only when it has none o
 });
 
 test('the lean depth prepass has no discard (early depth on a tiled GPU); the full variant keeps the glass\'s, the dissolve\'s and a veil\'s', () => {
-  assert.match(surface, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5 \|\| \(_Mode > 4\.5 && _Mode < 5\.5\)\)\) \|\| BLADEPP\) discard; \}/);
+  // (a veil cuts with the glass, GLASSK: the full variant or the glass's lean one, issue #727)
+  assert.match(surface, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| _Veil > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5 \|\| \(_Mode > 4\.5 && _Mode < 5\.5\)\)\) \|\| BLADEPP\) discard; \}/);
   // (the see-through hole cuts with the glass, GLASSK; the blade's discard only in HIRAETH_FIGHT's own variant, never a lean one)
   assert.match(surface, /#if defined\(HIRAETH_FIGHT\)\n\s+#define BLADEPP \(_BladeOn > 0\.5\)\n\s+#else\n\s+#define BLADEPP false/);
 });
@@ -57,7 +58,7 @@ test('each part\'s coordinates and derivatives next to it: none of the hatching\
   // (derivatives in uniform control flow only: the ones moved into branches are in branches on a material's values)
   assert.match(frag, /UNITY_BRANCH if \(LEANK && _TripoFace > 0\.5\)\n\s+\{\n\s+float tfAA = max\(fwidth/);
   assert.match(frag, /UNITY_BRANCH if \(LEANK && _Veins > 0\.0 && _FormHatch > 0\.0\)\n\s+\{\n\s+float3 formDx = ddx/);
-  assert.match(frag, /UNITY_BRANCH if \(mode == MODE_STRATA && _Shade\.w > 0\.0\)\n\s+\{[^}]*float strataFw = fwidth\(strataCo\.x\);\n\s+if \(L >= _Toon/);
+  assert.match(frag, /UNITY_BRANCH if \(mode == MODE_STRATA && _Shade\.w > 0\.0( && \(skip & 131072\) == 0)?\)\n\s+\{[^}]*float strataFw = fwidth\(strataCo\.x\);\n\s+if \(L >= _Toon/);
 });
 
 test('the local lights: the eight nearest the subject chosen first, then those whose reach is out of the view left out', () => {

@@ -3479,6 +3479,95 @@ VIEWS=views-none.json run.sh ship <label> -aboard main -walk 8` the ship), `ab.s
 tests/unity-dynres.test.js (the eleven levels, the upscaler and LOD by level, modelled Thor views going to the floor
 and a light one staying at 0.5) and tests/unity-thor.test.js (the floor by screen).
 
+### Unity on the AYN Thor, round two: variants without code their materials never run (2026-10-28, issue #727)
+
+Round one left eight views under 60: the City-Shaft's wide view and walk (42.6, 45.2 fps), its start, second crowd and turn
+(59-60 fps median, 5-12 % of frames over 20 ms), Lorn's start and walk and the Floating city's start. Same device, plan and
+criterion as above; before: round one's sweep (the APK 2964); after: this branch's release APK (2969, the CI signer).
+
+**What the City-Shaft's frames were.** With `-split` the script's thread is 12-14 ms a frame there and the crowd's update
+0.6-1.2 ms of it (`crowd`), not 8-9: the 8-9 ms was the whole game update. The largest part after the load is the queued
+distant detail, 2.5-2.8 ms a frame for its first ~45 s (`distant detail`, the trees' checks against the houses, without
+the SAH tree in Unity), then nothing. All of it done at the load (`-js-off defer`) left the start's and the second crowd's
+slow frames as they were (9.6 % and 5.2 %): **those were the GPU's** (14.9-15.3 ms at the floor, spikes over 16.7). So the
+crowd was not changed, and the web neither.
+
+**Bisecting the Surface fragment** (`-render-scale 0.385 -upscale linear`, the City-Shaft's wide view, GPU ms; new switches:
+`-surface-skip` bits 512 glyphs, 1024 grid and plates, 2048 metals, 4096 the #669-#691 marks, 8192 cut stone, shells and
+paving, 16384 the hatching's strokes and their coordinates, 32768 the palette, 65536 the scrub's strokes, 131072 strata,
+262144 the ground's patches; `-surface-debug 14` the albedo with a plain light and nothing after):
+
+| at 0.385, wide | GPU ms |
+|---|---|
+| as round one left it | 25.1 |
+| every Surface pixel plain (`-surface-debug 9`) / the albedo only (`-surface-debug 14`) | 15.3 / 15.0 |
+| every skip bit at once (all the parts that run) | 19.5 |
+| each alone: the hatching 1.7, the sun's shadow 1.7, strata 0.9, the lights 0.7, the shade's tone 0.6, the scrub 0.6, the ground 0.5, the rest 0-0.4 | |
+| every Surface material on the full variant (`-no-lean`) / the lean ones all with a wall's marks (`-no-plain`) | 54.0 / 27.8 |
+| the Composite pass skipped (`-debug-view 2`) | 23.3 → 21.5 |
+
+So **4-6 ms of the fragment was no work that ran**: code compiled into a variant and never taken (uniform branches off for
+those materials) still costs every pixel through the registers of its heaviest paths, the GPU's waves in flight. The lean
+variants carried the newer wall marks (#669-#691), the people's outfits, eyes, folds and creases, the trails, the Glass
+Dunes' glass, plating and a room's light into every wall and prop. A census of the City-Shaft's lean materials
+(`-walls-census`) put most of them on HIRAETH_PLAIN (162 flat, 71 strata with vertex colours, 26 metal, 15 rooms) and a
+dozen with wall marks, none of them people.
+
+**What changed** (BridgeRenderer.Lean, Surface.shader; Unity only):
+- **HIRAETH_BARE**: HIRAETH_PLAIN for a material that is none of the few (no outfit or eye mode, folds, creases, the
+  coral-shirt traveller's lining or display colours, no trail, no dune glass, no plating; plain or strata mode):
+  `OTHERK` false, `mode` folded to plain or strata, so the outfit's, eye's, ribbon's, ground's and water's paths go too.
+- **HIRAETH_WALLS**: the lean variant with only the older wall marks (pattern, weathering, pen detail, patches) and paving,
+  for the same few-free materials with no room light: the newer marks (`MARKSK` false), `OTHERK` and `ROOMK` left out.
+  Never with the slim variant (no faster here; the slim one with another fragment keyword stalled the Retroid, round 7).
+- **A veil alone cuts on the glass's lean variant** (HIRAETH_LEAN_GLASS: the City-Shaft's air pillars, Lorn II's
+  mushrooms, the Glass Dunes' lenses), not the full one: 0.4-0.5 ms in the City-Shaft.
+- On Android only (`BridgeRenderer.walls`, `-walls` elsewhere, `-no-walls` off); the other platforms' builds leave the two
+  out (BridgeShaderStrip, `-keep-walls`). On Android 28 G-buffer programs more (of the rules' 224 combinations 99 kept;
+  tests/unity-android-strip.test.js). The picture is the same: the variants' captures differ from each other no more than
+  two runs of one build (mean 0.2-0.5 of 255 against 1.1 between two runs, the people moving).
+
+| GPU ms at 0.385 | round one | the walls variant | + bare and the veil |
+|---|---|---|---|
+| City-Shaft wide / start | 25.1 / 17.8 | 23.5 / 16.8 | 21.2 / 15.6 |
+| Lorn start / walk | 18.7 / 18.9 | 17.7 / 17.6 | 16.5 / 16.9 |
+| Floating city start / walk | 19.3 / 18.9 | 16.8 / 16.3 | 16.3 / 16.1 |
+
+**After, as Android picks it** (the whole sweep again, every view; round one's after as the before):
+
+| world (views) | views at 60 | worst view | frames over 20 ms | GPU ms, median | render scale, mean |
+|---|---|---|---|---|---|
+| Lorn (7) | 5/7 → **7/7** | 57.4 → 59.7 | 3 % → 1.1 % | 13.6 → 13.3 | 0.38 → 0.39 |
+| City-Shaft (7) | 2/7 → **3/7** | 42.6 → 46.0 | 26 % → 20.7 % | 14.9 → 13.6 | 0.34 → 0.35 |
+| Floating city (7) | 6/7 → **7/7** | 58.0 → 59.7 | 2 % → 0.6 % | 15.1 → 14.0 | 0.34 → 0.36 |
+| the other eleven (68 views) | 68/68 → **68/68** | | 0-2 % → 0.1-1.6 % | 12.9-14.8 → 13.3-13.7 | +0-0.04 |
+
+**98 views: 94 hold 60** (90 before). The lighter views settle a little sharper (the Glass Dunes' and the Buried Machine's
+mean scale 0.37-0.39 → 0.41-0.43). Still under 60, all in the City-Shaft:
+
+| view | round one | now | why |
+|---|---|---|---|
+| wide / walk | 42.6 / 45.2 (81 / 77 % over 20 ms, GPU 20.6 / 21.0) | **46.0 / 48.5** (69 / 57 %, 17.9 / 19.0) | the GPU at the floor, ~2-3 ms over |
+| start | 59.7 (8.7 %) | 60.0 (5.1 %) | GPU 13.6 with spikes |
+| turn | 59.6 (12.4 %) | 59.7 (9.1 %) | the turn's frames facing the wide view |
+| crowd2 | 59.2 (5.2 %) | **59.8 (1.1 %)** | held |
+
+What is left there: with every skip bit the wide view is still 19.5 ms at 0.385; what runs is the hatching (1.1 ms now),
+the sun's shadow lookups (1.1), the far meshes (coarser levels at 3 px of stray instead of 2 gave 1.1 ms in the wide view,
+2.6 in the walk: not taken, the far silhouettes would shift by a third of a screen's pixel more). The far shadow map, every
+4th frame as before, costs 4 ms on its frame (`-shadow-far-every 1`: 21.2 → 25.2), whatever its size (1024², 24.9) or its
+smallest casters (`-shadow-min-far` 2-8: 0.1-0.6): it is the shaft's big meshes' vertices, the spikes of the start and the
+turn. Spreading it over its four frames (a quarter of its casters a frame, into a second map) would keep its rate and
+take the spikes away: not done here.
+
+**Not measured, the Odin 3 and the Retroid**: both draw these variants (Android), the same Adreno family; the walls variant
+is never slim, so not the combination that stalled the Retroid.
+
+To repeat (the session's scratchpad, `727-shaft/`, round one's tools): `ab.sh incal wide,start <tag> "base=-render-scale
+0.385 -upscale linear|nowalls=… -no-walls|…"`, `all.sh <label>`, `tools/sweep.py a,b`, `tools/worlds.py a b`; `-walls-census`
+logs each lean material's features. Tests: tests/unity-walls.test.js (every branch a variant leaves out is a reason that
+keeps a material off it), tests/unity-android-strip.test.js.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

@@ -22,7 +22,7 @@ namespace Hiraeth.EditorTools
         /// <summary>
         /// The combinations BridgeRenderer.Lean never asks for on Android, left out of Android's builds (issue #703): a temple
         /// skin (HIRAETH_SKIN) with a lean or plain keyword (Lean returns at once for a skin), HIRAETH_PLAIN without a lean
-        /// keyword (plainOk needs one), and HIRAETH_PLAIN with HIRAETH_LEAN_SLIM (only under the runtime test flag
+        /// keyword (plainOk needs one), HIRAETH_WALLS or HIRAETH_BARE without HIRAETH_LEAN (issue #727), and HIRAETH_PLAIN with HIRAETH_LEAN_SLIM (only under the runtime test flag
         /// -slim-on-plain: a build made with -keep-unasked keeps them all). Each rule: +K every one of them enabled, ?K at least
         /// one of them, -K none of them. tests/unity-android-strip.test.js derives what Lean can ask for and fails on an overlap.
         /// </summary>
@@ -31,6 +31,9 @@ namespace Hiraeth.EditorTools
             "+HIRAETH_SKIN ?HIRAETH_LEAN ?HIRAETH_LEAN_TERRAIN ?HIRAETH_LEAN_WATER ?HIRAETH_LEAN_SLIM ?HIRAETH_LEAN_SCRUB ?HIRAETH_LEAN_GLASS ?HIRAETH_PLAIN",
             "+HIRAETH_PLAIN -HIRAETH_LEAN -HIRAETH_LEAN_TERRAIN -HIRAETH_LEAN_WATER -HIRAETH_LEAN_SLIM -HIRAETH_LEAN_SCRUB -HIRAETH_LEAN_GLASS",
             "+HIRAETH_PLAIN +HIRAETH_LEAN_SLIM",
+            // (HIRAETH_WALLS and HIRAETH_BARE, issue #727: only with the plain lean keyword, HIRAETH_LEAN)
+            "+HIRAETH_WALLS -HIRAETH_LEAN",
+            "+HIRAETH_BARE -HIRAETH_LEAN",
         };
 
         /// <summary>Whether a variant's keywords match one rule of NeverOnAndroid.</summary>
@@ -58,14 +61,18 @@ namespace Hiraeth.EditorTools
             // BridgeRenderer.Lean), alone or with the GPU instances' HIRAETH_INSTMAT: its other combinations are never drawn, on any
             // platform, and are left out of every build)
             var foe = new ShaderKeyword(shader, "HIRAETH_FIGHT");
-            var notWithFoe = new[] { "HIRAETH_LEAN", "HIRAETH_LEAN_TERRAIN", "HIRAETH_LEAN_WATER", "HIRAETH_LEAN_SLIM", "HIRAETH_LEAN_SCRUB", "HIRAETH_LEAN_GLASS", "HIRAETH_PLAIN",
+            var notWithFoe = new[] { "HIRAETH_LEAN", "HIRAETH_LEAN_TERRAIN", "HIRAETH_LEAN_WATER", "HIRAETH_LEAN_SLIM", "HIRAETH_LEAN_SCRUB", "HIRAETH_LEAN_GLASS", "HIRAETH_PLAIN", "HIRAETH_WALLS", "HIRAETH_BARE",
                 "HIRAETH_CROWD", "HIRAETH_PUFFS", "HIRAETH_GRASS", "HIRAETH_FLORA", "HIRAETH_VMAT", "HIRAETH_SKIN" };
             var notK = new ShaderKeyword[notWithFoe.Length];
             for (int j = 0; j < notK.Length; j++) notK[j] = new ShaderKeyword(shader, notWithFoe[j]);
             bool android = EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android && !BridgeArgs.Flag("-keep-unasked");
+            // (HIRAETH_WALLS and HIRAETH_BARE are asked for on Android only, BridgeRenderer.walls: left out of the other builds unless -keep-walls)
+            var walls = new ShaderKeyword(shader, "HIRAETH_WALLS"); var bare = new ShaderKeyword(shader, "HIRAETH_BARE");
+            bool wallsElsewhere = EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android || BridgeArgs.Flag("-keep-walls");
             for (int i = data.Count - 1; i >= 0; i--)
             {
                 var fk = data[i].shaderKeywordSet;
+                if (!wallsElsewhere && (fk.IsEnabled(walls) || fk.IsEnabled(bare))) { data.RemoveAt(i); continue; }
                 if (fk.IsEnabled(foe)) { bool drop = false; foreach (var nk in notK) drop |= fk.IsEnabled(nk); if (drop) { data.RemoveAt(i); continue; } }
                 // (Android: what Lean never asks for there, NeverOnAndroid)
                 if (android) { bool never = false; foreach (var r in NeverOnAndroid) never |= Matches(shader, fk, r); if (never) { data.RemoveAt(i); continue; } }
