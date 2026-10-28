@@ -9,6 +9,7 @@ import { auditsData } from '../scripts/audits-data.mjs';
 import { budgetStatus, headlineFigure, itemDeltas, itemKey, latestByTheme, PARSERS, severityCounts, tablesOf, THEME_ORDER } from '../src/audits-page/themes.js';
 import { dashboardHtml, shortLabel, themeCard, trendHtml, viewTabs, VIEWS } from '../src/audits-page/dashboard.js';
 import { parseRoute, routeHash } from '../src/audits-page/view.js';
+import { compareVersions } from '../src/audits-page/parse.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const { reports } = historicalAudits();
@@ -226,7 +227,8 @@ test('routes and the controller: the dashboard by default, All audits behind LB 
 
 // Current publication is tested separately from the immutable historical dashboard above.
 test('v1.90 publication: all seventeen current kinds, distinct rubrics and qualified comparisons', () => {
-  const current = auditsData().reports;
+  // (the v1.90 pass as published: later reports of these kinds, combat-v2.34 first, are checked in their own tests)
+  const current = auditsData().reports.filter((r) => compareVersions(r.version, '1.90') <= 0);
   const latest = latestByTheme(current);
   const get = k => latest.find(t => t.kind === k);
   const kinds = ['visual','ink-lines','shadow','zfight','cinematics','game','dialogue','quest','level-design','temple-design','perf','combat','combat-fight-temples','camera','motion','sound','procedural-animation'];
@@ -264,4 +266,14 @@ test('v1.90 publication: all seventeen current kinds, distinct rubrics and quali
   assert.deepEqual([trailer.scores[tech].value, trailer.scores[interest].value], [5,4.5]);
   assert.equal(Object.values(cine.verdicts).reduce((a,b) => a+b,0),112);
   assert.equal(get('dialogue').groups[0].rows.length, 11, 'localisation remains excluded');
+});
+
+test('combat-v2.34 (#722 re-measured): the combat card, its 26 kinds and 14 guardians, a qualified comparison', () => {
+  const latest = latestByTheme(auditsData().reports), combat = latest.find((t) => t.kind === 'combat');
+  assert.equal(combat.latest.id, 'combat-v2.34');
+  assert.equal(combat.latest.overall, 4.19);
+  assert.equal(combat.groups.find((g) => g.title === 'Archetypes').rows.length, 26);
+  assert.equal(combat.groups.find((g) => g.title === 'Guardians').rows.length, 14);
+  assert.ok(combat.latest.comparison, 'the rubric against v1.90 says what it does not measure');
+  assert.ok(themeCard(combat).includes(combat.latest.comparison));
 });
