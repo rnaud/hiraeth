@@ -993,7 +993,7 @@ export class Foe {
           else if (a) {
             this.plan ??= { a, t: REACH.time };
             this.reachFor(a, P, d, dx, dz, dt, env);
-            if ((this.plan.t -= dt) <= 0) { this.plan = null; this.cool = 0.3; }
+            if (this.plan && (this.plan.t -= dt) <= 0) { this.plan = null; this.cool = 0.3; }   // (reachFor may have dropped it: in its band after all; engine-lock-lorn, a toad in Lorn)
           }
           else if (walker) this.approach(P, dt, env, D.radius + 0.6);
           // a flyer too close for any of its moves (a sky ray past you after a skim) wheels off to come round again

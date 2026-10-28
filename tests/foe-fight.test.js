@@ -166,7 +166,7 @@ test('low-health changes: enraged it winds up faster (never under the floor) and
   const P = player(v()), F = world(P);
   F.waveRest = 1e9;
   const crab = F.add('crab', v(0, 0, 3), { calm: true }), mate = F.add('heron', v(10, 0, 3), { calm: true });
-  crab.state = 'chase'; crab.provoked = true; crab.hp = 3;
+  crab.state = 'chase'; crab.provoked = true; crab.hp = 3; crab.heading = Math.PI / 2;   // (cut from behind: its shell, turned to a random side, would take half)
   F.hurt(crab, 'blade', v(1, 0, 0), { damage: 2.2 });
   assert.ok(crab.fleeT > 0 && crab.fleeTo === mate, 'fleeing to its packmate');
   assert.ok(mate.provoked, 'its call wakes it');
@@ -248,6 +248,13 @@ test('the weighted pick reaches for moves out of range: at one distance a foe st
   for (let i = 0; i < 2 / DT && !wound; i++) { h.update(DT, P, env); if (h.state === 'wind') wound = h.atk.id; }
   assert.equal(wound, 'spear');
   assert.ok(h.pos.distanceTo(P.pos) >= 2.2 - 0.05, `backed off to ${h.pos.distanceTo(P.pos).toFixed(2)} m first`);
+});
+
+test('a planned move that turns out to fit (or not to be needed) is dropped without a crash (#722, engine-lock-lorn)', () => {
+  // (in its band but not its to make: a skin's own move in another skin; reachFor drops it, the frame must not read it after)
+  const h = new Foe('heron', v(0, 0, 3), { rng: () => 0.5 }), P = player(v());
+  h.state = 'chase'; h.provoked = true; h.cool = 0; h.plan = { a: h.def.attacks.find((a) => a.id === 'buffet'), t: 2 };
+  assert.doesNotThrow(() => { for (let i = 0; i < 60; i++) h.update(DT, P, env); });
 });
 
 test('waiting its turn: it circles, feints and taunts rather than side-stepping in place', () => {
