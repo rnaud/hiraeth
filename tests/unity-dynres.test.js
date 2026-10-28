@@ -22,7 +22,7 @@ function handheldDyn() {
     .replace(/(\d+(?:\.\d+)?)f\b/g, '$1');
   const Mathf = { CeilToInt: Math.ceil, Clamp: (x, a, b) => Math.min(b, Math.max(a, x)) };
   // eslint-disable-next-line no-new-func
-  return new Function('Mathf', `${src}\nreturn { Min, MaxStep, DownMs, AimMs, UpMs, Share, ShareUp, Window, UpFrames, Skip, DownAfter, UpAfter, RetroidPixels, LargeTop, LargeTopPixels, FloorPixels, Count, Level, Predict, Down, Up, UpscalerAt };`)(Mathf);
+  return new Function('Mathf', `${src}\nreturn { Min, MaxStep, DownMs, AimMs, UpMs, Share, ShareUp, ShareLarge, Window, UpFrames, Skip, DownAfter, UpAfter, RetroidPixels, LargeTop, LargeTopPixels, FloorPixels, LinearPixels, LowLodPx, Count, Level, Predict, Down, Up, UpscalerAt };`)(Mathf);
 }
 
 const D = handheldDyn();
@@ -55,7 +55,7 @@ test('a step down goes as far as the aim needs, a step up one level only when th
 });
 
 // BridgeRunner.HandheldResolution's loop, frame by frame, over a view whose GPU ms is fixed + pixels × scale² (with noise)
-function run(fixedMs, pixelMs067, secs, seed = 1, start = 0, max = 0.67, min = 0.5) {
+function run(fixedMs, pixelMs067, secs, seed = 1, start = 0, max = 0.67, min = 0.5, share = D.Share) {
   let r = seed; const rnd = () => { r = (r * 16807) % 2147483647; return r / 2147483647; };
   let level = start, at = -10, skip = 0, win = [], upSum = 0, upN = 0, changes = 0;
   const frames = [];
@@ -69,7 +69,7 @@ function run(fixedMs, pixelMs067, secs, seed = 1, start = 0, max = 0.67, min = 0
     if (win.length === D.Window) {
       const w = win.sort((a, b) => a - b); win = [];
       const med = (w[D.Window / 2 - 1] + w[D.Window / 2]) / 2;
-      if (now - at > D.DownAfter) next = D.Down(level, med, max, min);
+      if (now - at > D.DownAfter) next = D.Down(level, med, max, min, share);
     }
     if (next === level && upN >= D.UpFrames) {
       const mean = upSum / upN; upSum = 0; upN = 0;
@@ -111,7 +111,7 @@ test('the bridge: on for Android\'s Handheld on every screen, off with -no-dyn-r
   const loop = runner.slice(runner.indexOf('void HandheldResolution()'));
   assert.match(loop, /if \(dynSkip > 0\) \{ dynSkip--; return; \}/);
   assert.match(loop, /System\.Array\.Sort\(dynWin\);/);
-  assert.match(loop, /if \(now - dynAt > HandheldDyn\.DownAfter\) next = HandheldDyn\.Down\(dynLevel, med, dynHandMax, dynHandMin\);/);
+  assert.match(loop, /if \(now - dynAt > HandheldDyn\.DownAfter\) next = HandheldDyn\.Down\(dynLevel, med, dynHandMax, dynHandMin, dynLodSwitch \|\| dynHandSwitch \? HandheldDyn\.ShareLarge : HandheldDyn\.Share\);/);
   assert.match(loop, /if \(next == dynLevel && dynUpN >= HandheldDyn\.UpFrames\)/);
   assert.match(loop, /if \(now - dynAt > HandheldDyn\.UpAfter\) next = HandheldDyn\.Up\(dynLevel, mean, dynHandMax, dynHandMin\);/);
   assert.match(loop, /dynLevel = next; dynAt = now; dynSkip = HandheldDyn\.Skip; dynWinN = 0; dynUpSum = 0; dynUpN = 0;/);
@@ -125,28 +125,49 @@ test('the scale reported: each bench view\'s mean (RenderStats) and the frame re
   assert.match(metrics, /· scale \{rs:0\.00\} ·/);
 });
 
-test('a 1080p handheld (issue #716): 0.75 down to 0.5 in seven levels, FSR above the floor and bilinear at it', () => {
+test('a 1080p handheld (issues #716, #727): 0.75 down to a third in eleven levels, FSR over 0.5 and bilinear from it down', () => {
   assert.equal(D.LargeTop, 0.75);
   assert.equal(D.LargeTopPixels, 1440 * 810);
-  assert.equal(D.FloorPixels, 960 * 540);
-  const n = D.Count(0.75, 0.5);
-  assert.equal(n, 7);
-  for (let i = 1; i < n; i++) assert.ok(D.Level(i - 1, 0.75, 0.5) - D.Level(i, 0.75, 0.5) <= D.MaxStep + 1e-6);
-  for (let i = 0; i < n - 1; i++) assert.equal(D.UpscalerAt(i, 0.75, 0.5), 'fsr', `level ${i}`);
-  assert.equal(D.UpscalerAt(n - 1, 0.75, 0.5), 'linear', 'the floor: the bilinear copy, the Thor\'s picture as before');
-  assert.equal(D.UpscalerAt(0, 0.5, 0.5), 'fsr', 'a range of one level (-dyn-res-max 0.5) keeps FSR');
+  assert.equal(D.FloorPixels, 640 * 360);
+  assert.equal(D.LinearPixels, 960 * 540);
+  const min = 1 / 3, lin = 0.5;
+  const n = D.Count(0.75, min);
+  assert.equal(n, 11);
+  for (let i = 1; i < n; i++) assert.ok(D.Level(i - 1, 0.75, min) - D.Level(i, 0.75, min) <= D.MaxStep + 1e-6);
+  assert.ok(Math.abs(D.Level(6, 0.75, min) - 0.5) < 1e-6, 'a level at 0.5 exactly: the Thor\'s old floor, its picture as issue #395 drew it');
+  for (let i = 0; i < n; i++) assert.equal(D.UpscalerAt(i, 0.75, min, lin), i < 6 ? 'fsr' : 'linear', `level ${i} (${D.Level(i, 0.75, min).toFixed(3)})`);
+  assert.equal(D.UpscalerAt(0, 0.5, 0.5, lin), 'fsr', 'a range of one level (-dyn-res-max 0.5) keeps FSR');
+  assert.equal(D.UpscalerAt(6, 0.75, 0.5, lin), 'linear', 'a range ending at 0.5 (-dyn-res-min 0.5): bilinear at its floor, as #716 had it');
+  assert.equal(D.UpscalerAt(5, 0.75, 0.5, lin), 'fsr');
+  assert.equal(D.LowLodPx, 2, 'the web\'s Handheld lodPx at the low levels');
+  assert.ok(D.ShareLarge > D.Share && D.ShareLarge < D.ShareUp, 'a larger screen\'s step down guesses more of the frame with the pixels, still under the step up\'s');
 });
 
-test('modelled 1080p views: a GPU like the Thor\'s goes to its floor and holds, one with room stays sharp', () => {
-  // (the GPU's ms written as at 0.67 (run's unit): the Thor's City-Shaft wide ~25 ms at 0.5, its light views ~14-15)
-  const thor = run(14, 14, 20, 1, 0, 0.75, 0.5);
-  assert.equal(thor.scale, 0.5, 'the Thor\'s heavy view at the floor, as issue #395 held it');
-  assert.ok(thor.frames.slice(60).every((x) => x.s === 0.5), 'there within a second');
-  const odin = run(5, 6, 20, 2, 0, 0.75, 0.5);
+test('modelled 1080p views: a GPU like the Thor\'s goes as low as it needs and holds, one with room stays sharp', () => {
+  const min = 1 / 3;
+  // (the GPU's ms written as at 0.67 (run's unit), issue #727's measures: Lorn's start 22.7 ms at 0.5 and 16.8 at a third,
+  // about 11 fixed; the City-Shaft's wide view 29.5 at 0.5, 21.5 at a third)
+  const L = D.ShareLarge;
+  const lorn = run(11, 21, 20, 1, 0, 0.75, min, L);
+  assert.equal(lorn.scale, D.Level(10, 0.75, min), 'Lorn\'s start at the floor');
+  assert.ok(lorn.frames.slice(60).every((x) => x.s === lorn.scale), 'there within a second');
+  const shaft = run(14, 27, 20, 1, 0, 0.75, min, L);
+  assert.equal(shaft.scale, lorn.scale, 'the City-Shaft\'s wide view at the floor too');
+  assert.ok(shaft.changes <= 2, `straight down: ${shaft.changes} changes`);
+  const odin = run(5, 6, 20, 2, 0, 0.75, min, L);
   assert.equal(odin.scale, 0.75, 'a GPU with room keeps the top');
   assert.equal(odin.changes, 0);
-  const mid = run(7, 9, 30, 3, 0, 0.75, 0.5);
-  assert.ok(mid.scale < 0.75 && mid.scale > 0.5, `in between: ${mid.scale}`);
+  const mid = run(7, 9, 30, 3, 0, 0.75, min, L);
+  assert.ok(mid.scale < 0.75 && mid.scale > 0.5, `in between, over the old floor: ${mid.scale}`);
   assert.ok(mid.frames.slice(-600).every((x) => x.g < 1000 / 60), 'under the frame once settled');
   assert.ok(mid.changes <= 3, `settles: ${mid.changes} changes`);
+  // (a view the old floor held at 60 with room (~13.7 ms at 0.5): no lower than it)
+  const light = run(7, 12, 30, 4, 0, 0.75, min, L);
+  assert.ok(light.scale >= 0.5 - 1e-6, `a light view no lower than the old floor: ${light.scale}`);
+});
+
+test('the levels of detail follow the level: two render pixels of stray at and under 0.5 on a larger screen, -inst-lod-px holds its own', () => {
+  assert.match(runner, /dynLodSwitch = HandheldLarge\(Screen\.width, Screen\.height\) && BridgeArgs\.Arg\("-inst-lod-px"\) == null;/);
+  assert.match(runner, /InstLod\.Px = low \? Mathf\.Max\(dynLodTop, HandheldDyn\.LowLodPx\) : dynLodTop;/);
+  assert.match(runner, /dynHandLinear = HandheldLinearAt\(Screen\.width, Screen\.height\);/);
 });

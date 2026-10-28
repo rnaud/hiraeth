@@ -1373,8 +1373,41 @@ const MUMMERS724U = 'Issue #724: Unity 6000.6.4f1 editor batch run of this chang
 const PROBE722 = 'Issue #722: node, the worlds as the play-through builds them (tests/playthrough-agent.js loadWorld, real collision): from 12 spots in the wilds of each world, packs 1, 3 and 5 of a visit with seeded random numbers, each member placed as the spawner places it (before: origin/main at 124ef48f5, each member tried alone round the ring with the old room test and the old fillers; after: Foes.packSpots, the fixed room test and the world’s own fillers); a pack with no spot for all of it waits 3 s and tries again from where you are then (counted here as none placed)';
 const DROIDS726 = 'Issue #726: the creatures gallery (enemies.html: the game’s own body through Foes.look, inked by the post pass, with the clip library and the captured moves loaded as the game loads them) in muted headless Chrome (--mute-audio), 1280 × 720, 3D only, a scripted capture after scripts/enemy-roster/compare.mjs --separate --zoom 0.95 (each state set frame by frame and held; a wind-up held at 80 % of its wind-up time, the crawler’s fuse at 83 %; the pale flare on a part is the game’s own wind-up warning); branch claude/issue-726-droids, 28 October. After only: new foes, no before. The design sheet beside it is the author’s pick from the reference lab, never the render; cwebp -q 72 (the sheet -q 70)';
 const DROIDS726U = 'Issue #726: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level arena -fight droids, an APFS clone of the main checkout’s Library, deleted after), its follow camera and HUD at 1280 × 720, the three set side by side ahead of the camera by the script; 28 October. After only; editor evidence of the same JS, not a device performance claim; cwebp -q 72';
+/** (v2.34, issue #727: the Thor at 60) */
+const FROM727 = 'The bench’s own frame captures (host.Shot, the game’s 1920 × 1080 picture as the screen shows it, without the HUD) on the AYN Thor (Adreno 740, 1920 × 1080), Handheld as Android picks it, muted, a review store, the same pinned camera, 28 October 2026, scaled to 1280 × 720. Before: the Unity testers’ APK 2.34 (versionCode 2961, CI-built from 5872f4a80) at its 0.5 floor; after: this branch’s release APK (versionCode 2964, built locally with the same signing key) at its new floor of a third. The people and the water move between the two runs; the after is softer by design';
+const SRC727 = 'the bench (-bench 6, one 6 s run per view, muted, a review store), every route world, Home and the ship, one sweep before and one after, 28 October 2026; docs/systems/performance.md, “Unity on the AYN Thor: every level at 60”';
 export const CHANGELOG_MEDIA = {
   '2.34': [
+  { match: 'In the Unity version on the AYN Thor, the worlds now hold 60', shots: [
+    { name: 'thor-60-underwater', size: [1280, 720], caption: 'The Underwater City’s landing on the Thor: before, 960 × 540 at 43 fps; after, 640 × 360 at 60 fps, softer, the lines whole', from: FROM727 },
+    { name: 'thor-60-market', size: [1280, 720], caption: 'The Signal Market’s street on the Thor: before 43 fps, after 60, the towers’ lines heavier and the far crowd blurred', from: FROM727 },
+  ], numbers: [
+    { title: 'Each world’s views at 60 fps (median frame under 17.2 ms and under 5 % of frames over 20 ms)', unit: 'views', better: 'higher', device: 'AYN Thor (Adreno 740, 1920 × 1080), Unity, Handheld as Android picks it', source: SRC727, rows: [
+      { where: 'The Desert (8 views)', before: 4, after: 8 },
+      { where: 'Vael (7)', before: 2, after: 7 },
+      { where: 'Lorn (7)', before: 3, after: 5 },
+      { where: 'Viridel (7)', before: 4, after: 7 },
+      { where: 'The Underwater City (7)', before: 0, after: 7 },
+      { where: 'The City-Shaft (7)', before: 1, after: 2 },
+      { where: 'The Glass Dunes (10)', before: 4, after: 10 },
+      { where: 'The Buried Machine (9)', before: 5, after: 9 },
+      { where: 'The Moon Foundry (7)', before: 2, after: 7 },
+      { where: 'The Garden of Spheres (7)', before: 1, after: 7 },
+      { where: 'The Floating city (7)', before: 1, after: 6 },
+      { where: 'The Signal Market (7)', before: 2, after: 7 },
+      { where: 'Home and the ship (8)', before: 8, after: 8 },
+    ], note: 'Each world’s views: the bench’s fixed views, a walk, a camera turn round the traveller and the first temple’s first room; Home with its two houses inside; the ship a walk aboard. Left under 60: the City-Shaft’s wide view and walk (42.6, 45.2 fps: its GPU at the floor), its start, second crowd and turn (59-60 fps but 5-12 % of frames over 20 ms: the script’s thread), Lorn’s start and walk (57.4, 59.5) and the Floating city’s start (58.0).' },
+    { title: 'The worst view of each world', unit: 'fps', better: 'higher', device: 'AYN Thor (Adreno 740, 1920 × 1080), Unity, Handheld as Android picks it', source: SRC727, rows: [
+      { where: 'The Desert', before: 45.0, after: 59.7 },
+      { where: 'Vael', before: 46.0, after: 59.7 },
+      { where: 'Lorn', before: 39.6, after: 57.4 },
+      { where: 'The Underwater City', before: 41.9, after: 59.0 },
+      { where: 'The City-Shaft', before: 31.5, after: 42.6 },
+      { where: 'The Moon Foundry', before: 47.1, after: 59.6 },
+      { where: 'The Floating city', before: 40.7, after: 58.0 },
+      { where: 'The Signal Market', before: 43.4, after: 59.5 },
+    ], note: 'The fps of each view’s median frame. The render scale the views settle at, the mean of a world’s: 0.50 before everywhere, 0.34-0.41 after (Home 0.51, the ship 0.45).' },
+  ] },
   { match: 'At a sprint his feet come down without a flick', shots: [
     { name: 'sprint-touchdown', size: [1262, 206], caption: 'His far (right) foot landing at a sprint, five frames: before, held back to turning 12 rad/s it lagged his sprint’s own foot through the swing and caught up as it landed, 26 rad/s in that frame (16 off the frames either side), then stopped; after, it turns as the capture does, 4-8 rad/s round the touchdown', from: GAME721, view: 'Side on at a sprint in the Arena; the numbers under each frame are the foot bone’s turn that frame.' },
     { name: 'sprint-forearm', size: [640, 480], caption: 'His left forearm at a sprint, the same moment of the stride: before, its underside pulled toward his chest (the body’s skin left part of it on the spine) and pinched under the bracer’s strap; after, the forearm tapers evenly under the strap', from: GAME721, view: 'Close beside his left forearm while sprinting, frame 112 of each run. A small change: a few millimetres at the strap.' },

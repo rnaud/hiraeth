@@ -3375,6 +3375,110 @@ To repeat: the Retroid's scripts with the Thor's serial (`a78d67fe`): for Unity,
 --port <yours>`. **Back up the Unity app's `files/store.json` first and put it back after**: the bench's runs play in
 save slot 1 and write its flags and encounters (they did here; restored).
 
+### Unity on the AYN Thor: every level at 60 (2026-10-28, issue #727)
+
+The author: "make sure it's reaching 60 fps consistently on all levels". The Thor (adb `a78d67fe`, Adreno 740 at its 680 MHz
+cap, pegged there and 97-98 % busy in every heavy view, thermal status 0 throughout) was updated first to the CI testers'
+APK (2.34, versionCode 2961, same signer), which is the **before**. Since #716 Handheld there starts at 0.75 and its
+dynamic resolution steps down to 960 × 540 (0.5), bilinear at that floor. **Every view that missed 60 was at that floor
+with the GPU the frame**: 20-30 ms there, the City-Shaft's wide view 29.5. The game has grown since #395's 13-17 ms at 0.5.
+
+**Measured** (one muted bench run a world, `-bench 6`, a review store (`-store`), Handheld as Android picks it, the frame
+readout on; each world's views from `scripts/bench/viewpoints-worlds.json` (the desert's `viewpoints.json`) plus its walk
+path, a 360° camera turn round the start over 8 s, and its first temple's first room; Home's two houses inside; the ship
+a real walk aboard (`-aboard main -walk 8`). A view "holds 60" when its median frame is under 17.2 ms and under 5 % of its
+frames take over 20 ms (a missed refresh: the share over 16.7 ms is half the frames even at a steady 60, the frame times
+jittering round 16.67). Before: the 2.34 APK; after: this branch's release APK (versionCode 2964, built locally, the CI
+signer), the same plan, an hour later):
+
+| world (views) | views at 60 | fps, median view | worst view | frames over 20 ms | GPU ms, median | render scale, mean |
+|---|---|---|---|---|---|---|
+| Desert (8) | 4/8 → **8/8** | 58.8 → 59.8 | 45.0 → 59.7 | 18 % → 1.6 % | 15.8 → 13.3 | 0.50 → 0.40 |
+| Vael (7) | 2/7 → **7/7** | 53.6 → 59.9 | 46.0 → 59.7 | 33 % → 0.7 % | 18.0 → 14.7 | 0.50 → 0.36 |
+| Lorn (7) | 3/7 → **5/7** | 53.8 → 59.6 | 39.6 → 57.4 | 42 % → 3.1 % | 18.0 → 13.6 | 0.51 → 0.38 |
+| Viridel (7) | 4/7 → **7/7** | 59.2 → 59.9 | 49.7 → 59.8 | 10 % → 1.0 % | 15.5 → 13.5 | 0.51 → 0.41 |
+| Underwater City (7) | 0/7 → **7/7** | 44.5 → 59.8 | 41.9 → 59.0 | 58 % → 1.4 % | 22.0 → 14.8 | 0.50 → 0.34 |
+| City-Shaft (7) | 1/7 → **2/7** | 44.0 → 59.6 | 31.5 → 42.6 | 58 % → 26 % | 21.2 → 14.9 | 0.50 → 0.34 |
+| Glass Dunes (10) | 4/10 → **10/10** | 57.4 → 59.8 | 48.1 → 59.5 | 16 % → 0.6 % | 17.0 → 12.9 | 0.50 → 0.37 |
+| Buried Machine (9) | 5/9 → **9/9** | 59.1 → 59.8 | 52.3 → 59.6 | 7 % → 0.2 % | 16.4 → 13.4 | 0.50 → 0.39 |
+| Moon Foundry (7) | 2/7 → **7/7** | 57.0 → 59.9 | 47.1 → 59.6 | 36 % → 0.6 % | 17.0 → 14.1 | 0.50 → 0.37 |
+| Garden of Spheres (7) | 1/7 → **7/7** | 51.8 → 59.8 | 47.9 → 59.7 | 34 % → 0.3 % | 18.5 → 13.6 | 0.50 → 0.35 |
+| Floating city (7) | 1/7 → **6/7** | 46.4 → 59.8 | 40.7 → 58.0 | 60 % → 2.3 % | 21.2 → 15.1 | 0.50 → 0.34 |
+| Signal Market (7) | 2/7 → **7/7** | 52.0 → 59.9 | 43.4 → 59.5 | 46 % → 1.1 % | 18.6 → 14.1 | 0.50 → 0.35 |
+| Home (7, its two houses inside among them) | 7/7 → 7/7 | 59.8 → 59.8 | 59.5 → 59.8 | 0 % → 0.3 % | 13.8 → 13.7 | 0.51 → 0.51 |
+| The ship (a walk aboard) | 1/1 → 1/1 | 60.0 → 60.1 | – | 0.6 % → 0.6 % | 13.9 → 13.7 | 0.50 → 0.45 |
+
+**98 views: 37 held 60 before, 90 now.** Every temple's first room and every walk and turn but the City-Shaft's and Lorn's
+start hold it. The views left (fps of the median frame, frames over 20 ms, GPU ms, scale):
+
+| view | before | after | why |
+|---|---|---|---|
+| City-Shaft wide / walk | 31.5 / 34.2 (97 / 94 %, 29.5 / 28.7 ms) | **42.6 / 45.2** (81 / 77 %, 20.6 / 21.0, 0.33) | the GPU at the floor; below |
+| City-Shaft start / crowd2 / turn | 42.5 / 44.0 / 48.3 | 59.7 / 59.2 / 59.6 (9 / 5 / 12 % over 20 ms) | GPU 14-15 ms, but the script's thread is 13-15 ms a frame there (the crowd's update 8-9 ms): its spikes |
+| Lorn start / walk | 39.6 / 42.1 | 57.4 / 59.5 (9 / 5 %) | GPU 16.2 / 15.9 at the floor |
+| Floating city start | 40.7 | 58.0 (8.5 %) | GPU 16.6 at the floor |
+
+**What the GPU spends at the Retroid's pixels** (`-render-scale 0.385 -upscale linear`, 739 × 416: the switches of the Retroid
+rounds; GPU ms):
+
+| at 0.385 | Lorn start | City-Shaft wide | City-Shaft start | Floating city start | Underwater start | Signal Market start |
+|---|---|---|---|---|---|---|
+| as is | 18.5 | 24.4 | 17.4 | 19.4 | 18.2 | 17.2 |
+| every Surface pixel plain (`-surface-debug 9`) | 12.8 | 15.4 | 12.7 | 13.7 | 12.7 | 12.5 |
+| the meshes past 300 m hidden (`-hide-far 300`) | 15.6 | 20.6 | 15.3 | 19.1 | 18.1 | 16.0 |
+| no shadow maps (a measure only) | 16.6 | 20.9 | 14.4 | 18.5 | 17.4 | 16.0 |
+| no glow, no FXAA | 17.7 | 23.7 | 16.7 | 18.5 | 17.5 | 16.5 |
+| the instances' levels at 2 px of stray (`-inst-lod-px 2`) | 17.6 | 23.6 | 16.8 | 19.0 | 18.0 | – |
+| every opaque left out of the prepass but the big (`-prepass-min 1`) / no prepass | 18.4 / 20.9 | 28.7 / 30.3 | 21.3 / 20.4 | 19.4 / 19.9 | 18.6 / 18.9 | – |
+| SMAA → FXAA / none | 18.4 / 18.3 | 24.4 / 24.2 | 17.3 / 17.2 | 19.0 / 19.0 | 18.1 / 18.0 | – |
+| the near map at 1024² | 18.3 | – | – | – | – | – |
+
+Every Surface part the skip bits leave out together (`-surface-skip 511`: patterns, weathering, pen detail, patches,
+hatching, the sun's shadow, local lights, the ground's marks, the shade's tone) is 2.4 ms of Lorn's start (16.1) and of the
+City-Shaft's wide view (23.5); each alone 0-1 ms. Lorn's start by the scale (GPU ms): 0.5 22.7, 0.44 20.0, 0.385 18.5, 0.33
+16.6, 0.3 16.0 (12.2 with plain Surface pixels). So **the frame is ~11-13 ms that the pixels do not change** (the vertices of
+the prepass, the G-buffer and the shadow maps, the far meshes', the composite's fixed part) **and the Surface fragment's
+~18 µs a thousand pixels**; a third of 1080p is where the pixels' part fits beside the rest. At the same pixels the Thor
+is now ~3 ms slower than the Retroid was in its round 15 (Lorn's start 18.5 against 15.5): the worlds have grown since.
+
+**What changed** (BridgeRunner `HandheldFloor`, `HandheldLinearAt`, `HandheldDyn`, `SetHandheldUpscaler`):
+- **A larger screen's floor is 640 × 360's pixels** (a third of 1080p; `HandheldDyn.FloorPixels`, 960 × 540 before): eleven
+  levels from 0.75, the same 0.042 apart as #716's seven, the seventh exactly 0.5. The Retroid (0.67-0.5) is unchanged.
+- **Bilinear from 960 × 540's pixels down** (`LinearPixels`, `UpscalerAt(i, max, min, linearAt)`): FSR 1 cost the Thor
+  ~1 ms (Lorn's start at 0.385: 18.5 bilinear, 19.5 FSR), a level of the scale, and switching between the two at every
+  level under 0.5 made the scale pump (FSR's 1 ms over the step's guess); the Odin's levels over 0.5 keep FSR.
+- **At those low levels the far instances' and big still meshes' levels of detail stray up to 2 render pixels**
+  (`LowLodPx`, the web's Handheld `lodPx`) instead of InstLod's half pixel: 0.3-1.5 ms in Lorn and the City-Shaft (a sweep
+  with and without at the third floor: Lorn's start 55.1 → 58.0 fps, its walk 55.1 → 59.3, the desert's spawn 59.0 → 59.8).
+  Over 0.5 the half pixel as before. `-inst-lod-px` holds its own.
+- **A larger screen's step down guesses 0.6 of the GPU's frame with the pixels** (`ShareLarge`; 0.5 on the Retroid): the
+  Thor's measured share (the desert's spawn 33 ms at 0.75, 21.8 at 0.5, 16.3 at a third: 0.61-0.63), so a step from the
+  top lands at the level it needs rather than one or two under it.
+- Shadows unchanged: the near map every frame at 2048², the far every fourth at 2048² (the near map at 1024² was 0.2 ms).
+
+**The picture**: at a third the image is softer and the ink heavier than at 0.5 (a render pixel is three of the screen's;
+the lines stay whole, the hatching coarser, the far people blur); 200 % crops in the session's scratchpad
+(`727-thor/cmp/`). Only the heavy views go there: the light ones settle at 0.4-0.5, Home at 0.5, the ship 0.45. The bench
+moves its camera from view to view, so a light view right after a heavy one is still climbing back (one level every 2 s)
+when it is measured; in play the scale follows the walk.
+
+**Not changed, the Odin 3**: its views that held 60 settled at 0.56-0.73 (#716), above the levels this touches (the levels
+from 0.75 to 0.5 are the same; its steps down now land a little higher). Its City-Shaft wide view, 43 fps at the old floor
+and not a matter of pixels there, can now go to a third: to check on the Odin (not measured here, its own brief).
+
+**Next, by these numbers**: the City-Shaft's wide view needs ~5 ms at the floor: its Surface fragment is 9 ms of it at
+0.385 (far more than elsewhere, the towers' glyphs, interiors and grids, which no skip bit covers) and its far meshes 3.8;
+its start, second crowd and turn need the script's thread under ~13 ms (the crowd). Lorn's start needs ~1 ms (its far
+meshes 2.9 ms at 0.385), the Floating city's ~1.5 (its whole view's Surface fragment). The Retroid's round 15 named the same
+two levers.
+
+To repeat (the session's scratchpad, `727-thor/`): `tools/views.py <repo> views.json` (the views, walk, turn and temple of each
+world), `all.sh <label> [bridge args]` (every world, one muted run each; `run.sh <world> <label> [args]` one; `LEVEL=desert
+VIEWS=views-none.json run.sh ship <label> -aboard main -walk 8` the ship), `ab.sh <world> <views> <tag> "label=args|…"`
+(conditions on the same views), `tools/sweep.py a,b` and `tools/worlds.py a b` (the tables above). Tests:
+tests/unity-dynres.test.js (the eleven levels, the upscaler and LOD by level, modelled Thor views going to the floor
+and a light one staying at 0.5) and tests/unity-thor.test.js (the floor by screen).
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the
