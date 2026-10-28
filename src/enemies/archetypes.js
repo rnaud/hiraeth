@@ -819,6 +819,109 @@ export const ARCHETYPES = {
     }),
     note: 'The hulk: cut it three times running and it stomps. Jump it.',
   },
+  // ----------------------------------------------------------------------------- the makers' defunct droids (issue #726)
+  // docs/design/enemy-roster-v4.md: one family met in every world (the world rosters come in a later batch: until then the
+  // Arena alone, `v4`), drawn to their picked sheets in one material (src/enemies/plans/droid.js).
+  //   guard.stings      light cuts landing in a row (each within STING.gap s of the last) that snap its guard up at once
+  //                     (the sentinel's answer to a masher: two cuts, then the shield; the third is parried)
+  //   attack.wakes      only offered with a sleeping foe (one not yet provoked) within its `horn` reach to wake
+  //   attack.seek       m/s it walks at you through the wind-up (the crawler's fuse: it scuttles after you)
+  //   attack.selfDestruct  it is gone at the strike's end: the blast is its last act (Foe.shatter, Foes.shatter)
+  //   keepCasting       a hovering caster that never hides between its casts (the oracle: no dead time behind cover)
+  sentinel: {
+    name: 'sentinel', family: 'machine', plan: 'sentinel', planNo: 27, role: 'droid duellist', tier: 3, ranged: false,
+    status: 'built', kind: 'sentinel', was: [], sound: 'ceramic', drop: 6, art: 'sheet-1', roster: 'v4',
+    possession: 'a defunct guard droid of the makers’, still keeping its drill: guard, parry, thrust, cut, rush',
+    moves: ['thrust and cut', 'guard, parry and riposte', 'shield bash and sudden dash'],
+    answers: ['the charged cut throws its shield wide', 'get behind it: the dash cut', 'a perfect parry of its thrust or cut, then the riposte', 'stop after a cut: two in a row and its shield is up'],
+    idle: 'stands at its post among the ruins, blade grounded, shield on its arm; its eye lights as you come near',
+    def: S({
+      name: 'sentinel', hp: 6, hook: 'heavy', radius: 0.45, height: 1.55, speed: 3.3, sight: 18, giveUp: 34, reach: 7, metal: true, breaks: true, clamber: true, stout: true,
+      tone: '#ffae36', sound: 'machine', takes: { shoot: 1, fire: 0.5 },
+      calm: { mode: 'stand', provoke: 8, alarm: 14 },
+      // its round shield (src/foe-guard.js): up between its blows, and snapped up at once after two light cuts in a row
+      // (`stings`: the masher's answer); the next blow into it is parried and answered with its riposte (blocks 1)
+      guard: { pose: 'shield', arc: 1.1, near: 3.6, close: 2.0, hold: 2.0, rest: 1.5, blocks: 1, counter: 'riposte', stings: 2, breaks: ['charged', 'riposte', 'bomb'], open: 1.0, shots: true,
+        hint: 'Two cuts in a row and its shield comes up; the next is parried. A charged cut throws it wide, or get behind it.' },
+      // hide behind your own guard in its reach and it bashes it aside
+      turtle: { after: 1.0, attack: 'bash', reach: 3 },
+      attacks: [
+        // the blade drawn back low at its hip, the shield forward; then straight in
+        { id: 'thrust', name: 'thrust', shape: 'lane', width: 0.9, range: 3.4, damage: 0.5, wind: 0.75, strike: 0.18, contact: 0.5, lunge: 1.1, max: 3.2, weight: 2, dodge: 'side', recover: 0.6,
+          tell: 'it draws the blade back low at its hip, the shield forward', counter: 'side hop; a perfect parry, then the riposte' },
+        // the blade raised over its right shoulder (the sheet's wind-up); then across
+        { id: 'cut', name: 'cut', shape: 'cone', range: 2.9, angle: 1.0, damage: 0.75, wind: 0.95, strike: 0.24, contact: 0.55, max: 2.8, weight: 2, dodge: 'back', recover: 0.65,
+          tell: 'it raises the blade over its right shoulder', counter: 'back flip; a perfect parry, then the riposte' },
+        // its shield shoulder drawn back, the chest turned away; then the bash: a plain guard is knocked aside
+        { id: 'bash', name: 'shield bash', guardBreak: true, shielded: true, shape: 'cone', range: 2.4, angle: 0.9, damage: 0.5, knock: 5, wind: 0.95, strike: 0.2, contact: 0.5, lunge: 1.0, max: 2.2, weight: 1, recover: 0.7,
+          tell: 'it draws its round shield back to its shoulder', counter: 'a perfect parry, or hop away: a plain guard is knocked aside' },
+        // sunk low and still, the blade laid back along its side, the eye flaring; then a sudden rush through where you stood
+        { id: 'dash', name: 'sudden dash', shape: 'lane', width: 1.1, range: 6.5, damage: 0.5, wind: 0.75, strike: 0.3, contact: 0.55, lunge: 5.5, min: 3.2, max: 6.5, weight: 1.6, dodge: 'side', recover: 0.8,
+          tell: 'it sinks low and goes still, the blade laid back along its side, its eye flaring', counter: 'side hop out of its line' },
+        // out of its guard, the answer to a blow it parried: the backhand, quick
+        { id: 'riposte', name: 'riposte', chain: true, answer: true, shape: 'cone', range: 2.9, angle: 1.0, damage: 0.5, wind: 0.5, strike: 0.2, contact: 0.5, lunge: 1.2, recover: 0.6 },
+      ],
+      recover: 0.7, cool: [0.9, 1.6], hit: 0.4,
+    }),
+    note: 'A sentinel: two cuts and its shield is up. A charged cut throws it wide.',
+  },
+  oracle: {
+    name: 'oracle', family: 'machine', plan: 'oracle', planNo: 28, role: 'droid caster', tier: 3, ranged: true,
+    status: 'built', kind: 'oracle', was: [], sound: 'ceramic', drop: 6, art: 'sheet-1', roster: 'v4',
+    possession: 'a defunct caster droid of the makers’: its light still gathers between its hands, its ring still turns',
+    moves: ['bolt volley', 'a shield over a packmate', 'wake the sleeping droids'],
+    answers: ['close in: it backs away and pulses, then it is open', 'cut the beam of its ward half-way', 'a perfect parry sends a bolt back into it', 'shoot it out of the air'],
+    idle: 'hangs over a ruin’s threshold, its ring turning slowly',
+    def: S({
+      name: 'oracle', hp: 4, hook: 'flyer', radius: 0.45, height: 1.3, hover: 0.35, speed: 2.6, sight: 20, giveUp: 36, reach: 14, keep: 6, metal: true, lanterns: 1, keepCasting: true,
+      tone: '#ffae36', sound: 'machine', takes: { shoot: 1, fire: 0.5 },
+      calm: { mode: 'drift', provoke: 10, alarm: 14 },
+      attacks: [
+        // its hands together before its chest, a sphere of light swelling between them; three bolts, one after another
+        { id: 'volley', name: 'bolt volley', shape: 'lane', width: 0.9, range: 14, damage: 0.5, wind: 1.0, strike: 0.3, contact: 0.5, track: 0.6, min: 3, max: 14, weight: 3, onParry: 'reflect', then: 'volley2',
+          tell: 'its hands come together before its chest and a sphere of light swells between them', counter: 'guard or side-step each bolt; a perfect parry sends one back' },
+        { id: 'volley2', chain: true, shape: 'lane', width: 0.9, range: 14, damage: 0.5, wind: 0.45, strike: 0.3, contact: 0.5, track: 0.5, onParry: 'reflect', then: 'volley3' },
+        { id: 'volley3', chain: true, shape: 'lane', width: 0.9, range: 14, damage: 0.5, wind: 0.45, strike: 0.3, contact: 0.5, track: 0.5, onParry: 'reflect' },
+        // one arm out to a packmate, a beam of light running to it: rings close round it (half harm, no staggers)
+        { id: 'ward', name: 'ward', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 0.9, instant: true, ward: { time: 7, range: 12 }, max: 14, weight: 3, recover: 0.5,
+          tell: 'it stretches one arm out to a packmate and a beam of light runs to it', counter: 'cut the beam half-way, or bring the oracle down' },
+        // both arms thrown up, the ring spinning and flashing: every sleeping droid near it wakes
+        { id: 'wake', name: 'wake', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.0, instant: true, horn: 18, wakes: true, max: 14, weight: 4, recover: 0.5,
+          tell: 'it throws both arms up and its ring spins fast and flashes', counter: 'cut it before it calls, or ready for the rest' },
+        // too close: arms flung down, the ring dropped round its hips; a burst round it
+        { id: 'pulse', name: 'pulse', shape: 'ring', at: 'self', radius: 2.4, damage: 0.5, knock: 4, wind: 0.95, strike: 0.2, contact: 0.4, max: 2.2, weight: 2,
+          tell: 'its arms fling down and out and its ring drops round its hips', counter: 'step back out of it, then cut while it recovers' },
+      ],
+      recover: 0.6, cool: [0.7, 1.3], hit: 0.4,
+    }),
+    note: 'An oracle: cut the beam of its ward, or bring it down first.',
+  },
+  crawler: {
+    name: 'crawler', family: 'machine', plan: 'crawler', planNo: 29, role: 'droid scout', tier: 1, ranged: false,
+    status: 'built', kind: 'crawler', was: [], sound: 'servo', drop: 2, art: 'sheet-1', roster: 'v4',
+    possession: 'a defunct scout of the makers’, still running its rounds on four legs',
+    moves: ['bite', 'call the others', 'self-destruct'],
+    answers: ['cut it down before it calls', 'roll out of its blast', 'finish it during its fuse and it fizzles'],
+    idle: 'runs its old rounds between the ruins, stopping to look about',
+    def: S({
+      name: 'crawler', hp: 2, hook: 'light', radius: 0.38, height: 0.45, speed: 4.2, sight: 16, giveUp: 34, reach: 12, metal: true, clamber: true, burst: [0.55, 0.3],
+      tone: '#ffae36', sound: 'machine', takes: { shoot: 1, fire: 1 },
+      calm: { mode: 'patrol', provoke: 9, alarm: 14 },
+      attacks: [
+        // sunk back on its hind legs, the eye tipped up at you; then it springs
+        { id: 'bite', name: 'bite', shape: 'cone', range: 1.7, angle: 0.9, damage: 0.5, wind: 0.7, strike: 0.2, contact: 0.5, lunge: 1.1, max: 1.8, weight: 3, recover: 0.6,
+          tell: 'it sinks back on its hind legs, its eye tipped up at you', counter: 'anything: step aside, guard, cut' },
+        // reared up on its hind pair, the eye flashing, the antenna sparking: every sleeping droid near it wakes
+        { id: 'call', name: 'call', shape: 'ring', at: 'self', radius: 0.5, damage: 0, wind: 0.9, instant: true, horn: 16, wakes: true, max: 12, weight: 5, recover: 0.4, cue: 'coil',
+          tell: 'it rears up on its hind legs, its eye flashing, its antenna sparking', counter: 'cut it before it calls' },
+        // its last: squatting braced, blinking red faster and faster as it scuttles at you; then it bursts
+        { id: 'blast', name: 'self-destruct', shape: 'ring', at: 'self', radius: 2.6, damage: 1, knock: 6, wind: 1.7, strike: 0.12, contact: 0.4, below: 0.5, selfDestruct: true, seek: 3.4, max: 12, weight: 1, cue: 'kindle',
+          tell: 'its eye and seams blink red, faster and faster, as it scuttles at you', counter: 'roll out of the blast; or finish it first and it fizzles' },
+      ],
+      recover: 0.7, cool: [0.9, 1.6], hit: 0.35,
+    }),
+    note: 'A crawler blinking red is about to burst: roll away, or finish it first.',
+  },
 };
 
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);

@@ -132,6 +132,13 @@ export const BLIND = { wide: 1.1 };
  * Foes.racks: [{ pos, stock: ['spear', 'bow'] }] (src/encounters/index.js puts a camp's there).
  */
 export const RACK = { reach: 16, bow: 6, take: 1.0 };
+/**
+ * A duellist's guard snapped up by light cuts landing in a row (issue #726, def.guard.stings: the sentinel's answer to a
+ * masher, combat-v2.34): each within `gap` s of the last; a blink away from its low change (fight.low.blink): the turns
+ * tried round the way straight back from you (rad), the flicker's sparks.
+ */
+export const STING = { gap: 1.3 };
+export const BLINK = { tries: [0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9] };
 /** A weighted pick from { key: weight } (rng 0..1). */
 export function pickWeight(w, rng = Math.random) {
   const e = Object.entries(w).filter(([, x]) => x > 0);
@@ -151,7 +158,9 @@ export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Arra
   // the humanoid foes on clips (issue #724): a mummer camp's troupe, then its king with two to throw
   ['mummer', 'mummer', 'mummer'], ['mummerking', 'mummer', 'mummer'],
   // roster v4's monsters (issue #726): a band of grunts, then a hulk with two to throw
-  ['grunt', 'grunt', 'grunt'], ['hulk', 'grunt', 'grunt']];
+  ['grunt', 'grunt', 'grunt'], ['hulk', 'grunt', 'grunt'],
+  // and its droids: a sentinel with a crawler to call, then an oracle warding a sentinel
+  ['sentinel', 'crawler', 'crawler'], ['oracle', 'sentinel', 'crawler']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /**
  * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
@@ -684,6 +693,7 @@ export class Foe {
       && (!a.weapon || a.weapon === this.weapon)                                  // (a mummer's move with the weapon it carries)
       && (!a.horn || this.horns < (this.hp <= D.hp * 0.5 + 1e-9 ? 2 : 1))         // (its horn: when it first comes on, and once more at half)
       && (!a.throwsAlly || !!this.allyFor(a))                                     // (a mummer near it to pick up and throw)
+      && (!a.wakes || !!this.sleeper)                                             // (a droid's call: only with one asleep near it to wake, #726)
       && !a.answer                                                                // (only as an answer: a guard's counter, a bash at a raised guard: tendGuard, punishTurtle)
       && (!a.possess || (!this.hosting && !!this.allyFor(a)))                     // (a marionette's strings: a creature to drop them on)
       && (!a.alone || (!this.hosting && !this.allyFor(this.def.attacks.find((x) => x.possess) ?? {}))));   // (its dance: nothing to hold)
@@ -900,7 +910,7 @@ export class Foe {
   }
   /** Done with attack a: its follow-up straight away (a combo), else recover. */
   next(a, P, ev) {
-    if (a.shatter && this.state !== 'dead') { this.shatter(a, ev); return; }   // (its last roll ends in pieces)
+    if ((a.shatter || a.selfDestruct) && this.state !== 'dead') { this.shatter(a, ev); return; }   // (its last roll ends in pieces; a crawler's blast ends it, #726)
     const n = a.then ? this.def.attacks.find((x) => x.id === a.then) ?? attackOf(this.kind, a.then) : null;   // (a stronger one's own combo first)
     if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
     // (its stronger tier's new move, #722 D13: after its move a, its b at once, its wind-up quicker, once: TIERS combo)
@@ -977,7 +987,7 @@ export class Foe {
     if (this.headCool > 0) this.headCool = Math.max(0, this.headCool - dt);
     if (this.armour?.gun > 0) this.armour.gun = Math.max(0, this.armour.gun - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
-    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed', 'toppled', 'open', 'scatter', 'jammed', 'evadeCool']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
+    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed', 'toppled', 'open', 'scatter', 'jammed', 'evadeCool', 'stingT']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
     // its poise (src/enemies/fight.js POISE): down, it gets up whole; worn, it comes back once left alone a while
     if (this.downT > 0 && (this.downT -= dt) <= 0) { this.downT = 0; this.poise = this.poiseMax; }
     this.poiseT += dt;
@@ -1083,7 +1093,7 @@ export class Foe {
             break;
           }
         }
-        if (D.hover && !D.support && !D.puppeteer && this.hide(dt, P, d, env)) break;   // (a marionette hangs back over its creature instead)   // (between strikes, a hovering foe hides behind the world: COVER)
+        if (D.hover && !D.support && !D.puppeteer && !D.keepCasting && this.hide(dt, P, d, env)) break;   // (a marionette hangs back over its creature instead)   // (between strikes, a hovering foe hides behind the world: COVER)
         // over height (v1.4): a walker finds its way up and down to you; out of a blow's reach it doesn't swing at air
         const walker = !D.hover, dy = Math.abs(P.pos.y - this.level), high = dy >= STRIKE_RISE;
         if (walker && D.perch) this.perchUp(P, d, dt, env);   // (a lobber, the toad, climbs to the high ground and holds it)
@@ -1147,6 +1157,8 @@ export class Foe {
         if (a.surface && this.buried) this.swimTo(this.attackAt, wind, dt, env);   // (its fin is seen coming at you)
         if (a.encircle) this.encircle(a, wind, dt, env);                         // (the centipede runs its ring round you)
         if (a.mend && this.allyTarget?.alive) { const T = this.allyTarget.pos; this.walkTo(T.x, T.z, D.speed * 1.5, dt, env, 0.3); }   // (down over the hurt one)
+        // (a crawler's fuse, #726: it scuttles after you as it burns, its blast centred where it stops)
+        if (a.seek && this.k < 0.85 && playerOk && d > this.def.radius + 0.6) { this.walkTo(P.pos.x, P.pos.z, a.seek, dt, env, this.def.radius + 0.5); this.attackAt.copy(this.pos); }
         if (a.reverse && this.k < 0.8) { const b = (a.reverse / (wind * 0.8)) * dt; this.step(-Math.sin(this.heading) * b, -Math.cos(this.heading) * b, env); }   // (the cart backs up before its ram)
         if (this.timer >= wind) {
           if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
@@ -1540,6 +1552,19 @@ export class Foe {
       this.blocked = 0; this.guardK = 0; this.guardT = 0; this.guardRest = G.rest;
       if (a) { this.beginWind(a, P); this.answering = true; ev.push('warn'); ev.push({ type: 'answer', atk: a }); }
     }
+  }
+  /**
+   * A light cut landed (issue #726, def.guard.stings): `stings` in a row (each within STING.gap s) and its guard is up at
+   * once, out of its recovery: the next blow into it is turned and answered (`blocks`, `counter`). True when it went up.
+   */
+  sting() {
+    const G = this.def.guard;
+    this.stung = this.stingT > 0 ? (this.stung ?? 0) + 1 : 1; this.stingT = STING.gap;
+    if (this.stung < G.stings || this.downT > 0 || this.stunned > 0 || !this.alive || (this.state !== 'chase' && this.state !== 'recover')) return false;
+    this.stung = 0; this.state = 'chase'; this.timer = 0; this.k = 0; this.reel = null; this.plan = null;
+    this.guardK = 1; this.guardT = 0; this.guardRest = 0; this.blocked = 0; this.cool = Math.max(this.cool, 0.5);
+    this.stungUp = (this.stungUp ?? 0) + 1;
+    return true;
   }
   /** A breaker went through its guard: it reels, open (stunned) `open` s, every cut double; a crab on its back. */
   openGuard() {
@@ -2071,6 +2096,8 @@ export class Foe {
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
     this.lowNow = this.goLow();
+    // (a duellist's guard snapped up by light cuts landing in a row: guard.stings, issue #726)
+    if (D.guard?.stings && mode === 'blade' && !info.breaks && !info.riposte && !info.dash && info.charged === undefined && src !== 'parry' && !broke) this.sting();
     if (guardBreak) { this.openGuard(); return 'guardbreak'; }
     if (topple) { this.toppled = TOPPLE; this.stunned = Math.max(this.stunned, TOPPLE); this.state = 'recover'; this.timer = 0.6; this.k = 0; this.open = 0; return 'toppled'; }
     return true;
@@ -3393,7 +3420,10 @@ export class Foes {
       // a machine only stirs while you are in its temple (the Arena's, always)
       const inTemple = !f.placed || this.waves || this.level?.temple?.inside?.(P.pos);
       // a support sees its neighbours (the jelly: who it may ward or mend)
-      if (f.def.support) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.def.support && x.pos.distanceTo(f.pos) < 12);
+      if (f.def.support || f.def.lanterns) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.def.support && !x.def.lanterns && x.pos.distanceTo(f.pos) < 12);
+      // a droid that calls the others (attack.wakes, issue #726) sees whether any near it still sleeps (not yet provoked)
+      const wakeR = f.def._wakeR ??= Math.max(0, ...f.def.attacks.filter((a) => a.wakes).map((a) => a.horn ?? 0));
+      if (wakeR) f.sleeper = this.list.some((x) => x !== f && x.alive && x.dead === undefined && !x.dying && !x.provoked && x.pos.distanceTo(f.pos) <= wakeR);
       // a puppeteer sees the creatures near it it could drop its strings on (the marionette: wildlife, a calm one too)
       if (f.def.puppeteer) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && ARCHETYPES[x.archetype]?.family === 'creature' && !x.riding && x.pos.distanceTo(f.pos) < 14);
       // a thrower sees the small ones near it it could pick up (the mummer king: its mummers)
@@ -3942,7 +3972,9 @@ export class Foes {
   /** A roller's last roll ends (attack.shatter): it breaks in a ring of pearl that runs out over the ground (jump it). */
   shatter(f, a) {
     const W = a.shatter;
-    this.ringOut(f, W, f.pos.clone(), 0.8);
+    if (W) this.ringOut(f, W, f.pos.clone(), 0.8);
+    // (a crawler's self-destruct, issue #726: a flash of light the size of its blast, its ceramic flung out)
+    if (a.selfDestruct) this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: a.radius ?? 2.5, life: 0.35, color: f.def.tone, thick: 2 });
     this.animKit(f, 0, {}).spray(f.chest, f.model.tones ?? ['#f3e8dc', '#ffffff'], 30, 6, 9);
     worldSnd.thud(this.sound, 0.8); kick(0.3);
     this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
@@ -4219,7 +4251,28 @@ export class Foes {
       f.fleeTo = near ?? null;
       if (near) this.alarm(f);
       this.gesture(f, 'flee');
+      if (f.fight.low?.blink) this.blinkAway(f, f.fight.low.blink);   // (an oracle flickers out and back in further off, #726)
     } else if (k === 'last') this.gesture(f, 'rage');
+  }
+  /**
+   * Gone in a flicker and back `dist` m further from you (issue #726, fight.low.blink: the oracle as it flees): the first
+   * of BLINK.tries' turns off the way straight back from you with ground under it; sparks where it left and where it came.
+   * True when it blinked.
+   */
+  blinkAway(f, dist) {
+    const P = this.player, ground = this.env.ground;
+    const away = Math.atan2(f.pos.x - (P?.pos.x ?? f.pos.x - Math.sin(f.heading)), f.pos.z - (P?.pos.z ?? f.pos.z - Math.cos(f.heading)));
+    for (const t of BLINK.tries) {
+      const x = f.pos.x + Math.sin(away + t) * dist, z = f.pos.z + Math.cos(away + t) * dist;
+      const y = ground ? ground(x, f.pos.y + 2, z) : f.pos.y;
+      if (y == null || Math.abs(y - f.pos.y) > 3) continue;
+      this.sparks(f, f.chest);
+      f.pos.set(x, y, z); f.flash = 1; f.blinked = (f.blinked ?? 0) + 1; f.plan = null; f.retreat = 0;
+      this.sparks(f, f.chest);
+      this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.2, () => f.chest);
+      return true;
+    }
+    return false;
   }
   /**
    * A packmate went down (#722): those near it rear and call (MOURN); the last one left of a pack may cower and flee (wildlife)

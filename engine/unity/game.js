@@ -849,6 +849,18 @@ function makePlan(args) {
       // (#724 polish: the fencer's shield drawn back for its bash, the shade's guard with its sleeve under its hood)
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bash' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('bash'));
   }
+  if (fights.includes('droids')) {
+    // (-fight droids, issue #726: the makers' defunct droids: a sentinel 5 m ahead, an oracle 9 m and a crawler 3.5 m,
+    // standing; their rig said; each winds up its first move, pictured at three quarters of it; then their signature moves
+    // (the sentinel's shield up, the oracle's ward reaching for the sentinel, the crawler's fuse); then their scorched tier)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-droids-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'sentinel@desert', dist: 5, hp: 99 }, { kind: 'foe', what: 'oracle@desert', dist: 9, hp: 99 }, { kind: 'foe', what: 'crawler@desert', dist: 3.5, hp: 99 },
+      { kind: 'foe', what: 'droid-spread' }, { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
+      { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.6 }, { kind: 'foe', what: 'rig' }, ...shot('windup'),
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'droid-moves' }, { kind: 'wait', frames: 50, secs: 0.9 }, { kind: 'foe', what: 'rig' }, ...shot('moves'),
+      { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'sentinel@desert*', dist: 5, hp: 99 }, { kind: 'foe', what: 'oracle@desert*', dist: 9, hp: 99 }, { kind: 'foe', what: 'crawler@desert*', dist: 3.5, hp: 99 },
+      { kind: 'foe', what: 'droid-spread' }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
+  }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
   for (const f of fights.filter((x) => x.startsWith('site:'))) {
@@ -1309,6 +1321,27 @@ function playFrame(dt) {
         if (f.kind === 'fencer') { f.state = 'chase'; f.guardK = 1; }
         const a = f.def.attacks.find((x) => x.id === 'feint');
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
+    } else if (step.what === 'droid-spread') {
+      // (-fight droids: the three set out side by side before the camera, not one behind another: the sentinel to the left,
+      // the oracle in the middle further off, the crawler to the right, each facing the traveller)
+      // (ahead of the camera, which looks along the rig's yaw less a half turn: the traveller may have turned round)
+      const p = game.player.pos, h = game.rig?.yaw != null ? game.rig.yaw - Math.PI : game.player.heading, fx = Math.sin(h), fz = Math.cos(h), at = { sentinel: [-2.4, 6], oracle: [0.6, 9], crawler: [2.6, 4.5] };
+      for (const f of F.list.filter((x) => x.alive && at[x.kind])) {
+        const [side, ahead] = at[f.kind];
+        f.pos.set(p.x + fx * ahead - fz * side, f.pos.y, p.z + fz * ahead + fx * side); f.home.copy(f.pos);
+        f.heading = Math.atan2(p.x - f.pos.x, p.z - f.pos.z);
+      }
+    } else if (step.what === 'droid-moves') {
+      // (-fight droids, #726: the sentinel's shield up, the oracle's ward reaching for it, the crawler's fuse lit)
+      const D = F.list.filter((x) => x.alive), sen = D.find((x) => x.kind === 'sentinel');
+      for (const f of D) {
+        if (f.kind === 'sentinel') { f.state = 'chase'; f.atk = null; f.guardK = 1; f.guardRest = 0; continue; }
+        const a = f.def.attacks.find((x) => x.id === (f.kind === 'oracle' ? 'ward' : f.kind === 'crawler' ? 'blast' : ''));
+        if (!a) continue;
+        if (f.kind === 'oracle' && sen) f.allies = [sen];
+        f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player);
+        console.log(`[unity] ${f.kind} winds up its ${a.id}${f.allyTarget ? ` (on the ${f.allyTarget.kind})` : ''}`);
       }
     } else if (step.what === 'mummer-moves') {
       // (-fight mummers, #724 polish: a mummer with its bow looses a volley, the king calls on its horn)

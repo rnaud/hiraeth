@@ -67,7 +67,7 @@ test('a guard is raised only chasing you, near, not stunned, not past its hold',
 
 test('the guarded kinds: a few, each with its own breaker and an answer to spam, every window short (0.6-1.5 s)', () => {
   const guarded = Object.entries(FOES).filter(([, D]) => D.guard).map(([k]) => k).sort();
-  assert.deepEqual(guarded, ['brute', 'crab', 'fencer', 'shade'], 'a few archetypes, not all');
+  assert.deepEqual(guarded, ['brute', 'crab', 'fencer', 'sentinel', 'shade'], 'a few archetypes, not all');
   for (const k of guarded) {
     const G = FOES[k].guard;
     assert.ok(G.breaks.length >= 1 && G.hint, `${k}: a breaker and a hint`);
@@ -158,7 +158,7 @@ test('the shade: its sword turns two cuts, then it answers with its cut; parried
 });
 
 test('no stalemate: the wrong attack spammed at each guard ends in a blow you can answer, within a few seconds', () => {
-  for (const kind of ['brute', 'crab', 'shade', 'fencer']) {
+  for (const kind of ['brute', 'crab', 'shade', 'fencer', 'sentinel']) {
     const { foes, f, done } = arena(kind, { at: kind === 'crab' ? 2.2 : 2.6 });
     raise(foes, f);
     let t = 0, answered = false;

@@ -1677,6 +1677,46 @@ Unity.
 
 Tests: `tests/monsters.test.js`.
 
+## The makers' droids (v2.34, issue #726)
+
+Roster v4's defunct droids ([design/enemy-roster-v4.md](../design/enemy-roster-v4.md)), drawn to their picked sheets (a new
+`sentinel/`, `oracle/` and `crawler/` folder under the enemy references). One material family for all three, built once in
+`src/enemies/plans/droid.js` (`droidMaterials`, `droidGlow`; the palette `DROID_PALETTE` and its tier's `DROID_TIER` in
+src/enemies/skins.js; the surface `DROID_SURFACE` in src/enemies/surfaces.js): weathered ivory ceramic (soft stains, faint
+grime runs, a few chips, a dull glaze) over near-black joints, amber seams, one amber eye, a little moss. The fencer and the
+lamp tripod can take it later. One skin each (`desert`, `arena: true`): met only in the Arena (its waves, its foe list, the
+creatures gallery) until the world rosters take them (`roster: 'v4'`). Their tier (`skinOf(a, w, 1)`): the palette dimmed,
+then `DROID_TIER` over it (scorched grey-brown ceramic, red seams, a red eye: `tierSkin(s, own)`), painted with
+`TIER_SURFACES` (soot and a net of red-glowing cracks) instead of the bands.
+
+| | sentinel (2.0 m, 6 hp, tier 3) | oracle (1.8 m, 4 hp, tier 3, ranged) | crawler (0.6 m, 2 hp, tier 1) |
+|---|---|---|---|
+| body | the humanoid rig's clips (src/enemies/plans/sentinel.js; its walk, its sword-and-shield moves) | the rig's upper body (idle, arms by hand), no leg clips: the hips held over a ceramic shell, a bob and a lean into its drift (`HOVER_LOOK`), a ring turning round its shoulders | the kit, plan `crawler` (a trot on diagonal pairs, four legs) |
+| moves (wind-up s) | thrust 0.75 (`lowThrust`), cut 0.95 (`ss_slash_1`), shield bash 0.95 (`bash`, breaks a plain guard), sudden dash 0.75 (`dashLow`, a 5.5 m rush), riposte 0.5 (`ss_slash_3`, its guard's answer) | bolt volley 1.0, then two quick bolts 0.45 (`gather`; a perfect parry sends one back), ward 0.9 (`warding`), wake 1.0 (`calling`), pulse 0.95 when you close in (`pulsing`) | bite 0.7, call 0.9 (`coil:call`, reared up), self-destruct 1.7 (`coil:blast`) |
+| guard and low change | its round shield (`guard.stings` 2: two light cuts landing within `STING.gap` 1.3 s of each other snap it up at once; `blocks` 1: the next is parried and answered with the riposte); the charged cut, the riposte, a bomb break it; overload under 40 % (enrage: red, quicker) | flees under 40 % and blinks (`fight.low.blink` 7 m: `Foes.blinkAway`, the first turn off straight back from you with ground under it) | its last move under half (`cling`: a blow that would end it leaves a sliver): the fuse |
+
+- **The ward** (the jelly's, `attack.ward`, `lanterns` 1): a beam of light from its hand to a packmate within 12 m and rings
+  round it: half the harm, no staggers, 7 s; the blade across the beam half-way cuts it (`Foes.cutWard`). A foe with
+  `lanterns` now sees its allies as a support does.
+- **The wake** (`attack.wakes` with `horn`: the oracle 18 m, the crawler's call 16 m): offered only while a foe not yet
+  provoked is within reach (`Foe.sleeper`, set by Foes each frame); `Foes.alarm` wakes them.
+- **The blast** (`attack.selfDestruct`, `seek` 3.4 m/s): through its fuse it scuttles at you (its ring centred where it
+  stops), the eye and seams blinking red faster and faster; at the strike's contact a ring of 2.6 m hurts (a roll's
+  frames swallow it), then it is gone (`Foe.shatter`, `Foes.shatter`: a flash of its blast's size). Finished during the
+  fuse, it bursts as any foe: no blast.
+- **Hovering without hiding** (`keepCasting`): the oracle never goes behind cover between casts (combat-v2.34's dead time).
+
+Tests: `tests/droids.test.js` (every move to a clip, a pose or a gait; the wind-ups pinned; the sentinel's stings and
+riposte; the ward, the wake, the blink, the blast; the tier; the cost; each one's signature move against a masher in a
+pack). Unity: `-fight droids` (engine/unity/game.js: the three side by side, their wind-ups, the ward and the fuse, the
+tier; `unity-droids-stand|windup|moves|tier.png`). Cost: 6 meshes the sentinel, 5 the crawler, 11 the oracle (its casts
+hidden until used); about 0.01 ms a foe's pose in node, 0.02–0.08 ms in Unity's V8; a pack of six in the Arena 2.3 ms CPU
+a frame on this Mac (High and Deck, headless).
+
+Still differs from the sheets: the crawler is the plan's knee-high scout (the sheet draws it nearly chest-high); the
+sentinel's resting stance is the library's idle, wider-legged than the sheet's, its blade carried low and point forward (the sheet's hangs point down: it would cut into a slope); the oracle's shell is narrower at the hips
+and its hands are simple; the stains are fainter washes than the sheet's.
+
 ## More foes, the perfect parry, combos
 
 - **Spitter:** keeps `keep` (6.5 m) away, backing off. It lobs a glob (drawn arcing over the second half of

@@ -60,6 +60,11 @@ export const FIGHT = {
   // (issue #726, roster v4: low, a grunt runs to its hulk (`to`: the kind it looks to first); the hulk rages)
   grunt: { mass: 0.8, poise: 2, low: { kind: 'flee', below: 0.5, to: 'hulk' }, alone: 'flee', follow: { id: 'club', on: ['whiff'], chance: 0.5 }, evade: { chance: 0.25, hop: 1.8 }, backstep: 'lunge' },
   hulk: { mass: 4, poise: 8, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'sweep', on: ['whiff'], chance: 0.4 } },
+  // (issue #726, the makers' droids) the sentinel overloads (enrage: quicker, red); the oracle flees and blinks away
+  // (`blink`: m it reappears from you, Foes.blinkAway); the crawler's last move is its blast, a sliver kept for it (cling)
+  sentinel: { mass: 1.4, poise: 5, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'thrust', on: ['whiff', 'block'], chance: 0.5 }, backstep: 'dash' },
+  oracle: { mass: 0.8, poise: 3, low: { kind: 'flee', below: 0.4, blink: 7 }, alone: 'flee' },
+  crawler: { mass: 0.5, poise: 2, low: { kind: 'last', below: 0.5, attack: 'blast', cling: true }, alone: 'rage' },
 };
 
 /**
@@ -234,6 +239,10 @@ export const TIERS = {
   mummerking: { combo: ['throw', 'smash'], words: 'it throws a mummer and comes in behind it with the beam' },
   grunt: { combo: ['lunge', 'club'], words: 'out of its lunge it clubs you at once' },
   hulk: { patch: { stomp: { wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } } }, words: 'its stomp sends a quake running out over the ground' },
+  // (issue #726: scorched ceramic, a red eye: src/enemies/skins.js DROID_TIER, src/enemies/surfaces.js DROID_TIER_SURFACE)
+  sentinel: { combo: ['thrust', 'cut'], words: 'a thrust, then a cut at once' },
+  oracle: { combo: ['ward', 'volley'], words: 'it fires a volley as soon as its ward is up' },
+  crawler: { combo: ['bite', 'bite'], words: 'it bites twice' },
 };
 /** The stage of the route a tier first comes in at, and the share of the non-fodder foes in tier by stage (0-4). */
 export const TIER_FROM = 3;

@@ -27,6 +27,11 @@ and are built with the enemy-rework skill (procedural surface mandatory).
 | `oracle` | droid | the caster, hovers back | 1.8 m | bolt volley, a shield over a packmate, wakes sleeping droids | flees and blinks |
 | `crawler` | droid | the scout | 0.6 m | skitters, rears and flashes to call the others, bites | self-destructs |
 
+## Status
+
+- 2026-10-28: the sentinel, the oracle and the crawler built (issue #726; docs/systems/foes.md, "The makers' droids"), met in
+  the Arena only until step 4.
+
 ## Where they live
 
 - **Camps** (src/encounters/sites.js): grunts round a fire with a hulk; a weapon rack (the grunt's bow and spear).

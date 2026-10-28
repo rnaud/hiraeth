@@ -372,6 +372,25 @@ export const PLANS = {
     },
     style: 'organic',
   },
+  // the makers' crawler (issue #726, src/enemies/plans/crawler.js): a knee-high ceramic dome on four jointed legs, dark
+  // thighs rising to the knee and ivory sickle shins down to a point; a quick trot on diagonal pairs, high knees, a
+  // machine's hard springs. It rears on its hind pair to call, squats braced as its fuse burns.
+  crawler: {
+    gait: { gait: 'alternate', drift: 0.32, stepTime: [0.06, 0.2], height: 0.3, arc: 'machine', duty: 0.55, reach: 0.5 },
+    knee: { lenA: 0.62, lenB: 0.86, pole: 'out-up' },
+    body: { bob: 0.04, lean: 0.03, bank: 0.04, sway: 0.1, tilt: 0.3, spring: { f: 6.5, z: 0.45, r: 0 }, height: { f: 7, z: 0.45, r: 0 } },
+    poses: {
+      coil: { y: -0.12, z: -0.12, pitch: -0.22, spread: 1.15 },       // (the bite: sunk back on its hind legs, the eye up at you)
+      strike: { y: 0.0, z: 0.32, pitch: 0.28 },
+      recover: { y: -0.06, z: 0.05, pitch: 0.08 },
+      hurt: { y: -0.06, roll: 0.2 },
+      'coil:call': { y: 0.28, z: -0.12, pitch: -0.75, spread: 1.0 },   // (reared on its hind pair, the eye flashing up)
+      'strike:call': { y: 0.28, z: -0.12, pitch: -0.75 },
+      'coil:blast': { y: -0.16, z: 0, pitch: 0.05, spread: 1.28 },     // (squatting braced, shaking, as its fuse burns)
+      'strike:blast': { y: -0.18, z: 0, pitch: 0 },
+    },
+    style: 'machine',
+  },
 };
 
 /**

@@ -30,6 +30,7 @@ export const SLOPE = {
     blot: { follow: 1 }, shade: { follow: 1, upright: 0.3 }, fencer: { follow: 1, upright: 0.4 },
     // (the humanoids on clips stand upright and reach the slope with their feet: src/enemies/humanoid-rig.js PLANT)
     mummer: { follow: 1, upright: 1 }, mummerking: { follow: 1, upright: 1 }, grunt: { follow: 1, upright: 1 }, hulk: { follow: 1, upright: 1 },
+    sentinel: { follow: 1, upright: 1 }, crawler: { follow: 1 },   // (issue #726; the oracle hovers: level)
   },
 };
 
