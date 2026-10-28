@@ -1,5 +1,7 @@
 # Enemy roster v3: humanoid foes on clips (issue #724, part of #722)
 
+**Superseded 2026-10-28 by [enemy-roster-v4.md](enemy-roster-v4.md)**: the rig and the mummers stand; the seven per-world humanoids below were dropped.
+
 2026-10-27. The author, after picking the mummer and the mummer king sheets: "we have too many enemies that are animals
 and low profile to the ground, we should have more that are humanoid so we can wire their animations better rather
 than doing 100% procedural".

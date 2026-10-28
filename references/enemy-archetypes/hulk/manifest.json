@@ -1,0 +1,23 @@
+{
+  "archetype": "hulk",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character design reference sheet for a science fiction exploration game: one hulk, a huge monster, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its attack wind-up with a long iron-bound club swung back over its shoulder in both hands. A small cloaked human traveller with a round jade backpack stands beside it for scale; the hulk is 2.7 metres tall, twice the traveller's width. Design: human proportions and joints, a hunched massive back, long heavy arms reaching to its knees, a small head with a jutting jaw, a single short horn on its brow and small eyes; smooth slate-blue skin with a pale belly, the base colour of its kind; a hide kilt and a rope belt; a long club. Slow and heavy. Original design, medium detail, a strong readable silhouette. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse delicate hatching in shadows, luminous flat pastel gouache colours, cream paper grain, evenly spaced views, fully visible bodies, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, scenery, hollow knight, white mask, drapes, bandages, mummy, robes, gore.",
+      "from": "docs/design/enemy-roster-v4-prompts.md#hulk",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-10-48-13-0f05",
+      "candidate": "gemini/2",
+      "sha256": "e2e4df4f983d258938381a04be512545a5e09ecde9ecb75f2ef80eaac85552c5",
+      "bytes": 779959,
+      "costUSD": 0.0336
+    }
+  ]
+}

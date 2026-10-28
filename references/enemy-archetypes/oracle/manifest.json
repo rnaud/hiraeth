@@ -1,0 +1,23 @@
+{
+  "archetype": "oracle",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character design reference sheet for a science fiction exploration game: one oracle, a defunct hovering caster droid of an ancient vanished civilisation, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its attack wind-up with both hands raised and a sphere of amber light gathering between them. A small cloaked human traveller with a round jade backpack stands beside it for scale; the oracle is 1.8 metres tall and floats a hand's breadth off the ground. Design: a person's head, shoulders and two thin arms, its body ending in a tapering ceramic shell instead of legs; a tall smooth head with one large round amber eye; pale ivory ceramic panels over dark joints, a slowly turning ring around its shoulders; weathered, chipped and stained with age, glowing amber seams. Calm and eerie. Original design, medium detail, a strong readable silhouette. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse delicate hatching in shadows, luminous flat pastel gouache colours, cream paper grain, evenly spaced views, fully visible bodies, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, scenery, hollow knight, white mask, drapes, bandages, mummy, robes, gore.",
+      "from": "docs/design/enemy-roster-v4-prompts.md#oracle",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-10-48-13-cc74",
+      "candidate": "gemini/2",
+      "sha256": "1a4c5f8b307c2ee41d90c59d732bb22db734d3d5c1102e3881049156450ccbc0",
+      "bytes": 776437,
+      "costUSD": 0.0336
+    }
+  ]
+}

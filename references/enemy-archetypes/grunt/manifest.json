@@ -1,0 +1,23 @@
+{
+  "archetype": "grunt",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design reference sheet for a science fiction exploration game: one grunt, a small stocky monster, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its attack wind-up with a crude club raised over its head in both hands. A small cloaked human traveller with a round jade backpack stands beside it for scale; the grunt is 1.3 metres tall, a little shorter than the traveller. Design: human proportions and joints, a big head with a wide flat snout, two small tusks, long pointed ears and small bright eyes, a round belly, short bandy legs, three-toed feet; smooth tomato-red skin, the base colour of its kind; a simple loincloth and one leather strap across the chest; a knobbly wooden club. Mischievous and dim, more comic than frightening. Original design, medium detail, a strong readable silhouette. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse delicate hatching in shadows, luminous flat pastel gouache colours, cream paper grain, evenly spaced views, fully visible bodies, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, scenery, hollow knight, white mask, drapes, bandages, mummy, robes, gore.",
+      "from": "docs/design/enemy-roster-v4-prompts.md#grunt",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-10-48-13-95af",
+      "candidate": "openai/2",
+      "sha256": "ec506ee7448d0bbdadb328f01efc0e5587844ce2010cfe8fe93438392ea712ef",
+      "bytes": 153294,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "archetype": "sentinel",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character design reference sheet for a science fiction exploration game: one sentinel, a defunct humanoid guard droid of an ancient vanished civilisation, drawn four times side by side at the same scale on a plain cream background: front view behind its shield, side view, three-quarter view, and its attack wind-up with a blade arm drawn back and its shield arm forward. A small cloaked human traveller with a round jade backpack stands beside it for scale; the sentinel is 2 metres tall, slim and upright. Design: human proportions and joints, a smooth ancient body of pale ivory ceramic panels over dark jointed limbs, one round glowing amber eye in a narrow smooth head, a round shield built into its left forearm and a straight blade extending from its right; weathered, chipped and stained with age, a little moss in the joints, glowing amber seams. Still and precise, it moves in sudden bursts. Original design, medium detail, a strong readable silhouette. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse delicate hatching in shadows, luminous flat pastel gouache colours, cream paper grain, evenly spaced views, fully visible bodies, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, scenery, hollow knight, white mask, drapes, bandages, mummy, robes, gore.",
+      "from": "docs/design/enemy-roster-v4-prompts.md#sentinel",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-10-48-13-15c5",
+      "candidate": "gemini/2",
+      "sha256": "8f013fb902b3bfd25f70edf92d8eb7f02fe299e72606ecb50603509121ea05e6",
+      "bytes": 830203,
+      "costUSD": 0.0336
+    }
+  ]
+}

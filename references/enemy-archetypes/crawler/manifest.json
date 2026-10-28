@@ -1,0 +1,23 @@
+{
+  "archetype": "crawler",
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character design reference sheet for a science fiction exploration game: one crawler, a small defunct scout droid of an ancient vanished civilisation, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its alarm wind-up reared back on its hind legs with its eye flaring. A small cloaked human traveller with a round jade backpack stands beside it for scale; the crawler is knee-high to the traveller. Design: a round ceramic body like a half-buried dome on four jointed legs, one large round amber eye in front, a short antenna; pale ivory ceramic panels over dark joints; weathered, chipped and stained with age, glowing amber seams. Curious and twitchy. Original design, medium detail, a strong readable silhouette. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse delicate hatching in shadows, luminous flat pastel gouache colours, cream paper grain, evenly spaced views, fully visible bodies, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, scenery, hollow knight, white mask, drapes, bandages, mummy, robes, gore.",
+      "from": "docs/design/enemy-roster-v4-prompts.md#crawler",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-10-48-13-13f8",
+      "candidate": "gemini/2",
+      "sha256": "53d36055865a1f65eb37d4527652d3dd21d4a47771313c39d3439477b64bb914",
+      "bytes": 774591,
+      "costUSD": 0.0336
+    }
+  ]
+}
