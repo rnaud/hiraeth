@@ -101,12 +101,13 @@ test('the shade: its cut is parried into a riposte; its feint winds the cut half
   const F = attackOf('shade', 'feint');
   assert.equal(F.shape, 'lane'); assert.ok(F.feint > 0.3 && F.feint < 0.6 && F.lunge > 1);
   const f = foes.add('shade', v(4, 0, 2)); f.state = 'wind'; f.atk = F; f.heading = 0;
-  const arm = () => f.model.group.getObjectByName('shoulder').rotation.x;   // (its right: the sword arm)
+  // (its sword hand's height over the ground: the rig's right hand, issue #724; tests/duelists.test.js with the clips)
+  const hand = () => { f.model.group.updateMatrixWorld(true); return f.model.joints.hands[0].getWorldPosition(v()).y - f.pos.y; };
   for (let i = 0; i < 40; i++) { f.k = Math.min(1, i / 40 * 0.35); foes.look(f, DT); }
-  const raised = arm();
+  const raised = hand();
   for (let i = 0; i < 60; i++) { f.k = 0.35 + (i / 60) * 0.6; foes.look(f, DT); }
-  assert.ok(raised < -1, `the cut begun: the arm raised (${raised.toFixed(2)})`);
-  assert.ok(arm() > 0, `then the sword dropped to the hip (${arm().toFixed(2)})`);
+  assert.ok(raised > 1.2, `the cut begun: the sword hand raised (${raised.toFixed(2)} m)`);
+  assert.ok(hand() < 1.1 && hand() < raised - 0.25, `then the sword dropped to the hip (${hand().toFixed(2)} m)`);
   foes.dispose(); clearTargets();
   // the step: it sinks and comes up beside you, then cuts (recut)
   const st = new Foe('shade', v(0, 0, 6), { rng: () => 0.3 }), Q = player(v(0, 0, 0));

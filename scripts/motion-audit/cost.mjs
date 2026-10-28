@@ -16,7 +16,7 @@ import { keeperModel } from '../../src/temples/guardians.js';
 
 const view = await import('../../src/motion-kit/view.js').catch(() => null);   // (absent before kit phase 7: everything in view)
 const NO_GAZE = process.argv.includes('--no-gaze');
-const KINDS = ['crab', 'hound', 'lizard', 'tripod', 'skitter', 'brute', 'bell', 'heron', 'shade', 'machine'];
+const KINDS = ['crab', 'hound', 'lizard', 'tripod', 'skitter', 'brute', 'bell', 'heron', 'machine']   // (the shade left the kit for the humanoid rig's clips, issue #724: tests/duelists.test.js times it);
 
 /** A camera at the origin looking along +z (the game's fov, 16:9): what it sees is in view. */
 function camera() {

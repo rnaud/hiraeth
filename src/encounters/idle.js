@@ -77,6 +77,8 @@ export function restPose(f, dt, out = {}) {
   I && (I.rest = Math.max(0, Math.min(1, I.rest + (resting ? dt * 1.5 : -dt * 4))));
   const k = I?.rest ?? 0;
   if (k <= 0.001) return null;
+  // (a humanoid on clips squats and lies down on its own clips, src/enemies/humanoid-rig.js: nothing laid over them)
+  if (f.model?.driver) return null;
   const legs = !!f.model?.rig, h = f.def.height ?? 1;
   const breathe = mode === 'sleep' ? Math.sin((I.t ?? 0) * T.breathe * Math.PI * 2 / 3) : Math.sin((I.t ?? 0) * 1.3) * 0.3;
   out.y = -T.low * h * k * (legs ? 1 : 0.3);

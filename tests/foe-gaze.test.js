@@ -54,9 +54,13 @@ test('idle, it looks where it is going: ahead as it walks on, to its side as it 
     assert.ok(f.model.gaze.every((e) => e.yaw > 0.2), `${kind}: on him`);
     // he goes; it walks on along its heading: its eyes come back to its way
     f.state = 'idle'; f.provoked = false; f.watcher = false; P.pos.set(-30, 0, 0);
-    frames(scene, foes, f, 90, () => { f.pos.z += 1.5 * DT; });
+    frames(scene, foes, f, 60, () => { f.pos.z += 1.5 * DT; });
+    // (over its last half second: a heavy walker's body sways its head ±0.16 rad a step, and which step the frame fell on
+    // turned on the order the kit's rigs were made in: the shade's leaving the kit, issue #724, moved the brute's)
+    const sum = f.model.gaze.map(() => ({ yaw: 0, pitch: 0 }));
+    frames(scene, foes, f, 30, () => { f.pos.z += 1.5 * DT; f.model.gaze.forEach((e, i) => { sum[i].yaw += e.yaw / 30; sum[i].pitch += e.pitch / 30; }); });
     assert.ok(!f.gaze.watching, `${kind}: not watching`);
-    for (const e of f.model.gaze) assert.ok(Math.abs(e.yaw) < 0.1 && e.pitch < 0.05, `${kind}: back to its way ahead (yaw ${e.yaw.toFixed(3)}, pitch ${e.pitch.toFixed(3)})`);
+    for (const e of sum) assert.ok(Math.abs(e.yaw) < 0.1 && e.pitch < 0.05, `${kind}: back to its way ahead (yaw ${e.yaw.toFixed(3)}, pitch ${e.pitch.toFixed(3)})`);
     // drifting to its right (its heading unchanged): its eyes lead the way it goes
     frames(scene, foes, f, 120, () => { f.pos.x += 1.5 * DT; });
     for (const e of f.model.gaze) assert.ok(e.yaw > 0.2, `${kind}: looking the way it drifts (${e.yaw.toFixed(2)})`);

@@ -616,13 +616,13 @@ with them every archetype is on the kit.
 
 | plan | archetype | how it moves |
 |---|---|---|
-| 9 humanoid | shade | a biped on the gait planner (`alternate`): two empty boots, the knee forward (pole `forward`, thigh and shin 0.56 / 0.57 of the hip-to-foot span), a quick swing (0.14–0.34 s) on a short duty (0.55: they touch down late and lift early, so it floats a little); the body rides them on soft springs; the cloak hangs from its shoulders on its own lagging springs (it sways back as it goes and swings out as it turns); its sleeves swing against the legs by the distance walked; four ribbons on verlet chains, each drawn as one continuous strip of cloth whose rows are bound to the chain's points (`ribbonMesh`), a ripple running down them; poses: the cut (`coil`: turned away, the sword back over its shoulder while the hood turns to keep you in sight), the feint (`coil:feint`: the cut stopped halfway, then sunk, the sword at the hip; `strike:feint` the low thrust), the step (`coil:step`: collapsed into its pool) |
+| 9 humanoid | shade (on clips since v2.33: "The humanoid foe rig") | until v2.33: a biped on the gait planner (`alternate`): two empty boots, the knee forward (pole `forward`, thigh and shin 0.56 / 0.57 of the hip-to-foot span), a quick swing (0.14–0.34 s) on a short duty (0.55: they touch down late and lift early, so it floats a little); the body rides them on soft springs; the cloak hangs from its shoulders on its own lagging springs (it sways back as it goes and swings out as it turns); its sleeves swing against the legs by the distance walked; four ribbons on verlet chains, each drawn as one continuous strip of cloth whose rows are bound to the chain's points (`ribbonMesh`), a ripple running down them; poses: the cut (`coil`: turned away, the sword back over its shoulder while the hood turns to keep you in sight), the feint (`coil:feint`: the cut stopped halfway, then sunk, the sword at the hip; `strike:feint` the low thrust), the step (`coil:step`: collapsed into its pool) |
 | 16 roller | pearl roller | no legs: unrolled it glides on a foot of nine overlapping segments, a ripple running back along them by the distance glided (it never skates); its eye stalks lag its moves on springs and sink as it winds up; rolled up, its spin is locked to the ground it covers (`rollAngle` = distance / radius) and it wobbles on a spring kicked by starts, stops and bumps; unrolling, the spin settles upright; the bowl's wind-up rocks the shell back and forth on its foot three times |
 | 21 strings | marionette | it never touches the ground: the puppet hangs from an anchor in a knot of smoke 4.6 m over its feet (about 6 m up) as a pendulum (`Pendulum`, 3.6 m: it swings behind as it sets off and past as it stops); each limb swings on its own loose spring (f 1.6, ζ 0.22) after its drift and the swing; moving, it jerks (every ~0.3 s a string tugs a limb up and drops it); its four strings are one mesh skinned between the knot and the parts they hold (two rings a string, each bound to one end), so they stretch as it moves; poses: the strings (both upper arms out level, the forearms up, the fingers curling), the yank (one arm high), the dance (dropped low, the legs jerked up together, then a whirl) |
 
 Measured (`node scripts/motion-audit/run.mjs shade shade@eclipse --pack`, `--pace=0.5`): the shade's boots slide
 0.01 m/m (worst 0.02 m, reach span 19 %, lift 13 %, one boot at a time, 2.50 → 1.50 steps/s, two of a pack out of step:
-−0.32). `tests/motion-plans.test.js` holds the shade (two skins); `tests/archetypes-batch5.test.js` the roller's roll
+−0.32). `tests/motion-plans.test.js` held the shade (two skins) until it went onto clips (v2.33, tests/duelists.test.js); `tests/archetypes-batch5.test.js` the roller's roll
 locked to the ground (spin × radius = distance, to 10⁻⁶ m) and the puppet's swing.
 
 ### Phase 6, the guardians (2026-10-10)
@@ -830,7 +830,39 @@ body back; the charged cut's overhead is used, the hop is the mind's lunge).
 
 **Cost** (one Animator a foe): the rig's own update 0.02-0.06 ms a foe in node and in Unity's V8 (its `cost`, the log of
 `-fight mummers`); a pack of 8 mummers in the Arena on this Mac (Chrome, High) 0.3 ms a frame all eight together, median
-(0.5 ms at the 90th percentile). Next: the shade and the fencer moved onto it (their walks replaced by clips).
+(0.5 ms at the 90th percentile).
+
+**The shade and the fencer on it** (v2.33, issue #724; tests/duelists.test.js). Their kit walks (plans `humanoid` and
+`fencer`, still in plans.js, no longer used) are replaced by the clips; each keeps its look and its own layers.
+
+| move | shade (`SHADE_MOVES`, plans/humanoid.js) | fencer (`FENCER_MOVES`, plans/fencer.js) |
+|---|---|---|
+| walk, chase | the library's walk stretched to most of its chase (walk 1.6, jog 4.2 m/s), its chest and hood kept upright (`SHADE_FLOAT.upright` 0.45 of the clip's lean), the body floating 2 cm over its boots with a slow bob | the library's walk and jog |
+| cut / overhead | `ss_slash_1` 0.1 → 0.45 (the sword up over its right shoulder) → cut 0.6 → 0.85 | `gs_slash_1` 0.2 → 0.5 → 0.62 → 0.95, the shield lowered before its hip (`shieldDown`) |
+| recut / sweep | `ss_slash_3` (the backhand) 0.2 → 0.55 → 0.82 → 1.05 | `gs_slide_attack` 0.7 → 0.95 (sunk low, the sword behind its right hip) → 1.25 → 1.45, the shield up (`shieldUp`) |
+| feint | `feintClip`: `ss_slash_1` run only to 0.3 (`half`: never loaded) over 80 % of the feint's share, held, then crossfaded to `ss_block_idle`'s crouch with the sword at its hip (`thrust` arms), loaded by 75 %; the thrust is the pose's strike, straight out; the hood tilts as the cut stops | |
+| leap | | `ss_attack_1` 0.1 → 0.4 (crouched) → 1.27 (the landing) → 1.5, its own rise left out (`ground`: the mind's arc lifts it) |
+| bash, shove | | `ss_block_1` with the shield drawn back to its shoulder and punched out (`bash`) |
+| guard (f.guardK) | `ss_block_idle` above the legs (`upper`) and the sword across its body (`swordGuard`) | `ss_block_idle` above the legs on the shield's servo, the sword held as the clip's fist holds it |
+| guard broken | (stagger) | the stagger with both arms flung wide (`flung`) |
+| step | none: its own sink into its pool | |
+
+New in the rig for them: a move may be a clip and a pose together (`{ clip, …, pose }`: the clip's body, the pose's arms);
+`ground` (a clip's rise left out); `feint` (above); `o.upper` (a move above the legs over everything, its own loop: the
+guards); `o.poseW`; and a **crossfade** between two moves (`XFADE`: the joints eased from the pose shown, 0.18 s, 0.4 s
+into lying down: a stagger into the knock-down falls instead of popping). The poise knock-down's reaction
+(src/foe-react.js) is only the stagger's jolt for a body on clips: it lies down on `get_up_back` (it was laid over the
+lying clip as a second fall). A site's rest pose (src/encounters/idle.js `restPose`) leaves a body on clips alone.
+
+The cloth stays procedural: the shade's cloak (`drape`) hangs from the chest turned with it but keeps only 0.3 of its lean
+(its lag springs on top), gathering up as the body crouches so its hem stays off the ground; its smoke, ribbons and pool
+as before; the fencer's shield is kept upright and facing out from the chest's heading (strapped along its forearm when
+it lies down). Swords: the shade's poured blade and the fencer's sword turn as the clip's fist holds the traveller's in a
+move (`gripFrom`), carried their own way otherwise.
+
+Cost (`Foes.look` whole, node on this Mac, median a frame): shade 0.024 → 0.047 ms walking, 0.032 → 0.056 ms winding up;
+fencer 0.007 → 0.026 ms walking, 0.012 → 0.031 ms winding up (the kit's LOD skipped most of the fencer's legs). In
+Chrome: see the changelog's numbers.
 
 ## Measuring
 

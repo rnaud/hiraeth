@@ -40,6 +40,11 @@ export const HOLD_AT = 0.75;
 export const BLEND = { in: 0.12, out: 0.22 };
 /** Feet on the ground: how far a foot reaches (share of the leg) down or up to the slope's plane. */
 export const PLANT = { reach: 0.35 };
+/**
+ * A move changed for another while one plays (the feint's stopped cut into its thrust, a stagger into the knock-down, a
+ * strafe into a wind-up): the joints crossfaded from the pose shown over `secs` (`fall` into lying down: the fall itself).
+ */
+export const XFADE = { secs: 0.18, fall: 0.4 };
 /** Distance tiers: past `mid` m the pose is made every 2nd frame, past `far` every 4th (the time between kept). */
 export const RIG_LOD = { mid: 22, far: 40 };
 
@@ -121,10 +126,18 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
   if (f.reel === 'pickup' && f.state === 'recover') return at(S.pickup, S.pickup.from + (S.pickup.to - S.pickup.from) * clamp01(1 - (f.timer ?? 0) / (f.def?.disarm?.pickup ?? 1.2)), 'pickup');
   // an attack: the wind-up stretched to the foe's own time, the loaded pose held from HOLD_AT; the strike through the cut
   if (a && M && (f.state === 'wind' || f.state === 'strike' || f.state === 'recover')) {
+    if (M.feint && a.feint != null) return feintClip(f, M, a.feint);
+    if (M.pose && M.clip) {
+      // (a clip for the body with a procedural pose of the arms over it: the fencer's shield drawn back for its bash)
+      const load = f.state === 'wind' ? clamp01((f.k ?? 0) / HOLD_AT) : 1;
+      const t = f.state === 'wind' ? windClipTime(f.k ?? 0, M) : f.state === 'strike' ? strikeClipTime(f.k ?? 0, M, a.contact ?? 0.5) : M.to;
+      return { ...at(M, t, f.state), pose: M.pose, phase: f.state, k: f.k ?? 0, load, lean: M.lean ?? 0, ground: !!M.ground };
+    }
     if (M.pose) return { loop: 'idle', pose: M.pose, phase: f.state, k: f.k ?? 0, load: f.state === 'wind' ? clamp01((f.k ?? 0) / HOLD_AT) : 1 };
-    if (f.state === 'wind') return { ...at(M, windClipTime(f.k ?? 0, M), 'wind'), load: clamp01((f.k ?? 0) / HOLD_AT), lean: M.lean ?? 0 };
-    if (f.state === 'strike') return { ...at(M, strikeClipTime(f.k ?? 0, M, a.contact ?? 0.5), 'strike'), lean: M.lean ?? 0 };
-    return at(M, M.to, 'recover');
+    const g = M.ground ? { ground: true } : null;
+    if (f.state === 'wind') return { ...at(M, windClipTime(f.k ?? 0, M), 'wind'), load: clamp01((f.k ?? 0) / HOLD_AT), lean: M.lean ?? 0, ...g };
+    if (f.state === 'strike') return { ...at(M, strikeClipTime(f.k ?? 0, M, a.contact ?? 0.5), 'strike'), lean: M.lean ?? 0, ...g };
+    return { ...at(M, M.to, 'recover'), ...g };
   }
   if (f.stunned > 0 && f.state !== 'chase') return at(S.stagger, S.stagger.from + (S.stagger.to - S.stagger.from) * clamp01(1 - f.stunned / 0.6), 'stagger');
   // calm at its site (src/encounters/idle.js): squatting by the fire, asleep, looking out
@@ -137,6 +150,23 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
   }
   if (Math.abs(o.strafe ?? 0) > 0.6 && S.strafe) return { clip: S.strafe.clip + (o.strafe < 0 ? '_m' : ''), t: o.strafeT ?? 0, kind: 'strafe' };
   return { loop: 'move' };
+}
+
+/**
+ * A feint (the shade's, attack.feint: the share of the wind-up its cut stops at): the cut's clip begun, its anticipation
+ * run only to `half` (the cut stopped halfway: never loaded) over the first 80 % of the feint's share and held there a
+ * beat; then the body goes over to the move it really makes (M.feint: { clip, at (a held frame), pose }: the shade's sword
+ * dropped to its hip, sunk in the sword-and-shield guard's crouch), loaded by 75 % of the wind-up, and its strike (the
+ * thrust: the pose's own strike) and recovery on it. Pure (tests/duelists.test.js).
+ */
+export function feintClip(f, M, A) {
+  const k = f.k ?? 0, T = M.feint;
+  if (f.state === 'wind' && k < A + 0.05) {
+    const u = clamp01(k / (A * 0.8)), e = 1 - (1 - u) * (1 - u);
+    return { clip: M.clip, t: M.from + (M.half - M.from) * e, kind: 'wind', load: 0.5 * u, feint: 'cut' };
+  }
+  const load = f.state === 'wind' ? smooth((k - A - 0.05) / Math.max(0.05, HOLD_AT - A - 0.05)) : 1;
+  return { clip: T.clip, t: T.at, kind: f.state, pose: T.pose, phase: f.state, k, load, feint: 'thrust' };
 }
 
 /** A time running back and forth between a and b (s: the loop's clock). */
@@ -179,6 +209,19 @@ export const PROC_POSES = {
   throw: { l: [[0.3, 1, -0.1], [0.05, 1, 0.1]], r: [[-0.3, 1, -0.1], [-0.05, 1, 0.1]], lean: -0.3, strike: { l: [[0.2, 0.2, 1], [0.1, -0.2, 1]], r: [[-0.2, 0.2, 1], [-0.1, -0.2, 1]] } },
   // the alert: one arm up pointing at you, the other at its side
   point: { r: [[-0.2, 0.6, 0.8], [0, 0.5, 1]], l: [[0.2, -1, 0.1], [0.1, -1, 0.3]] },
+  // (the shade's feint, #724) the sword dropped to its hip, drawn back low, the empty sleeve back; then the thrust, low
+  // and straight, the arm out at you
+  thrust: { r: [[-0.2, -0.9, -0.35], [0.05, -0.6, 0.8]], l: [[0.25, -0.9, -0.35], [0.15, -0.9, 0.3]], strike: { r: [[-0.05, -0.05, 1], [0, -0.05, 1]] } },
+  // (the fencer's, #724) its shield drawn back to its shoulder, then punched out before it
+  bash: { l: [[0.55, -0.35, -0.55], [-0.35, 0.45, 0.8]], strike: { l: [[0.2, -0.05, 1], [0.05, 0.1, 1]] } },
+  // its shield lowered before its hip while its sword goes up in both the clip's hands (the overhead)
+  shieldDown: { l: [[0.3, -0.95, 0.3], [0.05, -0.55, 0.85]] },
+  // its shield held square before it (the sweep's other hand)
+  shieldUp: { l: [[0.35, -0.3, 0.9], [-0.5, 0.5, 0.7]] },
+  // (the shade's guard, #661) its sword arm across its body, the blade up to its left; the empty sleeve's cuff against it
+  swordGuard: { r: [[-0.2, -0.55, 0.8], [0.85, 0.4, 0.35]], l: [[0.3, -0.45, 0.85], [-0.55, 0.5, 0.65]] },
+  // its guard broken: both arms flung wide, the shield out to its side
+  flung: { r: [[-0.95, 0.15, 0.1], [-0.9, 0.45, 0.2]], l: [[0.95, 0.15, 0.1], [0.9, 0.45, 0.2]] },
   // hands clutching its face (the mask knocked off)
   clutch: { l: [[0.3, 0.1, 0.6], [-0.5, 0.8, 0.3]], r: [[-0.3, 0.1, 0.6], [0.5, 0.8, 0.3]] },
 };
@@ -222,7 +265,8 @@ export class HumanoidDriver {
 
   /**
    * The pose this frame. f: the foe; c: Foes.animKit's kit ({ dt, ground, eye }). o: { pose (a procedural arm pose to
-   * hold over everything: 'clutch'), lean (rad forward) }. Returns what stateClip chose.
+   * hold over everything: 'clutch'), poseW (its weight, 0..1: 1 if not given), upper ({ clip, w }: a move above the legs
+   * over everything the clips play, its own loop: the fencer's guard, ss_block_idle) }. Returns what stateClip chose.
    */
   update(f, c, o = {}) {
     const dt = Math.max(0, c.dt ?? 0), p = f.pos;
@@ -250,6 +294,7 @@ export class HumanoidDriver {
     const A = this.animator();
     if (A) this.clipPose(A, f, want, step, o);
     else fallbackPose(this.J, f, want, this.walked, this.t);
+    this.crossfade(want, step);
     this.style?.(this.J, want);   // (the body's own stance over the clip's: a bow-legged mummer)
     this.procPose(want, o, step);
     this.plant(f);
@@ -272,8 +317,11 @@ export class HumanoidDriver {
     else if (M && this.moveW > 0.001) {
       const full = M.kind === 'down' || M.kind === 'sleep' || M.kind === 'sit' || M.kind === 'pickup';
       // (an attack's own hop and lean are its; a strafe keeps the gait's feet: it walks sideways)
-      A.play(M.clip, M.t, smooth(this.moveW), { full, head: true, walks: M.kind === 'strafe' });
+      A.play(M.clip, M.t, smooth(this.moveW), { full, head: true, walks: M.kind === 'strafe', ground: !!M.ground });
     }
+    // a move above the legs over it all (the fencer's shield up: the sword-and-shield guard), its own clock
+    const U = o.upper;
+    if (U && U.w > 0.001) A.playUpper(U.clip, (this.t * (U.rate ?? 1)) % (A.moveClip(U.clip)?.duration || 1), Math.min(1, U.w));
     const loop = want.loop === 'look' ? 'look' : null;
     A.calm = !!loop;
     A.update(dt, {
@@ -298,6 +346,25 @@ export class HumanoidDriver {
     if (want.lean) J.torso.rotateX(want.lean * (want.kind === 'wind' ? smooth(want.load) : 1 - smooth((f.k ?? 0) * 2.5)) * this.moveW);
     // the telegraph's push: held in its loaded pose, it leans further into it as the wind-up runs out
     if (want.kind === 'wind' && want.load >= 1) J.torso.rotateX(-0.12 * smooth(((f.k ?? 0) - HOLD_AT) / (1 - HOLD_AT)));
+  }
+
+  /** The joints of one move eased over from the last pose of another (XFADE), the clip's pose kept to start the next. */
+  crossfade(want, dt) {
+    const J = this.J, js = this._joints ??= [J.body, J.torso, J.head, ...J.arms, ...J.elbows, ...J.hands, ...J.legs, ...J.knees, ...J.feet];
+    const clip = want.clip ?? null;
+    if (clip && this.shownClip && clip !== this.shownClip && this.moveW > 0.5 && this.shown) {
+      this.xf = { q: this.shown.q.map((q) => q.clone()), p: this.shown.p.clone(), t: 0, secs: want.kind === 'down' ? XFADE.fall : XFADE.secs };
+    }
+    this.shownClip = clip ?? (this.moveW > 0.001 ? this.shownClip : null);
+    if (this.xf) {
+      const X = this.xf; X.t += dt;
+      const k = smooth(X.t / X.secs);
+      js.forEach((j, i) => j.quaternion.copy(_q.copy(X.q[i]).slerp(j.quaternion, k)));
+      J.body.position.lerpVectors(X.p, J.body.position, k);
+      if (k >= 1) this.xf = null;
+    }
+    const S = this.shown ??= { q: js.map(() => new THREE.Quaternion()), p: new THREE.Vector3() };
+    js.forEach((j, i) => S.q[i].copy(j.quaternion)); S.p.copy(J.body.position);
   }
 
   /**
@@ -327,7 +394,7 @@ export class HumanoidDriver {
   procPose(want, o, dt) {
     const name = o.pose ?? want.pose ?? null;
     const P = name ? PROC_POSES[name] : null;
-    const target = P ? (o.pose ? 1 : want.phase === 'wind' ? smooth(want.load) : want.phase === 'strike' ? 1 : 1 - clamp01(want.k ?? 0)) : 0;
+    const target = P ? (o.pose ? o.poseW ?? 1 : want.phase === 'wind' ? smooth(want.load) : want.phase === 'strike' ? 1 : 1 - clamp01(want.k ?? 0)) : 0;
     if (P) this.proc = P;
     this.procW += (target - this.procW) * (dt === 0 ? 1 : 1 - Math.exp(-14 * dt));
     if (!this.proc || this.procW < 0.01) return;

@@ -1565,7 +1565,7 @@ tier).
 ## The makers' fencer (v2.27, issue #665, `src/enemies/plans/fencer.js`)
 
 A sword-and-shield duelist that fights the way you do (archetype `fencer`, a machine, role `mirror`, tier 3, plan
-`fencer` on the kit: the humanoid's biped, planted). **No design sheet was picked** (`art: 'pending'`): it is built from
+`fencer` on the kit until v2.33; since issue #724 on the humanoid foe rig's sword-and-shield clips: docs/systems/procedural-animation.md, "The humanoid foe rig"). **No design sheet was picked** (`art: 'pending'`): it is built from
 the roster's parts in the makers' high tech, kept simple to read at play distance: a little taller than you, ivory
 ceramic plates over a dark frame, a narrow helm with one round lens and a fin, a kite shield with lit seams, a straight
 blade with a lit edge; three skins (the Moon Foundry's furnace orange, the Space City's white and cyan with a round
@@ -1745,7 +1745,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   threads and lanterns on verlet chains). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
   `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
   (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum); batch 5's:
-  `humanoid.js` (plan 9: the shade's empty boots on the gait planner, its cloak on lagging springs, its ribbons on
+  `humanoid.js` (plan 9: the shade's empty boots, on the humanoid rig's clips since #724, its cloak on lagging springs, its ribbons on
   verlet chains as continuous skinned strips), `roller.js` (plan 16: a rippling foot by distance, the roll locked to the
   ground), `strings.js` (plan 21: a puppet hung from a knot as a pendulum, its strings one mesh skinned between the knot
   and what they hold). **Skinned on the

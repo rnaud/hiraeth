@@ -218,6 +218,7 @@ export const PLANS = {
   // (alternate), the knees bending forward (two-bone IK), the boots touching down late and lifting early (a short duty,
   // a quick swing: it floats a little); the body rides the boots on soft springs and floats a hand over its hips, its
   // empty sleeves swing against the legs, the cloak's strips trail on verlet chains (src/enemies/plans/humanoid.js)
+  // (no longer used since issue #724: the shade and the fencer walk on the humanoid foe rig's clips, src/enemies/humanoid-rig.js)
   humanoid: {
     gait: { gait: 'alternate', drift: 0.36, stepTime: [0.14, 0.34], height: 0.14, arc: 'organic', duty: 0.55, reach: 0.5 },
     knee: { lenA: 0.56, lenB: 0.57, pole: 'forward' },
@@ -239,6 +240,7 @@ export const PLANS = {
   // biped (alternate, knees forward) but planted (no float), a quicker shorter step, the body riding stiffer springs with a
   // small servo overshoot; its poses a fencer's: drawn back behind the shield, the sword up for the overhead, low for the
   // sweep, the shield shoulder forward for the bash, crouched deep for the leap (src/enemies/plans/fencer.js)
+  // (no longer used since issue #724: above)
   fencer: {
     gait: { gait: 'alternate', drift: 0.34, stepTime: [0.16, 0.36], height: 0.12, arc: 'organic', duty: 0.62, reach: 0.5 },
     knee: { lenA: 0.5, lenB: 0.5, pole: 'forward' },

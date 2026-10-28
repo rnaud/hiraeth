@@ -4138,7 +4138,8 @@ export class Foes {
     } else if (kind === 'hop') this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5);
   }
   /**
-   * Its poise broken (#722, Foe.breakPoise): it goes down (src/foe-react.js 'down', held while it lies), a heavy thud and
+   * Its poise broken (#722, Foe.breakPoise): it goes down (src/foe-react.js 'down', held while it lies; a humanoid on
+   * clips lies down and gets up on its own clips, src/enemies/humanoid-rig.js: only the stagger's jolt), a heavy thud and
    * dust; the riposte's window opens for you, as after a perfect parry (src/fluid-blade.js RIPOSTE); the first time, a tip.
    */
   poiseBroken(f, dir = null, parried = false) {
@@ -4146,7 +4147,7 @@ export class Foes {
     const way = dir && Math.hypot(dir.x, dir.z) > 1e-5 ? _w.set(dir.x, 0, dir.z) : P ? _w.set(f.pos.x - P.pos.x, 0, f.pos.z - P.pos.z) : _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
     if (way.lengthSq() < 1e-6) way.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
     way.normalize();
-    if (R) { installFlash(f.model, R); R.hit(way, f.fight.down ? 'stagger' : 'down', { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.downT, lean: f.fight.mass >= 3 ? 0.42 : undefined }); }
+    if (R) { installFlash(f.model, R); R.hit(way, f.fight.down || f.model?.driver ? 'stagger' : 'down', { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.downT, lean: f.fight.mass >= 3 ? 0.42 : undefined }); }
     worldSnd.thud(this.sound, f.fight.mass >= 3 ? 0.8 : 0.5); kick(0.25);
     this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', f.launched ? 6 : 12, 0.8);
     if (!parried) this.tool?.blade?.openRiposte?.();

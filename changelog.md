@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.34 — 2026-10-28
+
+- The shade and the makers’ fencer now move like people too: they walk with real strides, wind up their cuts with the same motion capture as the traveller, raise a guard, stagger when struck, and fall on their backs and get up again when their stance breaks. The shade still glides with its cloak hanging empty, and its feint is still a cut stopped halfway before the thrust from the hip; every wind-up takes exactly as long as before.
+
 ## v2.33 — 2026-10-27
 
 - On the AYN Odin 3 handheld, the High setting of the Unity version no longer shows the world on its side: the picture is upright at full resolution, with its ink lines, water and smoothing where they belong.

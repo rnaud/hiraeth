@@ -824,6 +824,16 @@ function makePlan(args) {
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
       { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('windup'));
   }
+  if (fights.includes('duelists')) {
+    // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
+    // shade 4 m ahead, standing; their rig said; then each winds up its first blow, pictured at three quarters of it; then
+    // the fencer's guard up (the sword-and-shield block over its stance) and the shade's feint stopped halfway)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-duelists-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'fencer@moonfoundry', dist: 6, hp: 99 }, { kind: 'foe', what: 'shade@perdide2', dist: 4, hp: 99 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
+      { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.6 }, { kind: 'foe', what: 'rig' }, ...shot('windup'),
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'duel' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('guard'));
+  }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
   for (const f of fights.filter((x) => x.startsWith('site:'))) {
@@ -1278,6 +1288,13 @@ function playFrame(dt) {
     } else if (step.what === 'rig') {
       // (-fight mummers: each humanoid's rig, issue #724: its own Animator on the shared clips, what its state plays)
       for (const f of F.list.filter((x) => x.model?.driver)) console.log(`[unity] ${f.kind} rig: clips ${!!f.model.driver.A}, ${f.state}, plays ${JSON.stringify(f.model.driver.chosen)}, ${f.model.driver.cost.toFixed(3)} ms`);
+    } else if (step.what === 'duel') {
+      // (-fight duelists: the fencer's shield up, the shade's feint begun: its cut stopped halfway)
+      for (const f of F.list.filter((x) => x.model?.driver && x.alive)) {
+        if (f.kind === 'fencer') { f.state = 'chase'; f.guardK = 1; }
+        const a = f.def.attacks.find((x) => x.id === 'feint');
+        if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
     } else if (step.what === 'windup') {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }
     } else if (step.what === 'clear') {

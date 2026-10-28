@@ -7,6 +7,7 @@ import { clearTargets } from '../src/targets.js';
 import { FIGHT, TIER, POISE, LAUNCH, RAGE, FOLLOW, ALERT, MOURN, tierScale, tierHp, poiseWear, quickWind, fightOf } from '../src/enemies/fight.js';
 import { BUILT, ARCHETYPES } from '../src/enemies/archetypes.js';
 import { REACT } from '../src/foe-react.js';
+import { stateClip } from '../src/enemies/humanoid-rig.js';
 
 // The fight core (issue #722, docs/design/enemy-fun.md section A; docs/systems/foes.md "Poise, tiers and states"): poise
 // instead of cancel, toughness by the route's stage, tempo (follow-ups, the weighted pick at every distance, waiting
@@ -83,7 +84,9 @@ test('poise, not cancel: a light cut never stops a wind-up once begun; worn thro
   assert.equal(f.reel, 'broken', 'worn through: its stance breaks');
   assert.equal(f.state, 'recover');
   assert.ok(f.downT > 0 && f.stunned >= f.downT - 1e-9, 'down, open');
-  assert.equal(f.react.kind, 'down', 'its body knocked down');
+  // (its body knocked down: a humanoid on clips lies down on its own clip, the reaction only its jolt; issue #724)
+  assert.equal(f.react.kind, f.model.driver ? 'stagger' : 'down', 'its body knocked down');
+  if (f.model.driver) assert.equal(stateClip(f).kind, 'down', 'on its back, on the get-up clip');
   assert.equal(riposte, 1, 'the riposte’s window opens for you');
   const hp = f.hp;
   F.hurt(f, 'blade', FRONT, { damage: 1, combo: 0 });

@@ -45,7 +45,8 @@ Prompts: [enemy-roster-v3-prompts.md](enemy-roster-v3-prompts.md). Each takes a 
 
 1. **The rig and the mummers** (picked): the humanoid rig with clips, the mummer and mummer king on it, in the
    Desert's camps (src/encounters/sites.js) and as the Desert's camp foes. Pictures against the sheets; Unity checked.
-2. **The shade and the fencer moved onto the rig** (already humanoid; their procedural walks replaced by clips).
+2. **The shade and the fencer moved onto the rig** (already humanoid; their procedural walks replaced by clips). Done
+   (v2.33): docs/systems/procedural-animation.md, "The humanoid foe rig".
 3. **Each new humanoid as its sheet is picked**, in the table's order of value: door-bearer, tumbler, lancer,
    pilferer, potter, riser, conjurer.
 4. **Retire a low animal only when its replacement has landed in the world it led**, its skins kept in the Arena's

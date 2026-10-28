@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.34', date: '2026-10-28',
+    items: [
+      { text: 'The shade and the makers’ fencer now move like people too: they walk with real strides, wind up their cuts with the same motion capture as the traveller, raise a guard, stagger when struck, and fall on their backs and get up again when their stance breaks. The shade still glides with its cloak hanging empty, and its feint is still a cut stopped halfway before the thrust from the hip; every wind-up takes exactly as long as before.', see: 'In the Arena, pick a shade or a makers’ fencer from the debug menu: watch the shade’s cut and its feint, then break the fencer’s guard with a charged cut and watch it go down and get back up.' },
+    ],
+  },
+  {
     v: '2.33', date: '2026-10-27',
     items: [
       { text: 'Sword hits now burst in amber and gold, with a tiny cream spark and a turquoise trail. Enemies keep their colours when struck instead of flashing solid white; sharp streaks scatter into small fading flecks, with a larger burst on heavy blows.', see: 'Strike a foe with the first swing, then finish a three-hit combo. Watch the brief amber contact burst and turquoise wake clear as the enemy recoils. The same effect runs on web and Unity.' },
