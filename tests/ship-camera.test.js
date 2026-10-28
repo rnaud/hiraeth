@@ -22,7 +22,7 @@ function shipWorld() {
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   const camera = new THREE.PerspectiveCamera(65, 16 / 9, 0.3, 5000);
   const rig = new CameraRig(camera, dom, physics);
   rig.indoor = true;

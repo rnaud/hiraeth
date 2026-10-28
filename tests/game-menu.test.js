@@ -236,12 +236,14 @@ test('the Items panel: a slot for every item to find (the empty ones unnamed), t
   assert.equal(m.rows[0].find((x) => x.id === 'jetpack').it.icon, 'data:x');
 });
 
-test('the Worlds panel: every world you know, its story and relics; the boxes counted', () => {
+test('the Worlds panel: every world you know, its story; the boxes counted; no relics (an old save\'s stay unread, issue #732)', () => {
   const data = { relics: { desert: { 0: { img: 'a' }, 2: { img: 'b' } } }, stories: { desert: { img: 'p' } }, observatory: { started: true, img: 'o' }, errands: { e: { item: 'a gear', toTitle: 'Viridel', done: true, img: 'g' } } };
-  const levels = [{ id: 'desert', title: 'The Desert', relicNames: ['r0', 'r1', 'r2'], storyTitle: 'The Tree That Drinks', blurb: 'Dunes.' }, { id: 'incal', title: 'The City-Shaft', relicNames: ['s0'] }, { id: 'atelier', title: 'The Atelier', hidden: true, relicNames: [] }];
+  const levels = [{ id: 'desert', title: 'The Desert', storyTitle: 'The Tree That Drinks', blurb: 'Dunes.' }, { id: 'incal', title: 'The City-Shaft' }, { id: 'atelier', title: 'The Atelier', hidden: true }];
   const w = worldsData({ data, levels, order: ['desert', 'incal'], current: 'incal', boxes: { desert: { found: 1, total: 2 } }, known: () => true });
-  assert.deepEqual(w.map((x) => [x.id, x.told, x.relics, x.boxes, x.current]), [['desert', true, [2, 3], [1, 2], false], ['incal', false, [0, 1], null, true]]);
+  assert.deepEqual(w.map((x) => [x.id, x.told, x.boxes, x.current]), [['desert', true, [1, 2], false], ['incal', false, null, true]]);
+  assert.ok(w.every((x) => !('relics' in x) && !('relicList' in x)), 'no relics counted');
   const wp = worldsPanel(w);
+  assert.doesNotMatch(wp.html, /◆|[Rr]elic/, 'no relics on the cards');
   assert.match(wp.html, /thumbs\/desert\.jpg/);
   assert.match(wp.html, /you are here/);
   assert.equal(wp.rows[0][0].desc, 'Dunes.');
@@ -323,7 +325,7 @@ test('the fragment finder switches on and off from its full view; a gadget is ta
 });
 
 test('the worlds one a row: up and down go between them, A / × shows what you have found there and what is still to find', () => {
-  const levels = ['desert', 'arzach', 'perdide'].map((id, i) => ({ id, title: ['The Desert', 'Vael', 'Lorn'][i], relicNames: ['Cup', 'Bell', 'Horn'], blurb: `${id}.` }));
+  const levels = ['desert', 'arzach', 'perdide'].map((id, i) => ({ id, title: ['The Desert', 'Vael', 'Lorn'][i], blurb: `${id}.` }));
   const flags = { 'met.ama': true, 'met.nour': true };
   const m = new GameMenu(null, { sources: menuSources({ items: { owned: () => [] }, game: { data: { flags }, keepsakes: () => [] }, journal: { data: { relics: { desert: { 0: { img: 'a' }, 2: { img: 'b' } } }, stories: { desert: { t: 1 } } } },
     levels, order: ['desert', 'arzach', 'perdide'], current: 'arzach', boxes: () => ({ desert: { found: 1, total: 2 } }) }) });
@@ -337,10 +339,10 @@ test('the worlds one a row: up and down go between them, A / × shows what you h
   assert.equal(m.full?.id, 'desert');
   const f = m.fullCell().full;
   assert.match(f.facts, /The story is told/);
-  assert.match(f.facts, /Relics: 2 of 3/); assert.match(f.facts, /Cup · \? · Horn/, 'the relics found by name, a ? for the one still to find');
+  assert.doesNotMatch(f.facts, /[Rr]elic/, 'no relics (issue #732: an old save\'s stay in its journal, unread)');
   assert.match(f.facts, /Makers’ boxes: 1 of 2/);
   assert.match(f.facts, /People met: 2/); assert.match(f.facts, /Ama/);
   m.navigate(1, 0); assert.equal(m.full.id, 'arzach', '→ the next world');
   assert.match(m.fullCell().full.facts, /not told yet/);
-  assert.deepEqual(worldFacts({ told: false, relics: [0, 0] }).map((x) => x.text), ['The story is not told yet']);
+  assert.deepEqual(worldFacts({ told: false }).map((x) => x.text), ['The story is not told yet']);
 });

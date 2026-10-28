@@ -27,7 +27,7 @@ test('all eight worlds build reactive scenery without adding collision or sharin
  const store={value:null,getItem(){return this.value;},setItem(k,v){this.value=v;}};
  const physics={rayHit:origin=>({point:p(origin.x,0,origin.z)}),rayDistance:()=>Infinity};
  for(const id of Object.keys(WORLD_REACTIONS)){
-  const scene=new THREE.Scene(),world=new ReactiveWorld(scene,{id,spawn:p(),ground:{heightAt:()=>0}},physics,{npcs:[],story:{goal:[0,0,-100]},relics:{spots:[]}},{storage:store});
+  const scene=new THREE.Scene(),world=new ReactiveWorld(scene,{id,spawn:p(),ground:{heightAt:()=>0}},physics,{npcs:[],story:{goal:[0,0,-100]}},{storage:store});
   assert.ok(world.nodes.length>=18,id);assert.equal(world.root.userData.noCollide,true);
   assert.notEqual(world.nodes[0].obj.m.uniforms.uColor.value,world.nodes[1].obj.m.uniforms.uColor.value);
   const camera=new THREE.PerspectiveCamera();camera.position.copy(p());camera.lookAt(p(0,0,-10));camera.updateMatrixWorld();
@@ -42,7 +42,7 @@ test('the makers’ listening stones show glyphs, not words: a first meeting, a 
  for(const w of ['WE SEE YOU',"'AGAIN'","'HEARD'"])assert.ok(!src.includes(w),`no ${w} lettered on them`);
  const physics={rayHit:origin=>({point:p(origin.x,0,origin.z)}),rayDistance:()=>Infinity};
  for(const id of ['incal','bazaar','garage']){
-  const world=new ReactiveWorld(new THREE.Scene(),{id,spawn:p(),ground:{heightAt:()=>0}},physics,{npcs:[],story:{goal:[0,0,-100]},relics:{spots:[]}},{storage:null});
+  const world=new ReactiveWorld(new THREE.Scene(),{id,spawn:p(),ground:{heightAt:()=>0}},physics,{npcs:[],story:{goal:[0,0,-100]}},{storage:null});
   const obj=world.nodes[0].obj;
   assert.equal(obj.texts.length,3,id);
   assert.equal(new Set(obj.texts.map(t=>{t.geometry.computeBoundingBox();const b=t.geometry.boundingBox;return `${t.geometry.attributes.position.count}:${b.min.y.toFixed(2)}:${b.max.y.toFixed(2)}`;})).size,3,'three different glyphs');
@@ -77,7 +77,7 @@ test('bloom room: no flower opens into a wall or into an awake neighbour, even i
   rayHit:(o,d)=>d.y<-0.5?{point:p(o.x,0,o.z)}:null,
   rayDistance:(o,d,far)=>{if(Math.abs(d.x)<1e-6)return Infinity;const t=(WALL-o.x)/d.x;return t>0&&t<=far?t:Infinity;},
  };
- const world=new ReactiveWorld(new THREE.Scene(),{id:'edena',spawn:p(),ground:{heightAt:()=>0}},physics,{npcs:[],story:{goal:[0,0,-100]},relics:{spots:[]}},{storage:null});
+ const world=new ReactiveWorld(new THREE.Scene(),{id:'edena',spawn:p(),ground:{heightAt:()=>0}},physics,{npcs:[],story:{goal:[0,0,-100]}},{storage:null});
  const flowers=world.nodes.filter(n=>n.obj.petals);
  assert.ok(flowers.length>=12,`${flowers.length} flowers`);
  assert.ok(flowers.some(n=>n.room.angle>0.05),'some lean away from the wall');

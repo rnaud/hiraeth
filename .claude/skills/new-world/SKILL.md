@@ -15,7 +15,7 @@ in the final report. Look at the newest world of the same kind as a model:
 ## 0. Decide first (ask the author when it isn't given)
 
 - **The kind:**
-  - a **route world** (on `ORDER`: a quest line, a keepsake, five relics, a temple, a court, a trial);
+  - a **route world** (on `ORDER`: a quest line, a keepsake, its fragments of the light, a temple, a court, a trial);
   - a **detour** (on `SIDE`: people, a trace of the light, a viewpoint page);
   - a **special place** (reached by the story, like Home or the Lantern).
 - **Where it sits** on the route and the galactic map, and what opens it.
@@ -69,7 +69,7 @@ in the final report. Look at the newest world of the same kind as a model:
   - a temple: `src/temples/<id>.js` and `-data.js`, a guardian, a gadget;
   - a makers' court with a gadget (`src/finds/courts.js`);
   - a trial (`src/trials/`), whose reward is usable when won;
-  - relics and a box (`src/boxes/placements.js`);
+  - its 24 fragments of the singing light (`src/fragments-data.js`; no relics since v2.34) and a box (`src/boxes/placements.js`);
   - a filmed climax (`src/story/<id>-moments.js`, registered in `src/story/film.js`).
 - **Mounts, vehicles and the bird** where the world needs them (`docs/systems/progression.md`).
 

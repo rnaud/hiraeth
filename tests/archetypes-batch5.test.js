@@ -50,9 +50,9 @@ test('batch 5: the shade, the pearl roller and the marionette are built in every
   assert.deepEqual(RETIRED_KINDS, ['splinter']);
 });
 
-test('every world runs on the new roster: its packs, relic guards and placed ones are built archetypes in its skin; the Arena, the FOES list and the gallery field all three', async () => {
+test('every world runs on the new roster: its packs and placed ones are built archetypes in its skin; the Arena, the FOES list and the gallery field all three', async () => {
   for (const w of Object.keys(WORLDS)) {
-    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards, ...Object.keys(R.late ?? {}), ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
+    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...Object.keys(R.late ?? {}), ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
     for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)]?.status, 'built', `${w}: ${k}`);
     for (const a of worldArchetypes(w)) assert.ok(kinds.has(ARCHETYPES[a].kind) || ARCHETYPES[a].family === 'spirit' || WORLDS[w].late?.includes(a), `${w}: ${a} spawns`);
     for (let n = 0; n < 40; n++) for (const k of packOf(n, w, () => (n * 0.137) % 1)) assert.ok(FOES[k], `${w} pack ${n}: ${k}`);

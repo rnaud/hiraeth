@@ -64,7 +64,6 @@ export const ECLIPSE_CONTENT = {
     outro: 'From the top of the bowl the whole city shows under the black sun: the lamps on every terrace, the pale figures on the walls, and the far city lit all the way to the rose edge of the sky.',
     label: 'the top of the bowl', goal: [0, LEVEL.high + LEVEL.tier * LEVEL.tiers, BOWL.Z1 - BOWL.D * LEVEL.tiers - 6], radius: 9, verticalRadius: 4, manual: true,
   },
-  relics: { spots: [], names: [] },
   // three people from elsewhere who came for the eclipse, and the city's own folk at their tables
   npcs: [
     { ...EDENA_PEOPLE.mira, at: [-9, 6], radius: 2, world: 'edena', lang: 'edena',

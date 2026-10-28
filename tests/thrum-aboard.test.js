@@ -28,7 +28,7 @@ function aboardIn(id, flags, caravan) {
   const { scene, level, physics } = builtWorld(id);
   for (const k of Object.keys(sharedGame.data.flags)) delete sharedGame.data.flags[k];
   Object.assign(sharedGame.data.flags, flags);
-  const ship = quiet(() => new Ship({ caravan, scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ caravan, scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [] } }));
   globalThis.document = page;
   const game = new GameState(memory());
   Object.assign(game.data.flags, flags);

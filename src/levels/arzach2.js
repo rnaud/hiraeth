@@ -82,7 +82,6 @@ export const AQ_STONE = { course: 1.1, block: 2.3, foot: -300, wear: 0.8 };
 /** The monastery's, the island church's and the hermitage's walls: Lorn's blocks, a little less worn. */
 const WALL_STONE = { course: 0.8, block: 1.6, foot: -300, wear: 0.6 };
 const tableTop = (t, r = 0) => t.top + t.dome * (1 - Math.min((r / t.R) ** 2, 1));
-const aq1Mid = [(AQ1.a[0] + AQ1.b[0]) / 2, (AQ1.a[1] + AQ1.b[1]) / 2];
 
 export const ARZACH2_CONTENT = {
   weather: [],
@@ -92,16 +91,6 @@ export const ARZACH2_CONTENT = {
     intro: 'Stones float above a sea of cloud. On the rose cliff, a monastery bell has been silent thirty years.',
     outro: 'The repaired bell rang, and the cloud dropped a little. Calix has resumed his rounds. Your tank carries the note with you.',
     label: 'the lone tower', goal: [TOWER.x, 'ground', TOWER.z], radius: 30, manual: true,
-  },
-  relics: {
-    spots: [
-      { at: [MONASTERY.x + 18, tableTop(MONASTERY, 20) + 1.1, MONASTERY.z + 6], snap: true },
-      { at: [DISC.x + 5, DISC.top + 1.1, DISC.z], snap: true },
-      { at: [TABLE.x, tableTop(TABLE) + 1.1, TABLE.z], snap: true },
-      { at: [aq1Mid[0], AQ1.y + 1.1, aq1Mid[1]], snap: true },
-      { at: [ISLAND.x - 12, tableTop(ISLAND, 12) + 1.1, ISLAND.z + 8], snap: true },
-    ],
-    names: ['Bell-rope tassel', 'Egg-stone pebble', 'Mushroom-cap seed', 'Aqueduct keystone', 'Island prayer bead'],
   },
   npcs: [
     { at: [-14, 30], y: START.top, radius: 5, palette: { cloak: '#b9a7d8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45' },

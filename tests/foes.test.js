@@ -291,26 +291,6 @@ test('ink: each foe cut down leaves ink, and the blade grows at its steps (reach
   for (const u of UPGRADES) assert.ok(hasUpgrade(u.id, game) && notes.includes(u.text), u.id);
 });
 
-test('a relic out in the wilds is guarded: its blots gather as you come near, and once cut down they are gone for good', async () => {
-  clearTargets();
-  const game = new GameState(null);
-  const P = player(v(0, 0, 380));
-  const content = { npcs: [], relics: { spots: [{ at: [0, 0, 420] }], names: ['r'] } };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'nowhere', content, physics: flat, player: P, settings: { enemies: true }, game });
-  foes.packRest = 999;
-  foes.update(DT);
-  assert.equal(foes.list.length, 0, 'not yet: 40 m away');
-  P.pos.set(0, 0, 395);
-  foes.update(DT);
-  const guards = foes.list.filter((f) => f.guard);
-  assert.equal(guards.length, 2, 'two guards round it');
-  for (const f of guards) for (let i = 0; i < 2; i++) foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.equal(game.flag('foes.nowhere.r0'), true, 'cleared (a world with no roster: two blots)');
-  for (let i = 0; i < 1 / DT; i++) foes.update(DT);
-  assert.equal(foes.list.filter((f) => f.guard && f.alive).length, 0, 'and they do not come back');
-  foes.dispose(); clearTargets();
-});
-
 test('more foes: the bellows toad keeps its distance and lobs at where you stand, the flyer hovers out of reach and dives low, a skitter falls to a push; a stilled foe takes the blade double', async () => {
   const { packKinds, waveWords } = await import('../src/foes.js');
   // the toad: it backs off when you come close, and its ring lands where you stood

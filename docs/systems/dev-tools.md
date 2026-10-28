@@ -54,7 +54,7 @@ tabs are made afresh each time something changes (`devTabs`, pure; people move, 
 | --- | --- |
 | **World** | the world's name and its key places (`keyPlaces`, from `gatherPoints`' points, no list per world): the ship (`ship.arrivalSpot()`), the start unless it is by the ship, each makers' temple's door (`level.temples`), the fight temple's door (its game's `markers`, src/fight-temples/), then at most three of the story's goal, the `beacons` and the `sights`; a place within 30 m of one listed is left out (desert: the ship, the Rose House, the Sunken Hall, the great dark tree, the camps' smoke, the Givers' Hearth's chimney) |
 | **Cheats** | the frame readout (`settings.showFps`, F3), **god mode** (below), endless potions (`res.potions.infinite`, in the save), full hearts, the fluid jets (the debug item) |
-| **Landing** … **Finds** | a tab a kind of place (`KINDS`; empty kinds left out): the ship and the start; every stage of this world's quests where its marker stands (`quests.where`); the people (`npcs`, not the crowd's walkers); the temples (outside, inside, each room's mark, the gadget's chest, the guardian's arena at its edge; the fight temple's door); the shops (outside, the counter); the level design's `sights`, `beacons` and leading `lines`; the runs (the trial, the makers' runs and court, the games' signs); the doors into rooms and caves, the story's goal, the desert's named places; the makers' boxes and the relics left |
+| **Landing** … **Finds** | a tab a kind of place (`KINDS`; empty kinds left out): the ship and the start; every stage of this world's quests where its marker stands (`quests.where`); the people (`npcs`, not the crowd's walkers); the temples (outside, inside, each room's mark, the gadget's chest, the guardian's arena at its edge; the fight temple's door); the shops (outside, the counter); the level design's `sights`, `beacons` and leading `lines`; the runs (the trial, the makers' runs and court, the games' signs); the doors into rooms and caves, the story's goal, the desert's named places; the makers' boxes |
 | **Films** | this world's entries of the Cinematics page (`cinematicsFor`): moments and boxes' films played in place (`stageCinematic`) and you put back where you stood; the ship's recordings and takeoff while it is here; an arrival reloads the world by ship; the prologue and homecomings open the Cinematics page |
 | **Stages** | each of this world's quests (a heading each, main first) with its stages and "done": `applyQuestJump` sets the flags the stages before it wait for (as the debug save does), clears those of it and after, then `quests.set`; a warning names the save it changes, and a row reloads the world |
 | **Notes** | Screenshot to a Notes draft (issue #8, `src/issue-draft.js`, `docs/systems/notes.md` "Screenshot drafts"), the pairing code while it waits, a row to send what still waits |
@@ -205,7 +205,7 @@ while you are in it. Picking another world starts the debug save again from scra
   48 fragments, the finder, the heart, the edge, the light chamber and the wings, 5 still to spend.
 
 The chosen world, and every one after it, is untouched: it opens at its start (no saved position), its
-quests, boxes and temple waiting. Left out: relics and the sketchbook's pictures (drawn as you find them) and
+quests, boxes and temple waiting. Left out: the sketchbook's pictures (drawn as you find them) and
 quest things carried in a pack.
 
 **From the title's Saves screen** (v1.58, issue #203: "a debug saves option in the save menu that restarts the
@@ -237,7 +237,7 @@ In the running game, `await clipAudit()` prints a report for the world you are i
 (`clipAudit({ print: false })` returns it: `{ checked, counts, offenders }`);
 `tests/clip-audit.test.js` runs it on made-up scenes and on the Signal Market. It checks:
 people (story NPCs and the crowd: feet on the ground, the body out of walls, not inside a
-solid), boxes (all four corners of the footprint on the ground), relics and the things you
+solid), boxes (all four corners of the footprint on the ground) and the things you
 look at (not inside a solid), and every small prop the level and its story placed (a unit is
 the largest group under 25 m across; each instance of an instanced mesh is one). A prop must
 be held by something: a thin slab just outside one of its faces has to touch the collision
@@ -276,10 +276,10 @@ save sandboxed first, so nothing is written to a slot) and the page redraws ever
 (no ink pass; the people, the sky, temple insides and rooms far from the ground hidden). `collect.js` reads the things
 of interest from the game's own data, nothing by hand: the dev menu's gathering (`src/world-debug.js gatherPoints`:
 the ship, temple doors, fight temples' doors and the games' signs, shops, the level's sights, beacons and leading
-lines, trials, makers' runs and courts, doors and named places, relics), every quest stage where its locator stands
+lines, trials, makers' runs and courts, doors and named places), every quest stage where its locator stands
 (main or errand; a box's own quest on its box), the people with the quests that stand on them, the games' hosts, the
 makers' boxes (a temple's, a court's or the story's are chests), the fragments of light (`src/fragments-data.js`) and
-the foes that stand somewhere (`src/foe-worlds.js PLACED`, the relics' guards; the wild packs come and go). A thing
+the foes that stand somewhere (`src/foe-worlds.js PLACED`; the wild packs come and go). A thing
 inside a temple or a room off the map is drawn at its door, as the Map draws it.
 
 Each kind is a layer with its colour, its count and a toggle (remembered in this browser); hover a dot for its name,

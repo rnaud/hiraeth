@@ -443,7 +443,7 @@ test('targets answer the new modes: reactive scenery blooms in the fluid, lenses
   const store = { value: null, getItem() { return this.value; }, setItem(k, val) { this.value = val; } };
   const ground = { rayHit: (origin) => ({ point: v(origin.x, 0, origin.z) }), rayDistance: () => Infinity };
   const scene = new THREE.Scene();
-  const world = new ReactiveWorld(scene, { id: 'desert', spawn: v(), ground: { heightAt: () => 0 } }, ground, { npcs: [], story: { goal: [0, 0, -100] }, relics: { spots: [] } }, { storage: store });
+  const world = new ReactiveWorld(scene, { id: 'desert', spawn: v(), ground: { heightAt: () => 0 } }, ground, { npcs: [], story: { goal: [0, 0, -100] } }, { storage: store });
   const node = world.field.nodes[0];
   const neighbour = world.field.nodes.find((n) => n !== node && n.cluster === node.cluster);
   // a glob from 25 m wakes it like walking up to it, and it takes the fluid's tones

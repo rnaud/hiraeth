@@ -511,7 +511,7 @@ foe (`TRAIL.max` 10 ribbons, two meshes each, four shared materials, no shadow);
 
 ### Entrances: out of a cloud of darkness (v2.26, issue #664, `src/foe-entrance.js`)
 
-A foe called in (the Arena's waves and practice `spawnKind`, a pack in the wilds, a relic's guards: `add(kind, at, {
+A foe called in (the Arena's waves and practice `spawnKind`, a pack in the wilds: `add(kind, at, {
 entrance: true })`; placed machines, posts and split-offs stand in the world as before) arrives inside a swirl of
 ink-outlined dark blobs. `ENTRANCE`: the cloud gathers over 0.35 s (the body hidden), the body grows up out of it over
 0.55 s (`bodyGrown`, its scale after its pose), the cloud thins outward and is gone at 1.5 s (`cloudSize`). For
@@ -1125,9 +1125,8 @@ the engines' bundle, the blade pressed on the keys).
 
 ## Placed encounters
 
-- **Relic guards:** a relic out in the wilds (`content.relics.spots`, where `wild()` holds) gets `GUARDS.size`
-  blots round it as you come within `GUARDS.near` (32 m).
-- Cut down, they are gone for good (flag `foes.<world>.r<i>`).
+- **Relic guards** went with the relics in v2.34 (issue #732): no world has relics, so nothing gathers round one
+  (`GUARDS`, `updateGuards`, the rosters' `guards` and `guardKinds` are gone; a save's `foes.<world>.r<i>` flags stay, unread).
 - **Placed by hand** (v1.16, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
@@ -1804,7 +1803,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   `provoke` m in sight, you hurt it, or one of its own near it is roused (`Foes.alarm`, `alarm` m); a shy one (the
   crab) backs away as you come near; home again it calms down. The tripod patrols its round and comes for you at
   20 m; the blot lies pooled until you are 9 m off; of the hounds, not every one hunts (`hunts`: the others stand up
-  and watch you go). Anywhere else (the Arena, a relic's guards, a temple, the tests) every kind comes for you.
+  and watch you go). Anywhere else (the Arena, a temple, the tests) every kind comes for you.
 - **The archetypes' attack fields** (beside those in src/foe-kinds.js's header): `skins` (only in those skins),
   `below` (only under a share of its health: the hound's antler rake), `rear` / `back` (the lizard's tail whip: only
   with you behind it, its area behind it), `flank` (the lizard's bite: only from behind you, out of your sight),
@@ -2075,7 +2074,7 @@ they go into the wallet but are not counted as earned (`res.chimes.earned`).
 
 ## Each world's foes (v0.93)
 
-The loose ink takes the shape of what is round it: each world has a foe of its own, and its packs, relic guards
+The loose ink takes the shape of what is round it: each world has a foe of its own, and its packs
 and temple rooms draw from its roster.
 
 - **Attacks** (`def.attacks`, the fields are listed at the top of `src/foe-kinds.js`): every kind has a list;
@@ -2117,7 +2116,7 @@ and temple rooms draw from its roster.
   Gentle still cuts a pack to two; harms, holds (×0.6) and the white of a flash (×0.6) are softer too.
 - **Hitboxes:** `Foes.hitShapes(out)` (registered from main.js with `registerHitboxes`) adds the shockwaves' fronts, the slag, a hold's line, a volley's rings and words over a buried ray or a running hound; `foeHitboxes` draws the attack the foe is on (`f.atk`). A charge (`sweep`: the ray's glide, the crab's spin) hits whatever its body runs into within `sweepRadius` (half its lane's width), so the lane drawn while it winds up is the ground it covers; through the strike the live shape is that circle round the body (telegraph-coloured until its `contact`), the lane kept faint from where it set off (`foe.charge.path`). `tests/hitboxes.test.js` plays every attack of the worlds' kinds with the traveller stepping round its area and checks each landed exactly when he stood inside the shape drawn.
 - **Placed foes:** temple rooms (`f.placed`) still only stir while you are in the temple; a broken golem's
-  splinters share its relic, so the relic is cleared when the last is down.
+  splinters share its `placed`.
 
 ## Tests
 
@@ -2339,7 +2338,7 @@ From the 2026-10-08 playtest. Every foe, in every state, must be seen:
 - **The swarm's** eyes are 1.7× and **the splinters** drawn 1.3×.
 - **Behind the world** (`warnSpot`, `Foes.hiddenFromCamera`): a foe winding up on the screen but hidden from the
   camera by the world (a physics ray) gets the warning marker over where it is.
-- **Never inside the world** (`Foes.roomAt`, `openSpot`): a pack's, a relic's guards', a wave's and `spawnKind`'s
+- **Never inside the world** (`Foes.roomAt`, `openSpot`): a pack's, a wave's and `spawnKind`'s
   spots are checked with a capsule (`physics.pushCapsule`) for its body's column; inside a solid, the next spot
   round is tried, never a guessed height.
 

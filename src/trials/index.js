@@ -333,7 +333,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   /** The wilds keep their distance while you run (a pack would only be in the way): the returned fn puts them back. */
   function calmWilds() {
     const restWas = foes?.packRest;
-    if (foes) { for (const f of foes.list.slice()) if (!f.placed && !f.guard) foes.remove(f); foes.packRest = 1e9; }
+    if (foes) { for (const f of foes.list.slice()) if (!f.placed) foes.remove(f); foes.packRest = 1e9; }
     return () => { if (foes && restWas !== undefined) foes.packRest = Math.max(20, restWas === 1e9 ? 20 : restWas); };
   }
 

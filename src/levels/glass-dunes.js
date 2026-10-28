@@ -351,7 +351,7 @@ export function glassCrowdSpots(terrain) {
 }
 
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
-/** The world's content (src/levels/content.js): its page (closed when the Clock-House keeps time: src/story/glassdunes.js), its relics, the glassworkers. */
+/** The world's content (src/levels/content.js): its page (closed when the Clock-House keeps time: src/story/glassdunes.js) and the glassworkers. */
 export const GLASS_CONTENT = {
   weather: ['storm'],
   story: {
@@ -361,10 +361,6 @@ export const GLASS_CONTENT = {
     label: 'the Clock-House', goal: [118, 'ground', 72], radius: 16, manual: true,
   },
   // (on the glass mounds by the paths: climbed, and looked from)
-  relics: {
-    spots: [[-60, 150], [70, 140], [-150, 30], [100, -100], [40, -40]],   // (and the west camp's sand ramp: the mound west of the valley keeps the makers' box)
-    names: ['Glass float', 'Kiln shard', 'Clock key', 'Fused coin', 'Wind-blown bead'],
-  },
   npcs: [
     // (Aster and Corin: an errand comes to Aster from the City-Shaft, one goes from Corin to the Buried Machine: src/levels/content.js)
     { ...LOCALS.aster, at: [-118, 26], radius: 2, palette: pal('#d9b48a', { cloth: '#5a4a3a' }) },

@@ -121,7 +121,7 @@ test('saloon reflection begins beyond the actual authored jamb overlap', () => {
 test('parked and orbital copies register on the live level and orbital removal cannot leak washes', () => {
   const scene = new THREE.Scene(), ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400).rotateX(-Math.PI/2));scene.add(ground);
   const physics = new Physics(scene), level = {spawn:new THREE.Vector3(0,0,60),ground:{heightAt:()=>0},lights:[],shipSite:{x:0,z:0,heading:Math.PI/2}};
-  const warn=console.warn;let ship;try{console.warn=()=>{};ship=new Ship({scene,physics,level,levelId:'test',content:{npcs:[],relics:{spots:[]}}});}finally{console.warn=warn;}
+  const warn=console.warn;let ship;try{console.warn=()=>{};ship=new Ship({scene,physics,level,levelId:'test',content:{npcs:[]}});}finally{console.warn=warn;}
   assert.ok(level.veils instanceof Veils);const parked=level.veils.list.length;assert.ok(parked>0);
   for(let i=0;i<2;i++) {
     ship.buildSpaceCopy();assert.equal(level.veils.list.length,parked*2);

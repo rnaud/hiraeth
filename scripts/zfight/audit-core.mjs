@@ -131,7 +131,7 @@ export async function shipZfights({ names = false } = {}, { nameParts, partOf, d
   scene.add(ground);
   const physics = new Physics(scene);
   const level = { spawn: V(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = await quiet(() => new Ship({ scene, physics, level, levelId: 'audit', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = await quiet(() => new Ship({ scene, physics, level, levelId: 'audit', content: { npcs: [] } }));
   const tris = trianglesOf(ship.parked.group, { THREE, partOf: names ? partOf : null });
   const all = visibleSites(coplanarOverlaps(tris), rayOver(tris));
   if (names) for (const f of all) { if (f.parts) f.parts = f.parts.map(describe); }

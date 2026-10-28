@@ -20,7 +20,7 @@ import { partOf, isDismissed } from '../src/levels/names.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
-/** A world in miniature, as main.js has it: a level, its temple, quests with locators, people, boxes, relics, the ship. */
+/** A world in miniature, as main.js has it: a level, its temple, quests with locators, people, boxes, the ship. */
 function miniWorld() {
   const game = new GameState(null);
   const quests = new Quests({ game });
@@ -50,9 +50,8 @@ function miniWorld() {
   };
   const npcs = [{ def: { id: 'ama', name: 'Ama', title: 'by the fires' }, pos: V(5, 0, -5) }, { def: { id: 'ama', name: 'Ama' }, pos: V(6, 0, -5) }, { pooled: true, def: { id: 'walker' }, pos: V() }, { pos: V() }];
   const boxes = { list: [{ id: 'mini.box', item: 'glider', pos: V(-7, 0, 7) }] };
-  const relics = { names: ['a seed'], items: [{ i: 0, pos: V(3, 1.1, 3) }, { i: 1, pos: V(0, 0, 0), done: true }] };
   const ship = { arrivalSpot: () => ({ pos: V(-3, 0, -3), heading: 2 }) };
-  return { game, quests, level, npcs, boxes, relics, ship, w: { levelId: 'mini', level, quests, npcs, boxes, relics, ship, content: { story: { title: 'MINI', label: 'the well top', goal: [12, 'ground', 12] } } } };
+  return { game, quests, level, npcs, boxes, ship, w: { levelId: 'mini', level, quests, npcs, boxes, ship, content: { story: { title: 'MINI', label: 'the well top', goal: [12, 'ground', 12] } } } };
 }
 
 test('a point is [x, y, z] whatever form the world keeps it in (y null: on the ground there)', () => {
@@ -90,7 +89,7 @@ test('the points are gathered from the world\'s own data, by kind, rooms and exa
   assert.deepEqual(pts.find((p) => p.label === 'the mast').pos, [60, 0, 0], 'a beacon: at its foot');
   assert.deepEqual(of('place'), ['the cave mouth', 'the cave mouth: inside', 'the well top'], 'the doors in (not the ways out, not the shop\'s), the story\'s goal');
   assert.ok(pts.find((p) => p.label === 'the cave mouth: inside').room, 'a room off the map');
-  assert.deepEqual(of('find'), ['box: glider', 'relic: a seed'], 'the relics not yet found');
+  assert.deepEqual(of('find'), ['box: glider'], 'the boxes (the relics went: issue #732)');
   assert.deepEqual(groupPoints(pts).map((g) => g.key), KINDS.map(([k]) => k).filter((k) => k !== 'run'), 'in KINDS\' order, the empty kinds left out');
 });
 

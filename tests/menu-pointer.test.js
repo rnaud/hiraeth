@@ -22,7 +22,7 @@ function sources() {
   return {
     quests: () => ({ charge: { title: 'The charge', goal: 'Go', step: 'Walk', worlds: '0 of 9' }, active: [{ id: 'q1', title: 'Water', goal: 'Find water', step: 'Look', main: true, tracked: false }, { id: 'q2', title: 'Sand', goal: 'Sweep', step: 'Sweep', tracked: true }], errands: [], done: [], failed: [] }),
     items: () => ({ gear: [{ id: 'backpack', name: 'Backpack', kind: 'core', text: 'It shoots.', usable: false }, { id: 'stun', name: 'Stun', kind: 'mode', text: 'It stuns.', usable: true }], slots: 14, pack: [], keepsakes: [], chimes: 3 }),
-    worlds: () => [{ id: 'desert', n: 1, title: 'The Desert', current: true, told: false, relics: [0, 3], boxes: [1, 4], blurb: 'Sand.', relicList: [], people: [], travel: false }],
+    worlds: () => [{ id: 'desert', n: 1, title: 'The Desert', current: true, told: false, boxes: [1, 4], blurb: 'Sand.', people: [], travel: false }],
     people: () => ({ groups: [], person: null }),
     map: () => ({ world: 'The Desert', marks: [{ id: 'you', kind: 'you', name: 'You', sub: '', u: 0.5, v: 0.5, deg: 90, on: true }] }),
   };

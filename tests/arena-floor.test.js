@@ -82,7 +82,7 @@ test('no scatter in the ring: keepClear keeps the responsive world’s flowers o
   // the flowers that seeded round the spawn and up the way north before: none inside now, the rest out beyond the stands
   const physics = { rayHit: () => null, groundAt: () => 0, rayDistance: () => Infinity };
   const store = { getItem: () => null, setItem() {} };
-  const w = new ReactiveWorld(new THREE.Scene(), { ...level, id: 'arena' }, physics, { npcs: [], story: { goal: [0, 0, -300] }, relics: { spots: [] } }, { storage: store });
+  const w = new ReactiveWorld(new THREE.Scene(), { ...level, id: 'arena' }, physics, { npcs: [], story: { goal: [0, 0, -300] } }, { storage: store });
   assert.ok(w.nodes.length > 0, 'some still bloom out in the desert');
   for (const n of w.nodes) assert.ok(Math.hypot(n.pos.x, n.pos.z) >= ARENA.clear, `a flower at ${n.pos.x.toFixed(1)}, ${n.pos.z.toFixed(1)}`);
   w.dispose?.();

@@ -27,7 +27,6 @@ test('the City Floating in Space: on the route since v1.40, before the Signal Ma
   assert.ok(!SIDE.includes('spacecity') && ORDER.indexOf('spacecity') === ORDER.indexOf('bazaar') - 1, 'right before the Signal Market');
   assert.equal(CONTENT.spacecity, SPACECITY_CONTENT);
   assert.ok(SPACECITY_CONTENT.story.manual, 'its page closes when the Mooring-House is resolved (src/story/spacecity.js)');
-  assert.equal(SPACECITY_CONTENT.relics.spots.length, 5, 'five relics, as every route world');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
   const e = entries.find((x) => x.id === 'spacecity');
   assert.ok(e && !e.side, 'on the dotted line');

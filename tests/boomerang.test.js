@@ -155,7 +155,7 @@ test('thrown with an ember on the backpack it lights a lantern; plain it only sp
   clearTargets();
 });
 
-test('it cuts a rope (the crate falls), and fetches a pot of ink and a relic back to you', () => {
+test('it cuts a rope (the crate falls), and fetches a pot of ink back to you', () => {
   clearTargets();
   const physics = physicsOf();
   const P = player(v(0, 0, 0));
@@ -168,13 +168,11 @@ test('it cuts a rope (the crate falls), and fetches a pot of ink and a relic bac
   const hung = world.props[0].pos.y;
   for (let i = 0; i < 10; i++) world.update(DT);
   assert.ok(Math.abs(world.props[0].pos.y - hung) < 1e-6, 'hanging still on its rope');
-  const relicScene = new THREE.Scene(), grp = new THREE.Group();
-  grp.position.set(0, 1.5, -15); relicScene.add(grp);
-  const relic = { grp, base: 1.5, done: false, light: new THREE.Vector4(0, 1.5, -15, 7) };
-  const B = boomerang.create(ctxOf({ P, physics, world, relics: { items: [relic] } }));
+  const B = boomerang.create(ctxOf({ P, physics, world }));
   B.press();
-  B.locks = B.lockables().filter((l) => l.kind === 'rope' || l.kind === 'pickup' || l.kind === 'relic');
-  assert.equal(B.locks.length, 3, 'the rope, the pot and the relic');
+  B.locks = B.lockables().filter((l) => l.kind === 'rope' || l.kind === 'pickup');
+  assert.equal(B.locks.length, 2, 'the rope and the pot');
+  assert.ok(B.lockables().every((l) => l.target), 'nothing but the world\'s targets to lock on to (the relics went: issue #732)');
   B.release();
   let t = 0;
   while (B.flight && t < 8) { B.update(DT); world.update(DT); t += DT; }
@@ -183,7 +181,6 @@ test('it cuts a rope (the crate falls), and fetches a pot of ink and a relic bac
   for (let i = 0; i < 90; i++) world.update(DT);
   assert.ok(world.props[0].pos.y < 0.6, `the crate fell (${world.props[0].pos.y.toFixed(2)})`);
   assert.ok(world.pickups[0].taken, 'the pot brought back and taken');
-  assert.ok(grp.position.distanceTo(P.pos) < 2.3, 'the relic laid at your feet, where its own pickup takes it');
   world.dispose(); clearTargets();
 });
 

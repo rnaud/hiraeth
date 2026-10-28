@@ -143,7 +143,7 @@ camp fire that burns, a fall that knocks you over, the ship that hums, the
 galactic map at its console and its "Travel to …?", the holo table, then the
 traveller's observatory (the page, a ledge, the three lenses, the roof
 unfolding, the second page), Teo's drum shoved free, the mask's eyes, the
-masked head's chamber, a relic and the sketchbook with them, and the rain, the
+masked head's chamber, and the rain, the
 fog and the sun rays. Along
 the way it runs the box scenes, the tank, a shot and a splat, the stun mode, a
 boost, the wings, the wildlife, the star box and Nour back on her bench, counts
@@ -446,9 +446,6 @@ lod.js's error-by-distance with its hysteresis):
   you).
 - `Targets` (`targets.js`): what the fluid can hit besides people and creatures
   (the lenses, the knuckle, the drum, the eyes), for the globs and the push.
-- `Relics` (`quest.js` Relics): the five relics on the highest surface over
-  their spots, bobbing and lighting what is near; found, a sketch of the moment
-  goes into the sketchbook ("relics n/5" in the status box).
 - `QuestMarker` (`story/quests.js`): the cyan diamond, ring and beam over the
   objective, sized by the distance, gone when you are on it.
 - `CameraRig` also probes how tight a spot is (`player.js` tightness: a ring of

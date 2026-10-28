@@ -3,10 +3,10 @@
 //
 //   the dev menu's gathering (src/world-debug.js gatherPoints: the ship, the temples' doors, the games' signs and the
 //   fight temples' doors, the shops, the level's sights, beacons and leading lines, the trials, the makers' runs and
-//   courts, the doors and named places, the boxes, the relics), the quests (src/story/*-data.js through the story's
+//   courts, the doors and named places, the boxes), the quests (src/story/*-data.js through the story's
 //   locators: each stage where its marker stands, main or errand), the people (src/levels/content.js and the stories'),
-//   the fragments of the singing light (src/fragments-data.js), the foes placed by hand and the relics' guards
-//   (src/foe-worlds.js PLACED, src/foes.js), the games' hosts (src/minigames/kit/hosts.js).
+//   the fragments of the singing light (src/fragments-data.js), the foes placed by hand
+//   (src/foe-worlds.js PLACED), the games' hosts (src/minigames/kit/hosts.js).
 //
 // A thing inside a temple or a room built far from the ground is drawn at its door (as the Map does, main.js mapAt);
 // one with no door to stand for it is counted, not drawn.
@@ -31,7 +31,7 @@ export const KINDS = [
   { key: 'person', name: 'People', color: '#e0559a' },
   { key: 'poi', name: 'Places & landmarks', color: '#2f6fd6' },
   { key: 'game', name: 'Games, trials & runs', color: '#8a5a2c' },
-  { key: 'shard', name: 'Light shards & relics', color: '#d9c400' },
+  { key: 'shard', name: 'Light shards', color: '#d9c400' },
   { key: 'box', name: 'Makers’ boxes', color: '#2e9e48' },
   { key: 'chest', name: 'Chests (temple, court, story)', color: '#a0761b' },
   { key: 'foe', name: 'Foes (placed)', color: '#5a5a66' },
@@ -84,8 +84,7 @@ export function collectMarkers(W, { games = [] } = {}) {
   };
 
   // ---- the dev menu's points (the landing, temples, games, shops, sights, runs, places, finds), each to its kind
-  const relics = { items: (content?.relics?.spots ?? []).map((s, i) => ({ i, pos: xyz(Array.isArray(s) ? s : s.at) })), names: content?.relics?.names ?? [] };
-  const pts = gatherPoints({ levelId: id, level, quests: null, npcs: [], boxes: null, relics, ship: null, content, games });
+  const pts = gatherPoints({ levelId: id, level, quests: null, npcs: [], boxes: null, ship: null, content, games });
   for (const p of pts) {
     if (p.kind === 'landing') { if (p.key === 'ship' || !out.some((m) => m.kind === 'landing')) put('landing', p.label === 'the start' ? 'the landing' : p.label, p.pos, { note: p.hint }); continue; }
     if (p.kind === 'temple') {
@@ -101,7 +100,6 @@ export function collectMarkers(W, { games = [] } = {}) {
     if (p.kind === 'shop') { if (!p.room) put('poi', p.label.replace(/^outside /, 'shop: '), p.pos, { note: p.hint }); continue; }
     if (p.kind === 'sight') { put('poi', p.label, p.pos, { note: p.hint }); continue; }
     if (p.kind === 'place') { if (!p.label.endsWith(': inside')) put('poi', p.label, p.pos, { note: p.hint, outside: true }); continue; }   // (a door inside a room: its way out)
-    if (p.kind === 'find' && p.label.startsWith('relic: ')) { put('shard', p.label, p.pos, { note: 'a relic' }); continue; }
   }
 
   // ---- the quests (a merged world's parts' too): each stage where its marker stands
@@ -147,9 +145,8 @@ export function collectMarkers(W, { games = [] } = {}) {
   // ---- the fragments of the singing light
   (FRAGMENTS[id] ?? []).forEach((f, i) => put('shard', `fragment of light ${i + 1}`, f, { note: 'a fragment of the singing light' }));
 
-  // ---- the foes that stand somewhere: placed by hand (by part), and the relics' guards
+  // ---- the foes that stand somewhere: placed by hand (by part)
   for (const part of parts) for (const p of PLACED[part] ?? []) { const [x, z] = shiftAt(part, p.at); put('foe', p.archetype, [x, null, z], { note: 'placed by hand (src/foe-worlds.js)' }); }
-  if (!level.peaceful && !level.foes?.waves && !level.foes?.own) for (const r of relics.items) if (r.pos) put('foe', 'a relic’s guard', r.pos, { note: 'guards the relic, once a save' });
 
   // ---- one of each within 1.5 m (the dev menu lists a start and the ship, a door twice…)
   const kept = [];

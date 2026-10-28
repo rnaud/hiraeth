@@ -113,7 +113,7 @@ export const ARCHES = [0.2, 0.33, 0.47, 0.6, 0.72, 0.85].map((u, k) => {
   const c = p.clone().addScaledVector(n, off / 2);
   return { x: c.x, z: c.z, nx: n.x, nz: n.z, span: 30 + Math.abs(off), apex: 13 + (k % 3) * 3, r: 2.6 + (k % 2) * 0.6 };
 });
-// the relic mushroom and its stepping-stool cluster
+// the hero mushroom and its stepping-stool cluster
 export const HERO_SHROOM = { x: -30 + OX, z: -40 + OZ, H: 13.5, capR: 8, sr: 1.3, dome: 0.12 };
 // the story's places (src/story/perdide2.js): three pools that went dark the night the sky rang,
 // on the dry bank of the path (the side away from the stream), the far dome's landing stage where
@@ -214,16 +214,6 @@ export const PERDIDE2_CONTENT = {
     intro: 'Hollin has kept this path lit for forty years, waiting for travellers to return. Three pools have gone dark.',
     outro: 'The path is lit again. Odile and Talo’s saucer lies in the deep pool. Hollin has asked you to come back someday.',
     label: 'the root cave', goal: [CAVE.x, 'ground', CAVE.mouth - 8], radius: 9, manual: true,
-  },
-  relics: {
-    spots: [
-      { at: [HERO_SHROOM.x, shroomParts(HERO_SHROOM).topY - 0.2 + 1.1, HERO_SHROOM.z], snap: true },
-      { at: [DOMES[0].x, DOMES[0].R * 0.72 - 0.1 + 1.1, DOMES[0].z], snap: true },
-      { at: [SAUCER.x, SAUCER.y + 2.6 + 1.1, SAUCER.z], snap: true },
-      { at: [ARCHES[2].x, ARCHES[2].apex + ARCHES[2].r + 1.1, ARCHES[2].z], snap: true },
-      { at: [CAVE.x, CAVE.y + 1.1, CAVE.z - 6] },
-    ],
-    names: ['Spore cap', 'Dome moss', 'Saucer beacon', 'Root-arch knot', 'Ember from the cave'],
   },
   // Hollin on the island, Pim by the moss domes, Bram at the cave mouth (with their conversations)
   npcs: KEEPERS,
@@ -360,7 +350,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
     lastShroom = { x, z, y: g0 - sink, topY: parts.topY, rx, ry, rz, s, glow };
     return g0 - sink + parts.topY;
   }
-  // the relic mushroom and a spiral of stepping caps up to it
+  // the hero mushroom and a spiral of stepping caps up to it
   shroom(HERO_SHROOM.x, HERO_SHROOM.z, HERO_SHROOM, { glow: true, sink: 0.2, tilt: 0, seed: 1, step: true });
   yield;
   for (let k = 0; k < 5; k++) {
@@ -405,7 +395,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
         // (pale even in their own shade, as the reference sheets draw them against the dark wood; half see-through, as
         // the sheets' glassy caps and stalks with the trunks showing through them: only the rim drawn and inked, the
         // body a pale wash over the picture, softly glowing where they glow: src/veil.js)
-        // (the relic's cap and its stepping caps keep their tops solid: you see where you land, not the ground below)
+        // (the hero mushroom’s cap and its stepping caps keep their tops solid: you see where you land, not the ground below)
         const veil = +solid ? 0 : key === 'stalk' ? VEIL.stalk : VEIL.cap;
         const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4, detail: key === 'stalk' ? 'organic' : 0, detailDensity: 0.7, form: true, ...(veil ? { veil, line: 0.7, lineTint: 0.67 } : {}) }));
         m.userData.noCollide = true;

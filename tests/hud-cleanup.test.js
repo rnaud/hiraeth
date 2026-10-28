@@ -13,7 +13,7 @@ test('a prompt\'s button becomes a round badge holding just the button\'s name',
   assert.equal(badgeLine('Viridel · E go aboard'), 'Viridel · <b class="key">E</b> go aboard');
   assert.equal(badgeLine('aboard · X / □ step outside\n◆ the well · 20 m'), 'aboard · <b class="key">X / □</b> step outside\n◆ the well · 20 m');
   // only a part that starts with a button: names and words that begin with E stay text
-  assert.equal(badgeLine('Viridel · Elsewhere · relics 0/5'), 'Viridel · Elsewhere · relics 0/5');
+  assert.equal(badgeLine('Viridel · Elsewhere'), 'Viridel · Elsewhere');
   assert.equal(badgeLine('a <b> & c'), escapeHtml('a <b> & c'));
 });
 

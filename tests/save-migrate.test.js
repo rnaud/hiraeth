@@ -238,23 +238,20 @@ test('where a save stood: a merged or dismissed world loads its replacement at t
   assert.equal(migrateWhere(null), null);
 });
 
-test('the sketchbook: a merged part’s relics join its world’s list after the parts before it', () => {
-  const data = { relics: { arzach: { 0: { img: 'a' } }, arzach2: { 0: { img: 'b' }, 3: { img: 'c' } }, perdide2: { 4: { img: 'd' } } }, stories: { arzach2: { t: 1 } }, seen: { arzach2: 1 } };
+test('the sketchbook: a merged part seen is its world seen; an old save’s relics stay as they were, unread (issue #732)', () => {
+  const relics = { arzach: { 0: { img: 'a' } }, arzach2: { 0: { img: 'b' }, 3: { img: 'c' } }, perdide2: { 4: { img: 'd' } } };
+  const data = { relics: structuredClone(relics), stories: { arzach2: { t: 1 } }, seen: { arzach2: 1 } };
   const bases = { arzach: ['arzach', 0], arzach2: ['arzach', 5], perdide: ['perdide', 0], perdide2: ['perdide', 5] };
   assert.equal(migrateJournal(data, bases), true);
-  assert.deepEqual(Object.keys(data.relics.arzach).sort(), ['0', '5', '8']);
-  assert.equal(data.relics.arzach[5].img, 'b');
-  assert.equal(data.relics.perdide[9].img, 'd');
-  assert.equal(data.relics.arzach2, undefined, 'moved, not copied');
   assert.equal(data.seen.arzach, 1, 'seen the part: seen the world');
+  assert.deepEqual(data.relics, relics, 'the relics left alone (no crash, nothing moved)');
   assert.equal(migrateJournal(data, bases), false, 'once');
+  assert.equal(migrateJournal({ stories: {}, seen: {} }, bases), false, 'a journal with no relics at all');
 });
 
-test('the merged worlds’ relic and people bases match their content', async () => {
-  const { CONTENT, RELIC_BASE, NPC_BASE } = await import('../src/levels/content.js');
-  assert.deepEqual(RELIC_BASE.arzach2, ['arzach', CONTENT.arzach.relics.spots.length - CONTENT.arzach2.relics.spots.length]);
+test('the merged worlds’ people bases match their content', async () => {
+  const { CONTENT, NPC_BASE } = await import('../src/levels/content.js');
   assert.deepEqual(NPC_BASE.perdide2, ['perdide', CONTENT.perdide.npcs.length - CONTENT.perdide2.npcs.length]);
-  assert.equal(CONTENT.arzach.relics.names.at(-1), CONTENT.arzach2.relics.names.at(-1));
 });
 
 test('the Overnight Train’s Mireille is Solange (v1.43), with an id of her own: a save that brought her the letter has met her, the kelp grower stays met as she was', () => {

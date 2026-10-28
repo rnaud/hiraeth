@@ -8,14 +8,13 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 // in a wall. A dev tool (window.clipAudit() in the running game, and
 // tests/clip-audit.test.js on the worlds that build in node):
 //
-//   auditClipping({ physics, scene, npcs, crowd, relics, boxes, things, exclude })
+//   auditClipping({ physics, scene, npcs, crowd, boxes, things, exclude })
 //     → { checked: { npc: n, … }, offenders: [{ kind, name, at, issue, by }], counts: { kind: n } }
 //
 // - people (story NPCs, crowd people): feet on the ground (not sunk, not
 //   hovering), the body capsule out of walls, not inside a solid;
 // - boxes: every corner of the footprint on the ground (a box on a slope
 //   floats at one corner and sinks at another);
-// - relics: the shard not in a wall;
 // - things you look at: the point not buried in solid geometry;
 // - props (every small object in the scene, a unit being the largest group
 //   under 25 m across): resting on something (a thin slab just outside each
@@ -49,7 +48,7 @@ function touches(physics, box) {
   return hit;
 }
 
-export function auditClipping({ physics, scene = null, npcs = [], crowd = null, relics = null, boxes = null, things = [], exclude = [], roots = null, maxProps = 20000 } = {}) {
+export function auditClipping({ physics, scene = null, npcs = [], crowd = null, boxes = null, things = [], exclude = [], roots = null, maxProps = 20000 } = {}) {
   const offenders = [], checked = {};
   const flag = (kind, name, at, issue, by = 0) => offenders.push({ kind, name, at: r2(at), issue, by: +by.toFixed(2) });
   const count = (k) => { checked[k] = (checked[k] ?? 0) + 1; };
@@ -81,12 +80,7 @@ export function auditClipping({ physics, scene = null, npcs = [], crowd = null, 
     }
   }
 
-  // ------------------------------------------------------------------ relics, boxes, things
-  for (const it of relics?.items ?? []) {
-    count('relic');
-    if (solid(physics, it.pos)) flag('relic', `relic ${it.i}`, it.pos, 'inside a solid');
-    else { const pr = _w.copy(it.pos), push = physics.pushCapsule(pr, 0.35, -0.5, 0.5, _p); if (push && push.length() > 0.1) flag('relic', `relic ${it.i}`, it.pos, 'in a wall', push.length()); }
-  }
+  // ------------------------------------------------------------------ boxes, things
   for (const b of boxes?.list ?? []) {
     count('box');
     if (b.place?.lift) continue;   // (set above its ground on purpose: a roof whose collision lies under its tiles)

@@ -54,7 +54,7 @@ function height(x, z) {
   return h;
 }
 
-// The level's people, story and relics (src/levels/content.js). The order of
+// The level's people and story (src/levels/content.js). The order of
 // the people matters: errands deliver to the first and start from the fourth.
 export const EDENA_CONTENT = {
   weather: ['rain'],
@@ -65,10 +65,6 @@ export const EDENA_CONTENT = {
     intro: 'An old ship lies beneath the flowers in the south meadow. The gardeners let the garden have it.',
     outro: 'The wreck bears the same scar as your ship. Odile and Talo survived, then left in their saucer to follow the Singer toward the deep wood.',
     label: 'the fallen ship', goal: [40, 'ground', -210], radius: 28, manual: true,
-  },
-  relics: {
-    spots: [[60, -80], [-200, 220], [180, 120], [-300, 50], [240, -300]],
-    names: ['Canopy blossom', 'Pyramid capstone', 'Android sprocket', 'Glyph tablet', 'Ship rivet'],
   },
   npcs: [
     { at: [30, 30], ...PEOPLE.mira },

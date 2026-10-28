@@ -72,7 +72,6 @@ export const UNDERSIDE_CONTENT = {
     outro: 'From the deck at the tip of the shelf the whole town shows, hanging over the cloud: the white houses under the rock, the decks and their lamps, the long red cloths falling toward the sea of cloud.',
     label: 'the tip deck', goal: [(TIP.x0 + TIP.x1) / 2 + 12, DECK, (TIP.z0 + TIP.z1) / 2], radius: 9, verticalRadius: 4, manual: true,
   },
-  relics: { spots: [], names: [] },
   // three people from elsewhere who came to see the town hung under the rock, and its own folk.
   // (Zazie was the Sealed Hangar's; since it was dismissed she comes from the City-Shaft (issue #141) and speaks its
   // tongue. `world` stays the Hangar's, for the body drawn for her.)

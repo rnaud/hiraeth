@@ -28,24 +28,7 @@ test('spawn stands on solid, dry ground with open meadow around it', () => {
   }
 });
 
-test('five relics sit on reachable surfaces', () => {
-  const { spots, names } = SPHERES_CONTENT.relics;
-  assert.equal(spots.length, 5);
-  assert.equal(names.length, 5);
-  for (const [i, s] of spots.entries()) {
-    const [x, z] = s;
-    const top = physics.groundAt(x, 1e4, z, 2e4);
-    const terrain = level.ground.heightAt(x, z);
-    assert.ok(Number.isFinite(top), `relic ${names[i]} has a surface`);
-    assert.ok(top - terrain > 6, `relic ${names[i]} is up on something (${top} over ${terrain})`);
-    // flat enough to stand on: the surface a metre around is within a step
-    for (const [dx, dz] of [[0.8, 0], [-0.8, 0], [0, 0.8], [0, -0.8]]) {
-      assert.ok(Math.abs(physics.groundAt(x + dx, top + 2, z + dz, 4) - top) < 0.6, `relic ${names[i]} footing`);
-    }
-  }
-});
-
-test('the canopy relic can be reached by stepping down from the hill terrace', () => {
+test('the hill tree’s canopy can be reached by stepping down from the hill terrace', () => {
   const H = LAYOUT.hill, T = LAYOUT.hillTree;
   const edgeX = H.x + H.r[1] * 0.97 - 1.5;                      // standing on the middle terrace, east edge
   const terrace = physics.groundAt(edgeX, 1e4, H.z, 2e4);

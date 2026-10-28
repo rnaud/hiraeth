@@ -77,7 +77,6 @@ export const HOME_CONTENT = {
     outro: 'You came home.',
     label: 'the stone in the yard', goal: [HOME_SPOTS.tomb.x, 'ground', HOME_SPOTS.tomb.z], radius: 5, manual: true,
   },
-  relics: { spots: [], names: [] },
   npcs: [],   // Lou, Tove and the dog come with the story (src/story/home.js); nobody lives in the round house now
 };
 

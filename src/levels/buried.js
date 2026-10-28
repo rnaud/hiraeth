@@ -173,10 +173,6 @@ export const BURIED_CONTENT = {
     outro: 'You lit the Wick and saw the wheel turn. It has kept moving ever since. Wen gave you a sliver of this year’s tooth.',
     label: 'the great wheel', goal: [WHEEL.x, 'ground', WHEEL.z], radius: 20, manual: true,
   },
-  relics: {
-    spots: [HERO_DOME, [(HERO_PIPE.x0 + HERO_PIPE.x1) / 2, HERO_PIPE.z], TOWER, [LEDGE_X, LEDGE_Z], [cx(WALLS[1]), WALLS[1]]],
-    names: ['Chimney bell', 'Pressure gauge', 'Derrick beacon', 'Oil-lamp wick', 'Oval-window shard'],
-  },
   // the level's people (talk: src/story/buried-data.js); the domes' others are spawned by the story
   npcs: [
     { at: [14, 40], radius: 5, ...PEOPLE.pim },
@@ -571,7 +567,7 @@ export function* buildBuried(scene) {
       put(lit ? M.peach : M.hatch, new THREE.CircleGeometry(p.r * 0.52, 18).rotateY(-p.s * Math.PI / 2).translate(c.x - p.s * 0.08, c.y, c.z));
     }
 
-    // the ledge (a relic spot), a jutting machine slab on the left wall
+    // the ledge, a jutting machine slab on the left wall
     {
       const s = -1, z = LEDGE_Z, dIn = wallD(LEDGE_Y, z, s), x0 = cx(z) + s * (dIn - 7), x1 = cx(z) + s * (dIn + 1.5);
       const cxL = (x0 + x1) / 2, wx = Math.abs(x1 - x0);

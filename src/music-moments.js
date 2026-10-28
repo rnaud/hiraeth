@@ -4,7 +4,7 @@
 //
 //  - arriving in a world, the theme plays for a while (arrival), then fades out;
 //  - indoors (src/shelter.js) it plays, and lingers a little after you step out (indoorTail);
-//  - a moment brings it back: a keepsake, a relic, a box's gift, a story moment's swell, the
+//  - a moment brings it back: a keepsake, a box's gift, a story moment's swell, the
 //    father's charge (Sound.musicCue: moment);
 //  - after a long quiet it comes back by itself for a while (back, after one of returnAfter);
 //  - between them, the procedural score plays only its light layers (lightScore): the drone, a

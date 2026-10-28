@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.34 — 2026-10-28
 
+- The yellow relics are gone from every world: no more gold shards floating over rooftops, no foes gathered round them, and no relic counts on the Worlds page or your save. The fragments of the singing light are what you find now, and the closing page at the end of the road only asks that every world’s story is told.
 - Press both sticks (L3 + R3) on the title screen to bring back the Debug and What’s new buttons and the debug saves; press them again to hide them. F2 or ` does the same on a keyboard. The Unity version’s title answers it too, and its Saves screen no longer stops working after you quit to the title.
 - No more white diamond on an enemy’s fist, jaw or claw as it winds up an attack, on foes and temple guardians alike: their body, their sound and their orange eyes tell you what is coming.
 - In the Desert, the mummers’ camp no longer sits in the middle of the salt pan, where it stood in the water once the pan floods: it has moved onto the sand just east of it.

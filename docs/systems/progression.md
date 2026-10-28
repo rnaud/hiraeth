@@ -91,7 +91,7 @@ opens, src/finds/courts.js `boxAt`, so even the nearest chest there is earned.) 
 desert done, the house skipped) finds nothing by the ship.
 
 **Nothing to fight before the blade.** Unarmed (main.js `tool.swordOn`, from the items), no pack comes in from the
-wilds, no relic's guards rise, no placed encounter wakes and no temple's machines stand (src/foes.js `armed()`); they
+wilds, no placed encounter wakes and no temple's machines stand (src/foes.js `armed()`); they
 come the moment the blade is his. The blade button and the guard do nothing without them, and neither is drawn on
 him, in the game or its cinematics (`tool.swordOn`, `tool.shieldOn`; a game on foot lends them,
 src/minigames/kit/onfoot.js; the title screen and the studio draw their own traveller, armed). The evade is always

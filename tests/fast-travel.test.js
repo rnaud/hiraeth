@@ -40,7 +40,7 @@ test('the leave gates hold: the desert without its blade and guard, Vael without
 });
 
 test('the Worlds page: a world you can travel to says so on its row; its full view’s A / × travels, or shows the gate’s line', () => {
-  const levels = [{ id: 'desert', title: 'The Desert', relicNames: [] }, { id: 'arzach', title: 'Vael', relicNames: [] }, { id: 'perdide', title: 'Lorn', relicNames: [] }];
+  const levels = [{ id: 'desert', title: 'The Desert' }, { id: 'arzach', title: 'Vael' }, { id: 'perdide', title: 'Lorn' }];
   const list = worldsData({ levels, order: ['desert', 'arzach', 'perdide'], current: 'arzach', travel: (id) => id !== 'perdide' });
   assert.deepEqual(list.map((w) => [w.id, w.travel]), [['desert', true], ['arzach', false], ['perdide', false]], 'not the one you are in');
   const { html, rows } = worldsPanel(list);

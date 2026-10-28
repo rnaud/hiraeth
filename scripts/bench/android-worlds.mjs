@@ -148,7 +148,7 @@ const PROFILE = `(() => {
   const W = window;
   for (const [n, o, k] of [['crowd', W.crowd, 'update'], ['player', W.player, 'update'], ['rig', W.rig, 'update'], ['story', W.storyRt, 'update'], ['wind', W.wind, 'update'],
     ['level', W.level, 'update'], ['reactive', W.reactiveWorld, 'update'], ['wildlife', W.wildlife, 'update'], ['waters', W.waters, 'update'], ['sound', W.sound, 'update'],
-    ['ship', W.ship, 'update'], ['boxes', W.boxes, 'update'], ['tool', W.tool, 'update'], ['weather', W.weather, 'update'], ['scout', W.scout, 'update'], ['relics', W.relics, 'update'],
+    ['ship', W.ship, 'update'], ['boxes', W.boxes, 'update'], ['tool', W.tool, 'update'], ['weather', W.weather, 'update'], ['scout', W.scout, 'update'],
     ['storyPages', W.story, 'update'], ['flammables', W.flammables, 'update'], ['errands', W.errands, 'update'], ['sky', W, 'updateSky'],
     ['r.flora', W.flora, 'update'], ['r.grass', W.blades?.grass, 'update'], ['r.lod', W.lod?.(), 'update'], ['r.skinnedLods', W.skinnedLods, 'update'], ['r.interior', W.interiorCull, 'hide'],
     ['r.shadowCull', W.shadowCull, 'begin'], ['r.bloom', W.bloom, 'render'], ['r.waters', W.waters, 'renderOver']]) wrap(n, o, k);

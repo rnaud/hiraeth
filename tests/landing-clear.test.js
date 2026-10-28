@@ -22,7 +22,7 @@ const caravan = async () => {
   const b = readFileSync(new URL('../public/models/ships/caravan-a/playable.glb', import.meta.url));
   return (await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), '')).scene;
 };
-const NONE = { npcs: [], relics: { spots: [] } };
+const NONE = { npcs: [] };
 
 test('a shrub on the ramp and one in the hull are left out where the ship stands; one beside it stays', async () => {
   const scene = new THREE.Scene();

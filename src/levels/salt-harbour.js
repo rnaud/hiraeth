@@ -96,7 +96,6 @@ export const SALT_CONTENT = {
     outro: 'From the deck of the terracotta hull the whole harbour shows: the street of ships, the sailcloth over it, the ship stood on its stern, and the salt going on white to the edge of the sky.',
     label: 'the terracotta hull’s deck', goal: [SHIP.e1.x - 17, SHIP.e1.D - SHIP.e1.sink, SHIP.e1.z - 13], radius: 8, verticalRadius: 4, manual: true,   // (no beacon: nothing to do here but look)
   },
-  relics: { spots: [], names: [] },
   // three people from elsewhere who came to the harbour, and its own folk in the street and up on the decks
   npcs: [
     { ...DESERT_PEOPLE.marrow, at: [8, 62], radius: 2, world: 'desert', lang: 'desert',

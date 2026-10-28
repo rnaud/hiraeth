@@ -133,7 +133,7 @@ import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES, partsOf } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
 import { cueText, CueState as Cue, PlaceName, staminaHud, keysHud, findSummary } from '../src/hud-state.js';
-import { toastSeconds, Story, Relics } from '../src/quest.js';
+import { toastSeconds, Story } from '../src/quest.js';
 import { EngineStarMap } from './starmap.js';
 import { homecomingKind, HOME_ID, roadDone, ROAD } from '../src/story/ending.js';
 import { routeChart, findableNote, SEARCH_LINE } from '../src/story/signature-search.js';
@@ -323,22 +323,20 @@ setSkinColours(async (gltf, folder) => {
 
 /**
  * The journal's record without its page (src/quest.js Journal: the same key in the save slot, the same fields): the worlds
- * seen, the stories told, the relics and the errands; the page's parts (its sections, its element) stand-ins. `write`
+ * seen, the stories told and the errands (an old save's relics stay in its data, unused: issue #732); the page's parts (its sections, its element) stand-ins. `write`
  * false keeps it from the save (a bench's fixed views).
  */
 export function engineJournal({ storage = slotStorage, write = true } = {}) {
   const KEY = 'hiraeth.journal.v1';
   let data = {};
   try { data = JSON.parse(storage.getItem(KEY)) ?? {}; } catch { data = {}; }
-  data.relics ??= {}; data.stories ??= {}; data.seen ??= {};
+  data.stories ??= {}; data.seen ??= {};
   const save = () => { if (write) try { storage.setItem(KEY, JSON.stringify(data)); } catch { /* full */ } };
   return {
     data, sections: [], el: { addEventListener() {} }, render() {}, toggle() {}, open: false, save,
     seen: (level) => !!data.seen[level], markSeen: (level) => { if (!data.seen[level]) { data.seen[level] = 1; save(); } },
     known: (level) => !!data.seen[level],
     storyDone: (level) => !!data.stories[level], addStory: (level, entry) => { data.stories[level] = entry; save(); },
-    hasRelic: (level, i) => !!data.relics[level]?.[i], addRelic: (level, i, entry) => { (data.relics[level] ??= {})[i] = entry; save(); },
-    relicCount: (level) => Object.keys(data.relics[level] ?? {}).length,
     errand: (id) => data.errands?.[id], setErrand: (id, v) => { (data.errands ??= {})[id] = v; save(); },
   };
 }
@@ -602,7 +600,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     player.onSwim = (kind, info) => waters.event?.(kind, info);
     wrapMenus(menus, (k) => sound.ui?.(k));
   }
-  // the journal's record (src/quest.js Journal: the worlds seen, the stories told, the relics, the errands), read from
+  // the journal's record (src/quest.js Journal: the worlds seen, the stories told, the errands), read from
   // the save as the page keeps it, without its page (the game menu draws from it: engine/menus.js)
   const journal = engineJournal({ write: !flags });
   // the errands (a parcel from one world's person to another's), the hum when words on the screen speak of it, the face of
@@ -623,9 +621,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   };
   const storyPage = content?.story && !gameDef ? optional('the story page', () => new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture: () => null, player, physics,
     ground: level.ground?.heightAt ? level.ground : null, say: (t) => toast(t) })) : null;
-  // the five small things kept in each world (src/quest.js Relics, as main.js places them), into the journal
-  const relics = content?.relics?.spots?.length && !flags && !view && !gameDef ? optional('the relics', () => new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound,
-    capture: () => null, lights: (level.lights ??= []), say: (t) => toast(t) })) : null;
   // the fluid tool before the story, as main.js makes it, which the story reads as it is set up (the desert's push on the
   // drum and the hearth's hints, its tank's moment: src/story/desert.js toolHasPush)
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
@@ -882,7 +877,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     arcadeBoard.go = (href) => onGame?.(href);
     arcadeBoard.toggle = (on = !arcadeBoard.open) => { if (on) return menus.openArcade(arcadeBoard); if (menus.mode === 'arcade') menus.close(); arcadeBoard.open = false; return false; };
   }
-  const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
+  const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, flammables, post: U, boxes,
     notice: (t, o) => toast(t, o), ring: () => itemFx?.ring?.() }));
   // the makers' spells (src/spells/, issue #667), as main.js: the awards, LB / L1 + RB / R1 (Y) and its recovery, the chip
   // (the screen's 'spell': BridgeHud.cs DrawSpell), the choice in the game menu's Items (useItem)
@@ -1143,16 +1138,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     else if (story && !busy && !pinned && !(shipOn && ship.playing)) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
     // toasts: the next once the last has been read
     toasts.left -= dt;
-    // the end of the road (main.js's closing page): every world's story told and every small thing kept, its words said
+    // the end of the road (main.js's closing page): every world's story told, its words said
     // as lines here, once (the journal's `completed`), when nothing else is on
     if ((roadT -= dt) <= 0) {
       roadT = 1;
       if (!flags && !view && !gameDef && !journal.data.completed && !busy && !(shipOn && ship.playing)
-        && roadDone({ order: ORDER, storyDone: (id) => journal.storyDone(id), relicCount: (id) => journal.relicCount(id), relics: (id) => CONTENT[id]?.relics?.names?.length ?? 0 })) {
+        && roadDone({ order: ORDER, storyDone: (id) => journal.storyDone(id) })) {
         journal.data.completed = Date.now(); journal.save();
         sound.chime?.();
-        const n = ORDER.reduce((k, id) => k + (CONTENT[id]?.relics?.names?.length ?? 0), 0);
-        toast(`${ROAD.title} · ${ROAD.kept(n)}`); toast(`${ROAD.full} ${ROAD.home}`);
+        toast(`${ROAD.title} · ${ROAD.told}`); toast(`${ROAD.full} ${ROAD.home}`);
       }
     }
     // (a fixed view's picture has no notices over it, as the web's side-by-sides hide the page's: scripts/unity-compare/)
@@ -1438,7 +1432,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     world: () => ({
       world: meta.title,
       ship: { active: caravan ? 'caravan' : 'original', selected: shipSetting.get('') },
-      points: gatherPoints({ levelId, level, quests: story?.quests ?? null, npcs, boxes, relics, ship, content, games: GAMES }),
+      points: gatherPoints({ levelId, level, quests: story?.quests ?? null, npcs, boxes, ship, content, games: GAMES }),
       quests: story?.quests ? questList(story.quests, levelId) : [],
       toggles: { soundSources: !!sound.sfxTrace?.enabled, fps: !!settings?.showFps, god: !!player.god, potions: !!resources.potions.infinite, jets: gear.has('jetpack') },
       save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
@@ -1455,7 +1449,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, hoverTrails, edge, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, ship, mirror, folk, kit, dangers, chemistry, benches, hoverTrails, edge, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The Start menu's line of the fragments of the singing light (src/host/game-host.js fragmentsLine), as the page's. */
@@ -1616,7 +1610,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       return menuSources({ items: { owned: () => Object.keys(ITEMS).filter((id) => gear.has(id)) }, wallet: () => resources.chimes,
         toggles: () => ({ finder: gear.has('finder') && !gameState.flag('frag.finder.off') }),
         quests: story?.quests ?? null, charge, keepsakes: () => gameState.keepsakes(), journal, current: levelId, game: gameState,
-        levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
+        levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb })),
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
         fragments: () => fragments?.counts?.() ?? null,
         errandDefs: ERRANDS, done: worldDone,   // (the Quests panel's errands under way, the Worlds page's worlds told, as main.js)
@@ -1844,9 +1838,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // src/hazards.js, registered by the levels as they build) biting while you touch them (main.js; the plan's D3)
       try {
         if (!(shipOn && ship.playing)) fragments?.update(dt, simT, { quiet: busy || !!pinned });
-        // (the world's words waiting for a conversation's end; a relic walked into, as main.js)
+        // (the world's words waiting for a conversation's end, as main.js)
         storyPage?.update(dt, simT, camera);
-        if (!busy && !pinned && !(shipOn && ship.playing)) relics?.update(dt, simT, player);
         dangers.update(dt, player, { quiet: busy || !!pinned || (shipOn && ship.playing), say: (t) => toast(t) });
       } catch (e) { if (!game._fragmentsFailed) { game._fragmentsFailed = true; console.warn('[game] the fragments or hazards failed', e?.stack ?? e); } }
       if (shipOn && !pinned) {

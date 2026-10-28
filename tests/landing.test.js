@@ -51,7 +51,7 @@ test('the ship: no “go aboard” at the ramp; walking into it takes you in, bu
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: new THREE.Vector3(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   ship.player = new Player(physics);
   ship.camera = new THREE.PerspectiveCamera();
   ship.rig = { indoor: false };
@@ -90,7 +90,7 @@ test('just stepped out, walking straight back into the ramp does nothing (the re
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: new THREE.Vector3(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   ship.player = new Player(physics);
   ship.camera = new THREE.PerspectiveCamera();
   ship.rig = { indoor: false };

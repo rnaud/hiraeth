@@ -10,13 +10,6 @@ import { MERGED, PARTS } from '../src/levels/names.js';
 
 const scene = new THREE.Scene(), level = createPerdide2(scene), physics = new Physics(scene, level.ground);
 
-// where Relics (quest.js) would put a spot
-function resolve(s) {
-  if (Array.isArray(s)) return new THREE.Vector3(s[0], physics.groundAt(s[0], 1e4, s[1], 2e4) + 1.1, s[1]);
-  const p = new THREE.Vector3(...s.at);
-  if (s.snap) { const y = physics.groundAt(p.x, p.y + 3, p.z, 6); if (Number.isFinite(y)) p.y = y + 1.1; }
-  return p;
-}
 
 test('the deep wood builds (on its own, for its tests), and is part of Lorn', () => {
   assert.equal(level.id, 'perdide2');
@@ -37,21 +30,6 @@ test('spawn stands on a dry island', () => {
   assert.ok(Math.abs(physics.groundAt(x, y + 2, z) - y) < 0.05);
   assert.equal(level.unsafe(level.spawn), false);
   for (let a = 0; a < 6.28; a += 0.5) assert.ok(level.ground.heightAt(x + Math.cos(a) * 10, z + Math.sin(a) * 10) > 0.5, 'island is dry around spawn');
-});
-
-test('five relics sit on reachable surfaces', () => {
-  const { spots, names } = PERDIDE2_CONTENT.relics;
-  assert.equal(spots.length, 5); assert.equal(names.length, 5);
-  for (const s of spots) {
-    const p = resolve(s), g = physics.groundAt(p.x, p.y, p.z, 10);
-    assert.ok(Number.isFinite(g) && p.y - g > 0 && p.y - g < 3, `relic ${s.at} has a surface below: ${g} (${p.y})`);
-    assert.ok(g > -0.5, `relic ${s.at} is above the water: ${g}`);
-  }
-  // the raised ones really are up on something (not on the swamp floor)
-  for (const i of [0, 1, 2, 3]) {
-    const p = resolve(spots[i]);
-    assert.ok(p.y - level.ground.heightAt(p.x, p.z) > 1.5, `relic ${i} is up on a structure`);
-  }
 });
 
 test('the lit path leads dry or wadeable to the cave goal', () => {

@@ -43,7 +43,8 @@
 // counts as the Glass Dunes' slot finished (`world.glassdunes.done`), so the route does not take a world back.
 // The part's own flags (`arzach2.*`, `world.arzach2.done`, `quest.arzach2.*`, the temples', the boxes') keep
 // their names: the merged world carries its parts' quests and finds under them. Where you stand
-// (src/ui.js SaveGame) goes through migrateWhere, and the sketchbook's relics through migrateJournal.
+// (src/ui.js SaveGame) goes through migrateWhere, and the sketchbook's worlds seen through migrateJournal. (Its relics moved
+// with them until v2.34, issue #732: the relics went; an old save's `relics` stay in its journal, unread.)
 // The City-Shaft's air pillars (v1.42, src/shaft-pillars.js) carry the wings up the shaft, so the Warden's harness
 // went: step 11 gives a save that had it the Warden's bellows, the Warden's Well's chest's new find (the chest stays
 // opened).
@@ -602,23 +603,15 @@ export function migrateWhere(saved, { fallback = 'desert' } = {}) {
 }
 
 /**
- * The sketchbook (src/quest.js Journal data: { relics: { world: { i: entry } }, stories, seen }) brought up to date:
- * a merged part's relics move into its world's list after the parts before it (`bases`: { part: [world, first
- * index] }, src/levels/content.js RELIC_BASE), and having seen the part is having seen the world. In place;
- * returns true if anything moved.
+ * The sketchbook (src/quest.js Journal data: { stories, seen }) brought up to date: having seen a merged part is having
+ * seen its world (`bases`: { part: [world, …] }, src/levels/content.js NPC_BASE). In place; returns true if anything
+ * moved. (An old save's `relics`, which moved into their world's list here until v2.34, stay as they are, unread: #732.)
  */
 export function migrateJournal(data, bases) {
   if (!data) return false;
   let moved = false;
-  for (const [part, [world, base]] of Object.entries(bases ?? {})) {
+  for (const [part, [world]] of Object.entries(bases ?? {})) {
     if (part === world) continue;
-    const own = data.relics?.[part];
-    if (own && Object.keys(own).length) {
-      const into = (data.relics[world] ??= {});
-      for (const [i, entry] of Object.entries(own)) into[base + Number(i)] ??= entry;
-      delete data.relics[part];
-      moved = true;
-    }
     if (data.seen?.[part] && !data.seen[world]) { data.seen[world] = 1; moved = true; }
   }
   return moved;

@@ -70,8 +70,8 @@ import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCsSteps, pooledNPC, registerNPCTargets, setCalmZones, shipCalmZones } from './npc.js';
 import { spawnAliens, alienSpots } from './aliens/index.js';
 import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
-import { Journal, Relics, Story } from './quest.js';
-import { CONTENT, ERRANDS, RELIC_BASE } from './levels/content.js';
+import { Journal, Story } from './quest.js';
+import { CONTENT, ERRANDS, NPC_BASE } from './levels/content.js';
 import { migrateJournal } from './save-migrate.js';
 import { loadAnimationLibrary, Animator, loadSprintClip, sprintSetting } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
@@ -746,15 +746,14 @@ registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
 setStep('story');
-const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
-// (a merged world's parts kept their relics apart before: they join its list, src/save-migrate.js)
-if (migrateJournal(journal.data, RELIC_BASE)) journal.save();
+const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, storyTitle: CONTENT[l.id].story.title })));
+// (a merged world's part seen is the world seen, src/save-migrate.js)
+if (migrateJournal(journal.data, NPC_BASE)) journal.save();
 // the errands, the hum when words on the screen speak of it, the face of whoever talks near (src/host/game-host.js
 // wirePeople, the engines' too; the words heard: the cinema's toasts and subtitles, a conversation's lines, a balloon)
 const people = wirePeople({ levelId, errandDefs: ERRANDS, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound, ship, game });
 const errands = people.errands;
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
-const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
 await slice();
 // the route: the worlds you know of (src/story/route.js); finishing this one names the next on the ship's map
 const worldDone = (id) => !!(game.flag(`world.${id}.done`) || journal.storyDone(id));
@@ -941,7 +940,7 @@ function pumpPortraits() {
 window.portraits = portraits;   // (the console, the shot scripts)
 Object.assign(journal.menu, {
   sources: menuSources({ items, wallet: () => resources.chimes, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game, portrait: (id) => portraits.get(id),
-    levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title,
+    levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, storyTitle: CONTENT[l.id]?.story.title,
       parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }), colours: () => kit.colours(),
@@ -1086,7 +1085,7 @@ const devSprint = { get: () => player.animator?.sprintName === 'kevin', set: (on
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story,
   world: () => ({
     world: meta.title,
-    points: gatherPoints({ levelId, level, quests: storyRt.quests, npcs, boxes, relics, ship, content, games: GAMES }),
+    points: gatherPoints({ levelId, level, quests: storyRt.quests, npcs, boxes, ship, content, games: GAMES }),
     films: cinematicsFor(levelId, { ship: !!ship.parked }),
     quests: questList(storyRt.quests, levelId),
     toggles: devToggles(),
@@ -1104,7 +1103,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') boxes.skip();
   else if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') boxes.dismiss();
 });
-// flora: the world's own plants in clumps, clear of the people, the boxes, the relics, the ship and
+// flora: the world's own plants in clumps, clear of the people, the boxes, the ship and
 // the story's places (src/flora.js); the large ones are solid
 await slice();
 setStep('flora');
@@ -1235,7 +1234,7 @@ bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, 
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
 // the gadgets (src/gadgets/: the fluid gun, the grappling hook, the ink bombs…): LT / L2 aims and RT / R2 uses the one in hand (R and T, G), D-pad ↑ or B held opens the wheel (the gadgets and the glove's modes, the game waiting; a tap the last pick back), X the next mode; Y / △ (V) the bell-note whistle
 // (the trials' rewards, upgrades to the gadgets' tuning while owned: wireLessons, before the gadgets are made)
-gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t, o) => showToast(t, o), touch: isTouch, ring: () => itemFx.ring(),
+gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, flammables, post: post.uniforms, boxes, notice: (t, o) => showToast(t, o), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the makers' spells (src/spells/, issue #667): one won in each of four houses, cast with LB / L1 + RB / R1 (Y, the touch
 // ✺), 30 s to recover; the chip under the gadget's, the choice in the game menu's Items
@@ -2475,7 +2474,6 @@ function frame(ts) {
     if (sceneTag) { storyRt.prompt = sceneTag.text; storyRt.promptAt = sceneTag.at; storyRt.promptEntry = null; storyRt.placePrompt(camera, controllerActive); }
     else if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
-  relics.update(dt, t, player);
   // (src/fragments.js: their song, the finder, a fragment walked into; the finder quiet in a conversation or a menu, issue #231)
   if (!minigameDef && !ship.playing) fragments.update(dt, t, { quiet: busy() });
   if (shopPanel.isOpen && shopPanel.fragments) itemIcons.pump();   // (Anselm's cards: his upgrades' pictures, one a frame)
@@ -2579,10 +2577,10 @@ let portalCool = 0;
 let eWasDown = false;
 
 // ------------------------------------------------------------------ the ending
-// Every world's story page and every relic found: a closing page. (It used to point at the Atelier, a last page
+// Every world's story page: a closing page (every relic too until v2.34, issue #732: they went). (It used to point at the Atelier, a last page
 // opened in the picker: the Atelier was dismissed in October 2026, src/levels/names.js DISMISSED.)
 let endingOpen = false;
-const allDone = () => roadDone({ order: ORDER, storyDone: (id) => journal.storyDone(id), relicCount: (id) => journal.relicCount(id), relics: (id) => CONTENT[id].relics.names.length });
+const allDone = () => roadDone({ order: ORDER, storyDone: (id) => journal.storyDone(id) });
 setInterval(() => {
   if (journal.data.completed || story.pageOpen || story.pending || storyRt.busy() || journal.open || !allDone()) return;
   journal.data.completed = Date.now();
@@ -2596,7 +2594,7 @@ setInterval(() => {
   const imgs = shots.map(([e, l], i) => captureView(e, l, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
   const page = document.getElementById('page');
   page.innerHTML = `<div class="sheet">
-    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>${ROAD.title}</b><br>${ROAD.kept(ORDER.reduce((n, id) => n + CONTENT[id].relics.names.length, 0))}</div></div>
+    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>${ROAD.title}</b><br>${ROAD.told}</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
     <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">${ROAD.full}<br>${ROAD.home}</div></div>
     <div class="hint" aria-label="continue">▸</div></div>`;
@@ -2844,21 +2842,21 @@ window.clipAudit = async (o = {}) => {
   const { auditClipping, formatAudit } = await import('./clip-audit.js');
   const { allInteractables } = await import('./interact.js');
   const things = allInteractables().filter((e) => !/^(talk\.|box\.)/.test(e.id) && !['vehicle', 'lens'].includes(e.id));
-  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...fragments.list.map((f) => f.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
-  const r = auditClipping({ physics, scene, roots: auditRoots, npcs, crowd, relics, boxes, things, exclude, ...o });
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...fragments.list.map((f) => f.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const r = auditClipping({ physics, scene, roots: auditRoots, npcs, crowd, boxes, things, exclude, ...o });
   if (o.print !== false) console.log(formatAudit(r));
   return r;
 };
 /** Dev: where the drawn surfaces you stand on and climb part from the collision (src/contact-audit.js); prints a report. */
 window.contactAudit = async (o = {}) => {
   const { auditContact, formatContact } = await import('./contact-audit.js');
-  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...fragments.list.map((f) => f.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...fragments.list.map((f) => f.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
   const region = level.unsafe ? (p) => !level.unsafe(p) : null;
   const r = auditContact({ physics, scene, solids: level.dynamic?.() ?? [], exclude, region, ...o });
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { shopPanel, flatPass, motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
+Object.assign(window, { shopPanel, flatPass, motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, crowdPasses, lod: () => lod, skinnedLods, interiorCull, wardrobe, travellerV2, spells: () => spells });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {

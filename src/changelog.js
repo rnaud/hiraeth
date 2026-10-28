@@ -18,6 +18,7 @@ export const CHANGELOG = [
       { text: 'In the Desert, the mummers’ camp no longer sits in the middle of the salt pan, where it stood in the water once the pan floods: it has moved onto the sand just east of it.', see: 'Once Qanat’s tree has drunk, look over the flooded salt pan east of the camps: the mummers’ fire is on the dry sand past its edge.' },
       { text: 'No more white diamond on an enemy’s fist, jaw or claw as it winds up an attack, on foes and temple guardians alike: their body, their sound and their orange eyes tell you what is coming.', see: 'Let any foe or guardian swing at you: the raised fist or club is no longer hidden behind a spinning white diamond.' },
       { text: 'Press both sticks (L3 + R3) on the title screen to bring back the Debug and What’s new buttons and the debug saves; press them again to hide them. F2 or ` does the same on a keyboard. The Unity version’s title answers it too, and its Saves screen no longer stops working after you quit to the title.', see: 'On the title, click both sticks: Debug and What’s new appear beside Settings, and Saves shows the Debug row.' },
+      'The yellow relics are gone from every world: no more gold shards floating over rooftops, no foes gathered round them, and no relic counts on the Worlds page or your save. The fragments of the singing light are what you find now, and the closing page at the end of the road only asks that every world’s story is told.',
     ],
   },
   {

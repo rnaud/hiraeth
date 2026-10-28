@@ -62,7 +62,7 @@ each choice to what uses it:
   scale too. index.html only colours and hides the buttons. The HUD keeps clear by measuring them
   (src/ship/cinema.js `OBSTACLES`). `tests/touch-layout.test.js`: no two buttons touch at any scale,
   the cluster stays in the corner at the phone sizes.
-- **Ending:** find all seven story pages and all 35 relics for a closing page.
+- **Ending:** every world's story told for a closing page (all its relics too, until they went in v2.34: issue #732).
   It unlocks an eighth world, **The Atelier**: a blank page with pencil
   sketches of every landmark and the artist at his table.
 
@@ -327,7 +327,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   for the page on first read. Settings, mute, the pad layout, the changelog's seen mark and
   the update toast stay global. A per-slot `meta` key keeps the time played (counted while
   the game runs, not paused) and when it was last played. `summary(n)` reads a slot's raw
-  saves for the selector (world, worlds done, relics, items found); the worlds' names come
+  saves for the selector (world, worlds done, items found; no relics since v2.34); the worlds' names come
   from `src/levels/names.js`, which has no imports. The single save from before the slots is
   copied into slot 1 once (`migrate()`); the old keys are left as they were, so an older
   build (an over-the-air update rolled back) still finds its save.
@@ -407,8 +407,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
 - **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
   first active one: `Quests.objective`), routed through doorways; while the observatory expedition
   is under way its steps first; then the world's story goal (its beacon); once the story is told,
-  the ship from more than 25 m away; else nothing. It never points at a relic any more: they are
-  yours to find. While the world's lead giver waits (v1.68: docs/systems/story.md, "Quests are given") it finds them
+  the ship from more than 25 m away; else nothing. It never pointed at a relic (they went in v2.34). While the world's lead giver waits (v1.68: docs/systems/story.md, "Quests are given") it finds them
   first. A quest with `background: true` (the makers' boxes) is only
   tracked when nothing else is or when you choose it, so a box doesn't take the scout from the
   quest you are on.
@@ -435,7 +434,7 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
 - **Opening it**: whatever opened the sketchbook — View / Select, J, the touch ❏ — on the **Quests**
   (`DEFAULT_PANEL`, v1.58, issue #213: "default menu should be the quest one"); the Start menu no longer opens
   it on a panel (issue #487). It draws into `#journal`: `Journal.toggle(on, panel)` in `src/quest.js`
-  opens it; the journal still keeps the relics, story pages, errands and the observatory. It pauses the
+  opens it; the journal still keeps the story pages, errands and the observatory (an old save's relics, unread). It pauses the
   game like the Start menu; each panel keeps its cursor.
 - **Panels** (`PANELS`), side by side in a ring, in this order since v1.58 (the **Wardrobe** last since v1.88: its own
   section below): **Quests**, **Map** (below),
@@ -451,14 +450,14 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   pending errands; on the right "Done", a short list of finished and failed titles, `ENDED` of each,
   "and n more"), **Worlds** (the worlds you know in the route's order,
   one a row since v1.58 so ↑ ↓ go between them (issue #213: "the worlds tab I can't go up and down"): their
-  picture from `thumbs/`, ✓ story, relics and makers' boxes found, the blurb, "you are here"; *Travel here* on
+  picture from `thumbs/`, ✓ story, makers' boxes found, the blurb, "you are here"; *Travel here* on
   the ones you can fly to, below).
 - **The Sketchbook's page is gone** (v1.62, issue #213: "The sketchbook is confusing about its purpose. I don't
   know why it's there at all."): `PANELS` has five, the tab and its side-tab neighbour with it; `sketchesPanel`,
   `sketchesData` and their styles went. Nothing a save holds is lost or changed: the journal (src/quest.js) still
   keeps the story pages, the relics' and errands' sketches and the observatory's, and the Sightings are still
   written down (`sight.*`, src/story/sightings.js: the Lantern answers them). Where they show now: each world's
-  relics by name (a ? for the rest) and its story in the Worlds full view, the errands under Quests (pending) and
+  story in the Worlds full view (its relics by name until v2.34), the errands under Quests (pending) and
   People (delivered: the toast says "… to see it under People"), the story page as it opens. An old caller asking
   for the `sketches` panel lands where it was (`MenuState.show` ignores an unknown id). The controls' words say
   "items, quests, worlds" (src/bindings.js, the `ctl.*` strings).
@@ -493,7 +492,7 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   should only be present when the item is full screen, and not overlap on top of the item"): `fullHtml`, over
   the sheet on its own paper: Back (B / Esc), the picture large on the left (the item's own render, the
   sketch, the world's picture, the sighting's note; a ? for one not found), and on the right its name, kind,
-  "in use", its words, its facts (a world: the story, the relics by name, a ? for each still to find, the
+  "in use", its words, its facts (a world: the story, the
   makers' boxes, the fragments once the first is found, the people met there: `worldFacts`) and its action on
   A / × (`itemUse`: an item's gun mode taken, a gadget taken in hand, the fragment finder switched on or off,
   issue #196; `onUse`). On a narrow or upright screen the picture goes over the words, never under them.

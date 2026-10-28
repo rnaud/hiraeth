@@ -244,8 +244,7 @@ with one parked beside the entrance for immediate boarding.
 
 Follow the avenue to the stacked broadcast tower. Its cream balcony is 44 m
 above the street; use the jetpack, climb the blue resting ledges, or hail a taxi.
-Reaching the console completes **The Last Broadcast**. Five relics are spread
-between the market, a stall roof, two bridges and the balcony. The scout, saves,
+Reaching the console completes **The Last Broadcast**. The scout, saves,
 sketchbook, controller and touch controls use the existing game systems.
 
 The stalls carry goods (October 2026, toward the reference sheets): four heaps of fruit mounded over brass
@@ -1212,8 +1211,8 @@ clock tower east of the valley with its cogs half sunk in the sand (a level floo
 `CLOCK_HOUSE`). Wim winds the glassworkers' clocks now (`src/temples/garage-data.js`); the Hangar's words for her are
 kept in `src/levels/dismissed/hangar/temple-words.js`. The dunes gained a story page ("The Clock in the Glass",
 `src/story/glassdunes.js`: the world done when the Foreman keeps time, Wim's tick as its keepsake, the clock filmed
-coming round), Marit's Kiln-Stall (the kiosk), a court, boxes, a trial (the Glass slalom), a makers' run, five
-relics, three locals (Aster, Corin, Halden), cog mice and glass hoppers. **The Atelier** left the picker (home and
+coming round), Marit's Kiln-Stall (the kiosk), a court, boxes, a trial (the Glass slalom), a makers' run,
+three locals (Aster, Corin, Halden), cog mice and glass hoppers. **The Atelier** left the picker (home and
 the Lantern remain).
 
 ## The merged worlds' crossings (v1.43)

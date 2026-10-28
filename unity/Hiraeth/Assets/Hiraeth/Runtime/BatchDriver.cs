@@ -482,7 +482,7 @@ namespace Hiraeth
                 Log($"Nour home: seated {nour2.seatHeight >= 0}, pose {nour2.figure?.pose}");
                 yield return CloseUp("nour_on_her_bench", nour2.transform, 2.6f, 0.4f, 0.1f);
             }
-            // ---- the desert's other places and errands (observatory.js, desert-errands.js, quest.js relics)
+            // ---- the desert's other places and errands (observatory.js, desert-errands.js)
             var ob = game.observatory;
             var sk = Person("sketcher");
             if (ob && sk)
@@ -570,19 +570,6 @@ namespace Hiraeth
                     Log($"chamber: at {game.player.transform.position}, whistle offered {game.prompt == "whistle for the hoverbike"}");
                     Put(game.world.Places.V3("camps") + new Vector3(30, 0, 30), 45); yield return Wait(0.5f);
                 }
-            }
-            if (game.relics)
-            {
-                var r0 = game.world.Places.L("relics")[3].V3("pos");
-                PutNear(r0, 6f); yield return Wait(0.5f);
-                yield return Shoot("a_relic");
-                Put(r0 + Vector3.down * 1.05f, 0); yield return Wait(0.3f);
-                Log($"relic: player at {game.player.transform.position}, the relic at {r0}");
-                Log($"relics: {game.relics.Found}/{game.relics.Total}");
-                yield return Pulse(v => pad.journal = v); yield return Wait(0.4f);
-                for (int i = 0; i < 6; i++) { pad.nav = 1; yield return Wait(0.1f); }
-                yield return Shoot("the_sketchbook_later");
-                yield return Pulse(v => pad.journal = v); yield return Wait(0.3f);
             }
             // the weather the desert does not have itself (weather.js kinds: rain, fog banks), forced as the web's panel does; sun rays at a low sun
             if (game.ambient)

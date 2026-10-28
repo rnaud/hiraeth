@@ -1,7 +1,7 @@
 // Where the fragments of the singing light could hide (docs/systems/fragments.md): for each route world, floods the
 // ground you can walk and jump over from the world's spawn (the walker's own steps: tests/fragments-reach.js), scores
 // every spot it reached for being out of the way (a ledge with a drop under it, a nook with walls round it, a high
-// place, far from the people, the chests and the relics, and far from the route: the level design audit's critical
+// place, far from the people and the chests, and far from the route: the level design audit's critical
 // path, scripts/level-design/path.mjs) and for lying in the world's new country (the explorations' pieces, found by
 // their sights' names: tests/fragments-reach.js NEW_COUNTRY) and in or on its places of interest (issue #250: inside a
 // ribcage, on a temple's top, by a sight), and picks FRAGMENTS_PER_WORLD of the best, well apart, at least `--new` of
@@ -23,7 +23,7 @@
 //     --apart m the least distance between two picks (default 25; the contact test's floor is 15)
 //     --per-poi n how many picks one place of interest may hold (default 1)
 //     --avoid x0,x1[,z0,z1] no pick in that box (the Signal Market's galleries, x -32.5 to -26.5: tests/market-explorations)
-//     --busy m the nearest a pick may lie to the spawn's people, chests, relics and goal (default 14)
+//     --busy m the nearest a pick may lie to the spawn's people, chests and goal (default 14)
 //     --anchors every pick on a named place of interest (issue #550: "fragment of lights should be in a place that makes
 //              sense, like the top of a building, or the center of a point of interest"; never a bare summit): the
 //              world's slots already on one stay (unless listed in --move), the others are picked afresh in their
@@ -103,10 +103,9 @@ for (const id of worlds) {
   // the points of interest (issue #250): in a sight, on a beacon, inside a named thing's bounds, on a summit
   const pois = pointsOfInterest({ scene: builtWorld(id).scene, level }, id);
   const wantPoi = poiArg != null ? +poiArg : 4;
-  // what is on the way: the spawn, the people, the chests, the relics, the story's goal
+  // what is on the way: the spawn, the people, the chests, the story's goal
   const busy = [[spawn.x, spawn.z]];
   for (const n of CONTENT[id]?.npcs ?? []) if (n.at) busy.push(n.at);
-  for (const s of CONTENT[id]?.relics?.spots ?? []) busy.push(Array.isArray(s) ? s : [s.at[0], s.at[2]]);
   if (CONTENT[id]?.story?.goal) busy.push([CONTENT[id].story.goal[0], CONTENT[id].story.goal[2]]);
   for (const part of partsOf(id)) for (const p of PLACEMENTS[part] ?? []) if (Array.isArray(p.at)) { const a = shiftAt(part, p.at); busy.push([a[0], a.length === 3 ? a[2] : a[1]]); }
   const nearBusy = (x, z) => Math.min(...busy.map(([bx, bz]) => Math.hypot(bx - x, bz - z)));

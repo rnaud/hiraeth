@@ -8,7 +8,7 @@ namespace Hiraeth
     /// Starts the play: what lasts the whole game (the state and its quests, the HUD, the sound,
     /// the traveller, the camera rig, the backpack) and what belongs to the world you are in
     /// (<see cref="BuildWorldPlay"/>: the crowd, the people and the story, the mount, the ship at
-    /// its site, the weather, the wildlife, the relics; <see cref="TearDownWorld"/> lets them go when
+    /// its site, the weather, the wildlife; <see cref="TearDownWorld"/> lets them go when
     /// the ship leaves). Then it runs what main.js runs every frame that isn't anyone's own: the use
     /// prompt, B / ○ to use, the portals, the air by place, the fall out of the world.
     /// </summary>
@@ -153,14 +153,13 @@ namespace Hiraeth
             // what an ember glob sets alight: the camp fires flare, the dry brambles by them burn and grow back (flammable.js)
             worldRoot.gameObject.AddComponent<Flammables>().Init(game);
             // the sleeping observatory and its traveller (observatory.js), the drum and the mask's eyes
-            // (desert-errands.js), the relics (quest.js), the objective's marker (story/quests.js)
+            // (desert-errands.js), the objective's marker (story/quests.js); the relics went in v2.34 (issue #732)
             if (desert)
             {
                 game.observatory = Observatory.Create(game);
                 if (game.observatory) game.observatory.transform.SetParent(worldRoot, true);
                 game.errands = worldRoot.gameObject.AddComponent<DesertErrands>(); game.errands.Init(game, storyData);
             }
-            game.relics = worldRoot.gameObject.AddComponent<Relics>(); game.relics.Init(game);
             game.marker = new GameObject("Quest marker").AddComponent<QuestMarker>(); game.marker.transform.SetParent(worldRoot, false); game.marker.Init(game);
             game.ambient = worldRoot.gameObject.AddComponent<Ambient>();
             game.ambient.Init(game);
@@ -189,7 +188,7 @@ namespace Hiraeth
             game.npcs.Clear();
             game.quests.Clear();
             game.story = null; game.worldStory = null; game.bike = null; game.bird = null; game.ship = null; game.crowd = null; game.ambient = null; game.wildlife = null;
-            game.observatory = null; game.errands = null; game.relics = null; game.marker = null;
+            game.observatory = null; game.errands = null; game.marker = null;
             portals = null;
         }
 

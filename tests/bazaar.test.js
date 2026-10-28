@@ -19,14 +19,10 @@ test('all skybridges and broadcast balcony have continuous collision',()=>{
  assert.equal(physics.groundAt(0,45,SIGNAL.approachZ),44);
  for(let k=1;k<=6;k++) assert.ok(Math.abs(physics.groundAt(k%2?-7:7,k*6+1,-235)-(k*6+.325))<.01);
 });
-test('new world participates in progression and has five reachable relic surfaces',()=>{
+test('new world participates in progression',()=>{
  assert.equal(nextLevel(ORDER[ORDER.indexOf('bazaar')-1]),'bazaar');assert.equal(nextLevel('bazaar'),'desert');
  assert.ok(ORDER.includes('bazaar'));assert.ok(LEVELS.some(l=>l.id==='bazaar'&&!l.hidden));
- assert.equal(CONTENT.bazaar.relics.spots.length,5);
- for(const {at:[x,y,z]} of CONTENT.bazaar.relics.spots) {
-  const ground=physics.groundAt(x,y,z,10);
-  assert.ok(y-ground>0 && y-ground<3,`relic has a nearby platform at ${x},${y},${z}: ${ground}`);
- }
+ assert.equal(CONTENT.bazaar.relics,undefined,'no relics (issue #732)');
 });
 test('taxis initialize and the crowd walks the avenue, sidewalks and skybridges',()=>{
  level.init(physics);assert.equal(level.vehicles.length,12);assert.equal(level.vehicles[0].mode,'parked');

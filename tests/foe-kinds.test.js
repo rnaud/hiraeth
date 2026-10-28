@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foe, Foes, FOES, GENTLE, WAVES, attackOf, packKinds, waveWords } from '../src/foes.js';
 import { KINDS, NOTES, kindModel } from '../src/foe-kinds.js';
-import { ROSTERS, CLASSIC, GROUP, rosterOf, packOf, guardKinds, templeKind } from '../src/foe-worlds.js';
+import { ROSTERS, CLASSIC, GROUP, rosterOf, packOf, templeKind } from '../src/foe-worlds.js';
 import { TITLES } from '../src/levels/names.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -331,10 +331,10 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   gentle.dispose(); clearTargets();
 });
 
-test('the worlds’ rosters: each world draws its packs, its relic guards and its temple rooms from its own archetypes (or their stand-ins)', () => {
+test('the worlds’ rosters: each world draws its packs and its temple rooms from its own archetypes (or their stand-ins)', () => {
   for (const [id, R] of Object.entries(ROSTERS)) {
     assert.ok(TITLES[id], `${id} is a world`);
-    for (const k of [...Object.keys(R.wild), ...Object.keys(R.fill ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), R.first]) assert.ok(FOES[k] && !FOES[k].noWild, `${id}: ${k}`);
+    for (const k of [...Object.keys(R.wild), ...Object.keys(R.fill ?? {}), ...(R.temple ?? []), R.first]) assert.ok(FOES[k] && !FOES[k].noWild, `${id}: ${k}`);
   }
   // each old kind still standing in has a home
   for (const k of Object.keys(KINDS)) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 2), `${k} has a home`);
@@ -356,21 +356,13 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   for (let n = 1; n < 200; n++) { const p = packOf(n, 'perdide', rng); if (GROUP[p[0]]) assert.deepEqual(p, Array(GROUP[p[0]]).fill(p[0]), `Lorn: a group alone (${p})`); }
   assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('worm'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);
-  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'roller'], 'a brine mollusk stands by the harbour’s relic with the crab (batch 5: the roller is built)');
   assert.equal(templeKind('garage', 1), 'machine'); assert.equal(templeKind('garage', 2), 'drone');
   assert.equal(templeKind('desert', 3), 'machine');
   assert.ok(Array.from({ length: 200 }, (_, n) => packKinds(4 + (n % 5), 'eclipse', () => (n % 10) / 10)).flat().includes('shade') || ROSTERS.eclipse.wild.shade > 0, 'the eclipse’s shades');
 });
 
-test('placed encounters use the roster: relic guards are the world’s kind, the Hangar’s temple has drones among its machines, a Gentle pack is two at most', () => {
+test('placed encounters use the roster: the Hangar’s temple has drones among its machines, a Gentle pack is two at most', () => {
   clearTargets();
-  const game = new GameState(null), P = player(v(0, 0, 395));
-  const content = { npcs: [], relics: { spots: [{ at: [0, 0, 420] }] } };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'saltharbour', content, physics: flat, player: P, settings: { enemies: true }, game });
-  foes.packRest = 999; foes.update(DT);
-  assert.deepEqual(foes.list.filter((f) => f.guard).map((f) => f.kind), guardKinds('saltharbour'));
-  assert.ok(foes.list.filter((f) => f.guard).every((f) => f.provoked), 'guarding its relic, wildlife is roused');
-  foes.dispose(); clearTargets();
   const marks = [0, 1, 2, 3].map((i) => ({ pos: v(0, 0, i * 30), heading: 0 }));
   const H = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: { marks, inside: () => true } }, levelId: 'garage', physics: flat, player: player(v(0, 0, 300)), settings: { enemies: true }, game: new GameState(null) });
   assert.deepEqual(H.list.map((f) => f.kind), ['machine', 'drone', 'machine']);

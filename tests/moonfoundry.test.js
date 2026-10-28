@@ -119,7 +119,6 @@ test('the Moon Foundry: on the route since v1.40, after the Buried Machine, reac
   assert.ok(!SIDE.includes('moonfoundry') && ORDER.indexOf('moonfoundry') === ORDER.indexOf('buried') + 1, 'right after the Buried Machine');
   assert.equal(CONTENT.moonfoundry, MOONFOUNDRY_CONTENT);
   assert.ok(MOONFOUNDRY_CONTENT.story.manual, 'its page closes when the Casting-House is quiet (src/story/moonfoundry.js)');
-  assert.equal(MOONFOUNDRY_CONTENT.relics.spots.length, 5, 'five relics, as every route world');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
   const e = entries.find((x) => x.id === 'moonfoundry');
   assert.ok(e && !e.side, 'on the dotted line');

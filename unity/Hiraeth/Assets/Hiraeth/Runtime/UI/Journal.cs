@@ -42,7 +42,7 @@ namespace Hiraeth
         public void Update(float dt)
         {
             int n = Pad.NavDown();
-            // past the last quest the page scrolls on (the observatory, the relics); back up past the first it scrolls back
+            // past the last quest the page scrolls on (the observatory); back up past the first it scrolls back
             if (n > 0 && sel >= questIds.Count - 1) scroll = Mathf.Min(scroll + 90, maxScrollNow);
             else if (n < 0 && scroll > 0 && sel == 0) scroll = Mathf.Max(0, scroll - 90);
             else if (n != 0 && questIds.Count > 0) { sel = Mathf.Clamp(sel + n, 0, questIds.Count - 1); Sounds.Instance?.Play("tick"); }
@@ -229,24 +229,6 @@ namespace Hiraeth
                 if (frs.Count == 0) y += Line("Six ledges lead up the tower east of camp; rest on them on the way.", x, y, w, 11, faint) + 12;
                 foreach (var f in frs) y += Line($"•  <i>{f}</i>", x + 18, y, w - 18, 13, ink) + 3;
                 y += 14;
-            }
-            // ---- the relics found here (quest.js: the world's own tiles, a sketch of each find)
-            var rel = hud.game.relics;
-            if (rel && rel.Total > 0)
-            {
-                y += Line($"The Desert <color=#2b211f8c>{rel.Found}/{rel.Total}</color>", x, y, w, 15, ink, FontStyle.Bold, 0.06f) + 8;
-                float tx = x;
-                foreach (var (name, got, sketch) in rel.List)
-                {
-                    if (tx + 170 > W - 20) { tx = x; y += 120 + 30; }
-                    var img = Img(); Ui.Place(img.rectTransform, tx + 2, y + 2, 166, 116); img.texture = got ? sketch : null; img.color = got && sketch ? Color.white : new Color(0, 0, 0, 0);
-                    var frame = K(); Ui.PlaceC(frame.rectTransform, tx, y, 170, 120);
-                    frame.Path(new[] { new Vector2(-85, 60), new Vector2(85, 60), new Vector2(85, -60), new Vector2(-85, -60) }, 2, got ? ink : new Color(ink.r, ink.g, ink.b, 0.45f), true, got ? 0 : 6, got ? 0 : 4);
-                    if (!got) { var q = T("?", 28, new Color(ink.r, ink.g, ink.b, 0.45f)); q.alignment = TextAnchor.MiddleCenter; Ui.Place(q.rectTransform, tx, y, 170, 120); }
-                    Line(got ? name : "not found yet", tx, y + 124, 170, 11, got ? ink : faint);
-                    tx += 170 + 12;
-                }
-                y += 120 + 34;
             }
             // the header last, on its own band of paper: the page scrolls under it
             {

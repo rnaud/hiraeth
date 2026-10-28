@@ -1,6 +1,6 @@
 // Issue #264 (docs/plans/unity-finishable.md): what a player needs to finish the game in the engines. A world's story
 // done is kept (the journal's story page: the route opens on, home comes); aboard, the holo table opens the galactic map
-// (engine/starmap.js), where a world never visited is found by its signature and flown to; the relics are placed; coming home by ship plays
+// (engine/starmap.js), where a world never visited is found by its signature and flown to; the fragments of the singing light are placed; coming home by ship plays
 // the homecoming, its cargo panel answered and its credits said where there is no page. engine/game.js in a bare V8
 // context (the bundle the engines run).
 import test from 'node:test';
@@ -49,17 +49,20 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   let noticeClock = null, clockOffset = 0;
   const B = loadBundle(file, { now: () => noticeClock ?? performance.now() + clockOffset }).exports;
 
-  // the desert: its relics placed, its story page a real one; the main quest's end (story.complete) keeps it told
+  // the desert: its fragments of the singing light placed (no relics: they went, issue #732), its story page a real one;
+  // the main quest's end (story.complete) keeps it told
   const travelled = [], paged = [];
   const g = await hushed(() => B.createGame({ levelId: 'desert', backend, menus: menusStub(), onTravel: (to) => travelled.push(to), onPage: (o) => paged.push(o) }));
   // a place reached by a page load on the web (the night train's bell): the engine told where, to start again there
   g.story.quests.game.emit('travel:page', { href: '?level=overnighttrain&from=bazaar' });
   await new Promise((r) => setTimeout(r, 1000));
   assert.equal(JSON.stringify(paged), JSON.stringify([{ level: 'overnighttrain', from: 'bazaar' }]));
-  assert.ok(g.relics?.items?.length > 0, 'the relics placed');
-  const r = g.relics.items[0];
-  g.player.respawn(r.pos.clone()); run(g, 4);
-  assert.equal(g.journal.relicCount('desert'), 1, 'a relic walked into is kept');
+  assert.ok(!g.relics, 'no relics');
+  assert.ok(g.fragments?.list?.length > 0, 'the fragments placed');
+  const f0 = g.fragments.list.find((f) => !f.found);
+  g.story.quests.game.set('frag.met', true);   // (Anselm met already: the first find's meeting would hold the notices)
+  g.player.respawn(f0.pos.clone()); run(g, 4);
+  assert.ok(f0.found, 'a fragment walked into is kept');
   assert.ok(g.storyPage && !g.journal.storyDone('desert'));
   g.storyPage.complete();
   assert.ok(g.journal.storyDone('desert'), 'the desert told: done for the route');
@@ -69,10 +72,10 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   gs.emit('travel:refused', { to: 'arzach', missing: ['sword'], quest: 'temple.desert' });
   assert.ok(g.story.quests.isStarted('temple.desert'), 'the refusal started the Rose House\'s quest');
 
-  // every world's story told and every small thing kept: the end of the road's words, once (main.js's closing page)
+  // every world's story told: the end of the road's words, once (main.js's closing page; no relics asked for since #732)
   const J = g.journal.data;
-  const kept = JSON.stringify({ stories: J.stories, relics: J.relics });
-  for (const id of ORDER) { J.stories[id] ??= { title: id }; J.relics[id] = Object.fromEntries((CONTENT[id]?.relics?.names ?? []).map((n, i) => [i, { name: n }])); }
+  const kept = JSON.stringify({ stories: J.stories });
+  for (const id of ORDER) J.stories[id] ??= { title: id };
   // Caption timers use the host clock; advance it with frame time while reading this queue.
   // Otherwise a fast test spends many simulated seconds on a 3.5-second place caption.
   noticeClock = performance.now() + clockOffset;
@@ -80,8 +83,9 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   run(g, 20 * 40, {}, () => { noticeClock += 50; const t = g.screen().state.toast?.text; if (t && said.at(-1) !== t) said.push(String(t)); return /END OF THE ROAD/.test(t ?? ''); });
   clockOffset = noticeClock - performance.now(); noticeClock = null;
   assert.equal(new Set(said).size, said.length, 'no repeated notice delays essential progress');
-  assert.ok(said.some((t) => t.startsWith('Found:')), 'the item find remains visible');
-  assert.ok(said.findIndex((t) => t.startsWith('Found:')) < said.findIndex((t) => t.startsWith('THE END OF THE ROAD')), 'the earlier item find is read before completion');
+  const found = (t) => t.startsWith('A fragment of the singing light');
+  assert.ok(said.some(found), 'the fragment\'s find remains visible');
+  assert.ok(said.findIndex(found) < said.findIndex((t) => t.startsWith('THE END OF THE ROAD')), 'the earlier find is read before completion');
   assert.ok(J.completed, 'the road done, kept');
   assert.ok(said.some((t) => t.startsWith('THE END OF THE ROAD')), said.join(' | '));
   Object.assign(J, JSON.parse(kept));   // (back to the desert alone: the route's next worlds still to find)

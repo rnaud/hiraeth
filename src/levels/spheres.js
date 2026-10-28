@@ -124,16 +124,6 @@ export const SPHERES_CONTENT = {
     outro: 'Bell, voices, procession drum: three old sounds, brought together. The great sphere answered from the horizon.',
     label: 'the round plaza', goal: [LAYOUT.plaza.x, 'ground', LAYOUT.plaza.z], radius: 14, manual: true,
   },
-  relics: {
-    spots: [
-      [LAYOUT.hillTree.x + 3, LAYOUT.hillTree.z - 4],                     // canopy top, stepped onto from the hill terrace
-      [LAYOUT.hill.x + 4, LAYOUT.hill.z + 4],                             // stepped pyramid summit platform
-      [LAYOUT.pearl.x, LAYOUT.pearl.z],                                   // top of the half-sunk sphere
-      [LAYOUT.meadowPyr.x + 3, LAYOUT.meadowPyr.z - 2.8],                 // meadow pyramid summit
-      [LAYOUT.ruin.x, LAYOUT.ruin.z],                                     // white ruin block in the android wood
-    ],
-    names: ['Canopy seed', 'Pyramid key', 'Sphere pearl', 'White step stone', 'Android eye'],
-  },
   // the level's people (talk: src/story/spheres-data.js); Ume at the plaza is the story's
   npcs: [
     { at: [12, 14], radius: 3, ...PEOPLE.aube },

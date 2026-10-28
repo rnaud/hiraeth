@@ -7,7 +7,7 @@
 //   import { slots, slotStorage } from './save-slots.js';
 //   slots.active              // 1..SLOT_COUNT, read once per page from 'hiraeth.slot' (each world is its own page)
 //   slots.setActive(3)        // the title screen's choice, before the game's modules load
-//   slots.summary(2)          // { empty, level, world, worldsDone, relics, items, playtime, lastPlayed, … }
+//   slots.summary(2)          // { empty, level, world, worldsDone, items, playtime, lastPlayed, … }
 //   slots.latest()            // the slot played last (Continue), or null
 //   slots.remove(4)           // delete a save
 //   slots.touch(n, { addSeconds })   // playtime and "last played"
@@ -172,13 +172,12 @@ export class SlotStore {
     // (a merged or dismissed world's id: the world that took its place, src/levels/names.js worldFor)
     const level = empty ? null : worldFor(save?.level ?? flags['ship.level'] ?? 'desert', worldFor(flags['ship.level'] ?? 'desert'));
     const worldsDone = ORDER.filter((id) => flags[`world.${id}.done`] || journal.stories?.[id]).length;
-    const relics = Object.values(journal.relics ?? {}).reduce((s, r) => s + Object.keys(r ?? {}).length, 0);
     // items found (src/items.js: `item.<id>` = true; a quest's carried things are counts)
     const items = Object.entries(flags).filter(([k, v]) => v === true && /^item\.[^.]+$/.test(k)).length;
     return {
       n, empty, level, world: level ? TITLES[level] ?? level : null,
       prologue: !empty && !flags['prologue.done'], ended: !!flags['ending.done'],
-      worldsDone, worldsTotal: ORDER.length, relics, items,
+      worldsDone, worldsTotal: ORDER.length, items,
       playtime: meta.playtime ?? 0, lastPlayed: meta.lastPlayed ?? save?.t ?? null,
     };
   }
@@ -215,12 +214,12 @@ export function formatDate(ms, now = Date.now()) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-/** "Prologue", or "3 / 9 worlds · 12 relics · 4 items" */
+/** "Prologue", or "3 / 9 worlds · 4 items" (the relics' count went with them in v2.34, issue #732) */
 export function progressLine(s) {
   if (s.empty) return 'New game';
   if (s.prologue) return 'Prologue';
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
-  return [`${s.worldsDone} / ${s.worldsTotal} worlds`, plural(s.relics, 'relic'), plural(s.items, 'item')].join(' · ') + (s.ended ? ' · home' : '');
+  return [`${s.worldsDone} / ${s.worldsTotal} worlds`, plural(s.items, 'item')].join(' · ') + (s.ended ? ' · home' : '');
 }
 
 /**

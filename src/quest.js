@@ -5,13 +5,13 @@ import { GameMenu } from './game-menu.js';
 import { inputKind } from './prompt-keys.js';
 import { hintsFor } from './hint-level.js';
 
-// Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
+// Story and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. A first visit and
 //    arriving say the world's words as a toast (the closing moment is drawn
 //    into the sketchbook).
-//  - Relics: five per level, often on top of things you have to climb.
-//    Picking one up sketches the moment into your journal.
-//  - Journal: every relic and story page found, the errands and the observatory,
+//  - Relics, five small finds a world, went in v2.34 (issue #732): the fragments of the singing light
+//    (src/fragments.js) are what is found. An old save's `relics` stay in its journal's data, unread.
+//  - Journal: every story page told, the errands and the observatory,
 //    kept in localStorage (per save slot: src/save-slots.js); J, View / Select
 //    open it as the game menu (src/game-menu.js: Quests, Map, Items, Worlds, People; the Sketchbook's page went in v1.62).
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
@@ -23,7 +23,6 @@ export class Journal {
   constructor(levels) {
     this.levels = levels;
     try { this.data = JSON.parse(slotStorage.getItem(STORE)) ?? {}; } catch { this.data = {}; }
-    this.data.relics ??= {};
     this.data.stories ??= {};
     this.data.seen ??= {};
     this.el = document.getElementById('journal');
@@ -41,9 +40,6 @@ export class Journal {
     try { slotStorage.setItem(STORE, JSON.stringify(this.data)); } catch (e) { console.warn('journal not saved', e); }
   }
 
-  hasRelic(level, i) { return !!this.data.relics[level]?.[i]; }
-  addRelic(level, i, entry) { (this.data.relics[level] ??= {})[i] = entry; this.save(); }
-  relicCount(level) { return Object.keys(this.data.relics[level] ?? {}).length; }
   storyDone(level) { return !!this.data.stories[level]; }
   addStory(level, entry) { this.data.stories[level] = entry; this.save(); }
   errand(id) { return this.data.errands?.[id]; }
@@ -78,76 +74,6 @@ function toast(text) {
   t.classList.remove('show');
   void t.offsetWidth;
   t.classList.add('show');
-}
-
-export class Relics {
-  /**
-   * @param spots [x, z] | { at: [x, y, z], snap? } (see levels/content.js)
-   * @param names one name per spot
-   */
-  constructor(scene, physics, { levelId, spots, names, journal, sound, capture, lights, say = toast }) {
-    this.items = [];
-    this.say = say;   // (the engines' queued toast: engine/game.js; the page's #toast by default)
-    this.levelId = levelId;
-    this.journal = journal;
-    this.sound = sound;
-    this.capture = capture;
-    this.lights = lights;
-    this.names = names;
-    const shardMat = makeMaterial({ color: '#f2c54b', flat: true, glow: 0.9 });
-    const ringMat = makeMaterial({ color: '#fff6dc', glow: 1 });
-    spots.forEach((s, i) => {
-      if (journal.hasRelic(levelId, i)) return;
-      let pos;
-      if (Array.isArray(s)) {
-        const y = physics.groundAt(s[0], 1e4, s[1], 2e4);
-        pos = new THREE.Vector3(s[0], (Number.isFinite(y) ? y : 0) + 1.1, s[1]);
-      } else {
-        pos = new THREE.Vector3(...s.at);
-        if (s.snap) {
-          const y = physics.groundAt(pos.x, pos.y + 3, pos.z, 6);
-          if (Number.isFinite(y)) pos.y = y + 1.1;
-        }
-      }
-      const grp = new THREE.Group();
-      grp.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0).scale(0.8, 1.4, 0.8), shardMat));
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.04, 6, 24), ringMat);
-      grp.add(ring);
-      grp.position.copy(pos);
-      grp.userData.noCollide = true;
-      scene.add(grp);
-      const light = new THREE.Vector4(pos.x, pos.y, pos.z, 7);
-      lights.push(light);
-      this.items.push({ i, grp, ring, pos, light, base: pos.y });
-    });
-    this.total = spots.length;
-  }
-
-  update(dt, t, player) {
-    for (const it of this.items) {
-      if (it.done) continue;
-      it.grp.position.y = it.base + Math.sin(t * 1.6 + it.i) * 0.18;
-      it.grp.rotation.y += dt * 0.9;
-      it.ring.rotation.x = Math.PI / 2 + Math.sin(t * 0.7 + it.i) * 0.5;
-      if (player.pos.distanceTo(it.grp.position) < 2.3) this.collect(it, player);
-    }
-  }
-
-  collect(it, player) {
-    it.done = true;
-    const name = this.names[it.i];
-    // sketch the moment: a camera a few metres off, looking at the find
-    const eye = it.grp.position.clone().add(new THREE.Vector3(3.2, 1.6, 3.2).applyAxisAngle(player.frame.up, player.heading + Math.PI * 0.75));
-    const img = this.capture(eye, it.grp.position, 240, 170);
-    it.grp.removeFromParent();
-    const k = this.lights.indexOf(it.light);
-    if (k >= 0) this.lights.splice(k, 1);
-    this.journal.addRelic(this.levelId, it.i, { name, img, t: Date.now() });
-    this.sound.chime();
-    this.sound.pickup?.({ pos: it.grp.position });
-    this.sound.musicCue?.('moment', { delay: 1.5 });   // (a find: the recorded theme comes back, src/music-moments.js)
-    this.say(`Found: ${name} · ${this.journal.relicCount(this.levelId)}/${this.total}`);
-  }
 }
 
 // ---------------------------------------------------------------------------

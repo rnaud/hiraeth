@@ -1,6 +1,6 @@
 // What fills the game menu's panels (src/game-menu.js), read off the save each time a panel is drawn.
 // The gear and what you carry (Items), the father's charge and the quests (Quests), how far each world you know has
-// come, its relics, boxes and fragments too, and the way there (Worlds), the people met (People). (The Sketchbook's
+// come, its boxes and fragments too, and the way there (Worlds), the people met (People). (The Sketchbook's
 // page, the sightings and the sketches, went in v1.62, issue #213: the journal still keeps them, src/quest.js.)
 //
 //   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles, game, travel })
@@ -77,9 +77,9 @@ export function worldsData({ data = {}, levels = [], order = [], known = () => t
   const list = ids.map((id, i) => {
     const L = byId[id], b = boxes[id];
     return { id, n: i + 1, title: L.title, thumb: `thumbs/${id}.jpg`, current: id === current, told: !!(data.stories?.[id] || done(id)),
-      relics: [Object.keys(data.relics?.[id] ?? {}).length, (L.relicNames ?? []).length], boxes: b?.total ? [b.found, b.total] : null, blurb: L.blurb ?? '',
-      // (its full view, issue #213: the relics by name once found, a ? for the rest; the people met there)
-      relicList: (L.relicNames ?? []).map((name, k) => ({ name, found: !!data.relics?.[id]?.[k] })), people: people(id) ?? [],
+      boxes: b?.total ? [b.found, b.total] : null, blurb: L.blurb ?? '',
+      // (its full view, issue #213: the people met there; the relics by name went in v2.34, issue #732)
+      people: people(id) ?? [],
       travel: id !== current && !!travel(id),
       // (the fragments of the singing light found here, once the first is found: src/fragments.js. Never how many there are
       // (issue #519); `quiet`: every one here found, said only with Anselm's chart (issue #520))

@@ -60,7 +60,7 @@ test('the real director: the beat wakes it in the parked ship\'s cradle, he walk
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } }, prologue: true }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] }, prologue: true }));
   ship.site.crash ??= { travel: 0, length: 60 };
   ship.player = new Player(physics);
   ship.sound = {};

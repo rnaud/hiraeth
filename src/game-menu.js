@@ -36,8 +36,7 @@
 //
 // The Sketchbook panel (the Sightings, the story pages, the relics' and errands' sketches) went in v1.62 (issue #213:
 // "the sketchbook is confusing about its purpose, I don't know why it's there at all"). The journal still keeps what
-// it showed (src/quest.js: a save loses nothing); the Worlds' full view names each world's relics, the Quests the
-// errands.
+// it showed (src/quest.js: a save loses nothing); the Quests show the errands. (The Worlds' relics went in v2.34, #732.)
 //
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
 // the panels are plain state (MenuState, moveCursor) so tests can drive them without a page.
@@ -259,12 +258,10 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
   return { html, rows, start: tracked >= 0 ? { r: tracked, c: 0 } : null };
 }
 
-/** A world's facts, in a line each: the story, the relics, the boxes, the fragments (once the first is found), the people. */
+/** A world's facts, in a line each: the story, the boxes, the fragments (once the first is found), the people. */
 export function worldFacts(w) {
   const facts = [];
   facts.push({ on: !!w.told, text: t(w.told ? 'gm.told' : 'gm.notTold') });
-  const [rn, rm] = w.relics ?? [0, 0];
-  if (rm) facts.push({ on: rn >= rm, text: t('gm.w.relics', { n: rn, m: rm }), list: (w.relicList ?? []).map((x) => (x.found ? x.name : '?')) });
   if (w.boxes) facts.push({ on: w.boxes[0] >= w.boxes[1], text: t('gm.w.boxes', { n: w.boxes[0], m: w.boxes[1] }) });
   // (found here, never of how many, issue #519; ticked, "quiet", only with Anselm's chart, #520: `quiet`)
   if (w.fragments) facts.push({ on: !!w.fragments.quiet, text: w.fragments.quiet ? t('gm.fragQuiet') : t('gm.fragHereLong', { n: w.fragments.found }) });
@@ -274,7 +271,7 @@ export function worldFacts(w) {
 const factsHtml = (facts) => `<ul class="ffacts">${facts.map((f) => `<li class="${f.on ? 'on' : ''}"><i>${f.on ? '✓' : '…'}</i><span>${esc(f.text)}${f.list?.length ? `<small>${f.list.map(esc).join(' · ')}</small>` : ''}</span></li>`).join('')}</ul>`;
 
 /**
- * Worlds: [{ id, title, thumb, current, told, relics: [n, of], boxes: [n, of] | null, blurb, n, relicList, people, travel }]
+ * Worlds: [{ id, title, thumb, current, told, boxes: [n, of] | null, blurb, n, people, travel }]
  * in the route's order: the worlds you know of, one a row (↑ ↓ go between them), their picture and what is done there.
  * A / × on one: its full view, what you have found there and what is still to find; in it A / × "Travel here" on a
  * world you have been to that you are not in (`travel`: v1.62, issue #213), to its landing.
@@ -290,7 +287,7 @@ export function worldsPanel(list = []) {
   const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(i, 0)}>
       <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</span>
       <span class="wtext"><span class="wname">${esc(w.title)}${w.travel ? `<em class="wtravel">${t('gm.travel')}</em>` : ''}</span>
-      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag">${w.fragments.quiet ? t('gm.fragQuiet') : t('gm.fragHere', { n: w.fragments.found })}</span>` : ''}</span>
+      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag">${w.fragments.quiet ? t('gm.fragQuiet') : t('gm.fragHere', { n: w.fragments.found })}</span>` : ''}</span>
       <span class="wblurb">${esc(w.blurb ?? '')}</span></span></button>`;
   // (the fragments of the singing light, all told, once the first is found: worldsData's `fragmentsAll`)
   const all = list.fragmentsAll?.found ? `<p class="gm-fragments">${t('gm.fragments', { n: list.fragmentsAll.found })}</p>` : '';

@@ -124,7 +124,7 @@ function nearWay(pts, x, z) {
   return best;
 }
 
-// ------------------------------------------------------------------ content: the foundry's story page, relics, its folk and its visitors
+// ------------------------------------------------------------------ content: the foundry's story page, its folk and its visitors
 // (on the route since v1.40, after the Buried Machine: its story src/story/moonfoundry.js, its people and errands
 // src/story/moonfoundry-people.js; the Casting-House and Petra at its door src/temples/moonfoundry.js)
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
@@ -138,10 +138,6 @@ export const MOONFOUNDRY_CONTENT = {
     label: 'the Casting-House', goal: [CASTING_HOUSE.x, 'ground', CASTING_HOUSE.z], radius: 18, manual: true,
   },
   // (high and out of the way: the pillar's lookout, the courtyard in the broken moon, the bowl's deck, the gantry, the quarter's roofs)
-  relics: {
-    spots: [{ at: [PMOON.x + 2, PMOON.h * 0.78 + 3, PMOON.z + 3], snap: true }, { at: [COURT.x + 6, COURT_Y + 3, COURT.z + 4], snap: true }, { at: [BOWL.x - 4, G + 3, BOWL.z], snap: true }, { at: [STAIR.x, G + 3, -64], snap: true }, [QUARTER.x, QUARTER.z]],
-    names: ['Moon shaving', 'Ledger page', 'Cooling pin', 'Bent rivet', 'Polishing rag'],
-  },
   npcs: [
     // Dun of the Buried Machine, at the last furnace; Wen, counting moons from the courtyard; Emrys of the Garden of Spheres on the bowl
     { ...BURIED_PEOPLE.dun, at: [FURNACE.x - 9, FURNACE.z + 6], radius: 1.5, world: 'buried', lang: 'buried',

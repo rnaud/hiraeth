@@ -1,8 +1,6 @@
-// Per-level content: the story thread, relics and people (worlds are reached by the ship).
-// Coordinates are world space.
-// Relic spots: [x, z] drops onto the highest surface there (often a rooftop
-// or a mesa you have to climb); { at: [x, y, z], snap: true } lands on the
-// surface just below y; { at: [x, y, z] } floats exactly there.
+// Per-level content: the story thread and people (worlds are reached by the ship).
+// Coordinates are world space. (The relics, five small finds a world, went in v2.34, issue #732: the fragments of the
+// singing light, src/fragments.js, are what is found.)
 // Story goal y: a number, 'ground' (terrain height) or 'top' (highest surface).
 
 // a person's own colours: the cloak (and any given here); the tunic, trousers, skin and hat
@@ -71,25 +69,20 @@ export const CONTENT = {
       outro: "Your father’s voice filled the market, calling for someone named Ilen. The message came from home, thirty years ago.",
       label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5, manual: true,
     },
-    relics: {
-      spots: [{at:[18,1.1,48]}, {at:[-29,6.2,-35]}, {at:[0,26.1,-90]}, {at:[12,45.1,-232]}, {at:[0,65.1,-330]}],
-      names: ['Lantern seed', 'Market stamp', 'Skybridge ticket', 'Cracked valve', 'Pigeon’s message ring'],
-    },
     // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
       {at:[12,105],radius:2,palette:pal('#dca273'),lines:["~happy~ Welcome! The broadcast tower is straight ahead.","~neutral~ Take the stalls’ stairs up the towers, your jets, or the parked cab."],...BAZAAR_STREET.doss},
-      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:["~shout~ Portable sunshine! Comes with a handle!","~whisper~ A lantern seed’s lying across the street. Go have a look."],...BAZAAR_STREET.oyo},
+      {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:["~shout~ Portable sunshine! Comes with a handle!","~whisper~ Grown from a seed, every one. Don’t ask me what kind."],...BAZAAR_STREET.oyo},
       {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:["~neutral~ The old transmitter is on the cream balcony.","~neutral~ A taxi will get you above the bridges."],...BAZAAR_STREET.teb},
       // (Wynn, the last listener, under the dishes halfway up the listeners' lane: src/market-ways.js)
       {at:[-81.4,-150],radius:0.5,palette:pal('#b9a37a'),lines:["~whisper~ Shh. Listening.","~neutral~ The dishes are aimed at the tower. Don’t knock them."],...BAZAAR_STREET.wynn},
     ],
   },
-  // src/levels/lab.js: no story, no relics; a gallery of giant villagers to study faces by (every face variant), and the
+  // src/levels/lab.js: no story; a gallery of giant villagers to study faces by (every face variant), and the
   // people of every biome room in their own world's clothes
   lab: {
     weather: [],
     story: { title: 'THE LAB', intro: 'Surfaces in a row, faces as big as houses, and a door to every world.', outro: 'Done looking.', label: 'the row', goal: [0, 'ground', -24], radius: 6, manual: true },
-    relics: { spots: [], names: [] },
     // (a getter: the rooms' people are worked out only when the Lab, or a test, asks for them)
     get npcs() {
       return (labNpcs ??= [...LAB_FACES.map((g) => ({
@@ -99,19 +92,17 @@ export const CONTENT = {
       })), ...labPeople()]);
     },
   },
-  // src/levels/references.js: no story, no relics; the reference panels' small figures, standing where the panels have them
+  // src/levels/references.js: no story; the reference panels' small figures, standing where the panels have them
   // (a getter: the people of the world the level built, as only that world is loaded)
   references: {
     weather: [],
     story: { title: 'THE REFERENCES', intro: 'The pages this world is drawn after, rebuilt in its own ink. Hold them side by side.', outro: 'Done comparing.', label: 'the first panel', goal: [0, 'ground', 0], radius: 6, manual: true },
-    relics: { spots: [], names: [] },
     get npcs() { return referencePeople(); },
   },
-  // src/levels/waterfall.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people by the water
+  // src/levels/waterfall.js: off the route (names.js SIDE), no quest; a few of the city's people by the water
   waterfall: {
     weather: [],
     story: { title: 'BEHIND THE WATER', intro: 'A city in a cavern behind a curtain of falling water. Nobody here is waiting for you; have a look round.', outro: 'You have seen the city behind the water.', label: 'the balconies', goal: [-126, 'ground', 34], radius: 6, manual: true },
-    relics: { spots: [], names: [] },
     npcs: [
       // (Aldo: the detour's trace, src/story/sightings-detours.js; he was 'pell' until #251, the desert's Pell's id)
       { id: 'aldo', name: 'Aldo', title: 'who listens at the balcony', color: '#4f7f86', kind: 'm', at: [-123, 34.5], y: 0, radius: 1, facing: 0, palette: pal('#4f7f86', { cloth: '#efe0c4' }),
@@ -139,7 +130,6 @@ export const CONTENT = {
       outro: 'That is the ring. They will keep coming.',
       label: 'the ring', goal: [0, 'ground', 6], radius: 8,   // (at the start: told at once, no beacon over the ring)
     },
-    relics: { spots: [], names: [] },
     npcs: [],
   },
   gadgetyard: {
@@ -150,7 +140,6 @@ export const CONTENT = {
       outro: 'That is the yard. Try them all.',
       label: 'the yard', goal: [0, 'ground', 3], radius: 8,   // (at the start: told at once)
     },
-    relics: { spots: [], names: [] },
     npcs: [],
   },
   shadows: {
@@ -161,7 +150,6 @@ export const CONTENT = {
       outro: 'That is the yard. Watch the shadows as you walk.',
       label: 'the yard', goal: [0, 'ground', 4], radius: 8,   // (at the start: told at once)
     },
-    relics: { spots: [], names: [] },
     npcs: [],
   },
   arcade: {
@@ -172,7 +160,6 @@ export const CONTENT = {
       outro: 'That is the arcade. Play them all.',
       label: 'the plaza', goal: [0, 'ground', 0], radius: 30,   // (anywhere in the plaza: told at once, also back at a sign)
     },
-    relics: { spots: [], names: [] },
     npcs: [],
   },
   desert: {
@@ -189,10 +176,6 @@ export const CONTENT = {
       intro: "Your ship needs fuel. Past the dunes, Qanat’s great tree stands dark over the walls.",
       outro: "You cleared the water channel, brought back the spark-stone, and relit Qanat’s tree. Its glowing water has powered your ship.",
       label: 'the great dark tree', goal: [230, 'ground', 400], radius: 20, manual: true,
-    },
-    relics: {
-      spots: [[-260, -330], [150, -210], [-150, -112], [150, 60], [-262, 12]],
-      names: ['Sun disc', 'Bone flute', 'Glass bead', 'Mask shard', 'Salt-polished coin'],
     },
     // the people near the start (indices matter: errands and the observatory use them);
     // the camps' people are in src/story/desert-data.js
@@ -270,12 +253,6 @@ export const CONTENT = {
       outro: "The Lodestar shines again. For a moment, the entire city shared a view. Nima asked you to remember: look up once a day.",
       label: 'the Lodestar', goal: [0, 450, 0], radius: 34, manual: true,
     },
-    relics: {
-      // (the third, the Smog lantern, over the awning of Perrine's halfway tea stall where the lamplighters' drops land on the middle levels
-      //  (src/shaft-ways.js; it moved there from the cab stop with the stall, v1.15): src/story/halfway.js halfwayFrame, AWNING_TOP; tests/story-incal.test.js keeps it there)
-      spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [-64.77, -20.28, 206.32] }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
-      names: ['Taxi token', 'Palace key', 'Smog lantern', 'Smog-cabbage seed', 'Prayer bead'],
-    },
     // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
     // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
@@ -296,10 +273,6 @@ export const CONTENT = {
       intro: 'Over the haze a great bird waits for a call nobody has played since her rider left the lone tower.',
       outro: "The rider left a little flute and a map. When you played her call, the bird came down. A new promise, freely given.",
       label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30, manual: true,   // the spike tip is ~40 m above the window room
-    },
-    relics: {
-      spots: [[170, -260], [-150, -210], [300, 100], [-250, -80], [60, 300]],
-      names: ['Bird feather', 'Bone needle', 'Tower brick', 'Pale stone eye', 'Wind charm'],
     },
     npcs: [
       // (Tam, who copies you: a boy of seven, src/story/arzach-data.js LOCALS)
@@ -324,7 +297,7 @@ for (const [id, port] of Object.entries(PORTS)) {
 
 // ---------------------------------------------------------------------------
 // The merged worlds (src/levels/names.js PARTS): a world's content is its parts', each moved to where the
-// part lies in it (PART_OFFSET): the first part's story page (the world's one goal), every part's relics and
+// part lies in it (PART_OFFSET): the first part's story page (the world's one goal), every part's
 // people in turn (a part's npcs come after the parts before it: NPC_BASE, which the errands count on). The
 // parts' own (CONTENT.arzach2, CONTENT.perdide2) stay, for their tests.
 
@@ -332,16 +305,14 @@ for (const [id, port] of Object.entries(PORTS)) {
 export function shiftContent(part, c) {
   const o = offsetOf(part);
   if ((!o[0] && !o[1] && !o[2]) || c.coords === 'world') return c;
-  const spot = (s) => (Array.isArray(s) ? shiftAt(part, s) : { ...s, at: shiftAt(part, s.at) });
   return {
     ...c,
     story: c.story && { ...c.story, ...(c.story.goal ? { goal: shiftAt(part, c.story.goal) } : {}) },
-    relics: c.relics && { ...c.relics, spots: c.relics.spots.map(spot) },
     npcs: (c.npcs ?? []).map((n) => ({ ...n, ...(n.at ? { at: shiftAt(part, n.at) } : {}), ...(typeof n.y === 'number' ? { y: n.y + o[1] } : {}) })),
     ...(c.traces ? { traces: c.traces.map((t) => ({ ...t, at: shiftAt(part, t.at) })) } : {}),
   };
 }
-/** A merged world's content: its first part's story, every part's weather, relics and people (their parts' own coordinates moved). */
+/** A merged world's content: its first part's story, every part's weather and people (their parts' own coordinates moved). */
 export function mergeContent(parts, table) {
   // (each part's people dressed as their part's people, and speaking its tongue: `world`, src/npc.js; `lang`,
   // src/story/dialogue.js; the first part's are the world's own)
@@ -351,17 +322,14 @@ export function mergeContent(parts, table) {
     ...first,
     weather: [...new Set(all.flatMap((c) => c.weather ?? []))],
     story: first.story,
-    relics: { spots: all.flatMap((c) => c.relics?.spots ?? []), names: all.flatMap((c) => c.relics?.names ?? []) },
     npcs: all.flatMap((c) => c.npcs ?? []),
   };
 }
 /** Where each part's people start in its world's list: { part: [world, index of its first] }. */
 export const NPC_BASE = {};
-/** Where each part's relics start in its world's list (a journal kept by part moves over: src/save-migrate.js migrateJournal). */
-export const RELIC_BASE = {};
 for (const [world, parts] of Object.entries(PARTS)) {
-  let n = 0, r = 0;
-  for (const p of parts) { NPC_BASE[p] = [world, n]; RELIC_BASE[p] = [world, r]; n += CONTENT[p].npcs?.length ?? 0; r += CONTENT[p].relics?.spots?.length ?? 0; }
+  let n = 0;
+  for (const p of parts) { NPC_BASE[p] = [world, n]; n += CONTENT[p].npcs?.length ?? 0; }
   CONTENT[world] = mergeContent(parts, { ...CONTENT });
 }
 /** An errand's person, [part, index in the part's people], where they are now: [world, index in its list]. */

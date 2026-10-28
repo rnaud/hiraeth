@@ -100,7 +100,6 @@ export const TRAIN_CONTENT = {
     outro: 'From the balcony at the nose the plain runs at you out of the dark, the moons ahead, the rails humming under your feet. Behind, the windows go back and back.',
     label: 'the balcony at the nose', goal: [NOSE_X + 3, FLOOR, 0], radius: 4, verticalRadius: 3, manual: true,
   },
-  relics: { spots: [], names: [] },
   // three people from elsewhere, riding the night through, and the train's own folk
   npcs: [
     { ...LISTENER_PEOPLE.saba, at: [car('dining').xc + 3.3, -0.95], y: FLOOR, radius: 1.6, world: 'perdide', lang: 'perdide',
