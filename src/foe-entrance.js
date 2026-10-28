@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 
 // Foes come out of a cloud of darkness (issue #664, docs/systems/foes.md "Entrances"): a foe called in (the Arena's
-// waves and practice, a pack in the wilds, a relic's guards) arrives inside a swirl of ink-outlined dark blobs that
+// waves and practice, a pack in the wilds) arrives inside a swirl of ink-outlined dark blobs that
 // gather round its spot, the body grows up out of them, and the cloud thins away outward. Until it has thinned
 // (ENTRANCE.hold) its mind waits (Foe.update) and it can't be locked or cut; its first wind-up needs its usual cool
 // after that, so the earliest telegraph starts once the cloud is gone (ENTRANCE.clear ≤ hold + the foe's first cool).

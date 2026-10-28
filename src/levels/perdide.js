@@ -234,10 +234,6 @@ export const PERDIDE_CONTENT = {
     outro: 'The crystal sang the song of the light that passed your ship. A splinter of it hums with your tank.',
     label: 'the Great Crystal', goal: [GREAT.x, 'ground', GREAT.z], radius: 30, manual: true,
   },
-  relics: {
-    spots: [{ at: [CAVE.x, 3.6, CAVE.z], snap: true }, [-13, -25], [40, -70], [BED.x, BED.z], [ISLE.x + 4, ISLE.z - 4]],
-    names: ['Cave lantern', 'Egg shell', 'Grove shard', 'Plant tooth', 'Skiff charm'],
-  },
   // Wendel, Sedge and Ivo, with their conversations (the errands count on this order)
   npcs: LANDING,
 };

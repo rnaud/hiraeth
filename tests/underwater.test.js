@@ -114,12 +114,11 @@ const level = quiet(() => createUnderwater(scene));
 const physics = new Physics(scene, level.ground);
 const waters = new Waters(scene, { physics, drops: false });
 
-test('the world is on the route since v1.40, fifth, after Viridel: a page, five relics', () => {
+test('the world is on the route since v1.40, fifth, after Viridel: a page', () => {
   const meta = LEVELS.find((l) => l.id === 'underwater');
   assert.ok(meta && !meta.dev && !meta.hidden);
   assert.equal(meta.title, TITLES.underwater);
   assert.ok(!SIDE.includes('underwater') && ORDER.indexOf('underwater') === ORDER.indexOf('edena') + 1, 'after Viridel');
-  assert.equal(CONTENT.underwater.relics.names.length, 5);
   assert.equal(CONTENT.underwater.story.manual, true, 'its page closes when the Whale-House is calmed (src/story/underwater.js)');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: false, side: SIDE });
   const e = entries.find((x) => x.id === 'underwater');

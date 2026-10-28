@@ -33,7 +33,7 @@ export const KINDS = [
   ['sight', 'Sights', 'the level design\'s things to stop for, its beacons and leading lines'],
   ['run', 'Runs & trials', 'the trial, the makers\' runs and court'],
   ['place', 'Places', 'doors into rooms, caves and halls, and named places'],
-  ['find', 'Finds', 'the makers\' boxes and the relics'],
+  ['find', 'Finds', 'the makers\' boxes'],
 ];
 
 /** A point as [x, y, z] (y null: on the ground there), from a Vector3, an array ([x, z] too), { x, z }, { at } or { pos }. */
@@ -59,10 +59,10 @@ export const words = (id) => String(id ?? '').replace(/([a-z])([A-Z0-9])/g, '$1 
  * [{ kind, label, hint, pos: [x, y|null, z], heading?, room?, exact? }]. `room`: in a room off the map or the
  * temple; `exact`: a spot made for standing on (an arrival, a mark), landed on as it is.
  * `key`: what keyPlaces picks it for (ship, start, temple, fight, goal, beacon, sight).
- * @param w { levelId, level, quests, npcs, boxes, relics, ship, content, games }  (games: src/minigames GAMES, their signs)
+ * @param w { levelId, level, quests, npcs, boxes, ship, content, games }  (games: src/minigames GAMES, their signs)
  */
 export function gatherPoints(w) {
-  const { levelId, level = {}, quests = null, npcs = [], boxes = null, relics = null, ship = null, content = null, games = [] } = w;
+  const { levelId, level = {}, quests = null, npcs = [], boxes = null, ship = null, content = null, games = [] } = w;
   const out = [];
   const temples = (level.temples?.length ? level.temples : [level.temple]).filter(Boolean);
   const inTemple = (v) => temples.some((t) => { try { return !!t.inside?.(v); } catch { return false; } });
@@ -156,9 +156,8 @@ export function gatherPoints(w) {
     for (const [k, s] of Object.entries(STORY)) if (s.y === undefined) put('place', `the ${words(k)}`, s, { hint: 'the desert\'s story' });
     for (const [k, s] of Object.entries(SITES)) put('place', `the ${words(k)}`, s, { hint: 'a landmark' });
   }
-  // the finds: the makers' boxes and the relics left
+  // the finds: the makers' boxes
   for (const b of boxes?.list ?? []) put('find', `box: ${b.item ?? b.id}`, b.pos ?? b.at, { hint: b.opened ? 'opened' : b.hint ?? 'a makers\' box', q: b.id });
-  for (const r of relics?.items ?? []) if (!r.done) put('find', `relic: ${relics.names?.[r.i] ?? r.i + 1}`, r.pos, { hint: 'a relic' });
   return out;
 }
 

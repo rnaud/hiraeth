@@ -231,7 +231,6 @@ export class ReactiveWorld {
     const goal=content.story.goal;
     if(typeof goal[1]==='number')seeds.push({pos:new THREE.Vector3(...goal),up:level.gravityAt?.(new THREE.Vector3(...goal))??UP});
     else if(Number.isFinite(level.ground.heightAt(goal[0],goal[2])))seeds.push({pos:new THREE.Vector3(goal[0],level.ground.heightAt(goal[0],goal[2]),goal[2]),up:UP});
-    for(const s of content.relics.spots){const a=Array.isArray(s)?s:s.at;const x=a[0],z=a.length===2?a[1]:a[2];const y=a.length===2?level.ground.heightAt(x,z):a[1];if(Number.isFinite(y))seeds.push({pos:new THREE.Vector3(x,y,z),up:level.gravityAt?.(new THREE.Vector3(x,y,z))??UP});}
     if(level.id==='bazaar'){
       seeds.length=0;
       for(let i=0;i<8;i++)seeds.push({pos:new THREE.Vector3(i%2?23:-23,0,95-i*54),up:UP});

@@ -104,7 +104,7 @@ function flatAt(id) {
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: new THREE.Vector3(v.ship[0], 0, v.ship[2] + 80), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: v.ship[0], z: v.ship[2], heading: 0 } };
-  const ship = new Ship({ scene, physics, level, levelId: id, content: { npcs: [], relics: { spots: [] } } });
+  const ship = new Ship({ scene, physics, level, levelId: id, content: { npcs: [] } });
   ship.player = new Player(physics);
   ship.rig = { yaw: 0, pitch: 0.2, target: new THREE.Vector3(), indoor: false };
   ship.camera = new THREE.PerspectiveCamera();

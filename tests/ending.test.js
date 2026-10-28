@@ -75,7 +75,7 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: new THREE.Vector3(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'desert', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'desert', content: { npcs: [] } }));
   const done = new Set(ORDER.slice(0, 5));
   ship.attach({ order: ORDER, levels: LEVELS, journal: { storyDone: (id) => done.has(id), seen: () => false }, titles });
   assert.ok(!mapEntries({ ...ship.map.o }).some((e) => e.home), 'five worlds: no home yet');

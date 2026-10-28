@@ -101,7 +101,7 @@ export async function buildWorld(levelId = 'desert') {
   const beforeStory = new Set(scene.children);
   const toasts = [];   // (what the story says on the screen: the exporter reads them back when it tries a thing)
   const flagsBefore = { ...game.data.flags };
-  const journal = { sections: [], el: { addEventListener() {} }, seen: () => false, storyDone: () => false, markSeen() {}, relicCount: () => 0, render() {} };
+  const journal = { sections: [], el: { addEventListener() {} }, seen: () => false, storyDone: () => false, markSeen() {}, render() {} };
   const story = { complete() {}, start() {}, done: false, waitFor: null };
   const rt = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound,
     journal, story, capture: null, lib, humans, toast: (t) => toasts.push(t), tool: null, isNight: () => false, ship, drone: () => null }));

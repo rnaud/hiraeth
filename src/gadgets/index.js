@@ -37,7 +37,7 @@ import { t as tr } from '../i18n.js';
 //   whistle Y / △ (V on the keyboard, boxes/effects.js): the bell-note whistle and the echo shell (`ring`);
 //          touch ◆ with nothing in hand too
 //
-//   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice, post, relics, boxes })
+//   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice, post, boxes })
 //   gadgets.control(dt, ctl, paused)   before the traveller moves (a reel sets his velocity)
 //   gadgets.update(dt, paused)         after the fluid tool (the aim's camera and pose are set last)
 //   gadgets.equip(id | null) · gadgets.cycle(±1) · gadgets.equipped · gadgets.owned() · gadgets.instrument()
@@ -110,8 +110,8 @@ const _v = new THREE.Vector3();
 const smooth = (k) => k * k * (3 - 2 * k);
 
 export class Gadgets {
-  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, wind = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null, post = null, boxes = null, ring = null }) {
-    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, wind, items, game, icon, drawIcon, relics, flammables, post, boxes, ring });   // (ring: the bell-note whistle, src/boxes/effects.js)
+  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, wind = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, flammables = null, post = null, boxes = null, ring = null }) {
+    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, wind, items, game, icon, drawIcon, flammables, post, boxes, ring });   // (ring: the bell-note whistle, src/boxes/effects.js)
     this.fx = new THREE.Group(); this.fx.name = 'Gadgets'; this.fx.userData.noCollide = true;
     scene?.add(this.fx);
     level?.noShadow?.push?.(this.fx);
@@ -125,7 +125,7 @@ export class Gadgets {
     this.fx.add(this.debrisMesh);
     const said = new Map();
     this.ctx = {
-      scene, physics, player, camera, rig, sound, tool, level, foes, wind, game, items, relics, flammables,
+      scene, physics, player, camera, rig, sound, tool, level, foes, wind, game, items, flammables,
       post, boxes,   // (the composite's uniforms: the seeing lens draws in it; the world's boxes it marks)
       world: this.world, fx: this.fx, hud: this.hud, bursts: this.bursts, sfx,
       // a short word on the screen (src/main.js showToast), at most every few seconds for the same key; unless hints

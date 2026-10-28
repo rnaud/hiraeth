@@ -405,7 +405,7 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
     // (a start the ship covers moves to its ramp's foot, Ship.clearSpawn: put back after, the world as it was found for
     // the tests after this one; the fragments' walker starts from the level's own spawn)
     const spawnWas = { spawn: level.spawn?.clone(), spawnHeading: level.spawnHeading, camYaw: level.camYaw, coveredSpawn: level.coveredSpawn };
-    const ship = quiet(() => new Ship({ scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [], relics: { spots: [] } } }));
+    const ship = quiet(() => new Ship({ scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [] } }));
     try {
       const m = ship.parked, crash = ship.crashed;
       // the world without the ship: its own colliders out while we look

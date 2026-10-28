@@ -8,8 +8,8 @@ namespace Hiraeth.Tests
 {
     /// <summary>
     /// The desert's places beyond the main quest, as the export carries them: the observatory and its
-    /// lenses (observatory.js), the drum's rig and the mask's eyes (desert-errands.js), the relics
-    /// (content.js), the people near the start; and the quests they run on.
+    /// lenses (observatory.js), the drum's rig and the mask's eyes (desert-errands.js), the people
+    /// near the start (content.js; the relics went in v2.34, issue #732); and the quests they run on.
     /// </summary>
     public class PlacesTests
     {
@@ -58,11 +58,9 @@ namespace Hiraeth.Tests
         }
 
         [Test]
-        public void TheRelicsAndThePeopleNearTheStartAreThere()
+        public void ThePeopleNearTheStartAreThereAndNoRelics()
         {
-            var r = world.O("places").L("relics");
-            Assert.AreEqual(5, r.Count);
-            CollectionAssert.AreEqual(new[] { "Sun disc", "Bone flute", "Glass bead", "Mask shard", "Salt-polished coin" }, r.Select(x => x.S("name")).ToArray());
+            Assert.IsNull(world.O("places").L("relics"), "the relics went (issue #732)");
             var ids = world.L("people").Select(x => x.S("id")).ToList();
             foreach (var id in new[] { "ysa", "pell", "rook", "ennor", "tamsin", "sketcher" }) { CollectionAssert.Contains(ids, id); Assert.IsNotNull(story.O("people").O(id)?.O("talk"), $"{id} has words"); }
             // Rook's walk node starts the bike errand (a function on the web, data here)

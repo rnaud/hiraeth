@@ -10,7 +10,7 @@ import { MAGIC_COST } from '../resources.js';
 // locked on to (up to BOOM.locks, numbered, as in Zelda). Let go to throw: it curves out through each lock in
 // turn and comes back to the hand. On the way it stuns foes for a moment, flips switches and targets, rings
 // the temples' crystals and gauges as a glob would, cuts ropes, nudges crates, and brings small things back
-// (the relics, a pot of ink). Coated in the fluid tool's mode (ember, stilling, bloom) it carries it: an
+// (a pot of ink). Coated in the fluid tool's mode (ember, stilling, bloom) it carries it: an
 // ember boomerang lights the lanterns it passes. A wall turns it back with a clink.
 
 export const BOOM = {
@@ -195,11 +195,10 @@ class Boomerang {
     return out.copy(P.pos).addScaledVector(P.frame.up, 1.45);
   }
 
-  /** Everything it may lock on to now: the world's targets (not people, mounts, taxis…), and the relics. */
+  /** Everything it may lock on to now: the world's targets (not people, mounts, taxis…). */
   lockables() {
     const out = [];
     for (const t of allTargets()) if (!NO_LOCK.has(t.kind) && t.enabled()) out.push({ key: t, kind: t.kind, target: t, pos: () => t.position() });
-    for (const it of this.ctx.relics?.items ?? []) if (!it.done && it.grp.parent) out.push({ key: it, kind: 'relic', relic: it, pos: () => it.grp.position });
     return out;
   }
 
@@ -307,12 +306,11 @@ class Boomerang {
   /** It touched something: what that is decides (a stun, a switch, a cut, a pickup to fetch). */
   strike(entry, point, dir) {
     const F = this.flight, ctx = this.ctx;
-    const key = entry.key ?? entry.target ?? entry.relic;
+    const key = entry.key ?? entry.target;
     if (F.hit.has(key)) return false;
     F.hit.add(key);
     const flat = _v.copy(dir).setY(0);
     if (flat.lengthSq() > 1e-6) flat.normalize();
-    if (entry.kind === 'relic') { F.carry.push({ relic: entry.relic }); snd.fetch(ctx.sound); return true; }
     const T = entry.target;
     if (!T || NO_STRIKE.has(T.kind)) return false;
     const mode = F.mode;
@@ -379,7 +377,6 @@ class Boomerang {
     // anything else in its way
     const seg = segmentHits(prev, F.pos, allTargets().filter((t) => !F.hit.has(t) && t.kind !== 'npc'));
     for (const h of seg) this.strike({ key: h.target, kind: h.target.kind, target: h.target }, h.point, _w.subVectors(F.pos, prev).normalize().clone());
-    for (const it of this.ctx.relics?.items ?? []) if (!it.done && !F.hit.has(it) && it.grp.parent && it.grp.position.distanceTo(F.pos) < 0.9) this.strike({ key: it, kind: 'relic', relic: it }, F.pos.clone(), F.vel.clone());
     // a wall: it turns back with a clink (out), or glances off it (home)
     const mv = (this._mv ??= new THREE.Vector3()).subVectors(F.pos, prev), L = mv.length();
     if (L > 1e-5 && F.bounces < 4) {
@@ -407,15 +404,9 @@ class Boomerang {
 
   /** Back in the glove: what it brought is yours. */
   caught() {
-    const F = this.flight, P = this.ctx.player;
+    const F = this.flight;
     for (const c of F.carry) {
       if (c.pickup) { c.pickup.carried = null; this.ctx.world?.take?.(c.pickup); }
-      if (c.relic && !c.relic.done) {
-        // laid at your feet: the relics' own pickup takes it (src/quest.js), with its sketch and its chime
-        c.relic.grp.position.copy(P.pos).addScaledVector(P.frame.up, 1.1);
-        c.relic.base = c.relic.grp.position.y;
-        if (c.relic.light) c.relic.light.set(c.relic.grp.position.x, c.relic.grp.position.y, c.relic.grp.position.z, c.relic.light.w);
-      }
     }
     this.flight = null;
     snd.catch(this.ctx.sound);
@@ -439,7 +430,6 @@ class Boomerang {
         // what it carries rides on it
         for (const c of F.carry) {
           if (c.pickup) c.pickup.carry(_v.copy(F.pos).addScaledVector(_Y, -0.25));
-          if (c.relic && !c.relic.done) { c.relic.grp.position.x = F.pos.x; c.relic.grp.position.z = F.pos.z; c.relic.base = F.pos.y - 0.3; c.relic.light?.set(F.pos.x, F.pos.y, F.pos.z, c.relic.light.w); }
         }
         // its whirr, faster than the eye
         this.whirT -= dt;
@@ -460,8 +450,8 @@ class Boomerang {
       this.locks.push(pick);
       snd.lock(this.ctx.sound, this.locks.length);
     }
-    // locks that went away (a foe cut down, a relic taken) fall off
-    this.locks = this.locks.filter((l) => (l.target ? l.target.enabled() : !l.relic?.done));
+    // locks that went away (a foe cut down) fall off
+    this.locks = this.locks.filter((l) => l.target?.enabled());
     hud.marks?.(this.locks.map((l, i) => ({ point: _w.copy(l.pos()).addScaledVector(_Y, 0.55).clone(), label: i + 1 })));
     const end = this.aimEnd(new THREE.Vector3());
     const from = this.hand(new THREE.Vector3());

@@ -33,16 +33,6 @@ test('spawn stands on the solid start plateau, above the cloud sea', () => {
   assert.ok(!level.unsafe(level.spawn));
 });
 
-test('five relics sit on reachable surfaces', () => {
-  const { spots, names } = ARZACH2_CONTENT.relics;
-  assert.equal(spots.length, 5);
-  assert.equal(names.length, 5);
-  for (const { at: [x, y, z] } of spots) {
-    const g = physics.groundAt(x, y + 3, z, 6);
-    assert.ok(Number.isFinite(g) && y - g > -2 && y - g < 3, `relic ${x},${y},${z} has a surface near it: ${g}`);
-    assert.ok(!level.unsafe(new THREE.Vector3(x, g, z)), 'relic not in the cloud');
-  }
-});
 
 test('npcs on plateaus have ground under their whole route', () => {
   for (const n of ARZACH2_CONTENT.npcs) {

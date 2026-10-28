@@ -7,7 +7,7 @@ import { HIDDEN, hiddenIn, setSolid, riseHeight, ghostPath, ghostBridge, hiddenW
 // button and the traveller holds it up: the view goes into the glass (src/post.js, "the seeing lens": a ring
 // of brass, the world inside drawn in blue ink on pale paper, dark outside), and what the makers hid shows:
 // ghost paths that hold you up only while the glass is up (src/gadgets/hidden.js), false floors that vanish
-// under it, writing on walls, buried caches, boxes and relics shimmering through what stands between, and
+// under it, writing on walls, buried caches, boxes shimmering through what stands between, and
 // foes' weak points (a cut on a foe seen through the glass bites twice as deep: src/foes.js `exposed`).
 // It clouds over as you look: LENS.drain of a small meter a second, back when lowered.
 
@@ -22,7 +22,7 @@ export const LENS = {
   solid: 0.5,        // the raise at which ghost paths hold you up
   radius: 0.46,      // the glass's radius on the screen (of the screen's height)
   marks: 8,          // marks at most (src/post.js uLensMarks)
-  far: 90,           // m: boxes and relics marked within
+  far: 90,           // m: boxes marked within
   foes: 32,          // m: weak points marked within
   expose: 1.5,       // s a foe stays exposed after it was seen
   pips: 5,
@@ -283,11 +283,10 @@ class Lens {
     ctx.game?.emit?.('lens:read', { id: e.id });
   }
 
-  /** The candidates for the glass's marks: boxes and relics, buried caches, unread writing, foes. */
+  /** The candidates for the glass's marks: boxes, buried caches, unread writing, foes. */
   candidates() {
     const { ctx } = this, P = ctx.player, out = [];
     const near = (p, r) => !P || p.distanceTo(P.pos) < r;
-    for (const it of ctx.relics?.items ?? []) if (!it.done && near(it.grp.position, LENS.far)) out.push({ pos: it.grp.position, kind: MARK.find, r: 0.7 });
     for (const b of ctx.boxes?.list ?? []) if (!(b.spent?.() ?? false) && b.pos && near(b.pos, LENS.far)) out.push({ pos: b.pos.clone().add(new THREE.Vector3(0, 0.6, 0)), kind: MARK.find, r: 0.8 });
     for (const e of this.entries) {
       if (e.kind === 'buried' && !e.unearthed && near(e.at, 60)) out.push({ pos: e.at, kind: MARK.find, r: 0.8 });

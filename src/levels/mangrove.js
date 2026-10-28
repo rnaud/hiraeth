@@ -104,7 +104,6 @@ export const MANGROVE_CONTENT = {
     outro: 'From the great tree’s deck the whole village shows: the lanterns, the boats, and under the water the creatures, lit like a second sky.',
     label: 'the great tree’s deck', goal: [HIGH_DECK.x + HIGH_DECK.outer - 1.5, HIGH_DECK.deckY, HIGH_DECK.z], radius: 6, verticalRadius: 3, manual: true,   // (no beacon: nothing to do here but look)
   },
-  relics: { spots: [], names: [] },
   // three people from elsewhere who came to the lake, and its own folk on the walks and decks
   npcs: [
     { ...BAZAAR_STREET.oyo, at: [HIGH_DECK.x - 7, HIGH_DECK.z + 6], y: HIGH_DECK.deckY + 0.2, radius: 1, kind: 'm', world: 'bazaar', lang: 'bazaar',

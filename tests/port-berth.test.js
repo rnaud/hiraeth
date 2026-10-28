@@ -96,7 +96,7 @@ function berthWorld(id) {
   scene.add(port.group);
   const physics = new Physics(scene);
   const level = { spawn: new THREE.Vector3(P.site.x + 120, P.site.y, P.site.z), ground: { heightAt: () => P.site.y }, lights: [], port, shipSite: { x: P.site.x, z: P.site.z, heading: P.site.h } };
-  const ship = new Ship({ scene, physics, level, levelId: `${id}-flat`, content: { npcs: [], relics: { spots: [] } } });
+  const ship = new Ship({ scene, physics, level, levelId: `${id}-flat`, content: { npcs: [] } });
   ship.player = new Player(physics);
   ship.rig = { yaw: 0, pitch: 0.2, target: new THREE.Vector3(), indoor: false };
   ship.camera = new THREE.PerspectiveCamera();

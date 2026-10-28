@@ -454,7 +454,7 @@ tests/engine-menus.test.js, tests/engine-ship.test.js. A new save's slot on the 
 
 **The fight** (issue #264). When the engine is played (with its menus), or a plan asks (`fight`, the bridge's `-fight`),
 engine/game.js makes the fight as main.js does, the one game setup's `wireFight` (below, round 3), in engine/combat.js: `Foes` (src/foes.js: the ink blots in the
-wilds, the makers' machines in the temples, the relics' guards; the Enemies setting), the lock-on (Tab, R3: `cycleLock`,
+wilds, the makers' machines in the temples; the Enemies setting), the lock-on (Tab, R3: `cycleLock`,
 the scout's ping with none in reach), its camera after the rig (`lockFollow`; a guardian framed whole with him,
 lock-frame.js `guardianBox`; the boss framing its fight asks for, `rig.boss`; the aim locked on, src/lock-aim.js), the
 traveller turned to the foe and strafing (`player.lockOn`, the hop's axis), the hops' perfect dodge and its flurry, the
@@ -2191,7 +2191,7 @@ Read side by side, the two hosts hold three kinds of thing:
 
 | | what | where it goes |
 |---|---|---|
-| **the game** | the systems and how they are joined: the mount and the whistle, the traveller's hurts and drinks, the tool and the kit, the fires and the void, the people (crowd, aliens, errands, faces, the hum), the story, relics, shops, the observatory, the scout, Plumb and the first lessons, the boxes, items' effects, fragments, benches, gadgets and their upgrades, the foes, chimes, potions, the flurry and the lock-on, what burns and the chemistry, the weather and the wind on him, the sky (hour, eclipse, the Lantern), the ship and its departure (the ambush), the ways through (passage, thresholds, door walk), the Map's and the game menu's sources, the saves, the frame's order | src/host/ (shared), a group at a time |
+| **the game** | the systems and how they are joined: the mount and the whistle, the traveller's hurts and drinks, the tool and the kit, the fires and the void, the people (crowd, aliens, errands, faces, the hum), the story, shops, the observatory, the scout, Plumb and the first lessons, the boxes, items' effects, fragments, benches, gadgets and their upgrades, the foes, chimes, potions, the flurry and the lock-on, what burns and the chemistry, the weather and the wind on him, the sky (hour, eclipse, the Lantern), the ship and its departure (the ambush), the ways through (passage, thresholds, door walk), the Map's and the game menu's sources, the saves, the frame's order | src/host/ (shared), a group at a time |
 | **the page's** | the WebGL renderer (G-buffer, shadow cascades, the ink and bloom passes, SMAA, shader warm-up), loading in slices, culling and levels of detail, the quality's adapting, the DOM HUD (hearts, stamina, keys, the restart panel, toasts), the menus' HTML, the keyboard, mouse and touch listeners, lil-gui and the dev tools, item icons and portraits it renders, photo capture, the browser's loop (requestAnimationFrame, the pacer), the address (`?level`, `?items`, `?aboard`), the Android app's shell | src/main.js |
 | **the bridge's** | the scene mirror and its backend, the screen parts published for BridgeHud, engine/menus.js and the star map's state, keys and pads arriving by `game.key`, the VM's stand-ins (engineJournal, the silent sound, the vertex colours for JPEGs no VM decodes), the preset by `-quality`, a plan's options (a pinned view, a bench's flags, `-fight`), the engine's own portraits, photos and Map pictures | engine/game.js |
 

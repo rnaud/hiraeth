@@ -33,7 +33,7 @@
 // tests/debug-save.test.js reads the story code for the grants that are not data (an onDone's game.set,
 // addKeepsake, a tank band, an item granted) and fails when one is not covered here.
 //
-// Left out: relics and the sketchbook's pictures (drawn as you find them), conversations' once-only answers
+// Left out: the sketchbook's pictures (drawn as you find them), conversations' once-only answers
 // (`said.*`). Off the route (the dev worlds, the side worlds, home) nothing changes: the list opens them in the
 // save being played. The worlds list writes the debug slot (DEBUG_SLOT); the title's Saves screen may write one of
 // the player's own slots instead, once asked (seedDebugSave's `slot`, ?debugslot=<n>: src/boot.js).
@@ -145,7 +145,7 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
   if (!before) return null;
   const flags = { 'prologue.done': true, [CONTROLLED_LANDING_FLAG]: true, 'items.v': 2, 'save.migrated': MIGRATED(), [GIVEN]: true, [CARD]: true, 'ship.level': 'desert' };
   const keepsakes = [];
-  const journal = { relics: {}, stories: {}, seen: {}, errands: {} };
+  const journal = { stories: {}, seen: {}, errands: {} };
   let t = now - 1000 * 60 * (before.length + 1);
   const keep = (k) => { if (k && !keepsakes.some((o) => o.id === k.id)) keepsakes.push({ ...k, t: t++ }); };
   const state = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; }, keepsakes: () => keepsakes };

@@ -11,9 +11,11 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
     reaching the goal its closing words (the closing moment is drawn into the
     sketchbook); until October 2026 these were three-panel comic pages that held
     the screen. A long toast stays up longer (`toastSeconds`, up to 9 s).
-- **Relics:** five per world, often on rooftops, mesas or trees you have to
-  climb. Picking one up sketches the moment into your **sketchbook**: press
-  **J** to open it. Progress is saved in `localStorage`.
+- **Relics** (gone in v2.34, issue #732): the five yellow shards a world are no more; the fragments of the
+  singing light ([fragments.md](fragments.md)) are what you collect. No world places a relic, no foe guards one,
+  nothing counts them, and the end of the road asks only for every world's story (`roadDone`, src/story/ending.js).
+  An old save's `journal.relics` stays in its data, unread (`migrateJournal` moves only the worlds seen;
+  `tests/no-relics.test.js`).
 - **People** (`src/npc.js`):
   - two to five per world, wearing the same rider design in their own
     colours, with simulated cloaks near the camera;
@@ -33,7 +35,7 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
     flutter.
   - The jetpack roar, an engine for the bike, skiff and taxis, and bird
     flaps.
-  - Chimes for relics and page turns.
+  - Chimes for page turns.
   - Sound starts on your first click, and **M** mutes.
 - **Weather** (`src/weather.js`): each world alternates clear spells with
   its own weather, ramping in and out over a few seconds. You can force it
@@ -1080,8 +1082,7 @@ own kits and systems, a few draws each, and colliders baked from what is drawn (
   `incal.mirror.notch`, from 3) until it faces up the shaft (`incal.mirror.turned`; shoved straight
   at the glass it only rocks): washed and facing up is the quest done, asked or not (issue #172), and
   Perrine has her word on it when you pass (`incal.perrine.turned`). With the Lodestar lit, the glass glows, and Ossa at the bottom has seen
-  the coin of light come back on Behla's wall. The Smog lantern relic (the world's third) sits over
-  the awning's flat roof now (`content.js`, `AWNING_TOP`). Far above or below (160 m), the stall is
+  the coin of light come back on Behla's wall. Far above or below (160 m), the stall is
   not drawn. `tests/story-incal.test.js` plays it.
 - **Vael's fallen giant** (`THINGS.colossus`, `src/story/arzach.js`): a look from in front of its
   face, out on the plain: it lies as if it lay down to rest, turned toward the lone tower; once the

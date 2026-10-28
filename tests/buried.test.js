@@ -47,22 +47,6 @@ test('the canyon floor is open from the ramp to the oculus doorway', () => {
   assert.ok(!hit || hit.point.z < OCULUS.z - OCULUS.r + 8, `doorway blocked at ${hit?.point.z}`);
 });
 
-test('five relics rest on reachable structures, open to the sky', () => {
-  const {spots, names} = BURIED_CONTENT.relics;
-  assert.equal(spots.length, 5);
-  assert.equal(names.length, 5);
-  for (const s of spots) {
-    const [x, z] = s;
-    const top = physics.groundAt(x, 1e4, z, 2e4);
-    assert.ok(Number.isFinite(top), `relic surface at ${x},${z}`);
-    assert.ok(top - level.ground.heightAt(x, z) > 1.5, `relic at ${x},${z} sits on a structure, not the sand`);
-    assert.ok(top < 120, `relic at ${x},${z} within jetpack reach: ${top}`);
-    // standing room: the surface is roughly level and nothing is directly above it
-    const n = physics.groundNormal(x, top + 1, z);
-    assert.ok(n.y > 0.7, `relic surface at ${x},${z} is walkable (n.y ${n.y.toFixed(2)})`);
-    assert.equal(physics.rayHit(new THREE.Vector3(x, top + 0.3, z), new THREE.Vector3(0, 1, 0), 500), null);
-  }
-});
 
 test('the story is a quest (manual page); the balcony inside the oculus is still reachable and open to the sky', () => {
   const {goal, manual} = BURIED_CONTENT.story;

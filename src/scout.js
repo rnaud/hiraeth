@@ -125,7 +125,7 @@ export function nextObjective({ player, expedition, story, ship = null, level, q
       }
     }
   } else if (story && !story.done) target = objective('story', story.def.label, story.goal);
-  // the world's story told: on to the ship (from away from it; the relics are yours to find)
+  // the world's story told: on to the ship (from away from it)
   else if (ship?.pos && player.pos.distanceTo(ship.pos) > SHIP_NEAR) target = objective('ship', 'Back to the ship', ship.pos);
   return target ? viaPortal(player.pos, target, level.navigationPortals ?? level.portals ?? []) : null;
 }

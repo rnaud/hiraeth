@@ -49,8 +49,8 @@ test('the HUD shows it with its own mark, in its own gold tag', () => {
   for (const l of [chargeHud(st, { kept: 'A' }), chargeHud({ ...st, stage: 'home' })]) assert.ok(!l.includes(' · '), 'one gold tag, not split by the HUD');
   assert.equal(chargeHud({ ...st, stage: 'done' }), null);
   assert.equal(chargeHud({ stage: null }), null);
-  assert.equal(badgeLine('Vael · E talk\n✦ Bring back something of value · relics 1/5'),
-    'Vael · <b class="key">E</b> talk\n<span class="charge">✦ Bring back something of value</span> · relics 1/5');
+  assert.equal(badgeLine('Vael · E talk\n✦ Bring back something of value · 120 m'),
+    'Vael · <b class="key">E</b> talk\n<span class="charge">✦ Bring back something of value</span> · 120 m');
   assert.ok(!badgeLine('◆ the well · 20 m').includes('charge'), 'a world’s quest keeps its own look');
 });
 

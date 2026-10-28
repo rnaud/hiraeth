@@ -179,7 +179,7 @@ test('the playable directors close camp before lift-off and restore a usable lan
   const {TakeoffDirector,ArrivalDirector}=await import('../src/ship/cinematics.js');
   const scene=new THREE.Scene();scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400,400).rotateX(-Math.PI/2)));
   const physics=new Physics(scene),level={spawn:V(0,0,60),ground:{heightAt:()=>0},lights:[],shipSite:{x:0,z:0,heading:Math.PI/2}};
-  const ship=new Ship({caravan:await asset(),scene,physics,level,levelId:'edena',content:{npcs:[],relics:{spots:[]}}});
+  const ship=new Ship({caravan:await asset(),scene,physics,level,levelId:'edena',content:{npcs:[]}});
   ship.player=new Player(physics);ship.rig={yaw:0,pitch:.2,target:V(0,0,0),indoor:false};ship.camera=new THREE.PerspectiveCamera();ship.sound={};ship.warp={start(){},update(){}};
   let done=false;const departure=new TakeoffDirector(ship,{to:'arzach',title:'Vael',onDone:()=>done=true});departure.start();
   let flew=false;

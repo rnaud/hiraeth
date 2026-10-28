@@ -152,7 +152,7 @@ export function placeAt(p) {
   return 'A glass tube';
 }
 
-// ------------------------------------------------------------------ content: the story page, relics, the city's people
+// ------------------------------------------------------------------ content: the story page, the city's people
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
 export const UNDERWATER_CONTENT = {
   weather: [],
@@ -164,10 +164,6 @@ export const UNDERWATER_CONTENT = {
     label: 'the Whale-House', goal: [WHALE_HOUSE.x, 0, WHALE_HOUSE.door + 6], radius: 10, verticalRadius: 6, manual: true,
   },
   // (one in each hall worth walking to: the Crown, the Gallery's rail, the Garden's trough, the café's dresser, the Dock's crane)
-  relics: {
-    spots: [{ at: [6, D.crown.y + 0.1, D.crown.z - 6] }, { at: [D.gallery.x + 14, D.gallery.y + 0.1, D.gallery.z - 6] }, { at: [D.garden.x - 12, 0.95, D.garden.z + 8] }, { at: [-26, 0.1, 50] }, { at: [24, 0.1, 140] }],
-    names: ['Barnacle bead', 'Diver’s tag', 'Glow-kelp seed', 'Café token', 'Lock key'],
-  },
   npcs: [
     // Bastien keeps the Dock and its lock (the lift down from the sea port): he meets you at its foot, and points the way in
     // (v1.48, issue #101: the city's main quest is his, the wrong note in the glass: src/story/underwater-people.js)

@@ -47,17 +47,17 @@ test('a fresh install has three empty slots and nothing to continue', () => {
   assert.equal(slots.firstEmpty(), 1);
 });
 
-test('the summary: world, worlds done, relics, items, playtime, last played', () => {
+test('the summary: world, worlds done, items, playtime, last played (an old save\'s relics not counted: issue #732)', () => {
   const slots = new SlotStore(mem(Object.fromEntries(legacy().m)));
   const s = slots.summary(1);
   assert.equal(s.empty, false);
   assert.equal(s.level, 'incal');
   assert.equal(s.world, 'The City-Shaft');
   assert.equal(s.worldsDone, 2);   // world.desert.done, and the City-Shaft's story page
-  assert.equal(s.relics, 3);
+  assert.equal(s.relics, undefined);
   assert.equal(s.items, 2);        // the backpack and the glider; the jar is a carried count
   assert.equal(s.prologue, false);
-  assert.equal(progressLine(s), `2 / ${ORDER.length} worlds · 3 relics · 2 items`);
+  assert.equal(progressLine(s), `2 / ${ORDER.length} worlds · 2 items`);
   assert.equal(progressLine(slots.summary(2)), 'New game');
   slots.touch(1, { addSeconds: 125, now: 1759100000000 });
   slots.touch(1, { addSeconds: 60, now: 1759200000000 });

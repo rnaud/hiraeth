@@ -433,8 +433,7 @@ state; `Sound.musicMomentsUpdate` (from `sound.update`, every frame) turns it in
 - **Arrival**: the theme plays for 150 s from the world's first sound.
 - **Indoors** (`s.indoor`, src/shelter.js): it plays, and lingers 20 s after you step out.
 - **Moments** (`sound.musicCue('moment', { delay })`, 110 s): a story moment's `swell()` (after its
-  phrase), the father's `charge()`, a box's `fanfare()`, `homage()`, the spheres' song, a relic found
-  (src/quest.js), a world's story done, a keepsake (`game.on('keepsake')` in main.js).
+  phrase), the father's `charge()`, a box's `fanfare()`, `homage()`, the spheres' song, a world's story done, a keepsake (`game.on('keepsake')` in main.js).
 - **Back by itself**: after 5 to 8 minutes of quiet it returns for 90 s.
 - **Between**: the procedural score plays only its light layers (`lightScore`: drone, pad, a sparse
   pluck, the colour, the echo, all softer; no melody, bass or drums), over the ambience. Before the
@@ -470,7 +469,7 @@ mixed bank of retained CC0 recordings and author-selected ElevenLabs effects (`p
   `grab` (the climb), `mantle`, `wings` (open / fold), `jets` (lighting), `evade` (the roll),
   `knockdown` and `getUp`. Hurts come from Player `onHurt` (`sound.hurt`: a pained grunt or a sharp
   breath, and the blow on the body), pick-ups from `interactHooks.onUse` (src/interact.js: prompts
-  that pick up, take, gather or collect) and relics.
+  that pick up, take, gather or collect).
 - **Breaths** are soft and occasional: about one jump in five, more when out of stamina, often on a
   mantle, sometimes on the third cut, never two within 4.5 s (`FOLEY.breathGap`); voices never overlap
   (`Sound.vocal`).

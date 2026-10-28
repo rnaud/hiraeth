@@ -142,7 +142,7 @@ const built = async () => {
   return (world = { scene, level, physics: new Physics(scene, level.ground) });
 };
 
-test('the Glass Dunes: on the route in the Sealed Hangar’s place, with its temple, its people and its relics', async () => {
+test('the Glass Dunes: on the route in the Sealed Hangar’s place, with its temple and its people', async () => {
   const { LEVELS } = await import('../src/levels/index.js');
   const { ORDER, SIDE, DISCARDED, TITLES, DISMISSED } = await import('../src/levels/names.js');
   const { CONTENT } = await import('../src/levels/content.js');
@@ -157,7 +157,7 @@ test('the Glass Dunes: on the route in the Sealed Hangar’s place, with its tem
   assert.equal(TEMPLE_HOME.garage, 'glassdunes');
   assert.deepEqual(templesIn('glassdunes'), ['garage'], 'the Hangar’s temple, the Clock-House now');
   const c = CONTENT.glassdunes;
-  assert.ok(c.npcs.length >= 3 && c.relics.names.length === 5 && c.story.manual, 'people, five relics, a page its temple closes');
+  assert.ok(c.npcs.length >= 3 && !c.relics && c.story.manual, 'people, no relics (issue #732), a page its temple closes');
   for (const n of c.npcs) assert.ok(n.lines.every((l) => /^~\w+~ /.test(l)), 'toned lines');
   // the map: on the route, found by the signature search like the others, before home
   const e = mapEntries({ order: ORDER, side: SIDE, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: true });

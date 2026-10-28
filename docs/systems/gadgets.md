@@ -141,7 +141,7 @@ One runtime holds all ten, so what one leaves behind is everyone's problem:
      id: 'magnet', name: 'Lodestone glove', glyph: '⊂', order: 30,   // order: its place in the wheel and the yard
      text: 'what it is and does, one line or two, at most 180 letters (its buttons as {key:use}, {key:aim}…)',
      model: () => group,          // about 0.3 m, makeMaterial materials (inked by the post pass)
-     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, wind, relics, flammables, post, boxes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
+     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, wind, flammables, post, boxes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
      yard(kit) {},                // its props in its Gadget Yard bay
    };
    ```
@@ -325,15 +325,14 @@ Hold the use button: the boomerang is in the glove, a dotted path shows its flig
 paper and ink home) and whatever the reticle passes over within `BOOM.range` (22 m; `cone` 0.06 rad or
 `near` 0.9 m of the aim, in sight of the glove) is locked on to, up to `locks` 3, each a numbered red
 diamond (`hud.marks`). Lockable: every registered target but people, creatures, mounts, taxis, crates and
-scenery (`NO_LOCK`), and the world's relics. Let go to throw: the path (`boomPath`: from the hand, a swing
+scenery (`NO_LOCK`) (the world's relics too, until they went in v2.34). Let go to throw: the path (`boomPath`: from the hand, a swing
 out to the side `bend` 0.24 of the distance, then each lock in turn; with none, out to where the aim meets
 the world) is a centripetal Catmull-Rom (`boomCurve`), and `plan` swings it right, else left, else nearly
 straight, whichever meets no wall before it ends. It flies it at `speed` 20 m/s, then homes on the hand
 (`homeVelocity`: turned toward it at `turn` 5 rad/s, more the longer it is out) at `back` 24 m/s and is
 caught within `catch` 1 m. On the way (`strike`, once each):
 - **a foe**: stunned `stun` 1.6 s, knocked a little along its flight;
-- **a rope**: cut (`blade`); **a pickup** or **a relic**: carried back on it (a relic is laid at your
-  feet, where its own pickup takes it, `src/quest.js`); **a crate**: nudged; **people, creatures**: a tap;
+- **a rope**: cut (`blade`); **a pickup**: carried back on it; **a crate**: nudged; **people, creatures**: a tap;
 - **anything else** (switches, the yard's targets, the temples' crystals and gauges, lanterns): what a glob
   would do (`modeFor`). Thrown with the fluid tool in an ember, stilling or bloom mode (`CARRY`) it carries
   that mode, its trail in the mode's tones: an ember boomerang lights the lanterns it touches, a stilling
@@ -346,7 +345,7 @@ mode carried spends a charge of the tank (`tool.reserve.use()`); with none left 
 Tests (`tests/boomerang.test.js`): the path through each lock, the homing's turn rate and return, the
 segment's hits, a throw stunning a foe and flipping a switch, the locks (three at most, never a taxi,
 nothing behind a wall), a wall turning it back, the ember lighting a lantern, a rope cut and its crate
-falling, a pot and a relic fetched, the yard's bay.
+falling, a pot fetched, the yard's bay.
 
 ## The magnet glove (`magnet.js`, `metal.js`)
 
@@ -393,7 +392,7 @@ is blue ink on pale paper (its value mapped from deep blue to paper, the ink lin
 world fading into the paper), what glows (the hidden things, lamps) keeps its own colour, and the view
 outside the ring sinks into ink. Up to eight marks (`uLensMarks`: uv, kind, size; `lensMarks` projects
 them, nearest first) shimmer as dashed rings round a diamond, through whatever stands between: gold for a
-find (unopened boxes and relics within `LENS.far` 90 m, buried caches), red for a foe's weak point (foes
+find (unopened boxes within `LENS.far` 90 m, buried caches), red for a foe's weak point (foes
 within 32 m; seen, a foe is `exposed` for `LENS.expose` s and a blade cut on it counts double,
 src/foes.js), teal for writing not yet read. It clouds over: `LENS.drain` (1/16) of the chip's ring a
 second up, a third of that while he stands on a ghost path, back at `refill` after `wait` s down; empty,

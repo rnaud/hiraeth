@@ -93,11 +93,6 @@ test('the swamp’s people and places stand on walkable or wadeable ground', () 
   // the fireflies fly over the water from Ivo to the nest
   const route = W.places.route;
   assert.ok(route.length >= 4 && route.at(-1).distanceTo(level.nest) < 3);
-  // relics: none under water any more
-  for (const s of PERDIDE_CONTENT.relics.spots) {
-    const [x, z] = Array.isArray(s) ? s : [s.at[0], s.at[2]];
-    assert.ok(terrain.heightAt(x, z) > -0.5, `relic at ${x},${z} is above the water`);
-  }
   // the errands still find their people: Ivo gives the crystal (on into the Deep Wood, to Bram: Lorn's sixth person now)
   assert.deepEqual(ERRANDS.find((e) => e.id === 'crystal').to, ['perdide', 5]);
   assert.equal(ERRANDS.find((e) => e.id === 'crystal').from[1], 2);

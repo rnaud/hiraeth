@@ -22,7 +22,7 @@ import { builtTop, routeClear, CircleGrid } from './plant-ground.js';
 // only grows on open, gentle ground: not under a roof or a rock, not on a slope or in deep
 // water, not on a roof or any built top (src/plant-ground.js builtTop: in the ray-cast parts too,
 // issue #497), not on the paths, buildings or story places a level marks (level.floraAvoid), and
-// not where people stand, boxes and relics wait, or the ship lands (the keep list).
+// not where people stand, boxes wait, or the ship lands (the keep list).
 //
 // Drawing: one InstancedMesh per species, refilled from the 32 m cells in view within the
 // species' distance (small plants go first; times the preset's floraFar). The Handheld preset
@@ -176,7 +176,7 @@ export function clusterScatter({ species, regions, patches = 100, sparse = 0.08,
 // ------------------------------------------------------------------ where nothing grows
 /**
  * The places plants must leave clear, as [{ x, z, r }]: the spawn, the ship's landing site and
- * ramp, everyone standing about, the boxes, the relics, the story's goal, the doorways and portals,
+ * ramp, everyone standing about, the boxes, the story's goal, the doorways and portals,
  * and the world's responsive plants or screens.
  */
 export function floraKeep({ level = {}, content = {}, ship = null, npcs = [], crowd = null, boxes = null, reactiveWorld = null } = {}) {
@@ -201,10 +201,6 @@ export function floraKeep({ level = {}, content = {}, ship = null, npcs = [], cr
     for (const c of routeClear(pts, { r: 1.2, rw: (w.lateral ?? 1.1) + 0.3 + (w.lanes ? w.lanes * 0.45 : 0), loop: !!w.loop })) add(c.x, c.z, c.r);
   }
   for (const b of boxes?.list ?? []) if (b.pos) add(b.pos.x, b.pos.z, 5);
-  for (const s of content.relics?.spots ?? []) {
-    const a = Array.isArray(s) ? s : s.at;
-    if (a) add(a[0], a.length === 2 ? a[1] : a[2], 3);
-  }
   const goal = content.story?.goal;
   if (goal) add(goal[0], goal[2], Math.max(6, (content.story.radius ?? 6) * 0.6));
   for (const p of level.portals ?? []) { if (p.at) add(p.at.x, p.at.z, 6); if (p.to) add(p.to.x, p.to.z, 6); }
@@ -242,7 +238,7 @@ function prepare(list, world) {
 /**
  * Grow this world's flora. Call once the level, its collision, the ship and the people
  * are in place (main.js).
- * @param o.keep     [{ x, z, r }] places nothing may grow (people, boxes, relics, the ship, the spawn)
+ * @param o.keep     [{ x, z, r }] places nothing may grow (people, boxes, the ship, the spawn)
  * @param o.density  the preset's floraDensity
  * @returns {Flora|null}
  */

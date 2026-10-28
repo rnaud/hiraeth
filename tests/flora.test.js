@@ -81,7 +81,7 @@ function grow(create, id) {
   return { scene, level, physics, keep, flora };
 }
 
-test('in Viridel the meadow is in clumps, off the pond, the crashed ship, the people and the relics', () => {
+test('in Viridel the meadow is in clumps, off the pond, the crashed ship and the people', () => {
   const { level, keep, flora } = grow(createEdena, 'edena');
   assert.ok(flora.count > 2000, `${flora.count} plants`);
   assert.equal(new Set(flora.plants.map((p) => p.sp.id)).size, SPECIES.edena.length, 'every species grows');

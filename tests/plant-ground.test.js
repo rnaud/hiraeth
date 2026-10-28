@@ -1,5 +1,5 @@
 // People never start in a plant (issue #496) and plants never grow on a roof (issue #497, src/plant-ground.js builtTop): in every world of the route, neither the responsive
-// world's flowers, fans and fungi (src/reactive-world.js: seeded round the people, the relics and the goal, they used to
+// world's flowers, fans and fungi (src/reactive-world.js: seeded round the people and the goal, they used to
 // land on the roof over whoever stood under it, on stalls and a pyramid's crown) nor the flora's scatter (src/flora.js:
 // in its ray-cast parts, on slabs and sand banks) stand on top of anything built. Roof gardens a world draws on purpose
 // (the City-Shaft's villas, the floating city's roofs) are its own drawing, not scattered: none is listed here.

@@ -20,7 +20,6 @@ import { quietOr } from '../hint-level.js';
 //                         turned to a billboard. Wash it (shoot), then push the frame from the side,
 //                         a notch at a time, until it faces up the shaft (notch 0). Once the Lodestar
 //                         burns too, the glass glows with it, and Ossa at the bottom sees the coin.
-//   a relic               on the awning's flat roof (the Smog lantern: levels/content.js)
 //
 // Flags: incal.mirror.washed, incal.mirror.notch (0..7), incal.mirror.turned, incal.perrine.turned (her word on it said);
 // quest incal.mirror (incal-data.js). Pure helpers (halfwayFrame) are used by the tests.
@@ -33,7 +32,7 @@ export const HALFWAY = { a: DROPS[-24] + 0.035, r: 7.8 };   // (7 m round from t
 /** The mirror's notch at the start: turned to a billboard, three notches round from facing up the shaft. */
 export const MIRROR_START = 3;
 const NOTCH = TAU / 8;
-/** The awning's flat roof, over the stall's floor (m): the relic sits 1.1 m over its middle. */
+/** The awning's flat roof, over the stall's floor (m). */
 export const AWNING_TOP = 2.62;
 
 /** The middle level's terrace sector the stall stands on (the one holding HALFWAY.a). */
@@ -41,7 +40,7 @@ export const halfwayTerrace = (terraces, y) => terraces?.find((t) => t.y === y &
 
 /**
  * The stall's frame on the middle terrace: origin on the terrace at the stall, +x along the
- * terrace, +z toward the void (and the shaft's middle). Pure: the tests and content.js's relic use it.
+ * terrace, +z toward the void (and the shaft's middle). Pure: the tests use it.
  * @param terrace the middle level's terrace sector holding HALFWAY.a ({ y, r0, a0, a1 }: halfwayTerrace), ground (x, z) => y
  */
 export function halfwayFrame(terrace, ground = () => terrace.y) {
@@ -71,7 +70,7 @@ export function setupHalfway(ctx, { terrace, ground, onGround }) {
   const solid = new THREE.Group();   // (what you stand on and bump into: one collider)
   frame.add(solid);
   const noIdx = (g) => { g = g.index ? g.toNonIndexed() : g; g.deleteAttribute('uv'); return g; };
-  // the stall: a counter, four posts, a flat awning over it (its roof holds the relic), a bench, the board
+  // the stall: a counter, four posts, a flat awning over it, a bench, the board
   const woodGeo = [
     new THREE.BoxGeometry(2.6, 1.0, 0.9).translate(0, 0.5, 0),
     ...[[-1.25, -0.55], [1.25, -0.55], [-1.25, 0.55], [1.25, 0.55]].map(([x, z]) => new THREE.BoxGeometry(0.12, 2.5, 0.12).translate(x, 1.25, z)),

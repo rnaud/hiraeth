@@ -44,7 +44,7 @@ and spores share a pool capped at 72. Menus and photo mode pause reactions.
 The new scenery has no collision so it does not block established routes.
 
 **Never on a roof** (v1.85, issue #497; `src/plant-ground.js` `builtTop`). The flowers, fans and fungi are seeded round
-the people, the relics, the goal and the spawn, each dropped onto the first surface a ray from 10 m up meets: under an
+the people, the goal and the spawn (and the relics, until they went in v2.34), each dropped onto the first surface a ray from 10 m up meets: under an
 overhang that was the roof over whoever stood there (the Hush-House's disc in Lorn, a stall in Viridel, the pyramid's
 crown in the Garden of Spheres, the Glass Dunes' buildings). A spot is now refused when it is the top of something
 built: in a world with a heightfield, anything more than 0.35 m over the terrain (`GROUND_LIFT`: a pavement still
@@ -172,7 +172,7 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
   roof, not under anything, not in deep water (reeds and swamp plants may wade), not on the
   places a level lists in `level.floraAvoid` (paths, the pond, the canyon, the lake, the city's
   paving), and not on `floraKeep`'s spots: the spawn, the ship's site and ramp, everyone's
-  standing place, the crowd, the boxes, the relics, the story's goal, portals and the reactive
+  standing place, the crowd, the boxes, the story's goal, portals and the reactive
   plants.
 - **Drawing**: one InstancedMesh per species. Plants are filed by 32 m cell, and each frame
   `Flora.update` keeps the cells in view within the species' distance (60 m for ground cover

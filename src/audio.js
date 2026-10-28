@@ -486,7 +486,7 @@ export class Sound {
     this.moments?.setMode(this.musicModeSetting);
   }
 
-  /** A moment (a keepsake, a relic, a swell, the charge…): the theme comes back, after `delay` s. */
+  /** A moment (a keepsake, a swell, the charge…): the theme comes back, after `delay` s. */
   musicCue(kind = 'moment', { delay = 0 } = {}) {
     if (this.ctx && this.moments) this.moments.cue(kind, this.ctx.currentTime, { delay });
   }

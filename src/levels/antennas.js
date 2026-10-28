@@ -108,7 +108,6 @@ export const ANTENNAS_CONTENT = {
     outro: 'From the deck the whole forest shows, mast after mast to the haze. Every dish still listening, the birds in them, and the hum of it all.',
     label: 'the observation deck', goal: [OBS.x, OBS.top, OBS.z], radius: 4, verticalRadius: 3, manual: true,   // (no beacon: nothing to do here but look)
   },
-  relics: { spots: [], names: [] },
   // three people from elsewhere who came to hear the forest, and its own folk at the workshops and along the path.
   // (Lune and Ottla were the Sealed Hangar's; since it was dismissed they come from worlds the route still goes to
   // (issue #141): Lune from the Signal Market, Ottla from the Glass Dunes, and speak those tongues. `world` stays the

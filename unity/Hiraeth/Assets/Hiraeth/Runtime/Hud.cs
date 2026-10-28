@@ -432,9 +432,6 @@ namespace Hiraeth
             else if (ob && ob.Started && !ob.Returned) goal = ob.Hud(pl.transform.position);
             else if (obj.HasValue) goal = $"◆ {Text.Plain(obj.Value.label)} · {Dist(Vector3.Distance(pl.transform.position, obj.Value.pos))}";
             else if (game.state.Is("prologue.done")) charge = "✦ Bring back something of value";
-            // and the relics found here (main.js: … · relics n/5)
-            string relics = game.relics && game.relics.Total > 0 ? $"relics {game.relics.Found}/{game.relics.Total}" : null;
-            if (relics != null) goal = goal != null ? goal + " · " + relics : charge != null ? " · " + relics : relics;
             float x = 12, y = 8, maxW = Mathf.Min(560, W * 0.6f);
             float w = 0;
             if (helpOn)

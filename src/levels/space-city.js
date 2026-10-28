@@ -100,10 +100,6 @@ export const SPACECITY_CONTENT = {
     label: 'the Mooring-House', goal: [96, 14, -176], radius: 16, verticalRadius: 8, manual: true,
   },
   // (high and out of the way: a chimney top on the Gate, the Towers' roofs, the Garden's overlook, the Balcony's railing, the Pier's lamp)
-  relics: {
-    spots: [[-14, 40], [104, -92], { at: [I0.garden.x - 14, I0.garden.y + 2, I0.garden.z + 8], snap: true }, { at: [12, 2, I0.balcony.z - 14], snap: true }, [18, 118]],
-    names: ['Cable splice', 'Lamp-oil token', 'Pressed leaf', 'Star chart scrap', 'Mooring knot'],
-  },
   // three people from elsewhere, and the city's own folk
   npcs: [
     // (Kip's errand: one of her nine lamps out to the Moorings, src/story/spacecity-people.js VISITORS)

@@ -189,7 +189,7 @@ test('the last worlds press harder: three strikers at once, quicker turns, heavi
 
 test('spawning by world: the wilds draw each world’s archetypes (or the old kinds standing in), in its skin; planned ones wait', () => {
   for (const [w, R] of Object.entries(ROSTERS)) {
-    const kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards]);
+    const kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first]);
     for (const k of kinds) {
       assert.ok(FOES[k], `${w}: ${k}`);
       const a = archetypeOfKind(k);
@@ -432,7 +432,7 @@ test('batch 2: the mound worm, the sky ray, the signal moth, the ring centipede 
   for (const a of ['worm', 'ray', 'moth', 'centipede', 'jelly']) assert.equal(ARCHETYPES[a].art, 'sheet-1', a);
   for (const a of ['worm', 'ray', 'moth', 'centipede', 'jelly']) assert.ok(existsSync(new URL(`../references/enemy-archetypes/${a}/${ARCHETYPES[a].art}.jpg`, import.meta.url)), `${a}: its sheet is in`);
   // Vael II runs wholly on the new roster now (every kind it spawns is a built archetype's own)
-  const R = ROSTERS.arzach2, kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards]);
+  const R = ROSTERS.arzach2, kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first]);
   for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)].status, 'built', `Vael II: ${k}`);
   // a lantern jelly comes into the Arena alone with something to ward
   assert.deepEqual(aloneWave('jelly', 'spheres'), ['jelly@spheres', 'blot@spheres']);
@@ -652,7 +652,7 @@ test('batch 3: the bellows toad, the stilt heron, the skitter swarm and the root
   assert.equal(FOES.centipede.shed.kind, 'skitter', 'the centipede sheds skitters');
   // the early worlds wholly on the new roster: every kind they spawn is a built archetype's own
   for (const w of ['desert', 'arzach', 'arzach2', 'perdide']) {
-    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards, ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
+    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
     for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)].status, 'built', `${w}: ${k}`);
   }
   assert.deepEqual(aloneWave('skitter', 'desert'), Array(8).fill('skitter@desert'), 'a flock of eight');

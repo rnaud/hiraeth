@@ -42,7 +42,6 @@ namespace Hiraeth
         public Wildlife wildlife;
         public Observatory observatory;
         public DesertErrands errands;
-        public Relics relics;
         public QuestMarker marker;
         public Atmo atmo;
         public static bool playPrologue = true;

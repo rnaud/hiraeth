@@ -89,7 +89,6 @@ export const RING_CONTENT = {
     outro: 'From the tube’s crest the whole fall shows: the arch over everything, the tilted piece, the far arcs pale in the haze. The beasts graze where it landed.',
     label: 'the long tube’s crest', goal: [TUBE.M[0], 2 * TUBE.r - 2, TUBE.M[1]], radius: 6, verticalRadius: 4, manual: true,   // (no beacon: nothing to do here but look)
   },
-  relics: { spots: [], names: [] },
   // two people from elsewhere who came to see it, and the ring's own folk
   npcs: [
     { ...EDENA_PEOPLE.oro, at: [TUBE.B[0] - 14, TUBE.B[1] + 1], radius: 1.5, kind: 'm', world: 'edena', lang: 'edena',

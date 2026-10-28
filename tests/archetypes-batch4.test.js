@@ -49,7 +49,7 @@ test('batch 4: the furnace brute, the ring drone, the crucible cart and the bell
   for (const k of BATCH4) assert.ok(WAVES.some((w) => w.includes(k)), `${k}: in the Arena's old waves`);
   // Viridel wholly on the new roster; Lorn II too but for its rare shade (the batch-5 rework)
   for (const w of ['edena', 'perdide2']) {
-    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards, ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
+    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
     for (const k of kinds) if (!(w === 'perdide2' && k === 'shade')) assert.equal(ARCHETYPES[archetypeOfKind(k)].status, 'built', `${w}: ${k}`);
   }
   assert.ok(Object.keys(ROSTERS.edena.wild).includes('brute'), 'Viridel fields its pruning machines');

@@ -1,7 +1,7 @@
 import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.js';
 
 // Which foes each world holds (docs/design/enemy-roster.md, "World table"; docs/systems/foes.md, "Each world's
-// foes"): the wild packs, the relics' guards and the temple rooms draw from the world's archetypes, each in the
+// foes"): the wild packs and the temple rooms draw from the world's archetypes, each in the
 // world's skin (src/enemies/skins.js). Pure tables and picks (tests/archetypes.test.js, tests/foe-kinds.test.js).
 //
 // WORLDS[world] (the doc's table):
@@ -20,7 +20,7 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 // rosterOf(world) turns a world's table into what spawning reads, in foe kinds:
 //   wild     the pack leads and how often each comes (a weight); a pack is its lead, then fillers
 //   fill     what fills a pack round its lead (weights); first: the first pack of a visit (alone)
-//   guards   the kinds that gather round a relic; temple: the kinds in the temple rooms, room by room
+//   temple   the kinds in the temple rooms, room by room (the relics' guards went with the relics in v2.34, #732)
 
 export const WORLDS = {
   // the route
@@ -73,7 +73,7 @@ export const PLACED = {
 };
 
 /** Worlds with no table of their own (a minigame's field, a test's): ink blots. */
-export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', guards: ['blot', 'blot'], temple: ['machine'], shade: 0, stage: 1 };
+export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', temple: ['machine'], shade: 0, stage: 1 };
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2 };
@@ -110,9 +110,8 @@ export const ROSTERS = Object.fromEntries(Object.entries(WORLDS).map(([w, T]) =>
   // added a blot everywhere, so the Market's five-foe packs were a lead, a crab and three tutorial blots)
   const fill = Object.fromEntries(Object.entries(early).filter(([k]) => k !== 'shade' && !(GROUP[k] > (GROUP_COST[k] ?? GROUP[k]))));
   if (!Object.keys(fill).length) fill[lead] = 1;
-  const second = Object.entries(early).filter(([k]) => k !== lead && !GROUP[k]).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'blot';
   const late = Object.fromEntries((T.late ?? []).map((a) => [spawnKindOf(a), 2]).filter(([k]) => k));
-  return [w, { wild, fill, first: lead, guards: [lead, second], temple: T.temple ?? ['machine'], shade: 0, stage: T.stage ?? 2, late, ...(T.budget ? { budget: T.budget } : {}) }];
+  return [w, { wild, fill, first: lead, temple: T.temple ?? ['machine'], shade: 0, stage: T.stage ?? 2, late, ...(T.budget ? { budget: T.budget } : {}) }];
 }));
 
 /** A world's roster: its own, over the classic mix. */
@@ -159,12 +158,6 @@ export function packOf(n, levelId, rng = Math.random) {
     left -= costOf(k);
   }
   return out;
-}
-
-/** The kinds round a relic (as many as `size`). */
-export function guardKinds(levelId, size = 2) {
-  const g = rosterOf(levelId).guards;
-  return Array.from({ length: size }, (_, i) => g[i % g.length]);
 }
 
 /** The kind in a temple's room i (the first room past the entrance is 1). */

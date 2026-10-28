@@ -26,7 +26,6 @@ test('the world is registered off the route: in the worlds list, on the galactic
   assert.ok(meta && !meta.dev, 'a world (hidden from the route\'s list, as the White Mangrove)');
   assert.equal(meta.title, TITLES.waterfall);
   assert.ok(SIDE.includes('waterfall') && !ORDER.includes('waterfall'), 'off the route');
-  assert.equal(CONTENT.waterfall.relics.names.length, 0);
   assert.equal(CONTENT.waterfall.story.manual, true, 'no page closes by walking somewhere');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: false, side: SIDE });
   const e = entries.find((x) => x.id === 'waterfall');

@@ -252,7 +252,7 @@ export function* buildLantern(scene) {
 }
 export const createLantern = stepped(buildLantern);
 
-/** The world's content (src/levels/content.js): the page, no relics; Ilen comes with the story (src/story/lantern.js). */
+/** The world's content (src/levels/content.js): the page; Ilen comes with the story (src/story/lantern.js). */
 export const LANTERN_CONTENT = {
   weather: [],
   story: {
@@ -261,6 +261,5 @@ export const LANTERN_CONTENT = {
     outro: 'The light was an answer. Ilen heard him, thirty years late, and sent it home. Now she is coming home herself.',
     label: 'the lantern', goal: [LANTERN.x, 'ground', LANTERN.z + 5], radius: 6, manual: true,
   },
-  relics: { spots: [], names: [] },
   npcs: [],
 };

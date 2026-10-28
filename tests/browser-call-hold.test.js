@@ -16,7 +16,7 @@ function slowRecording() {
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: new THREE.Vector3(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 0 } };
-  const ship = new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } });
+  const ship = new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } });
   ship.order = ['desert', 'incal'];
   ship.player = new Player(physics);
   ship.sound = {};

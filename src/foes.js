@@ -21,7 +21,7 @@ import { gainInk, INK_OF } from './ink.js';
 import { ShadePools } from './shade.js';
 import { Footprints } from './life.js';
 import { KINDS, NOTES, kindModel } from './foe-kinds.js';
-import { guardKinds, templeKind } from './foe-worlds.js';
+import { templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
 import { TITLES } from './levels/names.js';
@@ -165,8 +165,6 @@ export const TURNS = { strikers: 2, apart: 0.3, late: { stage: 3, strikers: 3, c
 export const strikersAt = (stage = 1, gentle = false, T = TURNS) => (gentle ? 1 : stage >= T.late.stage ? T.late.strikers : T.strikers);
 /** The share of a foe's wait between strikes (its def's `cool`) in a world of `stage`, Gentle or not. */
 export const coolAt = (stage = 1, gentle = false, T = TURNS) => (!gentle && stage >= T.late.stage ? T.late.cool : 1);
-/** Relics out in the wilds are guarded (placed, not by chance): a few blots gather round as you come near; cut down, they are gone for good. */
-export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 /** A foe placed by hand (src/foe-worlds.js PLACED): it comes out as you come within `near` m, calm where it stands. */
 export const POSTS = { near: 60 };
 /** The lock-on (R3 / Tab): a foe within `reach` (the nearest in front first); lost past `lose` or when it falls. */
@@ -473,7 +471,7 @@ export class Foe {
     this.id = id; this.rng = rng;
     // out in the wilds (calm: a pack, Foes.spawnPack) a kind with a calm (def.calm) keeps to it until provoked:
     // wildlife grazes, a machine patrols, a blot lies pooled; of a hunting kind, not every one hunts (calm.hunts).
-    // Anywhere else (the Arena, a relic's guards, a temple, a test) it comes for you as it sees you.
+    // Anywhere else (the Arena, a temple, a test) it comes for you as it sees you.
     const C = this.def.calm;
     this.provoked = !(calm && C); this.wilds = calm;
     this.watcher = !this.provoked && C.hunts != null && rng() > C.hunts;
@@ -2342,12 +2340,7 @@ export class Foes {
     this.offBell = game?.on?.('bell', (e) => this.bellNote(e)) ?? null;
     // a temple's chest opened: its room's encounter (the temple's `encounter`) may wake now, placed on the next update
     this.offChest = game?.on?.('temple:gadget', ({ id } = {}) => { this.encounterFor = id; }) ?? null;
-    // the relics' guards: a relic out in the wilds (src/levels/content.js relics.spots), once per save
-    this.guards = this.peaceful || level?.foes?.waves || level?.foes?.own ? [] : (content?.relics?.spots ?? []).map((s, i) => {
-      const a = Array.isArray(s) ? s : s.at, x = a[0], z = a.length === 2 ? a[1] : a[2];
-      const y = a.length === 2 ? level?.ground?.heightAt?.(x, z) ?? 0 : a[1];
-      return { i, pos: new THREE.Vector3(x, y, z), id: `foes.${levelId}.r${i}` };
-    });
+    // (the relics' guards went with the relics in v2.34, issue #732: a save's `foes.<world>.r<i>` flags stay, unread)
     // the encounters placed by hand (src/foe-worlds.js PLACED): the Deep Wood's wood cutter (by part: a merged world
     // carries its parts', each where its part lies, its id its part's as it always was: src/levels/names.js PARTS)
     this.posts = this.peaceful || level?.foes?.waves || level?.foes?.own ? [] : partsOf(levelId).flatMap((part) => (PLACED[part] ?? []).map((p0, i) => {
@@ -2654,11 +2647,11 @@ export class Foes {
   }
 
   /**
-   * The kinds this world can field (its roster, src/foe-worlds.js: the first, the wild and the fill, the guards, the
+   * The kinds this world can field (its roster, src/foe-worlds.js: the first, the wild and the fill, the
    * temple's, a shade if it has them), each `kind@skin` as add() would skin it here; `all`: every kind (the Arena's list).
    */
   rosterKinds({ all = this.levelId === 'arena' } = {}) {
-    const R = rosterOf(this.worldHere), kinds = new Set(all ? Object.keys(FOES) : [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])]);
+    const R = rosterOf(this.worldHere), kinds = new Set(all ? Object.keys(FOES) : [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])]);
     // (from TIER_FROM's stage on, the stronger tiers too: their own bodies, #722)
     if (!all && this.stageHere >= TIER_FROM) for (const k of [...kinds]) { const a = archetypeOfKind(parseKind(k).kind); if (TIERS[a] && FOES[parseKind(k).kind] && !fightOf(a, FOES[parseKind(k).kind]).fodder) kinds.add(`${k}*`); }
     return [...kinds].filter((k) => k && FOES[parseKind(k).kind]);
@@ -2726,7 +2719,7 @@ export class Foes {
   }
   /**
    * He carries the sword (v1.44: found in the Rose House; main.js sets tool.swordOn). Unarmed, no pack comes in from
-   * the wilds, no relic's guards rise, no placed encounter wakes and the temples' machines wait: nothing he must fight
+   * the wilds, no placed encounter wakes and the temples' machines wait: nothing he must fight
    * before he has the blade. (No tool, or swordOn left unset, as in the tests: armed.)
    */
   armed() { return this.tool?.swordOn !== false; }
@@ -2874,23 +2867,6 @@ export class Foes {
       if (spots.length === kinds.length) return spots;
     }
     return null;
-  }
-
-  /** A guarded relic you come near (in the wilds, not yet cleared, its guards not out): they gather round it. */
-  updateGuards() {
-    const P = this.player;
-    if (!this.armed()) return;
-    for (const g of this.guards) {
-      if (this.game.flag(g.id) || P.pos.distanceTo(g.pos) > GUARDS.near) continue;
-      if (this.list.some((f) => f.guard === g && f.alive)) continue;
-      if (!this.wild(g.pos)) { g.tame = true; continue; }
-      const kinds = guardKinds(this.worldHere, GUARDS.size);   // (the world's own: src/foe-worlds.js)
-      for (let k = 0; k < GUARDS.size; k++) {
-        const at = this.openSpot(kinds[k], g.pos, (k / GUARDS.size) * Math.PI * 2 + 0.7, GUARDS.ring, 4, 12);
-        const f = this.add(kinds[k], at, { entrance: true });
-        f.guard = g;   // (guarding its relic: a calm kind is roused already)
-      }
-    }
   }
 
   /**
@@ -3281,7 +3257,6 @@ export class Foes {
     if (!f.def.burrow) groundStart(f.dying, f.model.group, this.physics, f.pos, f.def.radius);   // (the ground under it, as it stood: issue #304)
     if (this.hold?.f === f) this.hold = null;
     if (f.id) this.game.set(f.id, true);   // (counted at the blow: a save taken while it falls keeps it)
-    if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards: gone for good)
   }
 
   /** A centipede cut from behind sheds its tail: its last segments break off and run as skitterers (def.shed). */
@@ -3290,7 +3265,7 @@ export class Foes {
     const S = f.def.shed, sp = f.model.spine, tail = sp?.at(-1) ?? f.pos;
     for (let i = 0; i < S.n; i++) {
       const at = new THREE.Vector3(tail.x + (i - 0.5) * 0.8, f.pos.y, tail.z), x = this.add(S.kind, at);
-      x.state = 'chase'; x.cool = 0.8 + i * 0.4; x.guard = f.guard; x.placed = f.placed;
+      x.state = 'chase'; x.cool = 0.8 + i * 0.4; x.placed = f.placed;
     }
     this.animKit(f, 0, {}).spray(tail, f.model.tones ?? [INK], 10, 3, 9);
   }
@@ -3321,11 +3296,10 @@ export class Foes {
     // a glass golem breaks into its splinters, and they come on
     if (f.def.splits) for (let i = 0; i < f.def.splits.n; i++) {
       const a = (i / f.def.splits.n) * Math.PI * 2 + this.rng(), s = this.add(f.def.splits.kind, new THREE.Vector3(f.pos.x + Math.sin(a) * 0.9, f.pos.y, f.pos.z + Math.cos(a) * 0.9));
-      s.state = 'chase'; s.cool = 0.9 + i * 0.3; s.vel.set(Math.sin(a), 0, Math.cos(a)).multiplyScalar(5); s.guard = f.guard; s.placed = f.placed;
+      s.state = 'chase'; s.cool = 0.9 + i * 0.3; s.vel.set(Math.sin(a), 0, Math.cos(a)).multiplyScalar(5); s.placed = f.placed;
     }
     if (this.hold?.f === f) this.hold = null;
     if (f.id) this.game.set(f.id, true);
-    if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
     if (!this.level?.foes?.noInk) gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it; not from a game's endless waves)
     // (it lies a while after its own defeat, then goes up in a puff of smoke: src/smoke-puff.js; gone at once, the puff at once)
     f.dead = (f.dying ? SMOKE.linger : 0) + SMOKE.fade; f.puffed = false;
@@ -3362,12 +3336,11 @@ export class Foes {
       this.encounterFor = null;
       if (rt?.def?.encounter) { this.placedIn?.delete(rt); this.placeMachinesIn(rt); }
     }
-    this.updateGuards();
     this.updatePosts();
     const wild = !this.waves && !P.ride && !P.swim && this.wild(P.pos);
     this.wildFor = wild ? this.wildFor + dt : 0;
     this.packRest = Math.max(0, this.packRest - dt);
-    const blots = this.list.filter((f) => !f.placed && !f.guard && !f.post && !f.site && f.alive);   // (the wilds' own: not the temple's, not a relic's guards, not one placed by hand or at a site)
+    const blots = this.list.filter((f) => !f.placed && !f.post && !f.site && f.alive);   // (the wilds' own: not the temple's, not one placed by hand or at a site)
     if (wild && this.wildFor > PACK.settle && this.packRest === 0 && blots.length === 0 && !this.packQuiet?.(P.pos)) {
       if (this.spawnPack()) { this.packRest = (PACK.rest[0] + this.rng() * (PACK.rest[1] - PACK.rest[0])) * (this.difficulty === 'gentle' ? GENTLE.rest : 1); this.firstSeen(); }
       else this.packRest = 3;

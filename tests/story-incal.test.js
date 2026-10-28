@@ -355,9 +355,6 @@ test('the middle levels: Perrine’s halfway stall, its mirror washed and turned
   const stop = level.cabStops.find((c) => c.id === 'middle');
   assert.ok(flat2(H.frame.position, stop.step) > 60, 'away from the cab stop, where Fausta’s shop stands');
   stand(H.perrine.pos, 'Perrine, behind her counter');
-  // the awning's flat roof holds the Smog lantern (content.js keeps its place)
-  const relic = CONTENT.incal.relics.spots[2].at;
-  assert.ok(Math.hypot(relic[0] - H.awning.x, relic[2] - H.awning.z) < 0.3 && Math.abs(relic[1] - 1.1 - H.awning.y) < 0.2, 'the relic is over the awning');
   const roof = physics.groundAt(H.awning.x, H.awning.y + 1, H.awning.z, 3);
   assert.ok(Math.abs(roof - H.awning.y) < 0.05, `the awning is a roof you can stand on (${roof?.toFixed?.(2)})`);
   // Perrine asks

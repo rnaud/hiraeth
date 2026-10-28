@@ -423,17 +423,6 @@ if (desert) {
   if (errMask) places.maskEyes = { mid: V3(errMask.mid), aims: errMask.eyes.map((e) => V3(e.aim)), root: V3(errMask.root.position) };
 } else if (bike) places.bike = V3(bike.pos), places.bikeHeading = -(bike.heading ?? 0);
 places.boxes = boxes.list.map((b) => ({ id: b.id, item: b.item, pos: V3(b.pos), yaw: -b.yaw, name: b.def?.name ?? b.item, fallback: b.fallback ? 1 : 0, temple: b.place?.temple ?? null }));
-// the relics (levels/content.js, quest.js Relics): on the highest surface over each spot
-{
-  const R = content.relics;
-  places.relics = R.spots.map((s, i) => {
-    const [x, z] = Array.isArray(s) ? s : [s.at[0], s.at[2]];
-    const fixed = Array.isArray(s) ? null : s.at[1];
-    const y = fixed ?? physics.groundAt(x, 1e4, z, 2e4);
-    const gy = Number.isFinite(y) ? y : terrain.heightAt?.(x, z) ?? 0;
-    return { name: R.names[i], pos: V3(new THREE.Vector3(x, gy + (fixed !== null ? 0 : 1.1), z)) };
-  });
-}
 // the places the story names (quests.locate): where each marker stands as the world starts
 const locators = {};
 for (const [k, f] of rt.quests.locators) {

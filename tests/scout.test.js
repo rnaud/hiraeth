@@ -6,8 +6,8 @@ import { makeMaterial, markHero, keepHero, sharedUniforms } from '../src/materia
 import { readFileSync } from 'node:fs';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
-test('what the scout finds: the traveler, the climb, the lenses, the return, the story, then the ship; never a relic', () => {
-  const ctx = { player: {pos:v()}, level:{}, story:{done:false,def:{label:'Story'},goal:v(50)}, relics:{items:[{i:1,pos:v(20),done:false}]}, ship:{pos:v(90)} };
+test('what the scout finds: the traveler, the climb, the lenses, the return, the story, then the ship', () => {
+  const ctx = { player: {pos:v()}, level:{}, story:{done:false,def:{label:'Story'},goal:v(50)}, ship:{pos:v(90)} };
   ctx.expedition = {state:{started:false,done:false,returned:false},traveler:{pos:v(10)},model:{center:v(100,51),ledges:[v(126,8),v(124,16)],receivers:[{visible:true},{visible:false}],dials:[new THREE.Object3D(),new THREE.Object3D()]}};
   const goal = () => nextObjective(ctx).id;
   assert.equal(goal(),'traveler');
@@ -16,7 +16,7 @@ test('what the scout finds: the traveler, the climb, the lenses, the return, the
   ctx.player.pos.set(100,51,0); assert.equal(goal(),'lens-1');
   ctx.expedition.state.done=true; assert.equal(goal(),'traveler');
   ctx.expedition.state.returned=true; assert.equal(goal(),'story');
-  ctx.story.done=true; assert.equal(goal(),'ship','the world told: on to the ship (the relics are yours to find)');
+  ctx.story.done=true; assert.equal(goal(),'ship','the world told: on to the ship');
   ctx.player.pos.set(80,0,0); assert.equal(nextObjective(ctx),null,'at the ship already: nothing to find');
   ctx.player.pos.set(0,0,0); ctx.ship=null; assert.equal(nextObjective(ctx),null);
 });

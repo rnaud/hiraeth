@@ -4,8 +4,8 @@ const LEGACY_LAYOUT = { LIFT, HALF_W, NOSE_Z, STERN_Z, CENTRE_Z, HATCH_A, ROOF, 
 
 // Where the ship stands in each world. A level can define `shipSite`
 // ({ x, z, heading }) itself; otherwise the table below; otherwise a clear,
-// flat spot near the spawn is searched for (away from the people,
-// the relics and the story goal). `heading` is the direction the hatch and
+// flat spot near the spawn is searched for (away from the people
+// and the story goal). `heading` is the direction the hatch and
 // its ramp face (a player heading: 0 = +z, PI/2 = +x).
 //
 // Existing saves keep their original berth; fresh openings use the powered site near Qanat.
@@ -68,10 +68,6 @@ export function siteAvoid({ level, content, npcs }) {
   for (const n of npcs ?? []) if (n.pos) add(n.pos.x, n.pos.z, 12);
   const g = content?.story?.goal;
   if (g) add(g[0], g[2], (content.story.radius ?? 12) + 30);
-  for (const s of content?.relics?.spots ?? []) {
-    const p = Array.isArray(s) ? s : [s.at[0], s.at[2]];
-    add(p[0], p[1], 17);
-  }
   for (const p of level?.portals ?? []) add(p.at.x, p.at.z, 12);
   for (const v of level?.vehicles ?? []) if (v.pos) add(v.pos.x, v.pos.z, 14);
   if (level?.spawn) add(level.spawn.x, level.spawn.z, 17);

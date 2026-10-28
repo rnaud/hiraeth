@@ -62,7 +62,7 @@ function house() {
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const cam = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 500);
-  const boom = boomGadget.create({ player: P, physics, camera: cam, tool: null, sound: null, world: null, relics: null, hud: { reticle() {}, marks() {} }, sfx: { equip() {} }, fx: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
+  const boom = boomGadget.create({ player: P, physics, camera: cam, tool: null, sound: null, world: null, hud: { reticle() {}, marks() {} }, sfx: { equip() {} }, fx: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); boom.update(DT); updateHazards(DT, P); };
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);

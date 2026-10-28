@@ -38,8 +38,8 @@ function lornKinds() {
   const out = new Set();
   for (const part of ['perdide', 'perdide2']) {
     const R = rosterOf(part);
-    // (the packs', the fill's, the relics' guards and the archetypes placed by hand: the Deep Wood's wood cutter)
-    for (const k of [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.guards ?? []), ...worldArchetypes(part).map((a) => ARCHETYPES[a]?.kind ?? a)]) {
+    // (the packs', the fill's and the archetypes placed by hand: the Deep Wood's wood cutter)
+    for (const k of [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...worldArchetypes(part).map((a) => ARCHETYPES[a]?.kind ?? a)]) {
       if (!k) continue;
       const a = archetypeOfKind(k), kind = a ? ARCHETYPES[a].kind ?? k : k;
       const skin = a && ARCHETYPES[a].status === 'built' ? skinFor(a, part) : null;

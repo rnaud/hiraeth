@@ -33,7 +33,7 @@ for(const authored of [false,true])test(`real ${authored?'caravan':'fallback'} d
   const w=freshWorld();let caravan=null;
   if(authored){const b=readFileSync(new URL('../public/models/ships/caravan-a/playable.glb',import.meta.url));caravan=(await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),'')).scene;}
   game.set('prologue.done',false);game.set(CONTROLLED_LANDING_FLAG,false);
-  const ship=quiet(()=>new Ship({...w,levelId:'desert',content:{npcs:[],relics:{spots:[]}},prologue:true,caravan}));
+  const ship=quiet(()=>new Ship({...w,levelId:'desert',content:{npcs:[]},prologue:true,caravan}));
   assert.equal(game.flag(CONTROLLED_LANDING_FLAG),true);
   assert.equal(ship.crashed,false);assert.equal(ship.crashSite,undefined);
   assert.ok(ship.restPos.y>w.level.ground.heightAt(ship.site.x,ship.site.z));
@@ -78,7 +78,7 @@ test('pre-change completed saves retain their old berth; controlled saves retain
   game.set('prologue.done',true);game.set(CONTROLLED_LANDING_FLAG,false);
   for(const [flag,want] of [[false,LEGACY_DESERT_SITE],[true,SITE_OVERRIDES.desert]]){
     const w=freshWorld();game.set(CONTROLLED_LANDING_FLAG,flag);
-    const s=quiet(()=>new Ship({...w,levelId:'desert',content:{npcs:[],relics:{spots:[]}}}));
+    const s=quiet(()=>new Ship({...w,levelId:'desert',content:{npcs:[]}}));
     assert.equal(s.site.x,want.x);assert.equal(s.site.z,want.z);
     assert.equal(s.crashed,!flag);
     const spot=s.roomSpot('cabin');assert.ok(spot.pos.toArray().every(Number.isFinite));
@@ -95,7 +95,7 @@ test('new debug saves use the current berth while genuine older saves retain the
   try {
     game.data.flags = { ...flags };
     const w = freshWorld();
-    const ship = quiet(() => new Ship({ ...w, levelId: 'desert', content: { npcs: [], relics: { spots: [] } } }));
+    const ship = quiet(() => new Ship({ ...w, levelId: 'desert', content: { npcs: [] } }));
     assert.equal(ship.site.x, SITE_OVERRIDES.desert.x);
     assert.equal(ship.site.z, SITE_OVERRIDES.desert.z);
     assert.ok(w.level.spawn.distanceTo(ship.rampFoot) < 20, 'debug spawn and real ship share the new berth');

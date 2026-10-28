@@ -28,7 +28,7 @@ function flatWorld() {
   scene.add(ground);
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   return { scene, physics, level, ship };
 }
 
@@ -408,7 +408,7 @@ test('a recording: the shot pushes in on the bust while it is up', async () => {
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   const m = ship.parked;
   const proj = ship.world(m, m.interior.points.projector);
   const wide = callShot(ship, m, 0, 0), close = callShot(ship, m, 0, 1);
@@ -424,7 +424,7 @@ test('a recording at the console: the traveller faces the projector, the camera 
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   ship.player = new Player(physics);
   ship.sound = {};
   ship.rig = { yaw: 0, pitch: 0.2, indoor: false, indoorK: 0, target: v() };
@@ -498,7 +498,7 @@ test('the prologue never walks you: you stand in the bunk room for minutes, then
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } }, prologue: true }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] }, prologue: true }));
   ship.site.crash ??= { travel: 0, length: 60 };
   ship.player = new Player(physics);
   ship.sound = {};   // silent (no audio context in node)
@@ -567,7 +567,7 @@ test('a recording cuts between angles at its lines, its words and timing untouch
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   const m = ship.parked;
   const head = ship.world(m, m.interior.points.cockpit).add(v(0, 1.55, 0));
   const face = ship.world(m, m.interior.points.projector).add(v(0, 0.5, 0));
@@ -590,7 +590,7 @@ test('a recording never jump-cuts between the push-in and the window angle: the 
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
-  const ship = quiet(() => new Ship({ scene, physics: new Physics(scene), level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics: new Physics(scene), level, levelId: 'test', content: { npcs: [] } }));
   const m = ship.parked;
   const ctx = { flag: () => undefined, completed: ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'perdide', 'edena', 'spheres', 'glassdunes', 'bazaar'], lastWorld: 'bazaar' };
   let eased = 0;
@@ -649,7 +649,7 @@ test('the autopilot gives up after its 30 s of the game\'s time at any frame rat
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(800, 800).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
   const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [] } }));
   ship.player = new Player(physics);
   ship.player.pos.set(0, 0, 60);
   ship.rig = { yaw: 0, pitch: 0.2 };
