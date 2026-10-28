@@ -621,6 +621,10 @@ namespace Hiraeth.Bridge
             // -no-plain off)
             if (BridgeArgs.Flag("-plain")) BridgeRenderer.plain = true;
             if (BridgeArgs.Flag("-no-plain")) BridgeRenderer.plain = false;
+            // (-walls / -no-walls: the lean variant with only the older wall marks and paving, HIRAETH_WALLS, issue #727)
+            if (BridgeArgs.Flag("-walls")) BridgeRenderer.walls = true;
+            if (BridgeArgs.Flag("-no-walls")) BridgeRenderer.walls = false;
+            BridgeRenderer.wallsCensus = BridgeArgs.Flag("-walls-census");
             // (the slim lean variants: on Android, -slim elsewhere, -no-slim off; round 7 of #262)
             if (BridgeArgs.Flag("-slim")) BridgeRenderer.slim = true;
             if (BridgeArgs.Flag("-no-slim")) BridgeRenderer.slim = false;
@@ -671,6 +675,7 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-shadow-near-every") is string ne && int.TryParse(ne, out int nev)) Quality.nearEvery = Mathf.Max(1, nev);
             if (BridgeArgs.Arg("-shadow-far-every") is string fe && int.TryParse(fe, out int fev)) Quality.farEvery = Mathf.Max(1, fev);
             if (BridgeArgs.Arg("-shadow-near-size") is string nz && int.TryParse(nz, out int nzv)) Quality.nearSize = Mathf.Clamp(nzv, 256, 8192);
+            if (BridgeArgs.Arg("-shadow-far-size") is string fz && int.TryParse(fz, out int fzv)) Quality.farSize = Mathf.Clamp(fzv, 256, 8192);
             if (BridgeArgs.Flag("-no-fine-shadows")) Quality.fineSize = 0;
             if (BridgeArgs.Flag("-fine-shadows")) Quality.fineSize = 2048;
             if (BridgeArgs.Arg("-shadow-min-far") is string smf && float.TryParse(smf, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float smfv)) HiraethShadows.minFarCasterTexels = smfv;

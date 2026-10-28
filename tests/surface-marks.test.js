@@ -168,5 +168,5 @@ test('issue #686: Lorn\'s crystals take it, and the port draws it (the uv in the
   const loader = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs', import.meta.url), 'utf8');
   assert.ok(loader.includes('("facetMarks", "_FacetMarks", Vector4.zero)'));
   const bridge = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs', import.meta.url), 'utf8');
-  assert.equal((bridge.match(/V\(m, "_FacetMarks"\)\.w <= 0f/g) ?? []).length, 2, 'off the plain variant and the slim one');
+  assert.equal((bridge.match(/V\(m, "_FacetMarks"\)\.w <= 0f/g) ?? []).length, 3, 'off the plain variant, the walls one (issue #727) and the slim one');
 });

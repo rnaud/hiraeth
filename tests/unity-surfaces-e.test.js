@@ -83,7 +83,10 @@ test('a landmark\'s shell: its centre crosses, the web\'s sutures and chambers, 
     'max(shellSeam,shellChamber*.48)*smoothstep(.04,.09,shellR)', 'albedo=uColor*(1.0-shellInk*.17)', 'float detail = shellInk*.13;']) assert.ok(web.includes(k), k);
   for (const k of ['(i.worldPos.xy - _ShellCenter.xy) / float2(20.0, 25.0)', 'shellTurn = (shellA + 4.5 * log(max(shellR, 0.045))) / 6.283185', 'shellCell = (shellA + shellR * 0.8) * 24.0 / 6.283185',
     'max(shellSeam, shellChamber * 0.48) * smoothstep(0.04, 0.09, shellR)', 'albedo *= 1.0 - shellInk * 0.17;', 'float detail = max(max(skinInk, shellInk * 0.13), stoneInk);']) assert.ok(SURFACE.includes(k), k);
-  assert.match(SURFACE, /UNITY_BRANCH if \(WALLK && _ShellCenter\.w > 0\.5\)/);
+  // (MARKSK: WALLK, but false in HIRAETH_WALLS too, which a shell's material never gets: issue #727)
+  assert.match(SURFACE, /UNITY_BRANCH if \(MARKSK && _ShellCenter\.w > 0\.5[ &(skip8192)=0]*\)/);
+  assert.match(SURFACE, /#define MARKSK WALLK/);
+  assert.match(RENDERER, /bool wallsOk = [^;]*&& V\(m, "_ShellCenter"\)\.w <= 0\.5f/, 'never HIRAETH_WALLS either');
   assert.match(RENDERER, /&& V\(m, "_ShellCenter"\)\.w <= 0\.5f\b/, 'never HIRAETH_PLAIN, which has no wall marks');
 });
 

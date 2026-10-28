@@ -75,7 +75,7 @@ test('the slim lean variants are built into Android\'s players only, and given o
   // (round 7 on the Retroid: slim on the instances' and the grass's copies faults the Adreno; slim with HIRAETH_PLAIN stalls ~330 ms again and again)
   assert.match(r, /var c = new Material\(m\); if \(slimNoCopies\) Unslim\(c\);/);
   assert.match(r, /slimNoCopies = true/);
-  assert.match(r, /slim && \(!plainOk \|\| slimOnPlain\) && Slim\(m, mode\)/);
+  assert.match(r, /slim && \(!plainOk \|\| slimOnPlain\) && !wallsOk && Slim\(m, mode\)/);
   const s = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader');
   // (every read and write of the three goes through the macros, which the slim variants point elsewhere)
   assert.doesNotMatch(s, /\b[io]\.(bind|fold|form)\b(?!\s*$)/m, 'o.bind / i.form…: through O_BIND / I_FORM…');

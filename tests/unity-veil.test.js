@@ -84,9 +84,10 @@ test('the mirror draws the washes from the veils\' scene hung in the world, with
 test('the Unity side: the cut in the full Surface variant (veiled materials take it) and out of the depth prepass, the wash shader included, the bridge\'s material and live alpha', () => {
   const surface = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader');
   assert.match(surface, /float _Veil;/, 'in UnityPerMaterial');
-  assert.match(surface, /UNITY_BRANCH if \(LEANK && _Veil > 0\.0 && _MSurfaceDebug < 3\.5 && abs\(dot\(normalize\(i\.normal\), normalize\(toThree\(_WorldSpaceCameraPos\) - i\.worldPos\)\)\) > _Veil\) discard;/, 'the web\'s S_VEIL cut, out of the lean variants (a discard there costs every lean surface its early depth test)');
-  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /F\(m, "_Veil"\) > 0 \? "veil"/, 'a veiled material on the full variant, as the glass');
-  assert.match(surface, /fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0[^{}]*\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0[^)]*\)\)[^{}]*\) discard; \}/, 'no depth of a veil in the prepass (veiled materials are on the full variant)');
+  // (GLASSK: the full variant or the glass's lean one, where a veil alone is drawn since issue #727; never the other lean ones)
+  assert.match(surface, /UNITY_BRANCH if \(GLASSK && _Veil > 0\.0 && _MSurfaceDebug < 3\.5 && abs\(dot\(normalize\(i\.normal\), normalize\(toThree\(_WorldSpaceCameraPos\) - i\.worldPos\)\)\) > _Veil\) discard;/, 'the web\'s S_VEIL cut, out of the other lean variants (a discard there costs every lean surface its early depth test)');
+  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /F\(m, "_Veil"\) > 0 \? "veil"/, 'a veiled material off the plain lean variants, as the glass (on the glass\'s lean one when it is the only rare path)');
+  assert.match(surface, /fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| _Veil > 0\.0[^{}]*\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0[^)]*\)\)[^{}]*\) discard; \}/, 'no depth of a veil in the prepass (veiled materials are on the full variant or the glass\'s lean one)');
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs'), /\("veil", "_Veil"\)/);
   const veil = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader');
   assert.match(veil, /Shader "Hiraeth\/Veil"/);

@@ -16,6 +16,7 @@ const loader = read('Assets/Hiraeth/Runtime/WorldLoader.cs');
 const strip = read('Assets/HiraethJS/Editor/BridgeShaderStrip.cs');
 
 const LEANS = ['HIRAETH_LEAN', 'HIRAETH_LEAN_TERRAIN', 'HIRAETH_LEAN_WATER', 'HIRAETH_LEAN_SLIM', 'HIRAETH_LEAN_SCRUB', 'HIRAETH_LEAN_GLASS'];
+const FRAG = ['HIRAETH_PLAIN', 'HIRAETH_WALLS', 'HIRAETH_BARE'];   // (the fragment-only axis: issue #262's plain, #727's walls and bare)
 const GROUP = ['HIRAETH_CROWD', 'HIRAETH_PUFFS', 'HIRAETH_INSTMAT', 'HIRAETH_GRASS', 'HIRAETH_FLORA', 'HIRAETH_VMAT', 'HIRAETH_SKIN'];
 
 function csFiles(dir, out = []) {
@@ -44,9 +45,9 @@ const matches = (set, rule) => {
 test('the shader\'s keyword sets are the ones the rules are written for', () => {
   assert.match(shader, new RegExp(`#pragma multi_compile_local _ ${GROUP.join(' ')}\\n`));
   assert.match(shader, new RegExp(`#pragma multi_compile_local _ ${LEANS.join(' ')}\\n`));
-  assert.match(shader, /#pragma multi_compile_local_fragment _ HIRAETH_PLAIN\n/);
-  assert.equal(rules.length, 3);
-  for (const r of rules) for (const t of r) assert.ok([...LEANS, ...GROUP, 'HIRAETH_PLAIN'].includes(t.slice(1)) && '+?-'.includes(t[0]), t);
+  assert.match(shader, new RegExp(`#pragma multi_compile_local_fragment _ ${FRAG.join(' ')}\\n`));
+  assert.equal(rules.length, 5);
+  for (const r of rules) for (const t of r) assert.ok([...LEANS, ...GROUP, ...FRAG].includes(t.slice(1)) && '+?-'.includes(t[0]), t);
   // (Android only, and a switch to keep them for a test build)
   assert.match(strip, /bool android = EditorUserBuildSettings\.activeBuildTarget == BuildTarget\.Android && !BridgeArgs\.Flag\("-keep-unasked"\);/);
   assert.match(strip, /if \(android\) \{ bool never = false; foreach \(var r in NeverOnAndroid\) never \|= Matches\(shader, fk, r\); if \(never\) \{ data\.RemoveAt\(i\); continue; \} \}/);
@@ -58,7 +59,7 @@ test('only Lean gives the lean and plain keywords, and only WorldLoader.MakeMate
     for (const m of s.matchAll(/EnableKeyword\(([^)]*)\)/g)) {
       const arg = m[1].trim();
       const k = arg.replace(/"/g, '');
-      if (LEANS.includes(k) || k === 'HIRAETH_PLAIN') {
+      if (LEANS.includes(k) || FRAG.includes(k)) {
         assert.ok(p.endsWith('BridgeRenderer.cs'), `${k} in ${p}`);
         const at = s.indexOf(m[0], m.index);
         const inLean = leanBody.includes(m[0]);
@@ -87,10 +88,13 @@ function leanOutcomes() {
   assert.match(leanBody, /string kw = why != null \? null : mode == 1 \? "HIRAETH_LEAN_TERRAIN" : mode == 3 \? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";/);
   assert.match(leanBody, /kw = why == "scrub" \? \(leanScrub \? "HIRAETH_LEAN_SCRUB" : null\) : \(leanGlass \? "HIRAETH_LEAN_GLASS" : null\);/);
   assert.match(leanBody, /bool plainOk = kw != null && plain && /);
-  assert.match(leanBody, /if \(kw == "HIRAETH_LEAN" && slim && \(!plainOk \|\| slimOnPlain\) && Slim\(m, mode\)\) kw = "HIRAETH_LEAN_SLIM";/);
+  assert.match(leanBody, /bool bareOk = plainOk && walls && kw == "HIRAETH_LEAN" && fewOk;/);
+  assert.match(leanBody, /bool wallsOk = kw == "HIRAETH_LEAN" && !plainOk && walls && fewOk && /);
+  assert.match(leanBody, /if \(kw == "HIRAETH_LEAN" && slim && \(!plainOk \|\| slimOnPlain\) && !wallsOk && Slim\(m, mode\)\) kw = "HIRAETH_LEAN_SLIM";/);
+  assert.match(leanBody, /if \(bareOk\)\n\s+\{\n\s+m\.EnableKeyword\("HIRAETH_BARE"\);[^}]*\}\n\s+else if \(plainOk\)\n\s+\{\n\s+m\.EnableKeyword\("HIRAETH_PLAIN"\);[^}]*\}\n\s+else if \(wallsOk\)\n\s+\{\n\s+m\.EnableKeyword\("HIRAETH_WALLS"\);/);
   assert.match(leanBody, /if \(kw != null\) \{ m\.EnableKeyword\(kw\);/);
   assert.match(leanBody, /if \(plainOk\)\n\s+\{\n\s+m\.EnableKeyword\("HIRAETH_PLAIN"\);/);
-  assert.equal((leanBody.match(/EnableKeyword/g) ?? []).length, 2);
+  assert.equal((leanBody.match(/EnableKeyword/g) ?? []).length, 4);
   assert.match(renderer, /public static string\[\] slimNot; public static bool slimNoCopies = true, slimOnPlain;/);   // (off unless -slim-on-plain)
   const out = new Set();
   const add = (kws) => out.add(JSON.stringify(kws.filter(Boolean).sort()));
@@ -98,22 +102,27 @@ function leanOutcomes() {
   for (const why of [null, 'rare', 'scrub', 'glass'])
     for (const mode of [0, 1, 3])
       for (const leanRare of [false, true]) for (const one of [false, true]) for (const on of [false, true])
-        for (const plainFits of [false, true]) for (const slim of [false, true]) for (const slimFits of [false, true]) for (const copy of [false, true]) {
+        for (const plainFits of [false, true]) for (const slim of [false, true]) for (const slimFits of [false, true]) for (const copy of [false, true])
+        for (const walls of [false, true]) for (const fewFits of [false, true]) for (const marksFit of [false, true]) {
           let kw = why != null ? null : mode === 1 ? 'HIRAETH_LEAN_TERRAIN' : mode === 3 ? 'HIRAETH_LEAN_WATER' : 'HIRAETH_LEAN';
           if (leanRare && (why === 'scrub' || why === 'glass') && mode !== 1 && mode !== 3 && one) kw = on ? (why === 'scrub' ? 'HIRAETH_LEAN_SCRUB' : 'HIRAETH_LEAN_GLASS') : null;
           const plainOk = kw != null && plainFits;
           const slimOnPlain = false;
-          if (kw === 'HIRAETH_LEAN' && slim && (!plainOk || slimOnPlain) && slimFits) kw = 'HIRAETH_LEAN_SLIM';
+          const bareOk = plainOk && walls && kw === 'HIRAETH_LEAN' && fewFits;
+          const wallsOk = kw === 'HIRAETH_LEAN' && !plainOk && walls && fewFits && marksFit;
+          if (kw === 'HIRAETH_LEAN' && slim && (!plainOk || slimOnPlain) && !wallsOk && slimFits) kw = 'HIRAETH_LEAN_SLIM';
           if (copy && kw === 'HIRAETH_LEAN_SLIM') kw = 'HIRAETH_LEAN';
-          add([kw, plainOk && 'HIRAETH_PLAIN']);
+          add([kw, bareOk ? 'HIRAETH_BARE' : plainOk ? 'HIRAETH_PLAIN' : wallsOk && 'HIRAETH_WALLS']);
         }
   return [...out].map((s) => JSON.parse(s));
 }
 
 test('no rule leaves out a combination Lean can ask for on Android', () => {
   const outcomes = leanOutcomes();
-  // (what can be asked for: every lean keyword, alone or plain, but the slim one never plain, and plain never alone)
-  assert.equal(outcomes.length, 7 + 5);
+  // (what can be asked for: every lean keyword, alone or plain, but the slim one never plain, and plain never alone; the plain
+  // lean one also bare or walls, issue #727)
+  assert.equal(outcomes.length, 7 + 5 + 2);
+  for (const k of ['HIRAETH_BARE', 'HIRAETH_WALLS']) assert.deepEqual(outcomes.filter((o) => o.includes(k)), [['HIRAETH_LEAN', k].sort()]);
   const requested = [];
   for (const g of [null, ...GROUP]) for (const o of outcomes) {
     if (g === 'HIRAETH_SKIN' && o.length) continue;   // (a skin: Lean returns before any keyword)
@@ -122,15 +131,15 @@ test('no rule leaves out a combination Lean can ask for on Android', () => {
   for (const set of requested) for (const r of rules) assert.ok(!matches(set, r), `${[...set].join(' ')} matches ${r.join(' ')}`);
 });
 
-test('the rules leave out 54 of the G-buffer pass\'s Vulkan variants', () => {
+test('the rules leave out 250 of the G-buffer pass\'s Vulkan variants', () => {
   let dropped = 0, all = 0;
-  for (const g of [null, ...GROUP]) for (const l of [null, ...LEANS]) for (const p of [null, 'HIRAETH_PLAIN']) {
+  for (const g of [null, ...GROUP]) for (const l of [null, ...LEANS]) for (const p of [null, ...FRAG]) {
     const set = new Set([g, l, p].filter(Boolean));
     all++;
     if (rules.some((r) => matches(set, r))) dropped++;
   }
-  assert.equal(all, 112);
-  assert.equal(dropped * 2, 54);   // (× 2: with and without HIRAETH_PREPASS; the foes' variants were left out already)
+  assert.equal(all, 224);
+  assert.equal(dropped * 2, 250);   // (54 of 224 before issue #727's walls and bare: 28 programs more kept)   // (× 2: with and without HIRAETH_PREPASS; the foes' variants were left out already)
 });
 
 test('Android is Vulkan only', () => {

@@ -18,7 +18,7 @@ const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 const SURFACE = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader');
 const RENDERER = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), LOADER = read('unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs');
 const port = (m) => portMaterial(inkSpec(m), 1);
-const branch = SURFACE.slice(SURFACE.indexOf('UNITY_BRANCH if (WALLK && _Stone.w > 0.5)'), SURFACE.indexOf('stoneInk = stoneJoints'));
+const branch = SURFACE.slice(SURFACE.indexOf('UNITY_BRANCH if (MARKSK && _Stone.w > 0.5'), SURFACE.indexOf('stoneInk = stoneJoints'));
 
 test('a landmark\'s stone: its course, width and wear cross, w 1 on; nothing on another surface', () => {
   assert.deepEqual(port(stone('#ef5845', { course: 5.5, width: 10, wear: 0.65 })).stone, [5.5, 10, 0.65, 1]);
@@ -53,7 +53,9 @@ test('the stone in Unity: the web\'s own arithmetic, term by term', () => {
 });
 
 test('the stone: a uniform branch, no discard, kept off the plain variant (no new variant)', () => {
-  assert.match(SURFACE, /UNITY_BRANCH if \(WALLK && _Stone\.w > 0\.5\)/);
+  // (MARKSK: WALLK, but false in HIRAETH_WALLS too, which a cut stone's material never gets: issue #727)
+  assert.match(SURFACE, /UNITY_BRANCH if \(MARKSK && _Stone\.w > 0\.5[ &(skip8192)=0]*\)/);
+  assert.match(RENDERER, /bool wallsOk = [^;]*&& V\(m, "_Stone"\)\.w <= 0\.5f/, 'never HIRAETH_WALLS either');
   assert.doesNotMatch(branch, /discard|clip\(/);
   assert.match(RENDERER, /&& V\(m, "_Stone"\)\.w <= 0\.5f\s/, 'never HIRAETH_PLAIN, which has no wall marks');
   assert.match(SURFACE, /_Stone \("A temple landmark's cut stone/);
