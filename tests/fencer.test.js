@@ -87,7 +87,9 @@ test('hide behind your guard in its reach and it bashes it aside; a perfect parr
   assert.ok(P.hurts >= 1 && P.staggers >= 1, 'a plain block is knocked aside: staggered and hurt');
   done();
   const B = duel({ guardUp: true });
-  for (let i = 0; i < 180 && !(B.f.state === 'wind' && B.f.atk.id === 'bash'); i++) B.foes.update(DT);
+  // it may leap or close in first (it varies its moves): wait, as above, for the bash itself
+  for (let i = 0; i < 300 && !(B.f.state === 'wind' && B.f.atk.id === 'bash'); i++) B.foes.update(DT);
+  assert.ok(B.f.state === 'wind' && B.f.atk.id === 'bash', 'it bashes a turtle');
   B.P.parry = true;
   for (let i = 0; i < 90 && B.f.state !== 'recover'; i++) B.foes.update(DT);
   assert.equal(B.P.hurts, 0, 'parried: no harm');
