@@ -214,7 +214,7 @@ export const LOCALS = [
           do: { start: 'arzach.hand' },
           choices: [{ text: '~curious~ With the fluid?', goto: 'fluid' }, { text: '~curious~ What happens when it rings?', goto: 'gives' }],
         },
-        fluid: { say: ["~playful~ (He points at *the tank on your back*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
+        fluid: { say: ["~playful~ (He points at *the battery at your hip*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
         gives: { say: ["~solemn~ (He closes his fist around nothing, then opens it as though offering a gift.)", '~solemn~ Gives.'], choices: [{ text: '~neutral~ I’ll try.', end: true }] },
         again: {
           say: ["~tired~ (Kesh repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.', '~playful~ (He taps one knuckle once, the next twice, and points up at the dots cut in the stone ones.)'],

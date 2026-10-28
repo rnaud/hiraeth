@@ -2031,7 +2031,7 @@ ${SHADOW_GLSL}
   // glass (six samples, no texture, no extra target): each depth's clouds turned a little behind the one over it, so
   // it has depth as the view moves. Smooth colour, no flat steps: the glass is inked by its outline only.
   uniform vec4 uFluidDome;   // the dome: the centre of its flat face (object space) · its radius (0: none)
-  uniform float uFluidDomeK; // how far it stands out of its ring (-z), in its radius
+  uniform float uFluidDomeK; // how far it stands out of its ring (-z), in its radius; under 0: the makers' battery (batteryFluid)
   uniform mat4 modelMatrix;  // (object space for the march; three.js sets it for every program)
   /** The clouds' density at q (the dome's unit space: its flat face's centre at 0, |q| <= 1, z <= 0); core the
    *  bright heart's, tint how far a cloud leans from jade toward cyan. */
@@ -2141,6 +2141,29 @@ ${SHADOW_GLSL}
     }
     return fluidTone(pick);
   }
+  // The makers' battery (kind 0 with uFluidDomeK < 0: fluid-tool.js buildFlask; references/Core Objects/Makers Battery):
+  // an upright glass cylinder (uFluidBox: the glass's bottom, the fluid's full height, its radius, the streak's angle)
+  // in flat print tones, as the reference draws it: the lavender fluid (uFluidBase) standing to the bar's level (fillY,
+  // sloshing), a paler line at its surface and a few slow blobs of the blend's tones in it (the colour bands magical
+  // water adds), the turquoise glass over it, a pale streak down the glass facing out and a pale edge where it turns
+  // away; brighter with the glow (the bar, the bellows' stage), flashing as it fires. Inked by its outline only.
+  vec3 batteryFluid(float t, int n, float a, float h, float fillY) {
+    float y = vBind.y, wet = step(y, fillY);
+    vec3 lav = uFluidBase * (0.86 + 0.3 * uGlow);
+    vec3 col = mix(lav, fluidLava(a, h, 0.5, t, n, false), 0.16);
+    col = mix(col, mix(lav, vec3(1.0), 0.45), smoothstep(fillY - 0.012, fillY - 0.003, y));
+    vec3 glass = vec3(0.3, 0.74, 0.68) * (0.9 + 0.25 * uGlow);
+    col = mix(glass, col, wet);
+    vec3 V = normalize(cameraPosition - vWorldPos);
+    float fr = 1.0 - abs(dot(normalize(vNormal), V));
+    col = mix(col, glass, 0.4 * wet * smoothstep(0.45, 0.9, fr));   // (the turquoise glass round the fluid, where it turns away)
+    col = mix(col, vec3(0.72, 0.93, 0.88), 0.5 * smoothstep(0.72, 0.96, fr));
+    float da = abs(mod(a - uFluidBox.w + 3.14159, 6.28318) - 3.14159);
+    float H = uFluidBox.y - uFluidBox.x;
+    col = mix(col, vec3(0.98, 0.97, 0.88), 0.85 * step(da, 0.09) * step(uFluidBox.x + 0.12 * H, y) * step(y, uFluidBox.y - 0.1 * H));
+    col = mix(col, vec3(0.98, 0.97, 0.88), 0.6 * step(abs(da - 0.2), 0.025) * step(uFluidBox.x + 0.45 * H, y) * step(y, uFluidBox.y - 0.18 * H));
+    return mix(col, vec3(1.0), uFluidB.x * 0.45);
+  }
   // The fluid sword (kind 6, src/fluid-sword.js): its living blade (blade-shader.js; aFold: x across, y along)
   ${BLADE_FLUID_GLSL}
   vec3 fluidAlbedo(vec3 base) {
@@ -2194,6 +2217,7 @@ ${SHADOW_GLSL}
     float fill = uFluidA.x;
     float surf = max(fill, 0.07) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
     float w = uFluidB.y, seen;
+    if (uFluidDomeK < 0.0) return batteryFluid(t, n, a, h, uFluidBox.x + surf * H);   // the makers' battery (issue #728)
     vec3 col = flaskNebula(t, n, uFluidBox.x + surf * H, 0.72 + 0.4 * uGlow, w, seen);
     // the glass: a pale edge where it turns from the eye, glowing a little in the fluid's cyan; a window's
     // highlight up on its shoulder and a smaller one under it

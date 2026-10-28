@@ -52,7 +52,7 @@ export const UI_KEYS = { aim: 'KeyR' };
 const HOLD = [
   { kind: 'thing', name: 'A blue stone', level: 'desert', text: 'Warm when you hold it, as if it had been in someone’s pocket.' },
   { kind: 'song', name: 'The ferryman’s tune', level: 'arzach', text: 'Four notes, the last one held.' },
-  { kind: 'item', name: 'Backpack', text: 'Carries the fluid tool and whatever you find.' },
+  { kind: 'item', name: 'Makers’ battery', text: 'Holds the fluid for the glove, the wings and the vehicles.' },
 ];
 /** The stamina wheel's poses: [stamina, winded]. */
 export const STAMINA_POSE = { staminafull: [0.994, false], staminapart: [0.6, false], staminalow: [0.2, false], staminawinded: [0.3, true] };

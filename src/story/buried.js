@@ -468,7 +468,7 @@ export function setupBuried(ctx) {
     if (inLight && !st.amberIn) {
       const addColour = !game.flag('buried.tank.amber');
       game.emit('tool:refill', { addColour, tone: AMBER });
-      if (addColour) { game.set('buried.tank.amber', true); toast('The oil-light pours into your tank. The tank takes an amber band.'); }
+      if (addColour) { game.set('buried.tank.amber', true); toast('The oil-light pours into your battery. Its glass takes an amber band.'); }
     }
     st.amberIn = inLight;
 

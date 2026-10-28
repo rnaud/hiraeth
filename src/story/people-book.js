@@ -82,7 +82,7 @@ export const BOOK = {
   desert: [
     P('marrow', 'Marrow', 'A salvager who sells rumours by the camps', [
       'A salvager, and by his own account a liar. He was going over your grounded ship when you met, and saw the mark burned into its hull: an open corner beside a shorter upright.',
-      [f('desert.bike.found'), 'He gave you the hoverbike he had hidden under a tarp. It would not run for him; it needed a full tank.'],
+      [f('desert.bike.found'), 'He gave you the hoverbike he had hidden under a tarp. It would not run for him; it needed a full battery.'],
       [f('desert.marrow.hull'), 'Since your landing he checks every wreck for the mark. Most ships that come down just come down. Yours did not.'],
     ], [
       [f('desert.marrow.bike'), 'At the pilgrims’ camps, claiming the bike’s success from a safe distance.'],
@@ -183,7 +183,7 @@ export const BOOK = {
       'He plays a ney cut from an oasis reed. He saw the burn on your ship: an open corner beside a shorter upright, like the mark between the giant’s eyes.',
     ], ['With the musicians at the camps.']),
     P('haddu', 'Haddu', 'Weighs chimes and sells cures by the main gate', [
-      'Haddu has kept his shop between the camps and Qanat’s main gate for forty Drinkings. He weighs every chime, those little floating crystals, on his little scale and sells what the walk takes out of people: healing potions, a few hearts’ worth of courage, more room in your tank.',
+      'Haddu has kept his shop between the camps and Qanat’s main gate for forty Drinkings. He weighs every chime, those little floating crystals, on his little scale and sells what the walk takes out of people: healing potions, a few hearts’ worth of courage, more room in your battery.',
       [f('desert.haddu.hearts'), 'His heart containers come up the salt road from past the flats. He only ever gets a couple, and each one costs more than the last.'],
     ], ['In his shop by Qanat’s main gate, behind the counter.']),
     // the scientist (src/story/scientist-data.js): met at the first fragment of the singing light, wherever it is found, and
@@ -193,7 +193,7 @@ export const BOOK = {
       [f('item.lightheart'), 'For five fragments he stitched light into your coat over your heart: one more heart, for good.'],
       [f('item.finder'), 'For three he sold you his finder, a brass box that beeps as a fragment comes near.'],
       [f('item.lightedge'), 'For seven he tempered your blade with them.'],
-      [f('item.lightcell'), 'For ten he made your tank a chamber of them.'],
+      [f('item.lightcell'), 'For ten he made your battery a chamber of them.'],
       [f('item.lightwing'), 'For eighteen he threaded light through your wings.'],
       [f('item.lightstep'), 'For twenty-three he set them in your boot heels.'],
       [f('item.lightguard'), 'For thirty he ringed your guard.'],
@@ -267,7 +267,7 @@ export const BOOK = {
       'For thirty years he has oiled the yoke of a bell that does not ring, every morning, so it is ready when its day comes.',
       [f('arzach2.calix.asked'), 'The bell lost its clapper when the cloud rose; it fell up onto the floating island, with tiles and a goat.'],
       [f('arzach2.rumour.light'), 'His order calls the mark on the bell the Three Notes. The night the singing light passed, the bell hummed without its clapper.'],
-      [f('arzach2.bell.note'), 'You brought the clapper back and rang it. The bell’s note stayed in your tank.'],
+      [f('arzach2.bell.note'), 'You brought the clapper back and rang it. The bell’s note stayed in your battery.'],
     ], [
       [done('arzach2.bell'), 'At the white monastery on the rose cliff. He rings the bell at dawn and dusk.'],
       'At the white monastery on the rose cliff.',
@@ -323,7 +323,7 @@ export const BOOK = {
       [f('perdide.ivo.told'), 'Ivo gave you a jar of fireflies.'],
     ], ['On the cave island, watching the water.']),
     P('nettle', 'Nettle', 'Keeps a shop on a raft in the reeds', [
-      'Nettle keeps a floating shop moored in the reeds near the landing. She sells cures for the bites, a heart, a little more room in your tank, and keeps her accounts as knots on the cords at her belt.',
+      'Nettle keeps a floating shop moored in the reeds near the landing. She sells cures for the bites, a heart, a little more room in your battery, and keeps her accounts as knots on the cords at her belt.',
       [f('perdide.nettle.hush'), 'The Hush is painted on her door, three drops over a closed mouth, so the snappers leave her be.'],
     ], ['On her float in the reeds, behind the plank counter.']),
   ],
@@ -480,7 +480,7 @@ export const BOOK = {
       'Public cab nine-nine-one. Wren’s first fare was a mother going to a doctor at night; the palace’s update never arrived, so Wren still stops at the bottom’s call-lamp.',
     ], ['Round the City-Shaft, coming back to the call-lamp at the bottom.']),
     P('fausta', 'Fausta', 'Sells to every level by a basket on a rope', [
-      'Fausta keeps a narrow shop on the middle terraces by the cab stop. She sells cures, hearts and more room in your tank to every level of the shaft, by a basket on a rope over the void.',
+      'Fausta keeps a narrow shop on the middle terraces by the cab stop. She sells cures, hearts and more room in your battery to every level of the shaft, by a basket on a rope over the void.',
       [f('incal.fausta.basket'), 'Rim prices on the way up, bottom prices on the way down: the same cure. Nobody has ever compared baskets.'],
     ], ['In her basket-shop on the middle terraces.']),
     P('basile', 'Basile', 'Carries Fausta’s baskets', [
@@ -568,7 +568,7 @@ export const BOOK = {
       [f('world.buried.done'), 'The wheel turned: Jot is ten teeth old now.'],
     ], ['Among the domes in the sand.']),
     P('mott', 'Mott', 'Keeps the Tooth-Counter among the domes', [
-      'Mott keeps a small dome-shop among the domes and counts on an abacus of gear teeth: cures, hearts, more room in your tank.',
+      'Mott keeps a small dome-shop among the domes and counts on an abacus of gear teeth: cures, hearts, more room in your battery.',
       [f('buried.mott.teeth'), 'She dates every sale by the great wheel’s tooth, as her mother and grandmother did. This is tooth nine hundred and twelve.'],
     ], ['At the Tooth-Counter, her dome among the domes.']),
   ],
@@ -657,7 +657,7 @@ export const BOOK = {
     ], ['Along the market’s avenue.']),
     P('oyo', 'Oyo', 'Sells lanterns', [
       'Every lantern on Oyo’s stall holds a little sun. The night the light passed they all went out, then relit in a colour he had never stocked.',
-      [f('bazaar.tank.lantern'), 'He kept one under the stall, and poured its light into your tank.'],
+      [f('bazaar.tank.lantern'), 'He kept one under the stall, and poured its light into your battery.'],
     ], ['At his lantern stall in the market.']),
     P('doss', 'Doss', 'Welcomes everyone to the market', [
       'Doss welcomes everyone to the Signal Market; it is the job.',
@@ -742,7 +742,7 @@ export const GIFTS = {
   wen: [[done('buried.tooth'), 'You brought the year’s tooth sliver; Wen said to keep it.']],
   dun: [[done('buried.key'), 'You brought back the chimney key.']],
   kip: [[f('bazaar.kip.gave'), 'Kip gave you the tower’s last recording.']],
-  oyo: [[f('bazaar.tank.lantern'), 'He poured his last lantern into your tank.']],
+  oyo: [[f('bazaar.tank.lantern'), 'He poured his last lantern into your battery.']],
   tansy: [[f('fellow.end', 'home'), 'She gave you her compass.'], [f('fellow.end', 'on'), 'She gave you a letter to carry to her aunt.']],
 };
 

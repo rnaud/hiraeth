@@ -73,7 +73,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     use: () => {
       dialogue.start(THINGS.weight, null, H.ball.position.clone());
       if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. The Givers’ chest off this hall holds their gun.'), 0), 600);
-      else if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it at the giant’s pool, past Qanat’s back gate.'), 0), 600);
+      else if (!hasPush()) setTimeout(() => hint(quietOr('Your battery is empty.', 'Your battery is dry: fill it at the giant’s pool past Qanat’s back gate.'), 0), 600);
     } });
   registerInteractable({ id: 'hearth.grille', priority: PRIORITY.use, range: 3, at: () => H.stone.position, enabled: () => !opened() && st.roll < 0,
     prompt: 'look at the grille', distance: (p) => (inside() && Math.abs(p.pos.y - H.stone.position.y) < 2.5 ? flat(p.pos, H.stone.position) : Infinity),
@@ -172,8 +172,8 @@ export function setupRoseSpark({ level, player, quests, game, sound, toast }) {
   registerInteractable({ id: 'hearth.stone', priority: PRIORITY.use, range: 2.5, at: () => H.stoneRest, distance: p => p.pos.distanceTo(H.stoneRest),
     enabled: () => opened() && !taken(), prompt: 'take the spark-stone', use: take });
   H.refills.forEach((at, i) => registerInteractable({ id: `rose.spring.refill.${i}`, priority: PRIORITY.use, range: 2.5, at: () => at, distance: p => p.pos.distanceTo(at),
-    enabled: () => !!game.flag('item.backpack'), prompt: 'fill your tank at the spring',
-    use: () => { game.emit('tool:refill', { addColour: false }); game.set('tool.empty', false); toast('The spring fills your tank.'); } }));
+    enabled: () => !!game.flag('item.backpack'), prompt: 'fill your battery at the spring',
+    use: () => { game.emit('tool:refill', { addColour: false }); game.set('tool.empty', false); toast('The spring fills your battery.'); } }));
   quests.locate('hearth', () => rt.outside.door.at);
   quests.locate('sparkStone', () => taken() ? player.pos : H.stoneRest);
   return { opened, taken, carrying: () => quests.has('stone'), take,

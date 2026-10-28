@@ -233,7 +233,7 @@ float4 _FluidBox;  // object space: glass bottom y, top y, radius, highlight ang
 float4 _FluidTones[6];
 float4 _FluidBase;   // the flask's own fluid, the colour the tones stream through (materials.js uFluidBase)
 float4 _FluidDome;   // the round backpack's dome: the centre of its flat face (three's object space) · its radius (0: none)
-float _FluidDomeK;   // how far it stands out of its ring (-z), in its radius
+float _FluidDomeK;   // how far it stands out of its ring (-z), in its radius; under 0: the makers' battery (batteryFluid)
 #endif
 float3 fluidTone(int i) { return _FluidTones[i - 6 * (i / 6)].rgb; }
 float fmod2(float x, float y) { return x - y * floor(x / y); }
@@ -353,6 +353,28 @@ float3 flaskNebula(float3 b, float3 wp, float t, float fillY, float bright, floa
   col += float3(0.35, 0.45, 0.4) * (1.0 - smoothstep(0.0, 0.05, abs(ro.y - fy))) * step(0.01, seen) * step(fy, 0.95);
   return col;
 }
+// The makers' battery (kind 0 with _FluidDomeK < 0: materials.js batteryFluid, fluid-tool.js buildFlask; issue #728):
+// an upright glass cylinder (_FluidBox: the glass's bottom, the fluid's full height, its radius, the streak's angle) in
+// flat print tones: the lavender fluid (_FluidBase) standing to the bar's level, a paler line at its surface, a few slow
+// blobs of the blend's tones in it, the turquoise glass over it, a pale streak down the glass and a pale edge where it
+// turns away; brighter with the glow, flashing as it fires. b its rest place (three's frame), as the web's vBind.
+float3 batteryFluid(float3 b, float3 nrm, float3 toEye, float glow, float t, int n, float a, float h, float fillY)
+{
+  float y = b.y, wet = step(y, fillY);
+  float3 lav = _FluidBase.rgb * (0.86 + 0.3 * glow);
+  float3 col = lerp(lav, fluidLava(a, h, 0.5, t, n, false), 0.16);
+  col = lerp(col, lerp(lav, 1.0, 0.45), smoothstep(fillY - 0.012, fillY - 0.003, y));
+  float3 glassC = float3(0.3, 0.74, 0.68) * (0.9 + 0.25 * glow);
+  col = lerp(glassC, col, wet);
+  float fr = 1.0 - abs(dot(nrm, toEye));
+  col = lerp(col, glassC, 0.4 * wet * smoothstep(0.45, 0.9, fr));
+  col = lerp(col, float3(0.72, 0.93, 0.88), 0.5 * smoothstep(0.72, 0.96, fr));
+  float da = abs(fmod2(a - _FluidBox.w + 3.14159, 6.28318) - 3.14159);
+  float H = _FluidBox.y - _FluidBox.x;
+  col = lerp(col, float3(0.98, 0.97, 0.88), 0.85 * step(da, 0.09) * step(_FluidBox.x + 0.12 * H, y) * step(y, _FluidBox.y - 0.1 * H));
+  col = lerp(col, float3(0.98, 0.97, 0.88), 0.6 * step(abs(da - 0.2), 0.025) * step(_FluidBox.x + 0.45 * H, y) * step(y, _FluidBox.y - 0.18 * H));
+  return lerp(col, 1.0, _FluidB.x * 0.45);
+}
 float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye, float3 wp, float glow)
 {
   float t = _FluidA.z, kind = _FluidA.w;
@@ -384,6 +406,7 @@ float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye,
   float fill = _FluidA.x;
   float surf = max(fill, 0.07) + (0.012 + 0.05 * _FluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
   float w = _FluidB.y, seen;
+  if (_FluidDomeK < 0.0) return batteryFluid(b, nrm, toEye, glow, t, n, a, h, _FluidBox.x + surf * H);   // the makers' battery
   float3 col = flaskNebula(b, wp, t, _FluidBox.x + surf * H, 0.72 + 0.4 * glow, w, seen);
   // the glass: a pale edge where it turns from the eye, glowing a little in the fluid's cyan; a window's highlight up
   // on its shoulder and a smaller one under it

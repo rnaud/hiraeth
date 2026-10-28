@@ -1,9 +1,9 @@
-# Items, the backpack and the makers' boxes
+# Items, the battery and the makers' boxes
 
 What the traveller carries and the boxes that give it.
 
-## Items, boxes and the backpack (v0.35)
-- **Items** (`src/items.js`): the backpack, fluid jets, fluid wings, the stilling
+## Items, boxes and the battery (v0.35)
+- **Items** (`src/items.js`): the battery, fluid jets, fluid wings, the stilling
   and ember modes, and the boxes' special items. Each is stored as a game flag
   `item.<id>`. `items.has/grant/revoke` take effect live.
 - **Boxes** (`src/boxes/`): since v1.42 the makers' chest, the same in every world (a rounded cream
@@ -25,21 +25,21 @@ What the traveller carries and the boxes that give it.
   it starts `BOX_QUEST_DELAY` s after you arrive while the box is shut, its one
   step says where to look and points the scout at the box (locator `box.<id>`),
   and the `box.<id>` flag finishes it. The desert's first box is the story's.
-  Placements are in `placements.js`: the backpack lies near the desert crash
+  Placements are in `placements.js`: the battery lies near the desert crash
   site as the first quest stage, and every world has a box. Fallback boxes
   appear by the ship if you reach a world without what it needs. Special item
   effects are in `effects.js`. `migrateSave` gives saves from before v0.35
-  the backpack.
-- **Backpack-powered abilities** (`src/fluid-tool.js`, `src/fluid-kit.js`,
+  the battery.
+- **Battery-powered abilities** (`src/fluid-tool.js`, `src/fluid-kit.js`,
   `src/flammable.js`):
-  - With no backpack there is no tool, and vehicles won't start.
+  - With no battery there is no tool, and vehicles won't start.
   - The jets drain the same magic bar (0.3 units a second at full throttle, less
     on a light squeeze; they fly like a plane: docs/systems/movement-and-camera.md)
-    and work in any world. The wings bloom from the tank and are needed to glide.
+    and work in any world. The wings bloom from the battery and are needed to glide.
   - X cycles through the modes you own: shoot, stilling (freezes), ember
     (lights `level.flammables`) and, since the temples, bloom (grows). A target that doesn't list a mode in
     `accepts` gets `'shoot'`, so every puzzle works in every mode.
-  - Riding the hoverbike or skiff moves the tank into the vehicle's socket.
+  - Riding the hoverbike or skiff moves the battery into the vehicle's socket.
 - **In the game menu** (October 2026): the Items panel shows every item you have as a picture of
   its own model (`src/item-icons.js`), the empty slots for the rest unnamed; every item has a model
   now (`buildItemModel`: the charms and the cab pass were a gold gem). A gun mode's item, chosen
@@ -52,9 +52,9 @@ What the traveller carries and the boxes that give it.
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
 
-## The progression rewrite (v1.38): the backpack, the lift valve, the gun
+## The progression rewrite (v1.38): the battery, the lift valve, the gun
 
-He starts with the fluid sword alone (no item: src/fluid-blade.js). `backpack` (Qanat's chest) is the round tank:
+He starts with the fluid sword alone (no item: src/fluid-blade.js). `backpack` (Qanat's chest) is the battery:
 it holds the magic bar and powers vehicles; its strengths are items of their own, `BACKPACK_STAGES` in
 src/items.js: `doublejump` (the lift valve, in a chest beside the giant's pool, `desert.lift`: a second jump in
 the air with a flip, player.js `doubleJump`), `glider` (Vael's Aerie) and `wardenbellows` (the Warden's bellows, in the City-Shaft's Warden's Well, v1.42: open
@@ -62,8 +62,8 @@ wings breathe a steady wash that turns the makers' great vanes, climb quicker in
 enough to aim; not the pocket bellows, `bellows`, a charm). The Warden's harness, the City-Shaft's own jets, held that
 chest from v1.38 until the City-Shaft's air pillars carried the wings (src/save-migrate.js step 11 turns a save's
 harness into the bellows); the jets anywhere, `jetpack`, are a debug item since v1.38: `debug: true`, the world debug
-menu's toggle and the dev menu give it, no box or shop holds it, and old saves lose it, src/save-migrate.js step 9). `backpackStage(has)` counts them (0..3): the tank shows the stage (docs/systems/traveller-kit.md, "The round
-backpack"). `gun` (kind `gadget`, src/gadgets/gun.js) is the fluid gun, in the Givers' Hearth (`desert.gun`); the
+menu's toggle and the dev menu give it, no box or shop holds it, and old saves lose it, src/save-migrate.js step 9). `backpackStage(has)` counts them (0..3): the battery shows the stage (docs/systems/traveller-kit.md, "The makers'
+battery"). `gun` (kind `gadget`, src/gadgets/gun.js) is the fluid gun, in the Givers' Hearth (`desert.gun`); the
 gun modes need it (`needs: 'gun'`, `MODE_ITEMS.shoot`). Both chests are the main quest's own (`story: true` in
 src/boxes/placements.js: no box quest, the quest's stages `valve` and `gun` lead there); later worlds have a
 fallback box by the ship for each (`FALLBACKS`, slots 2 and 3) for a save that arrives without them. Old saves:
@@ -88,7 +88,7 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
   Potions are a count: **3** in a new game (`POTION.start`), at most **5** carried (`POTION.cap`); the shops sell
   more ("Shops" below). Until the first shop they were infinite; `res.potions.infinite` is now only the dev
   menu's. Out of them, the notice says a shop sells more.
-- **The magic bar** replaced the backpack's three charges (the tank's chambers): `MAGIC.start` 3 units,
+- **The magic bar** replaced the battery's three charges (the battery's chambers): `MAGIC.start` 3 units,
   one unit = one old chamber = a third of the starting bar, so every cost kept its feel
   (`MAGIC_COST`): a shot (any gun mode), a push, a boost, a shield that breaks (src/fluid-blade.js), a gadget
   that carries the fluid (the boomerang's ember): **1 unit** each; the jets **0.3 units a second** at full
@@ -98,7 +98,7 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
   the ground first (no endless flight). A foe cut down gives a unit back. `src/fluid-tool.js` `Reserve` is
   the bar (`use(cost)`, `drain`, `update`: the wait, then the fill); `src/boxes/effects.js` sets its length
   and pace from `resources.maxMagic` and `resources.magicPace` every frame; the HUD draws it under the hearts
-  (docs/systems/ui.md), the backpack's glass still shows the level.
+  (docs/systems/ui.md), the battery's glass still shows the level.
 - **Upgrades**: the **fourth chamber** (item `cell`, the Engine-House's chest) lengthens the bar by one unit
   (`MAGIC_ITEMS`); the **quick coil** (item `coil`) quickens the refill (0.5 s wait, the starting bar full in
   2 s: `MAGIC.coil`). Expansions from elsewhere (`resources.addMagic`, the shops) add units the same way.
@@ -276,12 +276,12 @@ Tests: `tests/chimes.test.js` (drops, the tiers and the fewest pieces, the field
 
 ## The kit's colours (v1.76, issue #341)
 
-Palettes for the backpack (its brass, canvas plate, the cloth at its neck, its straps: the fluid keeps its gun mode's
-colour), the sword's water and the shield's (`src/kit-colours.js` `KIT_COLOURS`): the makers' jade always, and one a
+Palettes for the battery (its brass rails and rims, its ceramic endcaps, its clip's plate and hook: `PACK_BASE`'s
+keys kept from the round backpack's brass, canvas, cloth and straps; the fluid keeps its own colour), the sword's water and the shield's (`src/kit-colours.js` `KIT_COLOURS`): the makers' jade always, and one a
 world's fight temple wins (the desert's Sunken Hall: Ember; docs/design/fight-temples.md). Won: the save's
 `kit.colours.<id>`, worn on every piece at once; chosen piece by piece in Items, on the Colours strip over the gear
 (A / × the next colour won: `kit.colour.<piece>`; the strip shows once a second colour is won). `applyKitColours(tool,
-state)` paints them on (main.js: at the start, when the backpack is worn, and on a choice): the backpack's parts swap
+state)` paints them on (main.js: at the start, when the battery is worn, and on a choice): the battery's parts swap
 to the palette's materials (made the traveller's own: `markHero`), the sword's and the shield's fluid materials take
 its tones. Tests: `tests/fight-temples.test.js`.
 
@@ -360,11 +360,11 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
 
 ## The makers' boxes, Android controls and updates (v0.36)
 - **The boxes** are artifacts of the makers, the people of the glyph (see "The
-  boxes" in the story bible). The backpack's box stands in the Givers' shrine
+  boxes" in the story bible). The battery's box stands in the Givers' shrine
   in Qanat (231, 391). Opening it brings six villagers and Nour, the eldest,
   whose conversation sends you on the rest of `desert.power` (stages `city →
   box → elder → well → ama → speaker → down → …`). Saves are migrated: `items.v`
-  2 marks the box open for anyone who has the backpack, and `desert.quest.v` 2
+  2 marks the box open for anyone who has the battery, and `desert.quest.v` 2
   maps the old stages.
 - **Android controls** (`android/.../GamepadBridge.java`, `src/native-pad.js`):
   the activity reads the built-in controller and hands it to the page as a

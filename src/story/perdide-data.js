@@ -28,7 +28,7 @@ export const CRYSTAL_TONE = '#c7a6f2';
 export const QUESTS = [
   {
     id: Q, title: 'The Great Crystal', world: 'perdide', main: true,
-    outro: 'The splinter hums with your tank. The crystal sang a phrase like the one you heard the night the light passed your ship.',
+    outro: 'The splinter hums with your battery. The crystal sang a phrase like the one you heard the night the light passed your ship.',
     stages: [
       { id: 'wendel', text: 'Hear Wendel, the egg-warden, on the hum', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
       { id: 'cross', text: 'Cross south, then east, to the Great Crystal', label: 'The Great Crystal', goto: 'crystalFoot', radius: 30 },
@@ -103,7 +103,7 @@ export const LANDING = [
           choices: [{ text: '~neutral~ I’ll try it.', end: true }, { text: '~curious~ And what hums in the east?', goto: 'hum' }],
         },
         hum: {
-          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. No rain for days. *Your tank could stand in for it: three quick splashes on the spires.* They say it fell from the sky."],
+          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. No rain for days. *Your battery could stand in for it: three quick splashes on the spires.* They say it fell from the sky."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [
             { text: '~curious~ Fell from where?', goto: 'fell' },
@@ -111,7 +111,7 @@ export const LANDING = [
           ],
         },
         value: {
-          say: ["~curious~ Value depends who you ask. I keep eggs. Corm loves teeth. Try *the Great Crystal, east through the ford*. Hard to overlook that one.", "~playful~ Rain makes it sing. *Three quick splashes from your tank* might pass for rain."],
+          say: ["~curious~ Value depends who you ask. I keep eggs. Corm loves teeth. Try *the Great Crystal, east through the ford*. Hard to overlook that one.", "~playful~ Rain makes it sing. *Three quick splashes from your battery* might pass for rain."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }],
         },
@@ -124,7 +124,7 @@ export const LANDING = [
         },
         again: {
           say: [{ if: { quest: Q, stage: 'cross' }, text: "~neutral~ *East over the hill, through the ford.* Follow the hum to the crystal." },
-            { if: { quest: Q, stage: 'sing' }, text: "~playful~ Waiting for rain? Your tank can be the rain: *three quick splashes on the spires*." },
+            { if: { quest: Q, stage: 'sing' }, text: "~playful~ Waiting for rain? Your battery can be the rain: *three quick splashes on the spires*." },
             { if: { quest: Q, reached: 'splinter' }, text: "~surprised~ The crystal sang! Every jaw shut at once. I could hear myself thinking. Novel experience." }],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
@@ -243,7 +243,7 @@ export const PEOPLE = {
   saba: {
     id: 'saba', name: 'Saba', title: 'the Listener', color: '#c7a6f2', voice: 0.8, kind: 'f',
     palette: { cloak: '#c7a6f2', lining: '#2b211f', cloth: '#4a4566', legs: '#2f3a4f', hat: '#f3ead8', hair: '#d8d0ea' }, head: 'wrap', cape: 1.45, look: { body: 'reedcape', prop: 'staff' },
-    lines: ['~whisper~ Shh. Listening.', '~neutral~ Phrase forty-one. Again.', '~curious~ Your pack is humming.'],
+    lines: ['~whisper~ Shh. Listening.', '~neutral~ Phrase forty-one. Again.', '~curious~ Your battery is humming.'],
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
@@ -261,7 +261,7 @@ export const PEOPLE = {
           ],
         },
         you: {
-          say: ["~neutral~ It’s your tank. The crystal reacts to the fluid. Hear the pitch change when you turn?"],
+          say: ["~neutral~ It’s your battery. The crystal reacts to the fluid. Hear the pitch change when you turn?"],
           choices: [{ text: '~curious~ Why does it sing?', goto: 'why' }, { text: '~curious~ Where did it come from?', goto: 'fell' }],
         },
         why: {
@@ -276,12 +276,12 @@ export const PEOPLE = {
           ],
         },
         wait: {
-          say: ["~tired~ For days, I said. My legs will go numb long before the weather turns.", "~curious~ That tank of yours carries water. *Shoot the spires three times in quick succession.* I don’t think the crystal asks where its rain comes from."],
+          say: ["~tired~ For days, I said. My legs will go numb long before the weather turns.", "~curious~ That battery of yours carries water. *Shoot the spires three times in quick succession.* I don’t think the crystal asks where its rain comes from."],
           do: { set: { 'perdide.saba.heard': true } },
           choices: [{ text: '~curious~ What’s carved on the stone at its foot?', goto: 'glyph' }, { text: '~neutral~ (step back and look up)', end: true }],
         },
         rain: {
-          say: ["~curious~ Rain out of a tank. Let’s see whether it minds the substitute.", "~neutral~ *Shoot the spires three times in quick succession.* Real rain doesn’t wait between drops. I’d like to hear the answer before my legs go numb."],
+          say: ["~curious~ Rain out of a battery. Let’s see whether it minds the substitute.", "~neutral~ *Shoot the spires three times in quick succession.* Real rain doesn’t wait between drops. I’d like to hear the answer before my legs go numb."],
           do: { set: { 'perdide.saba.heard': true } },
           choices: [{ text: '~curious~ What’s carved on the stone at its foot?', goto: 'glyph' }, { text: '~neutral~ (step back and look up)', end: true }],
         },
@@ -429,7 +429,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ (go to the heart)', end: true }, { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } }],
         },
         after: {
-          say: ["~happy~ The whole cave is humming. Your tank too. Quite a choir you’ve started.", "~curious~ Is a singing splinter what you wanted to find out here?"],
+          say: ["~happy~ The whole cave is humming. Your battery too. Quite a choir you’ve started.", "~curious~ Is a singing splinter what you wanted to find out here?"],
           choices: [
             { text: '~neutral~ I came for something of value.', goto: 'value' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } },
@@ -456,7 +456,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'perdide.crystal.sung' }, node: 'after' }, { node: 'look' }],
       nodes: {
         look: {
-          say: ["~solemn~ Violet spires rise crookedly from the mud. You feel their hum in your teeth.", '~neutral~ Your tank hums back. You can feel it through the straps.'],
+          say: ["~solemn~ Violet spires rise crookedly from the mud. You feel their hum in your teeth.", '~neutral~ Your battery hums back. You can feel it through the belt.'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         after: { say: ["~whisper~ Under its quiet hum, the crystal repeats the new phrase. Practising, perhaps."], choices: [{ text: '~neutral~ (listen)', end: true }] },
@@ -473,9 +473,9 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         ring: {
-          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet rises through the glass as a new colour band. The splinter warms in your hand.", "~whisper~ Out past the cave’s west mouth, a row of glowing eggs on posts runs off along the shore toward the landing: Wendel’s egg-lamps, set out to bring the gatherers home."],
+          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your battery joins in. Crystal-violet rises through the glass as a new colour band. The splinter warms in your hand.", "~whisper~ Out past the cave’s west mouth, a row of glowing eggs on posts runs off along the shore toward the landing: Wendel’s egg-lamps, set out to bring the gatherers home."],
           do: [{ set: { 'perdide.heart.rung': true } },
-            { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that passed your ship.' } }],
+            { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your battery. It sings the phrase of the light that passed your ship.' } }],
           choices: [{ text: '~neutral~ (keep it)', end: true }],
         },
         after: { say: ['~whisper~ The ring hums softly now, and your splinter hums with it.'], choices: [{ text: '~neutral~ (listen)', end: true }] },

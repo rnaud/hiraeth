@@ -328,8 +328,8 @@ test('dark scruffy hair leaves the eyes clear; the earned star attaches to the c
 
 // The third round of the author's notes: more casual (no space suit), a backpack as at first with the fluid
 // tank slimmer, and closer to the coral-jacket sheets (thinner cheeks, scruffier hair).
-test('an ordinary canvas rucksack with the round backpack standing out of its outer face', async () => {
-  const { TANK, TANK_RAIL, tankRadiusAt } = await import('../src/fluid-tool.js');
+test('an ordinary canvas rucksack, the makers\' battery at his hip', async () => {
+  const { TANK } = await import('../src/fluid-tool.js');
   const { RUCKSACK } = await import('../src/traveller.js');
   const h = traveller(); h.update(true); h.model.updateMatrixWorld(true);
   const inChest = (re) => {
@@ -340,21 +340,13 @@ test('an ordinary canvas rucksack with the round backpack standing out of its ou
     }
     return out;
   };
-  const sack = inChest(/^Rucksack$/), coat = inChest(/^Coral_overshirt$/);
+  const sack = inChest(/^Rucksack$/);
   for (const n of ['Rucksack_lid', 'Rucksack_lid_straps', 'Rucksack_buckles', 'Bedroll', 'Rucksack_pocket']) assert.ok(piece(h, n), n);
   assert.equal(piece(h, 'Rucksack').material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.canvas.slice(1), 'canvas, not a radio box');
-  // the round backpack (TANK, chest frame; v1.38, references/Core Objects/Round Backpack): a glass dome about 30 cm
-  // across, half a sphere on its brass ring, the ring at the rucksack's outer face, its neck out over the lid
-  const R = TANK.radius * TANK.scale, [, y0, z0] = TANK.at, top = z0 - R * TANK.depth;
-  assert.ok(2 * R > 0.26 && 2 * R < 0.34, `a dome about 30 cm across (${(2 * R).toFixed(2)} m)`);
-  assert.equal(TANK.squash, 1); assert.ok(TANK.depth > 0.7 && TANK.depth <= 1, 'half a sphere, a little flattened at most');
-  const outer = RUCKSACK.back - RUCKSACK.depth;
-  assert.ok(Math.abs(z0 - outer) < 0.04 && top < outer - 0.08, `its ring at the rucksack's face, its dome out behind it (${z0.toFixed(3)}, ${outer.toFixed(3)})`);
-  assert.ok(coat.min.z - top < 0.26, `the whole pack stands ${(coat.min.z - top).toFixed(3)} m off his back`);
-  assert.ok(y0 > sack.min.y - 0.05 && y0 + TANK.height * TANK.scale < sack.max.y + 0.1, 'the glass about the rucksack\'s height, its neck out over the lid');
-  assert.deepEqual(TANK.straps, [], 'no band across the fluid');
-  // the cradle's struts stand at the sphere's sides, about the rucksack's width
-  assert.ok(TANK_RAIL.x * TANK.scale < (sack.max.x - sack.min.x) / 2 + 0.05);
+  // the makers' battery (issue #728) is not on his back: at his left hip, a little behind it (TANK.at, the hip frame:
+  // the chest's, carried by the pelvis), its top under his ribs
+  const [x0, y0, z0] = TANK.at;
+  assert.ok(x0 > 0.05 && z0 < 0 && y0 + TANK.height < 0.45, `at his left hip (${TANK.at})`);
 });
 
 test('scruffier hair: broken, tousled locks with lighter edges; a leaner face with thinner cheeks', () => {

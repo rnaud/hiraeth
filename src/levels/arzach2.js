@@ -89,7 +89,7 @@ export const ARZACH2_CONTENT = {
   story: {
     title: 'THE BELL UNDER THE CLOUD',
     intro: 'Stones float above a sea of cloud. On the rose cliff, a monastery bell has been silent thirty years.',
-    outro: 'The repaired bell rang, and the cloud dropped a little. Calix has resumed his rounds. Your tank carries the note with you.',
+    outro: 'The repaired bell rang, and the cloud dropped a little. Calix has resumed his rounds. Your battery carries the note with you.',
     label: 'the lone tower', goal: [TOWER.x, 'ground', TOWER.z], radius: 30, manual: true,
   },
   npcs: [

@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-// What the magic-fluid backpack grows when the traveller finds the pieces
-// (src/items.js): the gun modes' looks, the fluid wings that bloom out of the
-// tank, the twin jets clipped under it, and the path the tank takes when it
-// is swung off the back into a vehicle's socket. fluid-tool.js drives them.
+// What the makers' battery grows when the traveller finds the pieces (src/items.js): the gun modes' looks, the
+// fluid wings that bloom from his back, the twin jets of fluid from under his boots (since #728 nothing of either is
+// worn: no tank on his back, no nozzle), and the path the battery takes off his hip into a vehicle's socket.
+// fluid-tool.js drives them.
 
 /**
  * The gun modes. All of them share the three charges; all but push shoot a glob (push throws its cone of
@@ -17,7 +16,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 export const MODES = {
   shoot: { item: 'gun', name: 'fluid', label: 'Fluid', tones: null, rate: 1, css: '' },
   // the push: a cone of fluid shock along the aim (no glob), pale and quick; it comes with the fluid gun
-  push: { item: 'gun', name: 'push', label: 'Push', tones: ['#e8f4ff', '#9ec9e8', '#52c8cf', '#ffffff'], rate: 1.8, css: 'push', glow: '#e8f4ff', cone: true },
+  push: { item: 'gun', name: 'push', label: 'Push', tones: ['#e8f4ff', '#9ec9e8', '#52c8cf', '#ffffff'], rate: 1.8, css: 'push', glow: '#e8f4ff', cone: true, keepFluid: true },   // (keepFluid: the battery's lavender stays as it is, its pale tones would wash it out: fluid-tool.js MODE_TINT)
   stun: { item: 'stun', name: 'stilling', label: 'Stilling', tones: ['#d6f0fa', '#86bfe8', '#5a8ed6', '#f2fbff'], rate: 0.12, css: 'stun', glow: '#bfe6f7' },
   fire: { item: 'fire', name: 'ember', label: 'Ember', tones: ['#f9c45a', '#e0644a', '#f39a45', '#fff0b8', '#b8433f'], rate: 2.6, css: 'fire', glow: '#ffb347' },
   // Viridel's: leaf green and petal pink, slow as sap (src/temples/edena.js: seeds, budded doors, vines)
@@ -28,7 +27,7 @@ export const MODES = {
 export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom', 'tether'];
 export const STUN_SECONDS = 3.5;
 
-/** The owned modes in order (has: id -> bool). Without the fluid gun (a gadget, src/gadgets/gun.js) and the backpack it drinks from: none. */
+/** The owned modes in order (has: id -> bool). Without the fluid gun (a gadget, src/gadgets/gun.js) and the battery it drinks from: none. */
 export function ownedModes(has) {
   if (!has('gun') || !has('backpack')) return [];
   return MODE_ORDER.filter((m) => has(MODES[m].item));
@@ -84,7 +83,14 @@ function lobeGeometry(rows = 14, cols = 8) {
   return g;
 }
 
-// three lobes a side, in the tank's frame (y up the glass, +z toward the wearer, the
+/**
+ * Where the wings grow from (issue #728: from nothing on his back): a frame in the chest anchor's (y 0.74 at the collar,
+ * +z forward, his left +x) where the round backpack's was, so the lobes keep their size and their roots between his
+ * shoulder blades; nothing is drawn there but the wings.
+ */
+export const WING_ROOT = { at: [0, 0.4, -0.19], scale: 0.8 };
+
+// three lobes a side, in the wings' frame (WING_ROOT: y up, +z toward the wearer, the
 // wearer's right at -x): open direction, length (m), width (m), bloom delay (0..1)
 const LOBES = [
   { dir: [0.92, 0.34, 0.1], len: 1.6, width: 0.56, delay: 0 },
@@ -94,13 +100,13 @@ const LOBES = [
 const WING_NORMAL = new THREE.Vector3(0, 0.78, -0.62).normalize();   // the membranes face up and back
 
 /**
- * The fluid wings: three translucent lobes a side bloom out of the tank's
- * shoulders when the traveller glides, in the fluid's lava-lamp tones,
- * veined and inked; they fold back into the tank on landing, and flap gently
+ * The fluid wings: three translucent lobes a side bloom out of his back, between
+ * the shoulder blades, when the traveller glides, in the fluid's lava-lamp tones,
+ * veined and inked; they fold away into nothing on landing, and flap gently
  * (more in turns, and in the wind).
  */
 export class FluidWings {
-  constructor(tankGroup, tones) {
+  constructor(rootGroup, tones) {
     this.group = new THREE.Group();
     this.group.name = 'Fluid wings';
     this.material = makeMaterial({ color: '#ffffff', fluid: 'wing', glow: 0.5, side: THREE.DoubleSide, fluidTones: tones, key: 'fluid-wings' });
@@ -109,7 +115,7 @@ export class FluidWings {
     this.lobes = [];
     for (const s of [1, -1]) {
       const root = new THREE.Group();
-      root.position.set(s * 0.13, 0.43, -0.03);   // the cap's shoulders, a little behind
+      root.position.set(s * 0.13, 0.43, -0.03);   // between his shoulder blades, a little off his back
       this.group.add(root);
       for (const L of LOBES) {
         const pivot = new THREE.Group();
@@ -122,7 +128,7 @@ export class FluidWings {
         const width = _b.crossVectors(WING_NORMAL, len).normalize().multiplyScalar(s).clone();
         const normal = _c.crossVectors(width, len).normalize().clone();   // a right-handed basis
         const open = new THREE.Quaternion().setFromRotationMatrix(_m.makeBasis(width, len, normal));
-        // folded: tucked down along the glass, inside the tank
+        // folded: tucked down along his back, grown to nothing
         const fl = new THREE.Vector3(s * 0.15, -1, -0.1).normalize(), fw = new THREE.Vector3(0, 0, s).cross(fl).normalize();
         const folded = new THREE.Quaternion().setFromRotationMatrix(_m.makeBasis(fw, fl, new THREE.Vector3().crossVectors(fw, fl)));
         this.lobes.push({ s, pivot, mesh, open, folded, flapAxis: width.clone(), ...L });
@@ -131,7 +137,7 @@ export class FluidWings {
     this.group.traverse((o) => { o.userData.noCollide = true; });
     this.group.visible = false;
     this.k = 0; this.time = 0;
-    tankGroup.add(this.group);
+    rootGroup.add(this.group);
   }
 
   /**
@@ -170,61 +176,63 @@ export class FluidWings {
 // ---------------------------------------------------------------- jets
 
 /**
- * The fluid jets: two brass nozzles clipped under the tank that spit the
- * fluid as coloured flames while the traveller thrusts. The flames share
- * the glob's churning material (pass it in), so they burn in the tank's tones.
+ * The fluid jets: two flames of the fluid spitting down from under his boots while the traveller thrusts (issue #728:
+ * no nozzle, no device; once two brass nozzles clipped under the backpack). The flames share the glob's churning
+ * material (pass it in), so they burn in the battery's tones. Each lives in `parent` (the tool's effects, world space)
+ * and is set each frame under its foot (`feet`: his foot bones), pointing down his up; a body without feet has them
+ * under its feet's place (`at`).
  */
+export const JET_SOLE = 0.075;   // m under the foot bone (the ankle) to the sole, where each flame starts
 export class FluidJets {
-  constructor(tankGroup, flameMaterial, metal) {
+  constructor(parent, flameMaterial, metal, feet = []) {
     this.group = new THREE.Group();
     this.group.name = 'Fluid jets';
+    this.feet = feet;
     this.nozzles = [];
     this.flames = [];
-    const parts = new Map();   // the brass and steel, baked into one mesh per material (fewer draws in every pass)
-    const bake = (geo, mat, m) => { if (!parts.has(mat)) parts.set(mat, []); parts.get(mat).push(geo.applyMatrix4(m)); };
     for (const s of [-1, 1]) {
       const n = new THREE.Group();
-      n.position.set(s * 0.1, -0.085, -0.06);   // (under the round backpack's dome, v1.38: clear of the plate)
-      n.rotation.z = s * 0.16;                       // splayed a little outward
-      n.updateMatrix();
-      const at = (y) => new THREE.Matrix4().makeTranslation(0, y, 0).premultiply(n.matrix);
-      bake(new THREE.BoxGeometry(0.05, 0.05, 0.07), metal.dark, at(0.03));                        // the clip
-      bake(new THREE.CylinderGeometry(0.03, 0.045, 0.1, 10), metal.brass, at(-0.03));              // the body
-      bake(new THREE.CylinderGeometry(0.045, 0.06, 0.05, 12, 1, true), metal.brassOpen, at(-0.1)); // the bell
       // the flame: a teardrop of churning fluid pointing down, stretched by the thrust
-      const flame = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.045, -0.02], [0.08, -0.14], [0.07, -0.34], [0.04, -0.66], [0, -1]].map(([x, y]) => new THREE.Vector2(x, y)), 10), flameMaterial);
-      flame.position.y = -0.12;
+      const flame = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.04, -0.02], [0.07, -0.14], [0.06, -0.34], [0.035, -0.66], [0, -1]].map(([x, y]) => new THREE.Vector2(x, y)), 10), flameMaterial);
       flame.visible = false;
       flame.frustumCulled = false;
       n.add(flame);
-      const core = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.03, -0.05], [0.035, -0.3], [0, -1]].map(([x, y]) => new THREE.Vector2(x, y)), 8), metal.core);
-      core.position.y = -0.12;
+      const core = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.026, -0.05], [0.03, -0.3], [0, -1]].map(([x, y]) => new THREE.Vector2(x, y)), 8), metal.core);
       core.visible = false;
       n.add(core);
+      n.userData.side = s;
       this.group.add(n);
       this.nozzles.push(n);
       this.flames.push({ flame, core });
     }
-    for (const [mat, geos] of parts) {
-      for (const g of geos) if (g.index) { const ng = g.toNonIndexed(); g.dispose(); geos[geos.indexOf(g)] = ng; }
-      for (const g of geos) for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
-      this.group.add(new THREE.Mesh(mergeGeometries(geos), mat));
-      geos.forEach((g) => g.dispose());
-    }
     this.group.traverse((o) => { o.userData.noCollide = true; });
     this.group.visible = false;
     this.thrust = 0;
-    tankGroup.add(this.group);
+    parent?.add(this.group);
   }
-  /** World positions of the two nozzle mouths. */
+  /** Lay each flame under its boot (world: `up` his up, `at` his feet's place for a body without foot bones). */
+  place(up = _UP, at = null) {
+    const q = _q.setFromUnitVectors(_UP, up);
+    this.nozzles.forEach((n, i) => {
+      const f = this.feet[i];
+      if (f) { f.updateWorldMatrix(true, false); f.getWorldPosition(n.position); }
+      else if (at) n.position.copy(at).addScaledVector(up, JET_SOLE + 0.02);
+      n.position.addScaledVector(up, -JET_SOLE);
+      if (!f && at) n.position.add(_b.set(0.1 * n.userData.side, 0, 0).applyQuaternion(q));
+      n.quaternion.copy(q);
+      n.updateMatrixWorld(true);
+    });
+  }
+  /** World positions of the two flames' roots (under the soles). */
   mouths(out = [new THREE.Vector3(), new THREE.Vector3()]) {
-    this.nozzles.forEach((n, i) => { n.updateWorldMatrix(true, false); n.localToWorld(out[i].set(0, -0.13, 0)); });
+    this.nozzles.forEach((n, i) => { n.updateWorldMatrix(true, false); n.localToWorld(out[i].set(0, -0.02, 0)); });
     return out;
   }
-  update(dt, { on = false, thrusting = false, power = 1, time = 0 } = {}) {
-    this.group.visible = on;
+  update(dt, { on = false, thrusting = false, power = 1, time = 0, up = _UP, at = null } = {}) {
     this.thrust += ((thrusting && on ? 0.35 + 0.65 * Math.min(1, power) : 0) - this.thrust) * (1 - Math.exp(-(thrusting ? 18 : 10) * dt));
     const lit = this.thrust > 0.03;
+    this.group.visible = on && lit;
+    if (this.group.visible) this.place(up, at);
     this.flames.forEach(({ flame, core }, i) => {
       flame.visible = core.visible = lit;
       if (!lit) return;
@@ -235,29 +243,31 @@ export class FluidJets {
     });
   }
 }
+const _UP = new THREE.Vector3(0, 1, 0);
 
 // ---------------------------------------------------------------- the hand-off
 
-/** Timings of the backpack hand-off onto a powered vehicle (s), and where in it things happen (0..1). */
+/** Timings of the battery's hand-off onto a powered vehicle (s), and where in it things happen (0..1). */
 export const HANDOFF = {
-  board: 1.0,        // swing the pack off, slot it in, climb on
-  unboard: 0.7,      // step off, take it back, shoulder it
-  lift: 0.08, seat: 0.62,      // boarding: the tank leaves the back at lift, clicks into the socket at seat
-  grab: 0.12, worn: 0.82,      // unboarding: the tank leaves the socket at grab, is on the back at worn
-  arc: 0.55,         // m the tank rises over the straight line between the two
+  board: 1.0,        // take the battery off the hip, click it into the socket, climb on
+  unboard: 0.7,      // step off, take it back, clip it on the belt
+  lift: 0.08, seat: 0.62,      // boarding: the battery leaves the hip at lift, clicks into the socket at seat
+  grab: 0.12, worn: 0.82,      // unboarding: the battery leaves the socket at grab, is on the hip at worn
+  arc: 0.3,          // m the battery rises over the straight line between the two (carried in the hand)
+  twist: 0.5,        // rad it turns about up on the way, unwound by the end
 };
 
 /**
- * The tank's world pose along a hand-off: u 0..1 from pose A (position,
- * quaternion, scale) to pose B, arcing up along `up` and turning once
- * (it swings round over the shoulder). Writes into out { p, q, s }.
+ * The battery's world pose along a hand-off: u 0..1 from pose A (position,
+ * quaternion, scale) to pose B, arcing up along `up` and turning a little
+ * on the way. Writes into out { p, q, s }.
  */
 export function handoffPose(u, A, B, up, out) {
   const e = smooth(clamp01(u));
   out.p.lerpVectors(A.p, B.p, e).addScaledVector(up, Math.sin(Math.PI * e) * HANDOFF.arc);
   out.q.copy(A.q).slerp(B.q, e);
-  // a half twist about up in the middle, unwound by the end
-  _q.setFromAxisAngle(up, Math.sin(Math.PI * e) * 0.9);
+  // a twist about up in the middle, unwound by the end
+  _q.setFromAxisAngle(up, Math.sin(Math.PI * e) * HANDOFF.twist);
   out.q.premultiply(_q);
   out.s.lerpVectors(A.s, B.s, e);
   return out;

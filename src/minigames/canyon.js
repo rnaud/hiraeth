@@ -760,7 +760,7 @@ export function start(ctx) {
           const lostWager = !won && loseRivalWager(state);
           if (won) awardRivalBike(state);
           ctx.finish({ failed: !won, title: won ? 'You beat Kamal!' : 'Kamal takes the line',
-            lines: won ? ['The hoverbike is yours. Your backpack stays yours too.', 'Call the bike from your backpack when you return to the desert.'] : lostWager ? ['Kamal claims the bike and backpack.', 'He lends the tank back for a rematch. Win them back.'] : ['Kamal wins this lap.', 'Try again: brake before bends and take the kickers at full throttle.'] });
+            lines: won ? ['The hoverbike is yours. Your battery stays yours too.', 'Call the bike from your battery when you return to the desert.'] : lostWager ? ['Kamal claims the bike and battery.', 'He lends the battery back for a rematch. Win them back.'] : ['Kamal wins this lap.', 'Try again: brake before bends and take the kickers at full throttle.'] });
         }
       }
       placeRival(dt);

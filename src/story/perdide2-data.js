@@ -125,7 +125,7 @@ export const KEEPERS = [
         mark: { say: ["~curious~ The mark’s on your ship? Perhaps someone expected you long before we did."], choices: [{ text: '~curious~ And the two travellers?', goto: 'dark' }] },
         dark: {
           say: ["~sad~ They haven’t returned. Then came the night the pools went dark: *three of them*, all at once. Ordinary water won’t wake them.",
-            { if: { not: { flag: 'perdide2.pools.lit' } }, text: "~curious~ Your tank glows. Our lamps need water that carries light. Could we try yours?" },
+            { if: { not: { flag: 'perdide2.pools.lit' } }, text: "~curious~ Your battery glows. Our lamps need water that carries light. Could we try yours?" },
             { if: { not: { flag: 'perdide2.pools.lit' } }, text: "~happy~ Shoot fluid into the three dark pools between here and the root cave. That may relight them." },
             { if: { flag: 'perdide2.pools.lit' }, text: "~surprised~ You’ve already started! I saw new colours and blamed my eyes. *Light whichever pools are still dark.*" }],
           do: { set: { 'perdide2.hollin.met': true } },
@@ -293,7 +293,7 @@ export const PEOPLE = {
             { text: '~neutral~ Let me try.', end: true },
           ],
         },
-        again: { say: ['~tired~ Still dark. Go on, *shoot it with your tank*.'], choices: [{ text: '~curious~ What happened to it?', goto: 'night' }, { text: '~neutral~ (aim at the pool)', end: true }] },
+        again: { say: ['~tired~ Still dark. Go on, *shoot it with your battery*.'], choices: [{ text: '~curious~ What happened to it?', goto: 'night' }, { text: '~neutral~ (aim at the pool)', end: true }] },
         night: {
           say: ["~whisper~ I was filling my bucket when the singing light came over the wood. Low enough to light the leaves from underneath.", "~scared~ Three pools went out as it passed. One, two, three. Then the light climbed away."],
           do: { set: { 'perdide2.rumour.light': true } },

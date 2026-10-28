@@ -305,7 +305,7 @@ export const PEOPLE = {
           ],
         },
         what: { say: ["~curious~ I saw something square on the crown. Sol says Talo used to sit up there. I intend to verify both statements."], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }, { text: '~neutral~ Maybe later.', end: true }] },
-        jump: { say: ["~surprised~ Your backpack can get you up! Climb to the second canopy, move beneath the crown, jump, then jump again in mid-air."], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }] },
+        jump: { say: ["~surprised~ Your battery can get you up! Climb to the second canopy, move beneath the crown, jump, then jump again in mid-air."], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }] },
         go: { say: ["~playful~ If it’s treasure, I accept payment for directions. Small payment. A description would do."], choices: [{ text: '~playful~ Deal.', end: true }] },
         waiting: { say: ["~neutral~ *Tallest tree, north-west.* Climb to the second canopy, then *double-jump to the crown*."], choices: [{ text: '~neutral~ On my way.', end: true }] },
         tell: {

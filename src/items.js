@@ -40,18 +40,18 @@ export const ITEMS = {
     text: 'A brass flower on your forearm that opens into living fluid. Hold {key:guard}: it takes a blow from in front, turns one back if raised in time, and sends a bolt back.',
   },
   backpack: {
-    name: 'Magic-fluid backpack', kind: 'core',
-    text: 'A makers’ glass sphere for living water, built for a traveller they would never meet. It holds your magic bar, powers vehicles and feeds the glove.',
+    name: 'Makers’ battery', kind: 'core',
+    text: 'A makers’ glass cylinder for living water, clipped at your hip, built for a traveller they would never meet. It holds your magic bar, powers vehicles and feeds the glove.',
   },
   doublejump: {
     name: 'Lift valve', kind: 'movement', needs: 'backpack',
-    text: 'A brass valve on the backpack’s ring that lets one breath of fluid out under your boots: press {key:jump} again in the air for a second jump.',
+    text: 'A brass valve on the battery’s endcap that lets one puff of fluid out under your boots: press {key:jump} again in the air for a second jump.',
   },
   // (a gadget, src/gadgets/gun.js registers it with its model; here too so node's tests and the save know it without the registry)
   gun: {
     // (it comes with ember mode, `with`: one chest for the gun and its two modes, issue #83)
     name: 'Fluid gun', kind: 'gadget', needs: 'backpack', with: ['fire'], where: 'In the Givers’ Hearth, the desert’s old fire-house, in the Givers’ room off the hall.',
-    text: 'The makers’ glove, fed by the backpack. Aim with {key:aim} and push with {key:fire}; with {key:mode} it turns to ember, which lights lamps, braziers and fuses, or to a shot.',
+    text: 'The makers’ glove, fed by the battery. Aim with {key:aim} and push with {key:fire}; with {key:mode} it turns to ember, which lights lamps, braziers and fuses, or to a shot.',
     does: 'Aim with {key:aim} and push with {key:fire}; with {key:mode} it turns to ember, which lights fires, or to a shot.',
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
@@ -60,18 +60,18 @@ export const ITEMS = {
   // carry the wings (src/shaft-pillars.js)
   jetpack: {
     name: 'Fluid jets (debug)', kind: 'movement', needs: 'backpack', debug: true, where: 'Only from the debug menus (L3 + R3, F2: Toggles).',
-    text: 'Debug only: nozzles that turn the fluid into thrust in any world. Hold {key:jump} in the air to fire them, {key:move} steers, {key:aim} holds you still.',
+    text: 'Debug only: jets of fluid from under your boots, in any world. Hold {key:jump} in the air to fire them, {key:move} steers, {key:aim} holds you still.',
   },
   // the backpack's third strength (v1.42: the City-Shaft's air pillars carry the wings, so the Warden's harness, the
   // City-Shaft's own jets, went: src/save-migrate.js step 11 turns a save's harness into these)
   wardenbellows: {
     name: 'Warden’s bellows', kind: 'movement', needs: 'backpack',
-    text: 'Bellows under the tank that breathe wind down while your wings are open: you climb faster in rising air, and a makers’ vane you hover over turns.',
+    text: 'Bellows fed by the battery that breathe wind down while your wings are open: you climb faster in rising air, and a makers’ vane you hover over turns.',
     where: 'In the makers’ court on Lorn’s dry ground east of the landing.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
-    text: 'Folded membranes that open into bright wings. Hold {key:jump} while falling to glide; a column of rising air carries you straight up.',
+    text: 'Fluid that blooms from your shoulders into bright wings. Hold {key:jump} while falling to glide; a column of rising air carries you straight up.',
   },
   stun: {
     name: 'Stilling mode', kind: 'mode', needs: 'gun',
@@ -107,7 +107,7 @@ export const ITEMS = {
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
-    text: 'An extra glass chamber for the tank: your magic bar grows by a third, four shots in a row instead of three.',
+    text: 'An extra glass chamber for the battery: your magic bar grows by a third, four shots in a row instead of three.',
   },
   coil: {
     name: 'Quick coil', kind: 'upgrade', needs: 'backpack',
@@ -297,7 +297,7 @@ export const ITEMS = {
   },
   lightcell: {
     name: 'Light chamber', kind: 'upgrade', fragments: 10, light: 'cell', needs: 'backpack', where: 'Anselm Thrum sells it aboard your ship, for ten fragments of the singing light.',
-    text: 'A chamber of fragments ground fine, fitted to the tank. Your magic bar grows by one: one more shot, push or boost before it runs dry.',
+    text: 'A chamber of fragments ground fine, fitted to the battery. Your magic bar grows by one: one more shot, push or boost before it runs dry.',
   },
   lightwing: {
     name: 'Light-veined wings', kind: 'upgrade', fragments: 18, light: 'glider', needs: 'glider', where: 'Anselm Thrum sells it aboard your ship, for eighteen fragments of the singing light.',

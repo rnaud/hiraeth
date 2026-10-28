@@ -60,7 +60,7 @@ test('every quest\'s needs are critical items (or a quest), each with a place to
 const ASKS = [
   { item: 'glider', re: /\b(ride the wind|wings|glide|gliding)\b/i },
   { item: 'gun', re: /\b(splash|gun’s|gun's|your fluid|spark of fluid)\b/i },
-  { item: 'backpack', re: /\b(full tank|fill your tank)\b/i },
+  { item: 'backpack', re: /\b(full battery|fill your battery)\b/i },
   { quest: 'arzach.bird', re: /\bride the bird\b/i },
 ];
 // what a quest's own steps find on the way, for the steps after (the desert's main quest: the backpack, the lift valve, the gun)

@@ -152,7 +152,7 @@ export function askedDone(game) {
 
 /** The chest's gift: the backpack, its round glass dry (since v1.38 no makers' dregs: there is no gun to shoot them yet). */
 export function dregsText() {
-  return 'The glass sphere on your back is dry: not a drop in it.';   // ("where the water is, it fills (Nour says)" came up before she had said it: issue #61)
+  return 'The glass battery at your hip is dry: not a drop in it.';   // ("where the water is, it fills (Nour says)" came up before she had said it: issue #61)
 }
 
 /** The tank's first fill at the pool: what it does now (src/prompt-keys.js verbKey: the buttons as the player holds them). */
@@ -390,15 +390,15 @@ export function setupDesert(ctx) {
   game.on('tool:dry', () => {
     if (st.clock - dryT < 25) return;
     dryT = st.clock;
-    if (game.flag('tool.dregs') > 0) { toast('The last swallow in the tank is too little to push with. It will make one shot, no more.'); return; }   // (the dregs only shoot: src/fluid-tool.js)
-    toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop.');
+    if (game.flag('tool.dregs') > 0) { toast('The last swallow in the battery is too little to push with. It will make one shot, no more.'); return; }   // (the dregs only shoot: src/fluid-tool.js)
+    toast(open() ? 'The battery is empty. Wade into the giant’s pool to fill it.' : 'The battery is empty: dry glass, not a drop.');
   });
 
   // the Givers' House (src/temples/desert.js, remade in v1.44 for the blade) never asks for the gun, but its Keeper wants
   // water from your tank: walked in with an empty tank, you are told where to fill it (it once sent you for the gun)
   game.on('flag:temple.desert.entered', (v) => {
     if (!v) return;
-    if (dry()) setTimeout(() => toast('Your tank is empty, and the Keeper deep in the Rose House will want water. Fill it at the giant’s pool past Qanat’s back gate.'), 2500);
+    if (dry()) setTimeout(() => toast('Your battery is empty, and the Keeper deep in the Rose House will want water. Fill it at the giant’s pool past Qanat’s back gate.'), 2500);
   });
 
   // ---------------------------------------------------------------- the drum, and the mask's eyes
@@ -507,7 +507,7 @@ export function setupDesert(ctx) {
       else {
         const { wasDry, addColour } = fillTank();
         if (wasDry) toast(FILLED());
-        else if (addColour) toast('The water climbs into your tank. The tank takes its colours.');
+        else if (addColour) toast('The water climbs into your battery. Its glass takes the colours.');
         fillJar();
       }
     }
@@ -544,14 +544,14 @@ export function setupDesert(ctx) {
     doorSt.opening = true;
     if (doorHandle) { physics.removeCollider(doorHandle); doorHandle = null; }
     sound.rumble?.(1.8, 0.3); sound.chime?.();
-    toast('The lens drinks from your tank, its lines light, and the door sinks into the floor.');
+    toast('The lens drinks from your battery, its lines light, and the door sinks into the floor.');
   };
   game.on('flag:desert.door.open', (v) => { if (v && doorSt.k < 1) { doorSt.opening = true; if (doorHandle) { physics.removeCollider(doorHandle); doorHandle = null; } } });
   if (shrine) {
     registerInteractable({ id: 'shrine.door', priority: PRIORITY.use, range: 3.2, at: () => shrine.box.at.clone().add(V(0, 1.75, 0)), enabled: () => !doorOpen(),
       prompt: () => (tankFull() ? 'open the makers’ door' : 'look at the makers’ door'),
       distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, shrine.front) : Infinity),
-      use: () => { if (tankFull()) openDoor(); else toast('A makers’ door, a dull glass lens at its heart. It wants a full tank.'); } });
+      use: () => { if (tankFull()) openDoor(); else toast('A makers’ door, a dull glass lens at its heart. It wants a full battery.'); } });
     layDoor();
   }
   st.door = doorSt;
@@ -594,7 +594,7 @@ export function setupDesert(ctx) {
   game.on('tool:dregs', ({ left } = {}) => {
     if (left > 0 || game.flag('desert.dregs.spent')) return;
     game.set('desert.dregs.spent', true);
-    setTimeout(() => toast('The makers’ last swallow, gone in one splash. The tank is dry glass now.'), 900);
+    setTimeout(() => toast('The makers’ last swallow, gone in one splash. The battery is dry glass now.'), 900);
   });
   // the ship wakes when Qanat has fed it; the quest ends once nothing the ship waits for is missing (its last step, the
   // Givers' blade and guard: src/story/leave-gate.js coreStage, issue #232), so a done quest always means it can fly
@@ -708,7 +708,7 @@ export function setupDesert(ctx) {
       st.flare = Math.max(st.flare, 1);
       if (mode === 'fire' && !lit() && st.clock - emberT > 8) {
         emberT = st.clock;
-        toast(open() ? 'The ember hisses on the wet bark and dies. Living water won’t take the tank’s fire: it wants the spark it was first lit with.'
+        toast(open() ? 'The ember hisses on the wet bark and dies. Living water won’t take the battery’s fire: it wants the spark it was first lit with.'
           : 'The ember spits on the bark and goes out. The tree’s wood never burned: only the water in it ever did, and there is none.');
       }
       return true;

@@ -37,7 +37,7 @@ import { screen, page } from '../platform.js';
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
 
-export const LANTERN_AT = new THREE.Vector3(0.225, 0.37, -0.3);   // the lantern off the flask's left stave, beside the rucksack, in the chest anchor's frame
+export const LANTERN_AT = new THREE.Vector3(-0.035, 0.215, -0.205);   // the lantern on his belt at the small of his back, beside the makers' battery (the hip anchor's frame, issue #728)
 /** The makers' star pinned to the coral lapel (chest-anchor frame). */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
 /** The same on the game's traveller (TravellerV1: no outfit flag; its chest anchor sits lower): measured on its overshirt's left lapel. */
@@ -61,7 +61,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     if (R.max !== max) { const wasFull = R.level >= R.max - 1e-6; R.max = max; R.level = wasFull ? max : Math.min(R.level, max); }
     R.delay = pace.delay; R.rate = pace.rate;
   };
-  // ---- the lantern: a paper lantern on the tank (or the hip, without one) and a light at night
+  // ---- the lantern: a paper lantern on his belt, beside the battery (the hip anchor), and a light at night
   let lantern = null;
   const light = new THREE.Vector4(0, -1e5, 0, 0);
   level?.lights?.push(light);
@@ -71,10 +71,10 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     grp.add(new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8).scale(1, 1.25, 1), paper));
     grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.025, 0.016, 8).translate(0, 0.07, 0), makeMaterial({ color: '#2b211f', flat: true })));
     grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4).translate(0, 0.11, 0), makeMaterial({ color: '#c8483a', flat: true })));
-    grp.position.copy(LANTERN_AT);   // hung off the tank's left rail, below the cap (chest-anchor frame)
+    grp.position.copy(LANTERN_AT);   // hung from his belt (the hip anchor's frame: the chest's, carried by the pelvis)
     grp.traverse((o) => { o.userData.noCollide = true; });
     grp.visible = false;
-    H.chestAnchor.add(grp);
+    (H.hipAnchor ?? H.chestAnchor).add(grp);
     lantern = { grp, paper };
   }
   // ---- the star on the lapel (or the hood)
@@ -234,14 +234,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       const hasLantern = items.has('lantern'), hasMoss = items.has('moss');
       const night = (hasLantern || hasMoss) && (isNight() || !!player?.inDark);   // (inDark: a temple's dark rooms, src/temples/)
       if (lantern) {
-        // hung on the tank itself, so it goes with it into a vehicle's socket (it was left floating by
-        // your back); moved over only while the tank is on the back, where the two frames agree
-        const tank = tool?.tank?.group;
-        if (tank && lantern.grp.parent !== tank && (tool.where ?? 'back') === 'back' && tank.parent === H.chestAnchor) {
-          H.chestAnchor.add(lantern.grp); lantern.grp.position.copy(LANTERN_AT);
-          H.chestAnchor.updateWorldMatrix(true, true);
-          tank.attach(lantern.grp);
-        }
+        // (on his belt, not on the battery: it stays with him while the battery sits in a vehicle's socket)
         lantern.grp.visible = hasLantern && player?.object?.visible !== false;
         lantern.paper.uniforms.uGlow.value = night && hasLantern ? 0.9 + 0.1 * Math.sin(t * 7) : 0.2;
         lantern.grp.rotation.z = Math.sin(t * 2.3) * 0.15;

@@ -632,10 +632,10 @@ export default {
   id: 'rings', order: 5,
   name: 'Ring race',
   blurb: 'The jets, race-tuned, through twenty brass hoops strung among the needles of the Needle Field.',
-  rules: 'Fly through every ring in order (the arrow points at the next). Each ring tops up the tank; a missed ring costs 5 s, a crash 3 s. Fastest run wins; your best flies with you as a ghost.',
+  rules: 'Fly through every ring in order (the arrow points at the next). Each ring tops up the battery; a missed ring costs 5 s, a crash 3 s. Fastest run wins; your best flies with you as a ghost.',
   controls: {
-    pad: [['RT / R2', 'thrust (lift off the mesa)'], ['Left stick', 'forward dives, back climbs; left / right bank and turn'], ['RB / R1, held', 'boost: faster, burns the tank'], ['Let go of RT / R2', 'glide: saves fuel'], ['Menu', 'pause']],
-    keys: [['Space', 'thrust (lift off the mesa)'], ['W  S', 'dive / climb'], ['A  D', 'bank and turn'], ['Shift, held', 'boost: faster, burns the tank'], ['Esc', 'pause']],
+    pad: [['RT / R2', 'thrust (lift off the mesa)'], ['Left stick', 'forward dives, back climbs; left / right bank and turn'], ['RB / R1, held', 'boost: faster, burns the battery'], ['Let go of RT / R2', 'glide: saves fuel'], ['Menu', 'pause']],
+    keys: [['Space', 'thrust (lift off the mesa)'], ['W  S', 'dive / climb'], ['A  D', 'bank and turn'], ['Shift, held', 'boost: faster, burns the battery'], ['Esc', 'pause']],
     touch: [['⤒, held', 'thrust'], ['Stick', 'dive, climb, bank'], ['run', 'boost on / off']],
   },
   score: { kind: 'time' },

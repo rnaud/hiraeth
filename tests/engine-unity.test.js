@@ -80,15 +80,16 @@ test('the port\'s formats: a material as materialOf writes it, the look as world
   assert.equal(L.post.uFogDensity, 0.001);
 });
 
-test('the round backpack\'s dome reaches the port (its nebula marched through it: Figure.hlsl flaskNebula)', () => {
+test('the makers\' battery reaches the port: its branch of the tank\'s fluid (Figure.hlsl batteryFluid: fluidDomeK under 0)', () => {
   const glass = makeMaterial({ color: '#ffffff', fluid: 'tank', fluidBox: [0, 0.3, 0.2, 0] });
   buildFlask(glass);
   const p = portMaterial(inkSpec(glass), 4);
   assert.equal(p.fluid, 1);
   assert.equal(p.fluidA[3], 0, 'kind 0: the tank');
   assert.equal(p.fluidDome.length, 4);
-  assert.ok(p.fluidDome[3] > 0, 'the dome\'s radius, set by buildFlask');
-  assert.ok(p.fluidDomeK > 0, 'how far it stands out of its ring');
+  assert.equal(p.fluidDomeK, -1, 'the battery\'s branch, set by buildFlask');
+  assert.ok(p.fluidBox[2] > 0.04 && p.fluidBox[2] < 0.06, 'the glass\'s radius');
+  assert.equal(p.fluidBase.length, 3, 'its lavender');
 });
 
 test('the web\'s newer surface marks reach the port: weathering, pen detail, patches, the shade, the spot and line steps; the look\'s vectors', () => {

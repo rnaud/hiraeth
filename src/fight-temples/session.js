@@ -111,7 +111,7 @@ function aimMarks() {
  * lent kit), and wait for the rest; `has(id)` the save's items. One line.
  */
 export function coloursLine(name, has = () => true) {
-  const KIT = [['backpack', 'the backpack'], ['sword', 'the sword'], ['shield', 'the shield']];
+  const KIT = [['backpack', 'the battery'], ['sword', 'the sword'], ['shield', 'the shield']];
   const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
   const own = KIT.filter(([id]) => has(id)).map(([, w]) => w), rest = KIT.filter(([id]) => !has(id)).map(([, w]) => w.replace('the ', 'your '));
   if (!rest.length) return `New colours: ${name}, for ${and(own)}. Wearing them now; change them in Items.`;

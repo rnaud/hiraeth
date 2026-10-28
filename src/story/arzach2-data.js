@@ -226,9 +226,9 @@ export const LOCALS = [
         },
         rope: { say: ["~neutral~ *Pull the rope at the tower’s foot*, on the plateau side. Give it a proper pull."], choices: [{ text: '~neutral~ All right.', end: true }] },
         listen: {
-          say: ["~whisper~ (Calix closes his eyes. The bell’s note travels through the stone beneath your feet.)", "~happy~ The cloud moved down. A little, but down. Thirty years, and it still knows the way.", "~solemn~ Listen to your tank. It has caught the bell’s note. When you use the fluid, you’ll hear it again. Take that with you.", "~surprised~ And look: *the lantern stones are lit*. We lit them for riders coming home in the cloud. They run *north off the cliff to the riders’ gate on the plain*. Your ship is that way. Fly home along them."],
+          say: ["~whisper~ (Calix closes his eyes. The bell’s note travels through the stone beneath your feet.)", "~happy~ The cloud moved down. A little, but down. Thirty years, and it still knows the way.", "~solemn~ Listen to your battery. It has caught the bell’s note. When you use the fluid, you’ll hear it again. Take that with you.", "~surprised~ And look: *the lantern stones are lit*. We lit them for riders coming home in the cloud. They run *north off the cliff to the riders’ gate on the plain*. Your ship is that way. Fly home along them."],
           do: [{ set: { 'arzach2.bell.note': true } }, { advance: [Q, 'listen'] },
-            { keepsake: { id: 'arzach2.song', level: 'arzach2', name: 'The bell’s note', kind: 'song', text: 'One low note, and the cloud settling a hand’s width under it. It sounds from the tank now whenever you shoot.' } }],
+            { keepsake: { id: 'arzach2.song', level: 'arzach2', name: 'The bell’s note', kind: 'song', text: 'One low note, and the cloud settling a hand’s width under it. It sounds from the battery now whenever you shoot.' } }],
           choices: [{ text: '~happy~ Thank you, Brother.', end: true }],
         },
         after: { say: ["~playful~ I ring it at dawn and dusk. Things settle a little each time. I still watch for the goat."], choices: [{ text: '~happy~ (laugh)', end: true }] },

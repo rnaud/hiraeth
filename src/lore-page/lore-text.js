@@ -25,7 +25,7 @@ export const THREAD = [
   ] },
   { id: 'makers', title: 'The makers (the Givers)', text: [
     'Nobody has seen a maker. They made the giants walk: the giants carried the makers’ water across the worlds and lay down where they could go no farther, and cities grew on their bones. They signed everything they made with the glyph, and every world has its own name for them and their sign; in the desert they are the Givers.',
-    'They left gifts behind for travellers who would come a long way after them: the backpack and its jade fluid, its wings, its lenses, little charms. Each waits in a chest of pale ceramic with a four-point star on its lid, a traveller’s sign, “a small light, a long way from home”. They open only for someone who has come a long way: the traveller is the first in living memory.',
+    'They left gifts behind for travellers who would come a long way after them: the battery and its lavender fluid, its wings, its lenses, little charms. Each waits in a chest of pale ceramic with a four-point star on its lid, a traveller’s sign, “a small light, a long way from home”. They open only for someone who has come a long way: the traveller is the first in living memory.',
     'In every world the makers built one great house, a temple of rooms and puzzles in that world’s architecture. Half-way in waits a gadget that is the key to the rest; at the end, a guardian they left to keep the house, frightened or broken since the light went over. A guardian that lives is calmed; a machine is stopped. Either way the world outside changes.',
   ] },
   { id: 'fragments', title: 'The fragments of the singing light', text: [
@@ -53,7 +53,7 @@ export const TRAVELLER = {
   ],
   gear: [
     ['The look', 'An open, oversized, faded coral overshirt over an ivory undershirt, sleeves rolled; loose cream trousers rolled above bare ankles; low sand suede boots; a little tan neckerchief; a small round khaki satchel on a diagonal strap.'],
-    ['The backpack', 'The makers’ backpack, found in Qanat under the great tree: a slim tank of living jade fluid that pushes, lifts and fills, the same water the giants carried. It starts two-tone; every world with a source adds a colour band, so by the end the tank is a record of the journey.'],
+    ['The battery', 'The makers’ battery, found in Qanat under the great tree: a turquoise glass cylinder of living lavender fluid between cream ceramic caps, worn at the hip, that pushes, lifts and fills, the same water the giants carried. It comes out dry; every world with a source adds a colour band, so by the end the battery is a record of the journey.'],
     ['The ship', 'His father’s old ship: the flight cap on the dash, the drawings under the bunk, three stools in the galley, the reel on the console, and the scorched glyph on its hull.'],
   ],
 };

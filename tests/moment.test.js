@@ -281,7 +281,7 @@ test('the empty tank’s first fill is filmed once: it fills on its beat, the ja
   assert.equal(refills.length, 1, 'never twice');
   assert.ok(rt.quests.has('water'), 'the jar fills at its end');
   // (v1.38: the gun is still ahead, in the Givers' Hearth: the tank's words point at the chest beside the pool)
-  assert.ok(toasts.some((t) => /empty tank fills/.test(t) && /hums back/.test(t)), 'and what answers it (the lift valve\'s chest)');
+  assert.ok(toasts.some((t) => /empty battery fills/.test(t) && /hums back/.test(t)), 'and what answers it (the lift valve\'s chest)');
   assert.equal(W.dry(), false);
   offRefill?.();
 });
@@ -297,7 +297,7 @@ test('without the ship’s camera (or once seen) the desert does what it always 
   player.pos.copy(V(c.x, C.origin.y - 1.5, c.z)); step(2);
   assert.ok(!rt.moments.playing, 'no second time');
   assert.equal(refills.length, 1, 'it fills at once');
-  assert.ok(toasts.some((t) => /empty tank fills/.test(t)));
+  assert.ok(toasts.some((t) => /empty battery fills/.test(t)));
 });
 
 test('#239: the tree catching is filmed once, from the ground by him out to the whole tree; it catches on its own clock, skipped or not', async () => {

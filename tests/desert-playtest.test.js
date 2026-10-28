@@ -117,7 +117,7 @@ test('#156: the lift valve\'s chest is in the makers\' shrine, out of sight and 
   items.grant('backpack'); game.set('tool.empty', true); game.set('desert.pool.tinted', undefined); game.set('desert.channel.open', undefined);
   assert.equal(prompt(), 'look at the makers’ door', 'an empty tank: it only looks');
   door.use();
-  assert.ok(!game.flag('desert.door.open') && /full tank/.test(toasts.at(-1)), 'and says it wants a full tank');
+  assert.ok(!game.flag('desert.door.open') && /full battery/.test(toasts.at(-1)), 'and says it wants a full tank');
   game.set('tool.empty', false); game.set('desert.pool.tinted', true); game.set('desert.channel.open', true);
   assert.equal(prompt(), 'open the makers’ door');
   door.use();

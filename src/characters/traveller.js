@@ -34,7 +34,7 @@ export function* createTravellerSteps(char,assets,options={}){
  model.updateHands=()=>{}; // shared Hands already uses this body's calibrated poses
  h.restExpression=cleanExpression(TRAVELLER.rest);h.setExpression(h.restExpression);
  h.wearGlove(model.mesh);
- h.tankAt=[0,.4,-.1886];
+ // (the makers' battery sits at TANK.at on his hip anchor: fluid-tool.js, measured on this body)
  if(assets.v2){yield;dressTravellerV2(model,assets.v2)}
  return model;
 }

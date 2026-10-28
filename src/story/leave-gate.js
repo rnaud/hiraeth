@@ -27,7 +27,7 @@ import { spoken } from './tone.js';
  */
 export const CORE = {
   desert: [
-    { item: 'backpack', name: 'the backpack', where: 'Qanat' },
+    { item: 'backpack', name: 'the makers’ battery', where: 'Qanat' },
     { item: 'doublejump', name: 'the lift valve', where: 'the giant’s cave' },
     { item: 'sword', name: 'the Givers’ blade', where: 'the Rose House', quest: 'temple.desert' },
     { item: 'shield', name: 'the Givers’ guard', where: 'the Rose House', quest: 'temple.desert' },

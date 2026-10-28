@@ -114,7 +114,7 @@ export function fightMap(def, seed) {
     });
     if (r.altar) {
       const p = [r.altar[0], 0, r.altar[1]];
-      step({ verb: 'take', element: 'reliquary', room: r.id, roomName: r.name, floor: 'f0', pos: p, text: `Open the reliquary on the altar in ${r.name.replace(/^The/, 'the')}: the ${def.colours} colours for the backpack, the sword and the shield`, path: [here, p], metres: round1(d2(here, p)), verbs: ['take'] });
+      step({ verb: 'take', element: 'reliquary', room: r.id, roomName: r.name, floor: 'f0', pos: p, text: `Open the reliquary on the altar in ${r.name.replace(/^The/, 'the')}: the ${def.colours} colours for the battery, the sword and the shield`, path: [here, p], metres: round1(d2(here, p)), verbs: ['take'] });
       here = p;
     }
   });

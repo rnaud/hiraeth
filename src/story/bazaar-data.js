@@ -306,7 +306,7 @@ export const STREET = {
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
         { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the avenue’s end. Silent since the night every sign showed the mark.' },
-        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* at its foot: the market climbs the towers from there, gallery over gallery. Or take the parked cab, or fly up with that pack on your back.' },
+        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* at its foot: the market climbs the towers from there, gallery over gallery. Or take the parked cab, or fly up with that battery at your hip.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
         '~curious~ The market’s first stall sold answers, one each. It’s still there, in the old market under the avenue.',
         { after: ON_AIR, say: '~happy~ The tower spoke! I’ve been welcoming people all morning, and they keep welcoming me back.' },
@@ -321,10 +321,10 @@ export const STREET = {
         choices: [{ text: '~curious~ What colour?', goto: 'colour' }, { text: '~curious~ Any other rumours?', goto: 'rumours' }],
       },
       colour: { say: ["~playful~ Like a bruise fading. Surprisingly popular. Sold the lot by morning, with a complimentary story."], do: { set: { 'bazaar.rumour.light': true } },
-        choices: [{ text: '~curious~ All of them? Not one left, for my tank?', if: { all: [{ flag: 'item.backpack' }, { not: { flag: LANTERN_FLAG } }] }, goto: 'tank' }, { text: '~playful~ A bruise-coloured sun. I’d have bought one.', end: true }] },
+        choices: [{ text: '~curious~ All of them? Not one left, for my battery?', if: { all: [{ flag: 'item.backpack' }, { not: { flag: LANTERN_FLAG } }] }, goto: 'tank' }, { text: '~playful~ A bruise-coloured sun. I’d have bought one.', end: true }] },
       // the market's colour band for the tank (src/story/bazaar.js pours it in when the flag is set)
       tank: { say: ["~whisper~ Kept one under the stall. I’m allowed to be a collector occasionally."], next: 'pour' },
-      pour: { say: ["~playful~ (He pours its light into your tank.) There. A little sun for the road. No returns on sunshine."], do: { set: { [LANTERN_FLAG]: true } },
+      pour: { say: ["~playful~ (He pours its light into your battery.) There. A little sun for the road. No returns on sunshine."], do: { set: { [LANTERN_FLAG]: true } },
         choices: [{ text: '~happy~ Thank you, Oyo.', end: true }] },
       rumours: { say: ["~playful~ They say the quiet ones read minds. They say the tower tells the truth. They say the noodle man is three people in a coat. I only trust the noodles."], choices: [{ text: '~playful~ Noodles it is.', end: true }] },
     } },

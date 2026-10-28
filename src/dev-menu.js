@@ -23,7 +23,7 @@ import { glyph } from './pad-glyphs.js';
 import { shipSetting } from './ship/selection.js';
 
 /** The story's big switches on the Story tab: [flag, label]. */
-export const STORY_FLAGS = [['prologue.done', 'Prologue done'], ['ship.powered', 'Ship powered'], ['desert.bike.found', 'Hoverbike found'], ['desert.tree.lit', 'Qanat’s tree lit'], ['tool.empty', 'Tank empty']];
+export const STORY_FLAGS = [['prologue.done', 'Prologue done'], ['ship.powered', 'Ship powered'], ['desert.bike.found', 'Hoverbike found'], ['desert.tree.lit', 'Qanat’s tree lit'], ['tool.empty', 'Battery empty']];
 /** How many tabs the strip shows round the open one (the engines' sheet has room for as many: BridgeMenu.cs DrawGame). */
 export const TAB_STRIP = 5;
 

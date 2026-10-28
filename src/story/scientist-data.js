@@ -36,7 +36,7 @@ export const THRUM_SHOP_LINES = {
   finder: ['~playful~ My little box. It ticks faster the closer you get.'],
   lightheart: ['~happy~ Stitched in over your heart. One more heart, for good.'],
   lightedge: ['~curious~ Done. Your blade hits half as hard again.'],
-  lightcell: ['~neutral~ Done. Your tank holds one more shot.'],
+  lightcell: ['~neutral~ Done. Your battery holds one more shot.'],
   lightwing: ['~happy~ Done. Your wings fly faster and sink slower.'],
   lightstep: ['~neutral~ Done. You’ll run longer and get your breath back quicker.'],
   lightguard: ['~surprised~ Done. Blocking costs you half what it did.'],

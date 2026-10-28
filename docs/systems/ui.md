@@ -365,14 +365,14 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the top since issue #306, first in the hints'
     stack ("Hints: one look, one place" below) for what the use button does right
     here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
-    backpack slotting in), nothing while riding (a ride's controls are in the settings), what the scout
+    battery slotting in), nothing while riding (a ride's controls are in the settings), what the scout
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
     the name where you arrive shows first, issue #78: "The notices' order" below). Prompts with a place still float over it (`#prompt`).
   - **hearts, magic, potion** (`#health`, v1.5): while a heart is missing, the magic bar is spending or
     refilling, a fight is on (`body.combat`) or you are down (`Fader(3)`), then fades; **stamina** as
     before. See "Hearts, the magic bar and the potion" below.
-  - **the tank**: the crosshair while aiming; the level is the HUD's magic bar (and the tank's glass on the
-    backpack), and an "empty" notice for 3 s when the tank runs dry (the desert's).
+  - **the battery**: the crosshair while aiming; the level is the HUD's magic bar (and the battery's own glass at his
+    hip), and an "empty" notice for 3 s when the battery runs dry (the desert's).
   - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
     lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
     only) turn it on. `scripts/handheld-perf` sets it.
@@ -677,7 +677,7 @@ Where the health bar was (top left, `#health` in index.html; `updateHealth` in m
   a purse of forty in about half a second; gold and a little larger while it counts) and the disc turns over.
 - **The magic bar** under them: an inked bar `2.35 × --hh` wide per unit (three units at the start, longer
   with expansions), a tick per unit (a unit is what a shot costs), teal fill; short of one unit it is pale
-  and hatched. Hidden without the backpack (and for the desert's dry tank).
+  and hatched. Hidden without the battery (and for the desert's dry battery).
 - **When**: `healthHud` returns null at rest (the rule "nothing on the screen"): shown while a heart is
   missing, the bar is not full, a fight is on or you are down, and 3 s after; at once on a hurt, a
   knockdown or a drink. `screen.health` (platform.js) carries `{ value, low, hearts, max, magic, magicMax,
@@ -1111,7 +1111,7 @@ once the conversation has closed. A paper sheet over the room, the room dimmed b
   splinter, `FRAGMENT_SVG`, not the chime), the prices are in fragments, the cards are his seven upgrades
   (`upgradeWare`: the name from src/items.js, a line of what it does, `thrum.<id>`; the picture the items page's own
   render once drawn, `itemIcons.pump` while it is open, a fragment until then); one already had says *Fitted*, one
-  whose gear you lack *Needs the blade first* (the tank, the wings, the guard), one too dear *Not enough fragments*,
+  whose gear you lack *Needs the blade first* (the battery, the wings, the guard), one too dear *Not enough fragments*,
   and choosing it makes him say so (`THRUM_SHOP_LINES`, src/story/scientist-data.js). The question: "Light chamber:
   buy it for 10 fragments?"; bought, the light's rise (`sound.fragmentTaken`), no bell and no coins.
 

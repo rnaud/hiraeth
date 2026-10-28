@@ -460,7 +460,7 @@ export function setupArzach2(ctx) {
   catchUp();
   quests.def(Q).onDone = () => {
     game.set('world.arzach2.done', true);
-    toast('The bell’s note goes with you. Shoot, and the tank will sing it.');
+    toast('The bell’s note goes with you. Shoot, and the battery will sing it.');
     setTimeout(() => story.complete?.(), 1500);
   };
 

@@ -50,12 +50,12 @@ namespace Hiraeth
             Interact.Add(new Interactable
             {
                 id = "bike.wake", at = () => transform.position, range = 3.2f, enabled = () => G.Is("desert.bike.uncovered") && !G.Is("desert.bike.found"),
-                prompt = () => Q.Has("backpack") ? "wake the hoverbike with the backpack" : "look at the hoverbike",
+                prompt = () => Q.Has("backpack") ? "wake the hoverbike with the battery" : "look at the hoverbike",
                 use = () =>
                 {
                     if (!Q.Has("backpack")) { game.hud.Toast("It needs power."); return; }
                     G.Set("desert.bike.found", true); dormant = false;
-                    game.hud.Toast("The tank clicks in; the fluid lights its caps. The hoverbike hums.");
+                    game.hud.Toast("The battery clicks in; the fluid lights its caps. The hoverbike hums.");
                 },
             }); }
             Interact.Add(new Interactable

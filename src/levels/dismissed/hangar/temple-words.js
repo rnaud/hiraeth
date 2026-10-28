@@ -57,7 +57,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        six: { say: ["~curious~ Six targets before they reset. Your tank takes too long to refill normally.", "~neutral~ Find the makers’ warm little device inside. It should speed up the work."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        six: { say: ["~curious~ Six targets before they reset. Your battery takes too long to refill normally.", "~neutral~ Find the makers’ warm little device inside. It should speed up the work."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
           say: ["~surprised~ Listen. A steady tick. (The hands above the door move. Great wheels turn inside the cliff.)",
             "~happy~ Every clock agrees! I checked twice. Ottla cried and blamed oil in her eye. Ambroise says even the board blinks tidily.",

@@ -1340,7 +1340,7 @@ export class Bank {
       const L = this.rt.logic;
       if (L.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); if (this.o.woke) this.rt.notice?.(this.o.woke, `bank.woke.${this.id}`); }
       else if (this.o.unmet && !L.check(L.el(this.id)?.when)) { const u = unmetOf(this.o); this.rt.notice?.(u, typeof this.o.unmet === 'function' ? `bank.unmet.${this.id}.${u}` : `bank.unmet.${this.id}`); }
-      else this.rt.notice?.(this.o.full ?? 'All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
+      else this.rt.notice?.(this.o.full ?? 'All four woke, and went dark again: the bank wants more than this battery can hold in one breath.', `bank.${this.id}`);
     }
     return true;
   }

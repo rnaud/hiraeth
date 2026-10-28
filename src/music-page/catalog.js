@@ -166,9 +166,9 @@ add('The fluid gun', 'fluidMode', 'The mode switches', [pick('fluid', (s) => s.f
 add('The fluid gun', 'fluidSplash', 'A glob lands', ['shoot', 'stun', 'fire'].flatMap((m) => [pick(`${m}: the world`, (s) => s.fluidSplash(false, m)), pick(`${m}: someone`, (s) => s.fluidSplash(true, m))]));
 add('The fluid gun', 'fluidPush', 'Push', one((s) => s.fluidPush()));
 add('The fluid gun', 'fluidBoost', 'Boost', one((s) => s.fluidBoost()));
-add('The fluid gun', 'fluidRefill', 'The tank refills', [pick('refill', (s) => s.fluidRefill(false)), pick('a colour added', (s) => s.fluidRefill(true))]);
-add('The fluid gun', 'fluidEmpty', 'The tank is empty', one((s) => s.fluidEmpty()));
-add('The fluid gun', 'fluidDock', 'The pack in a socket', [pick('in', (s) => s.fluidDock(true)), pick('out', (s) => s.fluidDock(false))]);
+add('The fluid gun', 'fluidRefill', 'The battery refills', [pick('refill', (s) => s.fluidRefill(false)), pick('a colour added', (s) => s.fluidRefill(true))]);
+add('The fluid gun', 'fluidEmpty', 'The battery is empty', one((s) => s.fluidEmpty()));
+add('The fluid gun', 'fluidDock', 'The battery in a socket', [pick('in', (s) => s.fluidDock(true)), pick('out', (s) => s.fluidDock(false))]);
 // the blade and the shield
 add('The blade and the shield', 'fluidSlash', 'A swing of the blade', [0, 1, 2].map((n) => pick(`combo ${n + 1}`, (s) => s.fluidSlash(n))));
 add('The blade and the shield', 'fluidWindup', 'The blade pressed: the swing begins', [pick('a light swing', (s) => s.fluidWindup(0)), pick('the heavy third', (s) => s.fluidWindup(2))], 'at the press, before the cut (issue #379)');
@@ -183,7 +183,7 @@ add('The blade and the shield', 'shield', 'The shield', [pick('open', (s) => s.s
 // calls, the scout
 add('Calls and the scout', 'drone', 'The scout', ['go', 'found', 'shrug', 'hint'].map((k) => pick(k, (s) => s.drone(k))), 'src/scout.js');
 add('Calls and the scout', 'whistle', 'Whistling', [pick('the mount', (s) => s.whistle('mount')), pick('a taxi', (s) => s.whistle('taxi'))]);
-add('Calls and the scout', 'packCall', 'Calling the hoverbike from the pack', one((s) => s.packCall()));
+add('Calls and the scout', 'packCall', 'Calling the hoverbike from the battery', one((s) => s.packCall()));
 add('Calls and the scout', 'tune', 'The rider\'s call (Vael\'s flute)', one((s) => s.tune(RIDER_CALL, RIDER_CALL_BEAT)));
 add('Calls and the scout', 'psst', 'Someone calling you over', one((s, e) => s.psst(e.at)));
 // chests, keys, items

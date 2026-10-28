@@ -10,10 +10,10 @@ import { padRide } from './controller.js';
 // brake / reverse, the stick steers, RB or L3 boost, the left button hops (the bottom one jumps off). It hovers on a spring above the dunes,
 // banks into turns and pitches with the ground.
 //
-// It runs on the traveller's magic-fluid backpack (powered: true; the skiff
-// too): boarding swings the tank into the socket behind the seat (player.js,
+// It runs on the traveller's makers' battery (powered: true; the skiff
+// too): boarding, he takes it off his hip and clicks it into the socket behind the seat (player.js,
 // fluid-tool.js), the fluid feeds the engine's port, and the fluid lights
-// the jets' caps, the headlamp, the hover plate and the trails. Without the backpack
+// the jets' caps, the headlamp, the hover plate and the trails. Without the battery
 // it won't start. In the desert it must first be found (src/story/desert-bike.js).
 
 const HOVER = 1.15;
@@ -105,7 +105,7 @@ function buildBike() {
   const seatAnchor = new THREE.Group();
   seatAnchor.position.set(0, -0.56, -0.4);
   body.add(seatAnchor);
-  // the backpack's socket: a brass cradle behind the seat, the engine's port under it
+  // the battery's socket: a brass cradle behind the seat, the engine's port under it
   const { socket, port } = buildSocket(body, { at: [0, 0.21, -1.0], port: [0.2, 0.05, -0.62] });
   const jets = [new THREE.Vector3(0.64, -0.12, -1.36), new THREE.Vector3(-0.64, -0.12, -1.36)];
   const animate = (dt, b) => {
@@ -118,9 +118,9 @@ function buildBike() {
 }
 
 /**
- * A cradle for the backpack's tank on a vehicle's body: a brass ring and two
- * clamps; `socket` is where the tank's glass bottom sits (its +z toward the
- * vehicle's front), `port` the engine inlet (a fitting: the tank feeds it through the cradle, no hose).
+ * A cradle for the makers' battery on a vehicle's body (issue #728: sized to it, once the backpack's dome): a brass
+ * ring round its bottom endcap and two clamps up its sides; `socket` is where the battery's foot sits (upright, its
+ * +z toward the vehicle's front), `port` the engine inlet (a fitting: the battery feeds it through the cradle, no hose).
  */
 export function buildSocket(body, { at = [0, 0.25, -1.4], port = [0.22, 0.05, -1.0] } = {}) {
   const socket = new THREE.Group();
@@ -129,11 +129,11 @@ export function buildSocket(body, { at = [0, 0.25, -1.4], port = [0.22, 0.05, -1
   const brass = '#e2b552', dark = '#5f86bf';
   // the ring and its two clamps are one brass mesh (the first child: it glows if nothing else does)
   const ring = part(mergeGeometries([
-    new THREE.TorusGeometry(0.2, 0.025, 5, 20).rotateX(Math.PI / 2).scale(1.2, 1, 1).translate(0, -0.02, 0),
-    ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.04, 0.16, 0.06).translate(sx * 0.26, 0.06, 0)),
+    new THREE.TorusGeometry(0.075, 0.014, 5, 20).rotateX(Math.PI / 2).translate(0, 0.02, 0),
+    ...[-1, 1].map((sx) => new THREE.BoxGeometry(0.022, 0.11, 0.03).translate(sx * 0.085, 0.06, 0)),
   ].map((g) => g.toNonIndexed())), brass, { metal: 'brass' });
-  const base = part(new THREE.CylinderGeometry(0.21, 0.23, 0.05, 16).scale(1.2, 1, 1), dark, { flat: true, metal: 'painted' });
-  base.position.y = -0.045;
+  const base = part(new THREE.CylinderGeometry(0.085, 0.095, 0.04, 16), dark, { flat: true, metal: 'painted' });
+  base.position.y = -0.02;
   socket.add(ring, base);
   const p = new THREE.Group();
   p.position.set(...port);
@@ -183,7 +183,7 @@ export class Hoverbike {
     // capsule of radius r swept with it, so a long hull's bow, stern and float stop at what the middle would slip by
     // (issue #514: Lorn's skiff, 4.4 m long with a float off its side, ran its bow through the small crystals)
     this.hull = b.hull ?? opts.hull ?? null;
-    // it runs on the backpack: the tank sits in the socket while ridden
+    // it runs on the battery: it sits in the socket while ridden
     this.powered = opts.powered ?? true;
     if (this.powered) {
       const sk = b.socket ? b : buildSocket(this.body, opts.socket ?? { at: [0, 0.25, -1.45], port: [0.25, 0.1, -1.05] });
