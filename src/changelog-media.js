@@ -1435,6 +1435,17 @@ export const CHANGELOG_MEDIA = {
       { where: 'The Signal Market', before: 8.3, after: 8.9 },
     ], note: 'The Signal Market’s before counts only the packs that placed two or more (most placed one).' },
   ] },
+  { match: 'In the Unity version on 1080p handhelds', shots: [
+    { name: 'odin-sharper-desert', size: [1280, 720], caption: 'Qanat’s tree on the Odin 3: before, 960 × 540 stretched to the screen (stepped edges, smeared hatching); after, 1440 × 810 with FSR 1', from: 'Actual adb screencaps of the Unity testers’ APK built by CI from this branch (17f3dc782, versionCode 2952) on the AYN Odin 3 (Adreno 830, 1920 × 1080), Handheld, muted, its own review store, 28 October 2026; a 1280 × 720 crop at the screen’s own pixels. Before: the same build with -render-scale 0.5 -upscale off, which is what 2.32 drew there (960 × 540, URP’s bilinear blit); after: the build’s default (dynamic resolution, here held at 0.75 with FSR 1).', view: 'The Desert’s bench view qanat-tree (views-desert.json), -only qanat-tree, 15 s into the view; the HUD’s frame readout cropped off.' },
+    { name: 'odin-sharper-dunes', size: [1280, 720], caption: 'The Glass Dunes from above on the Odin 3: the far figures, posts and the sand’s lines come out clean', from: 'Actual adb screencaps of the Unity testers’ APK built by CI from this branch (17f3dc782, versionCode 2952) on the AYN Odin 3 (Adreno 830, 1920 × 1080), Handheld, muted, its own review store, 28 October 2026; a 1280 × 720 crop at the screen’s own pixels. Before: the same build with -render-scale 0.5 -upscale off, which is what 2.32 drew there (960 × 540, URP’s bilinear blit); after: the build’s default (dynamic resolution, here held at 0.75 with FSR 1).', view: 'The Glass Dunes’ bench view wide (views-worlds.json), -only wide, 15 s into the view.' },
+  ], numbers: [
+    { title: 'The render scale each world settles at (the mean of its views)', unit: '× the screen', better: 'higher', device: 'AYN Odin 3 (Adreno 830, 1920 × 1080), Unity testers’ APK, Handheld', source: 'the bench (-bench 6, one 6 s run per view, muted), 28 October 2026; docs/systems/performance.md, “Unity on the AYN Odin 3”', rows: [
+      { where: 'The Desert (5 views)', before: 0.5, after: 0.73 },
+      { where: 'The Glass Dunes (7 views)', before: 0.5, after: 0.66 },
+      { where: 'The City-Shaft (4 views)', before: 0.5, after: 0.57 },
+      { where: 'The Signal Market (4 views)', before: 0.5, after: 0.56 },
+    ], note: 'Each view’s fps stayed where it was: 60 in every view but the City-Shaft’s wide one, 43.3 before and 43.6 after (it sits at the 0.5 floor, as before). The GPU’s median ms rose with the pixels (the Desert 9.1 → 13.3) and stays under the 16.7 ms frame.' },
+  ] },
   ],
   '2.32': [
   { match: 'In the desert your ship now comes down in front of the pilgrims’ camps', shots: [

@@ -4265,6 +4265,37 @@ The after is the final player with the 125-state list. Home's after is from the 
   that matters, it could be warmed per world (its ~22 states) or progressively (`WarmUpProgressively`, a few a frame).
   Not tried.
 
+
+### Unity on the AYN Odin 3: a dynamic range from 0.75 (2026-10-28, issue #716)
+
+The author: Unity on the AYN Odin 3 (Adreno 830, 1920 × 1080) looked pixelated. Handheld held 960 × 540 there, issue #395's
+rule for the Thor's slower Adreno 740, with the Odin's GPU at 7-13 ms. **Now** (BridgeRunner `HandheldScale`,
+`HandheldFloor`, `HandheldDyn`): on a screen larger than the Retroid's, Handheld starts at 1440 × 810's pixels (0.75 on
+1080p) and its dynamic resolution (the GPU's frame, as on the Retroid since #404) steps down to 960 × 540; FSR 1 (RCAS 0.6)
+above that floor, the plain bilinear copy at it (`HandheldDyn.UpscalerAt`), so a GPU like the Thor's ends where #395 held it
+(tests/unity-dynres.test.js models both). The Retroid's 0.67-0.5 is unchanged.
+
+**Measured** on the Odin (the CI testers' APK of this branch, versionCode 2952, Handheld, muted, a review store; the bench,
+6 s a view; before: the same APK with `-render-scale 0.5 -upscale off`, what 2.32 drew):
+
+| world (views) | scale settled (mean, min-max) | fps, median of views (before → after) | worst view fps | GPU ms, median (before → after) |
+|---|---|---|---|---|
+| Desert (5) | 0.73 (0.67-0.75) | 60.1 → 60.1 | 60.1 → 60.1 | 9.1 → 13.3 |
+| Glass Dunes (7) | 0.66 (0.54-0.75) | 60.1 → 60.1 | 60.0 → 60.1 | 10.0 → 13.1 |
+| City-Shaft (4) | 0.57 (0.50-0.62) | 60.1 → 60.0 | 43.3 → 43.6 (wide, at the floor) | 12.5 → 13.6 |
+| Signal Market (4) | 0.56 (0.50-0.59) | 60.1 → 60.1 | 60.0 → 60.0 | 13.2 → 14.0 |
+
+The City-Shaft's wide view is 21.6 ms of GPU at 0.5 either way: not a matter of pixels. A view's first second can drop
+two or three levels at once (18-20 ms while it loads), climbing back one level each ~2 s.
+
+**The pre-rotated back buffer**: the Odin's panel is portrait, shown in landscape, and Vulkan's swap-chain pre-transform is
+on (ProjectSettings `vulkanEnablePreTransform`). Our own upscale pass (Hidden/Hiraeth/Upscale) wrote its full-screen
+triangle to the back buffer without the display's rotation: the world lay on its side under an upright HUD (first seen
+with this change, the first to put FSR on the Odin). Its vertex shader now applies `ApplyPretransformRotation`, as URP's
+blit does (tests/unity-upscale.test.js). **Still open**: at render scale 1 (the High preset, `-render-scale 1`) the
+composite, FXAA and water-over passes write the back buffer the same way and show the same sideways picture on the Odin;
+their fragments read `SV_Position`, so the same fix there needs their pixel maths checked.
+
 ### Unity on the Retroid, round 8: spatial upscalers, FSR 1 against Snapdragon GSR 1 (issue #392, 2026-10-16)
 
 The same device, preset and bench as round 7 (Handheld, 1280 × 960, muted, the frame readout on; warm launches, views
