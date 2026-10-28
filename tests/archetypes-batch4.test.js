@@ -193,8 +193,10 @@ test('cheap to draw: each of batch 4 is a handful of meshes (its moving parts sk
   const most = { brute: 11, drone: 10, cart: 17, bell: 14, skitter: 6 };   // (the cart: its sprockets' teeth one more, v1.26)
   for (const [a, n] of Object.entries(most)) for (const w of skinWorlds(a)) {
     const m = archetypeModel(a, w);
-    let meshes = 0; m.group.traverse((o) => { meshes += o.isMesh ? 1 : 0; });
+    // (its plates of armour, issue #722, each a mesh of its own so a blow can knock it off: counted apart, 2-4)
+    let meshes = 0; m.group.traverse((o) => { meshes += o.isMesh && !o.userData.plate ? 1 : 0; });
     assert.ok(meshes <= n, `${a}@${w}: ${meshes} meshes`);
+    assert.ok((m.plates?.length ?? 0) <= 4, `${a}@${w}: ${m.plates?.length} plates`);
     m.dispose?.();
   }
   // a skinned mesh's bounds follow its joints (a gallery frames it; a box taken of it)

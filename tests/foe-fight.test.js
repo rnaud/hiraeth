@@ -51,7 +51,7 @@ test('toughness by stage: the first worlds teach (one combo), the last ones stan
   clearTargets();
   const P = player(v()), F = world(P, { world: 'bazaar' });
   F.waveRest = 1e9;
-  const liz = F.add('lizard', v(0, 0, 8)), blot = F.add('blot', v(3, 0, 8));
+  const liz = F.add('lizard', v(0, 0, 8), { tier: 0 }), blot = F.add('blot', v(3, 0, 8));   // (its base tier: the stronger one, foe-armour.test.js)
   assert.equal(F.stageHere, 4);
   assert.equal(liz.hp, tierHp(FOES.lizard.hp, 4));
   assert.equal(liz.def.hp, liz.hp, 'its def is its own: low shares and mends read its health');

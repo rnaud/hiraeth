@@ -198,7 +198,8 @@ test('spawning by world: the wilds draw each world’s archetypes (or the old ki
   const P = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'bazaar', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: () => 0.05 });
   foes.packs = 2; foes.spawnPack();
   assert.ok(foes.list.length >= 1);
-  for (const f of foes.list) if (f.kind === 'lizard') { assert.equal(f.skin, 'bazaar'); assert.equal(f.model.group.name, 'coin lizard'); }
+  // (a share of them in their stronger tier, issue #722: 'banded coin lizard')
+  for (const f of foes.list) if (f.kind === 'lizard') { assert.equal(f.skin, 'bazaar'); assert.equal(f.model.group.name, f.tierN ? 'banded coin lizard' : 'coin lizard'); }
   assert.ok(foes.list.every((f) => !f.provoked || !f.def.calm), 'out in the wilds they keep to their calm');
   foes.dispose(); clearTargets();
 });

@@ -120,3 +120,132 @@ export function poiseWear(mode, info = {}) {
 
 /** A wind-up's length enraged or as a follow-up (pure: tests): never under the floor, never longer than it was. */
 export function quickWind(wind, k, min) { return Math.min(wind, Math.max(min, wind * k)); }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Armour that comes off, weak points, the head zone and the stronger tiers (issue #722, docs/design/enemy-fun.md C11, C12,
+// D13; docs/systems/foes.md "Armour, weak points and tiers"). Data here; the plates and weak points are real parts of the
+// bodies (src/enemies/plans/: model.plates, model.weak), the Foe's mind reads this (src/foes.js Foe.wearPlates).
+//
+//   ARMOUR[archetype]
+//     plates   how many plates it wears (its body builds as many: model.plates)
+//     hold     what each plate stands of the blade's weight before it falls: a light cut chips 1, the heavy third swing 2;
+//              the breakers knock one off at once (the charged cut, the riposte, the dash cut, a perfect parry, its
+//              poise broken, its guard broken, a bomb), and so does its gun mode (`pops`, once each PLATE.gun s)
+//     soak     the share of a cut's harm the plates take while any still stand (the bell's bronze and the crab's shell
+//              already turn light cuts aside: 0)
+//     bare     what it loses with its last plate (fully open, Darknut): the bell's bronze no longer turns your blade
+//              (clapper), the crab its shell, the brute its guard; a machine's iron no longer turns the gun (shoot)
+// With every plate gone it turns fast and dangerous (BARE: quicker wind-ups and waits, faster on its feet) and fully open
+// (its cuts BARE.takes as hard). Fodder never wears any.
+
+/** The heavy foes' plates. */
+export const ARMOUR = {
+  bell: { plates: 3, hold: 3, pops: ['push'], soak: 0, bare: { clapper: false, stout: false } },
+  brute: { plates: 3, hold: 3, pops: ['stun'], soak: 0.4, bare: { guard: null, stout: false, heavy: false } },
+  crab: { plates: 2, hold: 2, pops: ['fire'], soak: 0, bare: { shell: false, guard: null, heavy: false } },
+  tripod: { plates: 3, hold: 2, pops: ['stun'], soak: 0.4, bare: { heavy: false, shoot: 1 } },
+  cart: { plates: 2, hold: 3, pops: ['shoot'], soak: 0.4, bare: { heavy: false } },
+};
+/** Bare (every plate off): its wind-ups this long (never under `min` s), its waits, its speed, how hard your cuts land. */
+export const BARE = { wind: 0.8, min: 0.5, cool: 0.7, speed: 1.25, takes: 1.25 };
+/**
+ * A plate: s between two its gun mode may knock off; s a fallen one lies before it sinks away (`sink` s); m/s it flies off
+ * (out, up); how far it hangs loose as it is chipped (rad, at its last hold).
+ */
+export const PLATE = { gun: 2.5, lie: 6, sink: 1.2, out: 2.6, up: 3.4, loose: 0.32 };
+
+/**
+ * What a blow does to its plates (pure: tests): 'pop' (one falls at once), a chip of its hold (a number), or 0.
+ * r: what the body made of it ('glance', 'guarded', 'guardbreak', true...); broke: its poise broke with this blow.
+ */
+export function plateBlow(A, mode, info = {}, r = true, broke = false) {
+  if (!A || !r || r === 'burst') return 0;
+  if (broke || r === 'guardbreak' || info.source === 'bomb') return 'pop';
+  if (r === 'guarded') return 1;   // (its guard took the blow, whatever it was: a chip)
+  if (mode === 'blade') {
+    if (info.breaks || info.riposte || info.dash || info.source === 'parry') return 'pop';
+    return (info.combo === 2 || (info.damage ?? 1) >= 2) ? 2 : 1;
+  }
+  if (A.pops?.includes(mode)) return 'pop';
+  return 0;
+}
+
+/**
+ * Weak points (C12: the tripod's lamp, the brute's furnace door, the bell's clapper, the cart's eyes in its smoke): a shot
+ * or a cut there stuns it `stun` s and opens the riposte's window (src/fluid-blade.js openRiposte); `cut` its harm × from the
+ * blade there; then `cool` s before the same weak point stuns it again (a shot still lands there as a headshot). m: the
+ * blade's point within the weak point's radius and this margin.
+ */
+export const WEAK = { stun: 1.6, cool: 4, cut: 1.5, margin: 0.25 };
+/**
+ * The head zone of a shot (any foe with eyes: its gaze part, or its weak point): a headshot. A creature's stance breaks at
+ * once (the plan's A1 breaker), `cool` s between two (meanwhile a headshot wears it `wear` ×); fodder flinches and takes
+ * `fodder` × its harm. `r`: m round the eyes at a body's size 1.
+ */
+export const HEAD = { r: 0.3, cool: 6, fodder: 2, wear: 2 };
+
+/** Does a shot along (point, dir) pass within r of `at` (pure: tests)? Its nearest approach from `back` m before the point on. */
+export function rayNear(point, dir, at, r, back = 1.5) {
+  const ax = at.x - point.x, ay = at.y - point.y, az = at.z - point.z, l = Math.hypot(dir.x, dir.y, dir.z) || 1;
+  const t = Math.max(-back, (ax * dir.x + ay * dir.y + az * dir.z) / l);
+  const px = ax - (dir.x / l) * t, py = ay - (dir.y / l) * t, pz = az - (dir.z / l) * t;
+  return Math.hypot(px, py, pz) <= r;
+}
+
+/**
+ * The stronger tier of each archetype (D13, BotW's colours): darker and banded (src/enemies/skins.js tierSkin, the bands
+ * painted by src/enemies/surfaces.js TIER_SURFACE), its health and poise TIER_UP over its stage's, and ONE new move:
+ *   combo [a, b]   after its move a lands or misses, b at once (once): the tripod's second bolt, the drone's harpoon
+ *                  then its ram (the body plays b's own wind-up; the tier's light flares on the striking part: its tell)
+ *   unlock id      a move its other skins only had (the toad's volley, the roller's ricochet)
+ *   patch {id: {}} one of its moves made stronger (the bell's toll five rings, the brute's slam two quakes)
+ * `words`: what the gallery and the docs say of it. Mixed into packs and encounter sites from TIER_FROM's stage on, a share
+ * TIER_SHARE[stage] of the non-fodder foes. Fodder (the blot, the skitters, the moths) has no tier: it stays the fodder.
+ */
+export const TIERS = {
+  crab: { combo: ['snap', 'snap'], words: 'its snap comes twice, the second quicker' },
+  centipede: { combo: ['ring', 'lunge'], words: 'out of its ring it lunges at once' },
+  toad: { unlock: 'volley', words: 'it lobs a volley of three' },
+  lizard: { combo: ['blare', 'bite'], words: 'its blare shoves you, then it bites' },
+  heron: { combo: ['spear', 'sweep'], words: 'a spear, then a sweep of the bill' },
+  roller: { unlock: 'ricochet', words: 'it rolls off the walls at you' },
+  rootknot: { unlock: 'puff', words: 'it puffs spores' },
+  jelly: { unlock: 'mend', words: 'it mends its neighbours' },
+  ray: { unlock: 'draft', words: 'its downdraft throws you out of a glide' },
+  worm: { combo: ['erupt', 'spit'], words: 'it spits stones as it erupts' },
+  tripod: { combo: ['beam', 'beam'], words: 'its lamp fires a second bolt' },
+  cart: { combo: ['ram', 'pour'], words: 'it pours its slag after a ram' },
+  bell: { patch: { toll: { wave: { speed: 6.5, reach: 12, damage: 0.5, width: 0.6, count: 5, every: 0.55 } } }, words: 'its toll runs five rings' },
+  drone: { combo: ['harpoon', 'ram'], words: 'it reels you in, then rams' },
+  brute: { patch: { slam: { wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55, count: 2, every: 0.6 } } }, words: 'its slam sends two quakes' },
+  fencer: { combo: ['overhead', 'sweep'], words: 'an overhead, then a sweep' },
+  shade: { combo: ['cut', 'cut'], words: 'it cuts twice' },
+  hound: { combo: ['pounce', 'bite'], words: 'it bites as it lands its pounce' },
+  marionette: { combo: ['yank', 'yank'], words: 'its strings yank twice' },
+  wisp: { combo: ['fireball', 'flare'], words: 'it flares after its fireball' },
+};
+/** The stage of the route a tier first comes in at, and the share of the non-fodder foes in tier by stage (0-4). */
+export const TIER_FROM = 3;
+export const TIER_SHARE = [0, 0, 0, 0.3, 0.45];
+/** A tier's toughness over its stage's (× health, never past TIER.cap; × poise); its new move's flare (the tell) colour. */
+export const TIER_UP = { hp: 1.25, poise: 1.25, tell: '#f4f0ff' };
+
+/** A tier's def (pure: tests): the kind's def with its new move (patched, unlocked) and its health; null without a tier. */
+export function tierDef(archetype, def) {
+  const T = TIERS[archetype];
+  if (!T) return null;
+  const attacks = def.attacks.map((a) => {
+    let x = a;
+    if (T.patch?.[a.id]) x = { ...x, ...T.patch[a.id] };
+    if (T.unlock === a.id && x.skins) { const { skins, ...rest } = x; x = rest; }
+    return x;
+  });
+  return { ...def, attacks, attack: attacks[0] };
+}
+/** Is this move its tier's new one (its flare plays on its wind-up)? */
+export const tierMove = (archetype, id, chained = false) => {
+  const T = TIERS[archetype];
+  if (!T) return false;
+  if (T.combo) return chained ? T.combo[1] === id : false;
+  return T.unlock === id || !!T.patch?.[id];
+};

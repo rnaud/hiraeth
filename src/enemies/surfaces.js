@@ -524,16 +524,31 @@ export function surfaceColor(c, palette = {}) {
   return `#${out.map((x) => Math.round(Math.min(1, Math.max(0, x)) * 255).toString(16).padStart(2, '0')).join('')}`;
 }
 
+/** A plate of armour (src/enemies/plans/kit.js plate, issue #722): rows of pale rivet heads round it, dark wear low on it, a dull shine. */
+export const PLATE_SURFACE = {
+  rivets: { color: '#efe4c4', axis: 1, period: 0.22, offset: 0.5, count: 20, size: 0.055, ink: 0.6, shine: 0.35 },
+  rust: { color: '#2e2622', color2: '#5a4a3a', amount: 0.18, amount2: 0.08, scale: 0.14, down: 0.7, pits: 0.5 },
+  gloss: { size: 0.03, sky: 0.45, amount: 0.5 },
+};
+/**
+ * The stronger tier's bands (issue #722, D13; src/enemies/skins.js tierSkin darkens its palette): broad near-black bands
+ * across every part of its body but its eyes, glows, smoke, ink and plates (TIER_BARE), a pen line at each edge.
+ */
+export const TIER_SURFACE = { stripes: { color: '#16121a', amount: 0.82, axis: 1, period: 0.36, width: 0.24, ink: 0.4 } };
+export const TIER_BARE = /^(eye|eyes|glow|lamp|beam|core|lip|brew|stream|slag|smoke|smokeHi|mist|halo|ward|line|thread|ink|spirit|plate|light|flame|fire|spore|lens|glass|cloth|canvas|ripple|pool|sand)|Build$/;
+
 /**
  * The painted surface of an archetype's part in a skin ({ fade, mottle, … } with its colours resolved), or null.
  * @param skin src/enemies/skins.js skinOf: { id, palette }
  */
 export function surfaceFor(archetype, skin, name) {
-  const T = SURFACES[archetype];
-  if (!T || !skin) return null;
+  const T = SURFACES[archetype] ?? {};
+  if (!skin) return null;
   // (numbered parts, a jelly's light0…2, wear their family's: 'light')
   const base = name.replace(/\d+$/, ''), pick = (t) => t?.[name] ?? t?.[base];
-  const merged = { ...(pick(T['*']) ?? {}), ...(pick(T[skin.id]) ?? {}) };
+  // (a plate of armour, issue #722: riveted, worn, its own unless the archetype paints it; a tier's parts banded: TIER_SURFACE)
+  const merged = { ...(base === 'plate' && !pick(T['*']) ? PLATE_SURFACE : {}), ...(pick(T['*']) ?? {}), ...(pick(T[skin.id]) ?? {}),
+    ...(skin.tier && !TIER_BARE.test(base) ? TIER_SURFACE : {}) };
   const out = {};
   for (const [k, v] of Object.entries(merged)) {
     if (!v) continue;

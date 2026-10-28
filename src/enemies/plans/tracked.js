@@ -3,7 +3,7 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder, SecondOrderAngle, quantise } from '../../motion-kit/spring.js';
 import { TrackDrive } from '../../motion-kit/machines.js';
-import { materials, add, many, merged, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, many, merged, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V, plate, shade, plateMat } from './kit.js';
 import { gazePart } from '../gaze.js';
 
 // Plan 17, the tracked machine (docs/systems/procedural-animation.md §4, the kit's `tracked`): the crucible cart
@@ -106,6 +106,17 @@ export function cartModel(skin) {
     t.userData.top = top;
     return t;
   });
+  // its armour (issue #722, src/enemies/fight.js ARMOUR): a riveted skirt hung over the outside of each track, from end to
+  // end; knocked off, its wheels and belt show
+  const plateM = plateMat(M, P.plate ?? shade(P.body, 0.72));
+  const plates = sides.map((t, i) => {
+    const s = i ? 1 : -1, geo = new THREE.BoxGeometry(0.05, TH * 0.78, RUN * 2 + ER * 1.3);
+    // (its lower corners cut back, as a skirt over the wheels)
+    const pos = geo.attributes.position;
+    for (let k = 0; k < pos.count; k++) if (pos.getY(k) < 0) pos.setZ(k, pos.getZ(k) * 0.86);
+    geo.computeVertexNormals();
+    return plate(t, geo, plateM, s * (TW / 2 + 0.05), TH * 0.52, 0, `skirt ${s > 0 ? 'left' : 'right'}`);
+  });
   // the wheels: road wheels, the sprocket and the idler, both sides, one instanced mesh (spokes painted), turned by the belts
   const wheelGeo = new THREE.CylinderGeometry(1, 1, TW * 0.7, 16);
   const wheels = new THREE.InstancedMesh(wheelGeo, M.mat('wheel', P.wheel, { metal: P.wheelMetal ?? undefined }), WHEELS.length * 2);
@@ -205,6 +216,7 @@ export function cartModel(skin) {
   placeWheels();
   return {
     group: g, gaze, body: chassis, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.pot, P.smoke],
+    plates, weak: { obj: face, r: 0.36, name: 'eyes in its smoke' },
     tell: (id) => (id === 'ram' ? sides[0] : lip),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V, plate, shellPlate, shade, plateMat } from './kit.js';
 
 // Plan 18, the piston-legged machine (docs/systems/procedural-animation.md §4): the lamp tripod
 // (docs/design/enemy-roster.md, archetype 13), drawn to its sheets (references/enemy-archetypes/tripod/: sheet-1 the
@@ -85,6 +85,12 @@ export function tripodModel(skin) {
   const valves = [0, 1, 2, 3, 4, 5].map((k) => { const a = (k / 6) * Math.PI * 2 + 0.3, r = R(1.82) + 0.03; const v = pivot(hull, Math.sin(a) * r, 1.82, Math.cos(a) * r); add(v, new THREE.CylinderGeometry(0.045, 0.045, 0.07, 8).rotateX(Math.PI / 2), brassM); add(v, new THREE.BoxGeometry(0.11, 0.02, 0.02), darkM, 0, 0.045, 0); v.rotation.y = a; return v; });
   // the wind-up key in the diving bell's side
   if (props.has('key')) { const k = pivot(hull, R(1.95) + 0.02, 1.95, 0); k.rotation.z = -Math.PI / 2; rod(k, [0, 0, 0], [0, 0.14, 0], 0.02, brassM); for (const s of [-1, 1]) add(k, new THREE.TorusGeometry(0.06, 0.02, 6, 12), M.mat('key', P.rust), s * 0.065, 0.2, 0); valves.push(k); }
+  // its armour (issue #722, src/enemies/fight.js ARMOUR): three riveted plates bolted round the boiler between its bands,
+  // front and either flank, a hand's width off it; its lamp (the weak point) stays bare
+  const plateM = plateMat(M, P.plate ?? shade(P.body, 0.7));
+  const py0 = bandY[1] + 0.05, py1 = bell ? 2.4 : 2.5;
+  const plateProf = [0, 0.25, 0.5, 0.75, 1].map((u) => { const y = lerp(py0, py1, u); return [R(y), y]; });
+  const plates = [0, 1, 2].map((k) => plate(hull, shellPlate(plateProf, (k / 3) * Math.PI * 2 - 0.72, 1.44, { out: 0.03, thick: 0.045, segs: 10 }), plateM, 0, 0, 0, `boiler plate ${k}`));
   // the lamp: a neck from the crown to a brass fork that turns (yaw); between its arms the searchlight, a drum as
   // wide as the boiler, tips (pitch); its lens behind a grid and a shutter of four leaves that close in notches
   const neckTop = top + 0.08;
@@ -138,6 +144,7 @@ export function tripodModel(skin) {
   let aimYaw = 0, aimPitch = 0, close = 0, stamp = 0, twitch = 0, twitchLeg = 0, nextTwitch = 2 + Math.random() * 3;
   return {
     group: g, body: hull, rig, parts, eyeMat: eyeM, base: '#f8f0dc', size: skin.scale, skin: skin.id, tones: [P.body, P.brass, '#141019'],
+    plates, weak: { obj: lamp, r: LAMP_R + 0.14, name: 'lamp' },
     tell: (id) => (id === 'beam' ? lens : id === 'stamp' ? legs[0].foot : vents[0]),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

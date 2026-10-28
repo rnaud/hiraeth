@@ -805,6 +805,16 @@ function makePlan(args) {
       { kind: 'wisp', until: 'near', d: 3.3, secs: 3 }, { kind: 'key', code: 'KeyF', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyF', down: false },
       { kind: 'wisp', until: 'back', secs: 1 }, ...shot('3-deflect'), { kind: 'wisp', until: 'stunned', secs: 2 }, { kind: 'wait', frames: 25, secs: 0.8 }, ...shot('4-stun'), { kind: 'wisp', until: 'log' });
   }
+  if (fights.includes('armour')) {
+    // (-fight armour, issue #722: a bell walker of the Signal Market set down 5 m ahead, kept up, locked on: its plates on;
+    // three charged cuts at it (Foes.hurt, as the blade's): its plates knocked off onto the ground; then a banded bell walker
+    // (its stronger tier) in its place; a picture of each)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-armour-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'bell@bazaar', dist: 5, hp: 99, tier: 0 }, { kind: 'wait', frames: 60, secs: 1.5 },
+      { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 40, secs: 1 }, ...shot('on'),
+      { kind: 'foe', what: 'strip' }, { kind: 'wait', frames: 100, secs: 2 }, ...shot('off'),
+      { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'bell@bazaar*', dist: 5, hp: 99 }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
+  }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
   for (const f of fights.filter((x) => x.startsWith('site:'))) {
@@ -1256,9 +1266,22 @@ function playFrame(dt) {
         game.player.heading = Math.atan2(c.x - at.x, c.z - at.z); game.rig.yaw = game.player.heading + Math.PI;
         console.log(`[unity] in ${T.id}'s arena (${G.state})`);
       }
+    } else if (step.what === 'clear') {
+      for (const f of F.list.slice()) F.remove(f);
+      console.log('[unity] the foes cleared');
+    } else if (step.what === 'strip') {
+      // (-fight armour: three charged cuts at the bell's front, as the blade's: its plates off, issue #722)
+      const f = F.list.find((x) => x.alive && x.armour);
+      if (!f) console.log('[unity] nothing armoured here');
+      else {
+        const V = f.pos.constructor, p = game.player.pos, dir = new V(f.pos.x - p.x, 0, f.pos.z - p.z).normalize();
+        for (let i = 0; i < 3; i++) { f.downT = 0; f.stunned = 0; f.open = 0; F.hurt(f, 'blade', dir, { damage: 2, combo: 2, breaks: true, charged: true }, null); }
+        console.log(`[unity] plates on ${f.platesOn}, bare ${f.armour.bare}, fallen ${F.fallen?.length ?? 0}`);
+      }
     } else {
-      const got = F.spawnKind(step.what, { n: 1, dist: step.dist ?? (step.what === 'wisp' ? 9 : 5) });
+      const got = F.spawnKind(step.what, { n: 1, dist: step.dist ?? (step.what === 'wisp' ? 9 : 5), ...(step.tier === 0 ? { tier: 0 } : {}) });
       if (step.hp) for (const f of got) { f.hp = step.hp; f.cool = 99; }   // (kept up and slow to strike: -fight combo)
+      for (const f of got) if (f.armour || f.tierN) console.log(`[unity] ${step.what}: plates ${f.platesOn}, tier ${f.tierN}`);
       console.log(`[unity] a ${step.what} set down: ${got.length}`);
     }
     next();

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V, plate, shellPlate, shade, plateMat } from './kit.js';
 import { gazePart } from '../gaze.js';
 
 // Plan 1, the multi-legged walker (docs/systems/procedural-animation.md §4): the shellback crab
@@ -49,6 +49,11 @@ export function crabModel(skin) {
   // the lip: the shell's edge standing proud over the legs
   const rim = add(body, new THREE.TorusGeometry(SHELL_R * 0.99, 0.03, 6, 30).rotateX(Math.PI / 2), shellM, 0, 0.0, 0);
   rim.scale.set(1, deep, 1);
+  // its armour (issue #722, src/enemies/fight.js ARMOUR): two thick scutes over the front of the dome, left and right of its
+  // ridge, darker than the shell; chipped by your cuts they work loose, knocked off they fall (Foes.dropPlate)
+  const plateM = plateMat(M, P.plate ?? shade(P.shell, 0.78));
+  const scute = DOME.slice(1, 11).map((v) => [v.x * 1.0, v.y + 0.012]);
+  const plates = [1, -1].map((s) => plate(body, shellPlate(scute, s > 0 ? 0.1 : -1.62, 1.52, { out: 0.012, thick: 0.05, segs: 10, depth: deep }), plateM, 0, 0, 0, `scute ${s > 0 ? 'left' : 'right'}`));
   const belly = add(body, new THREE.LatheGeometry(BELLY, 22), underM);
   belly.scale.set(1, 1, deep);
   // the belly's plates: seams round it under the lip
@@ -150,7 +155,7 @@ export function crabModel(skin) {
   const parts = [shell, rim, belly, ...seams, ...stalks, ...claws.map((c) => c.shoulder), ...dress, ...legs.map((l) => l.root)];
   let side = 0, sink = 0, spin = 0, flip = 0, clampK = 0;
   return {
-    group: g, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.under, P.claw], gaze,
+    group: g, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.under, P.claw], gaze, plates,
     tell: (id) => (id === 'snap' ? claws[1].tip : id === 'burrow' ? stalkEyes[0] : shellTop),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
@@ -196,6 +201,7 @@ export function crabModel(skin) {
       // cracked: the dress and the shell's dome come off, the soft back shows
       for (const x of dress) x.visible = f.shelled;
       meat.visible = !f.shelled;
+      for (const x of plates) if (!f.shelled) x.visible = false;   // (the shell cracked: what armour it wore is off with it)
       shell.visible = f.shelled; seams.forEach((x) => { x.visible = f.shelled; });
       if ((tuck > 0.5 && strike) || (buried > 0.3 && Math.random() < 0.5)) c.dust(f.pos, P.under, 2);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye));

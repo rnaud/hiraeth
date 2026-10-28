@@ -21,7 +21,7 @@ export const ease = (from, to, rate, dt) => from + (to - from) * (1 - Math.exp(-
  * Given the skin itself (skinOf), each part wears its painted surface by its name (src/enemies/surfaces.js).
  */
 export function materials(archetype, skin) {
-  const owned = [], id = typeof skin === 'string' ? skin : skin?.id;
+  const owned = [], id = typeof skin === 'string' ? skin : skin?.key ?? skin?.id;   // (a tier's own: skins.js tierSkin)
   // the part's painted surface (src/enemies/surfaces.js, drawn by src/foe-surface.js): patterns, colour zones, glow, gloss
   const paint = (name, o) => {
     if (o.foeSurface !== undefined || typeof skin !== 'object') return o;
@@ -207,3 +207,30 @@ export function lowestIn(root, obj, pts) {
   for (const p of pts) low = Math.min(low, _op.copy(p).applyMatrix4(_om).y);
   return low;
 }
+
+// ------------------------------------------------------------------ armour that comes off (issue #722, C11)
+/**
+ * A plate of armour (src/enemies/fight.js ARMOUR): a part of the body that a blow can knock off (model.plates, in the order
+ * they fall), its own mesh on the joint that carries it: never merged, batched or skinned, so it can be hidden on the body
+ * and thrown to the ground on its own (Foes.dropPlate).
+ */
+export function plate(parent, geo, mat, x = 0, y = 0, z = 0, name = 'plate') {
+  const m = add(parent, geo, mat, x, y, z); m.name = name; m.userData.plate = true; m.userData.noBatch = true;
+  return m;
+}
+/**
+ * A curved plate over a turned body (a lathe's profile [[r, y], …], in its frame): from angle phi0 (0: the body's front, +z)
+ * round phiLen rad, `out` m off the body and `thick` m thick (a closed profile turned: it has an inside and edges).
+ */
+export function shellPlate(prof, phi0, phiLen, { out = 0.03, thick = 0.04, segs = 12, depth = 1 } = {}) {
+  const outer = prof.map(([r, y]) => new THREE.Vector2(r + out + thick, y));
+  const inner = prof.slice().reverse().map(([r, y]) => new THREE.Vector2(r + out, y));
+  const geo = new THREE.LatheGeometry([...outer, ...inner, outer[0].clone()], segs, phi0, phiLen);
+  if (depth !== 1) geo.scale(1, 1, depth);
+  geo.computeVertexNormals();
+  return geo;
+}
+/** A colour `k` times as bright ('#rrggbb'): a plate's shade of the part it covers. */
+export const shade = (hex, k) => `#${new THREE.Color(hex).multiplyScalar(k).getHexString()}`;
+/** The plates' material of a body (named 'plate': its surface, src/enemies/surfaces.js): both sides drawn (its edges open). */
+export const plateMat = (M, color) => M.mat('plate', color, { side: THREE.DoubleSide });

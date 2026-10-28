@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { Pendulum } from '../../motion-kit/machines.js';
-import { materials, add, tubeGeometry, many, skinBy, pivot, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tubeGeometry, many, skinBy, pivot, lerp, ease, eyeColor, finish, V, plate, shellPlate, shade, plateMat } from './kit.js';
 
 // Plan 19, the siege machine (docs/systems/procedural-animation.md §4, the kit's `siege`): the bell walker
 // (docs/design/enemy-roster.md, archetype 15), drawn to its sheets (references/enemy-archetypes/bell/: sheet-1 the Signal
@@ -133,6 +133,17 @@ export function bellModel(skin) {
     many(spirit, [-1, 1].map((s) => new THREE.SphereGeometry(0.04, 8, 6).scale(1, 1.25, 0.6).translate(s * 0.07, 0.05, 0.15)), eyeM);
     many(spirit, [-1, 1].map((s) => tubeGeometry([[s * 0.12, 0, 0], [s * 0.18, 0.1, 0.05], [s * 0.06, 0.18, 0.06]], 0.02, 0.012)), inkM);
   }
+  // its armour (issue #722, src/enemies/fight.js ARMOUR): three curved plates of darker bronze strapped round the bell's
+  // waist, front and either side (the winch: round its drum's flanges); your cuts chip them loose, a heavy blow knocks one off
+  const plateM = plateMat(M, P.plate ?? shade(P.bell, 0.5));
+  const plates = [];
+  if (!winch) {
+    const prof = BELL.filter(([, y]) => y <= -0.5 && y >= -1.42).map(([r, y]) => [r, y]);
+    for (let k = 0; k < 3; k++) plates.push(plate(swing, shellPlate(prof, (k / 3) * Math.PI * 2 - 0.82, 1.64, { out: 0.03, thick: 0.07, segs: 12 }), plateM, 0, 0, 0, `bell plate ${k}`));
+  } else {
+    const prof = [[0.5, -0.45], [0.5, 0], [0.5, 0.45]];
+    for (let k = 0; k < 3; k++) plates.push(plate(swing, shellPlate(prof, 0, 1.7, { out: 0.02, thick: 0.05, segs: 10 }).rotateZ(Math.PI / 2).rotateX((k / 3) * Math.PI * 2).translate(0, -0.95, 0), plateM, 0, 0, 0, `drum plate ${k}`));
+  }
   // ink dripping from the mouth (static runs at the lip; drops fall: Foes.animKit drip)
   const runs = [];
   for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2 + (k % 3) * 0.1, l = 0.1 + ((k * 5) % 4) * 0.08, r = winch ? 0.5 : 0.93; runs.push(new THREE.ConeGeometry(0.028, l, 5).rotateX(Math.PI).translate(Math.sin(a) * r, (winch ? -1.45 : -1.62) - l / 2, Math.cos(a) * r)); }
@@ -172,6 +183,7 @@ export function bellModel(skin) {
   const front = legs.map((L, i) => i).filter((i) => legs[i].home.z > 0.3);   // (the front legs: they lift as it rears back)
   return {
     group: g, body: frame, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.bell, P.yoke, P.spirit], clapper: ball,
+    plates, weak: { obj: ball, r: 0.34, name: winch ? 'hook' : 'clapper' },
     tell: (id) => (id === 'toll' ? ball : swing),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';

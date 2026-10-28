@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
+import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn, plate, shellPlate, shade, plateMat } from './kit.js';
 import { gazePart } from '../gaze.js';
 
 // Plan 8, the giant slow brute (docs/systems/procedural-animation.md §4): the furnace brute (docs/design/enemy-roster.md,
@@ -130,6 +130,17 @@ export function bruteModel(skin) {
     sh.rotation.z = s * 0.06;
     return { sh, el, fist, hand };
   });
+  // its armour (issue #722, src/enemies/fight.js ARMOUR): a riveted plate on each ball shoulder and a breastplate over the
+  // top of its egg above the belt (the furnace door, its weak point, stays bare under it); knocked off one by one
+  const plateM = plateMat(M, P.plate ?? shade(P.brass, 0.62));
+  const plates = [];
+  for (const [k, a] of arms.entries()) {
+    const s = k ? 1 : -1, cap = new THREE.SphereGeometry(0.64, 16, 8, 0, Math.PI * 2, 0, 1.2).scale(1, 0.8, 1.02);
+    cap.rotateZ(-s * 0.38);
+    plates.push(plate(a.sh, cap, plateM, s * 0.05, 0.06, 0, `pauldron ${s > 0 ? 'left' : 'right'}`));
+  }
+  const chest = [2.38, 2.55, 2.75, 2.95, 3.12, 3.28].map((y) => [radiusAt(y), y]);
+  plates.splice(1, 0, plate(hull, shellPlate(chest, -0.8, 1.6, { out: 0.02, thick: 0.06, segs: 12, depth: DEPTH }), plateM, 0, 0, 0, 'breastplate'));
   // short thick legs on the kit: a brass knee pad, the knee bending forward, a broad elephant foot with three toes
   const legs = pair((s) => planLeg(PLANS.brute, { group: g, body, hipParent: hull, hip: { x: s * 0.62, y: HIP_Y, z: 0 }, foot: { x: s * 0.72, z: 0.06 },
     radius: 0.3, balls: 0.82, taper: 0.6, pad: 'pad', ankle: 0.3, mats: { joint: jointB, thigh: hullB, shin: hullB, foot: jointB }, name: `brute leg ${s > 0 ? 'left' : 'right'}` }));
@@ -195,6 +206,7 @@ export function bruteModel(skin) {
   const twitch = [0, 0];
   return {
     group: g, gaze, body: hull, rig, parts, eyeMat: coreM, base: P.core, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.tar],
+    plates, weak: { obj: core, r: 0.34, name: props.has('door') ? 'furnace door' : 'brass eye' },
     tell: (id) => (id === 'hurl' ? arms[1].fist : arms[0].fist),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

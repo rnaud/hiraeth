@@ -44,7 +44,8 @@ import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
 import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
 import { STANCE, guardBreaker, guardCovers, guardTurns, wantsGuard, guardUp } from './foe-guard.js';
-import { fightOf, tierScale, tierHp, poiseWear, quickWind, POISE, LAUNCH, RAGE, FOLLOW, RUN, EVADE as HOP_BACK, ALERT, MOURN, WAIT, REACH } from './enemies/fight.js';
+import { fightOf, tierScale, tierHp, poiseWear, quickWind, POISE, LAUNCH, RAGE, FOLLOW, RUN, EVADE as HOP_BACK, ALERT, MOURN, WAIT, REACH, TIER,
+  ARMOUR as PLATES_OF, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef, tierMove } from './enemies/fight.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -389,6 +390,25 @@ export const WORKS = {
 };
 const _hz = new THREE.Vector3(), _pb = new THREE.Vector3(), _fb = new THREE.Vector3(), _cs = new THREE.Vector3(), _cf = new THREE.Vector3();
 
+const _wk = new THREE.Vector3(), _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _pm = new THREE.Matrix4();
+/**
+ * Where f's weak point is now (world; issue #722, C12: model.weak, its part's place), or null (none, or no body). Shared
+ * vector: copy it to keep it.
+ */
+export function weakAt(f, out = _wk) {
+  const W = f.model?.weak;
+  if (!W?.obj) return null;
+  f.model.group.updateMatrixWorld(true);
+  return W.obj.getWorldPosition(out);
+}
+/** Where f's head is (its weak point, or the eyes its gaze turns: src/enemies/gaze.js), and how round (m), or null. */
+export function headOf(f, out = _wk) {
+  const M = f.model, W = M?.weak, node = W?.obj ?? M?.gaze?.[0]?.node;
+  if (!node) return null;
+  M.group.updateMatrixWorld(true);
+  return { at: node.getWorldPosition(out), r: (W ? W.r : HEAD.r) * (M.size ?? 1), weak: !!W };
+}
+
 /** A strike reaches the traveller only this close in height (m, its feet to the foe's): the hitbox overlay draws it (src/hitboxes.js). */
 export const STRIKE_RISE = 1.6;
 /** An attack that reaches you up or down a ledge: a lob lands at your feet, a step through the shadow comes out behind you. */
@@ -405,8 +425,8 @@ export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.7
  * update() returns the events of the frame: 'notice', 'warn', 'strike' { hit }, 'home'.
  */
 export class Foe {
-  constructor(kind, at, { rng = Math.random, id = null, templeOnly, skin = null, calm = false, def = null } = {}) {
-    // a kind, or a kind in a world's skin ('crab@saltharbour': src/enemies/skins.js)
+  constructor(kind, at, { rng = Math.random, id = null, templeOnly, skin = null, calm = false, def = null, tier = 0 } = {}) {
+    // a kind, or a kind in a world's skin ('crab@saltharbour': src/enemies/skins.js); a trailing '*' its stronger tier
     const p = parseKind(kind);
     this.kind = p.kind; this.skin = p.skin ?? skin;
     if (!FOES[this.kind]) throw new Error(`Unknown enemy: ${kind}`);
@@ -415,6 +435,10 @@ export class Foe {
     this.def = def ? { ...FOES[this.kind], ...def } : FOES[this.kind];
     if (def?.attacks) this.def.attack = this.def.attacks[0];
     this.archetype = archetypeOfKind(this.kind);
+    // its stronger tier (issue #722, D13: src/enemies/fight.js TIERS): its new move in its def; darker and banded (its body)
+    this.tierN = !def && (tier || p.tier) && TIERS[this.archetype] && !fightOf(this.archetype, this.def).fodder ? 1 : 0;
+    if (this.tierN) this.def = tierDef(this.archetype, this.def);
+    this.tierChained = 0;
     this.moves = this.skin && this.archetype ? skinOf(this.archetype, this.skin)?.moves ?? [] : [];   // (its skin's own moves)
     this.templeOnly = templeOnly ?? this.kind === 'machine';
     this.id = id; this.rng = rng;
@@ -480,6 +504,50 @@ export class Foe {
     this.poiseMax = this.fight.poise; this.poise = this.poiseMax; this.poiseT = Infinity; this.downT = 0;
     this.rage = false; this.lowDone = false; this.fleeT = 0; this.fleeTo = null; this.alertT = 0;
     this.evadeCool = 0; this.hopBack = null; this.plan = null; this.chained = 0; this.beat = null; this.reelHit = false;
+    // its plates (issue #722, C11: src/enemies/fight.js ARMOUR): each one's hold left; `gun` s before its gun mode knocks
+    // another off; bare: none left. Its weak point's and its head's rests (s: WEAK, HEAD)
+    const A = this.fight.fodder ? null : PLATES_OF[this.archetype];
+    this.armour = A ? { A, hold: Array.from({ length: A.plates }, () => A.hold), gun: 0, bare: false } : null;
+    this.weakCool = 0; this.headCool = 0;
+  }
+  /** How many of its plates are still on (0 without armour). */
+  get platesOn() { return this.armour ? this.armour.hold.filter((h) => h > 0).length : 0; }
+  /** Wearing armour still (some plate on)? */
+  get armoured() { return !!this.armour && !this.armour.bare; }
+  /**
+   * A blow on its plates (issue #722, C11; plateBlow): a chip off the hold of the plate it met (info.plate, Foes.hurt: the
+   * nearest to where it struck), or that plate knocked off at once; its gun mode once each PLATE.gun s. With the last one
+   * off, it goes bare. Each plate that moved this blow is in `plateEv` ({ i, off }: Foes.hurt shakes it or drops it).
+   */
+  wearPlates(mode, info = {}, r = true, broke = false) {
+    const S = this.armour;
+    if (!S || S.bare || !this.alive) return;
+    const w = plateBlow(S.A, mode, info, r, broke);
+    if (!w) return;
+    if (w === 'pop' && mode !== 'blade' && S.A.pops?.includes(mode) && info.source !== 'bomb') { if (S.gun > 0) return; S.gun = PLATE.gun; }
+    const i = info.plate != null && S.hold[info.plate] > 0 ? info.plate : S.hold.findIndex((h) => h > 0);
+    if (i < 0) return;
+    S.hold[i] = w === 'pop' ? 0 : Math.max(0, S.hold[i] - w);
+    (this.plateEv ??= []).push({ i, off: S.hold[i] <= 0 });
+    if (S.hold.every((h) => h <= 0)) this.goBare();
+  }
+  /**
+   * Its last plate off (Darknut): fully open (ARMOUR.bare: the bell's bronze no longer turns your blade, the crab its shell,
+   * the brute its guard, the tripod's iron the gun) and fast and dangerous (BARE: windFor, speedNow, its waits).
+   */
+  goBare() {
+    const S = this.armour;
+    if (!S || S.bare) return;
+    S.bare = true; S.hold.fill(0); this.bareNow = true;
+    const D = { ...this.def };
+    for (const [k, v] of Object.entries(S.A.bare ?? {})) {
+      if (k === 'shoot') D.takes = { ...D.takes, shoot: Math.max(D.takes?.shoot ?? 0, v) };
+      else if (v === null) delete D[k];
+      else D[k] = v;
+    }
+    this.def = D;
+    if (S.A.bare?.shell === false) this.shelled = false;
+    if (!D.guard) { this.guardK = 0; this.guardT = 0; this.blocked = 0; }
   }
   /**
    * Tougher further along the route (src/enemies/fight.js TIER): health and poise by the world's stage; fodder stays frail.
@@ -487,10 +555,12 @@ export class Foe {
    * walk home) reads this one's.
    */
   toughen(stage = 1, gentle = false) {
-    const F = this.fight, k = tierScale(stage, { fodder: !!F.fodder, gentle });
+    const F = this.fight, k = tierScale(stage, { fodder: !!F.fodder, gentle }), up = this.tierN ? TIER_UP : { hp: 1, poise: 1 };
     this.tier = stage;
-    this.poiseMax = this.poise = Math.round(F.poise * k.poise * 2) / 2 * (gentle ? POISE.gentle : 1);
-    const hp = tierHp(this.def.hp, stage, { fodder: !!F.fodder, gentle });
+    this.poiseMax = this.poise = Math.round(F.poise * k.poise * up.poise * 2) / 2 * (gentle ? POISE.gentle : 1);
+    // (its stronger tier: TIER_UP over its stage's, never past the cap: src/enemies/fight.js)
+    let hp = tierHp(this.def.hp, stage, { fodder: !!F.fodder, gentle });
+    if (up.hp !== 1) hp = Math.max(hp, Math.min(Math.max(this.def.hp, TIER.cap), Math.round(hp * up.hp * 2) / 2));
     if (hp !== this.def.hp) { this.def = { ...this.def, hp }; this.hp = hp; }
     return this;
   }
@@ -499,10 +569,18 @@ export class Foe {
     let w = a.wind;
     if (this.chained) w = quickWind(w, FOLLOW.wind, FOLLOW.min);
     if (this.rage) w = quickWind(w, RAGE.wind, RAGE.min);
+    if (this.armour?.bare) w = quickWind(w, BARE.wind, BARE.min);   // (its plates all off: fast and dangerous, #722)
     return w;
   }
-  /** Its speed: enraged, quicker. */
-  get speedNow() { return this.def.speed * (this.rage ? RAGE.speed : 1); }
+  /** Its speed: enraged, quicker; bare of its plates, quicker still. */
+  get speedNow() { return this.def.speed * (this.rage ? RAGE.speed : 1) * (this.armour?.bare ? BARE.speed : 1); }
+  /**
+   * Where the lock aims (issue #722, C12): its weak point once the lock has been switched to it (Foes.cycleLock: `aimWeak`),
+   * else its chest. The gun's locked aim and the reticle take it (src/fluid-tool.js, src/lock-reticle.js).
+   */
+  get aim() { return this.aimWeak ? weakAt(this) ?? this.chest : this.chest; }
+  /** The weak point's size for the reticle (m), or null: the reticle frames the whole body. */
+  get aimR() { return this.aimWeak && this.model?.weak ? this.model.weak.r * (this.model.size ?? 1) : null; }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt + this.lift); }
   /** The level its strikes and its sight are measured from: a walker's feet; a hovering foe's footing and the height it holds over it. */
@@ -703,7 +781,7 @@ export class Foe {
   }
   /** Begin winding up attack a at the traveller: its direction and area lock here (or follow you a while: track). */
   beginWind(a, P, follow = false) {
-    this.chained = follow ? 1 : 0; this.whiffed = false;
+    this.chained = follow ? 1 : 0; this.whiffed = false; this.tierChained = 0;
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false; this.answering = false; this.turtle = 0;
     this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
@@ -788,6 +866,12 @@ export class Foe {
     if (a.shatter && this.state !== 'dead') { this.shatter(a, ev); return; }   // (its last roll ends in pieces)
     const n = a.then ? this.def.attacks.find((x) => x.id === a.then) ?? attackOf(this.kind, a.then) : null;   // (a stronger one's own combo first)
     if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
+    // (its stronger tier's new move, #722 D13: after its move a, its b at once, its wind-up quicker, once: TIERS combo)
+    const C = this.tierN ? TIERS[this.archetype]?.combo : null;
+    if (!n && C && a.id === C[0] && !this.tierChained && !P.dead && !P.down && this.state !== 'dead' && !(this.stunned > 0)) {
+      const b = this.def.attacks.find((x) => x.id === C[1] && (!x.skins || this.moves.includes(x.id)) && (!x.armed || !this.disarmed) && (!x.ball || !this.ballOut));
+      if (b) { this.beginWind(b, P, true); this.tierChained = 1; ev.push('warn'); ev.push({ type: 'tier', atk: b }); return; }
+    }
     // (it missed you: the same move again, quicker, now and then: fight.follow, #722)
     if (!n && this.whiffed && !a.shatter && this.tryFollow('whiff', a, P)) { ev.push('warn'); return; }
     if (a.dives && this.def.burrow) { this.buried = true; this.upFor = 0; }   // (the worm's dive: back under the sand)
@@ -848,6 +932,9 @@ export class Foe {
     if (this.arriving > 0) { this.arriving = Math.max(0, this.arriving - dt); this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 3); return ev; }
     this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
+    if (this.weakCool > 0) this.weakCool = Math.max(0, this.weakCool - dt);   // (its weak point's and its head's rests, its gun's: #722)
+    if (this.headCool > 0) this.headCool = Math.max(0, this.headCool - dt);
+    if (this.armour?.gun > 0) this.armour.gun = Math.max(0, this.armour.gun - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
     for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed', 'toppled', 'open', 'scatter', 'jammed', 'evadeCool']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
     // its poise (src/enemies/fight.js POISE): down, it gets up whole; worn, it comes back once left alone a while
@@ -1071,7 +1158,7 @@ export class Foe {
         // postpones its next blow by a whole cycle; out of its own blow, a fresh wait, shorter enraged)
         if (this.timer <= 0) {
           this.state = 'chase';
-          this.cool = this.reelHit ? Math.max(this.cool, 0.3) : (D.cool[0] + this.rng() * (D.cool[1] - D.cool[0])) * (env.coolK?.() ?? 1) * (this.rage ? RAGE.cool : 1);
+          this.cool = this.reelHit ? Math.max(this.cool, 0.3) : (D.cool[0] + this.rng() * (D.cool[1] - D.cool[0])) * (env.coolK?.() ?? 1) * (this.rage ? RAGE.cool : 1) * (this.armour?.bare ? BARE.cool : 1);
           this.reelHit = false;
           if (D.burrow && this.upFor <= 0) this.buried = true;
         }
@@ -1715,8 +1802,36 @@ export class Foe {
    * washes a blot (1) and only staggers a machine; stilling holds it; the push shoves it. Returns
    * 'burst' when that was the last of it, true when it felt it.
    */
+  /**
+   * A blow (the fluid tool, the blade, the world): what its body makes of it (hitBody), then its plates (wearPlates, #722).
+   * info.zone (Foes.hurt, #722 C12): 'weak', its weak point struck: its stance breaks at once (stunned WEAK.stun s, the
+   * riposte's window opens: Foes.poiseBroken), then WEAK.cool s before it does again; 'head', a shot through its head: a
+   * creature's stance breaks at once (HEAD.cool s between), fodder takes HEAD.fodder ×.
+   */
   hit(mode, dir, info = {}) {
     if (!this.alive) return false;
+    this.plateEv = null; this.weakNow = false; this.headNow = false; this.bareNow = false;
+    let zone = info.zone ?? null;
+    if (zone === 'weak' && (mode === 'push' || this.weakCool > 0 || this.downT > 0)) zone = mode === 'blade' || mode === 'push' ? null : 'head';
+    if (zone === 'weak') {
+      // its weak point (the lamp, the furnace door, the clapper): stunned, down, open (the bell tipped open toward you)
+      this.weakCool = WEAK.cool; this.weakNow = true; this.provoked = true;
+      this.breakPoise(dir, {});
+      this.downT = this.stunned = Math.max(this.downT, WEAK.stun); this.timer = Math.max(this.timer, WEAK.stun);
+      if (this.def.clapper) this.open = Math.max(this.open ?? 0, WEAK.stun);
+      if (mode !== 'blade') { this.flash = 1; this.recoil = 1; this.heavyRecoil = true; if (dir) this.recoilDir.copy(dir).setY(0).normalize(); if (this.state === 'idle' || this.state === 'home') this.state = 'recover'; return 'weak'; }
+      if (WEAK.cut !== 1) info = { ...info, damage: (info.damage ?? 1) * WEAK.cut };
+    } else if (zone === 'head' && mode !== 'blade' && mode !== 'push') {
+      this.headNow = true;
+      info = { ...info, head: true, headBreak: !(this.headCool > 0) && !this.fight.fodder };
+      if (info.headBreak) this.headCool = HEAD.cool;
+    }
+    const r = this.hitBody(mode, dir, info);
+    if (r && r !== 'burst' && this.alive) this.wearPlates(mode, info, r, this.brokeNow && !this.weakNow);
+    return r;
+  }
+
+  hitBody(mode, dir, info = {}) {
     this.shrugged = false;
     const sneak = this.provoked ? 1 : this.idle?.sneak?.(this) ?? 1;   // (asleep at its site: a sneak strike, src/encounters/idle.js)
     this.provoked = true;   // (wildlife hurt fights back)
@@ -1789,6 +1904,9 @@ export class Foe {
       // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
       dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1) * (shellHit && src !== 'bomb' ? SHELL.heavy : 1);
       if (info.air && D.hover) dmg *= AIR_MEETS;   // (the air cut meets a flyer in its own air: the ray, the moth, the jelly, the drone, the marionette)
+      // (its plates, #722: while any stand they take a share of a cut that isn't a breaker; bare, it takes cuts harder)
+      if (this.armour?.bare) dmg *= BARE.takes;
+      else if (this.armour && !info.breaks && !info.riposte && !info.dash && src !== 'parry' && src !== 'bomb' && !(this.stunned > 0 || this.downT > 0 || this.exposed > 0 || this.crust > 0)) dmg *= 1 - (this.armour.A.soak ?? 0);   // (open, stunned, down, cooled, a bomb: it finds the body)
       // the dash cut through its back (BACKSTAB, v1.47): double; the blow the evade round it sets up
       this.backstab = !!(info.dash && dir && src !== 'parry' && this.fromBehind(dir));
       if (this.backstab) dmg *= BACKSTAB.k;
@@ -1809,6 +1927,7 @@ export class Foe {
       dmg = 1;
     } else if (mode === 'shoot' || mode === 'fire') {
       dmg = D.takes[mode] ?? 0;
+      if (info.head && this.fight.fodder) dmg *= HEAD.fodder;   // (a headshot: fodder bursts the sooner, #722)
       if (mode === 'shoot' && D.douse) this.crust = D.douse;   // (water on slag: a cold crust)
       if (mode === 'fire' && D.phase) this.lit = 3;            // (an ember lights a hound solid)
       if (mode === 'fire' && D.lights) this.lit = LIT;         // (and a shade: solid, it can't step through its shadow)
@@ -1853,7 +1972,7 @@ export class Foe {
     // its poise (issue #722, src/enemies/fight.js): every blow wears it, a breaker (the charged cut, the riposte, the dash cut,
     // a parry) breaks it at once; broken, it goes down. A light cut no longer stops a wind-up it has begun, nor does the
     // combo's third swing stagger it by itself: only a broken poise does (fodder still flinches from every cut)
-    const wear = warded || driven ? 0 : poiseWear(mode, { ...info, source: src }) * (plated ? 0.5 : 1);
+    const wear = warded || driven ? 0 : info.headBreak && dmg > 0 ? Infinity : poiseWear(mode, { ...info, source: src }) * (plated ? 0.5 : 1) * (info.head && dmg > 0 ? HEAD.wear : 1);
     if (wear > 0) this.poiseT = 0;
     const broke = !this.fight.fodder && wear > 0 && !(this.downT > 0) && (this.poise -= wear) <= 0;
     const reels = broke || ringBroken || (!warded && !plated && !driven && ((mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.fight.fodder && wear > 0 && this.state !== 'strike')));
@@ -2187,7 +2306,21 @@ export class Foes {
       })
       .sort((a, b) => (b.ahead - a.ahead) || a.score - b.score);
     if (!cands.length) { this.lock = null; return null; }
-    if (!this.lock) { this.lock = cands[0].f; this.sound?.lockOn?.(true); this.reticle?.acquire(); return this.lock; }   // (its own tick: it was the gun's stun chirp, issue #379)
+    // (#722 C12: a foe with a weak point, locked: the next press moves the lock to its weak point (the lamp, the furnace
+    // door, the clapper), the one after to the next foe)
+    const cur = this.lock;
+    if (cur && !cur.guardian && cur.model?.weak && !cur.aimWeak && cands.some((c) => c.f === cur)) {
+      cur.aimWeak = true; this.reticle?.acquire(); this.sound?.lockOn?.(true);
+      return cur;
+    }
+    if (cur) cur.aimWeak = false;
+    if (!this.lock) {
+      this.lock = cands[0].f; this.sound?.lockOn?.(true); this.reticle?.acquire();
+      // (the first foe locked that has a weak point: how to aim at it, once)
+      const W = this.lock.model?.weak;
+      if (W && !this.lock.guardian && !this.game.flag('foes.weakLock') && hintsFor('tip')) { this.game.set('foes.weakLock', true); this.notice?.(`R3 / Tab again: aim at its ${W.name}.`); }
+      return this.lock;
+    }   // (its own tick: it was the gun's stun chirp, issue #379)
     const i = cands.findIndex((c) => c.f === this.lock);
     this.lock = i >= 0 && i < cands.length - 1 ? cands[i + 1].f : i === -1 ? cands[0].f : null;
     if (this.lock) this.reticle?.acquire();
@@ -2248,6 +2381,8 @@ export class Foes {
     if (f && (!f.alive || f.dead !== undefined)) this.lock = this.nextLock(f);
     else if (f && f.pos.distanceTo(P.pos) - (f.guardian ? f.def.radius : 0) > LOCK.lose) this.lock = null;
     else if (f && this.lockHid(f, dt)) this.lock = null;   // (gone behind a door or a wall a moment: LOCK_SIGHT)
+    if (this._lockWas && this._lockWas !== this.lock) this._lockWas.aimWeak = false;   // (the lock gone from it: its weak point's aim with it, #722)
+    this._lockWas = this.lock;
     if (typeof document === 'undefined' || !this.camera) return;
     (this.reticle ??= new LockReticle()).update(this.lock, this.camera, dt);
   }
@@ -2381,14 +2516,19 @@ export class Foes {
   add(kind, at, o = {}) {
     const p = parseKind(kind), a = archetypeOfKind(p.kind);
     const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
-    const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
+    // (its stronger tier, #722 D13: asked for ('bell*', o.tier), or mixed into the late worlds' packs and sites: TIER_SHARE)
+    let tier = p.tier || o.tier ? 1 : 0;
+    if (!tier && o.tier !== 0 && !o.def && !this.own && TIERS[a] && !fightOf(a, FOES[p.kind]).fodder && this.stageHere >= TIER_FROM) {
+      tier = this.rng() < (TIER_SHARE[Math.min(TIER_SHARE.length - 1, this.stageHere)] ?? 0) * (this.gentle ? 0.5 : 1) ? 1 : 0;
+    }
+    const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin, tier });
     // (tougher further along the route: src/enemies/fight.js TIER; not a house's own boss (its def), not a game's own foes)
     if (!o.def && !this.own) f.toughen(this.stageHere, this.gentle);
     // (the body built for the load's warm and kept, if there is one of its kind and skin: keepWarm; else built now)
-    const key = shapeKey(f.kind, skin), spare = this.spares.get(key);
+    const key = shapeKey(f.kind, f.tierN ? `${skin}*` : skin), spare = this.spares.get(key);
     if (spare) { this.spares.delete(key); f.model = spare.model; f.batches = spare.batches; }
     else {
-      f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
+      f.model = archetypeModel(f.kind, skin, f.tierN) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
       // (its shapes the first of its kind and skin's: sent to the GPU, or made into Unity's meshes, once: src/foe-shapes.js)
       shareShapes(this.shapes, key, f.model.group);
       // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js); every
@@ -2413,6 +2553,13 @@ export class Foes {
     f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire', 'bloom'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible && !(f.arriving > 0), body: body ? () => body : null, reach,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info, point) });
+    // its weak point (#722 C12: the tripod's lamp, the brute's furnace door, the bell's clapper): a target of its own for a
+    // shot (it may stand out of the body's sphere: the lamp over the boiler); the blade finds it on the body (zoneOf)
+    if (f.model.weak) {
+      f.weakTarget = registerTarget({ kind: 'foe-weak', foe: f, radius: f.model.weak.r * (f.model.size ?? 1), accepts: ['stun', 'fire', 'bloom'],
+        position: () => weakAt(f, f._weakAt ??= new THREE.Vector3()), enabled: () => f.alive && f.dead === undefined && f.model.group.visible && !(f.arriving > 0),
+        onHit: (mode, point, dir, info) => (mode === 'push' ? false : this.hurt(f, mode, dir, Object.assign(info ?? {}, { zone: 'weak' }), point)) });
+    }
     // out of a cloud of darkness (issue #664): the cloud at its feet, the body grown out of it (Foes.update), its mind held
     if (o.entrance) {
       f.arriving = ENTRANCE.hold; f.arrive = { t: 0 };
@@ -2429,6 +2576,8 @@ export class Foes {
    */
   rosterKinds({ all = this.levelId === 'arena' } = {}) {
     const R = rosterOf(this.worldHere), kinds = new Set(all ? Object.keys(FOES) : [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])]);
+    // (from TIER_FROM's stage on, the stronger tiers too: their own bodies, #722)
+    if (!all && this.stageHere >= TIER_FROM) for (const k of [...kinds]) { const a = archetypeOfKind(parseKind(k).kind); if (TIERS[a] && FOES[parseKind(k).kind] && !fightOf(a, FOES[parseKind(k).kind]).fodder) kinds.add(`${k}*`); }
     return [...kinds].filter((k) => k && FOES[parseKind(k).kind]);
   }
   /**
@@ -2447,9 +2596,10 @@ export class Foes {
       const p = parseKind(kind), a = archetypeOfKind(p.kind);
       if (!FOES[p.kind]) continue;
       const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
-      const model = archetypeModel(p.kind, skin) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
-      shareShapes(this.shapes, shapeKey(p.kind, skin), model.group);   // (its shapes the ones the kind's foes will draw)
-      models.push({ key: shapeKey(p.kind, skin), model, batches: batchParts(model.group) });
+      const model = archetypeModel(p.kind, skin, p.tier) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
+      const key = shapeKey(p.kind, p.tier ? `${skin}*` : skin);
+      shareShapes(this.shapes, key, model.group);   // (its shapes the ones the kind's foes will draw)
+      models.push({ key, model, batches: batchParts(model.group) });
       group.add(model.group);
       made.push(kind);
     }
@@ -2468,7 +2618,7 @@ export class Foes {
   }
 
   remove(f) {
-    f.target?.(); f.tele?.dispose(); f.glow?.dispose(); this.trails?.drop(f); f.model.group.removeFromParent();
+    f.target?.(); f.weakTarget?.(); f.tele?.dispose(); f.glow?.dispose(); f.glowT?.dispose(); this.trails?.drop(f); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
     for (const b of this.balls.slice()) if (b.owner === f) this.popBall(b, 'fizzle');   // (its fireball burns out with it)
     if (f.ward) f.unward(); for (const T of f.wards ?? []) if (T.ward?.by === f) T.unward();   // (a ward on it, or the ones it held: their threads with them)
@@ -2832,12 +2982,19 @@ export class Foes {
   /** The fluid tool touched a foe (targets.js): its mind decides; the look, the sound and the reward follow. */
   hurt(f, mode, dir, info, point = null) {
     f.brokeNow = false; f.lowNow = null; f.launched = false;
+    info ??= {};
+    // (where it met it, #722: its weak point or its head; the plate nearest the blow)
+    if (!info.zone && point && f.model) { const z = this.zoneOf?.(f, mode, point, dir); if (z) info.zone = z; }
+    if (f.armoured && point && mode !== 'push' && mode !== 'world') info.plate = this.plateNear?.(f, point, mode === 'blade' ? null : dir);
     try {
     // the push on any of a heap scatters it (the one under it reels); an ember into a flock sends the rest running
     if (mode === 'push' && f.riding?.on?.state === 'wind') { const B = f.riding.on; B.state = 'recover'; B.timer = B.def.hit * 2; B.k = 0; B.reel = 'scattered'; }
     if (mode === 'fire' && f.def.flock) for (const x of this.list) if (x !== f && x.kind === f.kind && x.alive && !x.riding && x.pos.distanceTo(f.pos) < 6) x.scatter = 1.4 + this.rng() * 0.6;
     const r = f.hit(mode, dir, info);
     if (!r) return false;
+    this.armourFx?.(f, dir, point, r);
+    if (r === 'weak') { this.weakStruck?.(f, point); return true; }
+    if (f.weakNow) this.weakStruck?.(f, point);
     if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
     if (r === 'glance') { if (info) info.dull = true; this.sound?.foeGlance?.(point ?? f.chest); this.sparks(f, point ?? f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
     if (r === 'guarded') { this.guarded(f, mode, dir, info, point); return true; }       // (off its guard: src/foe-guard.js)
@@ -2858,6 +3015,123 @@ export class Foes {
       if (f.lowNow && f.alive) this.lowChange?.(f);
       f.brokeNow = false; f.lowNow = null;
     }
+  }
+
+  /**
+   * Where a blow met f (#722): 'weak' (within its weak point: the blade's contact there, or a shot's line through it), 'head'
+   * (a shot's line through its eyes: a headshot), or null. Pushes and the world have no zones.
+   */
+  zoneOf(f, mode, point, dir) {
+    if (!point || mode === 'push' || mode === 'world' || mode === 'stun' && !f.model?.weak) return null;
+    const H = headOf(f);
+    if (!H) return null;
+    // (the blade: where it met the drawn body; a cut that only reached its sphere reports its middle, which is no place)
+    if (mode === 'blade') return H.weak && point.distanceTo(f.chest) > 0.05 && point.distanceTo(H.at) <= H.r + WEAK.margin ? 'weak' : null;
+    if (!dir) return null;
+    return rayNear(point, dir, H.at, H.r) ? (H.weak ? 'weak' : 'head') : null;
+  }
+  /** The plate (its index in model.plates) a blow met: still on, nearest the blade's contact (dir null) or a shot's line. */
+  plateNear(f, point, dir = null) {
+    const L = f.model?.plates, S = f.armour;
+    if (!L?.length || !S) return null;
+    f.model.group.updateMatrixWorld(true);
+    let best = null, bd = Infinity;
+    L.forEach((m, i) => {
+      if (!(S.hold[i] > 0) || !m.visible) return;
+      if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+      const c = m.localToWorld(_pc.copy(m.geometry.boundingSphere.center));
+      let d = c.distanceTo(point);
+      if (dir) { const l = dir.length() || 1, t = _pd.subVectors(c, point).dot(dir) / l; d = _pd.addScaledVector(dir, -t / l).length(); }
+      if (d < bd) { bd = d; best = i; }
+    });
+    return best;
+  }
+  /**
+   * Its plates after a blow (#722 C11, Foe.plateEv): a chipped one rings, sparks and hangs looser (PLATE.loose by its hold
+   * lost); one knocked off clatters and falls (dropPlate); with the last one off it rears, open and quicker (a tip, once).
+   */
+  armourFx(f, dir, point, r = true) {
+    const E = f.plateEv, S = f.armour;
+    f.plateEv = null;
+    if (!E?.length || !S) return;
+    for (const { i, off } of E) {
+      const m = f.model?.plates?.[i];
+      if (!m) continue;
+      if (off) { this.dropPlate(f, i, dir); continue; }
+      m.userData.rest ??= { x: m.rotation.x, z: m.rotation.z, y: m.position.y };
+      const k = 1 - S.hold[i] / S.A.hold, side = i % 2 ? 1 : -1;
+      m.rotation.x = m.userData.rest.x + PLATE.loose * k * 0.6; m.rotation.z = m.userData.rest.z + side * PLATE.loose * k;
+      m.position.y = m.userData.rest.y - 0.04 * k;
+      if (r !== 'glance' && r !== 'guarded') this.sound?.foeGlance?.(point ?? f.chest);   // (a glance rings and sparks already)
+    }
+    if (f.bareNow) {
+      f.bareNow = false;
+      this.gesture(f, 'rage'); kick(0.3);
+      this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.4, r1: f.def.radius + 1.6, life: 0.45, color: '#ffd27a', thick: 1 });
+      if (!this.game.flag('foes.bare') && hintsFor('tip')) { this.game.set('foes.bare', true); this.notice?.('Its armour is off: it is open now, and quicker.'); }
+    } else if (E.some((e) => e.off) && !this.game.flag('foes.plates') && hintsFor('tip')) {
+      this.game.set('foes.plates', true); this.notice?.('A plate came off. Knock them all off and it is open.');
+    }
+  }
+  /**
+   * A plate knocked off (#722): hidden on its body, and a copy of it (the same shape and paint, nothing new to build or
+   * compile) thrown out from where it was, tumbling, clattering where it lands, lying a while and sinking away (PLATE).
+   */
+  dropPlate(f, i, dir) {
+    const m = f.model?.plates?.[i];
+    if (!m || !m.visible) return;
+    f.model.group.updateMatrixWorld(true); this.group.updateMatrixWorld(true);
+    const c = new THREE.Mesh(m.geometry.clone(), m.material);   // (its own copy of the shape: the body's may go with it)
+    c.name = 'fallen plate'; c.castShadow = true; c.receiveShadow = true; c.userData.noCollide = true; c.userData.dynamic = true; c.userData.noHurt = true;
+    c.matrix.multiplyMatrices(_pm.copy(this.group.matrixWorld).invert(), m.matrixWorld);
+    c.matrix.decompose(c.position, c.quaternion, c.scale);
+    this.group.add(c);
+    m.visible = false;
+    if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+    const at = m.localToWorld(_pc.copy(m.geometry.boundingSphere.center));
+    const out = _pd.set(at.x - f.pos.x, 0, at.z - f.pos.z);
+    if (out.lengthSq() < 1e-4) out.set(dir?.x ?? Math.sin(f.heading), 0, dir?.z ?? Math.cos(f.heading));
+    out.normalize();
+    const r = () => this.rng() * 2 - 1;
+    (this.fallen ??= []).push({ o: c, owner: f, t: 0, vel: new THREE.Vector3(out.x * PLATE.out + r() * 0.6, PLATE.up * (0.8 + 0.4 * this.rng()), out.z * PLATE.out + r() * 0.6),
+      spin: new THREE.Vector3(r() * 7, r() * 5, r() * 7), floor: f.pos.y, bounced: 0, r: m.geometry.boundingSphere.radius * c.scale.x });
+    this.sound?.foeArmour?.(); this.sound?.foeGlance?.(at);
+    this.sparks(f, at); hitStop(0.06); kick(0.3);
+  }
+  /** The plates knocked off, tumbling down, bouncing once or twice, lying a while, then sinking into the ground (PLATE). */
+  updatePlates(dt) {
+    if (!this.fallen?.length) return;
+    for (const d of this.fallen) {
+      d.t += dt;
+      const o = d.o;
+      if (d.t < PLATE.lie) {
+        if (!d.still) {
+          d.vel.y -= 14 * dt;
+          o.position.addScaledVector(d.vel, dt);
+          o.rotation.x += d.spin.x * dt; o.rotation.y += d.spin.y * dt; o.rotation.z += d.spin.z * dt;
+          const floor = (this.env?.ground?.(o.position.x, o.position.y + 1.2, o.position.z) ?? d.floor) + Math.min(0.12, d.r * 0.25);
+          if (o.position.y < floor) {
+            o.position.y = floor;
+            if (d.bounced++ < 2 && d.vel.y < -1.5) { d.vel.y *= -0.32; d.vel.x *= 0.5; d.vel.z *= 0.5; d.spin.multiplyScalar(0.4); worldSnd.thud(this.sound, 0.25); this.sound?.foeGlance?.(o.position); }
+            else { d.still = true; worldSnd.thud(this.sound, 0.15); }
+          }
+        }
+      } else {
+        const k = Math.min(1, (d.t - PLATE.lie) / PLATE.sink);
+        o.position.y -= dt * 0.35;
+        o.scale.setScalar(Math.max(0.001, (1 - k) * (d.s0 ??= o.scale.x)));
+      }
+    }
+    for (const d of this.fallen) if (d.t >= PLATE.lie + PLATE.sink) { d.o.removeFromParent(); d.o.geometry.dispose(); }   // (its paint is its kind's: kept)
+    this.fallen = this.fallen.filter((d) => d.t < PLATE.lie + PLATE.sink);
+  }
+  /** Its weak point struck (#722 C12): a gold ring out from it and the riposte's ring; the first time, a tip. */
+  weakStruck(f, point) {
+    const at = weakAt(f)?.clone() ?? point ?? f.chest;
+    this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.sparks(f, at); hitStop(0.09); kick(0.35);
+    this.tool?.rings?.add({ from: at, dir: _up, reach: 0.05, r0: 0.2, r1: 1.4, life: 0.4, color: '#ffd27a', thick: 1 });
+    const W = f.model?.weak;
+    if (W && !this.game.flag('foes.weak') && hintsFor('tip')) { this.game.set('foes.weak', true); this.notice?.(`Struck in its ${W.name}: it is stunned. Riposte!`); }
   }
 
   /**
@@ -2985,7 +3259,7 @@ export class Foes {
     TELL.slow = this.difficulty === 'gentle' ? GENTLE.wind : 1;   // (the guardians' wind-ups too: src/telegraph.js)
     const P = this.player;
     if (!P) { this.sound?.combat?.(false); return; }
-    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); } return; }
+    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); f.glowT?.hide(); } return; }
     // (held still by a scene, a conversation or a menu: nothing is fighting you. The flag kept its last value before, so a
     // toad that was chasing as a world's moment began kept the hearts and the wallet up over the whole of it: issue #264,
     // Lorn's crystal moment in the Unity batch run, whose foes had a few seconds more to wake than the page's)
@@ -3018,14 +3292,14 @@ export class Foes {
         f.dead -= dt;
         if (!f.puffed && f.dead <= SMOKE.fade) { f.puffed = true; this.puff(f); }
         f.model.group.scale.setScalar(Math.max(0.01, Math.min(1, f.dead / SMOKE.fade)) * (f.model.size ?? 1));
-        f.tele.hide(); f.glow?.hide();
+        f.tele.hide(); f.glow?.hide(); f.glowT?.hide();
         if (f.dead <= 0) this.remove(f);
         continue;
       }
       if (f.dying) {   // going down its own way (src/enemies/defeat.js), then the burst
         const D = f.dying;
         D.t += dt; D.u = Math.min(1, D.t / D.R.time);
-        f.tele.hide(); f.glow?.hide();
+        f.tele.hide(); f.glow?.hide(); f.glowT?.hide();
         this.look(f, dt);
         if (D.u >= 1) this.burst(f);
         continue;
@@ -3076,6 +3350,7 @@ export class Foes {
     this.warnings();
     this.updateLock(dt);
     this.updateDebris(dt);
+    this.updatePlates(dt);
     this.shadePools?.update(dt);
     this.slime?.update(dt);
     this.puffs?.update(dt);
@@ -3818,13 +4093,13 @@ export class Foes {
 
   // ------------------------------------------------------------------ the Arena's practice (src/foe-spawner.js)
   /** A foe of `kind` comes in ahead of you (the Arena's spawner, tests, the console: foes.spawnKind('crab'), foes.spawnKind('lizard@bazaar')). */
-  spawnKind(kind, { n = FOES[parseKind(kind).kind]?.group ?? 1, dist = 9, entrance = true } = {}) {
+  spawnKind(kind, { n = FOES[parseKind(kind).kind]?.group ?? 1, dist = 9, entrance = true, tier } = {}) {
     const P = this.player;
     if (!FOES[parseKind(kind).kind] || !P) return [];
     const h = P.heading ?? 0, out = [];
     for (let i = 0; i < n; i++) {
       const at = this.openSpot(kind, P.pos, h + (i - (n - 1) / 2) * 0.35, dist, 20, 40);
-      const f = this.add(kind, at, { entrance });
+      const f = this.add(kind, at, { entrance, ...(tier != null ? { tier } : {}) });
       f.heading = Math.atan2(P.pos.x - at.x, P.pos.z - at.z);
       out.push(f);
     }
@@ -3994,8 +4269,13 @@ export class Foes {
   /** The glow building on the striking part through a wind-up (src/telegraph.js ChargeGlow), a last flare as it strikes. */
   chargeGlow(f, t) {
     const winding = f.state === 'wind' && !f.stunned, striking = f.state === 'strike' && !f.contacted;
-    if (!winding && !striking) { f.glow?.hide(); return; }
-    f.glow ??= new ChargeGlow(this.group, f.def.tone ?? '#f05a3c', Math.max(0.14, Math.min(0.5, f.def.radius * 0.45)));
+    if (!winding && !striking) { f.glow?.hide(); f.glowT?.hide(); return; }
+    // (its stronger tier's new move, #722 D13: the glow on the striking part flares in the tier's own pale light: its tell)
+    const a = f.atk ?? f.def.attack, tier = f.tierN && tierMove(f.archetype, a?.id, !!f.tierChained);
+    const size = Math.max(0.14, Math.min(0.5, f.def.radius * 0.45));
+    if (tier) { f.glow?.hide(); f.glowT ??= new ChargeGlow(this.group, TIER_UP.tell, size * 1.35); f.glowT.set(winding ? f.k : 1, this.strikePoint(f, _gl), performance.now() / 1000); return; }
+    f.glowT?.hide();
+    f.glow ??= new ChargeGlow(this.group, f.def.tone ?? '#f05a3c', size);
     f.glow.set(winding ? f.k : 1, this.strikePoint(f, _gl), performance.now() / 1000);
   }
 
@@ -4084,5 +4364,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
+  dispose() { for (const d of this.fallen ?? []) { d.o.removeFromParent(); d.o.geometry.dispose(); } this.fallen = null; this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
 }

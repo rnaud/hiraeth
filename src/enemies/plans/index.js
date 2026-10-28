@@ -55,9 +55,9 @@ const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, trip
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
   shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel };
 
-/** The body of a built archetype's kind in a world's skin, or null (not one: an old kind draws itself). */
-export function archetypeModel(kind, world) {
+/** The body of a built archetype's kind in a world's skin (its stronger tier's: `tier`), or null (not one: an old kind draws itself). */
+export function archetypeModel(kind, world, tier = 0) {
   const a = archetypeOfKind(kind);
   if (!a || ARCHETYPES[a].status !== 'built' || !BUILDERS[a]) return null;
-  return BUILDERS[a](skinOf(a, world));
+  return BUILDERS[a](skinOf(a, world, tier));
 }

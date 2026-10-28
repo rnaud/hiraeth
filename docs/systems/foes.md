@@ -1512,6 +1512,56 @@ mash 8.5 s / 0 → 12.1 s / 2.6, guard 8.5 / 0 → 12.5 / 1.5; Signal Market mas
 0.2 → 14.7 / 2.9; a still traveller's hearts in 20 s 4.4 / 7.3 / 9.1 → 4.8 / 8.1 / 11.6. Gentle: mash 0.13 / 0.31 /
 1.9 hearts, guard 0 / 0 / 0.2. Tests: tests/foe-fight.test.js.
 
+## Armour, weak points and tiers (v2.33, issue #722, `src/enemies/fight.js`)
+
+[design/enemy-fun.md](../design/enemy-fun.md) C11, C12 and D13 (Darknut, the Guardian's eye, BotW's colour tiers). Data
+in fight.js (`ARMOUR`, `BARE`, `PLATE`, `WEAK`, `HEAD`, `TIERS`); the plates and weak points are parts of the bodies.
+
+- **Plates.** The bell walker (3, round its bell's waist), the furnace brute (a pauldron on each shoulder and a
+  breastplate), the shellback crab (2 scutes on its dome), the lamp tripod (3 round its boiler) and the crucible cart (a
+  skirt over each track) wear `ARMOUR[a].plates` plates: `model.plates`, each its own mesh (`kit.js plate`/`shellPlate`,
+  `userData.plate`, never merged, batched or skinned; its material `plate`, painted `PLATE_SURFACE` in
+  src/enemies/surfaces.js: rivets, wear, a dull shine). Each holds `hold`: a light cut chips 1, the heavy third swing 2,
+  a blow its guard took 1 (`plateBlow`); the charged cut, the riposte, the dash cut, a perfect parry, its stance or guard
+  broken and a bomb knock one off at once, and so does its gun mode (`pops`: the bell the push, the brute and the tripod
+  stilling, the crab an ember, the cart a plain shot; once each `PLATE.gun` s). The plate hit is the one nearest the
+  blade's contact or the shot's line (`Foes.plateNear`). Glances (the bell's bronze, the crab's shell) chip plates too,
+  so armour no longer only makes you wait. While any stand, `soak` of a cut's harm goes into them (brute, tripod, cart
+  0.4; never while it is stunned, down, cooled or for a breaker). Chipped, a plate hangs looser (`PLATE.loose`); knocked
+  off (`Foes.dropPlate`), it is hidden on the body and a copy of it (its own geometry, the kind's material) is thrown
+  out, tumbles, clatters (`foeArmour`, `foeGlance`, a thud a bounce), lies `PLATE.lie` s and sinks (`Foes.updatePlates`).
+- **Bare.** The last plate off (`Foe.goBare`): `ARMOUR[a].bare` is laid over its def (the bell's `clapper` off: its
+  bronze no longer turns the blade; the crab's shell and tuck gone; the brute's guard gone; the tripod takes the gun), and
+  it is fast and dangerous: wind-ups × `BARE.wind` (never under 0.5 s), waits × `BARE.cool`, speed × `BARE.speed`, cuts
+  land × `BARE.takes`. It rears (a gold ring); tips the first time a plate falls and the first time one goes bare.
+- **Weak points.** `model.weak = { obj, r, name }`: the tripod's lamp, the brute's furnace door (its brass eye), the
+  bell's clapper (the winch's hook), the cart's eyes in its smoke. A target of its own for shots (`kind: 'foe-weak'`:
+  the lamp stands over the boiler's sphere); the blade finds it where it meets the drawn body (`Foes.zoneOf`, a cut
+  that only reached its sphere's middle never counts). Struck (`info.zone 'weak'`): its stance breaks at once, stunned
+  and down `WEAK.stun` s, the bell tipped open, the riposte's window open (`Foes.poiseBroken`), a gold ring; then
+  `WEAK.cool` s before that weak point does it again. Lock-on switches to it: with a foe locked that has one, R3 / Tab
+  again aims at its weak point (`Foe.aimWeak`; `Foe.aim`/`aimR` for the gun's locked aim and the reticle), once more
+  to the next foe; a tip the first time.
+- **The head zone.** A shot whose line passes through a foe's head (its weak point, else its first gaze part's eyes,
+  `HEAD.r` × its size: `headOf`, `rayNear`) is a headshot: a creature's stance breaks at once (`HEAD.cool` s between;
+  meanwhile it wears it × `HEAD.wear`), fodder takes × `HEAD.fodder`. Iron that turns the gun still turns it.
+- **Tiers.** `TIERS[a]`: one new move each, built from its own: `combo [a, b]` (after a, b at once, its wind-up quicker,
+  once: `Foe.next`, `tierChained`), `unlock` (a skin's move in every skin) or `patch` (the bell's toll five rings, the
+  brute's slam two quakes). Its tell: the striking part's glow flares pale (`TIER_UP.tell`, `Foes.chargeGlow` `glowT`)
+  for that move. Toughness `TIER_UP` over its stage's. The look: `skinOf(a, world, 1)` → `tierSkin` (palette ×
+  `TIER_LOOK.dark` but its eyes, glows and lamps; its own material keys; named 'banded …') and `TIER_SURFACE`'s bands on
+  every part but eyes, glows, smoke, ink and plates. A kind `'bell*'` (or `add(…, { tier: 1 })`) asks for it; from
+  `TIER_FROM` (stage 3) a share `TIER_SHARE[stage]` of the non-fodder foes added (packs, sites, waves) comes in tier
+  (Gentle half); `rosterKinds` adds them to the warm. Fodder has none.
+
+Measured (node, `Foes` on flat ground, each heavy alone, the fight core's still / mashing / guarding travellers):
+Signal Market (stage 4), Normal, before → after, time to clear and hearts lost: bell mash 23.9 s / 9.75 → 12.4 s / 5.25
+(its glances 21.3 s → 5.2 s), guard 25.6 / 8.25 → 13.3 / 5.25; brute mash 12.6 / 5.5 → 12.8 / 4.25; tripod mash 8.0 /
+1.75 → 9.9 / 2.0; cart mash 8.1 / 2.75 → 8.0 / 2.75; crab mash 24.4 / 2.5 → 14.0 / 0.75. The five in tier: mean mash
+12.7 s / 3.65 hearts (base 11.4 / 3.0). Gentle: every one cleared, at most 1.3 hearts lost on average. Tests:
+tests/foe-armour.test.js. Unity: `-fight armour` (engine/unity/game.js: a plated bell, three charged cuts, its banded
+tier).
+
 ## The makers' fencer (v2.27, issue #665, `src/enemies/plans/fencer.js`)
 
 A sword-and-shield duelist that fights the way you do (archetype `fencer`, a machine, role `mirror`, tier 3, plan

@@ -247,12 +247,28 @@ export function skinFor(a, world) {
   return S[world] ? world : HOME_SKIN[a];
 }
 
-/** An archetype's skin in a world, its palette filled from its home skin's: { id, name, palette, props, moves, scale }. */
-export function skinOf(a, world) {
+/**
+ * An archetype's skin in a world, its palette filled from its home skin's: { id, name, palette, props, moves, scale }.
+ * tier: its stronger tier's (issue #722, src/enemies/fight.js TIERS): tierSkin.
+ */
+export function skinOf(a, world, tier = 0) {
   const id = skinFor(a, world);
   if (!id) return null;
   const S = SKINS[a][id], home = SKINS[a][HOME_SKIN[a]];
-  return { id, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: S.scale ?? 1, arena: !!S.arena };
+  const out = { id, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: S.scale ?? 1, arena: !!S.arena };
+  return tier ? tierSkin(out) : out;
+}
+
+/**
+ * The stronger tier's look (issue #722, D13, BotW's colour tiers): the same skin, darker (TIER_LOOK.dark; its eyes, glows
+ * and lamps kept: TIER_LOOK.keep), banded (src/enemies/surfaces.js TIER_SURFACE paints the bands), its own materials
+ * (`key`) and its own name ('banded …').
+ */
+export const TIER_LOOK = { dark: 0.52, keep: /^(eye|glow|lamp|core|lip|brew|slag|fire|flame|light|spirit|eyes|seam|glint|flare|spore|spot|ward|line|ink)/ };
+export function tierSkin(s) {
+  const dim = (hex) => { const n = parseInt(hex.slice(1), 16), k = TIER_LOOK.dark; const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((x) => Math.round(x * k)); return `#${c.map((x) => x.toString(16).padStart(2, '0')).join('')}`; };
+  const palette = Object.fromEntries(Object.entries(s.palette).map(([k, v]) => [k, typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) && !TIER_LOOK.keep.test(k) ? dim(v) : v]));
+  return { ...s, palette, tier: 1, key: `${s.id}~tier`, name: `banded ${s.name}` };
 }
 
 /** A skin's name for a kind (by the archetype it is): 'crab', 'saltharbour' → 'anchor crab'; else the archetype's name. */

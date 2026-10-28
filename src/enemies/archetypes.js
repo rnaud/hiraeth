@@ -690,8 +690,14 @@ export const RETIRED_KINDS = ['splinter'];
 
 /** A foe kind with an optional skin: 'crab', 'crab@saltharbour' → { kind, skin }. */
 export function parseKind(id) {
-  const s = String(id ?? ''), at = s.indexOf('@');
-  return at < 0 ? { kind: s, skin: null } : { kind: s.slice(0, at), skin: s.slice(at + 1) || null };
+  // (a trailing '*': its stronger tier, issue #722: 'bell@bazaar*', 'tripod*')
+  let s = String(id ?? '');
+  const tier = s.endsWith('*') ? 1 : 0;
+  if (tier) s = s.slice(0, -1);
+  const at = s.indexOf('@');
+  const out = at < 0 ? { kind: s, skin: null } : { kind: s.slice(0, at), skin: s.slice(at + 1) || null };
+  if (tier) out.tier = tier;
+  return out;
 }
 /** A kind in a skin: skinned('crab', 'saltharbour') → 'crab@saltharbour'. */
 export const skinned = (kind, skin) => (skin ? `${kind}@${skin}` : kind);
