@@ -86,3 +86,11 @@ test('Android\'s Handheld: FSR 1 by default (bilinear at a larger screen\'s floo
   // (SGSR 1 with Qualcomm's edge direction: without it the thin ink lines came out stippled)
   assert.match(sgsr, /^#define UseEdgeDirection$/m);
 });
+
+test('the upscale turns its triangle with a pre-rotated back buffer (issue #716: the AYN Odin 3\'s portrait panel)', () => {
+  // (Vulkan's swap-chain pre-transform is on; a full-screen triangle written straight to the back buffer must apply it,
+  // or the picture lands on its side under an upright HUD, as on the Odin before)
+  assert.match(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset'), /vulkanEnablePreTransform: 1/);
+  const vert = shader.slice(shader.indexOf('V2F vert('), shader.indexOf('uint2 OutPixel'));
+  assert.match(vert, /if \(_TargetFlip > 0\.5\) o\.pos\.y = -o\.pos\.y;[\s\S]*#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION\s+o\.pos = ApplyPretransformRotation\(o\.pos\);\s+#endif\s+o\.uv = uv; return o;/);
+});

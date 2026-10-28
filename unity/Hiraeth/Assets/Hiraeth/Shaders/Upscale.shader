@@ -30,6 +30,11 @@ Shader "Hidden/Hiraeth/Upscale"
           o.pos.y = -o.pos.y;
         #endif
         if (_TargetFlip > 0.5) o.pos.y = -o.pos.y;
+        // (a back buffer the display rotates (Vulkan's swap-chain pre-transform, on a screen whose panel is the other
+        // way round, as the AYN Odin 3's): the triangle turned with it, as URP's own blit does (issue #716); 0 elsewhere)
+        #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+          o.pos = ApplyPretransformRotation(o.pos);
+        #endif
         o.uv = uv; return o;
       }
       uint2 OutPixel(float2 uv) { return (uint2)min(floor(uv * _UpOut.xy), _UpOut.xy - 1.0); }
