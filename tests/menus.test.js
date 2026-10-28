@@ -25,8 +25,8 @@ test('the title screen opens the game, a world asked for directly skips it', () 
   for (const l of LEVELS) assert.ok(existsSync(new URL(`../public/thumbs/${l.id}.jpg`, import.meta.url)), `thumbs/${l.id}.jpg`);
   for (const p of PAGES) assert.ok(existsSync(new URL(`../${p.href}`, import.meta.url)), p.href);
   assert.doesNotMatch(src('title.js'), /studio\.html/, 'the studio is in the worlds list, not on the title');
-  // Changelog and world-debug entrypoints moved into the admin hub.
-  assert.doesNotMatch(src('title.js'), /data-a="news"/);
+  // Changelog and world-debug entrypoints are in the admin hub, and on the title only in dev mode (L3 + R3, issue #734).
+  assert.match(src('title.js'), /dev && \['data-a="news"'/);
   assert.match(src('admin/main.js'), /new URL\('changelog\.html', home\)/);
   assert.match(src('admin/main.js'), /\?worlds=1&dev=1/);
   // the title imports nothing that loads the game state (it would read the slot before the choice)

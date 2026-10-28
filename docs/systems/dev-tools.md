@@ -4,7 +4,7 @@ Developer levels and checks: the Debug menu, the dev menu, the Lab, the worlds l
 
 ## The Debug menu (v1.11, `src/world-picker.js`, `src/world-picker.css`)
 
-The title's **Debug** (and the Start menu's, and L in play) opens the Debug menu: alone at `?worlds=1` (the
+The title's **Debug** (shown in dev mode: L3 + R3 on the title turns it on, `src/dev-gate.js`; and the Start menu's, and L in play) opens the Debug menu: alone at `?worlds=1` (the
 "◀ Debug" buttons' `DEBUG_MENU_HREF`, nothing built behind it), or over the world (`main.js`). It is one
 page in sections, each a heading with one line, in this order (`menuSections`):
 

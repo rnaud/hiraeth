@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { quietFirstRun, isFreshProfile, hasAnySave, SEEN_KEY } from '../src/first-run.js';
-import { devMode, DEV_KEY, ALWAYS_DEV } from '../src/dev-gate.js';
+import { devMode, toggleDevMode, DEV_KEY, ALWAYS_DEV } from '../src/dev-gate.js';
 import { verbKey } from '../src/prompt-keys.js';
 import { PAD } from '../src/bindings.js';
 import { FirstSteps, LOOK, JUMP, TAUGHT } from '../src/first-steps.js';
@@ -50,7 +50,8 @@ test('the debug entries are the author’s: the Developer panel setting, a dev b
   assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), false);
   // the title's Debug button and the Start menu's entry go through it
   const title = src('src/title.js'), ui = src('src/ui.js');
-  assert.doesNotMatch(title, /\['data-a="(?:debug|news)"'/, 'title tools live in the admin hub');
+  assert.match(title, /dev && \['data-a="news"'/, 'the title\'s What\'s new only in dev mode (a player\'s title stays clean)');
+  assert.match(title, /dev && \['data-a="debug"'/, 'the title\'s Debug only in dev mode');
   assert.match(title, /a === 'debug' && devMode\(/);
   assert.match(ui, /<button data-a="debug" data-dev hidden>\$\{t\('menu\.debug'\)\}\$\{F\}<\/button>/);
   assert.match(ui, /for \(const b of el\.querySelectorAll\('\[data-dev\]'\)\) b\.hidden = !dev;/);
@@ -140,4 +141,19 @@ test('hints full: the desert’s first steps: look and jump, each said once, onl
   s = new FirstStepsFull(state, { kind: 'pad' });
   assert.equal(run(30, { active: false }), '');
   assert.equal(run(LOOK.after + 0.2, { active: true }), 'Look around with the right stick');
+});
+
+test('L3 + R3 on the title turns the debug entries on and off on this device (issue #734)', () => {
+  const s = mem(), o = { always: false, storage: s, dev: false };
+  assert.equal(toggleDevMode(o), true, 'on');
+  assert.equal(s.getItem(DEV_KEY), '1', 'remembered as ?dev=1 is');
+  assert.equal(devMode({ ...o, search: '' }), true);
+  assert.equal(toggleDevMode(o), false, 'off again');
+  assert.equal(devMode({ ...o, search: '' }), false);
+  assert.equal(toggleDevMode({ ...o, dev: true }), true, 'a dev build stays on');
+  // the web title and the engines' both answer it (the pad's 'worldDebug' in a menu: src/controller.js), F2 / ` too on the page
+  const title = src('src/title.js'), menus = src('engine/menus.js');
+  assert.match(title, /if \(name === 'worldDebug'\) devSwitch\(\);/);
+  assert.match(title, /e\.code === 'F2' \|\| e\.code === 'Backquote'\) && !e\.repeat\) \{ e\.preventDefault\(\); devSwitch\(\); \}/);
+  assert.match(menus, /name === 'worldDebug' && \(T\.screen === 'main' \|\| T\.screen === 'saves'\)\) \{ toggleDevMode\(/);
 });

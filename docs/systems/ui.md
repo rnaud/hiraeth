@@ -173,7 +173,11 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   Playtest 2026-10-08 ("the language switched to French and the debug menu disappeared"): the gate is
   meant, and came in that same day, so the entries went from the author's device until the Developer
   panel is ticked. Nothing reads their words (they are found by `data-a`): with the gate on they stay
-  through a change of language, on the title and in the Start menu (`tests/menus-settings.test.js`). For now `ALWAYS_DEV` (src/dev-gate.js) shows them to everyone.
+  through a change of language, on the title and in the Start menu (`tests/menus-settings.test.js`). `ALWAYS_DEV` is off since v2.32 (#708).
+  **L3 + R3 on the title** (F2 or \` on the page; issue #734) turns the gate on or off on this device
+  (`toggleDevMode`, kept as `?dev=1` keeps it): the title's What's new and Debug tools and the Saves
+  screen's debug saves come and go with it. The engines' title (`engine/menus.js` `titleAction`) answers
+  the pad's chord the same way and says "L3 + R3 debug off" in its hint while it is on.
 - **The Settings on a controller** (`src/menu-pad.js`, through `menuNavigate` in src/controller.js, the
   menus' A in main.js and title.js, `SettingsMenu.back`): ↑ ↓ move; ← → change a slider or a dropdown, a
   step a push, repeating while held, but never with the push that brought the focus onto it (the
@@ -1196,6 +1200,6 @@ the box card, the knock-out and the game card (BridgeMenu.cs).
 
 The web title keeps play, saves, settings and fullscreen. Its changelog and Debug
 entrypoints are in `/admin/` (see `analytics.md`), protected by the notebook
-password. `src/dev-gate.js` defaults developer entries off in production; explicit
+password, and on the title itself in dev mode (L3 + R3 on the title, above). `src/dev-gate.js` defaults developer entries off in production; explicit
 dev mode and local builds still expose development tools. The native title already
 uses play/saves/settings and its native update control.

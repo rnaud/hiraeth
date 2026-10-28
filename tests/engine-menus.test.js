@@ -106,6 +106,26 @@ test('a debug save into a slot that holds a save asks first', () => {
   assert.deepEqual(chose, { debug: ORDER[0], slot: 1 });
 });
 
+test('L3 + R3 on the title: the debug saves on and off (issue #734); Saves still opens after another menu closed', async () => {
+  const { DEV_KEY, devMode } = await import('../src/dev-gate.js');
+  const kept = Object.getOwnPropertyDescriptor(globalThis, 'localStorage'), mem = new Map();
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) } });
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub(), dev: () => devMode({ settings: null, search: '', dev: false, always: false }) });
+  m.show('start'); m.close();                // (a closed menu once cleared the dev check: Saves threw "this.dev is not a function")
+  m.show('title');
+  m.navigate(0, 1); m.action('confirm');     // Saves
+  const debugRow = () => m.view().rows.some((r) => r.tag === t('title.dbg.tag'));
+  const was = debugRow();
+  assert.equal(was, false, 'none at first');
+  m.action('worldDebug');
+  assert.equal(debugRow(), !was, 'switched');
+  assert.equal(/L3 \+ R3 debug off/.test(m.view().hint), !was, 'the hint says so while on');
+  m.action('worldDebug');
+  assert.equal(debugRow(), was, 'and back');
+  assert.equal(mem.get(DEV_KEY), undefined);
+  if (kept) Object.defineProperty(globalThis, 'localStorage', kept); else delete globalThis.localStorage;
+});
+
 test('the settings: a slider steps with left / right, a switch flips with A / ×, a choice goes round', () => {
   const s = settingsStub();
   const changed = [];

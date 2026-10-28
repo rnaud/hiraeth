@@ -1,6 +1,7 @@
 // Who sees the debug entries: the title screen's Debug button (the worlds list) and the
 // Start menu's "Debug: worlds". Players don't; the author does, through the same switch as
 // the in-game Developer panel (Settings → Developer panel, src/ui.js `devPanel`), or:
+//   - L3 + R3 (F2, `) on the title, remembered on this device as ?dev=1 is (toggleDevMode),
 //   - a dev build (`npx vite` / import.meta.env.DEV),
 //   - ?dev=1 on the URL, remembered on this device ('hiraeth.dev'; ?dev=0 forgets it).
 //
@@ -31,4 +32,14 @@ export function devMode({ always = ALWAYS_DEV, settings = null, search = default
   readDevParam(search, storage);
   if (always || dev || settings?.devPanel) return true;
   try { return storage?.getItem(DEV_KEY) === '1'; } catch { return false; }
+}
+
+/** L3 + R3 (F2, `) on the title (issue #734): the debug entries on or off on this device, remembered. True: on now. */
+export function toggleDevMode({ settings = null, storage = defaultStorage(), dev = !!env().DEV, always = ALWAYS_DEV } = {}) {
+  const on = !devMode({ settings, storage, dev, always, search: '' });
+  try {
+    if (on) storage?.setItem(DEV_KEY, '1');
+    else storage?.removeItem(DEV_KEY);
+  } catch { /* private mode */ }
+  return devMode({ settings, storage, dev, always, search: '' });
 }

@@ -36,7 +36,7 @@ import { THEME_FILES } from './soundtracks.js';
 import { VERSION } from './version.js';
 import { buildLabel } from './build-label.js';
 
-import { devMode } from './dev-gate.js';
+import { devMode, toggleDevMode } from './dev-gate.js';
 import { padConfirm } from './menu-pad.js';
 import { titleLayout, layoutVars } from './title-layout.js';
 import { paintTitle, safeInsets, LOGO } from './title-paint.js';
@@ -237,7 +237,10 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       // (each named for a screen reader and in a label shown on hover or focus, at the row's right end where
       // nothing is covered: --k, how many icons stand to its right; the glyph in its corner)
       const fs = !!doc.fullscreenElement;
-      const tools = [['data-a="settings"', t('title.settings'), 'settings'],
+      // (the author's two, the changelog and the Debug menu, shown in dev mode: L3 + R3 on the title, src/dev-gate.js)
+      const dev = devMode({ settings });
+      const tools = [['data-a="settings"', t('title.settings'), 'settings'], dev && ['data-a="news"', t('title.news'), 'news'],
+        dev && ['data-a="debug"', t('title.debug'), 'debug'],
         fullscreen() && ['data-a="fullscreen"', t(fs ? 'title.leaveFullscreen' : 'title.fullscreen'), fs ? 'leave' : 'fullscreen']].filter(Boolean);
       const tool = ([attr, label, icon], i) => `<button ${attr} class="tool" style="--k: ${tools.length - 1 - i}" aria-label="${esc(label)}">${TITLE_ICONS[icon]}<span class="tip" aria-hidden="true">${esc(label)}</span>${glyph('ok', { focus: true })}</button>`;
       mainNav.innerHTML = `<div class="entries">${s
@@ -348,6 +351,14 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       else if (settingsMenu.open) { settingsMenu.back(); if (!settingsMenu.open) root.querySelector('[data-a="settings"]')?.focus({ preventScroll: true }); }
       else if (screen === 'saves') show('main', '[data-a="saves"]');
     };
+    // L3 + R3 (F2, `): the author's debug entries on or off on this device (issue #734: the title's Debug and What's new, the
+    // Saves screen's debug saves), the focus kept on the screen
+    const devSwitch = () => {
+      if (effectDialog() || !confirmEl.hidden || settingsMenu.open) return;
+      const on = toggleDevMode({ settings });
+      if (screen === 'saves') { renderSaves(); focusFirst(root.querySelector('[data-screen="saves"]')); }
+      else { renderMain(); root.querySelector(on ? '[data-a="debug"]' : '.entries button')?.focus({ preventScroll: true }); }
+    };
     const act = (a, el) => {
       if (a === 'continue') choose(store.latest());
       else if (a === 'new') choose(store.firstEmpty() ?? 1);
@@ -435,6 +446,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       const adjusting = t && (t.type === 'range' || t.tagName === 'SELECT');
       if (dir && !(adjusting && (e.code === 'ArrowLeft' || e.code === 'ArrowRight'))) { e.preventDefault(); navigate(dir[0], dir[1]); }
       else if (e.code === 'Escape' || e.code === 'Backspace') { e.preventDefault(); back(); }
+      else if ((e.code === 'F2' || e.code === 'Backquote') && !e.repeat) { e.preventDefault(); devSwitch(); }
       else if ((e.code === 'Delete' || e.code === 'KeyX') && screen === 'saves' && confirmEl.hidden) {
         const n = +(doc.activeElement?.dataset?.slot ?? doc.activeElement?.dataset?.del ?? 0);
         if (n) askDelete(n);
@@ -457,6 +469,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       scroll: (amount) => { const r = navRoot(); (r.querySelector('.panel, .slots') ?? r).scrollTop += amount; },
       action: (name) => {
         if (name === 'back' || name === 'start' || name === 'select') back();
+        if (name === 'worldDebug') devSwitch();
         // X / □ on a save: delete it (asks first; its Delete button carries the glyph)
         if (!effectDialog() && name === 'x' && screen === 'saves' && confirmEl.hidden && !settingsMenu.open) {
           const n = +(doc.activeElement?.dataset?.slot ?? doc.activeElement?.dataset?.del ?? 0);

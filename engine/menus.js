@@ -43,6 +43,7 @@ import { HINT_LEVELS } from '../src/hint-level.js';
 import { DRONE_HINTS } from '../src/companion.js';
 import { tabWindow } from '../src/world-debug.js';
 import { TAB_STRIP, verb } from '../src/dev-menu.js';
+import { toggleDevMode } from '../src/dev-gate.js';
 import { drawHouseMap, HouseMapPage, HOUSE_MAP } from '../src/house-map.js';
 import { PixelCanvas } from './raster.js';
 import { Turntable } from '../src/wardrobe.js';
@@ -306,8 +307,8 @@ export class EngineMenus {
     if (!this.mode) return;
     this.stopRebind?.();
     if (this.mode === 'shop') this.shop?.panel?.close?.();
-    const star = this.mode === 'starmap' ? this.star : null, dev = this.mode === 'dev' ? this.dev : null;
-    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null; this.dev = null; this.arcade = null;
+    const star = this.mode === 'starmap' ? this.star : null, dev = this.mode === 'dev' ? this.devMenu : null;
+    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null; this.devMenu = null; this.arcade = null;
     star?.close();
     if (dev?.open) dev.toggle(false);
     this.changed(); this.onResume();
@@ -606,7 +607,7 @@ export class EngineMenus {
   openDev(dev) {
     this.byPointer = false;
     if (!dev) return false;
-    this.dev = dev;
+    this.devMenu = dev;
     dev.changed = () => this.changed();
     this.mode = 'dev';
     if (!dev.open) dev.toggle(true); else dev.refresh();
@@ -614,16 +615,16 @@ export class EngineMenus {
     return true;
   }
   devAction(name) {
-    const D = this.dev;
+    const D = this.devMenu;
     if (name === 'tabPrev' || name === 'tabNext') D.turn(name === 'tabPrev' ? -1 : 1);
     else if (name === 'confirm') { D.choose(); if (this.mode === 'dev' && !D.open) this.close(); }
     else if (name === 'back' || name === 'worldDebug') this.close();
     else if (name === 'start') { this.close(); this.show('start'); }
     else if (name === 'select') { this.close(); this.show('game'); }
   }
-  devMove(x, y) { if (y) this.dev.move(y); else if (x) this.dev.turn(x); }
+  devMove(x, y) { if (y) this.devMenu.move(y); else if (x) this.devMenu.turn(x); }
   devView() {
-    const D = this.dev, tabs = D.tabs, n = D.nav, tab = tabs[n.tab];
+    const D = this.devMenu, tabs = D.tabs, n = D.nav, tab = tabs[n.tab];
     const [a, b] = tabWindow(tabs.length, n.tab, TAB_STRIP), cur = n.current(tabs);
     const rows = (tab?.rows ?? []).map((r, i) => [r.head
       ? { kind: 'head', text: `${r.label} · ${r.hint}`, sub: '', col: 0, span: 1, on: false }
@@ -765,7 +766,7 @@ export class EngineMenus {
       else if (k === 'star') { if (press && M.sel === n) M.go(); else M.select(n); }
       else took = false;
     } else if (this.mode === 'dev') {
-      const D = this.dev;
+      const D = this.devMenu;
       if (k === 'dev') { D.nav.at(D.tabs, n); D.render?.(); if (press) act('confirm'); }
       else if (k === 'tab' && press) { const t = D.tabs[n + (this.devView().tabs.from ?? 0)]; if (t) { D.nav.show(D.tabs, t.id); D.render?.(); } }
       else if (k === 'go' && press) act(n < 0 ? 'tabPrev' : 'tabNext');
@@ -884,6 +885,8 @@ export class EngineMenus {
       else if (a.kind === 'debug') this.begin({ debug: a.world, slot: a.slot });
       return;
     }
+    // L3 + R3: the debug saves on or off on this device (src/dev-gate.js toggleDevMode, issue #734; src/title.js devSwitch)
+    if (name === 'worldDebug' && (T.screen === 'main' || T.screen === 'saves')) { toggleDevMode({ settings: this.settings }); T.i = Math.min(T.i, this.titleRows().length - 1); return; }
     if (T.screen === 'settings') { this.settingsAction(name, T, () => { T.screen = 'main'; T.i = this.titleRows().findIndex((r) => r.id === 'settings'); }); return; }
     if (T.screen === 'updates') {
       if (name === 'back') { T.screen = 'main'; T.i = this.titleRows().findIndex((r) => r.id === 'updates'); }
@@ -1318,7 +1321,7 @@ export class EngineMenus {
     if (T.screen === 'updates') return { ...base, head: 'UPDATES', page: { rows: this.updatesRows(T.at) }, hint: 'A / × choose · B / ○ back' };
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1), pt: `row:${i}` }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
-    const hint = T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose';
+    const hint = `${T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose'}${this.dev() ? ' · L3 + R3 debug off' : ''}`;
     return { ...base, head: T.screen === 'sound-error' ? 'Sound effects couldn’t load.' : T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null,
       ask: T.ask ? { q: T.ask.q, what: T.ask.what, undone: T.ask.kind === 'delete' ? t('title.undone') : '', no: t('title.keep'), yes: T.ask.yes, on: T.ask.on } : null, hint };
   }
