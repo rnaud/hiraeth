@@ -277,6 +277,12 @@ export const PROC_POSES = {
   rest: { r: [[-0.3, -0.85, 0.4], [0.8, -0.15, 0.55]], l: [[0.3, -0.85, 0.4], [-0.8, -0.15, 0.55]] },
   // its guard broken: both arms flung wide, the shield out to its side
   flung: { r: [[-0.95, 0.15, 0.1], [-0.9, 0.45, 0.2]], l: [[0.95, 0.15, 0.1], [0.9, 0.45, 0.2]] },
+  // (the hulk's stomp, #726) its long arms flung up and out for balance as a foot comes up (the leg: its model's own
+  // style); brought down hard as it stamps
+  // (the grunt's club overhead, #726: the sheet's attack pose) both arms straight up over its head, the club behind it,
+  // leaning back; then down before it
+  overhead: { lean: -0.12, r: [[-0.22, 1, -0.12], [-0.05, 1, -0.35]], l: [[0.22, 1, -0.12], [0.05, 1, -0.35]], strike: { r: [[-0.15, 0.1, 1], [-0.05, -0.4, 1]], l: [[0.15, 0.1, 1], [0.05, -0.4, 1]] } },
+  stomp: { lean: -0.1, r: [[-0.75, 0.55, 0.3], [-0.35, 0.9, 0.25]], l: [[0.75, 0.55, 0.3], [0.35, 0.9, 0.25]], strike: { r: [[-0.55, -0.7, 0.45], [-0.2, -0.85, 0.5]], l: [[0.55, -0.7, 0.45], [0.2, -0.85, 0.5]] } },
   // hands clutching its face (the mask knocked off)
   clutch: { l: [[0.3, 0.1, 0.6], [-0.5, 0.8, 0.3]], r: [[-0.3, 0.1, 0.6], [0.5, 0.8, 0.3]] },
 };

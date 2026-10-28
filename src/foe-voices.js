@@ -105,6 +105,13 @@ export const FOE_VOICES = {
   mummerking: { family: 'junk', // the barrel's hollow boom and the cauldron's dull clang; done, staves cracking and the cauldron rolling off
     hurt: [R(120, CLAY, 0.3, 0.08), T('square', 210, 180, 0.16, 0.03, { at: 0.02 })],
     burst: [R(105, CLAY, 1.0, 0.09), C(6, 0.07, 700, 0.03, 0.1, { f1: 420, q: 2, at: 0.1 }), R(240, BRONZE, 0.9, 0.04, { at: 0.35 })] },
+  // ---- roster v4's monsters (issue #726): flesh and hide
+  grunt: { family: 'flesh',    // a slap on a fat belly and a squeal through the snout; done, a thump on the ground and a wheeze
+    hurt: [N('lowpass', 520, 0.1, 0.1, { rate: 0.9 }), T('square', 640, 420, 0.1, 0.12, { at: 0.03 })],
+    burst: [T('sawtooth', 380, 160, 0.3, 0.06), N('lowpass', 300, 0.3, 0.2, { rate: 0.6, at: 0.2 })] },
+  hulk: { family: 'flesh',     // a heavy slap on a great flank and a grunt from deep in its chest; done, a long groan and a fall
+    hurt: [N('lowpass', 260, 0.14, 0.22, { rate: 0.7 }), T('sawtooth', 110, 90, 0.2, 0.06, { at: 0.03 })],
+    burst: [T('sawtooth', 120, 60, 0.9, 0.08), N('lowpass', 200, 0.4, 0.22, { rate: 0.5, at: 0.6 })] },
   // ---- the old sets (the makers' machine in the temples, anything without its own)
   machine: { family: 'machine',
     hurt: [T('square', 620, 540, 0.25, 0.06), T('square', 930, 810, 0.25, 0.06, { at: 0.01 })],

@@ -28,6 +28,25 @@ export const SITE_PURSE = [20, 25, 30, 40, 50];
 /** The idle each kind of site gives its foes (src/encounters/idle.js), and its lookout's. */
 export const SITE_IDLE = { camp: 'sit', nest: 'sleep', hoard: 'guard', ambush: 'hidden', patrol: 'patrol' };
 
+/**
+ * Foes staged at a site before the worlds' rosters take them (issue #726, roster v4): a site's `staged[flag]` adds its
+ * `foes` (and a weapon `rack`, with `unarmed` of its rack-takers starting empty-handed) only with that flag on. All off by
+ * default; on in a run with ?staged=roster4 (stagedFrom), or by setting STAGED.roster4 in a test.
+ */
+export const STAGED = { roster4: false };
+/** The flags a page's query turns on (?staged=roster4,…) over STAGED. */
+export function stagedFrom(search = '') {
+  const on = new URLSearchParams(search).get('staged')?.split(',').filter(Boolean) ?? [];
+  return { ...STAGED, ...Object.fromEntries(on.map((k) => [k, true])) };
+}
+/** A site with what its flags stage there joined to it. */
+export function withStaged(s, flags = STAGED) {
+  if (!s.staged) return s;
+  let out = s;
+  for (const [k, add] of Object.entries(s.staged)) if (flags[k]) out = { ...out, foes: [...out.foes, ...(add.foes ?? [])], rack: add.rack ?? out.rack, unarmed: add.unarmed ?? out.unarmed };
+  return out;
+}
+
 /** The save's flags: the site cleared (its foes cut down, for good), its coffer opened (src/chimes.js connectDrops). */
 export const siteFlag = (world, id) => `site.${world}.${id}`;
 export const cofferFlag = (world, id) => `res.site.${world}.${id}`;
@@ -41,7 +60,7 @@ const rot = (h, x, z) => [x * Math.cos(h) + z * Math.sin(h), -x * Math.sin(h) + 
  * round the fire or the coffer, so no body stands in another or in the coffer). Local x is to the right of the front, z
  * toward it.
  */
-export function layoutSite(s, { hovers = () => false, radius = () => 0.6 } = {}) {
+export function layoutSite(s, { hovers = () => false, radius = () => 0.6, racks = () => false } = {}) {
   const h = s.heading ?? 0, [cx, , cz] = s.at;
   const W = (x, z) => { const [dx, dz] = rot(h, x, z); return [+(cx + dx).toFixed(2), +(cz + dz).toFixed(2)]; };
   const toward = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
@@ -51,7 +70,8 @@ export function layoutSite(s, { hovers = () => false, radius = () => 0.6 } = {})
   let coffer;
   if (s.kind === 'camp') {
     props.push({ type: 'fire', at: W(0, 0), heading: h });
-    const big = Math.max(...s.foes.map(radius)), R = 2.3 + big;
+    // (a bigger camp sits in a wider ring: the staged monsters with the mummers, #726)
+    const big = Math.max(...s.foes.map(radius)), R = 2.3 + big + Math.max(0, n - 5) * 0.45;
     s.foes.forEach((a, i) => {
       // round the fire, the front left open (the way in), each facing the flames
       const ang = Math.PI * (0.45 + (1.1 * (i + 0.5)) / n) + Math.PI, at = W(Math.sin(ang) * R, Math.cos(ang) * R);
@@ -62,6 +82,10 @@ export function layoutSite(s, { hovers = () => false, radius = () => 0.6 } = {})
     });
     if (s.lookout) { const at = W(3.2, 8); foes.push({ archetype: s.lookout, at, heading: h, idle: idleOf(s.lookout, 'lookout') }); props.push({ type: 'post', at: W(4.4, 8.4), heading: h }); }
     coffer = { at: W(0, -5.2), heading: h };
+    // (a weapon rack by the way in: the grunts' bow and spear, src/foes.js RACK)
+    if (s.rack) props.push({ type: 'rack', at: W(-4.4, 3.4), heading: h + 0.5 });
+    // (who starts empty-handed, to run for the rack: the first `unarmed` of the kinds that take from it)
+    if (s.unarmed) { let k = s.unarmed; for (const f of foes) if (k > 0 && racks(f.archetype)) { f.weapon = 'none'; k--; } }
     for (let i = 0; i < 4; i++) { const ang = Math.PI + (i - 1.5) * 0.55; props.push({ type: 'bramble', at: W(Math.sin(ang) * 8, Math.cos(ang) * 8), heading: i * 1.7 }); }
   } else if (s.kind === 'nest') {
     props.push({ type: 'nest', at: W(0, 0), heading: h, r: 3.4 });
@@ -102,7 +126,7 @@ export function layoutSite(s, { hovers = () => false, radius = () => 0.6 } = {})
 /** Everything a site puts on the ground, as [x, z] points with the room each needs (m): what the tests stand on the world. */
 export function siteFootprint(s, o) {
   const L = layoutSite(s, o);
-  return [...L.foes.map((f) => ({ at: f.at, r: 1, what: `${f.archetype} (${f.idle})` })), ...L.props.map((p) => ({ at: p.at, r: p.type === 'nest' ? 3.4 : p.type === 'fire' ? 1.4 : 0.6, what: p.type })), { at: L.coffer.at, r: 0.9, what: 'coffer' }];
+  return [...L.foes.map((f) => ({ at: f.at, r: 1, what: `${f.archetype} (${f.idle})` })), ...L.props.map((p) => ({ at: p.at, r: p.type === 'nest' ? 3.4 : p.type === 'fire' ? 1.4 : p.type === 'rack' ? 0.9 : 0.6, what: p.type })), { at: L.coffer.at, r: 0.9, what: 'coffer' }];
 }
 
 // ------------------------------------------------------------------ the sites, world by world
@@ -111,7 +135,9 @@ export function siteFootprint(s, o) {
 export const SITES = {
   desert: [
     // (issue #724: the blots' fire became the mummers' camp: three round the fire with their king, a lookout on the post)
-    { id: 'mummer-camp', kind: 'camp', at: [312, 14.8, 176], heading: -0.49, foes: ['mummer', 'mummerking', 'mummer', 'mummer'], lookout: 'mummer' },
+    { id: 'mummer-camp', kind: 'camp', at: [312, 14.8, 176], heading: -0.49, foes: ['mummer', 'mummerking', 'mummer', 'mummer'], lookout: 'mummer',
+      // (issue #726: roster v4's grunts and a hulk beside the mummers, with their weapon rack; off until the rosters take them)
+      staged: { roster4: { foes: ['grunt', 'hulk', 'grunt', 'grunt'], rack: true, unarmed: 2 } } },
     { id: 'twitching-sand', kind: 'ambush', at: [515, 37.4, 288], heading: -0.51, foes: ['worm', 'worm'], sign: 'sand' },
     { id: 'skitter-nest', kind: 'nest', at: [263, 1.2, 309], heading: -1.18, foes: ['skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
     { id: 'heron-hoard', kind: 'hoard', at: [354, 0.5, 456], heading: -3, foes: ['blot', 'heron', 'blot'] },
@@ -187,4 +213,4 @@ export const SITES = {
 };
 
 /** A world's sites (the route's worlds; none anywhere else). */
-export const sitesOf = (world) => SITES[world] ?? [];
+export const sitesOf = (world, flags = STAGED) => (SITES[world] ?? []).map((s) => withStaged(s, flags));

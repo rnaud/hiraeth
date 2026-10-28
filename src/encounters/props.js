@@ -118,6 +118,24 @@ export function buildProp(type, { at, heading = 0, ground = null, r = 3.4, seed 
       if (type === 'sand') { P.sign.scale.set(1 + tw * 0.08, 1 + tw * 0.9 + Math.sin(t * 9) * tw * 0.25, 1 + tw * 0.08); P.sign.position.y = tw * 0.05; }
       else { P.sign.position.set(Math.sin(t * 0.37) * 0.8, 0, Math.cos(t * 0.29) * 0.6); P.sign.scale.setScalar(0.9 + 0.12 * Math.sin(t * 0.8) + tw * 0.25); }
     };
+  } else if (type === 'rack') {
+    // a weapon rack (issue #726, the grunts'): two forked posts and a pole across them, a spear leaning on it and a bow
+    // hung from it; each gone from it as a grunt takes it (P.rack.stock: src/foes.js RACK, src/encounters/index.js)
+    const y = lift(0, 0);
+    for (const x of [-0.75, 0.75]) {
+      put('bark', T(new THREE.CylinderGeometry(0.05, 0.07, 1.3, 6), [x, y + 0.62, 0], [0, 0, x * 0.05]));
+      for (const s of [-1, 1]) put('bark', T(new THREE.CylinderGeometry(0.03, 0.04, 0.3, 5), [x + s * 0.06, y + 1.36, 0], [0, 0, -s * 0.45]));
+      put('stone', T(new THREE.IcosahedronGeometry(0.16, 0), [x, y + 0.05, 0.1], [x, 1, 0], [1, 0.6, 1]));
+    }
+    put('wood', T(new THREE.CylinderGeometry(0.035, 0.035, 1.8, 6), [0, y + 1.32, 0], [0, 0, Math.PI / 2]));
+    const spear = new THREE.Group(), bow = new THREE.Group();
+    spear.add(meshOf([T(new THREE.CylinderGeometry(0.018, 0.02, 1.7, 6), [0.25, y + 0.85, 0.12], [0.12, 0, -0.2])], mat('wood')), meshOf([T(new THREE.ConeGeometry(0.04, 0.17, 4), [0.08, y + 1.74, 0.23], [0.12, 0, -0.2], [1, 1, 0.4])], mat('dark')));
+    const arc = [];
+    for (let i = 0; i <= 8; i++) { const a = -1.1 + 2.2 * (i / 8); arc.push(new THREE.Vector3(-0.35 + Math.sin(a) * 0.05, y + 0.95 + Math.sin(a) * 0.38, 0.06 + (Math.cos(a) - Math.cos(1.1)) * 0.22)); }
+    bow.add(meshOf([new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arc), 10, 0.016, 5)], mat('wood')), meshOf([T(new THREE.CylinderGeometry(0.004, 0.004, 0.76, 3), [-0.35, y + 0.95, 0.06])], mat('ink')));
+    for (const w of [spear, bow]) { w.userData.noCollide = true; group.add(w); }
+    P.weapons = { spear, bow };
+    P.update = () => { const S = P.rack?.stock; if (S) for (const [k, w] of Object.entries(P.weapons)) w.visible = S.includes(k); };
   } else if (type === 'coffer') {
     // the foes' coffer (the temples' Coffer's build): a block of rough stone, brass bands, a lid that swings back, a little
     // lamp in its front that glows once it may be opened

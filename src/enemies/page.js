@@ -122,7 +122,7 @@ function choose(id, w = null) {
   $('enemy').innerHTML = rows.map((r) => `<option value="${r.id}">${r.name}</option>`).join(''); $('enemy').value = id;
   const S = skin ? skinOf(row.archetype, skin) : null;
   $('name').textContent = S?.name ?? A.name;
-  const family = A.family === 'machine' ? `An old makers’ machine with a dark spirit inside (${A.possession})` : A.family === 'spirit' ? `A spirit: ${A.manifestation}` : 'A creature: wildlife that fights only when provoked';
+  const family = A.family === 'machine' ? `An old makers’ machine with a dark spirit inside (${A.possession})` : A.family === 'spirit' ? `A spirit: ${A.manifestation}` : A.family === 'monster' ? 'A monster: met in every world, its colour its strength' : 'A creature: wildlife that fights only when provoked';
   $('kind').innerHTML = `<b>${A.name}</b> · ${A.role} · tier ${A.tier}. ${family}. <i>${A.idle}.</i>${A.status === 'built' ? '' : ` <br>Not built yet: the ${FOES[kind].name} stands in for it.`}${A.art === 'pending' ? ' <br><span class="hint">Art match pending its fresh reference sheet.</span>' : ''}`;
   const f = viewer.model(id).f;
   $('pose').innerHTML = `<option value="idle">Standing</option><option value="walk">Moving</option>${posesOf(f).map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}${movesOf(f).map((a, i) => `<option value="attack${i}">${a.name ?? a.id}</option>`).join('')}`;

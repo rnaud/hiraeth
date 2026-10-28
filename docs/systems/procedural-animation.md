@@ -858,6 +858,17 @@ New in the rig for them:
 - **The fall** (`down.fall`, `o.downFor`: s since it went down): the first 0.3 s of a knock-down are the impact's stagger
   back tipped over its heels, then crossfaded (XFADE.secs) into the lying frame; total under the old 0.4 s crossfade + a beat.
 
+**Roster v4's grunt and hulk** (v2.34, issue #726; plans/monster.js, tests/monsters.test.js): the mummers' clips, and:
+
+| move | clip | by hand |
+|---|---|---|
+| grunt: club overhead (0.8 s) | `gs_slash_1` 0.2 → 0.53 → 0.62 → 1.05, `lean` −0.18 | `overhead`: both arms straight up over its head, the club up out of its fists and back (the sheet's attack pose); brought down before it in the strike |
+| grunt: lunge (0.85 s) | `gs_slide_attack` 0.7 → 0.95 → 1.25 → 1.45 (the fencer's sweep: sunk low, the club cocked by its hip) | none; the spring is the mind's `lunge` 3.4 m |
+| grunt: jab, volley, rock | the mummer's (`ss_attack_2`; `ss_block_idle` + `bow`; `gs_jump_attack` held, thrown at `release` 0.78) | |
+| hulk: smash, sweep, throw | the mummer king's smash and swing and throw (`gs_slash_1`, `gs_slash_3`, `gs_jump_attack`) | |
+| hulk: stomp (1.0 s) | `ss_block_idle`'s braced stance | `stomp`: the arms flung up and out, down in the strike; its right leg by its own `style` (`HULK_STANCE.stomp`: thigh up 1.5 rad, knee 1.55), the body leaning over the other foot, stamped down in the strike's first third |
+| hulk: standing, walking | the library's | `HULK_STANCE.hunch` 0.26 rad forward over the clip's chest, the head brought back up 0.3 to look ahead; its kilt counter-turned so it hangs from the hips |
+
 Still not captured: a real bow draw, a horn blown, an overhand rock throw, sitting and sleeping clips; a two-handed hop
 for the whack (the charged cut's overhead is used, the hop is the mind's lunge).
 

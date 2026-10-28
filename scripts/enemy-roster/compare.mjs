@@ -6,7 +6,7 @@
 //   node scripts/enemy-roster/compare.mjs --out <dir> [--tag after] [--skins 1,2] [crab lizard …]
 //     <dir>/compare-<archetype>-<n>[-<tag>].png   sheet n (1: the main skin, 2: the alternate) over the game's body:
 //                                                 a contact sheet, a working tool only (never changelog media)
-//   node scripts/enemy-roster/compare.mjs --separate --out <dir> [--tag after] [--size 1280x720] [--zoom 0.62] [crab …]
+//   node scripts/enemy-roster/compare.mjs --separate --out <dir> [--tag after] [--size 1280x720] [--zoom 0.62] [--tier] [crab …]
 //     <dir>/<archetype>-<n>-<view>[-<tag>].png    each view alone, large, 3D only (no sheet stitched in): the pictures
 //                                                 for a before / after (cwebp them into changelog-media/, with the
 //                                                 sheet as its own picture: docs/systems/changelog.md, "Enemies")
@@ -27,10 +27,12 @@ const ROOT = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const OUT = resolve(arg('out', 'output/enemy-roster'));
 const TAG = arg('tag', '');
 const SEPARATE = args.includes('--separate');
+// (--tier: its stronger tier's body, darker and banded: '<kind>@<skin>*', issue #722)
+const TIER = args.includes('--tier');
 const [SW, SH] = (arg('size', '1280x720')).split('x').map(Number);
 const ZOOM = Number(arg('zoom', SEPARATE ? 0.62 : 0.92));
 const SHEETS = arg('skins', '1,2').split(',').map(Number);
-const picks = args.filter((a, i) => !a.startsWith('--') && !(args[i - 1]?.startsWith('--') && !['--separate'].includes(args[i - 1])));
+const picks = args.filter((a, i) => !a.startsWith('--') && !(args[i - 1]?.startsWith('--') && !['--separate', '--tier'].includes(args[i - 1])));
 const PORT = Number(process.env.PORT ?? 5364), CDP = Number(process.env.CDP ?? 5414);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -38,7 +40,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the wind-ups each sheet draws (attack ids), and the yaw of each view (0: from the front; π/2: side, facing left)
 const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'],
   toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['grip'], brute: ['slam'], drone: ['harpoon'], cart: ['pour'], bell: ['toll'],
-  shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'], mummer: ['whack'], mummerking: ['throw'] };
+  shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'], mummer: ['whack'], mummerking: ['throw'], grunt: ['club', 'lunge'], hulk: ['smash', 'stomp'] };
 // (the flyers are shown flying: 'walk' in the gallery is the creature moving)
 const MOVING = new Set(['ray', 'moth', 'jelly', 'drone']);
 // (from above for a flat flyer: its back is what the sheet draws and what you see of it)
@@ -83,7 +85,7 @@ try {
     const A = ARCHETYPES[a];
     const art = artOf(a);
     for (const [n, world] of [[1, art.main], [2, art.alt]].filter(([n, w]) => w && SHEETS.includes(n))) {
-      const job = { id: `${A.kind}@${world}`, sheet: `/references/enemy-archetypes/${a}/sheet-${n}.jpg`, views: VIEWS, windups: WINDUPS[a] ?? [], separate: SEPARATE, size: [SW, SH], zoom: ZOOM, idle: MOVING.has(a) ? 'walk' : 'idle', pitch: PITCH[a] ?? 0.12, windYaw: Number(arg('windup-yaw', 0.75)), at: AT[a] ?? 0.8 };
+      const job = { id: `${A.kind}@${world}${TIER ? '*' : ''}`, sheet: `/references/enemy-archetypes/${a}/sheet-${n}.jpg`, views: VIEWS, windups: WINDUPS[a] ?? [], separate: SEPARATE, size: [SW, SH], zoom: ZOOM, idle: MOVING.has(a) ? 'walk' : 'idle', pitch: PITCH[a] ?? 0.12, windYaw: Number(arg('windup-yaw', 0.75)), at: AT[a] ?? 0.8 };
       const url = await ev(`(async () => {
         const J = ${JSON.stringify(job)}, E = window.enemyViewer, V = E.viewer, W = 1280;
         const img = new Image(); img.src = J.sheet; await img.decode();

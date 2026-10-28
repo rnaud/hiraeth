@@ -55,7 +55,7 @@ body.foe-list #foe-tab { display: none; }
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 /** A world's name as the game writes it (the roster's own titles are its sheets' folder names). */
 const worldName = (w) => TITLES[w] ?? w;
-const FAMILY = { creature: 'creature', machine: 'possessed machine', spirit: 'spirit' };
+const FAMILY = { creature: 'creature', machine: 'possessed machine', spirit: 'spirit', monster: 'monster' };
 
 /** Every foe kind there is (the archetypes' and the old ones standing in), in the order they are met (the combat review's list). */
 export const SPAWN_KINDS = Object.keys(FOES);

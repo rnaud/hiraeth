@@ -126,6 +126,12 @@ const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 export const CARRY = { reach: 5, lift: 0.35, fly: 0.78, over: 0.5, grip: 0.3, daze: 1.6 };
 /** A mummer with its mask knocked off can hardly see: its blows go this wide of you (rad, the whole spread). */
 export const BLIND = { wide: 1.1 };
+/**
+ * A camp's weapon rack (issue #726, the grunt: def.racks): an unarmed one within `reach` m of a rack with something left on
+ * it runs there and takes it (a bow if you are further than `bow` m, else a spear), bending `take` s as for a dropped one.
+ * Foes.racks: [{ pos, stock: ['spear', 'bow'] }] (src/encounters/index.js puts a camp's there).
+ */
+export const RACK = { reach: 16, bow: 6, take: 1.0 };
 /** A weighted pick from { key: weight } (rng 0..1). */
 export function pickWeight(w, rng = Math.random) {
   const e = Object.entries(w).filter(([, x]) => x > 0);
@@ -143,7 +149,9 @@ export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Arra
   // batch 5 (v1.18): the pearl roller, the marionette with creatures to drive, the shade on its new body with company
   ['roller'], ['roller', 'roller', 'blot'], ['marionette', 'crab'], ['marionette', 'lizard', 'lizard'], ['shade', 'roller'],
   // the humanoid foes on clips (issue #724): a mummer camp's troupe, then its king with two to throw
-  ['mummer', 'mummer', 'mummer'], ['mummerking', 'mummer', 'mummer']];
+  ['mummer', 'mummer', 'mummer'], ['mummerking', 'mummer', 'mummer'],
+  // roster v4's monsters (issue #726): a band of grunts, then a hulk with two to throw
+  ['grunt', 'grunt', 'grunt'], ['hulk', 'grunt', 'grunt']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /**
  * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
@@ -672,7 +680,7 @@ export class Foe {
       && (!a.pile || this.mates >= 2)                                             // (a heap needs two of its flock to climb on)
       && (!a.dark || !(this.lit > 0))                                             // (lit, a shade is solid: it can't step)
       && (!a.ball || !this.ballOut)                                               // (one fireball of its own in the air at a time)
-      && (!a.armed || !this.disarmed) && (!a.unarmed || !!this.disarmed)          // (its sword knocked away: only its shield's blows)
+      && (!a.armed || !this.disarmed) && (!a.unarmed || !!this.disarmed || this.weapon === 'none')   // (its sword knocked away: only its shield's blows; a grunt with nothing in its hands)
       && (!a.weapon || a.weapon === this.weapon)                                  // (a mummer's move with the weapon it carries)
       && (!a.horn || this.horns < (this.hp <= D.hp * 0.5 + 1e-9 ? 2 : 1))         // (its horn: when it first comes on, and once more at half)
       && (!a.throwsAlly || !!this.allyFor(a))                                     // (a mummer near it to pick up and throw)
@@ -819,7 +827,7 @@ export class Foe {
     this.attackH = this.heading + (a.back ? Math.PI : 0);   // (a tail whip: behind it)
     if (this.unmasked && !a.at) this.attackH += (this.rng() - 0.5) * BLIND.wide;   // (its mask knocked off, it can't see well: it swings wide)
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
-    if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
+    if (this.def.keep || this.def.hangBack) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
     this.farFor = 0;
     this.placeArea(a, P);
   }
@@ -906,6 +914,7 @@ export class Foe {
     if (a.dives && this.def.burrow) { this.buried = true; this.upFor = 0; }   // (the worm's dive: back under the sand)
     if (a.leap) { this.alt = 0; this.leapFrom = null; }                       // (down from its leap)
     this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0; this.reel = null;
+    if (this.whiffed && this.def.whiffRecover != null) this.timer = Math.min(this.timer, this.def.whiffRecover);   // (a missed blow: straight back at it, #726)
     if (a.opens) { this.open = a.opens; this.timer = Math.max(this.timer, a.opens); }   // (the bell's drop: it tips up open toward you)
     if (a.stuck) { this.stunned = Math.max(this.stunned, a.opens ?? 1.5); this.reel = 'stuck'; ev.push({ type: 'stuck' }); }   // (the machine's claws stuck in the floor after its quake: v1.63 #261)
   }
@@ -973,6 +982,8 @@ export class Foe {
     if (this.downT > 0 && (this.downT -= dt) <= 0) { this.downT = 0; this.poise = this.poiseMax; }
     this.poiseT += dt;
     if (!(this.downT > 0) && this.poise < this.poiseMax && this.poiseT > POISE.after) this.poise = Math.min(this.poiseMax, this.poise + this.poiseMax * POISE.back * dt);
+    if (this.shrugs && this.poiseT > POISE.after) this.shrugs = 0;   // (left alone a while, it shrugs the next exchange's first cut again: def.shrug)
+    if (this.mashT > 0 && (this.mashT -= dt) <= 0) this.mashN = 0;
     // driven by a marionette's strings: until they run out or it is gone (Foes.updateStrings frees it, and cuts them)
     if (this.possessed && ((this.possessed.t -= dt) <= 0 || !this.possessed.by.alive || this.possessed.by.dead !== undefined)) this.possessed.done = true;
     // carried in a heap (a skitter climbing its flock-mate for the pile): its mind waits until the heap topples or breaks
@@ -1016,6 +1027,8 @@ export class Foe {
     if (D.guard && (this.stunned > 0 || this.state !== 'chase')) this.lowerGuard(dt);
     if (this.disarmed) this.disarmed.t += dt;
     if (this.stunned > 0) { this.stunned -= dt; return ev; }
+    // (three light cuts in a row: it answers at once, whatever it was waiting for: def.answerMash, the hulk's stomp, #726)
+    if (this.mashed) { this.mashed = false; if (this.answerMash(P, ev)) return ev; }
     const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
     this.dist = d;
     // the alert beat (issue #722): it noticed you, and rears and calls before it comes on (src/enemies/fight.js ALERT)
@@ -1090,7 +1103,8 @@ export class Foe {
           else this.circle(P, D.flock.ring, dt, env);
           break;
         }
-        if (D.keep && d < D.keep && d > 1e-4 && this.retreat > 0) {
+        const keep = D.keep ?? this.hangBack();
+        if (keep && d < keep && d > 1e-4 && this.retreat > 0) {
           // too close: it backs off a little, then stands its ground (PRESSURE.retreat), no endless chase
           this.retreat = Math.max(0, this.retreat - dt);
           this.step(-dx / d * D.speed * 0.7 * dt, -dz / d * D.speed * 0.7 * dt, env); this.face(dx, dz, dt, 8);
@@ -1185,7 +1199,7 @@ export class Foe {
       case 'recover': {
         this.timer -= dt;
         // (a ray dives again only once its time up is over: surfaced, it is there to be fought)
-        if (this.timer <= 0 && this.reel === 'pickup') { this.disarmed = null; this.reel = null; ev.push({ type: 'rearmed' }); }   // (its sword back in its hand)
+        if (this.timer <= 0 && this.reel === 'pickup') { if (this.fetching) { this.weapon = this.fetching; this.fetching = null; } this.disarmed = null; this.reel = null; ev.push({ type: 'rearmed' }); }   // (its sword back in its hand; a grunt's from the rack)
         // (out of a reel your blow sent it into, its wait goes on where it was, not from the start: #722, a cut no longer
         // postpones its next blow by a whole cycle; out of its own blow, a fresh wait, shorter enraged)
         if (this.timer <= 0) {
@@ -1548,6 +1562,30 @@ export class Foe {
     if (!a) return;
     this.turtle = 0; this.guardK = 0; this.guardT = 0;
     this.beginWind(a, P); this.answering = true; ev.push('warn'); ev.push({ type: 'answer', atk: a });
+  }
+  /** m it keeps from you with what it holds (def.hangBack by weapon: a grunt's bow and its bare hands hang back, #726), or 0. */
+  hangBack() {
+    const H = this.def.hangBack;
+    return H ? H[this.disarmed ? 'none' : this.weapon] ?? 0 : 0;
+  }
+  /** Off to a camp's rack (RACK) for one of what is left on it: reserved now, in its hands once it has bent for it. */
+  fetch(R, P) {
+    const far = P && Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) > RACK.bow;
+    const w = (far && R.stock.includes('bow') ? 'bow' : R.stock.includes('spear') ? 'spear' : R.stock[0]) ?? null;
+    if (!w) return false;
+    R.stock.splice(R.stock.indexOf(w), 1);
+    this.fetching = w;
+    this.disarmed = { at: R.pos.clone(), from: this.pos.clone(), t: 9, rack: R };
+    return true;
+  }
+  /** Mashed (def.answerMash: its third light cut in a row): its answer at once, the move's own wind-up (the hulk's stomp). */
+  answerMash(P, ev) {
+    const M = this.def.answerMash, a = M && this.def.attacks.find((x) => x.id === M.attack);
+    if (!a || this.downT > 0 || this.carry || !(this.state === 'chase' || this.state === 'recover')) return false;
+    this.state = 'chase'; this.cool = 0; this.plan = null; this.reel = null;
+    this.beginWind(a, P); this.answering = true;
+    ev.push('warn'); ev.push({ type: 'answer', atk: a });
+    return true;
   }
   /** Its sword knocked out of its hand (a perfect parry of a sword blow: onParry 'disarm'), to land at `at`. */
   disarm(at) {
@@ -1926,6 +1964,16 @@ export class Foe {
       return 'glance';
     }
     let dmg = 0;
+    const light = mode === 'blade' && !info.breaks && !info.riposte && !info.dash && src !== 'parry' && (info.damage ?? 1) < 2 && !(this.stunned > 0) && !(this.downT > 0);
+    // (#726) mashed: its third light cut in a row (def.answerMash.within s apart) and it answers at once (Foe.update)
+    if (light && D.answerMash) { this.mashN = (this.mashN ?? 0) + 1; this.mashT = D.answerMash.within; if (this.mashN >= D.answerMash.cuts) { this.mashN = 0; this.mashed = true; } }
+    // (#726) the first light cut of an exchange taken on its belly (def.shrug): a dull thunk, no harm, no poise worn
+    if (light && D.shrug && (this.shrugs ?? 0) < D.shrug) {
+      this.shrugs = (this.shrugs ?? 0) + 1; this.shrugged = true; this.poiseT = 0;
+      this.flash = 0.3; this.recoil = 0.4; this.heavyRecoil = false; if (dir) this.recoilDir.copy(dir).setY(0).normalize();
+      if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
+      return true;
+    }
     if (mode === 'blade') {
       // the shell turns a light cut from the front: a glance, no harm; a heavy blow (the third swing, the charged cut, the
       // air cut, a bomb) bites through it at SHELL.heavy (v1.41: every frontal cut glanced, and a crab took too many)
@@ -2237,6 +2285,7 @@ export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
     Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.balls = []; this.group = new THREE.Group(); this.group.name = 'Foes';
+    this.racks = [];   // (a camp's weapon racks: RACK, src/encounters/index.js)
     setFoeClips(lib);   // (the humanoid foes' clips: src/enemies/humanoid-rig.js)
     this.shapes = new Map();   // (kind@skin → the geometries its foes share: src/foe-shapes.js)
     this.spares = new Map();   // (kind@skin → a body built for the load's warm, kept for the first foe of it: warmModels)
@@ -3350,6 +3399,11 @@ export class Foes {
       // a thrower sees the small ones near it it could pick up (the mummer king: its mummers)
       if (f.def.throws) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && x.kind === f.def.throws && x.pos.distanceTo(f.pos) < CARRY.reach + 1);
       if (f.carry) this.carryUpdate(f);
+      // an unarmed grunt sees a camp's rack near it with something left on it: it runs to take it (RACK, #726)
+      if (f.def.racks && f.provoked && f.state === 'chase' && f.weapon === 'none' && !f.disarmed && !(f.fleeT > 0)) {
+        const R = this.racks.filter((r) => r.stock.length && r.pos.distanceTo(f.pos) < RACK.reach).sort((p, q) => p.pos.distanceTo(f.pos) - q.pos.distanceTo(f.pos))[0];
+        if (R) f.fetch(R, P);
+      }
       // a flock knows how many of its own are near to climb into a heap with (attack.pile)
       if (f.def.flock) f.mates = this.list.filter((x) => x !== f && x.kind === f.kind && x.alive && x.dead === undefined && !x.riding && x.pos.distanceTo(f.pos) < PILE.near).length;
       // (a spell's slow tide round it: its own time runs slower, src/spells/caster.js; the look with it)
@@ -4159,7 +4213,9 @@ export class Foes {
     if (k === 'enrage') this.gesture(f, 'rage');
     else if (k === 'flee') {
       if (f.def.mask && !f.unmasked) this.unmask(f);   // (a mummer's mask comes off as it breaks and runs, issue #724)
-      const near = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.dying && x.pos.distanceTo(f.pos) < RUN.ally).sort((p, q) => p.pos.distanceTo(f.pos) - q.pos.distanceTo(f.pos))[0];
+      const pack = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.dying && x.pos.distanceTo(f.pos) < RUN.ally).sort((p, q) => p.pos.distanceTo(f.pos) - q.pos.distanceTo(f.pos));
+      // (to the one it looks to, if one is near: a grunt to its hulk, fight.low.to, #726)
+      const near = pack.find((x) => x.kind === f.fight.low?.to) ?? pack[0];
       f.fleeTo = near ?? null;
       if (near) this.alarm(f);
       this.gesture(f, 'flee');

@@ -57,6 +57,9 @@ export const FIGHT = {
   // (issue #724: the mummers' low change is the mask knocked off, src/foes.js Foes.unmask: it drops what it holds and runs)
   mummer: { mass: 0.7, poise: 2, low: { kind: 'flee', below: 0.5 }, alone: 'flee', follow: { id: 'whack', on: ['whiff'], chance: 0.4 }, evade: { chance: 0.2, hop: 1.8 }, backstep: 'volley' },
   mummerking: { mass: 3.5, poise: 7, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'smash', on: ['whiff'], chance: 0.4 } },
+  // (issue #726, roster v4: low, a grunt runs to its hulk (`to`: the kind it looks to first); the hulk rages)
+  grunt: { mass: 0.8, poise: 2, low: { kind: 'flee', below: 0.5, to: 'hulk' }, alone: 'flee', follow: { id: 'club', on: ['whiff'], chance: 0.5 }, evade: { chance: 0.25, hop: 1.8 }, backstep: 'lunge' },
+  hulk: { mass: 4, poise: 8, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'sweep', on: ['whiff'], chance: 0.4 } },
 };
 
 /**
@@ -229,6 +232,8 @@ export const TIERS = {
   // (the doc's tier 2, "masked in metal": its mask takes two headshots (def.mask.hits), and it whacks twice)
   mummer: { combo: ['whack', 'whack'], mask: 2, words: 'masked in metal (two headshots to knock it off); it whacks twice' },
   mummerking: { combo: ['throw', 'smash'], words: 'it throws a mummer and comes in behind it with the beam' },
+  grunt: { combo: ['lunge', 'club'], words: 'out of its lunge it clubs you at once' },
+  hulk: { patch: { stomp: { wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } } }, words: 'its stomp sends a quake running out over the ground' },
 };
 /** The stage of the route a tier first comes in at, and the share of the non-fodder foes in tier by stage (0-4). */
 export const TIER_FROM = 3;

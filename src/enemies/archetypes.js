@@ -746,6 +746,79 @@ export const ARCHETYPES = {
     }),
     note: 'The mummer king: cut down its troupe, or it throws them at you.',
   },
+  // ----------------------------------------------------------------------------- roster v4's monsters (issue #726)
+  // docs/design/enemy-roster-v4.md: one roster met in every world, the colour its tier (a darker, banded skin: tierSkin).
+  // On the humanoid rig like the mummers (src/enemies/plans/monster.js). Not on any world's roster yet: the Desert's
+  // mummer camp stages them behind a site flag (src/encounters/sites.js STAGED.roster4); the Arena fields both.
+  //   shrug        the first `n` light cuts of an exchange it takes on its belly: no harm, no poise worn (left alone
+  //                POISE.after s, it shrugs again): the masher's first cut is never a kill (combat-v2.34 rec. 1)
+  //   hangBack     m it keeps from you by what it holds (a bow, bare hands): the archers and rock throwers stay back
+  //   whiffRecover s at most it recovers after a blow that missed (combat-v2.34 rec. 3)
+  //   racks        an unarmed one takes a bow or a spear from a camp's rack near it (src/foes.js RACK)
+  //   answerMash   { cuts, within, attack }: that many light cuts in a row, each within `within` s, and it answers at
+  //                once with `attack` (the hulk's stomp: combat-v2.34 rec. 2)
+  grunt: {
+    name: 'grunt', family: 'monster', plan: 'monster', planNo: 25, role: 'rank and file', tier: 1, ranged: true,
+    status: 'built', kind: 'grunt', was: [], sound: 'flesh', drop: 2, art: 'sheet-1',
+    moves: ['club overhead and lunge', 'a bow’s volley or a spear’s jab from the camp’s rack', 'rock (with nothing in its hands)'],
+    answers: ['parry the club: it flies out of its hands', 'cut it down before it reaches the rack', 'side hop the lunge and cut its back', 'shoot the archer'],
+    idle: 'squats round the fire with its band, a club across its knees; one keeps a lookout',
+    def: S({
+      name: 'grunt', hp: 2, hook: 'light', radius: 0.45, height: 1.3, speed: 3.6, sight: 17, giveUp: 34, reach: 16, clamber: true,
+      tone: '#d8503c', takes: { shoot: 1, fire: 1.5 },
+      calm: { mode: 'sit', provoke: 8, alarm: 14 },
+      weapons: { club: 3, none: 1.2 }, racks: true, shrug: 1, hangBack: { bow: 7, none: 6 }, whiffRecover: 0.45,
+      disarm: { dist: 2.8, fly: 0.5, pickup: 1.0 },
+      attacks: [
+        // the club raised high over its head in both fists, leaning back on its heels, its belly out (the sheet's attack pose)
+        { id: 'club', name: 'club overhead', weapon: 'club', armed: true, shape: 'cone', range: 2.1, angle: 0.75, damage: 0.5, wind: 0.8, strike: 0.3, contact: 0.55, lunge: 0.9, max: 2.2, weight: 2.5, dodge: 'side', onParry: 'disarm',
+          tell: 'it heaves the club high over its head in both fists and leans back, belly out', counter: 'parry it and the club flies; or step aside' },
+        // it drops low, the club cocked back by its hip, and springs at you across the gap
+        { id: 'lunge', name: 'lunge', weapon: 'club', shape: 'cone', range: 1.7, angle: 0.9, damage: 0.5, wind: 0.85, strike: 0.35, contact: 0.5, lunge: 3.4, min: 2.4, max: 5.5, weight: 2, dodge: 'side',
+          tell: 'it crouches low, the club cocked back by its hip', counter: 'side hop as it springs, then cut its back' },
+        // the rack's spear: feet planted, the shaft drawn back under its arm
+        { id: 'jab', name: 'spear jab', weapon: 'spear', armed: true, shape: 'lane', width: 0.8, range: 2.6, damage: 0.5, wind: 0.7, strike: 0.2, contact: 0.5, lunge: 0.6, max: 2.7, weight: 2.5, dodge: 'side', onParry: 'disarm',
+          tell: 'it plants its feet and draws the spear back under its arm', counter: 'parry it (the spear flies), or step inside its reach' },
+        // the rack's bow: side-on, the cord drawn to its ear; an arrow flies straight (no mark)
+        { id: 'volley', name: 'volley', weapon: 'bow', armed: true, shape: 'lane', width: 0.7, range: 16, damage: 0.5, wind: 0.95, strike: 0.2, contact: 0.6, track: 0.6, min: 4, max: 16, weight: 3, onParry: 'cut',
+          tell: 'it turns side-on and draws the cord back to its ear', counter: 'guard the arrow, shoot the archer, or close in' },
+        // nothing in its hands: it digs a rock up and heaves it over its head; a lob, its mark shown
+        { id: 'rock', name: 'rock', unarmed: true, shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.3, damage: 0.5, wind: 0.85, min: 3, max: 14, weight: 2.5,
+          tell: 'it squats, digs both hands into the ground and heaves a rock up over its head', counter: 'walk out of the mark, or cut the rock back' },
+      ],
+      recover: 0.7, cool: [0.6, 1.3], hit: 0.35,
+    }),
+    note: 'Grunts: they shrug the first cut. Parry the club and it flies.',
+  },
+  hulk: {
+    name: 'hulk', family: 'monster', plan: 'monster', planNo: 26, role: 'the heavy', tier: 3, ranged: true,
+    status: 'built', kind: 'hulk', was: [], sound: 'flesh', drop: 8, art: 'sheet-1',
+    moves: ['spiked-club smash (overhead and sweep)', 'stomp', 'throw a grunt'],
+    answers: ['side hop the smash and cut its back', 'roll through the sweep', 'jump the stomp', 'get out from under a thrown grunt'],
+    idle: 'sits by the fire with its club across its knees while its band keeps camp',
+    def: S({
+      name: 'hulk', hp: 8, hook: 'heavy', radius: 1.0, height: 2.7, speed: 2.6, sight: 18, giveUp: 34, reach: 12, heavy: true, stout: true, throws: 'grunt',
+      tone: '#7f8fb4', takes: { shoot: 1, fire: 1.5 },
+      calm: { mode: 'sit', provoke: 9, alarm: 25 },
+      answerMash: { cuts: 3, within: 1.2, attack: 'stomp' },
+      attacks: [
+        // the club raised high behind its horn in both fists, leaning back; then down through it
+        { id: 'smash', name: 'club smash', shape: 'lane', width: 1.4, range: 4, damage: 1, wind: 1.15, strike: 0.3, contact: 0.55, knock: 5, lunge: 0.6, max: 3.8, weight: 2.5, dodge: 'side',
+          tell: 'it heaves the club up behind its horn in both fists and leans back', counter: 'side hop, then cut its back' },
+        // the club over its shoulder, its whole hunched back twisted away from you; a wide sweep
+        { id: 'sweep', name: 'club sweep', shape: 'cone', range: 4.2, angle: 1.35, damage: 0.75, wind: 1.1, strike: 0.35, contact: 0.5, knock: 4, max: 4, weight: 2, dodge: 'back',
+          tell: 'it hoists the club over its shoulder and twists its whole back away from you', counter: 'roll through it, or the air cut over it' },
+        // one foot raised high, its long arms flung up; then down: the ground round it jumps (also its answer to a masher)
+        { id: 'stomp', name: 'stomp', shape: 'ring', at: 'self', radius: 3, damage: 0.5, knock: 5, wind: 1.0, strike: 0.25, contact: 0.4, ground: true, max: 2.6, weight: 1.5,
+          tell: 'it lifts one great foot high, its long arms flung up', counter: 'jump it, or step out of its reach' },
+        // it scoops up the nearest grunt and holds it high over its horn, kicking; then hurls it at the mark
+        { id: 'throw', name: 'throw a grunt', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.6, damage: 0.5, knock: 3, wind: 1.0, min: 3.5, max: 12, weight: 3, throwsAlly: 'grunt',
+          tell: 'it bends, scoops up a grunt and holds it high over its horn, kicking', counter: 'get out from under the mark; the thrown one lands dazed' },
+      ],
+      recover: 1.2, cool: [1.3, 2.3], hit: 0.5,
+    }),
+    note: 'The hulk: cut it three times running and it stomps. Jump it.',
+  },
 };
 
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);

@@ -37,7 +37,9 @@ and are built with the enemy-rework skill (procedural surface mandatory).
 
 ## Order
 
-1. **Grunt and hulk** (the backbone; the hulk's throw reuses the mummer king's). Arena, gallery, tests, Unity.
+1. **Grunt and hulk** (the backbone; the hulk's throw reuses the mummer king's). Arena, gallery, tests, Unity. Built (v2.34): docs/systems/foes.md, "Roster v4's monsters"; staged in the Desert's mummer camp behind
+   `?staged=roster4`. Still unlike the sheets: the grunt's legs a little short and its hands mitten-like, the hulk's
+   head smaller and its arms more tube-like than drawn, the hulk's club studded (the sheet draws only bands).
 2. **Sentinel, oracle, crawler**, in parallel with 1.
 3. **Prowler and warlord.**
 4. **The world rosters**: every route world's sites and packs from this roster; the per-world animals (crab, lizard,

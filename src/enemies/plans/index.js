@@ -23,6 +23,7 @@ import { marionetteModel } from './strings.js';
 import { wispModel } from './ember.js';
 import { fencerModel } from './fencer.js';
 import { mummerModel, mummerKingModel } from './mummer.js';
+import { gruntModel, hulkModel } from './monster.js';
 
 // One body builder per body plan (docs/design/enemy-roster.md, "Build plan"): each exposes its joints to the
 // locomotion kit (src/motion-kit/) and draws the archetype in a world's skin (src/enemies/skins.js); a skin only
@@ -52,10 +53,12 @@ import { mummerModel, mummerKingModel } from './mummer.js';
 //   ember.js      plan 22  the ember wisp (a stand-in: a shell in two lids round a glowing coal; issue #398)
 //   fencer.js     plan 9   the makers' fencer (a machine's biped: sword and shield; issue #665)
 //   mummer.js     plan 23  the mummer and the mummer king (on the humanoid rig, src/enemies/humanoid-rig.js: clips; issue #724)
+//   monster.js    plans 25, 26  roster v4's grunt and hulk (on the humanoid rig; issue #726)
 
 const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
-  shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel };
+  shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
+  grunt: gruntModel, hulk: hulkModel };
 
 /** The body of a built archetype's kind in a world's skin (its stronger tier's: `tier`), or null (not one: an old kind draws itself). */
 export function archetypeModel(kind, world, tier = 0) {

@@ -230,6 +230,19 @@ export const SKINS = {
   mummerking: {
     desert: { name: 'mummer king', palette: { sack: '#56649a', patch: '#c98d36', patch2: '#d7c3a0', rag: '#a98f62', rope: '#b08850', brass: '#d9b048', verd: '#5f9a84', ink: '#141020', sheen: '#6a58a8', wood: '#8b6239', wood2: '#d6c6a4', iron: '#4e4842', copper: '#7fae9a', copper2: '#b8703f', eye: '#fbf6e8', flare: '#ffcf6a' }, props: [] },
   },
+  // (issue #726, roster v4's monsters: one skin in every world, its colour the tier: tierSkin's darker, banded one later on;
+  // `arena` until the worlds' rosters take them: the Desert's camp stages them behind a flag, src/encounters/sites.js)
+  // sheet-1 (references/enemy-archetypes/grunt/sheet-1.jpg): tomato-red skin, a shade deeper in its creases and paler on
+  // its belly and snout, knobbly bumps on its scalp; a khaki loincloth, a brown leather strap with an iron ring; ivory
+  // tusks and claws; yellow eyes; a grey-brown knobbly club.
+  grunt: {
+    desert: { name: 'grunt', arena: true, palette: { skin: '#d65a40', skin2: '#e98a68', crease: '#9a3428', cloth: '#c6b071', cloth2: '#a48e52', leather: '#6b4630', iron: '#5e5852', wood: '#9d8a6c', wood2: '#c2b08e', bone: '#efe2c4', eye: '#f2c33c', pupil: '#1b1414', ink: '#1b1414', rock: '#b9a07c', flare: '#ffcf6a' }, props: [] },
+  },
+  // sheet-1 (references/enemy-archetypes/hulk/sheet-1.jpg): slate-blue skin with lilac in its shadows, a pale icy belly,
+  // an ivory horn; a ragged kilt of hide patches (brown, olive, tan) on a rope belt; a long dark club with iron bands.
+  hulk: {
+    desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#cbd8ec', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
+  },
 };
 
 // The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in

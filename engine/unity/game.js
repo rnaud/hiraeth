@@ -826,6 +826,17 @@ function makePlan(args) {
       // (#724 polish: the mummer's bow volley side-on and the king's horn call, each on its clip with the arms by hand)
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'mummer-moves' }, { kind: 'wait', frames: 40, secs: 0.7 }, { kind: 'foe', what: 'rig' }, ...shot('volley'));
   }
+  if (fights.includes('monsters')) {
+    // (-fight monsters, issue #726: roster v4's grunt and hulk on the humanoid rig: a hulk 7 m ahead and a grunt with its club
+    // 4.5 m ahead, standing; their rig said; each winds up its first blow (the grunt's club over its head, the hulk's smash),
+    // pictured at three quarters of it; then the grunt's bow volley and the hulk's stomp; then a banded (tier) grunt)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-monsters-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'hulk@desert', dist: 7, hp: 99 }, { kind: 'foe', what: 'grunt@desert', dist: 4.5, hp: 99 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
+      { kind: 'foe', what: 'monster-moves', move: 'first' }, { kind: 'wait', frames: 30, secs: 0.6 }, { kind: 'foe', what: 'rig' }, ...shot('windup'),
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'monster-moves', move: 'second' }, { kind: 'wait', frames: 40, secs: 0.7 }, { kind: 'foe', what: 'rig' }, ...shot('volley-stomp'),
+      { kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'grunt@desert*', dist: 4, hp: 99 }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
+  }
   if (fights.includes('duelists')) {
     // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
     // shade 4 m ahead, standing; their rig said; then each winds up its first blow, pictured at three quarters of it; then
@@ -1304,6 +1315,15 @@ function playFrame(dt) {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) {
         if (f.kind === 'mummer') { f.weapon = 'bow'; f.disarmed = null; }
         const a = f.def.attacks.find((x) => x.id === (f.kind === 'mummer' ? 'volley' : 'horn'));
+        if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
+    } else if (step.what === 'monster-moves') {
+      // (-fight monsters, #726: first the grunt's club overhead and the hulk's smash; then the grunt's bow volley and the
+      // hulk's stomp)
+      for (const f of F.list.filter((x) => x.model?.driver && x.alive)) {
+        const id = f.kind === 'grunt' ? (step.move === 'second' ? 'volley' : 'club') : (step.move === 'second' ? 'stomp' : 'smash');
+        if (f.kind === 'grunt') { f.weapon = id === 'volley' ? 'bow' : 'club'; f.disarmed = null; }
+        const a = f.def.attacks.find((x) => x.id === id);
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
       }
     } else if (step.what === 'bash') {

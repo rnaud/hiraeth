@@ -1631,6 +1631,52 @@ junk. Drawn to their picked sheets (a new `mummer/` and `mummerking/` folder und
 Tests: `tests/mummers.test.js` (weapons, the guarded club, the mask, the king's horn and throw, the Desert's camp),
 `tests/humanoid-rig.test.js` (the rig).
 
+## Roster v4's monsters: the grunt and the hulk (v2.34, issue #726, `src/enemies/plans/monster.js`)
+
+The first two of [design/enemy-roster-v4.md](../design/enemy-roster-v4.md): monsters (family `monster`), one skin in
+every world, its colour the tier (`tierSkin`'s darker palette and `TIER_SURFACE`'s bands: the same red or slate blue, a
+step darker, banded). On the humanoid rig (procedural-animation.md, "The humanoid foe rig"), drawn to their picked sheets
+(a new `grunt/` and `hulk/` folder under the enemy references). Not on any world's roster yet.
+
+- **The grunt** (`grunt`, tier 1, role `rank and file`, 2 hp, 1.3 m, eight draws): a tomato-red monster, all head and
+  belly, long pointed ears, a pig snout, two small tusks; a khaki loincloth, a leather strap with an iron ring. It
+  comes with a club (`weapons` club 3, none 1.2): the **club overhead** (0.8 s, both fists high over its head: the
+  sheet's pose, `PROC_POSES.overhead`; a parry knocks the club away) and the **lunge** (0.85 s, sunk low, then 3.4 m
+  across the gap). Empty-handed it lobs **rocks** (0.85 s, its mark shown) and runs to a camp's **rack** (`def.racks`,
+  `src/foes.js` `RACK`, `Foe.fetch`: a bow if you are further than 6 m, else a spear; gone from the rack as it is
+  reserved; the bend is the mummer's pickup) for the **spear jab** (0.7 s) or the **volley** (0.95 s). With a bow or
+  bare hands it keeps 7 or 6 m from you (`def.hangBack`, the `keep` back-off by weapon). Its stronger tier lunges and
+  clubs at once (`TIERS.grunt` combo).
+- **The hulk** (`hulk`, tier 3, role `the heavy`, 8 hp, 2.7 m, `stout`, `heavy`, nine draws): slate blue, a pale belly,
+  hunched (`HULK_STANCE.hunch` over the clip's chest, its kilt kept hanging from its hips), one ivory horn, long arms, a
+  hide-patch kilt on a rope belt, a long banded club with a few studs. The **smash** (1.15 s, side hop), the **sweep**
+  (1.1 s, roll), the **stomp** (1.0 s: one foot raised high by its own `style` over the guard's braced stance, the arms
+  flung up, `PROC_POSES.stomp`; a ring round it on the ground, `ground`: a jump clears it; its tier's sends a quake), and
+  **throw a grunt** (the mummer king's `throwsAlly` and `CARRY`, `def.throws: 'grunt'`). Low, it rages.
+
+Answers to the combat review v2.34 (docs/audits/combat-v2.34.md, recs. 1-3), in the def so later monsters reuse them:
+
+- `shrug` (the grunt: 1): the first light cut of an exchange is taken on its belly, no harm and no poise worn
+  (`Foe.hit`: a thunk, `Foes.armour`); left alone `POISE.after` s it shrugs the next one. A breaker is never shrugged.
+- `answerMash` (the hulk: `{ cuts: 3, within: 1.2, attack: 'stomp' }`): three light cuts in a row, each within 1.2 s of
+  the last, and it begins its stomp at once whatever it was waiting for (`Foe.answerMash`; its own wind-up, the
+  telegraph rules kept).
+- `whiffRecover` (the grunt: 0.45 s): after a missed blow it is at it again quickly; its waits `cool` 0.6-1.3 s.
+- `fight.low.to` (the grunt: `'hulk'`): low, it runs to a hulk if one is near (`Foes.lowChange`), before any nearer
+  packmate.
+
+Measured (tests/monsters.test.js, node): a camp of four grunts (two empty-handed, a rack) against the masher (the light
+combo at the blade's cadence, never guarding): 2.58 attacks begun a grunt, mean of three seeds. `Foes.look` a frame,
+walking: grunt 0.03 ms, hulk 0.03 ms.
+
+**Staged in the Desert** (`src/encounters/sites.js` `STAGED`, `withStaged`): the mummer camp's `staged.roster4` adds
+three grunts and a hulk round the fire beside the mummers, with the rack by the way in (`props.js` `rack`: its spear and
+bow gone as they are taken) and two of the grunts empty-handed; off by default, on with `?staged=roster4` (a camp of
+more than five sits in a wider ring). The Arena: a band of three grunts, a hulk with two grunts; `-fight monsters` in
+Unity.
+
+Tests: `tests/monsters.test.js`.
+
 ## More foes, the perfect parry, combos
 
 - **Spitter:** keeps `keep` (6.5 m) away, backing off. It lobs a glob (drawn arcing over the second half of

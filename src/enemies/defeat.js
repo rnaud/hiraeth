@@ -48,6 +48,9 @@ export const DEFEATS = {
   // (issue #724: a mummer's sack slumps to the sand and empties; the king sags onto its knees and topples back, its junk let go)
   mummer: { time: 0.9, sag: { y: -0.3, at: [0, 0.4] }, squash: { sy: 0.35, sxz: 1.5, at: [0.3, 0.9] }, puff: 'ink' },
   mummerking: { time: 1.4, sag: { y: -0.6, at: [0, 0.45] }, topple: { angle: -1.0, at: [0.35, 0.95] }, puff: 'ink' },
+  // (issue #726: a grunt sits down hard and keels over; the hulk sinks to its knees and falls on its face)
+  grunt: { time: 1.0, sag: { y: -0.35, at: [0, 0.4] }, topple: { angle: -1.2, at: [0.3, 0.9] }, puff: 'dust' },
+  hulk: { time: 1.5, sag: { y: -0.7, at: [0, 0.45] }, topple: { angle: 1.3, at: [0.4, 0.95] }, puff: 'dust' },
 };
 
 /** A move's eased progress at u (0..1 over the defeat) for its `at` window. */

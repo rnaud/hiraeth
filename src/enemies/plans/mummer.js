@@ -28,14 +28,14 @@ import { humanoidSkeleton, HumanoidDriver, Sway } from '../humanoid-rig.js';
 const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _w = new THREE.Vector3();
 
 /** A lathe from (r, y) pairs (bottom to top), squashed front to back by `depth`. */
-function lathe(profile, seg = 18, depth = 1, phi0 = 0, phiLen = Math.PI * 2) {
+export function lathe(profile, seg = 18, depth = 1, phi0 = 0, phiLen = Math.PI * 2) {
   const geo = new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), seg, phi0, phiLen);
   if (depth !== 1) geo.scale(1, 1, depth);
   geo.computeVertexNormals();
   return geo;
 }
 /** A ring of hanging rag strips (a torn hem): n strips round radius r at height y, `len` long, ragged. */
-function tatters(n, r, y, len, depth = 1, w = 0.08) {
+export function tatters(n, r, y, len, depth = 1, w = 0.08) {
   const out = [];
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + 0.2, l = len * (0.65 + 0.35 * Math.abs(Math.sin(i * 2.3 + 1)));
@@ -60,7 +60,7 @@ function footParts(size = 1) {
   return out;
 }
 /** A limb's tube from its joint down `len` (radius r → r1). */
-const limb = (len, r, r1 = r) => new THREE.CylinderGeometry(r1, r, len, 8, 1).translate(0, -len / 2, 0);
+export const limb = (len, r, r1 = r) => new THREE.CylinderGeometry(r1, r, len, 8, 1).translate(0, -len / 2, 0);
 /** A rag binding round a limb: a few slightly askew bands down a length. */
 function wraps(from, to, r, n = 3) {
   const out = [];
@@ -80,7 +80,7 @@ function clubParts(L = 0.72) {
   };
 }
 /** The tent-pole spear, held a third of the way up: a pole, a nail-iron head, a rag tied under it. */
-function spearParts(L = 1.5) {
+export function spearParts(L = 1.5) {
   const lo = -0.12;   // (held low on the pole: its butt by its feet, the head well over its pot)
   return {
     wood: [new THREE.CylinderGeometry(0.016, 0.018, L, 6, 1).translate(0, lo + L / 2, 0)],
@@ -90,7 +90,7 @@ function spearParts(L = 1.5) {
   };
 }
 /** The short bow: a bent coil spring (an arc of tube), a cord across it; held upright in the left fist. */
-function bowParts(R = 0.36) {
+export function bowParts(R = 0.36) {
   const pts = [];
   for (let i = 0; i <= 10; i++) { const a = -1.1 + 2.2 * (i / 10); pts.push(new THREE.Vector3(0, Math.sin(a) * R, (Math.cos(a) - Math.cos(1.1)) * R * 0.6)); }
   return {

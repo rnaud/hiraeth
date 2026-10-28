@@ -555,6 +555,51 @@ Object.assign(SURFACES, {
   },
 });
 
+// Roster v4's monsters (issue #726; sheets in references/enemy-archetypes/grunt/ and hulk/): skin, cloth and hide, wood.
+Object.assign(SURFACES, {
+  grunt: {
+    '*': {
+      // (sheet-1: tomato red, deeper in its creases and blotched paler on its belly, cheeks and snout; fine dark stipple and
+      // a soft sheen on its round belly and head)
+      skin: {
+        mottle: { color: 'skin+0.12', scale: 0.09, amount: 0.32, soft: 0.14, detail: 0.45, strength: 0.5 },
+        spots2: { color: 'crease', scale: 0.03, share: 0.4, size: 0.4, amount: 0.45 },
+      },
+      // (the khaki loincloth: a coarse weave, darker stains, torn)
+      cloth: { mottle: { color: 'cloth2', scale: 0.06, amount: 0.4, soft: 0.1, strength: 0.6 }, ...SPECKS('cloth2*0.7', 0.4, 0.02) },
+      leather: { mottle: { color: 'leather*0.7', scale: 0.03, amount: 0.4, soft: 0.1, strength: 0.6 }, gloss: { size: 0.02, sky: 0.4, amount: 0.4 } },
+      iron: { rust: { color: 'iron*0.7', color2: '#9a6a3a', amount: 0.25, amount2: 0.15, scale: 0.03, down: 0.4, pits: 0.4 }, gloss: { size: 0.015, sky: 0.5, amount: 0.5 } },
+      // (the club: grey-brown wood, its grain running along it, the knobs darker; the rack's spear and bow the same)
+      wood: { grain: { color: 'wood*0.72', spacing: 0.015, ink: 0.4, warp: 0.7, amount: 0.55 }, mottle: { color: 'wood2', scale: 0.05, amount: 0.3, soft: 0.1, strength: 0.5 } },
+      bone: { fade: { color: 'bone*0.75', axis: 1, from: -0.02, to: 0.03 } },
+      ink: { gloss: { size: 0.02, sky: 0.6, amount: 0.8 } },
+    },
+  },
+  hulk: {
+    '*': {
+      // (sheet-1: slate blue, lilac in its shadows, its muscles' creases inked; a sheen on its shoulders)
+      skin: {
+        mottle: { color: 'skin2', scale: 0.22, amount: 0.3, soft: 0.16, detail: 0.4, strength: 0.5 },
+        spots2: { color: 'crease', scale: 0.06, share: 0.35, size: 0.4, amount: 0.4 },
+      },
+      // (the belly: pale icy blue, smooth, a soft shine)
+      belly: { ...SPECKS('crease', 0.2, 0.05) },
+      // (the kilt: hide patches in brown, olive and tan, a stitched line round each, ragged and stained)
+      hide: {
+        scales: { color: 'hide2', size: 0.26, ink: 0.55, tone: 0.35, amount: 0.3, mode: 1 },
+        mottle: { color: 'hide3', scale: 0.24, amount: 0.38, soft: 0.02, detail: 0.2, strength: 0.95 },
+        ...SPECKS('hide*0.6', 0.4, 0.04),
+      },
+      rope: { mottle: { color: 'rope*0.72', scale: 0.02, amount: 0.45, soft: 0.1, strength: 0.7 }, ...SPECKS('rope*0.55', 0.5, 0.015) },
+      wood: { grain: { color: 'wood*0.7', spacing: 0.03, ink: 0.4, warp: 0.5, amount: 0.55 }, mottle: { color: 'wood2', scale: 0.12, amount: 0.3, soft: 0.1, strength: 0.5 } },
+      iron: { rust: { color: 'iron*0.8', color2: '#8a5a3a', amount: 0.22, amount2: 0.12, scale: 0.06, down: 0.4, pits: 0.5 }, gloss: { size: 0.03, sky: 0.5, amount: 0.5 } },
+      // (the horn and the fangs, the toenails: ivory, ringed, darker at the root)
+      horn: { bands: { color: 'horn*0.88', axis: 1, period: 0.04, width: 0.12, ink: 0.08 }, gloss: { size: 0.02, sky: 0.5, amount: 0.5 } },
+      ink: { gloss: { size: 0.02, sky: 0.6, amount: 0.8 } },
+    },
+  },
+});
+
 /** A colour of the table: '#rrggbb', a palette key, darker 'key*0.7', paler 'key+0.3'. */
 export function surfaceColor(c, palette = {}) {
   if (typeof c !== 'string' || c.startsWith('#')) return c;

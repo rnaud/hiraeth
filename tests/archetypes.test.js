@@ -34,14 +34,16 @@ const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn
 // (issue #724: the humanoid foes on clips join the roster world by world, docs/design/enemy-roster-v3.md: the mummers
 // keep camp in the Desert first, the rest of their worlds and skins to come; until then they stand in fewer worlds)
 const ROLLING_OUT = new Set(['mummer', 'mummerking']);
-const ROUTE_ROLES = new Set(['camp rank and file', 'camp chief', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
+// (issue #726: roster v4's monsters, one skin in every world; staged at a site behind a flag until the rosters take them)
+const STAGED_V4 = new Set(['grunt', 'hulk']);
+const ROUTE_ROLES = new Set(['camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
 
 // ------------------------------------------------------------------------------------------- the tables
-test('the roster: 25 archetypes, 12 creatures, 6 machines and 7 spirits, each its own role, plan and answers; no two machines or spirits share a plan', () => {
-  assert.equal(ARCHETYPE_IDS.length, 25);
+test('the roster: 27 archetypes, 12 creatures, 6 machines, 7 spirits and 2 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
+  assert.equal(ARCHETYPE_IDS.length, 27);
   const fam = (f) => ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].family === f);
-  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length], [12, 6, 7]);
-  assert.equal(new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].role)).size, 25, 'a job each');
+  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length, fam('monster').length], [12, 6, 7, 2]);
+  assert.equal(new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].role)).size, ARCHETYPE_IDS.length, 'a job each');
   for (const a of ARCHETYPE_IDS) {
     const A = ARCHETYPES[a];
     assert.ok(ROUTE_ROLES.has(A.role), `${a}: a role of the doc's (${A.role})`);
@@ -68,7 +70,7 @@ test('the roster: 25 archetypes, 12 creatures, 6 machines and 7 spirits, each it
     const plans = fam(f).map((a) => ARCHETYPES[a].planNo + ARCHETYPES[a].plan);
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
-  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6, the fencer and the mummers: all 25 are built');
+  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6, the fencer, the mummers and roster v4\'s monsters: all 27 are built');
   for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
@@ -77,7 +79,7 @@ test('the roster: 25 archetypes, 12 creatures, 6 machines and 7 spirits, each it
 test('skins: each archetype in each of its worlds, its own first; palettes whole; a skin only dresses (no unknown world)', () => {
   for (const a of ARCHETYPE_IDS) {
     const S = SKINS[a];
-    assert.ok(S && Object.keys(S).length >= (ROLLING_OUT.has(a) ? 1 : 3), `${a}: at least three skins`);
+    assert.ok(S && Object.keys(S).length >= (ROLLING_OUT.has(a) || STAGED_V4.has(a) ? 1 : 3), `${a}: at least three skins`);
     assert.equal(HOME_SKIN[a], Object.keys(S)[0]);
     for (const [w, s] of Object.entries(S)) {
       assert.ok(TITLES[w], `${a}: ${w} is a world`);
@@ -117,8 +119,8 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
   // each archetype in 3–7 worlds, 1–4 of them on the route (the blot: every world)
   for (const a of ARCHETYPE_IDS.filter((x) => x !== 'blot')) {
     const all = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes(a)), route = all.filter((w) => ROUTE_PARTS.includes(w));
-    assert.ok(all.length >= (ROLLING_OUT.has(a) ? 1 : 3) && all.length <= 7, `${a}: in ${all.length} worlds`);
-    assert.ok(route.length >= 1 && route.length <= 4, `${a}: on the route in ${route.length}`);
+    assert.ok(all.length >= (STAGED_V4.has(a) ? 0 : ROLLING_OUT.has(a) ? 1 : 3) && all.length <= 7, `${a}: in ${all.length} worlds`);
+    assert.ok(route.length >= (STAGED_V4.has(a) ? 0 : 1) && route.length <= 4, `${a}: on the route in ${route.length}`);
   }
   // the decisions: the bell walker saved for the Signal Market, none in Vael II
   assert.ok(!worldArchetypes('arzach2').includes('bell') && worldArchetypes('bazaar').includes('bell'));
@@ -244,7 +246,7 @@ test('old saves are unaffected: enemies are never saved, only flags of kinds tha
 test('batches 1 and 2: each attack winds up at least its telegraph minimum; only a lob marks the ground; every move says its tell and its answer', () => {
   for (const a of BUILT) {
     const D = ARCHETYPE_KINDS[ARCHETYPES[a].kind];
-    assert.ok(D.attacks.filter((x) => !x.chain).length >= 2 && D.attacks.filter((x) => !x.chain).length <= 4, `${a}: its attacks`);
+    assert.ok(D.attacks.filter((x) => !x.chain).length >= 2 && D.attacks.filter((x) => !x.chain).length <= (D.weapons ? 5 : 4), `${a}: its attacks (a weapon carrier: one set a weapon)`);
     for (const x of D.attacks) {
       assert.ok(x.wind >= windMin(x) - 1e-9, `${a}.${x.id}: ${x.wind} s ≥ ${windMin(x)} s`);
       assert.ok(x.damage * 4 === Math.round(x.damage * 4) && x.damage <= 1, `${a}.${x.id}: hearts in quarters`);

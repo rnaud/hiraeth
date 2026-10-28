@@ -4,7 +4,7 @@ import { ARCHETYPES, spawnKindOf } from '../enemies/archetypes.js';
 import { FOES } from '../foes.js';
 import { rosterOf } from '../foe-worlds.js';
 import { hintsFor } from '../hint-level.js';
-import { SITE, SITE_PURSE, sitesOf, layoutSite, siteFlag, cofferFlag } from './sites.js';
+import { SITE, SITE_PURSE, sitesOf, layoutSite, siteFlag, cofferFlag, stagedFrom } from './sites.js';
 import { makeIdle, restPose, CALLS } from './idle.js';
 import { buildProp, sleepMarks, SAND_TONES } from './props.js';
 
@@ -26,15 +26,15 @@ import { buildProp, sleepMarks, SAND_TONES } from './props.js';
 
 const _v = new THREE.Vector3(), _top = new THREE.Vector3();
 /** What a site's layout asks of its foes' bodies (src/encounters/sites.js layoutSite): does it fly, how wide is it. */
-export const BODIES = { hovers: (a) => !!FOES[spawnKindOf(a)]?.hover, radius: (a) => FOES[spawnKindOf(a)]?.radius ?? 0.6 };
+export const BODIES = { hovers: (a) => !!FOES[spawnKindOf(a)]?.hover, radius: (a) => FOES[spawnKindOf(a)]?.radius ?? 0.6, racks: (a) => !!FOES[spawnKindOf(a)]?.racks };
 
 export class Encounters {
-  constructor({ foes, scene = null, level = null, levelId, physics = null, player, game, sound = null, tool = null, toast = () => {}, teach = toast, rng = Math.random }) {
+  constructor({ foes, scene = null, level = null, levelId, physics = null, player, game, sound = null, tool = null, toast = () => {}, teach = toast, rng = Math.random, staged = stagedFrom(globalThis.location?.search ?? '') }) {
     Object.assign(this, { foes, scene, level, levelId, physics, player, game, sound, tool, toast, teach, rng });
     this.group = new THREE.Group(); this.group.name = 'Encounter sites'; this.group.userData.noCollide = true;
     scene?.add(this.group);
     const stage = rosterOf(levelId).stage ?? 1;
-    this.sites = sitesOf(levelId).map((s, n) => ({
+    this.sites = sitesOf(levelId, staged).map((s, n) => ({
       ...s, n, pos: new THREE.Vector3(...s.at), lay: layoutSite(s, BODIES), out: [], killed: new Set(), props: null, coffer: null,
       sprung: false, purse: SITE_PURSE[Math.max(0, Math.min(SITE_PURSE.length - 1, stage))],
     }));
@@ -63,6 +63,8 @@ export class Encounters {
     s.props = s.lay.props.filter((p) => p.type !== 'bramble').map((p, i) => {
       const P = buildProp(p.type, { at: at(p.at), heading: p.heading, ground: G, r: p.r, seed: s.n * 31 + i + 1, tone: SAND_TONES[this.levelId] });
       this.group.add(P.group);
+      // (a camp's weapon rack: the grunts' bow and spear, taken from it in the fight: src/foes.js RACK)
+      if (p.type === 'rack' && this.foes) { P.rack = { pos: P.group.position.clone(), stock: ['spear', 'bow'] }; this.foes.racks?.push(P.rack); }
       return P;
     });
     s.sign = s.props.find((p) => p.signType);
@@ -101,6 +103,7 @@ export class Encounters {
       if (F.roomAt && !F.roomAt(kind, at)) { const o = F.openSpot(kind, at, 0, 0.01, 4, 8); at.copy(o); }
       const f = F.add(kind, at, sprung ? { entrance: !FOES[kind].burrow, id: `site.${this.levelId}.${s.id}.${i}` } : { calm: true, id: `site.${this.levelId}.${s.id}.${i}` });
       f.site = s; f.siteIndex = i; f.heading = L.heading; f.home.copy(f.pos);
+      if (L.weapon) f.weapon = L.weapon;   // (empty-handed: it runs for the rack, #726)
       if (!sprung) f.idle = makeIdle(L.idle, { face: L.face, path: L.path, heading: L.heading, rng: this.rng });
       else { f.provoked = true; f.state = 'chase'; }
       s.out[i] = f;
@@ -222,7 +225,7 @@ export class Encounters {
   dispose() {
     if (this.foes?.packQuiet) this.foes.packQuiet = null;
     if (this.foes?.encounters === this) this.foes.encounters = null;
-    for (const s of this.sites) { s.offCoffer?.(); for (const p of s.props ?? []) p.dispose(); s.coffer?.dispose(); }
+    for (const s of this.sites) { s.offCoffer?.(); for (const p of s.props ?? []) { if (p.rack && this.foes?.racks) this.foes.racks = this.foes.racks.filter((r) => r !== p.rack); p.dispose(); } s.coffer?.dispose(); }
     for (const m of this.marks) m.dispose();
     this.group.removeFromParent();
   }
