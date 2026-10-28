@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { existsSync } from 'node:fs';
 import { ARCHETYPES, ARCHETYPE_IDS, BUILT, archetypeOfKind, parseKind, skinned, spawnKindOf, RETIRED_KINDS } from '../src/enemies/archetypes.js';
-import { skinWorlds } from '../src/enemies/skins.js';
+import { skinWorlds, keptSkin } from '../src/enemies/skins.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { rollAngle } from '../src/enemies/plans/roller.js';
 import { jag } from '../src/enemies/plans/humanoid.js';
@@ -274,23 +274,24 @@ test('batch 5 against its sheets (v1.47, issue #33): the shade\'s flames, the ro
   assert.ok(smoke, 'its smoke under the hem');
   shade.dispose?.();
   // the glass puppet's glass see-through (makeMaterial's veil), the parcel puppet's paper not
-  const glass = archetypeModel('marionette', 'spheres'), paper = archetypeModel('marionette', 'bazaar');
+  // (the parcel puppet is a kept skin, never worn since #748: built from its data)
+  const glass = archetypeModel('marionette', 'spheres'), paper = archetypeModel('marionette', keptSkin('marionette', 'bazaar'));
   const veiled = (m) => { let on = false; m.group.traverse((o) => { if (o.isSkinnedMesh && o.material.defines?.S_VEIL) on = true; }); return on; };
   assert.ok(veiled(glass), 'the glass puppet: see-through but for its rim');
   assert.ok(!veiled(paper), 'the parcel puppet: solid paper');
   glass.dispose?.(); paper.dispose?.();
-  // the roller: grazing unrolled, it leaves a trail behind its foot; the pearl shell's runners out only as it winds up
+  // the roller: grazing unrolled, it leaves a trail behind its foot; the pearl shell's runners (a kept skin since #748, its
+  // body built from its data) put away at rest
   clearTargets();
   const P = player(v(0, 0, 40)), foes = world(P); foes.waveRest = 1e9;
   const f = foes.add('roller@spheres', v(0, 0, 0)); f.heading = 0; f.state = 'idle';
   foes.look(f, DT);
   for (let i = 0; i < 120; i++) { f.pos.z += 0.8 * DT; foes.look(f, DT); }
   assert.ok(foes.slime && foes.slime.items.some((it) => it.age < foes.slime.life), 'a glistening trail behind it');
+  const pearl = archetypeModel('roller', keptSkin('roller', 'spheres'));
   let runners = null;
-  f.model.group.traverse((o) => { if (o.name === 'runners') runners = o; });
+  pearl.group.traverse((o) => { if (o.name === 'runners') runners = o; });
   assert.ok(runners && !runners.visible, 'runners put away');
-  f.state = 'wind'; f.atk = attackOf('roller', 'bowl');
-  for (let i = 0; i < 40; i++) { f.k = 0.2 + i / 80; foes.look(f, DT); }
-  assert.ok(runners.visible, 'winding up its bowl: on its runners');
+  pearl.dispose?.();
   foes.dispose(); clearTargets();
 });

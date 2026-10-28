@@ -90,6 +90,10 @@ sheet-1's colours on the main skin, sheet-2's on the alternate (skins.js, a comm
 other skins keep their own palettes and wear the archetype's `'*'` surfaces in them (check them all:
 `node scripts/enemy-roster/skins.mjs --out output/enemy-roster <id>`).
 
+Since #748 (the author, 2026-10-28) **one look per kind**: only the main skin (sheet-1, the first listed) is worn, in
+every world and in the stronger tier; the alternates and world skins are kept as data (`keptSkin`), never worn. Don't
+add a world skin or a tier look; match the main skin to sheet-1 (docs/systems/foes.md, "One look per kind").
+
 ## 5. Motion
 
 `.claude/skills/procedural-animation/SKILL.md`: feet planted (no slide), the gait's groups, the body riding its feet,

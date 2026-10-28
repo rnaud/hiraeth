@@ -747,7 +747,7 @@ export const ARCHETYPES = {
     note: 'The mummer king: cut down its troupe, or it throws them at you.',
   },
   // ----------------------------------------------------------------------------- roster v4's monsters (issue #726)
-  // docs/design/enemy-roster-v4.md: one roster met in every world, the colour its tier (a darker, banded skin: tierSkin).
+  // docs/design/enemy-roster-v4.md: one roster met in every world, one look each (#748: its tier changes its stats, not its look).
   // On the humanoid rig like the mummers (src/enemies/plans/monster.js). Every route world fields them (src/foe-worlds.js
   // WORLDS, src/encounters/sites.js SITES: the grunts in the packs, a hulk at each camp); the Arena too.
   //   shrug        the first `n` light cuts of an exchange it takes on its belly: no harm, no poise worn (left alone

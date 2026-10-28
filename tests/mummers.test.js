@@ -248,7 +248,8 @@ test('with the clips: the volley side-on, the rock and the mummer held high then
     assert.ok(feet.every((x) => x.y < 0.06 * H && x.z > 0.1 * H), 'its feet on the ground before it');
     run(f, 60, () => { f.idle = { mode: 'sleep' }; });
     const chest = [];
-    run(f, 60, (i) => { if (i % 10 === 0) chest.push(J.torso.quaternion.clone()); });
+    // (a whole breath, sin(1.7 t): 3.7 s, whatever phase the rig's clock starts at, humanoid-rig.js seed)
+    run(f, 240, (i) => { if (i % 10 === 0) chest.push(J.torso.quaternion.clone()); });
     assert.ok(W(f, J.head).y < 0.2 * H, 'asleep, lying');
     assert.ok(Math.max(...chest.map((q) => q.angleTo(chest[0]))) > 0.02, 'breathing');
     f.provoked = true; f.idle = null; f.state = 'chase'; run(f, 40);

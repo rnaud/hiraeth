@@ -29,7 +29,7 @@ import { rumblePlay } from './rumble.js';
 import { Rig, planLeg } from './motion-kit/rig.js';
 import { PLANS } from './motion-kit/plans.js';
 import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, parseKind, skinned } from './enemies/archetypes.js';
-import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
+import { skinFor, skinOf, skinWorlds, movesOf } from './enemies/skins.js';
 import { archetypeModel } from './enemies/plans/index.js';
 import { setFoeClips } from './enemies/humanoid-rig.js';
 import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
@@ -463,20 +463,23 @@ export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.7
  */
 export class Foe {
   constructor(kind, at, { rng = Math.random, id = null, templeOnly, skin = null, calm = false, def = null, tier = 0 } = {}) {
-    // a kind, or a kind in a world's skin ('crab@saltharbour': src/enemies/skins.js); a trailing '*' its stronger tier
-    const p = parseKind(kind);
-    this.kind = p.kind; this.skin = p.skin ?? skin;
+    // a kind, or a kind met in a world ('crab@saltharbour': src/enemies/skins.js; its one look, that world's skin-only
+    // moves, #748); a trailing '*' its stronger tier
+    const p = parseKind(kind), where = p.skin ?? skin;
+    this.kind = p.kind;
     if (!FOES[this.kind]) throw new Error(`Unknown enemy: ${kind}`);
     // (def: a stronger one of its kind, its tuning laid over the kind's: a house's mini-boss, the Engine-House's Boiler
     // Keeper, issue #415; its attacks its own, its first strike the first of them)
     this.def = def ? { ...FOES[this.kind], ...def } : FOES[this.kind];
     if (def?.attacks) this.def.attack = this.def.attacks[0];
     this.archetype = archetypeOfKind(this.kind);
-    // its stronger tier (issue #722, D13: src/enemies/fight.js TIERS): its new move in its def; darker and banded (its body)
+    this.skin = (where && this.archetype ? skinFor(this.archetype, where) : null) ?? where;   // (its one look, #748)
+    // its stronger tier (issue #722, D13: src/enemies/fight.js TIERS): its new move in its def, its health and poise; the
+    // same look (#748)
     this.tierN = !def && (tier || p.tier) && TIERS[this.archetype] && !fightOf(this.archetype, this.def).fodder ? 1 : 0;
     if (this.tierN) this.def = tierDef(this.archetype, this.def);
     this.tierChained = 0;
-    this.moves = this.skin && this.archetype ? skinOf(this.archetype, this.skin)?.moves ?? [] : [];   // (its skin's own moves)
+    this.moves = where && this.archetype ? movesOf(this.archetype, where) : [];   // (the skin-only moves of the world it is met in)
     // (a mummer's weapon, issue #724: one of its kind's, by weight; attack.weapon only with it in hand)
     this.weapon = this.def.weapons ? pickWeight(this.def.weapons, rng) : null; this.unmasked = false; this.maskHits = 0; this.carry = null; this.carriedBy = null; this.horns = 0;
     this.templeOnly = templeOnly ?? this.kind === 'machine';
@@ -2175,7 +2178,7 @@ export function aloneWave(k, w) {
   const D = FOES[k];
   return [...Array(D?.group ?? 1).fill(skinned(k, w)), ...(D?.escort ? [skinned(D.escort, w)] : [])];
 }
-/** The built archetypes, each alone in each of its skins (src/enemies/skins.js), a group kind as a group. */
+/** The built archetypes, each alone in its one look (src/enemies/skins.js skinWorlds, #748), a group kind as a group. */
 const SKIN_WAVES = BUILT.flatMap((a) => skinWorlds(a).map((w) => aloneWave(ARCHETYPES[a].kind, w)));
 const WORLD_START = {};
 /**
@@ -2200,8 +2203,8 @@ export function oneFoe(k, w = null) {
   return [...Array(D?.flock ? ARENA_RUN.flock : 1).fill(skinned(k, w)), ...(D?.escort ? [skinned(D.escort, w)] : [])];
 }
 /**
- * Every enemy in the game, once each: each built archetype in each of its skins (src/enemies/skins.js), then any kind
- * that is no archetype's skin (the makers' machine); a bare archetype kind is its home skin, already there.
+ * Every enemy in the game, once each: each built archetype in its one look (src/enemies/skins.js, #748: no other skins
+ * offered), then any kind that is no archetype's (the makers' machine); a bare archetype kind is that look, already there.
  */
 export const ARENA_FOES = (() => {
   const out = BUILT.flatMap((a) => skinWorlds(a).map((w) => oneFoe(ARCHETYPES[a].kind, w)));
@@ -2678,25 +2681,27 @@ export class Foes {
   }
 
   /**
-   * A foe of `kind` (a kind, or a kind in a skin: 'crab@saltharbour') at `at`. With no skin, an archetype wears this
-   * world's (src/enemies/skins.js: its own skin where the world has none). o.calm: a wild pack's, calm until provoked.
+   * A foe of `kind` (a kind, or a kind met in a world: 'crab@saltharbour') at `at`. An archetype wears its one look
+   * everywhere (src/enemies/skins.js, #748), with the skin-only moves of the world it is met in (that given, else this
+   * one). o.calm: a wild pack's, calm until provoked.
    */
   add(kind, at, o = {}) {
-    const p = parseKind(kind), a = archetypeOfKind(p.kind);
-    const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
+    const p = parseKind(kind), a = archetypeOfKind(p.kind), built = !!a && ARCHETYPES[a].status === 'built';
+    const where = p.skin ?? (built ? this.worldHere : null), skin = built ? skinFor(a, where) : p.skin ?? null;
     // (its stronger tier, #722 D13: asked for ('bell*', o.tier), or mixed into the late worlds' packs and sites: TIER_SHARE)
     let tier = p.tier || o.tier ? 1 : 0;
     if (!tier && o.tier !== 0 && !o.def && !this.own && TIERS[a] && !fightOf(a, FOES[p.kind]).fodder && this.stageHere >= TIER_FROM) {
       tier = this.rng() < (TIER_SHARE[Math.min(TIER_SHARE.length - 1, this.stageHere)] ?? 0) * (this.gentle ? 0.5 : 1) ? 1 : 0;
     }
-    const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin, tier });
+    const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin: where, tier });
     // (tougher further along the route: src/enemies/fight.js TIER; not a house's own boss (its def), not a game's own foes)
     if (!o.def && !this.own) f.toughen(this.stageHere, this.gentle);
-    // (the body built for the load's warm and kept, if there is one of its kind and skin: keepWarm; else built now)
-    const key = shapeKey(f.kind, f.tierN ? `${skin}*` : skin), spare = this.spares.get(key);
+    // (the body built for the load's warm and kept, if there is one of its kind and look: keepWarm; else built now; a
+    // stronger tier's body is its kind's, #748)
+    const key = shapeKey(f.kind, skin), spare = this.spares.get(key);
     if (spare) { this.spares.delete(key); f.model = spare.model; f.batches = spare.batches; }
     else {
-      f.model = archetypeModel(f.kind, skin, f.tierN) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
+      f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
       // (its shapes the first of its kind and skin's: sent to the GPU, or made into Unity's meshes, once: src/foe-shapes.js)
       shareShapes(this.shapes, key, f.model.group);
       // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js); every
@@ -2744,8 +2749,6 @@ export class Foes {
    */
   rosterKinds({ all = this.levelId === 'arena' } = {}) {
     const R = rosterOf(this.worldHere), kinds = new Set(all ? Object.keys(FOES) : [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])]);
-    // (from TIER_FROM's stage on, the stronger tiers too: their own bodies, #722)
-    if (!all && this.stageHere >= TIER_FROM) for (const k of [...kinds]) { const a = archetypeOfKind(parseKind(k).kind); if (TIERS[a] && FOES[parseKind(k).kind] && !fightOf(a, FOES[parseKind(k).kind]).fodder) kinds.add(`${k}*`); }
     return [...kinds].filter((k) => k && FOES[parseKind(k).kind]);
   }
   /**
@@ -2763,9 +2766,10 @@ export class Foes {
     for (const kind of kinds) {
       const p = parseKind(kind), a = archetypeOfKind(p.kind);
       if (!FOES[p.kind]) continue;
-      const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
-      const model = archetypeModel(p.kind, skin, p.tier) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
-      const key = shapeKey(p.kind, p.tier ? `${skin}*` : skin);
+      const skin = a && ARCHETYPES[a].status === 'built' ? skinFor(a, p.skin ?? this.worldHere) : p.skin ?? null;
+      const key = shapeKey(p.kind, skin);
+      if (models.some((m) => m.key === key)) { made.push(kind); continue; }   // (one body a kind and look: its stronger tier's the same, #748)
+      const model = archetypeModel(p.kind, skin) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
       shareShapes(this.shapes, key, model.group);   // (its shapes the ones the kind's foes will draw)
       models.push({ key, model, batches: batchParts(model.group) });
       group.add(model.group);
@@ -3006,14 +3010,13 @@ export class Foes {
     const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
     this.notice?.(`Wave ${this.wave}${from ? ` · ${from}` : ''}: ${waveText(kinds)}.`);
   }
-  /** The run's next foe (a new shuffle of ARENA_FOES on the Foes' rng at the start and after the last): "Foe 3 of 138 · Desert: dune grunt." */
+  /** The run's next foe (a new shuffle of ARENA_FOES on the Foes' rng at the start and after the last): "Foe 3 of 33: grunt." (one look a kind, #748: no world to name) */
   nextFoe() {
     if (!this.run || this.run.n >= this.run.order.length) this.run = { order: shuffled(ARENA_FOES, this.rng), n: 0, done: false };
     const R = this.run, kinds = R.order[R.n++];
     for (const f of this.bringIn(kinds)) f.ofRun = true;
     this.waveRest = ARENA_RUN.rest;
-    const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
-    this.notice?.(`Foe ${R.n} of ${R.order.length}${from ? ` · ${from}` : ''}: ${waveText(kinds).replace(/(^|, | and )1 /g, '$1')}.`, { news: true });
+    this.notice?.(`Foe ${R.n} of ${R.order.length}: ${waveText(kinds).replace(/(^|, | and )1 /g, '$1')}.`, { news: true });
     return kinds;
   }
   /** A wave comes in round you, WAVE.near..far m out, with its entrance. */

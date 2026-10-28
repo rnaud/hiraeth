@@ -21,7 +21,7 @@ export const ease = (from, to, rate, dt) => from + (to - from) * (1 - Math.exp(-
  * Given the skin itself (skinOf), each part wears its painted surface by its name (src/enemies/surfaces.js).
  */
 export function materials(archetype, skin) {
-  const owned = [], id = typeof skin === 'string' ? skin : skin?.key ?? skin?.id;   // (a tier's own: skins.js tierSkin)
+  const owned = [], id = typeof skin === 'string' ? skin : skin?.id;
   // the part's painted surface (src/enemies/surfaces.js, drawn by src/foe-surface.js): patterns, colour zones, glow, gloss
   const paint = (name, o) => {
     if (o.foeSurface !== undefined || typeof skin !== 'object') return o;

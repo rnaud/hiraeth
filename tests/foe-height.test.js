@@ -330,7 +330,7 @@ test('the archetypes (src/enemies/archetypes.js) go by the same rules: up the le
     sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
   F.waveRest = 1e9;
   const crabby = F.add('crab@saltharbour', v(0, 0, -40.3)); crabby.state = 'chase'; crabby.cool = 5;
-  assert.equal(crabby.skin, 'saltharbour');
+  assert.equal(crabby.skin, 'arzach2', 'in its one look (#748)');
   F.hurt(crabby, 'push', v(0, 0, 1), { shove: 3 });
   for (let i = 0; i < 1 / DT; i++) F.update(DT);
   assert.ok(!crabby.alive, 'the anchor crab is swept away');

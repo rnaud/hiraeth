@@ -8,8 +8,9 @@ that led here: [enemy-roster-v4-prompts.md](enemy-roster-v4-prompts.md). The aut
 
 One roster met in every world, in two families as in Breath of the Wild:
 
-- **Monsters** with a coloured skin. The colour is the tier (#722, `tierSkin`): the picked sheets show each kind's
-  base colour; later worlds bring a darker, banded skin with one new move. No world costumes.
+- **Monsters** with a coloured skin: the picked sheet's, the same everywhere. **One look per kind** (#748, below): no
+  world costumes, and the stronger tier of the later worlds (#722) brings its health, poise and one new move without a
+  change of look (its darker, banded skin of v2.34 is gone).
 - **Defunct droids**, the makers' old machines: weathered ivory ceramic over dark joints, one amber eye, amber seams;
   the same ancient high tech as the temples. The fencer and the lamp tripod join this family.
 
@@ -34,6 +35,31 @@ and are built with the enemy-rework skill (procedural surface mandatory).
 - 2026-10-28, step 4 (v2.35): every route world on this roster (src/foe-worlds.js `WORLDS`, src/encounters/sites.js
   `SITES`; docs/systems/foes.md, "The world rosters"). The `?staged=roster4` switch is gone: what it staged is the
   default. Below: each foe's place and the curve measured.
+- 2026-10-28 (v2.35, issue #748): one look per kind, its tier included ("One look per kind" below).
+
+## One look per kind (issue #748, the author's rule of 2026-10-28)
+
+"Too many enemies that are slight variations, simplify. We should only have 1 variation of each enemy for now, not slight
+variations and colors per worlds." **Each kind of foe comes in one look: its picked sheet's** (sheet-1, `art.main`), in
+every world, the Arena, the fight temples, the creatures gallery and the debug menu. **Difficulty grows without a change
+of look**: the stage's toughness and the stronger tier's health, poise and one new move carry the curve as before (the
+bench below is unchanged); a tier grunt in the Signal Market is the same red grunt as in the Desert, only harder to put
+down. A world's skin-only move stays where it was met (the ray's downdraft in Vael), in the one look.
+docs/systems/foes.md, "One look per kind".
+
+| Kind | Looks before #748 | Now |
+|---|---|---|
+| grunt, hulk, prowler, warlord | 2: its sheet's, and the tier's darker, banded one (from the Buried Machine on) | 1 |
+| sentinel, oracle, crawler | 2: ivory ceramic, and the tier's scorched one with a red eye | 1 |
+| ink blot | 22 world edges (the Desert's on the route; others in the fight temples) | 1: the Desert's |
+| sky ray | 6 world skins, each with its tier (4 met on the route) | 1: the storm ray |
+| ring drone | 7 world skins, each with its tier (7 met on the route) | 1: the rust drone |
+| skitter | 5 world skins (2 on the route) | 1: the dune skitter |
+| lamp tripod | 5 world skins, each with its tier (3 on the route; the Desert's cistern pump) | 1: the inspection tripod |
+| makers' fencer | 3 world skins, each with its tier (4 on the route) | 1: the foundry fencer |
+| the 19 retired (Arena, debug menu, fight temples) | 1–7 skins each, each with its tier | 1 each: its main sheet's |
+
+The other skins are kept as data, never worn or offered (src/enemies/skins.js `keptSkin`), for now.
 
 ## Where they live
 
@@ -108,8 +134,8 @@ threshold (the glass puppet swayed there).
   on, each with its coffer (paying twice): it took the world's hoard, or its patrol or nest where it had no hoard to
   spare (the Underwater City's and the Buried Machine's beats, the Floating City's nest). Site ids name what holds them
   now, so a save's cleared flag (the old foes') does not hide the new ones.
-- **Tiers**: as before (`TIER`, `TIER_SHARE` from stage 3); and since the same foe is met everywhere, it pays as much
-  more as it is tougher there (src/chimes.js `DROP_BY_STAGE`).
+- **Tiers**: as before (`TIER`, `TIER_SHARE` from stage 3), and since #748 without a look of their own; and since the
+  same foe is met everywhere, it pays as much more as it is tougher there (src/chimes.js `DROP_BY_STAGE`).
 - **One tuning**: the grunt scrambles back out of the combo on the second light cut in a row and lunges back in
   (`answerMash { cuts: 2, evade: true, then: 'lunge' }`), so the first worlds' rank and file outlive a mashed combo.
 

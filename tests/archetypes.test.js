@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spawnKindOf, archetypeOfKind, parseKind, skinned } from '../src/enemies/archetypes.js';
-import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
+import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds, keptSkin } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
 import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf, RETIRED } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
@@ -80,11 +80,14 @@ test('the roster: 32 archetypes, 12 creatures, 9 machines, 7 spirits and 4 monst
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
 });
 
-test('skins: each archetype in each of its worlds, its own first; palettes whole; a skin only dresses (no unknown world)', () => {
+test('skins: one look per kind (#748), its main sheet\'s first; the other worlds\' kept as data only; palettes whole; a skin only dresses (no unknown world)', () => {
   for (const a of ARCHETYPE_IDS) {
     const S = SKINS[a];
     assert.ok(S && Object.keys(S).length >= (ROLLING_OUT.has(a) || V4.has(a) ? 1 : 3), `${a}: at least three skins`);
     assert.equal(HOME_SKIN[a], Object.keys(S)[0]);
+    const art = ARCHETYPES[a].art;
+    if (art?.main) assert.equal(HOME_SKIN[a], art.main, `${a}: its one look its main sheet's`);
+    assert.deepEqual(skinWorlds(a), [HOME_SKIN[a]], `${a}: one look offered`);
     for (const [w, s] of Object.entries(S)) {
       assert.ok(TITLES[w], `${a}: ${w} is a world`);
       assert.ok(s.name && s.palette, `${a}@${w}: named and coloured`);
@@ -98,10 +101,13 @@ test('skins: each archetype in each of its worlds, its own first; palettes whole
   for (const w of Object.keys(WORLDS)) for (const a of worldArchetypes(w)) assert.ok(SKINS[a][w] || a === 'blot' || V4.has(a) || (ROUTE_PARTS.includes(w) && SKINS[a][skinFor(a, w)]), `${a} has a skin in ${w}`);
   for (const a of V4) assert.equal(Object.keys(SKINS[a]).length, 1, `${a}: one skin`);
   assert.equal(skinFor('crab', 'arena'), 'arzach2', 'where it has none, its own');
-  assert.equal(skinOf('crab', 'saltharbour').name, 'anchor crab');
-  assert.deepEqual(skinOf('crab', 'saltharbour').moves, ['burrow']);
-  assert.ok(skinOf('crab', 'bazaar').palette.under, 'a skin’s palette falls back to its own skin’s');
-  assert.equal(skinWorlds('blot').length, 22, 'the blot is in every world');
+  assert.equal(skinFor('crab', 'saltharbour'), 'arzach2', 'where it had one, its own too (#748)');
+  assert.equal(skinOf('crab', 'saltharbour').name, 'cliff crab');
+  assert.deepEqual(skinOf('crab', 'saltharbour').moves, ['burrow'], 'the world\'s skin-only moves kept');
+  assert.equal(keptSkin('crab', 'saltharbour').name, 'anchor crab', 'the old skin kept as data');
+  assert.ok(keptSkin('crab', 'bazaar').palette.under, 'a kept skin’s palette falls back to its own skin’s');
+  assert.equal(Object.keys(SKINS.blot).length, 22, 'the blot\'s old world edges kept as data');
+  assert.deepEqual(skinWorlds('blot'), ['desert'], 'the blot: one look, the Desert\'s');
   assert.deepEqual(parseKind('crab@saltharbour'), { kind: 'crab', skin: 'saltharbour' });
   assert.deepEqual(parseKind('blot'), { kind: 'blot', skin: null });
   assert.equal(skinned('lizard', 'bazaar'), 'lizard@bazaar');

@@ -60,14 +60,14 @@ const FAMILY = { creature: 'creature', machine: 'possessed machine', spirit: 'sp
 /** Every foe kind there is (the archetypes' and the old ones standing in), in the order they are met (the combat review's list). */
 export const SPAWN_KINDS = Object.keys(FOES);
 
-/** A row for archetype a in world w's skin (null: nothing to fight yet). */
+/** A row for archetype a met in world w (its one look, #748; that world's skin-only moves), or its own (null: nothing to fight yet). */
 function archetypeRow(a, w) {
   const A = ARCHETYPES[a], k = A.kind;
   if (!k || !FOES[k]) return null;
   const built = A.status === 'built', skin = built ? skinOf(a, w ?? HOME_SKIN[a]) : null;
   const name = skin?.name ?? A.name;
   const sub = `${FAMILY[A.family]} · ${A.role}${built ? '' : ` · stand-in: ${FOES[k].name}`} · ${A.moves.join(', ')}`;
-  return { kind: built ? skinned(k, skin.id) : k, name, sub, search: `${name} ${A.name} ${a} ${k} ${A.role} ${A.family} ${A.moves.join(' ')} ${w ? worldName(w) : ''}` };
+  return { kind: built ? skinned(k, w ?? skin.id) : k, name, sub, search: `${name} ${A.name} ${a} ${k} ${A.role} ${A.family} ${A.moves.join(' ')} ${w ? worldName(w) : ''}` };
 }
 
 /** The list's sections: { id, title, items: [{ kind | guardian, name, sub, search }] }. */

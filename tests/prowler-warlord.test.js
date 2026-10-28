@@ -17,7 +17,7 @@ import { BODIES } from '../src/encounters/index.js';
 import { worldArchetypes, WORLDS } from '../src/foe-worlds.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { skinWorlds, skinOf } from '../src/enemies/skins.js';
-import { surfaceFor, TIER_SURFACE } from '../src/enemies/surfaces.js';
+import { surfaceFor } from '../src/enemies/surfaces.js';
 import { windMin } from '../src/telegraph.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -46,23 +46,23 @@ const atk = (f, id) => (f.def ?? f).attacks.find((a) => a.id === id);
 const seeded = (s) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
 const _dir = (from, to) => new THREE.Vector3(to.x - from.x, 0, to.z - from.z).normalize();
 
-test('the prowler and the warlord on the roster: monsters on the humanoid rig, built and skinned (the tier darker and banded), every wind-up fair, a handful of draws', () => {
+test('the prowler and the warlord on the roster: monsters on the humanoid rig, built and skinned (its tier the same look, #748), every wind-up fair, a handful of draws', () => {
   for (const [id, h, most] of [['prowler', 1.8, 8], ['warlord', 2.5, 12]]) {
     const A = ARCHETYPES[id];
     assert.equal(A.family, 'monster'); assert.equal(A.status, 'built'); assert.equal(FOES[id], A.def); assert.equal(A.art, 'sheet-1');
     assert.equal(A.def.height, h, `${id}: the sheet's ${h} m`);
     assert.ok(FIGHT[id] && TIERS[id], `${id}: its fight and its tier`);
     for (const a of A.def.attacks) assert.ok(a.wind >= windMin(a) - 1e-9, `${id}.${a.id}: ${a.wind} s`);
-    for (const tier of [0, 1]) for (const w of skinWorlds(id)) {
-      const m = archetypeModel(id, w, tier);
+    for (const w of skinWorlds(id)) {
+      const m = archetypeModel(id, w);
       assert.ok(m?.driver, `${id}@${w}: on the humanoid rig`);
       let n = 0; m.group.traverse((o) => { if (o.isMesh) n++; });
       assert.ok(n <= most, `${id}: ${n} meshes`);
       m.dispose();
     }
-    const base = skinOf(id, 'desert'), dark = skinOf(id, 'desert', 1), lum = (x) => new THREE.Color(x).getHSL({}).l;
-    assert.ok(lum(dark.palette.skin) < lum(base.palette.skin) * 0.75 && dark.palette.eye === base.palette.eye, 'its tier darker, its eyes kept');
-    assert.deepEqual(surfaceFor(id, dark, 'skin').stripes.amount, TIER_SURFACE.stripes.amount, 'banded');
+    const base = skinOf(id, 'desert');
+    assert.deepEqual(skinOf(id, 'bazaar'), base, 'one look in every world (#748)');
+    assert.ok(!surfaceFor(id, base, 'skin').stripes, 'no bands');
     assert.ok(Object.keys(surfaceFor(id, base, 'skin')).length >= 2, 'its skin painted');
   }
   assert.ok(surfaceFor('prowler', skinOf('prowler', 'desert'), 'skin').spots2, 'the prowler\'s fine scales, stippled');

@@ -212,8 +212,8 @@ export function rayNear(point, dir, at, r, back = 1.5) {
 }
 
 /**
- * The stronger tier of each archetype (D13, BotW's colours): darker and banded (src/enemies/skins.js tierSkin, the bands
- * painted by src/enemies/surfaces.js TIER_SURFACE), its health and poise TIER_UP over its stage's, and ONE new move:
+ * The stronger tier of each archetype (D13): the same look as its kind (#748, one look per kind: no darker or banded
+ * skin), its health and poise TIER_UP over its stage's, and ONE new move:
  *   combo [a, b]   after its move a lands or misses, b at once (once): the tripod's second bolt, the drone's harpoon
  *                  then its ram (the body plays b's own wind-up: its tell)
  *   unlock id      a move its other skins only had (the toad's volley, the roller's ricochet)
@@ -247,7 +247,6 @@ export const TIERS = {
   mummerking: { combo: ['throw', 'smash'], words: 'it throws a mummer and comes in behind it with the beam' },
   grunt: { combo: ['lunge', 'club'], words: 'out of its lunge it clubs you at once' },
   hulk: { patch: { stomp: { wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } } }, words: 'its stomp sends a quake running out over the ground' },
-  // (issue #726: scorched ceramic, a red eye: src/enemies/skins.js DROID_TIER, src/enemies/surfaces.js DROID_TIER_SURFACE)
   sentinel: { combo: ['thrust', 'cut'], words: 'a thrust, then a cut at once' },
   oracle: { combo: ['ward', 'volley'], words: 'it fires a volley as soon as its ward is up' },
   crawler: { combo: ['bite', 'bite'], words: 'it bites twice' },

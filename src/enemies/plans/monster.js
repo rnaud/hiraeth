@@ -7,8 +7,8 @@ import { twoBone } from '../../motion-kit/ik.js';
 import { lathe, tatters, spearParts, bowParts, bowCord, drawCord, drawOf, spearHold, bowHold } from './mummer.js';
 import { Fist, fingerPivots, Wielder, SWORD_WRIST } from '../wield.js';
 
-// Roster v4's monsters (issue #726; docs/design/enemy-roster-v4.md): one roster in every world, its skin's colour the
-// tier (src/enemies/skins.js tierSkin: the darker, banded one). On the humanoid rig like the mummers
+// Roster v4's monsters (issue #726; docs/design/enemy-roster-v4.md): one roster in every world, one look each (its sheet's,
+// in its stronger tier too: #748). On the humanoid rig like the mummers
 // (src/enemies/humanoid-rig.js: the traveller's clips on their own proportions, the procedural layers on top).
 //
 // The grunt (`grunt`), to its picked sheet (references/enemy-archetypes/grunt/sheet-1.jpg): 1.3 m, the traveller's

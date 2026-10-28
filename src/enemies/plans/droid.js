@@ -6,20 +6,19 @@ import { ease, eyeColor } from './kit.js';
 // limbs, one amber eye, amber seams of light; chipped, stained low on each part and a little moss in the joints. The
 // sheets (a new `sentinel/`, `oracle/` and `crawler/` folder under the enemy references) draw all three in it.
 //
-// Built once here: the palette every droid skin starts from (DROID_PALETTE), its stronger tier's (DROID_TIER: scorched
-// darker ceramic, a red eye and red seams instead of amber; src/enemies/skins.js tierSkin lays it over the dimmed palette),
+// Built once here: the palette every droid skin starts from (DROID_PALETTE; its stronger tier the same, #748),
 // the named materials (droidMaterials: each a build material the parts are made in and the skinned one they are drawn
 // in, kit.js skinBy), and the glow of the eye and the seams through a fight (droidGlow). The painted surfaces of these
-// names are in src/enemies/surfaces.js (DROID_SURFACE, DROID_TIER_SURFACE).
+// names are in src/enemies/surfaces.js (DROID_SURFACE).
 //
 //   ceramic   the ivory panels: stains, chips, grime low on the part, moss in the low corners, a dull glaze
 //   joint     the dark frame between them: the neck's pipes, the waist, the elbows, knees and hips
 //   seam      amber lines of light along the panels' edges (they brighten through a wind-up)
 //   moss      a few tufts in the joints (sentinel) and on the dome (crawler)
-//   eye       the one round lens: amber, the wind-up's flare paler, red enraged or in tier
+//   eye       the one round lens: amber, the wind-up's flare paler, red enraged
 
-/** The droids' palette and its tier's (src/enemies/skins.js, where the skins' colours live). */
-export { DROID_PALETTE, DROID_TIER } from '../skins.js';
+/** The droids' palette (src/enemies/skins.js, where the skins' colours live). */
+export { DROID_PALETTE } from '../skins.js';
 
 /**
  * The droid materials of one body (M: kit.js materials of its archetype and skin; P: the skin's palette): for each name a
@@ -60,7 +59,7 @@ export function droidGlow(f, mats, P, st, dt, o = {}) {
   st.glow = ease(st.glow ?? 0, wind ? 0.5 + 0.5 * Math.min(1, f.k / 0.75) : 0, 6, dt);
   const broke = f.reel === 'guardbroken' || f.stunned > 0 || f.downT > 0;
   const over = o.over ?? 0, call = o.call ?? 0;
-  // (the eye: amber; its flare winding up, pale blue stunned, red enraged or overloaded; in tier red already: DROID_TIER)
+  // (the eye: amber; its flare winding up, pale blue stunned, red enraged or overloaded)
   mats.eye.uniforms.uColor.value.set(broke ? '#bfe9ff' : call > 0.3 ? P.flare : over > 0.5 && !wind ? P.over ?? '#ff3a24' : eyeColor(f, P.eye, P.flare));
   mats.eye.uniforms.uGlow.value = 0.75 + st.glow * 0.25 + call * 0.3 - (broke ? 0.3 : 0);
   mats.seam.uniforms.uGlow.value = 0.45 + st.glow * 0.45 + over * 0.35 + call * 0.4 - (broke ? 0.3 : 0) - (o.dim ?? 0) * 0.3;

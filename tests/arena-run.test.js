@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES, WAVES, ARENA_FOES, ARENA_RUN, oneFoe, shuffled } from '../src/foes.js';
 import { BUILT, ARCHETYPES, archetypeOfKind, parseKind } from '../src/enemies/archetypes.js';
-import { SKINS } from '../src/enemies/skins.js';
+import { HOME_SKIN } from '../src/enemies/skins.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 
@@ -21,15 +21,15 @@ const alive = (foes) => foes.list.filter((f) => f.alive);
 const fell = (foes) => { for (const f of alive(foes)) foes.burst(f); };
 const rest = (foes, s = ARENA_RUN.rest + 0.2) => { for (let t = 0; t < s; t += DT) foes.updateWaves(DT); };
 
-test('the run’s list: every built archetype in each of its skins and every other kind, once each; one body (a flock its heap, a support its escort)', () => {
+test('the run’s list: every built archetype in its one look (#748) and every other kind, once each; one body (a flock its heap, a support its escort)', () => {
   const ids = ARENA_FOES.map((x) => x[0]);
   assert.equal(new Set(ids).size, ids.length, 'each once');
-  for (const a of BUILT) for (const w of Object.keys(SKINS[a])) assert.ok(ids.includes(`${ARCHETYPES[a].kind}@${w}`), `${a} in ${w}`);
+  for (const a of BUILT) assert.equal(ids.filter((id) => parseKind(id).kind === ARCHETYPES[a].kind).length, 1, `${a}: once`);
+  for (const a of BUILT) assert.ok(ids.includes(`${ARCHETYPES[a].kind}@${HOME_SKIN[a]}`), `${a} in its one look`);
   // the kinds no skin covers (the makers' machine), every kind in the old waves there in some form
   for (const k of new Set(WAVES.flat())) assert.ok(ids.some((id) => parseKind(id).kind === k), k);
   assert.ok(ids.includes('machine'));
-  const skins = BUILT.reduce((n, a) => n + Object.keys(SKINS[a]).length, 0);
-  assert.equal(ARENA_FOES.length, skins + Object.keys(FOES).filter((k) => !BUILT.includes(archetypeOfKind(k)) && !FOES[k].noWild).length);
+  assert.equal(ARENA_FOES.length, BUILT.length + Object.keys(FOES).filter((k) => !BUILT.includes(archetypeOfKind(k)) && !FOES[k].noWild).length);
   for (const x of ARENA_FOES) {
     const D = FOES[parseKind(x[0]).kind];
     assert.equal(x.length, (D.flock ? ARENA_RUN.flock : 1) + (D.escort ? 1 : 0), `${x[0]}: one enemy`);
@@ -118,13 +118,14 @@ test('the Arena’s other ways stay: ?enemy= one kind again and again, ?enemyWor
   clearTargets();
   const notes = [], P = player(), one = arena(P, { notes, foes: { waves: true, kind: 'crab@saltharbour' } });
   one.waveRest = 0; one.updateWaves(DT);
-  assert.deepEqual(alive(one).map((f) => `${f.kind}@${f.skin}`), ['crab@saltharbour']);
+  assert.deepEqual(alive(one).map((f) => `${f.kind}@${f.skin}`), ['crab@arzach2'], 'in its one look (#748)');
+  assert.deepEqual(alive(one)[0].moves, ['burrow'], 'with the Salt Harbour’s burrow');
   assert.match(notes.at(-1), /^Wave 1 · /);
   assert.equal(one.run, undefined, 'no run');
   one.dispose();
   const w = arena(P, { notes, foes: { waves: true, world: 'incal' } });
   w.waveRest = 0; w.updateWaves(DT);
-  assert.ok(alive(w).every((f) => f.skin === 'incal'));
+  assert.ok(alive(w).every((f) => f.skin === HOME_SKIN[f.archetype]), 'each in its one look');
   w.dispose();
   const c = arena(P, { notes });
   c.startWaves('mangrove'); c.waveRest = 0; c.updateWaves(DT);

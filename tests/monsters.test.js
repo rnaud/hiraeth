@@ -17,7 +17,7 @@ import { worldArchetypes, WORLDS } from '../src/foe-worlds.js';
 import { ROUTE_PARTS, SIDE } from '../src/levels/names.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { skinWorlds, skinOf } from '../src/enemies/skins.js';
-import { surfaceFor, TIER_SURFACE } from '../src/enemies/surfaces.js';
+import { surfaceFor } from '../src/enemies/surfaces.js';
 import { windMin } from '../src/telegraph.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -45,24 +45,23 @@ const add = (foes, kind, at, o = {}) => { const f = foes.add(kind, at); f.headin
 const atk = (f, id) => f.def.attacks.find((a) => a.id === id);
 const seeded = (s) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
 
-test('the grunt and the hulk on the roster: monsters on their own plan, built, skinned (the tier darker and banded), every wind-up fair, a handful of draws', () => {
+test('the grunt and the hulk on the roster: monsters on their own plan, built, skinned (its tier the same look, #748), every wind-up fair, a handful of draws', () => {
   for (const id of ['grunt', 'hulk']) {
     const A = ARCHETYPES[id];
     assert.equal(A.family, 'monster'); assert.equal(A.status, 'built'); assert.equal(FOES[id], A.def); assert.equal(A.art, 'sheet-1');
     assert.ok(FIGHT[id] && TIERS[id], `${id}: its fight and its tier`);
     for (const a of A.def.attacks) assert.ok(a.wind >= windMin(a) - 1e-9, `${id}.${a.id}: ${a.wind} s`);
-    for (const tier of [0, 1]) for (const w of skinWorlds(id)) {
-      const m = archetypeModel(id, w, tier);
-      assert.ok(m?.driver, `${id}@${w}${tier ? '*' : ''}: a body on the humanoid rig`);
+    for (const w of skinWorlds(id)) {
+      const m = archetypeModel(id, w);
+      assert.ok(m?.driver, `${id}@${w}: a body on the humanoid rig`);
       let n = 0; m.group.traverse((o) => { if (o.isMesh) n++; });
       assert.ok(n <= 12, `${id}: ${n} meshes`);
       m.dispose();
     }
-    // the tier: the same colours darker (its eyes kept), its skin banded
-    const base = skinOf(id, 'desert'), dark = skinOf(id, 'desert', 1), lum = (h) => new THREE.Color(h).getHSL({}).l;
-    assert.ok(lum(dark.palette.skin) < lum(base.palette.skin) * 0.7 && dark.palette.eye === base.palette.eye, 'darker, its eyes as they were');
-    assert.ok(Math.abs(new THREE.Color(dark.palette.skin).getHSL({}).h - new THREE.Color(base.palette.skin).getHSL({}).h) < 0.02, 'the same hue: the same creature');
-    assert.deepEqual(surfaceFor(id, dark, 'skin').stripes.amount, TIER_SURFACE.stripes.amount, 'banded');
+    // one look (#748): the Market's the Desert's, no bands
+    const base = skinOf(id, 'desert');
+    assert.deepEqual(skinOf(id, 'bazaar'), base, 'the same skin in a late world');
+    assert.ok(!surfaceFor(id, base, 'skin').stripes, 'no bands');
     assert.ok(surfaceFor(id, base, 'skin').mottle, 'its skin painted');
   }
   assert.ok(ARCHETYPES.grunt.def.height === 1.3 && ARCHETYPES.hulk.def.height === 2.7, 'the sheets: 1.3 m and 2.7 m');

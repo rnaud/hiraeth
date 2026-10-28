@@ -610,8 +610,7 @@ Object.assign(SURFACES, {
  * The droids' one surface (issue #726; src/enemies/plans/droid.js; their sheets): the ivory ceramic weathered as the sheets
  * paint it, warm grey-brown stains in soft blotches, grime and a little moss gathered low on each panel, small dark chips
  * flaked off the glaze, a dull glaze's shine; the dark joints worn to a grey here and there; the seams lit; the moss in
- * tufts. Their stronger tier (DROID_TIER_SURFACE): the ceramic scorched, soot over it in blotches and low on each panel,
- * a net of fine cracks glowing red through it, chips charred black.
+ * tufts. Their stronger tier wears the same (#748).
  */
 export const DROID_SURFACE = {
   ceramic: {
@@ -628,24 +627,10 @@ export const DROID_SURFACE = {
   moss: { mottle: { color: 'moss*0.68', scale: 0.025, amount: 0.45, soft: 0.1 }, ...SPECKS('moss+0.35', 0.5, 0.012) },
   steel: { gloss: { size: 0.02, sky: 0.9, amount: 0.85 }, rust: { color: 'stain*0.7', color2: 'stain', amount: 0.08, amount2: 0.04, scale: 0.05, down: 0.3, pits: 0.4 } },
 };
-export const DROID_TIER_SURFACE = {
-  ceramic: {
-    mottle: { color: '#2a221c', scale: 0.14, amount: 0.3, soft: 0.6, detail: 0.6, strength: 0.6 },
-    rust: { color: '#231b16', color2: 'stain', amount: 0.15, amount2: 0.1, scale: 0.08, down: 0.85, pits: 0.6 },
-    cracks: { color: 'seam', ink: '#14100e', inkAmount: 0.6, scale: 0.12, width: 0.02, tone: 0.04, veins: 0.32, vein: 0.03, glow: 0.7, share: 0.3 },
-    gloss: { size: 0.03, sky: 0.3, amount: 0.25 },
-  },
-  ring: { mottle: { color: '#1d1714', scale: 0.08, amount: 0.4, soft: 0.2, strength: 0.7 } },
-  joint: { mottle: { color: '#0e0c0c', scale: 0.05, amount: 0.4, soft: 0.2, strength: 0.6 } },
-  moss: { mottle: { color: '#1d1714', scale: 0.025, amount: 0.5, soft: 0.1 } },
-  steel: { mottle: { color: '#1d1714', scale: 0.04, amount: 0.4, soft: 0.2 } },
-};
 const droidParts = (names) => Object.fromEntries(names.map((n) => [n, DROID_SURFACE[n]]));
 SURFACES.sentinel['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss', 'steel']);
 SURFACES.oracle['*'] = droidParts(['ceramic', 'joint', 'seam', 'ring']);
 SURFACES.crawler['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss']);
-/** An archetype's own stronger-tier surface instead of the bands (TIER_SURFACE): the droids' scorch. */
-export const TIER_SURFACES = { sentinel: DROID_TIER_SURFACE, oracle: DROID_TIER_SURFACE, crawler: DROID_TIER_SURFACE };
 // The third batch (issue #726; sheets in references/enemy-archetypes/prowler/ and warlord/).
 Object.assign(SURFACES, {
   prowler: {
@@ -708,13 +693,6 @@ export const PLATE_SURFACE = {
   gloss: { size: 0.03, sky: 0.45, amount: 0.5 },
 };
 /**
- * The stronger tier's bands (issue #722, D13; src/enemies/skins.js tierSkin darkens its palette): broad near-black bands
- * across every part of its body but its eyes, glows, smoke, ink and plates (TIER_BARE), a pen line at each edge.
- */
-export const TIER_SURFACE = { stripes: { color: '#16121a', amount: 0.82, axis: 1, period: 0.36, width: 0.24, ink: 0.4 } };
-export const TIER_BARE = /^(eye|eyes|glow|lamp|beam|core|lip|brew|stream|slag|smoke|smokeHi|mist|halo|ward|line|thread|ink|spirit|plate|light|flame|fire|spore|lens|glass|cloth|canvas|ripple|pool|sand)|Build$/;
-
-/**
  * The painted surface of an archetype's part in a skin ({ fade, mottle, … } with its colours resolved), or null.
  * @param skin src/enemies/skins.js skinOf: { id, palette }
  */
@@ -723,10 +701,8 @@ export function surfaceFor(archetype, skin, name) {
   if (!skin) return null;
   // (numbered parts, a jelly's light0…2, wear their family's: 'light')
   const base = name.replace(/\d+$/, ''), pick = (t) => t?.[name] ?? t?.[base];
-  // (a plate of armour, issue #722: riveted, worn, its own unless the archetype paints it; a tier's parts banded: TIER_SURFACE)
-  // (an archetype with a tier surface of its own, the droids' scorch: that, part by part, instead of the bands)
-  const own = TIER_SURFACES[archetype], tierPaint = !skin.tier ? {} : own ? pick(own) ?? {} : !TIER_BARE.test(base) ? TIER_SURFACE : {};
-  const merged = { ...(base === 'plate' && !pick(T['*']) ? PLATE_SURFACE : {}), ...(pick(T['*']) ?? {}), ...(pick(T[skin.id]) ?? {}), ...tierPaint };
+  // (a plate of armour, issue #722: riveted, worn, its own unless the archetype paints it; a stronger tier the same, #748)
+  const merged = { ...(base === 'plate' && !pick(T['*']) ? PLATE_SURFACE : {}), ...(pick(T['*']) ?? {}), ...(pick(T[skin.id]) ?? {}) };
   const out = {};
   for (const [k, v] of Object.entries(merged)) {
     if (!v) continue;
