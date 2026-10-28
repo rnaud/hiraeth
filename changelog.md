@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.33 — 2026-10-27
 
+- On the AYN Odin 3 handheld, the High setting of the Unity version no longer shows the world on its side: the picture is upright at full resolution, with its ink lines, water and smoothing where they belong.
 - The mummers are the first foes that move like people: they walk, run, squat, lie down and get back up, and wind up their blows with the same motion capture as the traveller, each on its own proportions. Their heads still turn to follow you and their feet still find the slope.
 - Their chief sits with them: the mummer king, a barrel-chested giant with a copper cauldron for a mask, a cart wheel for a crown and a door beam for a club. It blows its horn to wake the whole camp, and when a mummer is near it picks it up and throws it at you; the thrown one lands dazed. Cut down its troupe first.
 - Mummers keep camp in the Desert: little sacks of rags stuffed with ink, a dented coffee pot for a face, playing at being people. They squat round a fire they do not need while one keeps watch, and each carries a club, a spear or a short bow. Guard a club and it flies out of its hands; knock the pot off with a shot to the head or a charged cut and it drops everything and runs, and comes back swinging blind. A pair of them sometimes wanders the dunes too.

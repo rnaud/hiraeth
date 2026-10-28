@@ -1460,6 +1460,10 @@ export const CHANGELOG_MEDIA = {
       { where: 'The Signal Market (4 views)', before: 0.5, after: 0.56 },
     ], note: 'Each view’s fps stayed where it was: 60 in every view but the City-Shaft’s wide one, 43.3 before and 43.6 after (it sits at the 0.5 floor, as before). The GPU’s median ms rose with the pixels (the Desert 9.1 → 13.3) and stays under the 16.7 ms frame.' },
   ] },
+  { match: 'On the AYN Odin 3 handheld, the High setting of the Unity version no longer shows the world on its side', shots: [
+    { name: 'odin-high-desert', size: [1280, 720], caption: 'The desert at full resolution on the Odin 3: before, the world turned a quarter and squeezed under an upright HUD; after, upright', from: 'Actual adb screencaps of the whole screen on the AYN Odin 3 (Adreno 830, 1920 × 1080), muted, its own review store, -render-scale 1 (the High setting’s full resolution), 28 October 2026, scaled to 1280 × 720. Before: the Unity testers’ APK then installed (versionCode 2952, CI-built from 17f3dc782); after: the APK built by CI from this branch (037f2330b, versionCode 2957). The HUD’s frame readout is left in: it was upright before as well.', view: 'The Desert’s bench view spawn (views-desert.json), 8 s after the world loaded.' },
+    { name: 'odin-high-dunes', size: [1280, 720], caption: 'The Glass Dunes at full resolution on the Odin 3: before on its side, after upright with its ink lines, light shafts and holograms in place', from: 'Actual adb screencaps of the whole screen on the AYN Odin 3 (Adreno 830, 1920 × 1080), muted, its own review store, -render-scale 1 (the High setting’s full resolution), 28 October 2026, scaled to 1280 × 720. Before: the Unity testers’ APK then installed (versionCode 2952, CI-built from 17f3dc782); after: the APK built by CI from this branch (037f2330b, versionCode 2957). The HUD’s frame readout is left in: it was upright before as well.', view: 'The Glass Dunes’ bench view start (views-worlds.json), 8 s after the world loaded.' },
+  ] },
   ],
   '2.32': [
   { match: 'In the desert your ship now comes down in front of the pilgrims’ camps', shots: [
