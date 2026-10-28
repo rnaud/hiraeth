@@ -16,7 +16,8 @@ import { humanoidSkeleton, HumanoidDriver } from '../humanoid-rig.js';
 // Draws: every part of a material one skinned mesh on the rig's joints (kit.js skinBy), about eight.
 //
 // What the body says (src/telegraph.js; nothing on the ground):
-//   guard     (f.guardK) the shield brought up square before it, the sword drawn back over its shoulder: blows from the
+//   guard     (f.guardK) the shield brought up square before it, the sword drawn back over its shoulder (#724: by hand,
+//             `swordBack`, over the block's arms), its point at you: blows from the
 //             front ring off; a charged cut throws the shield wide (f.reel 'guardbroken'): arms flung out, open
 //   overhead  the sword raised high over its head in its fist, the shield lowered: answer it with the side hop
 //   sweep     wound round to its right, the sword low behind its hip: answer it with the back flip
@@ -28,7 +29,7 @@ import { humanoidSkeleton, HumanoidDriver } from '../humanoid-rig.js';
 
 const HIP_Y = 0.92, SH = { x: 0.27, y: 1.5 }, NECK = 1.58, UPPER = 0.3, FORE = 0.3;
 const BLADE = 0.95;
-const _q = new THREE.Quaternion();
+const _q = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _dir = new THREE.Vector3(), UPV = new THREE.Vector3(0, 1, 0);
 
 /** A lathe from (r, y) pairs (bottom to top), squashed front to back by `depth`. */
 function lathe(profile, seg = 20, depth = 1) {
@@ -182,12 +183,20 @@ export function fencerModel(skin) {
       // overshoot); thrown wide when it is broken
       guard = THREE.MathUtils.clamp(lagS.update(dt, f.guardK ?? 0), 0, 1.15);
       broke = ease(broke, f.reel === 'guardbroken' && (f.stunned > 0 || f.state === 'recover') ? 1 : 0, f.reel === 'guardbroken' ? 14 : 4, dt);
-      const want = driver.update(f, c, { upper: guard > 0.01 ? { clip: 'ss_block_idle', w: Math.min(1, guard) } : null, pose: broke > 0.01 ? 'flung' : null, poseW: broke });
+      // (its sword drawn back over its right shoulder while it guards, #724: `swordBack`; not in a move of its own)
+      const guarding = guard > 0.01 && f.state !== 'wind' && f.state !== 'strike' && !(f.downT > 0);
+      const want = driver.update(f, c, { upper: guard > 0.01 ? { clip: 'ss_block_idle', w: Math.min(1, guard) } : null, pose: broke > 0.01 ? 'flung' : guarding ? 'swordBack' : null, poseW: broke > 0.01 ? broke : Math.min(1, guard) });
       g.position.y += f.alt;   // (the leap: up in the air over you, Foe.update's arc)
       // the sword: carried forward and up out of its fist; in a move or the guard, as the clip's fist holds the traveller's
       const moving = want.kind === 'wind' || want.kind === 'strike' || want.kind === 'recover';
       grip.rotation.set(1.07, 0, 0.1);
-      driver.gripFrom(grip, 0, Math.max(moving ? driver.moveW : 0, Math.min(1, guard)));
+      driver.gripFrom(grip, 0, moving ? driver.moveW : 0);
+      // (guarding: the point at you over its shoulder, a little up, whatever the fist's twist)
+      if (guarding && broke < 0.5) {
+        hull.getWorldQuaternion(_qa); _qa.multiply(_qb.setFromUnitVectors(UPV, _dir.set(0.12, 0.3, 1).normalize()));
+        grip.parent.getWorldQuaternion(_qc).invert();
+        grip.quaternion.slerp(_qc.multiply(_qa), Math.min(1, guard));
+      }
       // the shield kept upright and facing out before it: its turn in the world the chest's heading, a little out to its
       // left at its side, square in its guard and its bash, flung out to its side when broken
       g.updateMatrixWorld(true);

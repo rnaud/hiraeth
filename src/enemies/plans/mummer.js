@@ -130,9 +130,13 @@ export const MUMMER_MOVES = {
   whack: { clip: 'gs_slash_1', from: 0.2, load: 0.53, cut: 0.62, to: 1.05, lean: -0.18 },
   // the spear jab: the sword's thrust (the dash cut's), the pole drawn back under its arm
   jab: { clip: 'ss_attack_2', from: 0.05, load: 0.45, cut: 0.57, to: 0.95 },
-  // no clip yet (the doc's list): the bow's draw and the rock held high, held by hand
-  volley: { pose: 'bow' },
-  rock: { pose: 'lob' },
+  // the bow's volley: no bow clip in the libraries: the sword-and-shield guard's braced stance for its legs and body, the
+  // arms by hand (`bow`: side-on, the bow arm out at you, the cord drawn back past its pot), loosed in the strike
+  volley: { clip: 'ss_block_idle', from: 0, load: 0.4, cut: 0.5, to: 0.6, pose: 'bow' },
+  // the rock lob: the great sword's jumping overhead (its own hop left out: `ground`), the rock in both hands high over
+  // its pot and leaning back, held, then thrown as it leaves its hands (`release`: the rock flies from 78 % of the
+  // wind-up, src/foes.js animKit lob)
+  rock: { clip: 'gs_jump_attack', from: 0.15, load: 0.85, cut: 1.1, to: 1.45, ground: true, release: 0.78 },
 };
 const MUMMER_SPEEDS = { walk: 0.55, jog: 1.6, sprint: 3.3 };
 
@@ -198,7 +202,7 @@ export function mummerModel(skin) {
   // (the rock it lobs: a stone in its hands, then in the air: Foes.animKit lob)
   // (its stance over the clip's: bow-legged, the knees out, the feet turned flat)
   const style = () => { J.legs[0].rotateZ(-0.16); J.legs[1].rotateZ(0.16); J.knees[0].rotateZ(0.1); J.knees[1].rotateZ(-0.1); J.feet[0].rotateZ(0.06); J.feet[1].rotateZ(-0.06); };
-  const driver = new HumanoidDriver(J, rig, { moves: MUMMER_MOVES, speeds: MUMMER_SPEEDS, style });
+  const driver = new HumanoidDriver(J, rig, { moves: MUMMER_MOVES, speeds: MUMMER_SPEEDS, style, seat: 0.16 });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.9, up: 0.5, down: 0.5 })];
   skinBy(g, [
     { from: [sackB], into: sackM }, { from: [ragB], into: ragM }, { from: [ropeB], into: ropeM }, { from: [brassB], into: brassM },
@@ -275,9 +279,11 @@ export const KING_MOVES = {
   smash: { clip: 'gs_slash_1', from: 0.25, load: 0.53, cut: 0.62, to: 1.05 },
   // the royal swing: the great sword's wide third swing, the whole barrel twisted away
   swing: { clip: 'gs_slash_3', from: 0.1, load: 0.5, cut: 0.86, to: 1.15 },
-  // no clip yet: the horn to the cauldron, and a mummer held high over the crown
-  horn: { pose: 'horn' },
-  throw: { pose: 'throw' },
+  // the horn call: the yelling gesture's chest thrown out (gestures.glb) under the horn raised to its cauldron by hand
+  horn: { clip: 'gesture_yelling', from: 0, load: 0.85, cut: 1.0, to: 1.2, pose: 'horn' },
+  // the throw: the jumping overhead (its hop left out), the mummer held high over its crown in both fists, held, then
+  // hurled as it lets go (`release`: CARRY.fly, src/foes.js)
+  throw: { clip: 'gs_jump_attack', from: 0.15, load: 0.85, cut: 1.1, to: 1.45, ground: true, release: 0.78, lean: -0.1 },
 };
 const KING_SPEEDS = { walk: 1.0, jog: 2.6, sprint: 5 };
 
@@ -350,7 +356,7 @@ export function mummerKingModel(skin) {
   many(beam, [new THREE.BoxGeometry(0.2, 0.04, 0.15).translate(0, 0.9, 0), new THREE.BoxGeometry(0.2, 0.04, 0.15).translate(0, 1.18, 0)], ironB);
   many(beam, [0, 0.1, 0.2].map((y) => new THREE.TorusGeometry(0.11, 0.013, 4, 10).rotateX(Math.PI / 2).translate(0, y, 0)), ropeB);
   const style = () => { J.legs[0].rotateZ(-0.1); J.legs[1].rotateZ(0.1); J.feet[0].rotateZ(0.05); J.feet[1].rotateZ(-0.05); };
-  const driver = new HumanoidDriver(J, rig, { moves: KING_MOVES, speeds: KING_SPEEDS, style });
+  const driver = new HumanoidDriver(J, rig, { moves: KING_MOVES, speeds: KING_SPEEDS, style, seat: 0.3 });
   const gaze = [gazePart(g, H, { mode: 'turn', yaw: 0.6, up: 0.35, down: 0.45 })];
   skinBy(g, [
     { from: [sackB], into: sackM }, { from: [ragB], into: ragM }, { from: [ropeB], into: ropeM }, { from: [brassB], into: brassM },

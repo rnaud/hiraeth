@@ -18,6 +18,12 @@ import { skinWorlds } from '../src/enemies/skins.js';
 import { windMin } from '../src/telegraph.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+import { readFile } from 'node:fs/promises';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { libraryFrom } from '../src/animator.js';
+import { attachMotion } from '../src/motion-match.js';
+import { stateClip, releaseClipTime, releaseReach, HOLD_AT, PROC_POSES, STATE_CLIPS, TURN, setFoeClips } from '../src/enemies/humanoid-rig.js';
+import { MUMMER_MOVES, KING_MOVES } from '../src/enemies/plans/mummer.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -165,4 +171,104 @@ test('the Desert: the mummers\' camp (the blots\' old fire) with its lookout and
   const packs = Array.from({ length: 60 }, (_, n) => packOf(n, 'desert', () => ((n * 0.371) % 1)));
   for (const p of packs) if (p.includes('mummer')) assert.deepEqual(p, ['mummer', 'mummer'], 'a pair of mummers, alone');
   assert.ok(WAVES.some((w) => w.includes('mummer')) && WAVES.some((w) => w.includes('mummerking')), 'the Arena\'s waves');
+});
+
+// (#724, the polish: the moves that had no clip) every move a clip, or a clip with a hand-made pose of the arms over it
+const parse = async (n) => { const b = await readFile(new URL(`../public/anim/${n}`, import.meta.url)); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
+let libP = null;
+const library = () => (libP ??= Promise.all(['ual.glb', 'moves.glb', 'gestures.glb'].map(parse)).then(([u, m, g]) => { const lib = libraryFrom(u); attachMotion(lib, m); attachMotion(lib, g); return lib; }));
+
+test('every mummer move is a shipped clip (a pose of the arms over it at most); the wind-ups pinned; the thrown ones held, then thrown as they let go', async () => {
+  // the mind's timing is the contract: wind-up, strike, contact as before the clips
+  const was = { mummer: { whack: [0.75, 0.3, 0.55], jab: [0.7, 0.2, 0.5], volley: [0.95, 0.2, 0.6], rock: [0.85, undefined, undefined] },
+    mummerking: { smash: [1.1, 0.3, 0.55], swing: [1.1, 0.35, 0.5], horn: [1.2, undefined, undefined], throw: [1.0, undefined, undefined] } };
+  for (const [id, moves] of Object.entries(was)) for (const [a, [wind, strike, contact]] of Object.entries(moves)) {
+    const A = FOES[id].attacks.find((x) => x.id === a);
+    assert.deepEqual([A.wind, A.strike, A.contact], [wind, strike, contact], `${id}.${a}`);
+  }
+  const lib = await library(), clip = (n) => lib.motion.clips.find((c) => c.name === n || c.name === `mixamo_${n}`);
+  for (const [who, MOVES] of [['mummer', MUMMER_MOVES], ['mummerking', KING_MOVES]]) for (const a of FOES[who].attacks) {
+    const m = MOVES[a.id], c = m && clip(m.clip);
+    assert.ok(c, `${who}.${a.id}: a clip (${m?.clip})`);
+    assert.ok(m.from < m.load && m.load < m.cut && m.cut < m.to && m.to <= c.duration + 1e-6, `${who}.${a.id}: from < load < cut < to`);
+    if (m.pose) assert.ok(PROC_POSES[m.pose], `${who}.${a.id}: ${m.pose}`);
+    // (thrown: its thing flies from the mind's own share, CARRY.fly for the mummer, the rock's lob from the same)
+    if (a.lob && a.instant) assert.equal(m.release ?? CARRY.fly, CARRY.fly, `${who}.${a.id}: let go as it flies`);
+  }
+  for (const n of [STATE_CLIPS.down.fall.clip, STATE_CLIPS.sit.clip, STATE_CLIPS.sleep.clip, ...TURN.clips.map(([, n]) => n)]) assert.ok(clip(n), n);
+  // a thrown move: loaded by releaseReach and held to the release (the telegraph), then thrown, never back
+  for (const M of [MUMMER_MOVES.rock, KING_MOVES.throw]) {
+    const r = releaseReach(M);
+    assert.ok(r <= HOLD_AT && M.release - r >= 0.15, `held ${(M.release - r).toFixed(2)} of the wind-up before it lets go`);
+    assert.ok(Math.abs(releaseClipTime(r, M) - M.load) < 1e-9 && releaseClipTime(M.release - 1e-6, M) === M.load, 'loaded, held');
+    for (let k = 0.01; k <= 1; k += 0.01) assert.ok(releaseClipTime(k, M) >= releaseClipTime(k - 0.01, M) - 1e-12, 'never back');
+    assert.ok(Math.abs(releaseClipTime(1, M) - M.to) < 1e-9, 'thrown through by the end of the wind-up');
+    const s = stateClip({ state: 'wind', k: 0.9, atk: { id: M === KING_MOVES.throw ? 'throw' : 'rock' } }, M === KING_MOVES.throw ? KING_MOVES : MUMMER_MOVES);
+    assert.ok(s.thrown > 0 && s.t > M.load, 'thrown');
+  }
+});
+
+test('with the clips: the volley side-on, the rock and the mummer held high then thrown, the horn to the mask; sitting, asleep, falling, turning on the spot', async () => {
+  setFoeClips(await library());
+  const { foes, P, done } = camp({ dead: true, frame: { up: v(0, 1, 0) } });
+  P.pos.set(0, 0, -6);
+  const W = (f, j) => { f.model.group.updateMatrixWorld(true); return j.getWorldPosition(v()); };
+  const run = (f, n, set) => { for (let i = 0; i < n; i++) { set?.(i); foes.look(f, DT); } };
+  for (const kind of ['mummer', 'mummerking']) {
+    const f = foes.add(kind, v()); f.provoked = true; f.heading = 0; f.state = 'chase';
+    const J = f.model.joints, H = f.def.height;
+    run(f, 40);
+    const stand = { torso: W(f, J.torso).y, head: W(f, J.head).y };
+    const wind = (id, k) => { run(f, 14, () => { f.state = 'wind'; f.atk = f.def.attacks.find((x) => x.id === id); f.k = k; f.weapon = f.atk.weapon ?? f.weapon; f.disarmed = null; }); return [W(f, J.hands[0]), W(f, J.hands[1])]; };
+    const rest = () => { f.state = 'chase'; f.atk = null; run(f, 30); };
+    if (kind === 'mummer') {
+      const [r, l] = wind('volley', HOLD_AT), [r2, l2] = wind('volley', 0.97);
+      assert.ok(l.z > 0.25 * H && r.z < l.z - 0.3 * H, `the volley: the bow hand out at you, the cord hand drawn back (${l.z.toFixed(2)}, ${r.z.toFixed(2)} m)`);
+      assert.ok(Math.abs(r.y - stand.head) < 0.15 * H, `the cord drawn to its pot (${r.y.toFixed(2)} m)`);
+      assert.ok(l.distanceTo(l2) < 0.12 * H && r.distanceTo(r2) < 0.12 * H, 'held to the end');
+      rest();
+    }
+    const id = kind === 'mummer' ? 'rock' : 'throw', M = (kind === 'mummer' ? MUMMER_MOVES : KING_MOVES)[id];
+    const held = wind(id, releaseReach(M)), late = wind(id, M.release - 0.01), thrown = wind(id, 0.97);
+    const top = (h) => Math.min(h[0].y, h[1].y);
+    assert.ok(top(held) > stand.head, `${id}: both hands high over its head (${top(held).toFixed(2)} m, the head ${stand.head.toFixed(2)} m)`);
+    assert.ok(held[0].distanceTo(late[0]) < 0.05 * H, `${id}: held until it lets go`);
+    assert.ok(top(thrown) < top(held) - 0.3 * H && thrown[0].z > held[0].z + 0.2 * H, `${id}: thrown, its hands down and out before it`);
+    rest();
+    if (kind === 'mummerking') {
+      const [r, l] = wind('horn', 0.9);
+      assert.ok(r.y > stand.head && l.y > stand.head && r.z > 0.2 * H, 'the horn raised to its cauldron in both hands');
+      rest();
+    }
+    // sitting round the fire: on its seat, its feet on the ground before it; asleep on its back, breathing
+    run(f, 60, () => { f.provoked = false; f.state = 'idle'; f.idle = { mode: 'sit' }; });
+    const feet = J.feet.map((x) => W(f, x));
+    assert.ok(W(f, J.torso).y < stand.torso * 0.5, `sitting: its hips down (${W(f, J.torso).y.toFixed(2)} m)`);
+    assert.ok(feet.every((x) => x.y < 0.06 * H && x.z > 0.1 * H), 'its feet on the ground before it');
+    run(f, 60, () => { f.idle = { mode: 'sleep' }; });
+    const chest = [];
+    run(f, 60, (i) => { if (i % 10 === 0) chest.push(J.torso.quaternion.clone()); });
+    assert.ok(W(f, J.head).y < 0.2 * H, 'asleep, lying');
+    assert.ok(Math.max(...chest.map((q) => q.angleTo(chest[0]))) > 0.02, 'breathing');
+    f.provoked = true; f.idle = null; f.state = 'chase'; run(f, 40);
+    // knocked down from its feet: it falls over backwards (no pop), lies
+    const fall = [];
+    f.state = 'recover'; f.downT = 1.6;
+    run(f, 36, () => { f.downT -= DT; fall.push(W(f, J.head).y); });
+    assert.ok(fall[0] > stand.head * 0.9, 'the first frame still on its feet');
+    assert.ok(fall[Math.round(STATE_CLIPS.down.fall.secs * 60 * 0.5)] < stand.head && fall[Math.round(STATE_CLIPS.down.fall.secs * 60 * 0.5)] > stand.head * 0.6, 'half way through the fall: going over');
+    for (let i = 1; i < fall.length; i++) assert.ok(fall[i] - fall[i - 1] < 0.08 * H && fall[i - 1] - fall[i] < 0.3 * H, `no pop (frame ${i}: ${fall[i - 1].toFixed(2)} → ${fall[i].toFixed(2)})`);
+    assert.ok(fall.at(-1) < 0.2 * H, 'lying');
+    f.downT = 0; f.state = 'chase'; run(f, 60);
+    // turned round on the spot (the mind's heading set at once): the body follows at TURN.rate on the traveller's turn
+    const R = f.model.group.getObjectByName('rig'), turns = [];
+    f.heading = 1.6;
+    for (let i = 0; i < 50; i++) { foes.look(f, DT); turns.push(R.rotation.y); }
+    assert.equal(f.model.driver.turn?.clip, 'left_turn_90', 'a quarter turn to its left');
+    assert.ok(turns[0] < -1.4, 'the body still facing where it was');
+    for (let i = 1; i < turns.length; i++) assert.ok(turns[i] - turns[i - 1] <= TURN.rate * DT + 1e-6, 'never faster than TURN.rate');
+    assert.ok(Math.abs(turns.at(-1)) < 0.01, 'and round');
+    foes.remove(f);
+  }
+  done();
 });

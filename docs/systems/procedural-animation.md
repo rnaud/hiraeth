@@ -811,8 +811,10 @@ skeleton and mixer), the clips shared (one `AnimationClip` each, parsed once): `
 | stunned (a stagger, a parry) | `ss_impact_1` |
 | down (#722 poise broken) | `get_up_back`: lying, then the get-up over its last 0.9 s |
 | pickup (its weapon) | `kneeling_inspecting` |
-| sit / sleep / lookout / guard (a site) | `kneeling_inspecting` back and forth (squatting by the fire) / `get_up_back` held on its back / the library's look round / idle |
-| a move no clip has (`{ pose }`) | the idle, the arms held by hand: `PROC_POSES` bow (drawn, sideways), lob (a rock over its head), horn (to the mask), throw (a mummer over its crown), point, clutch (its face, unmasked) |
+| sit / sleep / lookout / guard (a site) | sitting on the ground (`seat`: below) with `kneeling_inspecting`'s arms poking at the fire / `get_up_back` held on its back, hands folded (`rest`) and breathing / the library's look round / idle |
+| knocked down from its feet | the fall: `ss_impact_1` run over `down.fall.secs` (0.3 s) tipped over backwards about its heels, crossfaded into lying |
+| turning on the spot (standing) | `left_turn_45` / `_90` / `_180` (mirrored for the right) by the share turned (`TURN`, below) |
+| a move with a hand-made pose (`{ clip, pose }`) | the clip's body, the arms by hand: `PROC_POSES` bow, horn, bash, shieldDown, shieldUp, thrust, swordGuard, swordBack, rest, flung; `point`, `clutch` (its face, unmasked) over anything |
 
 The mind's timing is never touched: the rig reads the foe's clock (`f.k`, `f.timer`, `f.downT`). Moves blend in over
 `BLEND.in` 0.12 s and out over 0.22 s. On top: the head turns to the traveller (src/enemies/gaze.js, after the pose); on
@@ -823,10 +825,45 @@ out of the thumb side) in a move, carried its own way otherwise; the model's own
 legs). Far off it is made every 2nd (past `RIG_LOD.mid` 22 m) or 4th frame (past 40 m). With no clips (node, a page
 without the library) a stance and a walk by hand (`fallbackPose`).
 
-**Clips still missing** (held procedurally for now): a bow's draw and release, a throw (the rock, the mummer), a horn
-blown, sitting on the ground (the kneel stands in), sleeping (the get-up's first frame), a fall onto the back (it drops
-into the lying frame), turning on the spot, a two-handed overhead hop for the whack (the jump attack leaned the whole
-body back; the charged cut's overhead is used, the hop is the mind's lunge).
+**The mummers' last moves** (v2.34, issue #724 polish; tests/mummers.test.js). The full Quaternius Universal Animation
+Library is not on this machine (only the shipped `ual.glb` subset), so each is a shipped clip, or one with a hand-made
+pose of the arms over it:
+
+| move | clip | by hand |
+|---|---|---|
+| mummer: bow volley (0.95 s) | `ss_block_idle`'s braced stance | `bow`: the chest turned 0.75 rad side-on (`turn`), the bow arm out at you, the cord hand drawn back past the pot; loosed in the strike |
+| mummer: rock lob (0.85 s) | `gs_jump_attack` 0.15 → 0.85 (both hands high over the pot, leaning back), its hop left out (`ground`) | none; thrown from `release` 0.78 (when the rock leaves: animKit `lob`) |
+| king: horn call (1.2 s) | `gesture_yelling` (gestures.glb: the chest thrown out) | `horn`: both hands raising the horn to the cauldron |
+| king: throw (1.0 s) | `gs_jump_attack`, as the rock, the mummer held over its crown | `lean` −0.1; thrown from `release` = CARRY.fly 0.78 |
+| sit | `kneeling_inspecting`'s arms | `seat`: the body down to the model's seat height, legs drawn up by IK |
+| sleep | `get_up_back` lying | `rest` (hands folded on the belly), `breathe` |
+| fall | `ss_impact_1` | tipped back about the heels (`down.fall.tip` −1.35 rad) |
+| turn on the spot | `left_turn_45/90/180` (`_m`) | the shown heading's lag (`TURN`) |
+
+New in the rig for them:
+
+- **`release`** (a thrown move: the thing flies during the wind-up itself): the clip's anticipation reaches its loaded pose
+  by `releaseReach` (HOLD_AT, or `RELEASE.hold` 0.18 of the wind-up before it lets go, whichever is first) and holds it
+  there (the telegraph), then `releaseClipTime` throws: load → cut over `RELEASE.cut` (45 %) of what is left of the
+  wind-up, the follow-through over the rest. Before, the arms stayed up while the rock and the mummer flew.
+- **`turn` in a pose** (rad about the chest's y; `strike.turn` its own in the strike): a chest turned under the arms, side-on
+  for the bow, the shield shoulder drawn back for the fencer's bash.
+- **Turning on the spot** (`HumanoidDriver.turnInPlace`, `TURN`): the mind sets its heading at once; standing, the body
+  shows it turned toward it at most `TURN.rate` 5.5 rad/s (the rig turned about its feet against the root), and a turn of
+  over 0.6 rad plays the traveller's own turn clip by the share turned (its yaw is kept out of the hips: moveShape), so its
+  feet step round. Moving, in a move or lying, the shown heading catches up within `TURN.snap` 0.06 s.
+- **`seatPose`** (a state's `seat`; the model's `seat`, its hips' height sitting: the mummer 0.16 m, the king 0.3): the
+  body set down and kept upright, each leg reached by two-bone IK to a foot flat on the ground before it, knees up and out;
+  the clip's arms kept.
+- **The fall** (`down.fall`, `o.downFor`: s since it went down): the first 0.3 s of a knock-down are the impact's stagger
+  back tipped over its heels, then crossfaded (XFADE.secs) into the lying frame; total under the old 0.4 s crossfade + a beat.
+
+Still not captured: a real bow draw, a horn blown, an overhand rock throw, sitting and sleeping clips; a two-handed hop
+for the whack (the charged cut's overhead is used, the hop is the mind's lunge).
+
+Cost (`Foes.look` whole, node on this Mac, median of 600 frames, two runs each; scratch `cost.mjs`): unchanged within
+noise walking, winding up and throwing (mummer 0.029 / 0.037 / 0.033 ms, king 0.024 / 0.030 / 0.028); sitting +0.008 ms
+(the seat's IK: mummer 0.024 → 0.032, king 0.019 → 0.025); turning 0.024 / 0.019 ms.
 
 **Cost** (one Animator a foe): the rig's own update 0.02-0.06 ms a foe in node and in Unity's V8 (its `cost`, the log of
 `-fight mummers`); a pack of 8 mummers in the Arena on this Mac (Chrome, High) 0.3 ms a frame all eight together, median
@@ -842,8 +879,8 @@ body back; the charged cut's overhead is used, the hop is the mind's lunge).
 | recut / sweep | `ss_slash_3` (the backhand) 0.2 → 0.55 → 0.82 → 1.05 | `gs_slide_attack` 0.7 → 0.95 (sunk low, the sword behind its right hip) → 1.25 → 1.45, the shield up (`shieldUp`) |
 | feint | `feintClip`: `ss_slash_1` run only to 0.3 (`half`: never loaded) over 80 % of the feint's share, held, then crossfaded to `ss_block_idle`'s crouch with the sword at its hip (`thrust` arms), loaded by 75 %; the thrust is the pose's strike, straight out; the hood tilts as the cut stops | |
 | leap | | `ss_attack_1` 0.1 → 0.4 (crouched) → 1.27 (the landing) → 1.5, its own rise left out (`ground`: the mind's arc lifts it) |
-| bash, shove | | `ss_block_1` with the shield drawn back to its shoulder and punched out (`bash`) |
-| guard (f.guardK) | `ss_block_idle` above the legs (`upper`) and the sword across its body (`swordGuard`) | `ss_block_idle` above the legs on the shield's servo, the sword held as the clip's fist holds it |
+| bash, shove | | `ss_block_1` with the shield drawn right back behind its shoulder, the chest turned away 0.9 rad, and punched out as the chest turns back through (`bash`) |
+| guard (f.guardK) | `ss_block_idle` above the legs (`upper`) and the sword across its body (`swordGuard`: since #724's polish the empty sleeve's cuff at its chest, under the hood; shown whatever its last attack) | `ss_block_idle` above the legs on the shield's servo, the sword drawn back over its right shoulder by hand (`swordBack`), its point turned at you |
 | guard broken | (stagger) | the stagger with both arms flung wide (`flung`) |
 | step | none: its own sink into its pool | |
 

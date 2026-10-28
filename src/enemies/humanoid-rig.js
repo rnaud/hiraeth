@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Animator } from '../animator.js';
 import { twoBone } from '../motion-kit/ik.js';
 import { SecondOrder } from '../motion-kit/spring.js';
+import { moveShape } from '../loco-moves.js';
 
 // The humanoid foe rig (issue #724, docs/design/enemy-roster-v3.md; docs/systems/procedural-animation.md, "The humanoid
 // foe rig"): one skeleton every humanoid foe shares, moved by the clips the traveller and the people use. The same
@@ -45,6 +46,19 @@ export const PLANT = { reach: 0.35 };
  * strafe into a wind-up): the joints crossfaded from the pose shown over `secs` (`fall` into lying down: the fall itself).
  */
 export const XFADE = { secs: 0.18, fall: 0.4 };
+/**
+ * A thrown move (`release`: the rock lob, the king's throw, whose thing flies off during the wind-up itself, from
+ * `release` of it): loaded by `release - hold` of the wind-up at the latest (the held telegraph), then the throw's clip
+ * runs load → cut over the first `cut` share of what is left and its follow-through over the rest (releaseClipTime).
+ */
+export const RELEASE = { hold: 0.18, cut: 0.45 };
+/**
+ * Turning on the spot (issue #724): standing (under `maxSpeed` m/s) the body shows its heading turned toward the mind's
+ * at no more than `rate` rad/s, and a turn of over `from` rad plays the traveller's own turn on the spot (left_turn_45,
+ * _90, _180, mirrored for the right) by the share turned, its feet stepping round; moving, in a move or lying, the shown
+ * heading catches the mind's within `snap` s.
+ */
+export const TURN = { rate: 5.5, from: 0.6, maxSpeed: 0.6, snap: 0.06, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], blendIn: 0.1, blendOut: 0.2, minRate: 0.8, maxRate: 3.2 };
 /** Distance tiers: past `mid` m the pose is made every 2nd frame, past `far` every 4th (the time between kept). */
 export const RIG_LOD = { mid: 22, far: 40 };
 
@@ -93,13 +107,18 @@ export function humanoidSkeleton(parent, D) {
 export const STATE_CLIPS = {
   idle: { loop: 'idle' },
   // (the sites, src/encounters/idle.js: squatting round the fire, asleep on its back, a lookout looking round)
-  sit: { clip: 'kneeling_inspecting', from: 1.1, to: 3.9, pingpong: true },
-  sleep: { clip: 'get_up_back', at: 0.6 },
+  // (sitting on the ground: no sitting clip; the kneel's arms poking at the fire, the body set down on its seat and the
+  // legs drawn up by hand: seatPose)
+  sit: { clip: 'kneeling_inspecting', from: 1.1, to: 3.9, pingpong: true, seat: true },
+  // (asleep: the get-up's lying frame, its hands folded on its belly and its chest rising and falling)
+  sleep: { clip: 'get_up_back', at: 0.6, pose: 'rest', breathe: true },
   lookout: { loop: 'look' },
   guard: { loop: 'idle' },
   // (struck: the sword-and-shield impact; the poise knock-down: lying on its back, then the get-up)
   stagger: { clip: 'ss_impact_1', from: 0.0, to: 0.7 },
-  down: { clip: 'get_up_back', at: 0.6, rise: { from: 2.65, to: 5.55, secs: 0.9 } },
+  // (the fall: the impact's stagger back run over `fall.secs`, the body tipped over backwards about its heels by `tip`,
+  // then crossfaded into the lying frame)
+  down: { clip: 'get_up_back', at: 0.6, rise: { from: 2.65, to: 5.55, secs: 0.9 }, fall: { clip: 'ss_impact_1', from: 0, to: 0.7, secs: 0.3, tip: -1.35 } },
   pickup: { clip: 'kneeling_inspecting', from: 0.3, to: 1.6 },
   // (circling you while it waits its turn: the sword-and-shield strafe, mirrored the other way)
   strafe: { clip: 'ss_strafe_1' },
@@ -116,9 +135,14 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
   const S = states;
   const at = (M, t, kind) => ({ clip: M.clip, t, kind });
   const a = f.atk, M = a ? moves[a.id] : null;
-  // the poise knock-down (#722): lying, then the get-up over its last `rise.secs`
+  // the poise knock-down (#722): falling over (its first `fall.secs`, o.downFor: s since it went down), lying, then the
+  // get-up over its last `rise.secs`
   if (f.downT > 0) {
-    const D = S.down, left = f.downT;
+    const D = S.down, left = f.downT, F = D.fall;
+    if (F && o.downFor != null && o.downFor < F.secs && left > (D.rise?.secs ?? 0)) {
+      const u = clamp01(o.downFor / F.secs);
+      return { clip: F.clip, t: F.from + (F.to - F.from) * u, kind: 'fall', fall: u, tip: F.tip };
+    }
     if (D.rise && left < D.rise.secs) return at(D, D.rise.from + (D.rise.to - D.rise.from) * (1 - left / D.rise.secs), 'down');
     return at(D, D.at, 'down');
   }
@@ -127,6 +151,14 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
   // an attack: the wind-up stretched to the foe's own time, the loaded pose held from HOLD_AT; the strike through the cut
   if (a && M && (f.state === 'wind' || f.state === 'strike' || f.state === 'recover')) {
     if (M.feint && a.feint != null) return feintClip(f, M, a.feint);
+    if (M.release != null && M.clip) {
+      // (a throw: loaded and held, then thrown in the wind-up's last share as its rock or its mummer flies)
+      const k = f.k ?? 0, reach = releaseReach(M);
+      const t = f.state === 'wind' ? releaseClipTime(k, M) : M.to;
+      const out = { ...at(M, t, f.state === 'wind' ? 'wind' : 'recover'), load: f.state === 'wind' ? clamp01(k / reach) : 1, lean: M.lean ?? 0, ground: !!M.ground, thrown: f.state === 'wind' ? clamp01((k - M.release) / (1 - M.release)) : 1 };
+      if (M.pose) Object.assign(out, { pose: M.pose, phase: f.state === 'wind' && k >= M.release ? 'strike' : f.state, k: f.state === 'wind' && k >= M.release ? out.thrown : f.state === 'wind' ? k : 0 });
+      return out;
+    }
     if (M.pose && M.clip) {
       // (a clip for the body with a procedural pose of the arms over it: the fencer's shield drawn back for its bash)
       const load = f.state === 'wind' ? clamp01((f.k ?? 0) / HOLD_AT) : 1;
@@ -145,8 +177,9 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
   if (!f.provoked && f.state === 'idle' && mode && S[mode]) {
     const I = S[mode];
     if (!I.clip) return { loop: I.loop };
-    if (I.at != null) return at(I, I.at, mode);
-    return at(I, pingpong(o.t ?? 0, I.from, I.to), mode);
+    const extra = { ...(I.seat ? { seat: true } : null), ...(I.pose ? { pose: I.pose } : null), ...(I.breathe ? { breathe: true } : null) };
+    if (I.at != null) return { ...at(I, I.at, mode), ...extra };
+    return { ...at(I, pingpong(o.t ?? 0, I.from, I.to), mode), ...extra };
   }
   if (Math.abs(o.strafe ?? 0) > 0.6 && S.strafe) return { clip: S.strafe.clip + (o.strafe < 0 ? '_m' : ''), t: o.strafeT ?? 0, kind: 'strafe' };
   return { loop: 'move' };
@@ -185,6 +218,18 @@ export function windClipTime(k, M) {
   const u = clamp01(k / HOLD_AT), e = 1 - (1 - u) * (1 - u);
   return M.from + (M.load - M.from) * e;
 }
+/** The share of the wind-up a thrown move (M.release) is loaded by: HOLD_AT, or earlier to hold it `RELEASE.hold` before it lets go. */
+export function releaseReach(M) { return Math.max(0.2, Math.min(HOLD_AT, M.release - RELEASE.hold)); }
+/**
+ * The clip's time through a thrown move's wind-up (k 0..1): its anticipation to the loaded pose by releaseReach and held,
+ * then from `release` the throw: load → cut over RELEASE.cut of what is left of the wind-up, the follow-through to `to`.
+ */
+export function releaseClipTime(k, M) {
+  const r = M.release;
+  if (k < r) return windClipTime(Math.min(1, k / releaseReach(M)) * HOLD_AT, M);
+  const u = clamp01((k - r) / Math.max(1e-3, 1 - r)), c = RELEASE.cut;
+  return u < c ? M.load + (M.cut - M.load) * smooth(u / c) : M.cut + (M.to - M.cut) * clamp01((u - c) / (1 - c));
+}
 /** The clip's time through a strike (k 0..1): the loaded pose to the cut at the attack's contact share, then the follow-through to `to`. */
 export function strikeClipTime(k, M, contact = 0.5) {
   const c = Math.min(0.95, Math.max(0.05, contact));
@@ -196,11 +241,14 @@ export function strikeClipTime(k, M, contact = 0.5) {
 /**
  * Arms aimed by hand where no clip has the move: for each side (r, l), the upper arm's and the forearm's directions in
  * the torso's frame (x the foe's left, y up, z ahead), at the loaded pose. Blended over the clip's arms by the move's
- * weight, from the loop's arms toward the loaded pose as the wind-up goes, and back through the strike.
+ * weight, from the loop's arms toward the loaded pose as the wind-up goes, and back through the strike. `lean` (rad about
+ * the hips' x, negative back) and `turn` (rad about the chest's y, positive: its left shoulder drawn back) lay a turn of
+ * the chest under the arms; `strike` may give its own arms and `turn`.
  */
 export const PROC_POSES = {
-  // a bow held sideways before it, the cord drawn back to the mask
-  bow: { l: [[0.15, 0.25, 1], [0.1, 0.3, 1]], r: [[-0.3, 0.35, 0.5], [0.6, 0.55, -0.4]], strike: { r: [[-0.4, 0.1, 0.6], [-0.2, -0.3, 0.9]] } },
+  // (the mummer's volley, #724) side-on to you, its left shoulder at you (the chest turned 0.75 rad to its right): the bow
+  // arm straight out at you, the cord hand drawn back past its pot, the elbow high; loosed, the hand flies back open
+  bow: { turn: -0.75, l: [[0.66, 0.16, 0.74], [0.68, 0.12, 0.72]], r: [[-0.62, 0.32, -0.72], [0.72, 0.18, 0.66]], strike: { turn: -0.7, r: [[-0.75, 0.15, -0.65], [-0.55, -0.35, -0.75]] } },
   // a rock dug up and held high over the mask in both hands, leaning back
   lob: { l: [[0.25, 1, -0.15], [-0.4, 0.8, -0.2]], r: [[-0.25, 1, -0.15], [0.4, 0.8, -0.2]], lean: -0.25, strike: { l: [[0.2, 0.3, 1], [0.1, 0, 1]], r: [[-0.2, 0.3, 1], [-0.1, 0, 1]] } },
   // a horn raised to the mask in both hands, its bell up
@@ -212,14 +260,21 @@ export const PROC_POSES = {
   // (the shade's feint, #724) the sword dropped to its hip, drawn back low, the empty sleeve back; then the thrust, low
   // and straight, the arm out at you
   thrust: { r: [[-0.2, -0.9, -0.35], [0.05, -0.6, 0.8]], l: [[0.25, -0.9, -0.35], [0.15, -0.9, 0.3]], strike: { r: [[-0.05, -0.05, 1], [0, -0.05, 1]] } },
-  // (the fencer's, #724) its shield drawn back to its shoulder, then punched out before it
-  bash: { l: [[0.55, -0.35, -0.55], [-0.35, 0.45, 0.8]], strike: { l: [[0.2, -0.05, 1], [0.05, 0.1, 1]] } },
+  // (the fencer's, #724) its shield shoulder drawn right back, the chest turned away with it and the shield cocked behind
+  // its hip, then punched out before it as the chest turns back through
+  bash: { turn: 0.9, l: [[0.35, -0.45, -0.82], [0.25, 0.35, -0.9]], strike: { turn: -0.3, l: [[0.15, -0.05, 1], [0.0, 0.1, 1]] } },
   // its shield lowered before its hip while its sword goes up in both the clip's hands (the overhead)
   shieldDown: { l: [[0.3, -0.95, 0.3], [0.05, -0.55, 0.85]] },
   // its shield held square before it (the sweep's other hand)
   shieldUp: { l: [[0.35, -0.3, 0.9], [-0.5, 0.5, 0.7]] },
   // (the shade's guard, #661) its sword arm across its body, the blade up to its left; the empty sleeve's cuff against it
-  swordGuard: { r: [[-0.2, -0.55, 0.8], [0.85, 0.4, 0.35]], l: [[0.3, -0.45, 0.85], [-0.55, 0.5, 0.65]] },
+  // at its chest, under the hood (#724: it covered the hood)
+  swordGuard: { r: [[-0.2, -0.55, 0.8], [0.85, 0.4, 0.35]], l: [[0.35, -0.7, 0.62], [-0.6, -0.05, 0.8]] },
+  // (the fencer's guard, #724) its sword drawn back over its right shoulder, the fist by its ear, the point at you over the
+  // shield (the shield arm is the sword-and-shield block's)
+  swordBack: { r: [[-0.55, -0.35, -0.55], [0.15, 0.95, 0.25]] },
+  // (asleep on its back) its hands folded on its belly
+  rest: { r: [[-0.3, -0.85, 0.4], [0.8, -0.15, 0.55]], l: [[0.3, -0.85, 0.4], [-0.8, -0.15, 0.55]] },
   // its guard broken: both arms flung wide, the shield out to its side
   flung: { r: [[-0.95, 0.15, 0.1], [-0.9, 0.45, 0.2]], l: [[0.95, 0.15, 0.1], [0.9, 0.45, 0.2]] },
   // hands clutching its face (the mask knocked off)
@@ -229,6 +284,7 @@ export const PROC_POSES = {
 // ------------------------------------------------------------------ the driver
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _h = new THREE.Vector3(), _k = new THREE.Vector3();
+const _m4q = new THREE.Quaternion();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3();
 let seed = 0;
 
@@ -239,8 +295,10 @@ let seed = 0;
  * touches over the clip's pose each time it is made (a bow-legged stance).
  */
 export class HumanoidDriver {
-  constructor(J, rig, { moves = {}, states = {}, speeds = { walk: 0.9, jog: 2.4, sprint: 4.5 }, style = null } = {}) {
-    Object.assign(this, { J, rig, moves, states: { ...STATE_CLIPS, ...states }, speeds, style });
+  constructor(J, rig, { moves = {}, states = {}, speeds = { walk: 0.9, jog: 2.4, sprint: 4.5 }, style = null, seat = null } = {}) {
+    // (seat: the hips' height over the ground sitting on it, m: its sack or its barrel on the sand)
+    Object.assign(this, { J, rig, moves, states: { ...STATE_CLIPS, ...states }, speeds, style, seat: seat ?? J.D.hip * 0.3 });
+    this.shownH = null; this.turn = null; this.downFor = null; this.seatW = 0;
     this.A = null; this.lib = null;
     this.prev = null; this.speed = 0; this.side = 0; this.walked = 0; this.t = (seed++ * 0.731) % 7;
     this.moveW = 0; this.last = null; this.procW = 0; this.proc = null;
@@ -289,13 +347,17 @@ export class HumanoidDriver {
     if (every > 1 && ++this.frame % every && this.drawnOnce) return this.chosen;
     const step = this.acc; this.acc = 0;
     const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
-    const want = stateClip(f, this.moves, { strafe: this.side, strafeT: this.walked * 0.9, t: this.t }, this.states);
+    // (how long it has been going down: its fall first)
+    this.downFor = f.downT > 0 ? (this.downFor == null ? 0 : this.downFor + step) : null;
+    const want = stateClip(f, this.moves, { strafe: this.side, strafeT: this.walked * 0.9, t: this.t, downFor: this.downFor }, this.states);
     this.chosen = want;
     const A = this.animator();
+    this.turnInPlace(f, want, step, A);
     if (A) this.clipPose(A, f, want, step, o);
     else fallbackPose(this.J, f, want, this.walked, this.t);
     this.crossfade(want, step);
     this.style?.(this.J, want);   // (the body's own stance over the clip's: a bow-legged mummer)
+    this.seatPose(want, step);
     this.procPose(want, o, step);
     this.plant(f);
     this.drawnOnce = true;
@@ -315,10 +377,13 @@ export class HumanoidDriver {
     // missing: Animator.moveClip keeps what it found by name)
     if (M && this.moveW > 0.001 && !A.moveClip(M.clip)) this.lib._moveBy?.delete(M.clip);
     else if (M && this.moveW > 0.001) {
-      const full = M.kind === 'down' || M.kind === 'sleep' || M.kind === 'sit' || M.kind === 'pickup';
+      const full = M.kind === 'down' || M.kind === 'fall' || M.kind === 'sleep' || M.kind === 'sit' || M.kind === 'pickup';
       // (an attack's own hop and lean are its; a strafe keeps the gait's feet: it walks sideways)
       A.play(M.clip, M.t, smooth(this.moveW), { full, head: true, walks: M.kind === 'strafe', ground: !!M.ground });
     }
+    // turning on the spot: the traveller's own turn, its feet stepping round (none while a move plays)
+    const T = this.turn;
+    if (T && T.w > 0.001 && this.moveW < 0.5) A.play(T.clip, T.t, smooth(T.w) * (1 - this.moveW), { full: false, head: true });
     // a move above the legs over it all (the fencer's shield up: the sword-and-shield guard), its own clock
     const U = o.upper;
     if (U && U.w > 0.001) A.playUpper(U.clip, (this.t * (U.rate ?? 1)) % (A.moveClip(U.clip)?.duration || 1), Math.min(1, U.w));
@@ -345,7 +410,17 @@ export class HumanoidDriver {
     // a move's own lean over the clip's (M.lean, rad: back on its heels for the mummer's whack), into the strike and out
     if (want.lean) J.torso.rotateX(want.lean * (want.kind === 'wind' ? smooth(want.load) : 1 - smooth((f.k ?? 0) * 2.5)) * this.moveW);
     // the telegraph's push: held in its loaded pose, it leans further into it as the wind-up runs out
-    if (want.kind === 'wind' && want.load >= 1) J.torso.rotateX(-0.12 * smooth(((f.k ?? 0) - HOLD_AT) / (1 - HOLD_AT)));
+    if (want.kind === 'wind' && want.load >= 1 && !(want.thrown > 0)) J.torso.rotateX(-0.12 * smooth(((f.k ?? 0) - HOLD_AT) / (1 - HOLD_AT)));
+    // the fall: the stagger back tipped over about its heels, onto its back
+    if (want.kind === 'fall') {
+      const k = smooth(want.fall), back = -0.12 * J.D.hip;
+      _a.set(0, 0, back); _q.setFromAxisAngle(_x.set(1, 0, 0), want.tip * k * k);
+      B.sub(_a).applyQuaternion(_q).add(_a);
+      J.body.quaternion.premultiply(_q);
+      B.y = Math.max(B.y, -J.D.hip * 0.8);
+    }
+    // asleep: its chest rising and falling, slow
+    if (want.breathe) { const b = Math.sin(this.t * 1.7); J.torso.rotateX(0.05 * b); J.head.rotateX(-0.04 * b); }
   }
 
   /** The joints of one move eased over from the last pose of another (XFADE), the clip's pose kept to start the next. */
@@ -353,9 +428,10 @@ export class HumanoidDriver {
     const J = this.J, js = this._joints ??= [J.body, J.torso, J.head, ...J.arms, ...J.elbows, ...J.hands, ...J.legs, ...J.knees, ...J.feet];
     const clip = want.clip ?? null;
     if (clip && this.shownClip && clip !== this.shownClip && this.moveW > 0.5 && this.shown) {
-      this.xf = { q: this.shown.q.map((q) => q.clone()), p: this.shown.p.clone(), t: 0, secs: want.kind === 'down' ? XFADE.fall : XFADE.secs };
+      this.xf = { q: this.shown.q.map((q) => q.clone()), p: this.shown.p.clone(), t: 0, secs: want.kind === 'down' && this.shownKind !== 'fall' ? XFADE.fall : XFADE.secs };
     }
     this.shownClip = clip ?? (this.moveW > 0.001 ? this.shownClip : null);
+    this.shownKind = want.kind ?? null;
     if (this.xf) {
       const X = this.xf; X.t += dt;
       const k = smooth(X.t / X.secs);
@@ -365,6 +441,76 @@ export class HumanoidDriver {
     }
     const S = this.shown ??= { q: js.map(() => new THREE.Quaternion()), p: new THREE.Vector3() };
     js.forEach((j, i) => S.q[i].copy(j.quaternion)); S.p.copy(J.body.position);
+  }
+
+  /**
+   * Turning on the spot (TURN): the body's shown heading (the rig turned about its feet against the mind's heading) eased
+   * toward the mind's, and a standing turn of over TURN.from rad played as the traveller's turn on the spot by the share of
+   * it turned (moveShape: the clip's own turn, its yaw kept out of the hips), its weight in and out.
+   */
+  turnInPlace(f, want, dt, A) {
+    const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+    if (this.shownH == null || !Number.isFinite(this.shownH)) this.shownH = f.heading;
+    const gap = wrap(f.heading - this.shownH);
+    const standing = this.speed < TURN.maxSpeed && !want.clip && want.loop !== 'look' && !(f.downT > 0) && !f.carriedBy && !(f.alt > 0.05);
+    if (!standing || dt === 0) this.shownH += gap * (dt === 0 ? 1 : 1 - Math.exp(-dt / TURN.snap));
+    else this.shownH += Math.sign(gap) * Math.min(Math.abs(gap), TURN.rate * dt, Math.abs(gap) * (1 - Math.exp(-dt / 0.12)) + 0.6 * dt);
+    this.shownH = f.heading - wrap(f.heading - this.shownH);
+    this.rig.rotation.y = wrap(this.shownH - f.heading);
+    // the turn's clip
+    let T = this.turn;
+    if (A && standing && Math.abs(gap) > TURN.from && (!T || T.out)) {
+      const name = TURN.clips.find(([lim]) => Math.abs(gap) < lim)[1] + (gap < 0 ? '_m' : '');
+      const clip = A.moveClip(name), shape = clip && moveShape(clip);
+      if (shape) T = this.turn = { clip: name, shape, t: 0, w: T?.w ?? 0, angle: gap, start: this.shownH, out: false };
+    }
+    if (!T) return;
+    if (!standing) T.out = true;
+    const sh = T.shape, k = Math.abs(T.angle) > 1e-3 ? clamp01(wrap(this.shownH - T.start) / T.angle) : 1;
+    let at = sh.n - 1;
+    for (let i = 0; i < sh.n; i++) if (sh.share[i] >= k) { at = i; break; }
+    T.t = Math.min(sh.end, Math.max(T.t + dt * TURN.minRate, Math.min(at / sh.fps, T.t + dt * TURN.maxRate)));
+    if (k >= 1 && T.t >= Math.min(sh.end, sh.off + 0.3)) T.out = true;
+    T.w = T.out ? Math.max(0, T.w - dt / TURN.blendOut) : Math.min(1, T.w + dt / TURN.blendIn);
+    if (T.out && T.w <= 0) this.turn = null;
+  }
+
+  /**
+   * Sitting on the ground (a move's `seat`: the camp round its fire): the body set down until its hips are `seat` m over
+   * the ground, kept upright, each leg drawn up by two-bone IK to a foot flat on the ground before it, the knees up and
+   * out; the arms stay the clip's (poking at the fire). Eased in and out with the move.
+   */
+  seatPose(want, dt) {
+    this.seatW += ((want.seat ? 1 : 0) - this.seatW) * (dt === 0 ? 1 : 1 - Math.exp(-10 * dt));
+    const w = smooth(this.seatW);
+    if (w < 0.01) return;
+    const J = this.J, D = J.D, g = this.rig, L = D.thigh + D.shin, ankle = D.hip - L;
+    J.body.position.y += (this.seat - D.hip - J.body.position.y) * w;
+    J.body.position.x *= 1 - w; J.body.position.z *= 1 - w;
+    J.body.quaternion.slerp(_q.identity(), 0.75 * w);
+    J.body.updateMatrixWorld(true);
+    g.updateWorldMatrix(true, false);
+    g.getWorldQuaternion(_q2);
+    const s = g.getWorldScale(_b).y || 1;
+    J.legs.forEach((leg, i) => {
+      const side = i ? 1 : -1, knee = J.knees[i], foot = J.feet[i];
+      leg.updateWorldMatrix(true, false);
+      leg.getWorldPosition(_h);
+      // (the foot flat before it, a little out; the knee up, forward and out)
+      const want_ = g.localToWorld(_a.set(side * (D.hipX + 0.18 * L), ankle, 0.62 * L));
+      _c.set(side * 0.55, 1, 0.5).applyQuaternion(_q2);
+      twoBone(_h, want_, D.thigh * s, D.shin * s, _c, _k);
+      const kneeW = _k.clone(), ankleW = want_.clone();
+      // (blended from the clip's: aim along the lerp of the clip's knee and the seated one)
+      knee.getWorldPosition(_y); _y.lerp(kneeW, w);
+      aimWorld(leg, _y.sub(_h)); leg.updateMatrixWorld(true);
+      knee.getWorldPosition(_h); foot.getWorldPosition(_z); _z.lerp(ankleW, w);
+      aimWorld(knee, _z.sub(_h)); knee.updateMatrixWorld(true);
+      // (the foot flat on the ground, toes out a little)
+      _q.setFromAxisAngle(UP, side * 0.25).premultiply(_q2);
+      foot.parent.getWorldQuaternion(_m4q).invert();
+      foot.quaternion.slerp(_m4q.multiply(_q), w); foot.updateMatrixWorld(true);
+    });
   }
 
   /**
@@ -400,6 +546,8 @@ export class HumanoidDriver {
     if (!this.proc || this.procW < 0.01) return;
     const Q = this.proc, J = this.J, strike = want.phase === 'strike' && Q.strike ? smooth((want.k ?? 0) * 2) : 0;
     if (Q.lean) J.torso.rotateX(Q.lean * this.procW);
+    const turn = (Q.turn ?? 0) + ((Q.strike?.turn ?? Q.turn ?? 0) - (Q.turn ?? 0)) * strike;
+    if (turn) { J.torso.rotateY(turn * this.procW); J.torso.updateMatrixWorld(true); }
     ['r', 'l'].forEach((s, i) => {
       const base = Q[s];
       if (!base) return;
@@ -416,7 +564,7 @@ export class HumanoidDriver {
    */
   plant(f) {
     const S = f.slope, J = this.J, g = this.rig;
-    if (!S || (Math.abs(S.sx) < 1e-3 && Math.abs(S.sz) < 1e-3) || this.chosen?.kind === 'down' || this.chosen?.kind === 'sleep') return;
+    if (!S || (Math.abs(S.sx) < 1e-3 && Math.abs(S.sz) < 1e-3) || this.chosen?.kind === 'down' || this.chosen?.kind === 'fall' || this.chosen?.kind === 'sleep' || this.seatW > 0.5) return;
     const L = J.D.thigh + J.D.shin;
     g.updateWorldMatrix(true, true);
     const root = g.getWorldPosition(_h).clone(), s = g.getWorldScale(_b).y || 1, reach = PLANT.reach * L * s;

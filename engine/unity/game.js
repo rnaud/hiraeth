@@ -822,7 +822,9 @@ function makePlan(args) {
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-mummers-${name}.png` }] : []);
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'mummerking@desert', dist: 7, hp: 99 }, { kind: 'foe', what: 'mummer@desert', dist: 4.5, hp: 99 },
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
-      { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('windup'));
+      { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('windup'),
+      // (#724 polish: the mummer's bow volley side-on and the king's horn call, each on its clip with the arms by hand)
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'mummer-moves' }, { kind: 'wait', frames: 40, secs: 0.7 }, { kind: 'foe', what: 'rig' }, ...shot('volley'));
   }
   if (fights.includes('duelists')) {
     // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
@@ -832,7 +834,9 @@ function makePlan(args) {
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'fencer@moonfoundry', dist: 6, hp: 99 }, { kind: 'foe', what: 'shade@perdide2', dist: 4, hp: 99 },
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
       { kind: 'foe', what: 'windup' }, { kind: 'wait', frames: 30, secs: 0.6 }, { kind: 'foe', what: 'rig' }, ...shot('windup'),
-      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'duel' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('guard'));
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'duel' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('guard'),
+      // (#724 polish: the fencer's shield drawn back for its bash, the shade's guard with its sleeve under its hood)
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bash' }, { kind: 'wait', frames: 30, secs: 0.55 }, { kind: 'foe', what: 'rig' }, ...shot('bash'));
   }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
@@ -1294,6 +1298,20 @@ function playFrame(dt) {
         if (f.kind === 'fencer') { f.state = 'chase'; f.guardK = 1; }
         const a = f.def.attacks.find((x) => x.id === 'feint');
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
+    } else if (step.what === 'mummer-moves') {
+      // (-fight mummers, #724 polish: a mummer with its bow looses a volley, the king calls on its horn)
+      for (const f of F.list.filter((x) => x.model?.driver && x.alive)) {
+        if (f.kind === 'mummer') { f.weapon = 'bow'; f.disarmed = null; }
+        const a = f.def.attacks.find((x) => x.id === (f.kind === 'mummer' ? 'volley' : 'horn'));
+        if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
+    } else if (step.what === 'bash') {
+      // (-fight duelists, #724 polish: the fencer's shield bash, the shade guarding)
+      for (const f of F.list.filter((x) => x.model?.driver && x.alive)) {
+        if (f.kind === 'shade') { f.state = 'chase'; f.atk = null; f.guardK = 1; continue; }
+        const a = f.def.attacks.find((x) => x.id === 'bash');
+        if (a) { f.guardK = 0; f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
       }
     } else if (step.what === 'windup') {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }

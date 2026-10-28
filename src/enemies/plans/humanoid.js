@@ -317,7 +317,7 @@ export function shadeModel(skin) {
       // its guard (issue #661, src/foe-guard.js): crouched behind the ink sword held up across its body, the empty sleeve's
       // cuff against the blade: the sword-and-shield guard's crouch over the walk, the sword arm across it
       ward = ease(ward, f.guardK ?? 0, 12, dt);
-      const want = driver.update(f, c, { upper: ward > 0.01 ? { clip: 'ss_block_idle', w: ward } : null, pose: ward > 0.01 && !f.atk ? 'swordGuard' : null, poseW: ward });
+      const want = driver.update(f, c, { upper: ward > 0.01 ? { clip: 'ss_block_idle', w: ward } : null, pose: ward > 0.01 && f.state !== 'wind' && f.state !== 'strike' ? 'swordGuard' : null, poseW: ward });   // (not `!f.atk`: a foe keeps its last attack after it, #724)
       // the velocity in its own frame: the cloak sways back as it goes, swings out as it turns
       const vx = prevX == null ? 0 : (f.pos.x - prevX) / dt, vz = prevX == null ? 0 : (f.pos.z - prevZ) / dt;
       const turn = prevX == null ? 0 : Math.atan2(Math.sin(f.heading - prevH), Math.cos(f.heading - prevH)) / dt;

@@ -146,3 +146,37 @@ test('with the clips: cuts held loaded, the feint read as a cut stopped halfway,
   }
   foes.dispose(); clearTargets();
 });
+
+test('(#724 polish) the fencer\'s bash: its shield drawn right back behind it, then punched out; its guard: the sword back over its shoulder, the point at you; the shade\'s guard keeps its sleeve under its hood', async () => {
+  setFoeClips(await library());
+  clearTargets();
+  const P = { pos: v(0, 0, -4), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: true, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
+  foes.setPractice('');
+  const W = (f, j) => { f.model.group.updateMatrixWorld(true); return j.getWorldPosition(v()); };
+  const run = (f, n, set) => { for (let i = 0; i < n; i++) { set?.(i); foes.look(f, DT); } };
+  const fencer = foes.add('fencer', v()); fencer.provoked = true; fencer.heading = 0;
+  const J = fencer.model.joints, D = FENCER_BODY;
+  run(fencer, 40);
+  const bash = fencer.def.attacks.find((x) => x.id === 'bash');
+  for (const k of [HOLD_AT, 0.97]) {
+    run(fencer, 14, () => { fencer.state = 'wind'; fencer.atk = bash; fencer.k = k; });
+    const s = W(fencer, J.hands[1]);
+    assert.ok(s.z < -0.3 && s.y > D.hip + 0.3, `the bash at ${k}: its shield hand drawn back behind its shoulder (z ${s.z.toFixed(2)}, y ${s.y.toFixed(2)} m)`);
+  }
+  run(fencer, 10, (i) => { fencer.state = 'strike'; fencer.k = 0.3 + i / 20; });
+  assert.ok(W(fencer, J.hands[1]).z > 0.3, `then punched out before it (z ${W(fencer, J.hands[1]).z.toFixed(2)} m)`);
+  fencer.state = 'chase'; fencer.atk = null; run(fencer, 30);
+  run(fencer, 40, () => { fencer.guardK = 1; });
+  const fist = W(fencer, J.hands[0]), grip = fencer.model.group.getObjectByName('grip');
+  const point = v(0, 1, 0).applyQuaternion(grip.getWorldQuaternion(new THREE.Quaternion()));
+  assert.ok(fist.y > D.hip + D.chest && fist.z < 0, `its guard: the sword fist up by its shoulder, drawn back (y ${fist.y.toFixed(2)}, z ${fist.z.toFixed(2)} m)`);
+  assert.ok(point.z > 0.8 && point.y > 0, `the point at you, a little up (${point.toArray().map((x) => x.toFixed(2))})`);
+  foes.remove(fencer);
+  const shade = foes.add('shade', v()); shade.provoked = true; shade.heading = 0;
+  run(shade, 40, () => { shade.state = 'chase'; shade.guardK = 1; });   // (its last attack still f.atk, as after a fight)
+  const sleeve = W(shade, shade.model.joints.hands[1]), hood = W(shade, shade.model.joints.head);
+  assert.ok(sleeve.y < hood.y - 0.2, `the shade's empty sleeve under its hood (${sleeve.y.toFixed(2)} m, the hood ${hood.y.toFixed(2)} m)`);
+  foes.remove(shade);
+  foes.dispose(); clearTargets();
+});

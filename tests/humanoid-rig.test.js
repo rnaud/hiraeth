@@ -45,7 +45,7 @@ test('every state maps to a clip: the fight, the knock-down and its get-up, a st
   // circling sideways while it waits its turn: the strafe, mirrored for the other way
   assert.equal(stateClip({ state: 'chase' }, MUMMER_MOVES, { strafe: 0.9 }).clip, 'ss_strafe_1');
   assert.equal(stateClip({ state: 'chase' }, MUMMER_MOVES, { strafe: -0.9 }).clip, 'ss_strafe_1_m');
-  // a move no clip has: a procedural pose held over the idle (the bow, the rock, the horn, the throw)
+  // a clip with a hand-made pose of the arms over it (the bow, #724: its body the sword-and-shield guard's stance)
   const bow = stateClip({ state: 'wind', k: 0.9, atk: { id: 'volley' } }, MUMMER_MOVES);
   assert.equal(bow.pose, 'bow'); assert.equal(bow.load, 1);
   for (const M of [MUMMER_MOVES, KING_MOVES]) for (const m of Object.values(M)) if (m.pose) assert.ok(PROC_POSES[m.pose], `${m.pose}: a pose`);
