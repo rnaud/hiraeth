@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { Foes, FOES, weakAt, headOf } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets, raycastTargets } from '../src/targets.js';
-import { ARMOUR, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef, tierMove, fightOf } from '../src/enemies/fight.js';
+import { ARMOUR, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef, fightOf } from '../src/enemies/fight.js';
 import { ARCHETYPES, BUILT, parseKind } from '../src/enemies/archetypes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { skinOf, tierSkin, HOME_SKIN } from '../src/enemies/skins.js';
@@ -239,8 +239,8 @@ test('tiers: every non-fodder archetype has one new move, built from its own mov
     assert.ok(T.words, `${id}: what it does`);
     const D = ARCHETYPES[id].def, X = tierDef(id, D);
     if (T.combo) for (const m of T.combo) assert.ok(D.attacks.some((a) => a.id === m), `${id}: ${m} is its own move`);
-    if (T.unlock) { const a = X.attacks.find((x) => x.id === T.unlock); assert.ok(a && !a.skins, `${id}: ${T.unlock} unlocked in every skin`); assert.ok(tierMove(id, T.unlock)); }
-    if (T.patch) for (const [m, p] of Object.entries(T.patch)) { const a = X.attacks.find((x) => x.id === m); for (const k of Object.keys(p)) assert.deepEqual(a[k], p[k]); assert.ok(tierMove(id, m)); }
+    if (T.unlock) { const a = X.attacks.find((x) => x.id === T.unlock); assert.ok(a && !a.skins, `${id}: ${T.unlock} unlocked in every skin`); }
+    if (T.patch) for (const [m, p] of Object.entries(T.patch)) { const a = X.attacks.find((x) => x.id === m); for (const k of Object.keys(p)) assert.deepEqual(a[k], p[k]); }
     assert.notEqual(X.attacks, D.attacks, `${id}: the kind's own moves untouched`);
   }
   assert.ok(TIER_SHARE[TIER_FROM] > 0 && TIER_SHARE.slice(0, TIER_FROM).every((x) => x === 0), 'only from the late worlds');
@@ -261,7 +261,7 @@ test('a tier is darker and banded, with its own materials and name; its body is 
   assert.deepEqual(parseKind('crab'), { kind: 'crab', skin: null });
 });
 
-test('a tier in the game: tougher, its combo after its move, the flare its tell; mixed into the late worlds only', () => {
+test('a tier in the game: tougher, its combo after its move; mixed into the late worlds only', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), F = world(P, { world: 'buried' });
   F.waveRest = 1e9;
@@ -275,7 +275,6 @@ test('a tier in the game: tougher, its combo after its move, the flare its tell;
   up.next(beam, P, ev);
   assert.equal(up.state, 'wind'); assert.equal(up.atk.id, 'beam'); assert.equal(up.tierChained, 1);
   assert.ok(up.windFor(up.atk) < beam.wind, 'the follow’s wind-up quicker');
-  assert.ok(tierMove('tripod', 'beam', true) && !tierMove('tripod', 'beam', false), 'the flare on the second');
   up.state = 'strike'; up.next(up.atk, P, ev);
   assert.equal(up.state, 'recover', 'once');
   F.dispose(); clearTargets();

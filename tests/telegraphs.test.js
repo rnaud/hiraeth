@@ -2,13 +2,14 @@
 // the ground but a projectile's landing mark; wind-ups long enough to read; the guardians' staged fights (their moves,
 // combos, phases and openings) and how a combo is timed.
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FOES } from '../src/foes.js';
 import { ATTACKS } from '../src/enemies/attacks.js';
 import { GUARDIANS } from '../src/arena-guardians.js';
 import { Guardian, comboOf, windOf, SHIFT } from '../src/temples/boss.js';
-import { WIND_MIN, windMin, guardianWindMin, groundMark, isProjectile, TELL, ChargeGlow, POSE_DONE } from '../src/telegraph.js';
+import { WIND_MIN, windMin, guardianWindMin, groundMark, isProjectile, TELL, POSE_DONE } from '../src/telegraph.js';
 import { clearTargets } from '../src/targets.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -119,20 +120,17 @@ test('a combo: each move winds up in full before it strikes, the links at least 
   g.dispose(); clearTargets();
 });
 
-test('a move told by the body: the glow on its part grows, it rears, the sound rises over the wind-up; only a lob marks the floor; a miss can open it; Gentle is slower', () => {
+test('a move told by the body: it rears, the sound rises over the wind-up; only a lob marks the floor; a miss can open it; Gentle is slower', () => {
   clearTargets();
-  // (the glow itself, on the Keeper's moves: its own def draws none since v1.71, def.glow false, issue #320)
-  const K = { ...GUARDIANS.find((G) => G.id === 'desert').def, glow: undefined };
+  const K = GUARDIANS.find((G) => G.id === 'desert').def;
   const { g, rt, sounds, m } = stub(K);
   const P = { pos: V(20, 0, 20), health: 3, dead: false, down: null, hurt() {}, knockDown() {} };
   rt.player = P; g.state = 'fight';
   const run = runner(g, P);
   g.begin(P, null, 'stamp');
   run(K.attacks.stamp.wind * 0.3);
-  const k0 = g.glows[0].k;
   run(K.attacks.stamp.wind * 0.6);
-  assert.ok(g.glows[0].visible && g.glows[0].k > k0, 'the glow grows on its foot');
-  assert.ok(g.glows[1].visible, 'a forefoot each');
+  assert.equal(g.glows, undefined, 'no diamond on its feet (issue #733)');
   assert.ok(m.tellRig.rotation.x < -0.1, 'it rears back');
   assert.equal(g.tele.group.visible, false, 'nothing on the floor');
   assert.ok(Math.abs(sounds.at(-1) - K.attacks.stamp.wind) < 1e-9, 'its sound rises over the whole wind-up');
@@ -223,14 +221,6 @@ test('a phase change: it staggers (no moves, its marks lit), then fights on with
   g.dispose(); clearTargets();
 });
 
-test('the glow: a spark of the attacker\'s tone that grows and burns white through the stillness', () => {
-  const scene = new THREE.Scene(), G = new ChargeGlow(scene, '#3060ff', 0.4);
-  G.set(0.2, V(1, 2, 3), 0);
-  const small = G.group.scale.x, blue = G.mat.uniforms.uColor.value.clone();
-  G.set(0.9, V(1, 2, 3), 0);
-  assert.ok(G.visible && G.group.scale.x > small && G.group.position.y === 2);
-  assert.ok(G.mat.uniforms.uColor.value.r > blue.r + 0.3, 'white-hot when held');
-  G.set(0, V(), 0);
-  assert.equal(G.visible, false);
-  G.dispose();
+test('no enemy\'s wind-up shows the diamond (issue #733: "a diamond shape that appears when an enemy is attacking")', () => {
+  for (const f of ['foes.js', 'temples/boss.js', 'telegraph.js']) assert.doesNotMatch(readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8'), /ChargeGlow|chargeGlow|\.glows\b|f\.glowT?\b/, f);
 });

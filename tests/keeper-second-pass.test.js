@@ -174,11 +174,11 @@ test('no burrow in a stone cistern: it leaps, over the spot it sprang for, its f
 
 test('no spark for a tell: its body’s wind-up is the whole of it', async () => {
   const { g, P, m, A, step, rt } = await cistern();
-  assert.equal(KEEPER.glow, false);
   g.wake(); g.enter('fight'); g.cool = 99;
   P.pos.set(m.pos.x + Math.sin(m.heading) * 5, A.y, m.pos.z + Math.cos(m.heading) * 5);
   g.begin(P, null, 'stamp');
-  for (let i = 0; i < 60; i++) { step(); assert.ok(g.glows.every((x) => !x.visible), 'no glow on its feet'); }
+  for (let i = 0; i < 60; i++) step();
+  assert.equal(g.glows, undefined, 'no glow on its feet');
   rt.dispose?.();
 });
 

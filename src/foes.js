@@ -14,7 +14,7 @@ import { foeThreat, guardianThreat, perfectAgainst } from './flurry.js';
 import { SmokePuffs, SMOKE } from './smoke-puff.js';
 import { AttackTrails, trailPhase, trailSize } from './attack-trail.js';
 import { FoeClouds, ENTRANCE, bodyGrown } from './foe-entrance.js';
-import { ChargeGlow, TELL, groundMark, poseK } from './telegraph.js';
+import { TELL, groundMark, poseK } from './telegraph.js';
 import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
@@ -46,7 +46,7 @@ import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
 import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
 import { STANCE, guardBreaker, guardCovers, guardTurns, wantsGuard, guardUp } from './foe-guard.js';
 import { fightOf, tierScale, tierHp, poiseWear, quickWind, POISE, LAUNCH, RAGE, FOLLOW, RUN, EVADE as HOP_BACK, ALERT, MOURN, WAIT, REACH, TIER,
-  ARMOUR as PLATES_OF, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef, tierMove } from './enemies/fight.js';
+  ARMOUR as PLATES_OF, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef } from './enemies/fight.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -2701,7 +2701,7 @@ export class Foes {
   }
 
   remove(f) {
-    f.target?.(); f.weakTarget?.(); f.tele?.dispose(); f.glow?.dispose(); f.glowT?.dispose(); this.trails?.drop(f); f.model.group.removeFromParent();
+    f.target?.(); f.weakTarget?.(); f.tele?.dispose(); this.trails?.drop(f); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
     for (const b of this.balls.slice()) if (b.owner === f) this.popBall(b, 'fizzle');   // (its fireball burns out with it)
     if (f.ward) f.unward(); for (const T of f.wards ?? []) if (T.ward?.by === f) T.unward();   // (a ward on it, or the ones it held: their threads with them)
@@ -3344,7 +3344,7 @@ export class Foes {
     TELL.slow = this.difficulty === 'gentle' ? GENTLE.wind : 1;   // (the guardians' wind-ups too: src/telegraph.js)
     const P = this.player;
     if (!P) { this.sound?.combat?.(false); return; }
-    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); f.glowT?.hide(); } return; }
+    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); } return; }
     // (held still by a scene, a conversation or a menu: nothing is fighting you. The flag kept its last value before, so a
     // toad that was chasing as a world's moment began kept the hearts and the wallet up over the whole of it: issue #264,
     // Lorn's crystal moment in the Unity batch run, whose foes had a few seconds more to wake than the page's)
@@ -3377,14 +3377,14 @@ export class Foes {
         f.dead -= dt;
         if (!f.puffed && f.dead <= SMOKE.fade) { f.puffed = true; this.puff(f); }
         f.model.group.scale.setScalar(Math.max(0.01, Math.min(1, f.dead / SMOKE.fade)) * (f.model.size ?? 1));
-        f.tele.hide(); f.glow?.hide(); f.glowT?.hide();
+        f.tele.hide();
         if (f.dead <= 0) this.remove(f);
         continue;
       }
       if (f.dying) {   // going down its own way (src/enemies/defeat.js), then the burst
         const D = f.dying;
         D.t += dt; D.u = Math.min(1, D.t / D.R.time);
-        f.tele.hide(); f.glow?.hide(); f.glowT?.hide();
+        f.tele.hide();
         this.look(f, dt);
         if (D.u >= 1) this.burst(f);
         continue;
@@ -4395,7 +4395,6 @@ export class Foes {
       else T.hide();
     }
     }
-    this.chargeGlow(f, t);
     this.attackTrail(f);
   }
 
@@ -4423,19 +4422,6 @@ export class Foes {
     const b = bodyGrown((f.arrive.t += dt));
     if (b >= 1) { f.arrive = null; return; }
     f.model.group.scale.multiplyScalar(Math.max(0.01, b));
-  }
-
-  /** The glow building on the striking part through a wind-up (src/telegraph.js ChargeGlow), a last flare as it strikes. */
-  chargeGlow(f, t) {
-    const winding = f.state === 'wind' && !f.stunned, striking = f.state === 'strike' && !f.contacted;
-    if (!winding && !striking) { f.glow?.hide(); f.glowT?.hide(); return; }
-    // (its stronger tier's new move, #722 D13: the glow on the striking part flares in the tier's own pale light: its tell)
-    const a = f.atk ?? f.def.attack, tier = f.tierN && tierMove(f.archetype, a?.id, !!f.tierChained);
-    const size = Math.max(0.14, Math.min(0.5, f.def.radius * 0.45));
-    if (tier) { f.glow?.hide(); f.glowT ??= new ChargeGlow(this.group, TIER_UP.tell, size * 1.35); f.glowT.set(winding ? f.k : 1, this.strikePoint(f, _gl), performance.now() / 1000); return; }
-    f.glowT?.hide();
-    f.glow ??= new ChargeGlow(this.group, f.def.tone ?? '#f05a3c', size);
-    f.glow.set(winding ? f.k : 1, this.strikePoint(f, _gl), performance.now() / 1000);
   }
 
   /** Where its striking part is now (the part its model's `tell` names for the attack; else in front of its chest). */

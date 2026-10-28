@@ -3,7 +3,7 @@ import { makeMaterial, releaseMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { HIT, strikeDamage, heartsOf, quarters, DAMAGE } from '../resources.js';
-import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js';
+import { TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js';
 import { SecondOrder } from '../motion-kit/spring.js';
 
 // The thing at the heart of every temple. The makers were gentle: what waits
@@ -22,7 +22,7 @@ import { SecondOrder } from '../motion-kit/spring.js';
 // punish, and after it the opening), and phases that add or change moves and visibly change it (a shift: it
 // staggers, sheds, cracks or lights up, src/temples/boss.js PhaseMarks). Every move is telegraphed by the body
 // (src/telegraph.js): its pose (the model's own, and a `rig` motion: rear, crouch, coil, spin, lean, rise, swell),
-// a glow gathering on the striking part, a deep sound rising with it, a stillness before it lands; never a disc,
+// a deep sound rising with it, a stillness before it lands; never a disc,
 // a fan or a lane on the floor. Only a lobbed or thrown projectile (a seed, a cog, a mortar, a clod) marks where it
 // will land. A strike that catches you knocks you back on your feet (src/player.js stagger; before v1.71 the ragdoll) and takes a bite of the
 // health bar, but never the last of it from a healthy bar: only when you are already low does it knock you out,
@@ -46,7 +46,7 @@ import { SecondOrder } from '../motion-kit/spring.js';
 //          answered, it reels open `open` s (`said`), and from then on the phase plays as before (and the verb still opens it)
 //        attacks: { id: { shape: 'ring' | 'cone' | 'lane', at: 'self' | 'front' (ring `ahead` m) | 'player',
 //                          radius, range, angle, width, wind: s, damage: hearts, knock: m/s, recover: s,
-//                          part: where its glow gathers ('mouth' | 'head' | 'eye' | 'feet' | 'arms' | 'wings' |
+//                          part: its striking part ('mouth' | 'head' | 'eye' | 'feet' | 'arms' | 'wings' |
 //                          'core' | 'tail'), rig, pose (the model's pose, else the id), side (±1: a mirrored swing),
 //                          track (share of the wind-up it keeps aiming), lob + volley (a thrown projectile and its
 //                          landing marks), over (its body travels to hang over the spot: a dive, a burrow; leap
@@ -172,7 +172,7 @@ export class Telegraph {
   }
 }
 
-/** The parts that come in pairs: a glow on each (both arms, both wings, both forefeet). */
+/** The parts that come in pairs (both arms, both wings, both forefeet). */
 const PAIRED = new Set(['arms', 'wings', 'feet']);
 /** The traveller as a guardian's body blow meets him (m): a column this high over his feet, this far round (Guardian.touches). */
 export const COLUMN = { h: 1.8, r: 0.45 };
@@ -486,11 +486,9 @@ export class Guardian {
     this.combo = 0;     // moves chained in the current combo (0: none)
     this.hitLast = false;
     const tone = def.kind === 'robot' ? '#e0644a' : '#f0a04b';
-    // a lobbed projectile's landing marks (the only thing drawn on the floor); the glow on the striking part(s)
+    // a lobbed projectile's landing marks (the only thing drawn on the floor)
     this.tele = new Telegraph(rt.root, tone);
     this.teles = [];
-    const gs = Math.max(0.55, (model.radius ?? 3) * 0.26);
-    this.glows = [new ChargeGlow(rt.root, tone, gs), new ChargeGlow(rt.root, tone, gs)];
     this.balls = [];
     this.waves = [];
     this.ballM = makeMaterial({ color: tone, glow: 0.8, flat: true, key: `guardian.ball.${uid++}` });
@@ -605,7 +603,6 @@ export class Guardian {
   stop() {
     this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null; this.live = null; this.blast?.draw(false);
     this.tele.hide(); for (const T of this.teles) T.hide();
-    for (const g of this.glows) g.hide();
     for (const b of this.balls) b.visible = false;
   }
   /**
@@ -956,7 +953,7 @@ export class Guardian {
    * How move a's body went from last frame's pose to this one's, so a body blow lands as it would at 60 frames a second
    * whatever the frame rate, not only where a slower frame caught it (v1.77, issue #361: at 30 frames a second the
    * Foreman's hammer came down past a traveller in its way 7 cm off him in one frame and through him in none, hammer
-   * after hammer; its phase asks for the guard against it). Read off its middle and its striking part (its glow's, partAt;
+   * after hammer; its phase asks for the guard against it). Read off its middle and its striking part (partAt;
    * both of a pair): how far its middle went, and each part's own way on from it (this.sweep: { move, parts: [{ at, rel }],
    * R, n }; null at 60 frames or faster, or when it was not posed for this move last frame). `n`: the 60ths of a second
    * the frame took. Each sphere of the blow is carried back by its middle's way and by its nearest part's, in full at the
@@ -1127,7 +1124,7 @@ export class Guardian {
   }
   clearWaves() { for (const w of this.waves) w.mesh.removeFromParent(); this.waves.length = 0; }
 
-  /** Where a part of it is (for the glow): the model's own `part`, else from its mouth, body and radius. */
+  /** Where a part of it is (its swing's trail, its reach): the model's own `part`, else from its mouth, body and radius. */
   partAt(name, out, side = 1) {
     const m = this.model;
     if (m.part?.(name, out, side)) return out;
@@ -1139,18 +1136,11 @@ export class Guardian {
     if (name === 'tail') return out.copy(m.pos).setY(base + H * 0.4).addScaledVector(f, -R * 1.1);
     return out.copy(m.pos).setY(m.floats ? m.pos.y : base + H * 0.5).addScaledVector(f, R * 0.6);   // the core
   }
-  /** The body's tells drawn each frame: the glow on the striking part(s), a lob's landing marks and its projectile. */
+  /** The tells drawn each frame: a lob's landing marks and its projectile (the body's wind-up is the rest of the tell). */
   tells(t) {
     const a = this.attack, live = a && (this.state === 'fight') && (!this.struck || this.at < this.windFor + 0.12);
-    if (!live) { for (const g of this.glows) g.hide(); this.tele.hide(); for (const T of this.teles) T.hide(); for (const b of this.balls) b.visible = false; return; }
-    const k = this.struck ? 1 : this.attackK, part = a.part ?? 'core';
-    // (def.glow false: no spark on the striking part, its body's wind-up the whole tell; the Keeper's, issue #320: "his
-    // attack tell looks like a weird triangle shape, there's no need for it since he telegraphs his attacks better now")
-    if (this.def.glow === false) for (const g of this.glows) g.hide();
-    else {
-      this.glows[0].set(k, this.partAt(part, _e, 1), t);
-      if (PAIRED.has(part)) this.glows[1].set(k, this.partAt(part, _e, -1), t); else this.glows[1].hide();
-    }
+    if (!live) { this.tele.hide(); for (const T of this.teles) T.hide(); for (const b of this.balls) b.visible = false; return; }
+    const part = a.part ?? 'core';
     // a lob: its landing marks through the wind-up, and the thrown thing in the air over its last half
     const pts = this.points(a);
     for (let i = 0; i < Math.max(pts.length, 1 + this.teles.length); i++) {
@@ -1214,7 +1204,6 @@ export class Guardian {
     for (const f of this.offs) f();
     this.tele.group.removeFromParent(); this.tele.dispose?.();
     for (const T of this.teles) T.dispose();
-    for (const g of this.glows) g.dispose();
     for (const b of this.balls) { b.removeFromParent(); b.geometry.dispose(); }
     this.clearWaves(); this.marks.dispose(); this.ground.dispose(); this.blast.dispose(); releaseMaterial(this.ballM); releaseMaterial(this.blastM);
   }

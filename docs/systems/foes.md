@@ -422,11 +422,11 @@ path):
    (src/enemies/models.js `animate`, keyed by the attack's `motion` in src/enemies/attacks.js), a guardian's `rig`
    (src/temples/boss.js `poseRig`) and the model's own poses. The pose is complete at **`POSE_DONE` (75 %) of the
    wind-up and then held still**: the brief stillness before the strike.
-2. **The glow.** A spark of the attacker's tone (`ChargeGlow`) gathers on the striking part (a model's
-   `tell(attackId)` returns the Object3D: the golem's fist, the crab's claw, the drone's harpoon, the slag walker's
-   raised foot; a world enemy's `tell(motion)`: an arm's claw, the head, the nozzle, a wing, the core; a guardian's
-   attack `part`: mouth, head, eye, feet, arms, wings, core, tail, a glow on each of a pair). It swells and spins
-   faster with the wind-up and burns white through the stillness; one flare as the strike lands.
+2. **No glow** (since v2.34, issue #733: "there is a diamond shape that appears when an enemy is attacking, I want to
+   get rid of that"). Until then a spark of the attacker's tone (`ChargeGlow`, an octahedron and three rays) gathered
+   on the striking part through every wind-up; the Keeper's had gone in v1.71 (#320, "a weird triangle"). Foes, world
+   enemies and guardians are told by the pose, the sound and the eyes. The striking part (a model's `tell(attackId)`,
+   a guardian's attack `part`) still anchors the swing's trail.
 3. **The sound.** `Sound.foeWarn(kind, dur)` / `guardianWarn(kind, dur, heavy)` rise over exactly the wind-up
    (Gentle's longer one too), and tick at the stillness.
 4. **The eyes** turn orange through the wind-up (as before).
@@ -492,7 +492,7 @@ What changed per family:
 
 ### Swoosh trails (v2.26, issue #663, `src/attack-trail.js`)
 
-Each foe's striking part (the part its model's `tell` names, where the charge glow sits: `Foes.strikePoint`) lays an
+Each foe's striking part (the part its model's `tell` names: `Foes.strikePoint`) lays an
 inked ribbon behind it through an attack, so the swing's path stays on screen a moment. Its look is read from the
 attack's own timing (`trailPhase`, the same states as `Foe.attackPhase`), never a clock of its own:
 
@@ -765,8 +765,7 @@ bug, and the camera moves around too much"; "enemies hitting me shouldn't ragdol
 - **A leap, not a burrow** (`desert.js` `KEEPER.attacks.leap`, `boss.js` `a.leap`, `a.late`): in its last phase it
   crouches, springs over the last third of its wind-up to where you stood when it sprang (its shadow running ahead),
   lands with its shell (live `late` 0.06 s after, as the shell comes down: `KEEPER_POSE.slam`) and lies winded 3.2 s.
-- **No spark** (`def.glow: false`): the ChargeGlow (an octahedron and its rays on the striking part, the "triangle")
-  is not drawn for it; its body's wind-ups are its tells.
+- **No spark** (#320; every enemy's since v2.34, #733): its body's wind-ups are its tells.
 - **Three phases of two**: two of the four braziers lit (`KEEPER_LIGHT` 0.2 each), two drinks, two more; an opening
   holds while it drinks, a gulp each `KEEPER_GUARD.gulp` 0.6 s, so one opening may end a phase (its gasp in the dark,
   1.8 s, holds both; a drink there is a full one, `KEEPER_DARK.water` 1). Calming acts 10 → 6 (4 braziers, 2 drinks,
@@ -1547,8 +1546,8 @@ in fight.js (`ARMOUR`, `BARE`, `PLATE`, `WEAK`, `HEAD`, `TIERS`); the plates and
   meanwhile it wears it × `HEAD.wear`), fodder takes × `HEAD.fodder`. Iron that turns the gun still turns it.
 - **Tiers.** `TIERS[a]`: one new move each, built from its own: `combo [a, b]` (after a, b at once, its wind-up quicker,
   once: `Foe.next`, `tierChained`), `unlock` (a skin's move in every skin) or `patch` (the bell's toll five rings, the
-  brute's slam two quakes). Its tell: the striking part's glow flares pale (`TIER_UP.tell`, `Foes.chargeGlow` `glowT`)
-  for that move. Toughness `TIER_UP` over its stage's. The look: `skinOf(a, world, 1)` → `tierSkin` (palette ×
+  brute's slam two quakes). Its tell is its body's wind-up (its pale flare went with the glow in v2.34, #733).
+  Toughness `TIER_UP` over its stage's. The look: `skinOf(a, world, 1)` → `tierSkin` (palette ×
   `TIER_LOOK.dark` but its eyes, glows and lamps; its own material keys; named 'banded …') and `TIER_SURFACE`'s bands on
   every part but eyes, glows, smoke, ink and plates. A kind `'bell*'` (or `add(…, { tier: 1 })`) asks for it; from
   `TIER_FROM` (stage 3) a share `TIER_SHARE[stage]` of the non-fodder foes added (packs, sites, waves) comes in tier

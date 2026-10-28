@@ -202,7 +202,7 @@ export function rayNear(point, dir, at, r, back = 1.5) {
  * The stronger tier of each archetype (D13, BotW's colours): darker and banded (src/enemies/skins.js tierSkin, the bands
  * painted by src/enemies/surfaces.js TIER_SURFACE), its health and poise TIER_UP over its stage's, and ONE new move:
  *   combo [a, b]   after its move a lands or misses, b at once (once): the tripod's second bolt, the drone's harpoon
- *                  then its ram (the body plays b's own wind-up; the tier's light flares on the striking part: its tell)
+ *                  then its ram (the body plays b's own wind-up: its tell)
  *   unlock id      a move its other skins only had (the toad's volley, the roller's ricochet)
  *   patch {id: {}} one of its moves made stronger (the bell's toll five rings, the brute's slam two quakes)
  * `words`: what the gallery and the docs say of it. Mixed into packs and encounter sites from TIER_FROM's stage on, a share
@@ -238,8 +238,8 @@ export const TIERS = {
 /** The stage of the route a tier first comes in at, and the share of the non-fodder foes in tier by stage (0-4). */
 export const TIER_FROM = 3;
 export const TIER_SHARE = [0, 0, 0, 0.3, 0.45];
-/** A tier's toughness over its stage's (× health, never past TIER.cap; × poise); its new move's flare (the tell) colour. */
-export const TIER_UP = { hp: 1.25, poise: 1.25, tell: '#f4f0ff' };
+/** A tier's toughness over its stage's (× health, never past TIER.cap; × poise). */
+export const TIER_UP = { hp: 1.25, poise: 1.25 };
 
 /** A tier's def (pure: tests): the kind's def with its new move (patched, unlocked) and its health; null without a tier. */
 export function tierDef(archetype, def) {
@@ -253,10 +253,3 @@ export function tierDef(archetype, def) {
   });
   return { ...def, attacks, attack: attacks[0], ...(T.mask && def.mask ? { mask: { ...def.mask, hits: T.mask } } : {}) };
 }
-/** Is this move its tier's new one (its flare plays on its wind-up)? */
-export const tierMove = (archetype, id, chained = false) => {
-  const T = TIERS[archetype];
-  if (!T) return false;
-  if (T.combo) return chained ? T.combo[1] === id : false;
-  return T.unlock === id || !!T.patch?.[id];
-};

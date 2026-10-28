@@ -1,15 +1,14 @@
 import * as THREE from 'three';
-import { makeMaterial, releaseMaterial } from './materials.js';
 
 // Body telegraphs (docs/systems/foes.md "Telegraphs: the body, not the floor"): every attack of every foe, world
 // enemy and temple guardian is told by the body that makes it, never by a disc, a fan or a lane filled on the
-// floor. A wind-up has four parts, all read from the attacker:
+// floor. A wind-up has three parts, all read from the attacker:
 //
 //   the pose     each attack's own: rear back, coil, raise, crouch, spin up (the models' anim; a guardian's
 //                `rig` too). The pose is complete at POSE_DONE of the wind-up and then held still: the brief
 //                stillness before the strike.
-//   the glow     a spark gathering on the striking part (a claw, a foot, a jaw, a lens, a core: ChargeGlow), in
-//                the attacker's tone, swelling and quickening, white-hot through the held stillness.
+//   (the glow, a spark on the striking part, went in v2.34, issue #733: "there is a diamond shape that appears when
+//   an enemy is attacking, I want to get rid of that"; the Keeper's had gone in v1.71, #320)
 //   the sound    rising with the wind-up, over exactly its length (src/audio.js foeWarn / guardianWarn).
 //   the eyes     orange through the wind-up (as before).
 //
@@ -48,48 +47,6 @@ export const groundMark = (a) => isProjectile(a);
 
 /** Shared by everything that winds up: Gentle's slower wind-ups (src/foes.js sets it each frame from the setting). */
 export const TELL = { slow: 1 };
-
-const SPARK = new THREE.OctahedronGeometry(1, 0);
-const RAY = new THREE.BoxGeometry(0.12, 0.12, 1);
-const _c = new THREE.Color(), _w = new THREE.Color('#fff6d8');
-let uid = 0;
-
-/**
- * The glow building on the striking part: a spark of the attacker's tone that swells and spins faster as the
- * wind-up builds, and burns white through the stillness before the strike (k ≥ POSE_DONE). One per attacker.
- *   const g = new ChargeGlow(parent, tone, size); g.set(k, at, t); g.hide(); g.dispose()
- */
-export class ChargeGlow {
-  constructor(parent, tone = '#f05a3c', size = 0.32) {
-    this.tone = new THREE.Color(tone); this.size = size;
-    this.mat = makeMaterial({ color: tone, glow: 1, flat: true, key: `charge-glow.${uid++}` });
-    this.group = new THREE.Group(); this.group.name = 'charge glow';
-    this.core = new THREE.Mesh(SPARK, this.mat);
-    this.rays = [0, 1, 2].map((i) => { const r = new THREE.Mesh(RAY, this.mat); r.rotation.set(i * 1.1, i * 2.1, 0); this.group.add(r); return r; });
-    this.group.add(this.core);
-    this.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
-    this.group.visible = false;
-    this.k = 0;
-    parent.add(this.group);
-  }
-  /** k: the wind-up's progress 0..1 (≥ 1: the strike itself, a last flare); at: world point of the striking part. */
-  set(k, at, t = performance.now() / 1000) {
-    this.k = k;
-    if (!(k > 0.02)) { this.hide(); return; }
-    const held = k >= POSE_DONE, u = Math.min(1, k / POSE_DONE);
-    const s = this.size * (0.25 + 0.75 * u) * (held ? 1.15 + 0.12 * Math.sin(t * 40) : 1 + 0.08 * Math.sin(t * (8 + 20 * u)));
-    this.group.position.copy(at);
-    this.group.scale.setScalar(s);
-    this.group.rotation.y = t * (2 + 9 * u); this.group.rotation.x = t * 1.3;
-    for (const r of this.rays) r.scale.z = 1.4 + 1.8 * u + (held ? 0.8 : 0);
-    this.mat.uniforms.uColor.value.copy(_c.copy(this.tone).lerp(_w, held ? 0.85 : u * 0.45));
-    this.mat.uniforms.uGlow.value = 0.6 + 0.4 * u;
-    this.group.visible = true;
-  }
-  get visible() { return this.group.visible; }
-  hide() { this.group.visible = false; this.k = 0; }
-  dispose() { this.group.removeFromParent(); releaseMaterial(this.mat); }
-}
 
 /** The pose's progress through a wind-up (0..1 by POSE_DONE, then held). */
 export const poseK = (k) => THREE.MathUtils.smoothstep(k, 0, POSE_DONE);

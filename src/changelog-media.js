@@ -1391,6 +1391,9 @@ export const CHANGELOG_MEDIA = {
       { where: 'the Arena', before: '2–4', after: '2–3' },
     ], note: 'In the Arena’s sprint above (3.2 s straight), the worst foot turn off its neighbours went 16.0 → 6.7 rad/s. Left red in the game before and after: the desert’s sprint reversed jolts a ball or foot 3.6-4.0 cm at a blend (limit 3).' },
   ] },
+  { match: 'No more white diamond on an enemy’s fist', shots: [
+    { name: 'windup-no-prism', size: [1280, 720], caption: 'The grunt’s overhead club held at 80 % of its wind-up: before, the diamond (the charge glow: a pale octahedron with three rays) over its raised fist; after, the fist, the club and the lean back are the tell', from: 'The creatures gallery (enemies.html, the game’s body through Foes.look) in muted headless Chrome, scripts/enemy-roster/compare.mjs --separate --zoom 0.95 --skins 1 grunt, 1280 × 720, 28 October 2026: before at e756b8e58 (Vite 5493), after this change on it (Vite 5491).', view: 'grunt@desert, three-quarter, the club overhead held at 80 % of its wind-up.' },
+  ] },
   { match: 'Press both sticks (L3 + R3) on the title screen', shots: [
     { name: 'title-debug-on', only: 'after', size: [1280, 720], caption: 'The title after F2 (the same switch as L3 + R3): What’s new and Debug back between Settings and Full screen, Debug focused. Before it, and after pressing again, only Settings and Full screen show.', from: 'After-only: a player’s build of this change (import.meta.env.DEV false) on 353bdf575, Vite on port 5471, muted headless Chrome at 1280 × 720, ?vista=still, 28 October 2026. The pad’s L3 + R3 was not pressed here: F2 drives the same devSwitch, and tests/engine-menus.test.js drives the pad action.', view: 'Fresh title, no save; after F2 once. A reload kept them; F2 again hid them.' },
   ] },

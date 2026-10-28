@@ -251,8 +251,6 @@ export const KEEPER = {
     { to: 0.8, attacks: ['leap', 'spit', 'sweep2', 'charge'], pause: 1.8, hint: 'It leaps now. Splash its mouth as it pants, or roll a lit ball at it.' },
     { to: 1.0, weary: true },
   ],
-  // (its body's wind-ups are its tells, issue #320: no spark on the striking part, src/temples/boss.js tells)
-  glow: false,
   // (in its cistern, the boss framing: src/player.js BOSS_CAM, the camera further back and higher, both of you in it)
   camera: {},
   // (between its moves it keeps its head on you as it circles, stepping sideways: boss.js walk; it turned its tail to you)

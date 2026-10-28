@@ -301,7 +301,7 @@ test('old foes, new attacks: the blot’s lunge-combo (stopped by a guard), the 
   foes.dispose(); F.dispose(); F2.dispose(); clearTargets();
 });
 
-test('telegraphs: only a lob marks the floor (where it lands); lanes and melee read from the body and its glow; Gentle winds them up slower and halves every harm', () => {
+test('telegraphs: only a lob marks the floor (where it lands); lanes and melee read from the body; Gentle winds them up slower and halves every harm', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
@@ -309,10 +309,10 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   d.attacksAt = () => [attackOf('drone', 'harpoon')];
   bl.attacksAt = () => [attackOf('blot', 'lunge')];
   sp.attacksAt = () => [attackOf('toad', 'lob')];
-  let droneDrawn = false, blotDrawn = false, lobDrawn = false, droneGlow = false;
-  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && d.tele.group.visible; droneGlow ||= d.state === 'wind' && d.k > 0.5 && !!d.glow?.visible; blotDrawn ||= bl.state === 'wind' && bl.tele.group.visible; lobDrawn ||= sp.state === 'wind' && sp.tele.group.visible; }
-  assert.equal(droneDrawn, false, 'the harpoon’s lane is not drawn: the gun tips at you, its tip glowing');
-  assert.ok(droneGlow, 'a glow gathers on the harpoon');
+  let droneDrawn = false, blotDrawn = false, lobDrawn = false, droneWound = false;
+  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && d.tele.group.visible; droneWound ||= d.state === 'wind' && d.k > 0.5; blotDrawn ||= bl.state === 'wind' && bl.tele.group.visible; lobDrawn ||= sp.state === 'wind' && sp.tele.group.visible; }
+  assert.equal(droneDrawn, false, 'the harpoon’s lane is not drawn: the gun tips at you');
+  assert.ok(droneWound && d.glow === undefined, 'no diamond on the harpoon as it winds up (issue #733)');
   assert.equal(blotDrawn, false, 'the blot’s lunge reads from its body');
   assert.ok(lobDrawn, 'a lobbed glob marks where it will land');
   foes.dispose(); clearTargets();
