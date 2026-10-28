@@ -438,7 +438,8 @@ namespace Hiraeth.Bridge
 #if UNITY_ANDROID && !UNITY_EDITOR
             // (the handheld at Handheld draws at 0.67 of its screen, taken to it by FSR 1 (issue #392; 0.75 and bilinear before);
             // the GPU was the frame there: 34-55 ms at 1, 23-25 at 0.65 with the lean surfaces); a larger screen fewer of its own,
-            // 960 x 540 at most (the AYN Thor's 1080p at 0.5, issue #395: HandheldScale)
+            // 1440 x 810 at most, down to 960 x 540 as its GPU needs (the AYN Odin 3's and Thor's 1080p from 0.75 to 0.5, issues
+            // #395 and #716: HandheldScale, HandheldFloor)
             else if (urp != null) urp.renderScale = BridgeArgs.Quality == "handheld" ? HandheldScale(Screen.width, Screen.height) : 1f;
 #endif
             // (-upscale fsr|sgsr|linear|off: how the picture at a render scale under 1 reaches the screen (issue #392): our own
@@ -447,8 +448,8 @@ namespace Hiraeth.Bridge
             // ignores while the camera has no post-processing (ours has none: bilinear whatever it says).
             // -ink-full: the G-buffer, its light and the glow at the render scale, the ink composite, AA and the rest at the
             // screen's (issue #392's placement (a); -ink-weight N its lines' weight in screen pixels, 1/scale by default))
-            // (Android's Handheld: FSR 1 by default on a screen up to the Retroid's, its RCAS at 0.6 (HandheldUpscale); -upscale
-            // off gives URP's bilinear blit back, -sharpness another RCAS)
+            // (Android's Handheld: FSR 1 by default, its RCAS at 0.6 (HandheldUpscale; on a larger screen bilinear at the
+            // dynamic range's floor, issue #716); -upscale off gives URP's bilinear blit back, -sharpness another RCAS)
             string upAsked = BridgeArgs.Arg("-upscale"), sharpAsked = BridgeArgs.Arg("-sharpness");
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (upAsked == null && BridgeArgs.Quality == "handheld" && HandheldUpscale(Screen.width, Screen.height) is string hu) { upAsked = hu; sharpAsked ??= HandheldSharpness; }
@@ -819,49 +820,70 @@ namespace Hiraeth.Bridge
         /// Xbox's 4K swap chain (Uhd.On), from 2/3 (1440p) to 1 (-no-dyn-res keeps the scale where it starts).
         /// </summary>
         /// <summary>
-        /// The render scale of Handheld on Android, by the screen's size (issue #395): 0.67 on a screen up to the Retroid's
-        /// 1280 × 960 (857 × 643 drawn, FSR 1 to the screen: HandheldUpscale, issue #392; 0.75 and bilinear before); on a larger one, as many pixels as 960 × 540 at most (the AYN Thor's 1920 × 1080 at
-        /// 0.5: an exact half, which the upscale likes). The Thor at 0.75 drew 1440 × 810, 1.7 times the Retroid's
-        /// pixels on the same GPU (the Adreno 740, here at 680 MHz at most): 39-47 fps in the open views. The GPU's fixed
-        /// ~14 ms leaves little to win below 0.5 (docs/systems/performance.md, "Unity on the AYN Thor").
+        /// The render scale Handheld on Android starts at, the top of its dynamic range (HandheldDyn), by the screen's size:
+        /// 0.67 on a screen up to the Retroid's 1280 × 960 (857 × 643 drawn, FSR 1 to the screen, issue #392); on a larger
+        /// one as many pixels as HandheldDyn.LargeTopPixels at most (issue #716: the AYN Odin 3's 1920 × 1080 at 0.75), the
+        /// GPU's frame taking it down to HandheldFloor where it must. Before #716 a larger screen held 960 × 540 (issue #395,
+        /// tuned on the AYN Thor's Adreno 740), which on the Odin's Adreno 830 looked pixelated with GPU to spare.
         /// </summary>
         public static float HandheldScale(int w, int h)
         {
-            const float retroid = 1280f * 960f, budget = 960f * 540f;
             float px = Mathf.Max(1f, (float)w * h);
-            return px <= retroid ? 0.67f : Mathf.Min(0.67f, Mathf.Sqrt(budget / px));
+            return px <= HandheldDyn.RetroidPixels ? 0.67f : Mathf.Min(HandheldDyn.LargeTop, Mathf.Sqrt(HandheldDyn.LargeTopPixels / px));
         }
         /// <summary>
-        /// Handheld's upscaler on Android when -upscale is not given (issue #392): FSR 1 on a screen up to the Retroid's
-        /// (0.67 → 1280 × 960: 0.6-0.7 ms of GPU, and every world's worst view 1-5 fps above 0.75 with bilinear); none on a
-        /// larger one (the AYN Thor's 2× to 1080p cost ~1 ms and up to 4 fps in the views under 60, so it keeps the bilinear
-        /// blit). docs/systems/performance.md, "Unity on the Retroid, round 8".
+        /// The bottom of Handheld's dynamic range on Android: 0.5 on a screen up to the Retroid's (issue #404); on a larger one
+        /// as many pixels as 960 × 540 (the AYN Thor's 1080p at 0.5, an exact half: what issue #395 held the Thor at, so it
+        /// stays where it was, docs/systems/performance.md "Unity on the AYN Thor").
         /// </summary>
-        public static string HandheldUpscale(int w, int h) => (float)w * h <= 1280f * 960f ? "fsr" : null;
+        public static float HandheldFloor(int w, int h)
+        {
+            float px = Mathf.Max(1f, (float)w * h);
+            return px <= HandheldDyn.RetroidPixels ? HandheldDyn.Min : Mathf.Min(HandheldDyn.Min, Mathf.Sqrt(HandheldDyn.FloorPixels / px));
+        }
+        /// <summary>A screen larger than the Retroid's (the Thor's, the Odin's): its upscaler follows the dynamic level.</summary>
+        public static bool HandheldLarge(int w, int h) => (float)w * h > HandheldDyn.RetroidPixels;
+        /// <summary>
+        /// Handheld's upscaler on Android when -upscale is not given: FSR 1 (issue #392). On a screen up to the Retroid's it
+        /// always is (0.67 → 1280 × 960: 0.6-0.7 ms of GPU). On a larger one (issue #716) FSR while the GPU has room above the
+        /// floor and a plain bilinear copy at the floor (HandheldDyn.UpscalerAt), where the Thor's 2× FSR cost ~1 ms and up to
+        /// 4 fps in its views under 60 (issue #395).
+        /// </summary>
+        public static string HandheldUpscale(int w, int h) => "fsr";
         /// <summary>RCAS's sharpness for Handheld's FSR (issue #392): 0.6, not URP's 0.92, which made the paper's specks in
         /// flat skies dark dots; the ink lines are as crisp at 0.6.</summary>
         public const string HandheldSharpness = "0.6";
         static bool dynOn; static float dynMin = 0.75f;   // (set by Experiments, once the screen is chosen)
-        static bool dynHand; static float dynHandMax, dynHandMin;   // (Handheld's on Android: HandheldDyn)
+        static bool dynHand, dynHandSwitch; static float dynHandMax, dynHandMin;   // (Handheld's on Android: HandheldDyn)
+        static void SetHandheldUpscaler(int level)
+        {
+            if (!dynHandSwitch) return;
+            Hiraeth.Rendering.HiraethFeature.Settings.upscaler = HandheldDyn.UpscalerAt(level, dynHandMax, dynHandMin) == "linear"
+                ? Hiraeth.Rendering.HiraethFeature.Upscaler.Linear : Hiraeth.Rendering.HiraethFeature.Upscaler.Fsr;
+        }
         static void DynamicResolutionSettings()
         {
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             dynOn = Uhd.On ? !BridgeArgs.Flag("-no-dyn-res") : BridgeArgs.Flag("-dyn-res");
             dynMin = BridgeArgs.Arg("-dyn-res-min") is string dr && float.TryParse(dr, System.Globalization.NumberStyles.Float, inv, out float drv) ? Mathf.Clamp(drv, 0.5f, 1f) : Uhd.On ? Uhd.MinScale : 0.75f;
 #if UNITY_ANDROID && !UNITY_EDITOR
-            // (Handheld on a screen up to the Retroid's, FSR 1 taking the picture to it: the scale follows the GPU's frame, from
-            // the preset's 0.67 down to 0.5 (issue #404); -no-dyn-res holds 0.67, -render-scale and -ink-full hold their own;
-            // -dyn-res-min / -dyn-res-max its range)
+            // (Handheld, FSR 1 taking the picture to the screen: the scale follows the GPU's frame, from HandheldScale down to
+            // HandheldFloor: 0.67 to 0.5 on a screen up to the Retroid's (issue #404), 0.75 to 0.5 on a 1080p one (issue #716);
+            // -no-dyn-res holds the top, -render-scale and -ink-full hold their own; -dyn-res-min / -dyn-res-max its range)
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            dynHand = urp != null && BridgeArgs.Quality == "handheld" && HandheldUpscale(Screen.width, Screen.height) != null
+            dynHand = urp != null && BridgeArgs.Quality == "handheld"
                 && BridgeArgs.Arg("-render-scale") == null && !BridgeArgs.Flag("-ink-full") && !BridgeArgs.Flag("-no-dyn-res") && !BridgeArgs.Flag("-dyn-res");
 #endif
             if (dynHand)
             {
                 var u = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
                 dynHandMax = BridgeArgs.Arg("-dyn-res-max") is string dx && float.TryParse(dx, System.Globalization.NumberStyles.Float, inv, out float dxv) ? Mathf.Clamp(dxv, 0.3f, 1f) : u.renderScale;
-                dynHandMin = Mathf.Min(dynHandMax, BridgeArgs.Arg("-dyn-res-min") is string dn && float.TryParse(dn, System.Globalization.NumberStyles.Float, inv, out float dnv) ? Mathf.Clamp(dnv, 0.3f, 1f) : HandheldDyn.Min);
+                dynHandMin = Mathf.Min(dynHandMax, BridgeArgs.Arg("-dyn-res-min") is string dn && float.TryParse(dn, System.Globalization.NumberStyles.Float, inv, out float dnv) ? Mathf.Clamp(dnv, 0.3f, 1f) : HandheldFloor(Screen.width, Screen.height));
                 u.renderScale = dynHandMax;
+                // (a larger screen's upscaler by the level: FSR above the floor, bilinear at it; only the default FSR, not an -upscale asked)
+                dynHandSwitch = HandheldLarge(Screen.width, Screen.height) && BridgeArgs.Arg("-upscale") == null
+                    && Hiraeth.Rendering.HiraethFeature.Settings.upscaler == Hiraeth.Rendering.HiraethFeature.Upscaler.Fsr;
+                SetHandheldUpscaler(0);
                 Debug.Log($"Hiraeth bridge: dynamic resolution {dynHandMin:0.###}-{dynHandMax:0.###} by the GPU's frame, {HandheldDyn.Count(dynHandMax, dynHandMin)} levels");
             }
         }
@@ -918,8 +940,9 @@ namespace Hiraeth.Bridge
             if (urp == null) return;
             float s = urp.renderScale;
             urp.renderScale = HandheldDyn.Level(next, dynHandMax, dynHandMin);
+            SetHandheldUpscaler(next);
             dynLevel = next; dynAt = now; dynSkip = HandheldDyn.Skip; dynWinN = 0; dynUpSum = 0; dynUpN = 0;
-            Debug.Log($"Hiraeth bridge: render scale {s:0.000} -> {urp.renderScale:0.000} (the GPU {g:0.0} ms)");
+            Debug.Log($"Hiraeth bridge: render scale {s:0.000} -> {urp.renderScale:0.000} (the GPU {g:0.0} ms){(dynHandSwitch ? $", upscale {Hiraeth.Rendering.HiraethFeature.Settings.upscaler}" : "")}");
         }
         /// <summary>
         /// The managed heap's collections, tests (issue #113: a stall of 30-60 ms every ~3 s at the City-Shaft, whose
@@ -1411,6 +1434,10 @@ namespace Hiraeth.Bridge
         public const float DownMs = 15.5f, AimMs = 14.8f, UpMs = 14f, Share = 0.5f, ShareUp = 0.65f;
         public const int Window = 12, UpFrames = 60, Skip = 6;
         public const float DownAfter = 0.3f, UpAfter = 2f;
+        /// <summary>The Retroid's screen; a larger one's range: its top at LargeTop / LargeTopPixels, its floor at FloorPixels (issue #716).</summary>
+        public const float RetroidPixels = 1280f * 960f, LargeTop = 0.75f, LargeTopPixels = 1440f * 810f, FloorPixels = 960f * 540f;
+        /// <summary>A larger screen's upscaler at level i: bilinear at the floor (the last level), FSR 1 above it (issue #716).</summary>
+        public static string UpscalerAt(int i, float max, float min) => Count(max, min) > 1 && i >= Count(max, min) - 1 ? "linear" : "fsr";
         /// <summary>How many levels from max to min (both included).</summary>
         public static int Count(float max, float min) => max - min < 0.001f ? 1 : Mathf.CeilToInt((max - min) / MaxStep - 0.001f) + 1;
         /// <summary>Level i's scale (0 is max, Count - 1 is min).</summary>

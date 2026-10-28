@@ -16,13 +16,13 @@ function handheldDyn() {
   const src = m[1]
     .replace(/\/\/\/.*\n/g, '')
     .replace(/public const (?:float|int) /g, 'const ')
-    .replace(/public static (?:int|float) (\w+)\(([^)]*)\) => ([^;]+);/g, (_, n, p, e) => `function ${n}(${params(p)}) { return ${e}; }`)
+    .replace(/public static (?:int|float|string) (\w+)\(([^)]*)\) => ([^;]+);/g, (_, n, p, e) => `function ${n}(${params(p)}) { return ${e}; }`)
     .replace(/public static (?:int|float) (\w+)\(([^)]*)\)\s*\{/g, (_, n, p) => `function ${n}(${params(p)}) {`)
     .replace(/\b(?:int|float) (\w+) =/g, 'let $1 =')
     .replace(/(\d+(?:\.\d+)?)f\b/g, '$1');
   const Mathf = { CeilToInt: Math.ceil, Clamp: (x, a, b) => Math.min(b, Math.max(a, x)) };
   // eslint-disable-next-line no-new-func
-  return new Function('Mathf', `${src}\nreturn { Min, MaxStep, DownMs, AimMs, UpMs, Share, ShareUp, Window, UpFrames, Skip, DownAfter, UpAfter, Count, Level, Predict, Down, Up };`)(Mathf);
+  return new Function('Mathf', `${src}\nreturn { Min, MaxStep, DownMs, AimMs, UpMs, Share, ShareUp, Window, UpFrames, Skip, DownAfter, UpAfter, RetroidPixels, LargeTop, LargeTopPixels, FloorPixels, Count, Level, Predict, Down, Up, UpscalerAt };`)(Mathf);
 }
 
 const D = handheldDyn();
@@ -55,14 +55,13 @@ test('a step down goes as far as the aim needs, a step up one level only when th
 });
 
 // BridgeRunner.HandheldResolution's loop, frame by frame, over a view whose GPU ms is fixed + pixels × scale² (with noise)
-function run(fixedMs, pixelMs067, secs, seed = 1, start = 0) {
+function run(fixedMs, pixelMs067, secs, seed = 1, start = 0, max = 0.67, min = 0.5) {
   let r = seed; const rnd = () => { r = (r * 16807) % 2147483647; return r / 2147483647; };
-  const max = 0.67, min = 0.5;
   let level = start, at = -10, skip = 0, win = [], upSum = 0, upN = 0, changes = 0;
   const frames = [];
   for (let f = 0; f < secs * 60; f++) {
     const now = f / 60, s = D.Level(level, max, min);
-    const g = (fixedMs + pixelMs067 * (s / max) ** 2) * (1 + (rnd() - 0.5) * 0.08);
+    const g = (fixedMs + pixelMs067 * (s / 0.67) ** 2) * (1 + (rnd() - 0.5) * 0.08);
     frames.push({ s, g });
     if (skip > 0) { skip--; continue; }
     win.push(g); upSum += g; upN++;
@@ -100,9 +99,13 @@ test('modelled views: the heavy go down at once and hold, the light stay sharp, 
   assert.ok(back.changes === 4);
 });
 
-test('the bridge: on for Android\'s Handheld on a screen up to the Retroid\'s, off with -no-dyn-res, -render-scale or -ink-full', () => {
-  assert.match(runner, /dynHand = urp != null && BridgeArgs\.Quality == "handheld" && HandheldUpscale\(Screen\.width, Screen\.height\) != null\s*&& BridgeArgs\.Arg\("-render-scale"\) == null && !BridgeArgs\.Flag\("-ink-full"\) && !BridgeArgs\.Flag\("-no-dyn-res"\) && !BridgeArgs\.Flag\("-dyn-res"\);/);
-  assert.match(runner, /#if UNITY_ANDROID && !UNITY_EDITOR\n\s+\/\/ \(Handheld on a screen up to the Retroid's/);
+test('the bridge: on for Android\'s Handheld on every screen, off with -no-dyn-res, -render-scale or -ink-full', () => {
+  assert.match(runner, /dynHand = urp != null && BridgeArgs\.Quality == "handheld"\s*&& BridgeArgs\.Arg\("-render-scale"\) == null && !BridgeArgs\.Flag\("-ink-full"\) && !BridgeArgs\.Flag\("-no-dyn-res"\) && !BridgeArgs\.Flag\("-dyn-res"\);/);
+  assert.match(runner, /#if UNITY_ANDROID && !UNITY_EDITOR\n\s+\/\/ \(Handheld, FSR 1 taking the picture to the screen/);
+  // (the range: HandheldScale's top down to HandheldFloor; a larger screen's upscaler by the level, only FSR chosen by default)
+  assert.match(runner, /: HandheldFloor\(Screen\.width, Screen\.height\)\);\n\s+u\.renderScale = dynHandMax;/);
+  assert.match(runner, /dynHandSwitch = HandheldLarge\(Screen\.width, Screen\.height\) && BridgeArgs\.Arg\("-upscale"\) == null\s*&& Hiraeth\.Rendering\.HiraethFeature\.Settings\.upscaler == Hiraeth\.Rendering\.HiraethFeature\.Upscaler\.Fsr;/);
+  assert.match(runner, /urp\.renderScale = HandheldDyn\.Level\(next, dynHandMax, dynHandMin\);\n\s+SetHandheldUpscaler\(next\);/);
   assert.match(runner, /if \(dynHand\) \{ HandheldResolution\(\); return; \}/);
   // (the loop: the median of a window down, the mean of a second up, frames skipped after a change)
   const loop = runner.slice(runner.indexOf('void HandheldResolution()'));
@@ -120,4 +123,30 @@ test('the scale reported: each bench view\'s mean (RenderStats) and the frame re
   assert.match(runner, /renderScaleSum \+= GraphicsSettings\.currentRenderPipeline is UniversalRenderPipelineAsset ua \? ua\.renderScale : 1f;/);
   assert.match(runner, /\\"scale\\":\{4:0\.###\}/);
   assert.match(metrics, /· scale \{rs:0\.00\} ·/);
+});
+
+test('a 1080p handheld (issue #716): 0.75 down to 0.5 in seven levels, FSR above the floor and bilinear at it', () => {
+  assert.equal(D.LargeTop, 0.75);
+  assert.equal(D.LargeTopPixels, 1440 * 810);
+  assert.equal(D.FloorPixels, 960 * 540);
+  const n = D.Count(0.75, 0.5);
+  assert.equal(n, 7);
+  for (let i = 1; i < n; i++) assert.ok(D.Level(i - 1, 0.75, 0.5) - D.Level(i, 0.75, 0.5) <= D.MaxStep + 1e-6);
+  for (let i = 0; i < n - 1; i++) assert.equal(D.UpscalerAt(i, 0.75, 0.5), 'fsr', `level ${i}`);
+  assert.equal(D.UpscalerAt(n - 1, 0.75, 0.5), 'linear', 'the floor: the bilinear copy, the Thor\'s picture as before');
+  assert.equal(D.UpscalerAt(0, 0.5, 0.5), 'fsr', 'a range of one level (-dyn-res-max 0.5) keeps FSR');
+});
+
+test('modelled 1080p views: a GPU like the Thor\'s goes to its floor and holds, one with room stays sharp', () => {
+  // (the GPU's ms written as at 0.67 (run's unit): the Thor's City-Shaft wide ~25 ms at 0.5, its light views ~14-15)
+  const thor = run(14, 14, 20, 1, 0, 0.75, 0.5);
+  assert.equal(thor.scale, 0.5, 'the Thor\'s heavy view at the floor, as issue #395 held it');
+  assert.ok(thor.frames.slice(60).every((x) => x.s === 0.5), 'there within a second');
+  const odin = run(5, 6, 20, 2, 0, 0.75, 0.5);
+  assert.equal(odin.scale, 0.75, 'a GPU with room keeps the top');
+  assert.equal(odin.changes, 0);
+  const mid = run(7, 9, 30, 3, 0, 0.75, 0.5);
+  assert.ok(mid.scale < 0.75 && mid.scale > 0.5, `in between: ${mid.scale}`);
+  assert.ok(mid.frames.slice(-600).every((x) => x.g < 1000 / 60), 'under the frame once settled');
+  assert.ok(mid.changes <= 3, `settles: ${mid.changes} changes`);
 });
