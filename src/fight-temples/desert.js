@@ -1,6 +1,6 @@
 // The desert's fight temple, the Sunken Hall (issue #341; docs/design/fight-temples.md): a makers' hall the dunes
 // swallowed, roofless now, four rooms down under the sand by the pilgrims' camps, where the ink pools and the blots
-// breed. Its foes are the desert's own (its horde, src/foe-worlds.js: blots, skitters, mound worms, stilt herons), light, many;
+// breed. Its foes are the desert's own (src/foe-worlds.js: blots, skitters, mound worms, stilt herons), light, many;
 // its last wave brings a lamp tripod and two whole herons. The reward: the Ember colours (src/kit-colours.js).
 //
 // A temple is this table: rooms (rectangles on whole metres, 2 m apart: the wall between), the doors between them,

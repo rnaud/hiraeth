@@ -2,17 +2,16 @@
 // the sentinel (a duellist on the humanoid rig's clips), the oracle (a hovering caster: the rig's upper body over a shell)
 // and the crawler (a knee-high dome on four legs, on the kit). Every move maps to a clip, a pose or a kit gait; their
 // wind-ups are pinned; the sentinel's guard answers a masher; the oracle's ward and wake, its blink; the crawler's call
-// and its blast; their tier's look (the same, #748); what each costs; and each one's signature move seen against a masher.
+// and its blast; their tier's scorched look; what each costs; and each one's signature move seen against a masher.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import * as THREE from 'three';
 import { ARCHETYPES, BUILT } from '../src/enemies/archetypes.js';
 import { SKINS, skinOf } from '../src/enemies/skins.js';
-import { surfaceFor } from '../src/enemies/surfaces.js';
+import { surfaceFor, TIER_SURFACE } from '../src/enemies/surfaces.js';
 import { FIGHT, TIERS, RAGE } from '../src/enemies/fight.js';
 import { WORLDS, worldArchetypes } from '../src/foe-worlds.js';
-import { ORDER, SIDE, partsOf } from '../src/levels/names.js';
 import { Foes, FOES, ARENA_WAVES, STING } from '../src/foes.js';
 import { foeSections } from '../src/foe-spawner.js';
 import { windMin } from '../src/telegraph.js';
@@ -47,15 +46,14 @@ const CHARGED = { damage: 2, combo: 2, breaks: true, charged: false };
 // (the clips the rig plays: the captured moves' names in public/anim/moves.glb, read from its JSON chunk)
 const clipNames = (() => { const b = readFileSync(new URL('../public/anim/moves.glb', import.meta.url)); const n = b.readUInt32LE(12); return new Set(JSON.parse(b.subarray(20, 20 + n).toString()).animations.map((a) => a.name.replace(/^mixamo_/, ''))); })();
 
-test('the droids on the roster: three built machines drawn to their picked sheets, in the Arena and the gallery, and in the route worlds (#726)', () => {
+test('the droids on the roster: three built machines drawn to their picked sheets, in the Arena and the gallery, not yet in any world', () => {
   for (const a of DROIDS) {
     const A = ARCHETYPES[a];
     assert.equal(A.status, 'built'); assert.ok(BUILT.includes(a)); assert.equal(A.kind, a); assert.equal(A.family, 'machine');
     assert.equal(A.art, 'sheet-1'); assert.equal(A.roster, 'v4');
     assert.ok(existsSync(new URL(`../references/enemy-archetypes/${a}/sheet-1.jpg`, import.meta.url)), `${a}: its sheet`);
-    assert.ok(ORDER.filter((w) => partsOf(w).some((p) => worldArchetypes(p).includes(a))).length >= { crawler: ORDER.length, sentinel: 9, oracle: 6 }[a], `${a}: met along the route`);
-    assert.ok(SIDE.every((w) => !worldArchetypes(w).includes(a)), `${a}: not in a discarded world`);
-    assert.equal(Object.keys(SKINS[a]).length, 1, `${a}: one skin, worn in every world`);
+    assert.ok(Object.keys(WORLDS).every((w) => !worldArchetypes(w).includes(a)), `${a}: no world's roster yet (a later batch)`);
+    assert.ok(Object.values(SKINS[a]).every((s) => s.arena), `${a}: its skin met in the Arena only`);
     assert.ok(ARENA_WAVES.some((w) => w.every((k) => k.startsWith(`${a}@`))), `${a}: an Arena wave of its own`);
     assert.ok(foeSections()[0].items.some((i) => i.kind.startsWith(`${a}@`)), `${a}: in the Arena's foe list`);
   }
@@ -234,17 +232,22 @@ test('the crawler self-destructs at low health: a fuse it runs at you with, a bl
   done();
 });
 
-test('their stronger tier: the same ivory ceramic and amber eye (one look, #748); one new move each', () => {
+test('their stronger tier: scorched darker ceramic, a red eye and red seams, cracks glowing through instead of the bands; one new move each', () => {
   for (const a of DROIDS) {
-    const base = skinOf(a, 'desert');
-    assert.equal(base.palette.eye, '#ffa51f', `${a}: the amber eye`);
-    assert.ok(surfaceFor(a, base, 'ceramic').mottle && !surfaceFor(a, base, 'ceramic').cracks, `${a}: stained, uncracked`);
+    const base = skinOf(a, 'desert'), t = skinOf(a, 'desert', 1);
+    assert.equal(t.palette.eye, '#ff3324', `${a}: a red eye`);
+    assert.notEqual(t.palette.eye, base.palette.eye);
+    const lum = (h) => parseInt(h.slice(1, 3), 16) + parseInt(h.slice(3, 5), 16) + parseInt(h.slice(5, 7), 16);
+    assert.ok(lum(t.palette.ceramic) < lum(base.palette.ceramic) * 0.6, `${a}: its ceramic scorched dark`);
+    assert.match(t.name, /^scorched /);
+    const s = surfaceFor(a, t, 'ceramic');
+    assert.ok(s.cracks && s.mottle, `${a}: cracks and soot`);
+    assert.notDeepEqual(s.stripes, { ...TIER_SURFACE.stripes }, `${a}: not the bands`);
+    assert.ok(!surfaceFor(a, base, 'ceramic').cracks, `${a}: its own skin uncracked`);
     assert.ok(TIERS[a].combo, `${a}: its tier's new move`);
-    const { foes, done } = field();
-    const t = foes.add(`${a}*`, new THREE.Vector3(0, 0, 9));
-    assert.equal(t.tierN, 1, `${a}: in tier`);
-    assert.equal(t.model.eyeMat.uniforms.uColor.value.getHexString(), 'ffa51f', `${a}: drawn with its amber eye in tier`);
-    done();
+    const m = archetypeModel(a, 'desert', 1);
+    assert.equal(m.eyeMat.uniforms.uColor.value.getHexString(), 'ff3324', `${a}: drawn with the red eye`);
+    m.dispose?.();
   }
 });
 

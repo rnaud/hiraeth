@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Foes, FOES } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { SKINS } from '../src/enemies/skins.js';
-import { WORLDS, worldArchetypes } from '../src/foe-worlds.js';
+import { WORLDS } from '../src/foe-worlds.js';
 import { ORDER } from '../src/levels/names.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { windMin } from '../src/telegraph.js';
@@ -38,12 +38,10 @@ const CHARGED = { damage: 2, combo: 2, breaks: true, charged: false };
 test('the fencer on the roster: a machine duelist of its own plan, in three late route worlds, every wind-up fair', () => {
   const A = ARCHETYPES.fencer, D = FOES.fencer;
   assert.equal(A.family, 'machine'); assert.equal(A.role, 'mirror'); assert.equal(A.art, 'pending', 'no design sheet was picked');
-  // (issue #726, roster v4: a droid at the makers' places, met at the sites of the three late worlds)
-  const worlds = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes('fencer'));
-  assert.deepEqual(worlds.sort(), ['moonfoundry', 'spacecity']);
+  const worlds = Object.keys(WORLDS).filter((w) => WORLDS[w].roster.fencer);
+  assert.deepEqual(worlds.sort(), ['bazaar', 'moonfoundry', 'spacecity']);
   for (const w of worlds) assert.ok(ORDER.indexOf(w) >= ORDER.indexOf('moonfoundry'), `${w}: a later world`);
-  // (the Market's skin kept for its fight temple's horde: the Back Rooms)
-  for (const w of Object.keys(SKINS.fencer)) assert.ok(worlds.includes(w) || WORLDS[w].horde?.fencer, `${w}: a skin where it fights`);
+  for (const w of Object.keys(SKINS.fencer)) assert.ok(worlds.includes(w), `${w}: a skin where it fights`);
   for (const a of D.attacks) assert.ok(a.wind >= windMin(a), `${a.id}: ${a.wind} s ≥ ${windMin(a)} s`);
   for (const a of D.attacks) assert.ok(a.tell && a.counter, `${a.id}: its tell and its answer`);
   assert.equal(D.attacks.find((a) => a.id === 'overhead').dodge, 'side');

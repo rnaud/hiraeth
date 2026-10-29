@@ -2,7 +2,7 @@
 // shops after hours, crates stacked in them, the signs on their walls dark. The bell walker tolls in the market above,
 // and the signs answer (hazards.js 'toll'): a sign flickers on, then a ring of sound spreads from it across the room;
 // its edge passing him flinches him (a little harm) unless he rolls through it, and every foe it passes is stunned and
-// cut, so a crowd caught by the ring is a crowd to cut down. Its foes are the market's own (its horde, src/foe-worlds.js: horn
+// cut, so a crowd caught by the ring is a crowd to cut down. Its foes are the market's own (src/foe-worlds.js: horn
 // lizards in pairs, antler hounds, signal moths, marionettes on their strings), light, many; the last wave brings the
 // bell walker itself and a whole marionette. The reward: Signal neon (src/kit-colours.js).
 //

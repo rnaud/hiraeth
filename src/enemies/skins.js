@@ -1,21 +1,14 @@
 import { ARCHETYPES } from './archetypes.js';
 
-// Each archetype's look (docs/design/enemy-roster.md, every archetype's "Worlds and skins"): a skin only recolours and
-// dresses the archetype's body (src/enemies/plans/), and may add a skin-only move.
-//
-// One look per kind (issue #748, the author's rule of 2026-10-28: "only 1 variation of each enemy for now, not slight
-// variations and colors per worlds"): every foe wears its own skin, the first listed (its main sheet's, sheet-1), in
-// every world, the Arena, the fight temples and the galleries alike; its stronger tier looks the same too (the tier is
-// its stats and one move: src/enemies/fight.js). The other worlds' skins below are kept as data only (for now): never
-// worn, never offered (skinWorlds); only their `moves` still count, by the world met in (movesOf).
+// Each archetype in each world's skin (docs/design/enemy-roster.md, every archetype's "Worlds and skins"): a skin
+// only recolours and dresses the archetype's body (src/enemies/plans/), and may add a skin-only move.
 //
 //   SKINS[archetype][world] = { name, palette: { … }, props: [ … ], scale, moves: [ … ] }
 //     palette  the colours its body builder reads (each plan its own keys; missing ones fall back to the first skin's)
 //     props    what dresses it: lichen, antennae, an awning, barnacles and rope, glass facets, coral, patina, coins…
-//     moves    skin-only attacks (an attack's `skins`: the crab's burrow in the Salt Harbour and Underwater): still met in
-//              that world, in the one look
+//     moves    skin-only attacks (an attack's `skins`: the crab's burrow in the Salt Harbour and Underwater)
 //     arena    a skin met only in the Arena (Home, the Atelier, the Overnight Train stay peaceful)
-// The first world listed is the archetype's own skin: its main sheet's, the one look.
+// The first world listed is the archetype's own skin: where it is met first, and what the Arena shows by default.
 
 export const SKINS = {
   crab: {
@@ -197,9 +190,9 @@ export const SKINS = {
     // (sheet-1, the Garden of Spheres: matte ink-black with violet smoke, black antlers glinting gold, a thin pearl-and-
     // gold halo caught in them, white eyes; sheet-2, the Mangrove: bone-white driftwood antlers, the black body dripping
     // like wet ink, sage and lilac smoke, small turquoise eyes)
-    spheres: { name: 'halo hound', palette: { ink: '#1a1521', rim: '#3a2c4e', antler: '#241c2e', eye: '#f4f0ff', glow: '#dcb860', smoke: '#4a3868', smoke2: '#8676a6' }, props: ['halo', 'glints'] },
     eclipse: { name: 'night hound', palette: { ink: '#15121c', rim: '#3b2a5c', antler: '#d6c2ff', eye: '#d6c2ff', glow: '#d6c2ff', smoke: '#3b2a5c', smoke2: '#5a4686' }, props: ['crescent'] },
     mangrove: { name: 'driftwood hound', palette: { ink: '#1a1a20', rim: '#3a3a44', antler: '#ebe3d1', eye: '#6fe0d0', glow: '#6fe0d0', smoke: '#a3c1ab', smoke2: '#c2b0dc' }, props: ['bleached', 'drips'] },
+    spheres: { name: 'halo hound', palette: { ink: '#1a1521', rim: '#3a2c4e', antler: '#241c2e', eye: '#f4f0ff', glow: '#dcb860', smoke: '#4a3868', smoke2: '#8676a6' }, props: ['halo', 'glints'] },
     bazaar: { name: 'alley hound', palette: { ink: '#16141a', rim: '#3a3440', antler: '#b39464', eye: '#ffb8d0', glow: '#ff9ac0', smoke: '#3a3440', smoke2: '#5a4a58' }, props: ['wire'] },
   },
   marionette: {
@@ -237,48 +230,50 @@ export const SKINS = {
   mummerking: {
     desert: { name: 'mummer king', palette: { sack: '#56649a', patch: '#c98d36', patch2: '#d7c3a0', rag: '#a98f62', rope: '#b08850', brass: '#d9b048', verd: '#5f9a84', ink: '#141020', sheen: '#6a58a8', wood: '#8b6239', wood2: '#d6c6a4', iron: '#4e4842', copper: '#7fae9a', copper2: '#b8703f', eye: '#fbf6e8', flare: '#ffcf6a' }, props: [] },
   },
-  // (issue #726, roster v4's monsters: one skin in every world, the same in its stronger tier (#748); the one skin worn in
-  // every route world since the world rosters, #726: src/foe-worlds.js, src/encounters/sites.js)
+  // (issue #726, roster v4's monsters: one skin in every world, its colour the tier: tierSkin's darker, banded one later on;
+  // `arena` until the worlds' rosters take them: the Desert's camp stages them behind a flag, src/encounters/sites.js)
   // sheet-1 (references/enemy-archetypes/grunt/sheet-1.jpg): tomato-red skin, a shade deeper in its creases and paler on
   // its belly and snout, knobbly bumps on its scalp; a khaki loincloth, a brown leather strap with an iron ring; ivory
   // tusks and claws; yellow eyes; a grey-brown knobbly club.
   grunt: {
-    desert: { name: 'grunt', palette: { skin: '#d65a40', skin2: '#e98a68', crease: '#9a3428', cloth: '#c6b071', cloth2: '#a48e52', leather: '#6b4630', iron: '#5e5852', wood: '#9d8a6c', wood2: '#c2b08e', bone: '#efe2c4', eye: '#f2c33c', pupil: '#1b1414', ink: '#1b1414', rock: '#b9a07c', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'grunt', arena: true, palette: { skin: '#d65a40', skin2: '#e98a68', crease: '#9a3428', cloth: '#c6b071', cloth2: '#a48e52', leather: '#6b4630', iron: '#5e5852', wood: '#9d8a6c', wood2: '#c2b08e', bone: '#efe2c4', eye: '#f2c33c', pupil: '#1b1414', ink: '#1b1414', rock: '#b9a07c', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/hulk/sheet-1.jpg): slate-blue skin with lilac in its shadows, a pale icy belly,
   // an ivory horn; a ragged kilt of hide patches (brown, olive, tan) on a rope belt; a long dark club with iron bands.
   hulk: {
-    desert: { name: 'hulk', palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#bfcde8', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#bfcde8', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/prowler/sheet-1.jpg): smooth leaf-green scaly skin, a shade deeper on its back and
   // paler on its flanks; a cream throat, chest, belly and tail underside; yellow eyes; a polished steel shoulder guard and
   // blade, a brown leather strap and grip; pale claws; its spit a sour yellow-green.
   prowler: {
-    desert: { name: 'prowler', palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'prowler', arena: true, palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/warlord/sheet-1.jpg): deep crimson skin, darker in its creases; a dark brown mane;
   // ridged tan ram horns; rough bronze, blotched darker; a wide dark leather belt and a brown loincloth; a dark glaive
   // shaft with steel rings and a grey steel blade; yellow eyes.
   warlord: {
-    desert: { name: 'warlord', palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'warlord', arena: true, palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
   },
 };
 
 // (issue #726) the makers' defunct droids: one material family, the same in every world (docs/design/enemy-roster-v4.md;
 // src/enemies/plans/droid.js). Their sheets (sheet-1 each) draw weathered ivory ceramic panels with warm grey-brown stains,
-// near-black joints, amber seams and one amber eye, a little moss. One skin each (keyed to the first world: everywhere
-// the same); their stronger tier looks the same (issue #748: no scorched skin).
+// near-black joints, amber seams and one amber eye, a little moss. One skin each, met only in the Arena until the world
+// rosters take them (keyed to the first world: everywhere the same). Their stronger tier (`tier`): scorched darker ceramic,
+// a red eye and red seams instead of amber, laid over tierSkin's dimmed palette.
 export const DROID_PALETTE = {
   ceramic: '#ebe2cb', ceramic2: '#f6efdc', stain: '#b49c74', joint: '#2b2a2f', joint2: '#4a4850', seam: '#ffae36',
   eye: '#ffa51f', flare: '#fff0b8', moss: '#7d9748', steel: '#d4d6d8', ring: '#ddd3bb',
 };
-const droid = (name) => ({ desert: { name, palette: { ...DROID_PALETTE }, props: [] } });
+export const DROID_TIER = { ceramic: '#7a7064', ceramic2: '#8c8274', stain: '#2b231d', joint: '#1a1817', joint2: '#2c2826', seam: '#ff4a2e', eye: '#ff3324', flare: '#ffc2b0', moss: '#4a5032', ring: '#6e665a', steel: '#9a9890' };
+const droid = (name) => ({ desert: { name, arena: true, palette: { ...DROID_PALETTE }, props: [], tier: { palette: DROID_TIER } } });
 SKINS.sentinel = droid('sentinel');
 SKINS.oracle = droid('oracle');
 SKINS.crawler = droid('crawler');
 
-// The ink blot: its skins were made from this table of each world's ground colour at its edge (sand in the Desert, moss
-// in Lorn, rust in the Hangar). Since #748 it wears the Desert's sand-edged skin everywhere (the others kept as data).
+// The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in
+// Lorn, rust in the Hangar). Its skins are made from this table of edge colours.
 const BLOT_EDGE = {
   desert: ['the sand-edged blot', '#c99a48'], arzach: ['the feather-tufted blot', '#8caeb1'], arzach2: ['the cloud-edged blot', '#b8c8d8'],
   perdide: ['the moss-edged blot', '#7d9a5c'], perdide2: ['the root-edged blot', '#3f6a5a'], edena: ['the leaf-edged blot', '#6fa85c'],
@@ -294,48 +289,46 @@ const BLOT_EDGE = {
 const BLOT_DRESS = { garage: { palette: { ink: '#1c2125', shine: '#4f7378', edge: '#c06c38', edge2: '#3f8682' }, props: ['shavings'] } };
 SKINS.blot = Object.fromEntries(Object.entries(BLOT_EDGE).map(([w, [name, edge]]) => [w, { name, palette: { ink: '#1e1a26', shine: '#5c4a8e', edge, eye: '#f4efe0', ...BLOT_DRESS[w]?.palette }, props: BLOT_DRESS[w]?.props }]));
 
-/** Each archetype's own skin, its one look (issue #748): the first listed, its main sheet's (art.main where it has one). */
+/** Each archetype's own skin: the first world it is met in (its skins' first entry). */
 export const HOME_SKIN = Object.fromEntries(Object.entries(SKINS).map(([a, s]) => [a, Object.keys(s)[0]]));
 
-/** The skins of an archetype offered anywhere (the Arena's run, the galleries, the debug menu): its one look (#748). */
-export const skinWorlds = (a) => (SKINS[a] ? [HOME_SKIN[a]] : []);
+/** The skin worlds of an archetype (in order: its own first). */
+export const skinWorlds = (a) => Object.keys(SKINS[a] ?? {});
 
-/** Which skin an archetype wears in a world: its one look, wherever it is met (#748); null for no archetype. */
+/** Which skin an archetype wears in a world: that world's own, else its home skin (the Arena, a world it isn't in). */
 export function skinFor(a, world) {
-  return SKINS[a] ? HOME_SKIN[a] : null;
-}
-
-/** The skin-only moves an archetype has where it is met (`world`, or a kind's '@world'): that world's skin's, else its own's. */
-export function movesOf(a, world) {
   const S = SKINS[a];
-  if (!S) return [];
-  return (S[world] ?? S[HOME_SKIN[a]]).moves ?? [];
+  if (!S) return null;
+  return S[world] ? world : HOME_SKIN[a];
 }
 
 /**
- * An archetype's look, met in a world: its one skin (#748), its palette filled from its home skin's: { id, name, palette,
- * props, moves, scale }; `moves` the world's (movesOf). Its stronger tier looks the same: the tier is its def's
- * (src/enemies/fight.js tierDef), never its body's.
+ * An archetype's skin in a world, its palette filled from its home skin's: { id, name, palette, props, moves, scale }.
+ * tier: its stronger tier's (issue #722, src/enemies/fight.js TIERS): tierSkin.
  */
-export function skinOf(a, world) {
+export function skinOf(a, world, tier = 0) {
   const id = skinFor(a, world);
   if (!id) return null;
-  const S = SKINS[a][id];
-  return { id, name: S.name, palette: { ...S.palette }, props: S.props ?? [], moves: movesOf(a, world ?? id), scale: S.scale ?? 1, arena: !!S.arena };
+  const S = SKINS[a][id], home = SKINS[a][HOME_SKIN[a]];
+  const out = { id, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: S.scale ?? 1, arena: !!S.arena };
+  return tier ? tierSkin(out, S.tier) : out;
 }
 
 /**
- * A world's skin as it was drawn before #748 (its palette over its home skin's), kept as data only: never worn in the game
- * (skinOf, archetypeModel by a world give the one look); for the tests of a body plan's props and for bringing one back.
+ * The stronger tier's look (issue #722, D13, BotW's colour tiers): the same skin, darker (TIER_LOOK.dark; its eyes, glows
+ * and lamps kept: TIER_LOOK.keep), banded (src/enemies/surfaces.js TIER_SURFACE paints the bands), its own materials
+ * (`key`) and its own name ('banded …').
  */
-export function keptSkin(a, world) {
-  const S = SKINS[a]?.[world];
-  if (!S) return null;
-  const home = SKINS[a][HOME_SKIN[a]];
-  return { id: world, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: S.scale ?? 1, arena: !!S.arena };
+export const TIER_LOOK = { dark: 0.52, keep: /^(eye|glow|lamp|core|lip|brew|slag|fire|flame|light|spirit|eyes|seam|glint|flare|spore|spot|ward|line|ink)/ };
+export function tierSkin(s, own = null) {
+  const dim = (hex) => { const n = parseInt(hex.slice(1), 16), k = TIER_LOOK.dark; const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((x) => Math.round(x * k)); return `#${c.map((x) => x.toString(16).padStart(2, '0')).join('')}`; };
+  const palette = Object.fromEntries(Object.entries(s.palette).map(([k, v]) => [k, typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) && !TIER_LOOK.keep.test(k) ? dim(v) : v]));
+  // (a skin's own tier colours over the dimmed ones: the droids' scorched ceramic and red eye, issue #726)
+  if (own?.palette) Object.assign(palette, own.palette);
+  return { ...s, palette, tier: 1, key: `${s.id}~tier`, name: own?.name ?? `${own ? 'scorched' : 'banded'} ${s.name}` };
 }
 
-/** A skin's name for a kind (by the archetype it is): its one look's, 'crab' → 'cliff crab'; else the archetype's name. */
+/** A skin's name for a kind (by the archetype it is): 'crab', 'saltharbour' → 'anchor crab'; else the archetype's name. */
 export function skinName(a, world) {
   const s = skinOf(a, world);
   return s?.name ?? ARCHETYPES[a]?.name ?? a;

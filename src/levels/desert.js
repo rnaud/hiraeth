@@ -164,9 +164,9 @@ export function* buildDesert(scene) {
     keepClear: (p) => Math.hypot(p.x - STORY.city.x, p.z - STORY.city.z) < QANAT_CLEAR,
     observatory,
     qanat,
-    // the level's own encounter sites (issue #730, src/encounters/index.js): the skull cave's hall, two grunts and two
-    // prowlers of the Desert's roster in the giant's chest round its pool, far overhead (so `dy`: only from inside)
-    sites: qanat.cave?.hall ? [{ id: 'skull-hall', kind: 'hall', at: qanat.cave.hall.at.toArray(), foes: ['grunt', 'prowler', 'grunt', 'prowler'], spots: qanat.cave.hall.spots, coffer: qanat.cave.hall.coffer, dy: 25 }] : [],
+    // the level's own encounter sites (issue #730, src/encounters/index.js): the skull cave's hall, three mummers and their
+    // king, the Desert's own troupe (issue #762), in the giant's chest round its pool, far overhead (so `dy`: only from inside)
+    sites: qanat.cave?.hall ? [{ id: 'skull-hall', kind: 'hall', at: qanat.cave.hall.at.toArray(), foes: ['mummer', 'mummerking', 'mummer', 'mummer'], spots: qanat.cave.hall.spots, coffer: qanat.cave.hall.coffer, dy: 25 }] : [],
     // a save left standing up the tree where the makers' shelf was (until v1.49, issue #140): down to the dais's foot
     // instead of a fall onto the square (main.js, where a save is resumed)
     settleSaved: (p, physics) => {

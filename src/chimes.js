@@ -2,16 +2,14 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { CRYSTAL_ATTR, CRYSTAL_GLOW_ATTR } from './crystal-shader.js';
 import { ARCHETYPES, BUILT } from './enemies/archetypes.js';
-import { TIER } from './enemies/fight.js';
 
 // Chimes, the currency (docs/systems/items.md, "Chimes"): small floating crystals, splinters of the singing
 // mineral that ring like struck glass (brass discs until October 2026). The wallet is
 // src/resources.js (resources.chimes, addChimes, spend, the 'wallet' event); this module is where they come
 // from and how they lie in the world:
 //
-//   dropAmount({ kind, stage }, rng)      what a foe cut down leaves (DROP_OF by kind: the old kinds', and each
-//                                         built archetype's own drop, src/enemies/archetypes.js), a little spread;
-//                                         along the route as much more as its health (DROP_BY_STAGE: #726)
+//   dropAmount({ kind }, rng)             what a foe cut down leaves (DROP_OF by kind: the old kinds', and each
+//                                         built archetype's own drop, src/enemies/archetypes.js), a little spread
 //   dropPolicy(level)                     'on' | 'training' (the Arena: into the wallet, not counted as earned)
 //                                         | 'off' (a game's own foes: Ink tide; or level.foes.chimes false)
 //   PURSE                                 the one-time purses: a temple's guardian, a makers' run's first finish
@@ -34,18 +32,12 @@ export const DROP_OF = {
 };
 /** The one-time purses: each temple's guardian resolved (and each sparring bout in the Arena's ring), a makers' run's first finish, a temple's coffer opened (its optional room's reward). */
 export const PURSE = { guardian: 40, run: 15, cache: 25, site: 25 };   // (site: an encounter site's coffer, by stage: src/encounters/sites.js SITE_PURSE)
-/**
- * A foe pays as much more along the route as it is tougher there (src/enemies/fight.js TIER.hp by the world's stage),
- * since roster v4 (issue #726) met the same foes in every world: a Market grunt is worth more than a Desert one, as each
- * world's own animals were.
- */
-export const DROP_BY_STAGE = TIER.hp;
 /** The spread round a drop's base (±), never under one. */
 export const SPREAD = 0.25;
 
-/** Chimes a foe cut down leaves: { kind, stage? } (the world's stage: DROP_BY_STAGE). rng in [0, 1). */
-export function dropAmount({ kind = null, stage = null } = {}, rng = Math.random) {
-  const base = (DROP_OF[kind] ?? 1) * (Number.isFinite(stage) ? DROP_BY_STAGE[Math.max(0, Math.min(DROP_BY_STAGE.length - 1, stage))] : 1);
+/** Chimes a foe cut down leaves: { kind }. rng in [0, 1). */
+export function dropAmount({ kind = null } = {}, rng = Math.random) {
+  const base = DROP_OF[kind] ?? 1;
   if (base < 1) return rng() < base ? 1 : 0;
   return Math.max(1, Math.round(base * (1 - SPREAD + rng() * SPREAD * 2)));
 }

@@ -80,8 +80,8 @@ from a double jump.
 ## The skull cave: a little temple with monsters
 
 The giant's chest stays the cave it was (the nave of ribs, the pool, the mural, the makers' shrine, the keepers'
-stair), now a makers' hall with foes: four of the Givers' lamps stand round the pool, and two grunts and two prowlers
-(the roster v4's desert stage: src/foe-worlds.js) wait in the nave (an encounter site of its own, the `hall` kind:
+stair), now a makers' hall with foes: four of the Givers' lamps stand round the pool, and three mummers and
+their king (the Desert's own troupe, issue #762: src/foe-worlds.js) wait in the nave (an encounter site of its own, the `hall` kind:
 src/encounters/sites.js, the level's own `sites`). Each one cut down lights a lamp; all four lit, the shrine's door
 sinks and the lift valve's chest is in reach (it opened to a full battery before). The double jump is the way out, up
 the keepers' stair to the hatch beside the tree, as before.

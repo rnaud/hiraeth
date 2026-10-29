@@ -817,8 +817,8 @@ function makePlan(args) {
   }
   if (fights.includes('armour')) {
     // (-fight armour, issue #722: a bell walker of the Signal Market set down 5 m ahead, kept up, locked on: its plates on;
-    // three charged cuts at it (Foes.hurt, as the blade's): its plates knocked off onto the ground; then a bell walker in its
-    // stronger tier (the same look since #748) in its place; a picture of each)
+    // three charged cuts at it (Foes.hurt, as the blade's): its plates knocked off onto the ground; then a banded bell walker
+    // (its stronger tier) in its place; a picture of each)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-armour-${name}.png` }] : []);
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'bell@bazaar', dist: 5, hp: 99, tier: 0 }, { kind: 'wait', frames: 60, secs: 1.5 },
       { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 40, secs: 1 }, ...shot('on'),
@@ -839,7 +839,7 @@ function makePlan(args) {
   if (fights.includes('monsters')) {
     // (-fight monsters, issue #726: roster v4's grunt and hulk on the humanoid rig: a hulk 7 m ahead and a grunt with its club
     // 4.5 m ahead, standing; their rig said; each winds up its first blow (the grunt's club over its head, the hulk's smash),
-    // pictured at three quarters of it; then the grunt's bow volley and the hulk's stomp; then a grunt in its stronger tier: the same look, #748)
+    // pictured at three quarters of it; then the grunt's bow volley and the hulk's stomp; then a banded (tier) grunt)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-monsters-${name}.png` }] : []);
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'hulk@desert', dist: 7, hp: 99 }, { kind: 'foe', what: 'grunt@desert', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['grunt'] },
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),
@@ -851,7 +851,7 @@ function makePlan(args) {
     // (-fight roster4b, issue #726: roster v4's prowler and warlord on the humanoid rig: a warlord 7 m ahead and a prowler
     // 4.5 m ahead (set aside to the traveller's right), standing; their rig said; then the prowler's dart and the warlord's
     // sweep, pictured at three quarters of the wind-up; then the tail sweep and the charge; then the prowler's back-flip
-    // halfway and the warlord's roar; then both in their stronger tier: the same look, #748)
+    // halfway and the warlord's roar; then both in their banded tier)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-roster4b-${name}.png` }] : []);
     const moves = (move, frames, secs) => [{ kind: 'foe', what: 'roster4b-moves', move }, { kind: 'wait', frames, secs }, { kind: 'foe', what: 'rig' }];
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'warlord@desert', dist: 7, hp: 99 }, { kind: 'foe', what: 'prowler@desert', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['prowler'] },
@@ -892,7 +892,7 @@ function makePlan(args) {
   if (fights.includes('droids')) {
     // (-fight droids, issue #726: the makers' defunct droids: a sentinel 5 m ahead, an oracle 9 m and a crawler 3.5 m,
     // standing; their rig said; each winds up its first move, pictured at three quarters of it; then their signature moves
-    // (the sentinel's shield up, the oracle's ward reaching for the sentinel, the crawler's fuse); then their stronger tier: the same look, #748)
+    // (the sentinel's shield up, the oracle's ward reaching for the sentinel, the crawler's fuse); then their scorched tier)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-droids-${name}.png` }] : []);
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'sentinel@desert', dist: 5, hp: 99 }, { kind: 'foe', what: 'oracle@desert', dist: 9, hp: 99 }, { kind: 'foe', what: 'crawler@desert', dist: 3.5, hp: 99 },
       { kind: 'foe', what: 'droid-spread' }, { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'rig' }, ...shot('stand'),

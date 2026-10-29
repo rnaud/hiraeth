@@ -40,7 +40,7 @@ test('the worlds’ old kinds are all gone: the last stand-ins (the glass golem,
   for (const k of ['golem', 'slag']) assert.ok(!FOES[k], `${k} retired`);
   assert.equal(kindModel('golem'), null);
   assert.equal(waveWords(['crab', 'crab', 'hound']), '2 shellback crabs and 1 antler hound');
-  assert.equal(waveWords(['lizard@bazaar', 'lizard@bazaar', 'blot']), '2 pipe lizards and 1 ink blot', 'a skin by its name: its one look\'s, wherever met (#748)');
+  assert.equal(waveWords(['lizard@bazaar', 'lizard@bazaar', 'blot']), '2 coin lizards and 1 ink blot', 'a skin by its name');
   for (const k of ['brute', 'drone', 'cart', 'bell']) assert.ok(WAVES.some((w) => w.includes(k)), `${k} in the Arena's waves`);
 });
 
@@ -338,9 +338,7 @@ test('the worlds’ rosters: each world draws its packs and its temple rooms fro
   }
   // each old kind still standing in has a home
   for (const k of Object.keys(KINDS)) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 2), `${k} has a home`);
-  // (issue #726, roster v4: the route's packs the same few everywhere, the grunts leading, the prowlers in the last worlds;
-  // the side worlds' as they were)
-  const signature = { desert: 'blot', arzach: 'grunt', arzach2: 'grunt', glassdunes: 'grunt', bazaar: 'prowler', garage: 'drone', incal: 'grunt', saltharbour: 'crab', moonfoundry: 'grunt', eclipse: 'hound', underwater: 'grunt', buried: 'prowler' };
+  const signature = { desert: 'blot', arzach: 'ray', arzach2: 'crab', glassdunes: 'brute', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'cart', eclipse: 'hound', underwater: 'crab', buried: 'worm' };
   const rng = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const [id, k] of Object.entries(signature)) {
     const packs = []; for (let n = 1; n < 240; n++) packs.push(packOf(n, id, rng));
@@ -352,11 +350,9 @@ test('the worlds’ rosters: each world draws its packs and its temple rooms fro
   }
   assert.deepEqual(packOf(0, 'desert'), ['blot'], 'the very first pack the game explains: a blot');
   assert.deepEqual(packOf(0, 'eclipse'), ['hound'], 'elsewhere, the world’s lead first, alone');
-  // crawlers come in pairs: alone in the first half of the route, with the stage's fillers round them from the third stage on
-  // (v1.22's rule for a group; the lizards' pairs before roster v4)
-  { let p; for (let n = 1; n < 400 && !(p && p[0] === 'crawler'); n++) p = packOf(n, 'bazaar', rng);
-    assert.deepEqual(p.slice(0, GROUP.crawler), Array(GROUP.crawler).fill('crawler'), 'crawlers come in pairs');
-    assert.ok(p.length > GROUP.crawler, `the Market: a pair and more round it (${p})`); }
+  // lizards come in pairs: alone in the first half of the route, with the stage's fillers round them from the third stage on (v1.22)
+  { const p = packOf(2, 'bazaar', () => 0.1); assert.deepEqual(p.slice(0, GROUP.lizard), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
+    assert.equal(p.length, GROUP.lizard + 3, 'the Market: a pair and three more (five places, the pair taking two)'); }
   for (let n = 1; n < 200; n++) { const p = packOf(n, 'perdide', rng); if (GROUP[p[0]]) assert.deepEqual(p, Array(GROUP[p[0]]).fill(p[0]), `Lorn: a group alone (${p})`); }
   assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('worm'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);

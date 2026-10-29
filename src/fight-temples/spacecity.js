@@ -2,7 +2,7 @@
 // lamp-oil depot, its decks on a rock over the dark, oil drums stacked for pillars, cables and lamps strung off its
 // edges. The drums leak (hazards.js 'spill'): a pool of oil spreads on the deck under him and near him, a spark at its
 // rim, then it burns: half a heart a tick in it, a cut a tick to the foes in it (the flyers above it). Its foes are the
-// floating city's own (its horde, src/foe-worlds.js: ring drones with their harpoons, signal moths, pearl rollers), light, many;
+// floating city's own (src/foe-worlds.js: ring drones with their harpoons, signal moths, pearl rollers), light, many;
 // the last wave brings a lamp tripod and two whole drones. The reward: Lamp oil (src/kit-colours.js).
 //
 // Its rooms: the weigh house (no oil yet), the drum yard (four stacks of drums), the cable deck (its door off to one

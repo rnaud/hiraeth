@@ -7,8 +7,8 @@ import { clearTargets, raycastTargets } from '../src/targets.js';
 import { ARMOUR, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef, fightOf } from '../src/enemies/fight.js';
 import { ARCHETYPES, BUILT, parseKind } from '../src/enemies/archetypes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
-import { skinOf, HOME_SKIN } from '../src/enemies/skins.js';
-import { surfaceFor } from '../src/enemies/surfaces.js';
+import { skinOf, tierSkin, HOME_SKIN } from '../src/enemies/skins.js';
+import { surfaceFor, TIER_SURFACE } from '../src/enemies/surfaces.js';
 
 // Armour that comes off, weak points, the head zone and the stronger tiers (issue #722, docs/design/enemy-fun.md C11, C12,
 // D13; docs/systems/foes.md "Armour, weak points and tiers"). Every random pick here is seeded.
@@ -249,10 +249,16 @@ test('tiers: every non-fodder archetype has one new move, built from its own mov
   assert.ok(TIER_SHARE[TIER_FROM] > 0 && TIER_SHARE.slice(0, TIER_FROM).every((x) => x === 0), 'only from the late worlds');
 });
 
-test('a tier looks like its kind (#748): its skin, its name and its materials its kind\'s', () => {
-  const s = skinOf('bell', 'bazaar');
-  assert.ok(!s.tier && !s.key && !s.name.startsWith('banded '));
-  assert.ok(!surfaceFor('bell', s, 'bell')?.stripes, 'no bands');
+test('a tier is darker and banded, with its own materials and name; its body is the same shape', () => {
+  const s = skinOf('bell', 'bazaar'), t = skinOf('bell', 'bazaar', 1);
+  assert.deepEqual(tierSkin(s), t);
+  assert.ok(t.tier && t.key !== s.id && t.name.startsWith('banded '));
+  const lum = (h) => parseInt(h.slice(1, 3), 16) + parseInt(h.slice(3, 5), 16) + parseInt(h.slice(5, 7), 16);
+  assert.ok(lum(t.palette.bell) < lum(s.palette.bell) * 0.8, 'darker bronze');
+  assert.equal(t.palette.eye, s.palette.eye, 'its eyes kept');
+  assert.deepEqual(surfaceFor('bell', t, 'bell').stripes, TIER_SURFACE.stripes, 'banded');
+  assert.ok(!surfaceFor('bell', s, 'bell')?.stripes, 'the base: no bands');
+  assert.ok(!surfaceFor('bell', t, 'eye')?.stripes, 'no bands on its eyes');
   assert.deepEqual(parseKind('bell@bazaar*'), { kind: 'bell', skin: 'bazaar', tier: 1 });
   assert.deepEqual(parseKind('tripod*'), { kind: 'tripod', skin: null, tier: 1 });
   assert.deepEqual(parseKind('crab'), { kind: 'crab', skin: null });

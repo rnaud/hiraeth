@@ -1258,11 +1258,11 @@ the engines' bundle, the blade pressed on the keys).
 - **Relic guards** went with the relics in v2.34 (issue #732): no world has relics, so nothing gathers round one
   (`GUARDS`, `updateGuards`, the rosters' `guards` and `guardKinds` are gone; a save's `foes.<world>.r<i>` flags stay, unread).
 - **Placed by hand** (v1.16, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
-  where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in its one look (#748); it doesn't
+  where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
-  `foes.<world>.p<i>`). On Lorn II's dry bank of the lit path between the root arches past the glass dome a sentinel
-  stands guard (the wood cutter, a furnace brute, until roster v4: #726); by the Garden of Spheres' white archway in the
-  android wood an oracle hangs over the threshold (the glass puppet, a marionette, until then); the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
+  `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
+  arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.18) hangs by the white archway in the
+  android wood, just clear of its arch; the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
   mineral basin under the lavender cliffs (src/desert-vistas.js `BASIN`, opposite the fishing sign), its lamp turned
   out over the water: the one deep water the dunes hold.
 
@@ -1280,10 +1280,13 @@ the engines' bundle, the blade pressed on the keys).
 ## Encounter sites (v2.33, issue #722, `src/encounters/`)
 
 The foes live somewhere now. Every world on the route has three to six **sites** (`src/encounters/sites.js` `SITES`,
-50 in all), each built from the world's own archetypes (the roster of the part it stands in, `level.foes.partAt`) on its
-own ground, and each pays when it is cleared. Since roster v4 the same foes keep the same kind of place everywhere
-("The world rosters" below). Before them a fight was a pack spawned on a ring round you, 35–55 s apart,
+48 in all), each built from the world's own archetypes (the roster of the part it stands in, `level.foes.partAt`) on its
+own ground, and each pays when it is cleared. Before them a fight was a pack spawned on a ring round you, 35–55 s apart,
 with nothing round it.
+
+Each world keeps its own foes in its own skins (issue #762, the author, 2026-10-29: "I liked the enemies per world
+actually"): v2.35's same foes in every world (#726 step 4) and one look per kind (#748) were reverted. Roster v4's seven
+stay in the Arena, the gallery and Unity's `-fight`; the camps' racks and the warlord's hold are staged (`?staged=roster4`).
 
 - **The kinds** (`layoutSite` lays each out round its centre, `heading` its front, the side you come from):
   - **camp**: a fire of stones and logs, the foes sat round it facing the flames, a lookout standing off the front by
@@ -1296,8 +1299,8 @@ with nothing round it.
     behind before it is cleared, it sets again.
   - **patrol**: a coffer by a cairn, the foes walking a beat (two cairns `beat` m either side) end to end in single file.
   - **hall** (v2.36, issue #730): a level's own makers' hall, listed by the level (`level.sites`), not in `SITES`: the
-    Desert's skull cave, far overhead (`dy`: it wakes only from within that many metres of its floor). Its foes (two
-    grunts, two prowlers) on guard at the places it names (`spots`), facing its middle; no props. Each one cut down emits
+    Desert's skull cave, far overhead (`dy`: it wakes only from within that many metres of its floor). Its foes (three
+    mummers and their king, the Desert's own: #762) on guard at the places it names (`spots`), facing its middle; no props. Each one cut down emits
     `site:fell` (`{ id, n, of }`: the story lights a Givers' lamp for it); cleared, no camp's words (the level says its
     own: the shrine's door sinks). With no foe about (the Enemies setting off, or no blade yet) it counts as cleared,
     quietly, as you come in, so the door it keeps is never shut on anyone. tests/skull-hall.test.js.
@@ -1327,7 +1330,7 @@ with nothing round it.
   physics carries one cheaply yet.)
 - **At work** (`src/encounters/index.js` `Encounters`, made with the foes in `src/host/game-host.js` wireFight, so the
   engines' too): a site's things are made within `SITE.build` (160 m), its foes come out within `SITE.near` (70 m),
-  calm, in its one look (`Foes.add`, `f.site`; #748); left past `SITE.drop` they go with the packs and come back as you
+  calm, in the world's skin (`Foes.add`, `f.site`); left past `SITE.drop` they go with the packs and come back as you
   return, the ones cut down staying down for the visit. **No wandering pack comes in within `SITE.quiet` (110 m) of a
   site still to clear** (`Foes.packQuiet`).
 - **Where**: placed with the world's own ground and its paths, people and doors measured round them (the #722 site
@@ -1710,19 +1713,20 @@ in fight.js (`ARMOUR`, `BARE`, `PLATE`, `WEAK`, `HEAD`, `TIERS`); the plates and
   `HEAD.r` × its size: `headOf`, `rayNear`) is a headshot: a creature's stance breaks at once (`HEAD.cool` s between;
   meanwhile it wears it × `HEAD.wear`), fodder takes × `HEAD.fodder`. Iron that turns the gun still turns it.
 - **Tiers.** `TIERS[a]`: one new move each, built from its own: `combo [a, b]` (after a, b at once, its wind-up quicker,
-  once: `Foe.next`, `tierChained`), `unlock` (a skin's move in every world) or `patch` (the bell's toll five rings, the
+  once: `Foe.next`, `tierChained`), `unlock` (a skin's move in every skin) or `patch` (the bell's toll five rings, the
   brute's slam two quakes). Its tell is its body's wind-up (its pale flare went with the glow in v2.34, #733).
-  Toughness `TIER_UP` over its stage's. **No look of its own** since #748 (below, "One look per kind"): its body is its
-  kind's, the same materials, colours and name (the darker, banded `tierSkin` and the droids' scorched one are gone). A
-  kind `'bell*'` (or `add(…, { tier: 1 })`) asks for it; from `TIER_FROM` (stage 3) a share `TIER_SHARE[stage]` of the
-  non-fodder foes added (packs, sites, waves) comes in tier (Gentle half). Fodder has none.
+  Toughness `TIER_UP` over its stage's. The look: `skinOf(a, world, 1)` → `tierSkin` (palette ×
+  `TIER_LOOK.dark` but its eyes, glows and lamps; its own material keys; named 'banded …') and `TIER_SURFACE`'s bands on
+  every part but eyes, glows, smoke, ink and plates. A kind `'bell*'` (or `add(…, { tier: 1 })`) asks for it; from
+  `TIER_FROM` (stage 3) a share `TIER_SHARE[stage]` of the non-fodder foes added (packs, sites, waves) comes in tier
+  (Gentle half); `rosterKinds` adds them to the warm. Fodder has none.
 
 Measured (node, `Foes` on flat ground, each heavy alone, the fight core's still / mashing / guarding travellers):
 Signal Market (stage 4), Normal, before → after, time to clear and hearts lost: bell mash 23.9 s / 9.75 → 12.4 s / 5.25
 (its glances 21.3 s → 5.2 s), guard 25.6 / 8.25 → 13.3 / 5.25; brute mash 12.6 / 5.5 → 12.8 / 4.25; tripod mash 8.0 /
 1.75 → 9.9 / 2.0; cart mash 8.1 / 2.75 → 8.0 / 2.75; crab mash 24.4 / 2.5 → 14.0 / 0.75. The five in tier: mean mash
 12.7 s / 3.65 hearts (base 11.4 / 3.0). Gentle: every one cleared, at most 1.3 hearts lost on average. Tests:
-tests/foe-armour.test.js. Unity: `-fight armour` (engine/unity/game.js: a plated bell, three charged cuts, its
+tests/foe-armour.test.js. Unity: `-fight armour` (engine/unity/game.js: a plated bell, three charged cuts, its banded
 tier).
 
 ### The lamp tripod's light (v2.35, issue #756, `src/enemies/plans/piston.js` `SPOT`, `Foes.lampLight`)
@@ -1827,8 +1831,9 @@ Tests: `tests/mummers.test.js` (weapons, the guarded club, the mask, the king's 
 ## Roster v4's monsters: the grunt and the hulk (v2.34, issue #726, `src/enemies/plans/monster.js`)
 
 The first two of [design/enemy-roster-v4.md](../design/enemy-roster-v4.md): monsters (family `monster`), one skin in
-every world, the same in its tier (#748: the tier's darker, banded skin of v2.34 is gone). On the humanoid rig (procedural-animation.md, "The humanoid foe rig"), drawn to their picked sheets
-(a new `grunt/` and `hulk/` folder under the enemy references). In every route world since v2.35 ("The world rosters").
+every world, its colour the tier (`tierSkin`'s darker palette and `TIER_SURFACE`'s bands: the same red or slate blue, a
+step darker, banded). On the humanoid rig (procedural-animation.md, "The humanoid foe rig"), drawn to their picked sheets
+(a new `grunt/` and `hulk/` folder under the enemy references). Not on any world's roster yet.
 
 - **The grunt** (`grunt`, tier 1, role `rank and file`, 2 hp, 1.3 m, eight draws): a tomato-red monster, all head and
   belly, long pointed ears, a pig snout, two small tusks; a khaki loincloth, a leather strap with an iron ring. It
@@ -1861,10 +1866,11 @@ Measured (tests/monsters.test.js, node): a camp of four grunts (two empty-handed
 combo at the blade's cadence, never guarding): 2.58 attacks begun a grunt, mean of three seeds. `Foes.look` a frame,
 walking: grunt 0.03 ms, hulk 0.03 ms.
 
-**At every camp** (v2.35): grunts round the fire with a hulk, the rack by the way in (`props.js` `rack`: its spear and
-bow gone as they are taken) and one or two of the grunts empty-handed for it (a site's `rack` and `unarmed`; a camp of
-more than five sits in a wider ring). Staged first in the Desert's mummer camp behind `?staged=roster4` (v2.34; the
-switch is gone). The Arena: a band of three grunts, a hulk with two grunts; `-fight monsters` in Unity.
+**Staged in the Desert** (`src/encounters/sites.js` `STAGED`, `withStaged`): the mummer camp's `staged.roster4` adds
+three grunts and a hulk round the fire beside the mummers, with the rack by the way in (`props.js` `rack`: its spear and
+bow gone as they are taken) and two of the grunts empty-handed; off by default, on with `?staged=roster4` (a camp of
+more than five sits in a wider ring). The Arena: a band of three grunts, a hulk with two grunts; `-fight monsters` in
+Unity.
 
 Tests: `tests/monsters.test.js`.
 
@@ -1906,12 +1912,13 @@ drawn and its glaive's blade reads as a spear head from the front.
 
 Roster v4's defunct droids ([design/enemy-roster-v4.md](../design/enemy-roster-v4.md)), drawn to their picked sheets (a new
 `sentinel/`, `oracle/` and `crawler/` folder under the enemy references). One material family for all three, built once in
-`src/enemies/plans/droid.js` (`droidMaterials`, `droidGlow`; the palette `DROID_PALETTE` in
+`src/enemies/plans/droid.js` (`droidMaterials`, `droidGlow`; the palette `DROID_PALETTE` and its tier's `DROID_TIER` in
 src/enemies/skins.js; the surface `DROID_SURFACE` in src/enemies/surfaces.js): weathered ivory ceramic (soft stains, faint
 grime runs, a few chips, a dull glaze) over near-black joints, amber seams, one amber eye, a little moss. The fencer and the
-lamp tripod can take it later. One skin each (`desert`), worn in every world (`roster: 'v4'`): the crawlers in the packs,
-all three at the ruins and the makers' places since v2.35 ("The world rosters"); the Arena too. Their tier looks the
-same (#748; its scorched ceramic, red eye and glowing cracks of v2.34 are gone).
+lamp tripod can take it later. One skin each (`desert`, `arena: true`): met only in the Arena (its waves, its foe list, the
+creatures gallery) until the world rosters take them (`roster: 'v4'`). Their tier (`skinOf(a, w, 1)`): the palette dimmed,
+then `DROID_TIER` over it (scorched grey-brown ceramic, red seams, a red eye: `tierSkin(s, own)`), painted with
+`TIER_SURFACES` (soot and a net of red-glowing cracks) instead of the bands.
 
 | | sentinel (2.0 m, 6 hp, tier 3) | oracle (1.8 m, 4 hp, tier 3, ranged) | crawler (0.6 m, 2 hp, tier 1) |
 |---|---|---|---|
@@ -1943,7 +1950,7 @@ and its hands are simple; the stains are fainter washes than the sheet's.
 ### The prowler and the warlord (v2.34, issue #726, the third batch)
 
 Drawn to their picked sheets (a new `prowler/` and `warlord/` folder under the enemy references), on the humanoid rig,
-one skin (`desert`), the same in their tier (#748). In every route world since v2.35 ("The world rosters").
+one skin (`desert`, `arena: true`), their tier darker and banded. Not on any world's roster.
 
 - **The prowler** (`prowler`, tier 2, role `the quick one`, 5 hp, 1.8 m, seven draws): a lean leaf-green lizard, a long
   narrow head with a crest of spines and wide-set yellow eyes, a cream throat, belly and tail underside, digitigrade
@@ -1975,8 +1982,8 @@ one skin (`desert`), the same in their tier (#748). In every route world since v
 
 **The warlord's hold** (`'warlord-hold'`, `src/encounters/sites.js`): the warlord on guard before its coffer between
 two banners (`props.js` `banner`), its band of grunts sat round a fire before it; the warlord noticing you does not
-wake the band (`Encounters.alarm`): its roar does. The coffer pays twice (`SITE_PAYS`). One a world from Vael on since
-v2.35 (staged first in Vael's stone hoard behind `?staged=roster4`, v2.34).
+wake the band (`Encounters.alarm`): its roar does. The coffer pays twice (`SITE_PAYS`). Staged in Arzach, the stone
+hoard becoming the hold behind `?staged=roster4` (a staged `kind` replaces the site's own).
 
 Measured (tests/prowler-warlord.test.js, node): neither dies to one light combo at any stage or tier; against the
 masher every signature move fired (four seeds each: the prowler's dart 13, flip 8, spit 4, tail 2, slash 1; the
@@ -1984,32 +1991,6 @@ warlord's roar 5, charge 4, whirl 2, sweep and overhead, 13 plates off, its band
 walking: about 0.04 ms each. The Arena (`arena.mjs`, a still player 24 s): the prowler's wind-ups seen 0.86 s, 20
 attacks a minute; the warlord's 1.13 s, 15 a minute. A pack of two prowlers and a warlord draws as a pack of two
 grunts and a hulk (High 183 against 180 calls, Steam Deck 140 against 138). `-fight roster4b` in Unity.
-
-## The world rosters (v2.35, issue #726)
-
-The author's rule (2026-10-28): the same foes in every world; tiers, not new looks, carry the later worlds. Every route
-world (src/foe-worlds.js `WORLDS`, src/encounters/sites.js `SITES`) is on roster v4
-([design/enemy-roster-v4.md](../design/enemy-roster-v4.md), "Each foe's place": every decision, the world table and the
-bench before and after).
-
-- **Packs**: grunts, prowlers and crawlers (the prowler 1.5 places and from the second pack; crawlers in pairs), with
-  the flyers (the sky ray, the ring drone) and the skitters' swarm where they were, and the blot in the Desert alone,
-  its teacher. The grunt leads to the City-Shaft, the prowler from the Buried Machine.
-- **Sites**: each where it was, its kind kept. Camps grunts and a hulk with their rack; nests and ambushes prowlers;
-  hoards and patrols droids (sentinel, oracle, crawlers, with the fencer and the lamp tripod), a nest of dormant droids
-  where a world had no ruin site; one warlord's hold a world from Vael on. Ids renamed for what holds them.
-- **Retired** (`RETIRED`): the per-world animals and the mummers, the shade, hound, moth, roller, bell, brute, cart,
-  jelly, wisp, marionette and root knot. Kept in the Arena, the debug menu's roster, the side worlds and each world's
-  fight-temple horde (`WORLDS[w].horde`, tests/fight-temples-worlds.test.js), with their skins.
-- **Placed**: Lorn II's post a sentinel, the Garden's archway an oracle; the Desert's cistern pump a lamp tripod still.
-- **Pay** (src/chimes.js `DROP_BY_STAGE`): a foe's drop × its stage's `TIER.hp` (the 'foe:burst' event's `stage`).
-- **The grunt** answers a mashed combo: on its second light cut in a row it scrambles back (`answerMash.evade`, the
-  prowler's) and lunges back in.
-- v4's skins lost their `arena` mark: one skin, worn everywhere.
-
-Tests: tests/archetypes.test.js (the tables: v4's or kept in every route world, the retired off it), tests/encounters.test.js
-(each kind of site's foes), tests/monsters.test.js (every camp), tests/prowler-warlord.test.js (a hold a world),
-tests/droids.test.js, tests/route-worlds.test.js (every piece of every site on its world's ground).
 
 ## More foes, the perfect parry, combos
 
@@ -2076,8 +2057,7 @@ The roster's last step (docs/design/enemy-roster.md, "Build plan" 8), measured i
 ## The enemy roster (v1.8–v1.18, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (22 since the ember wisp, issue #398, below "The ember wisp's fireball") (docs/design/enemy-roster.md, approved 2026-10-09),
-each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds (in each world's skin
-until #748; one look each since: "One look per kind").
+each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
 
 - **The archetypes** (`src/enemies/archetypes.js` `ARCHETYPES`): family, body plan (the kit's), role, tier, ranged,
   the moves by name, the answers that beat it, how it lives when nobody fights it, its sound family, its chimes
@@ -2100,10 +2080,9 @@ until #748; one look each since: "One look per kind").
   antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
   crescent, driftwood, halo or wire antlers; a drill lamp, a diving bell, gyroscope rings, a cistern pump), and
   skin-only moves (`moves`: the crab's burrow in the Salt Harbour and Underwater). The first world listed is the
-  archetype's own skin (its main sheet's, `HOME_SKIN`), **the only one worn since #748** ("One look per kind"): the
-  others are kept as data (`keptSkin`), only their `moves` still count where they are met (`movesOf`). The blot's were
-  made from each world's ground colour, its edge. A kind is written `kind@world` where the world matters
-  (`crab@saltharbour`: its moves; `parseKind`, `skinned`).
+  archetype's own skin (the Arena's, `HOME_SKIN`). The blot's are made from each world's ground colour, its edge.
+  A kind is written `kind@skin` where the skin matters (`crab@saltharbour`: `parseKind`, `skinned`); in a world
+  without a skin given, an archetype wears that world's (`skinFor`; its own where the world has none).
 - **The world tables** (`src/foe-worlds.js` `WORLDS`, the doc's table): each world's stage on the difficulty curve,
   its lead, its archetypes by weight, the late ones (from the third pack), the placed ones (the Desert's cistern
   pump, Lorn II's wood cutter, the Garden's glass puppet; where each stands: `PLACED`, below) and its temple
@@ -2277,9 +2256,9 @@ until #748; one look each since: "One look per kind").
   retirement, old saves, the chain), `tests/foe-presence.test.js` (every built archetype in every skin, calm or
   fighting, shows itself), `tests/motion-plans.test.js` (their legs on the kit), `tests/motion-chains.test.js` (the
   chains, and the chain archetypes measured), `tests/hitboxes.test.js`, `tests/arena.test.js`.
-- **Pictures:** `node scripts/enemy-roster/skins.mjs --out <dir>` draws each built archetype in its skin (one since
-  #748) winding up each attack, from the gallery (`enemies.html`: World, then the archetype met in that world, in its
-  one look; its moves with their tells and answers; Fight it in the Arena).
+- **Pictures:** `node scripts/enemy-roster/skins.mjs --out <dir>` draws each built archetype in each of its skins
+  and its own skin winding up each attack, from the gallery (`enemies.html`: World, then the archetype in that
+  world's skin; its moves with their tells and answers; Fight it in the Arena).
   **The gallery's still camera** (`src/enemies/frame.js` `GalleryFrame`): framed on the body at rest (the walk's
   progress taken off) and, showing a move, its ground; grown by every box the pose shows and eased to it, so it settles
   within the first cycle and then holds still while the creature bobs, glides or flaps in front of it (it used to be
@@ -2370,12 +2349,12 @@ ground under it (flat out to 150 m) under an open sky. `level.foes.waves` makes
 
 **The run** (issue #743, the default): every enemy in the game, **one at a time**, in a shuffled order
 (`ARENA_FOES`, `shuffled` on the Foes' rng: `Math.random` in the game, a new order each visit; tests inject a seed).
-The list is each built archetype in its one look (`skinWorlds`, #748), then any kind that is no archetype's (the
-makers' machine; a bare archetype kind is that look, already there): 33 now (138 before #748, every skin once). One enemy is one body (`oneFoe`), a
+The list is each built archetype in each of its skins (`skinWorlds`), then any kind that is no archetype's skin (the
+makers' machine; a bare archetype kind is its home skin, already there): 138 now. One enemy is one body (`oneFoe`), a
 pair or a trio kind alone too; the skitters come as three (`ARENA_RUN.flock`: a swarm is the foe, a lone skitter never
 makes its heap, which needs two flock-mates, and falls to any cut), the jelly and the marionette with their escort
 (`def.escort`: a support needs someone to ward, a puppeteer something to drive). The next comes in `ARENA_RUN.rest`
-(2 s) after the last falls, with a notice ("Foe 3 of 33: pipe lizard."; said as news, not paced
+(2 s) after the last falls, with a notice ("Foe 3 of 138 · The Signal Market: coin lizard."; said as news, not paced
 as a hint); after the last, "All 138 foes beaten. Again, in a new order." and a fresh shuffle. The FOES list's
 choices clear the field: the run's foe taken away unbeaten comes again with "Waves again". **The battle music is
 held** from the first foe in: while the Arena's waves run (not a practice of one kind, not Ink tide's own waves)
@@ -2384,9 +2363,9 @@ knocked out or riding: off, as anywhere). Tests: `tests/arena-run.test.js`.
 
 **The old cycle** (`ARENA_WAVES`, `arenaWave(n)`, v1.5), from a world's "Waves from here" in the FOES list
 (`Foes.startWaves(world)`): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine,
-a shade, … then each world's own kinds and mixed waves), then each built archetype alone in its one look, then
-each world's own (`worldWaves`: each of its archetypes alone, met there, then two of its packs); then round again,
-`WAVE.rest` s apart, each said ("Wave 40 · The Signal Market: 2 pipe lizards."; `waveText`).
+a shade, … then each world's own kinds and mixed waves), then each built archetype alone in each of its skins, then
+each world's own (`worldWaves`: each of its archetypes alone in its skin, then two of its packs); then round again,
+`WAVE.rest` s apart, each said ("Wave 40 · The Signal Market: 2 coin lizards."; `waveText`).
 `?enemy=lizard@bazaar` and `?enemyWorld=bazaar` (the Creatures & spirits page's links) run one archetype in a skin,
 or one world's waves, instead.
 
@@ -2400,7 +2379,7 @@ lending puts the Arena's back.
 Arcade's board), so main.js routes the pad to it. Opened from the FOES ▸ tab on the left edge (under it, how: K on
 the keyboard, D-pad ↓ on a pad, the mount's call, free here), K or D-pad ↓ again; B / ○ or Esc closes. Grouped
 (`foeSections`): the roster (each archetype in its own skin, an old kind standing in for one not built, then the old
-kinds no archetype uses), then a section per world with its archetypes met there, in their one look (each with its role and moves,
+kinds no archetype uses), then a section per world with its archetypes in its skin (each with its role and moves,
 and a "Waves from here" that runs that world's waves: `Foes.startWaves(world)`), then the temple guardians. A search (a name, a world, a kind, a move: every word must match) and a world filter
 (chips: All, Roster, each world, Guardians; LB / RB or Page Up / Down turn it) narrow it (`filterSections`). Choosing a
 foe stops the waves (`Foes.setPractice(kind)`, a kind in a skin too: `tripod@underwater`): it comes in 9 m ahead of you, and again
@@ -2428,8 +2407,7 @@ they go into the wallet but are not counted as earned (`res.chimes.earned`).
 ## Each world's foes (v0.93)
 
 The loose ink takes the shape of what is round it: each world has a foe of its own, and its packs
-and temple rooms draw from its roster. (History: since v2.35 the route's worlds share roster v4, "The world rosters"
-above; the side worlds and the fight temples' hordes keep their own.)
+and temple rooms draw from its roster.
 
 - **Attacks** (`def.attacks`, the fields are listed at the top of `src/foe-kinds.js`): every kind has a list;
   `Foe.chooseAttack(d)` picks one whose `[min, max]` holds the distance, by weight, the last one used less

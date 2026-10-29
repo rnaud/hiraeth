@@ -1442,7 +1442,7 @@ export const CHANGELOG_MEDIA = {
   { match: 'Steam and smoke drift through the Moon Foundry', shots: [
     { name: 'foundry731-steam', title: 'The last furnace', caption: 'The last furnace and its mould: before, in daylight, no steam; after, dim, steam off the mould and smoke from the furnace’s mouth, the ladle’s pour glowing', from: FROM731, ...FOUNDRY731, view: MF731([40, 4, 4], [66, 5, -16], [44, 0, 0]) },
   ], see: 'Walk along any wall of the Moon Foundry: the vents at its foot breathe, and every few seconds a valve hisses out a puff; columns rise from the grates in the floor.' },
-  { match: 'In the Moon Foundry, the droids’ patrol', see: 'With the sword, walk into the Moon Foundry’s east bay south of the east furnace: the droids walk their beat there; the prowlers sleep in the north-west corner under the second hung moon.' },
+  { match: 'In the Moon Foundry, the fencers’ patrol', see: 'With the sword, walk into the Moon Foundry’s east bay south of the east furnace: the fencers walk their beat there; the skitters sleep in the north-west corner under the second hung moon.' },
   // (issues #729, #730: the Rose House's new rooms and the skull cave, at the change's commit and its parent, the same view and
   // save for both; the skull's monsters out as the game puts them there with the blade carried)
   { match: 'The Rose House is now the Desert’s great temple', shots: [
@@ -1460,7 +1460,7 @@ export const CHANGELOG_MEDIA = {
       view: { level: 'desert', save: SAVE729_SKULL, hour: 12, fov: 72, wait: 7000, player: [-1250, 1000.1, 1273], eye: [-1250, 1008, 1278.5], target: [-1250, 1000.5, 1249] } },
     { name: 'skull730-open', only: 'after', caption: 'After: the monsters down, the shrine’s lens lit and its door sunk, the lift valve’s chest inside', commit: C729, before: B729,
       view: { level: 'desert', save: SAVE729_OPEN, hour: 12, fov: 70, wait: 5000, player: [-1263, 1000.1, 1249], eye: [-1260.5, 1002.6, 1249.3], target: [-1270.9, 1001, 1248.4] } },
-  ], see: 'With the Givers’ blade, go down through the giant’s mouth past Qanat’s back gate and fight the grunts and prowlers round the pool.' },
+  ], see: 'With the Givers’ blade, go down through the giant’s mouth past Qanat’s back gate and fight the mummers and their king round the pool.' },
   { match: 'The sword on your back sits against you again', tags: ['characters'], shots: [
     { name: 'sheath763-stand', size: [1280, 720], title: 'Standing', caption: 'From behind his right shoulder and from his right side: before, the hilt hanging in the air 6 cm off his back with nothing under it, where the round backpack’s flask stood; after, in its frog against his right shoulder blade, slung diagonally, the pommel up by his shoulder', from: FROM763, view: `${KIT763}, two panels at yaw 2.45 and π/2, 1.5 m off` },
     { name: 'sheath763-close', size: [1280, 720], title: 'Close', caption: 'Close on his back: before, nothing under the hilt but air; after, the frog’s strip on his shirt, the cup down toward his spine', from: FROM763, view: `${KIT763}, two panels at yaw 2.45 and 2.9, 0.85 m off at the shoulders` },

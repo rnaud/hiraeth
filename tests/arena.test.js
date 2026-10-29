@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES, WAVES, ARENA_WAVES, arenaWave, arenaWaveOf, waveText, worldWaves } from '../src/foes.js';
 import { BUILT, ARCHETYPES, parseKind } from '../src/enemies/archetypes.js';
-import { HOME_SKIN } from '../src/enemies/skins.js';
+import { SKINS } from '../src/enemies/skins.js';
 import { WORLDS } from '../src/foe-worlds.js';
 import { foeSections, filterSections, FoeList } from '../src/foe-spawner.js';
 import { GUARDIANS, ArenaGuardians, RING } from '../src/arena-guardians.js';
@@ -19,12 +19,12 @@ const DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 function player(at = v()) { return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: 0, knocks: 0, hurt() { this.hurts++; }, knockDown() { this.knocks++; return true; }, flinch() {} }; }
 const world = (P, notes = []) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t) });
-const skinWaves = BUILT.length;   // (one look each, #748)
+const skinWaves = BUILT.reduce((n, a) => n + Object.keys(SKINS[a]).length, 0);
 
-test('the Arena’s waves: the ink and the worlds’ kinds first, then each built archetype in its one look, then each world’s own; round again', () => {
+test('the Arena’s waves: the ink and the worlds’ kinds first, then each built archetype in each of its skins, then each world’s own; round again', () => {
   assert.deepEqual(ARENA_WAVES.slice(0, WAVES.length), WAVES, 'the old waves first, as they were');
   const skins = ARENA_WAVES.slice(WAVES.length, WAVES.length + skinWaves);
-  for (const a of BUILT) assert.ok(skins.some((x) => x[0] === `${ARCHETYPES[a].kind}@${HOME_SKIN[a]}`), `${a} in its one look`);
+  for (const a of BUILT) for (const w of Object.keys(SKINS[a])) assert.ok(skins.some((x) => x[0] === `${ARCHETYPES[a].kind}@${w}`), `${a} in ${w}`);
   assert.ok(skins.every((x) => new Set(x).size === 1 || (FOES[parseKind(x[0]).kind].escort && new Set(x.slice(0, -1)).size === 1)), 'each alone (a pair kind as its pair; a support with its escort)');
   // every kind, every built archetype in every skin, and every world comes round
   const all = new Set(ARENA_WAVES.flat().map((k) => parseKind(k).kind));
@@ -54,12 +54,11 @@ test('the old cycle (the FOES list’s “Waves from here”) comes in that orde
   assert.deepEqual(seen[1], ARENA_WAVES[WAVES.length].map((k) => k));
   assert.match(notes.at(-1), /Wave \d+ · .+: /);
   assert.equal(waveText(['blot', 'blot']), '2 ink blots');
-  assert.equal(waveText(['crab@saltharbour', 'tripod@incal']), '1 cliff crab and 1 inspection tripod', 'one look, one name (#748)');
-  // waves from a world: the field cleared, the cycle from its first archetype (in its one look)
+  assert.equal(waveText(['crab@saltharbour', 'tripod@incal']), '1 anchor crab and 1 inspection tripod');
+  // waves from a world: the field cleared, the cycle from its first archetype
   foes.startWaves('incal');
   foes.waveRest = 0; foes.updateWaves(DT);
-  assert.deepEqual(foes.list.filter((f) => f.alive).map((f) => f.kind), worldWaves('incal')[0].map((k) => parseKind(k).kind));
-  assert.ok(foes.list.filter((f) => f.alive).every((f) => f.skin === HOME_SKIN[f.archetype]));
+  assert.deepEqual(foes.list.filter((f) => f.alive).map((f) => `${f.kind}@${f.skin}`), worldWaves('incal')[0]);
   foes.dispose(); clearTargets();
 });
 
@@ -75,16 +74,12 @@ test('the FOES list: the roster first, a section per world (its archetypes in it
   // a search: by name, by world, by attack
   const crab = filterSections(s, { q: 'crab' });
   assert.ok(crab.length > 2 && crab.every((x) => x.items.every((i) => /crab/i.test(i.search))));
-  assert.ok(filterSections(s, { q: 'cliff crab' }).some((x) => x.id === 'saltharbour'), 'one look, one name in every world (#748)');
-  assert.ok(!filterSections(s, { q: 'anchor crab' }).length, 'no other world’s skin offered');
+  assert.ok(filterSections(s, { q: 'anchor crab' }).some((x) => x.id === 'saltharbour'));
   assert.ok(filterSections(s, { q: 'blare' }).flatMap((x) => x.items).length > 0, 'by attack');
   // a world filter
   assert.deepEqual(filterSections(s, { world: 'bazaar' }).map((x) => x.id), ['bazaar']);
   assert.deepEqual(filterSections(s, { world: 'guardians' }).map((x) => x.id), ['guardians']);
-  // (issue #726: the Market fields roster v4; a side world keeps its own in their skins, and the roster every retired one)
-  assert.ok(filterSections(s, { world: 'saltharbour', q: 'cliff crab' })[0].items.some((i) => i.kind === 'crab@saltharbour'), 'met there: its moves the Salt Harbour’s');
-  assert.ok(filterSections(s, { world: 'bazaar', q: 'prowler' })[0].items.some((i) => parseKind(i.kind).kind === 'prowler'));
-  for (const a of ['lizard', 'crab', 'mummer', 'heron']) assert.ok(s[0].items.some((i) => parseKind(i.kind).kind === a), `${a}: retired, still in the debug menu's roster`);
+  assert.ok(filterSections(s, { world: 'bazaar', q: 'coin lizard' })[0].items.some((i) => i.kind === 'lizard@bazaar'));
 });
 
 test('the list chooses: an archetype in a skin practised alone, a world’s waves, the field cleared; LB / RB turn the world filter', () => {
@@ -94,8 +89,8 @@ test('the list chooses: an archetype in a skin practised alone, a world’s wave
   list.choose({ kind: 'tripod@underwater' });
   assert.equal(foes.practice.kind, 'tripod@underwater');
   assert.equal(foes.list.filter((f) => f.alive).length, 1);
-  assert.equal(foes.list[0].skin, 'incal', 'it comes in alone, in its one look (spawnKind takes kind@world, #748)');
-  assert.equal(foes.list[0].model.group.name, 'inspection tripod');
+  assert.equal(foes.list[0].skin, 'underwater', 'it comes in alone, in its skin (spawnKind takes kind@skin)');
+  assert.equal(foes.list[0].model.group.name, 'diving bell');
   list.choose({ waves: 'mangrove' });
   assert.equal(foes.practice, null);
   assert.equal(foes.wave, arenaWaveOf('mangrove'));

@@ -747,9 +747,9 @@ export const ARCHETYPES = {
     note: 'The mummer king: cut down its troupe, or it throws them at you.',
   },
   // ----------------------------------------------------------------------------- roster v4's monsters (issue #726)
-  // docs/design/enemy-roster-v4.md: one roster met in every world, one look each (#748: its tier changes its stats, not its look).
-  // On the humanoid rig like the mummers (src/enemies/plans/monster.js). Every route world fields them (src/foe-worlds.js
-  // WORLDS, src/encounters/sites.js SITES: the grunts in the packs, a hulk at each camp); the Arena too.
+  // docs/design/enemy-roster-v4.md: one roster met in every world, the colour its tier (a darker, banded skin: tierSkin).
+  // On the humanoid rig like the mummers (src/enemies/plans/monster.js). Not on any world's roster yet: the Desert's
+  // mummer camp stages them behind a site flag (src/encounters/sites.js STAGED.roster4); the Arena fields both.
   //   shrug        the first `n` light cuts of an exchange it takes on its belly: no harm, no poise worn (left alone
   //                POISE.after s, it shrugs again): the masher's first cut is never a kill (combat-v2.34 rec. 1)
   //   hangBack     m it keeps from you by what it holds (a bow, bare hands): the archers and rock throwers stay back
@@ -768,9 +768,6 @@ export const ARCHETYPES = {
       tone: '#d8503c', takes: { shoot: 1, fire: 1.5 },
       calm: { mode: 'sit', provoke: 8, alarm: 14 },
       weapons: { club: 3, none: 1.2 }, racks: true, shrug: 1, hangBack: { bow: 7, none: 6 }, whiffRecover: 0.45,
-      // (issue #726, the world rosters: the second light cut in a row and it scrambles back out of the combo, then lunges
-      // back in: the first worlds' rank and file no longer die to one combo, combat-v2.34 rec. 1)
-      answerMash: { cuts: 2, within: 1.3, evade: true, then: 'lunge' },
       disarm: { dist: 2.8, fly: 0.5, pickup: 1.0 },
       attacks: [
         // the club raised high over its head in both fists, leaning back on its heels, its belly out (the sheet's attack pose)
@@ -823,8 +820,8 @@ export const ARCHETYPES = {
     note: 'The hulk: cut it three times running and it stomps. Jump it.',
   },
   // ----------------------------------------------------------------------------- the makers' defunct droids (issue #726)
-  // docs/design/enemy-roster-v4.md: one family met in every world (`v4`: the crawlers in the packs, all three at the ruins
-  // and the makers' places, src/encounters/sites.js), drawn to their picked sheets in one material (src/enemies/plans/droid.js).
+  // docs/design/enemy-roster-v4.md: one family met in every world (the world rosters come in a later batch: until then the
+  // Arena alone, `v4`), drawn to their picked sheets in one material (src/enemies/plans/droid.js).
   //   guard.stings      light cuts landing in a row (each within STING.gap s of the last) that snap its guard up at once
   //                     (the sentinel's answer to a masher: two cuts, then the shield; the third is parried)
   //   attack.wakes      only offered with a sleeping foe (one not yet provoked) within its `horn` reach to wake

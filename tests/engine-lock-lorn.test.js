@@ -38,7 +38,7 @@ function lornKinds() {
   const out = new Set();
   for (const part of ['perdide', 'perdide2']) {
     const R = rosterOf(part);
-    // (the packs', the fill's, the sites' and the archetypes placed by hand: the Deep Wood's sentinel)
+    // (the packs', the fill's and the archetypes placed by hand: the Deep Wood's wood cutter)
     for (const k of [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...worldArchetypes(part).map((a) => ARCHETYPES[a]?.kind ?? a)]) {
       if (!k) continue;
       const a = archetypeOfKind(k), kind = a ? ARCHETYPES[a].kind ?? k : k;
@@ -61,10 +61,8 @@ test('Lorn: every foe kind and skin locked on by the rise, fought a while, and n
   const at = (x, z) => new T(x, g.physics.groundAt(x, 40, z, 80), z);
   const you = at(-120, 46);
   assert.equal(typeof F.env.seen({ x: you.x + 7, y: you.y + 3, z: you.z }, you), 'boolean', 'a plain point seen from');
-  // (issue #726, roster v4: Lorn fields the same foes as every route world now; the toad, whose perch search threw before
-  // #509, is kept in the sweep in its Lorn skin though it left the roster)
-  const kinds = [...lornKinds(), 'toad@perdide'];
-  for (const k of ['grunt', 'prowler', 'crawler', 'hulk', 'warlord', 'sentinel']) assert.ok(kinds.some((x) => x.split('@')[0] === k), `${k} in Lorn's roster (${kinds.join(', ')})`);
+  const kinds = lornKinds();
+  for (const k of ['toad@perdide', 'rootknot@perdide', 'heron@perdide', 'skitter@perdide', 'rootknot@perdide2', 'jelly@perdide2', 'moth@perdide2', 'wisp@perdide2', 'brute@perdide2']) assert.ok(kinds.includes(k), `${k} in Lorn's roster (${kinds.join(', ')})`);
   for (const kind of kinds) {
     for (const f of F.list.slice()) F.remove(f);
     F.lock = null; F.packRest = 999;

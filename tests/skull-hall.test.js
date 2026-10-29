@@ -1,6 +1,6 @@
 // The skull cave as a little temple with monsters (issue #730, docs/design/desert-red-temple.md): the level's own
-// encounter site in the giant's chest (src/encounters/sites.js kind 'hall', src/levels/desert.js `sites`), two grunts and
-// two prowlers of the Desert's roster on its floor round the pool, on guard; each one cut down says so ('site:fell', the
+// encounter site in the giant's chest (src/encounters/sites.js kind 'hall', src/levels/desert.js `sites`), three mummers
+// and their king, the Desert's own troupe (issue #762), on its floor round the pool, on guard; each one cut down says so ('site:fell', the
 // story lights a Givers' lamp for it: tests/desert-story.test.js); all down, the hall is cleared for good (the shrine's
 // door: src/story/desert.js). With no foe about (the Enemies setting off, or unarmed), it counts as cleared as you come in.
 // Far overhead, it wakes only from inside (`dy`).
@@ -23,7 +23,7 @@ const DT = 1 / 30;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 const player = (at) => ({ pos: at, vel: v(), heading: 0, hearts: 3, maxHearts: 3, down: null, dead: false, ride: null, onGround: true, hurt() {}, knockDown() { return true; }, frame: { up: v(0, 1, 0) } });
 
-const HALL = { id: 'skull-hall', kind: 'hall', at: [0, 0, 0], foes: ['grunt', 'prowler', 'grunt', 'prowler'], spots: [[12.7, 12.7], [15.6, -9], [-15.6, -9], [-12.7, 12.7]], coffer: [6.5, -16.5], dy: 25 };
+const HALL = { id: 'skull-hall', kind: 'hall', at: [0, 0, 0], foes: ['mummer', 'mummerking', 'mummer', 'mummer'], spots: [[12.7, 12.7], [15.6, -9], [-15.6, -9], [-12.7, 12.7]], coffer: [6.5, -16.5], dy: 25 };
 
 function world({ at = v(0, 0, 20), enemies = true, armed = true, site = HALL } = {}) {
   clearTargets(); clearInteractables();
@@ -37,9 +37,9 @@ function world({ at = v(0, 0, 20), enemies = true, armed = true, site = HALL } =
   return { game, P, foes, E, toasts, fell, step, restore: () => { E.dispose(); foes.dispose(); } };
 }
 
-test('the hall’s monsters are the Desert’s own: grunts and prowlers, on guard at the places the level names, facing the pool', () => {
+test('the hall’s monsters are the Desert’s own: the mummers and their king, on guard at the places the level names, facing the pool', () => {
   const own = new Set(worldArchetypes('desert'));
-  assert.ok(HALL.foes.every((a) => own.has(a)), 'of the Desert’s roster v4');
+  assert.ok(HALL.foes.every((a) => own.has(a)), 'of the Desert’s own roster');
   assert.equal(WORLDS.desert.stage, 0, 'the first world’s stage');
   const L = layoutSite(HALL);
   assert.equal(L.foes.length, 4);
@@ -59,7 +59,7 @@ test('the hall at work: out as you come in, each one down said, all down cleared
     W.step(0.5);
     const out = W.foes.list.filter((f) => f.site?.id === 'skull-hall');
     assert.equal(out.length, 4, 'all four out as you come into the hall');
-    assert.equal(new Set(out.map((f) => f.kind)).size, 2, 'two kinds: the grunts and the prowlers');
+    assert.equal(new Set(out.map((f) => f.kind)).size, 2, 'two kinds: the mummers and their king');
     for (const [i, f] of out.entries()) {
       f.hp = 0; f.state = 'dead';
       W.step(0.2);
@@ -110,7 +110,7 @@ test('the desert’s level lists the hall in the giant’s chest: its monsters o
   const physics = new Physics(scene, level.ground);
   const hall = level.sites.find((s) => s.id === 'skull-hall');
   assert.ok(hall && hall.kind === 'hall', 'the level’s own site');
-  assert.deepEqual(hall.foes, ['grunt', 'prowler', 'grunt', 'prowler']);
+  assert.deepEqual(hall.foes, ['mummer', 'mummerking', 'mummer', 'mummer']);
   const cave = level.qanat.cave, O = cave.origin;
   assert.ok(Math.abs(hall.at[1] - O.y) < 0.5 && hall.dy < 100, 'at the cave’s floor, far overhead');
   for (const [x, z] of [...hall.spots, hall.coffer]) {

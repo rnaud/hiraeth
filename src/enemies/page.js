@@ -14,9 +14,9 @@ import { loadMotionLibrary } from '../motion-match.js';
 import { setFoeClips } from './humanoid-rig.js';
 
 // The creatures and spirits gallery (enemies.html): the enemy roster's archetypes (src/enemies/archetypes.js), each in
-// its one look (src/enemies/skins.js, #748: the same in every world's list, with that world's skin-only moves), turning,
-// standing, walking on the locomotion kit or winding up each of its attacks; with what tells each attack and what
-// answers it, and links to fight it in the Arena. The archetypes not built yet show the old kind standing in for them.
+// every world's skin (src/enemies/skins.js), turning, standing, walking on the locomotion kit or winding up each of
+// its attacks; with what tells each attack and what answers it, and links to fight it in the Arena. The archetypes
+// not built yet show the old kind standing in for them.
 
 const $ = (id) => document.getElementById(id);
 // the humanoid foes' clips (src/enemies/humanoid-rig.js): the library and the captured moves, as the game loads them
@@ -30,7 +30,7 @@ function rowsOf(w) {
     const A = ARCHETYPES[a];
     if (!A.kind || !FOES[A.kind]) return null;
     const built = A.status === 'built', skin = built ? skinOf(a, w === 'roster' ? HOME_SKIN[a] : w) : null;
-    return { id: built ? skinned(A.kind, w === 'roster' ? skin.id : w) : A.kind, archetype: a, name: skin ? `${skin.name} (${A.name})` : `${A.name} (stand-in: ${FOES[A.kind].name})` };
+    return { id: built ? skinned(A.kind, skin.id) : A.kind, archetype: a, name: skin ? `${skin.name} (${A.name})` : `${A.name} (stand-in: ${FOES[A.kind].name})` };
   }).filter(Boolean);
 }
 const WORLD_LIST = ['roster', ...Object.keys(WORLDS)];
@@ -122,7 +122,7 @@ function choose(id, w = null) {
   $('enemy').innerHTML = rows.map((r) => `<option value="${r.id}">${r.name}</option>`).join(''); $('enemy').value = id;
   const S = skin ? skinOf(row.archetype, skin) : null;
   $('name').textContent = S?.name ?? A.name;
-  const family = A.family === 'machine' ? `An old makers’ machine with a dark spirit inside (${A.possession})` : A.family === 'spirit' ? `A spirit: ${A.manifestation}` : A.family === 'monster' ? 'A monster: met in every world, in one look' : 'A creature: wildlife that fights only when provoked';
+  const family = A.family === 'machine' ? `An old makers’ machine with a dark spirit inside (${A.possession})` : A.family === 'spirit' ? `A spirit: ${A.manifestation}` : A.family === 'monster' ? 'A monster: met in every world, its colour its strength' : 'A creature: wildlife that fights only when provoked';
   $('kind').innerHTML = `<b>${A.name}</b> · ${A.role} · tier ${A.tier}. ${family}. <i>${A.idle}.</i>${A.status === 'built' ? '' : ` <br>Not built yet: the ${FOES[kind].name} stands in for it.`}${A.art === 'pending' ? ' <br><span class="hint">Art match pending its fresh reference sheet.</span>' : ''}`;
   const f = viewer.model(id).f;
   $('pose').innerHTML = `<option value="idle">Standing</option><option value="walk">Moving</option>${posesOf(f).map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}${movesOf(f).map((a, i) => `<option value="attack${i}">${a.name ?? a.id}</option>`).join('')}`;

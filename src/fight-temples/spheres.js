@@ -3,7 +3,7 @@
 // rolls overhead its shadow sweeps a garden end to end (hazards.js 'shade': its edge glows where it will come from, then
 // the band crosses the room): in the shade the hounds bite, a little harm a tick, and a foe in it can't be aimed at;
 // in the light they can. So the fight keeps to the light, ahead of the shade or behind it. Its foes are the Garden's own
-// (its horde, src/foe-worlds.js: pearl rollers, centipedes made light, antler hounds in pairs, shades), light, many; the last wave
+// (src/foe-worlds.js: pearl rollers, centipedes made light, antler hounds in pairs, shades), light, many; the last wave
 // brings the glass marionette and two whole hounds. The reward: Orchard dusk (src/kit-colours.js).
 //
 // Its rooms: the gatehouse (no shade yet), the orchard (trees in rows), the lawn (open, the shade across it short and

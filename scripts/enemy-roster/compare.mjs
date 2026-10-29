@@ -27,7 +27,7 @@ const ROOT = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const OUT = resolve(arg('out', 'output/enemy-roster'));
 const TAG = arg('tag', '');
 const SEPARATE = args.includes('--separate');
-// (--tier: its stronger tier: '<kind>@<skin>*', issue #722; its kind's own body since #748)
+// (--tier: its stronger tier's body, darker and banded: '<kind>@<skin>*', issue #722)
 const TIER = args.includes('--tier');
 const [SW, SH] = (arg('size', '1280x720')).split('x').map(Number);
 const ZOOM = Number(arg('zoom', SEPARATE ? 0.62 : 0.92));

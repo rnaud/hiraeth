@@ -5,16 +5,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spawnKindOf, archetypeOfKind, parseKind, skinned } from '../src/enemies/archetypes.js';
-import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds, keptSkin } from '../src/enemies/skins.js';
+import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
-import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf, RETIRED } from '../src/foe-worlds.js';
+import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile, isArea } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
 import { ORDER, SIDE, TITLES, ROUTE_PARTS } from '../src/levels/names.js';
-import { sitesOf } from '../src/encounters/sites.js';
 import { VerletChain } from '../src/motion-kit/chain.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -35,12 +34,11 @@ const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn
 // (issue #724: the humanoid foes on clips join the roster world by world, docs/design/enemy-roster-v3.md: the mummers
 // keep camp in the Desert first, the rest of their worlds and skins to come; until then they stand in fewer worlds)
 const ROLLING_OUT = new Set(['mummer', 'mummerking']);
-// (issue #726: roster v4's monsters and droids, one skin met in every route world: the same foes everywhere)
-const V4 = new Set(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].family === 'monster' || ARCHETYPES[a].roster === 'v4'));
+// (issue #726: roster v4's monsters, one skin in every world; staged at a site behind a flag until the rosters take them)
+const STAGED_V4 = new Set(['grunt', 'hulk', 'prowler', 'warlord']);
 const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'the quick one', 'the elite', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
-// (issue #726: the archetypes roster v4 retired from the route: the Arena, the debug menu, the side worlds and the fight
-// temples' hordes keep them, with their skins)
-const OFF_ROUTE = new Set(RETIRED);
+// (issue #726: roster v4's droids are met in the Arena alone until the world rosters take them, a later batch)
+const ARENA_ONLY = new Set(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].roster === 'v4'));
 
 // ------------------------------------------------------------------------------------------- the tables
 test('the roster: 32 archetypes, 12 creatures, 9 machines, 7 spirits and 4 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
@@ -80,91 +78,78 @@ test('the roster: 32 archetypes, 12 creatures, 9 machines, 7 spirits and 4 monst
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
 });
 
-test('skins: one look per kind (#748), its main sheet\'s first; the other worlds\' kept as data only; palettes whole; a skin only dresses (no unknown world)', () => {
+test('skins: each archetype in each of its worlds, its own first; palettes whole; a skin only dresses (no unknown world)', () => {
   for (const a of ARCHETYPE_IDS) {
     const S = SKINS[a];
-    assert.ok(S && Object.keys(S).length >= (ROLLING_OUT.has(a) || V4.has(a) ? 1 : 3), `${a}: at least three skins`);
+    assert.ok(S && Object.keys(S).length >= (ROLLING_OUT.has(a) || STAGED_V4.has(a) || ARENA_ONLY.has(a) ? 1 : 3), `${a}: at least three skins`);
     assert.equal(HOME_SKIN[a], Object.keys(S)[0]);
-    const art = ARCHETYPES[a].art;
-    if (art?.main) assert.equal(HOME_SKIN[a], art.main, `${a}: its one look its main sheet's`);
-    assert.deepEqual(skinWorlds(a), [HOME_SKIN[a]], `${a}: one look offered`);
     for (const [w, s] of Object.entries(S)) {
       assert.ok(TITLES[w], `${a}: ${w} is a world`);
       assert.ok(s.name && s.palette, `${a}@${w}: named and coloured`);
-      // (a retired one's skin stays for the Arena and its world's fight temple horde: WORLDS[w].horde)
-      if (!s.arena && a !== 'blot') assert.ok(worldArchetypes(w).includes(a) || OFF_ROUTE.has(a) || WORLDS[w]?.horde?.[a] || V4.has(a), `${a}@${w}: the world table fields it there`);
+      if (!s.arena && a !== 'blot') assert.ok(worldArchetypes(w).includes(a), `${a}@${w}: the world table fields it there`);
     }
   }
   // every world's archetypes have a skin there
-  // (roster v4's own wear one skin everywhere, their colour the tier: no world costumes)
-  // (and since then a kept one met where it had no skin wears its own: the ring drone in Viridel)
-  for (const w of Object.keys(WORLDS)) for (const a of worldArchetypes(w)) assert.ok(SKINS[a][w] || a === 'blot' || V4.has(a) || (ROUTE_PARTS.includes(w) && SKINS[a][skinFor(a, w)]), `${a} has a skin in ${w}`);
-  for (const a of V4) assert.equal(Object.keys(SKINS[a]).length, 1, `${a}: one skin`);
+  for (const w of Object.keys(WORLDS)) for (const a of worldArchetypes(w)) assert.ok(SKINS[a][w] || a === 'blot', `${a} has a skin in ${w}`);
   assert.equal(skinFor('crab', 'arena'), 'arzach2', 'where it has none, its own');
-  assert.equal(skinFor('crab', 'saltharbour'), 'arzach2', 'where it had one, its own too (#748)');
-  assert.equal(skinOf('crab', 'saltharbour').name, 'cliff crab');
-  assert.deepEqual(skinOf('crab', 'saltharbour').moves, ['burrow'], 'the world\'s skin-only moves kept');
-  assert.equal(keptSkin('crab', 'saltharbour').name, 'anchor crab', 'the old skin kept as data');
-  assert.ok(keptSkin('crab', 'bazaar').palette.under, 'a kept skin’s palette falls back to its own skin’s');
-  assert.equal(Object.keys(SKINS.blot).length, 22, 'the blot\'s old world edges kept as data');
-  assert.deepEqual(skinWorlds('blot'), ['desert'], 'the blot: one look, the Desert\'s');
+  assert.equal(skinOf('crab', 'saltharbour').name, 'anchor crab');
+  assert.deepEqual(skinOf('crab', 'saltharbour').moves, ['burrow']);
+  assert.ok(skinOf('crab', 'bazaar').palette.under, 'a skin’s palette falls back to its own skin’s');
+  assert.equal(skinWorlds('blot').length, 22, 'the blot is in every world');
   assert.deepEqual(parseKind('crab@saltharbour'), { kind: 'crab', skin: 'saltharbour' });
   assert.deepEqual(parseKind('blot'), { kind: 'blot', skin: null });
   assert.equal(skinned('lizard', 'bazaar'), 'lizard@bazaar');
 });
 
-test('every world’s table is valid: the route on roster v4, the same foes in every route world; the side worlds as they were', () => {
+test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or area role on every route world, no two route leads alike in a row', () => {
   for (const [w, T] of Object.entries(WORLDS)) {
     assert.ok(TITLES[w], `${w} is a world`);
     const list = worldArchetypes(w);
-    assert.ok(list.length >= 3 && list.length <= 9, `${w}: ${list.length} archetypes`);
+    assert.ok(list.length >= 3 && list.length <= 7, `${w}: ${list.length} archetypes`);
     for (const a of list) assert.ok(ARCHETYPES[a], `${w}: ${a}`);
     assert.ok(T.roster[T.lead], `${w}: its lead is on its roster`);
     const roles = new Set(list.map((a) => ARCHETYPES[a].role));
     assert.equal(roles.size, list.length, `${w}: a role each`);
   }
-  // (issue #726, the author's rule: the same foes in every world; tiers, not new looks, carry the later worlds)
-  const KEPT = new Set(['blot', 'ray', 'drone', 'skitter', 'tripod', 'fencer']);
   for (const w of ROUTE_PARTS) {
     assert.ok(WORLDS[w], `${w}: on the route, it has a table`);
-    const list = worldArchetypes(w);
-    for (const a of ['grunt', 'prowler', 'crawler']) assert.ok(WORLDS[w].roster[a] || (w === 'desert' && a === 'prowler'), `${w}: ${a} in its packs`);
-    for (const a of list) assert.ok(V4.has(a) || KEPT.has(a), `${w}: ${a} is roster v4's or kept for a role v4 has none for`);
-    for (const a of RETIRED) assert.ok(!list.includes(a), `${w}: ${a} retired`);
-    assert.ok(list.some((a) => ARCHETYPES[a].ranged), `${w}: a ranged or area role`);
-    assert.ok(WORLDS[w].horde, `${w}: its fight temple's horde kept`);
+    assert.ok(worldArchetypes(w).some((a) => ARCHETYPES[a].ranged), `${w}: a ranged or area role`);
   }
-  assert.ok(Object.keys(WORLDS.desert.roster).includes('blot') && ROUTE_PARTS.filter((w) => w !== 'desert').every((w) => !worldArchetypes(w).includes('blot')), 'the blot: the first world\'s teacher alone');
+  for (let i = 1; i < ORDER.length; i++) assert.notEqual(WORLDS[ORDER[i]].lead, WORLDS[ORDER[i - 1]].lead, `${ORDER[i - 1]} → ${ORDER[i]}: leads differ`);
   for (const w of SIDE.filter((x) => x !== 'overnighttrain')) assert.ok(WORLDS[w], `${w}: a side world with a table`);
   assert.ok(!WORLDS.home && !WORLDS.atelier && !WORLDS.overnighttrain, 'the peaceful worlds field none');
-  // the retired: off the route, kept in the Arena, the side worlds or a fight temple's horde
-  for (const a of RETIRED) {
-    assert.ok(ARCHETYPES[a] && ARCHETYPES[a].status === 'built', `${a}: its code kept`);
-    assert.ok(Object.keys(SKINS[a]).length >= 1, `${a}: its skins kept`);
+  // each archetype in 3–7 worlds, 1–4 of them on the route (the blot: every world)
+  for (const a of ARCHETYPE_IDS.filter((x) => x !== 'blot' && !ARENA_ONLY.has(x))) {
+    const all = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes(a)), route = all.filter((w) => ROUTE_PARTS.includes(w));
+    assert.ok(all.length >= (STAGED_V4.has(a) ? 0 : ROLLING_OUT.has(a) ? 1 : 3) && all.length <= 7, `${a}: in ${all.length} worlds`);
+    assert.ok(route.length >= (STAGED_V4.has(a) ? 0 : 1) && route.length <= 4, `${a}: on the route in ${route.length}`);
   }
-  for (const a of ARCHETYPE_IDS.filter((x) => !V4.has(x) && !RETIRED.includes(x) && !KEPT.has(x))) assert.equal(a, 'machine', `${a}: v4's, kept or retired (the makers' machine keeps the temples)`);
+  // the decisions: the bell walker saved for the Signal Market, none in Vael II
+  assert.ok(!worldArchetypes('arzach2').includes('bell') && worldArchetypes('bazaar').includes('bell'));
+  // role coverage: every role fielded somewhere on the route or off it
+  assert.equal(new Set(Object.keys(WORLDS).flatMap((w) => worldArchetypes(w)).map((a) => ARCHETYPES[a].role)).size, ARCHETYPE_IDS.length - ARENA_ONLY.size - STAGED_V4.size);
 });
 
-test('the difficulty curve: tiers, not new looks; the stages and the pack budgets as before; the warlord from the second world', () => {
-  // (#726: the same foes everywhere, their tier carrying the later worlds: src/enemies/fight.js TIER, TIER_SHARE)
+test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the last; pack budgets by stage', () => {
+  const tiers = (w) => worldArchetypes(w).map((a) => ARCHETYPES[a].tier);
+  for (const w of ['desert', 'arzach']) assert.ok(Object.keys(WORLDS[w].roster).every((a) => ARCHETYPES[a].tier === 1), `${w}: tier 1 alone`);
+  for (const w of ORDER.slice(0, -3)) assert.ok(tiers(w).every((t) => t < 4), `${w}: no tier 4 before the last three`);
+  for (const w of ['spheres', 'bazaar']) assert.ok(tiers(w).includes(4), `${w}: tier 4`);
+  // (v1.22, the roster's step 8: the third stage up to five places, the last three four to five, the Market a summit of its own)
   assert.deepEqual(BUDGET, [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]]);
-  for (const [i, w] of ORDER.entries()) assert.equal(sitesOf(w).filter((x) => x.kind === 'warlord-hold').length, i ? 1 : 0, `${w}: ${i ? 'one warlord’s hold' : 'no warlord'}`);
   const rng = (() => { let s = 11; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const w of ORDER) {
     const stage = WORLDS[w].stage, [, hi] = WORLDS[w].budget ?? BUDGET[stage];
     for (let n = 1; n < 60; n++) {
       const p = packOf(n, w, rng);
-      // (each member its own places, a group its group's once; the last may run half a place over: packOf)
-      const places = [...new Set(p)].reduce((a, k) => a + (GROUP[k] ? GROUP_COST[k] * Math.round(p.filter((x) => x === k).length / GROUP[k]) : costOf(k) * p.filter((x) => x === k).length), 0);
-      if (!GROUP[p[0]] && p[0] !== 'shade') assert.ok(places <= hi + 0.5 + 1e-9, `${w} pack ${n}: ${p} in ${hi} places`);
+      if (!GROUP[p[0]] && p[0] !== 'shade') assert.ok(p.length - 1 + (COSTS[p[0]] ?? 1) <= hi + 1e-9, `${w} pack ${n}: ${p} in ${hi} places`);
       if (GROUP[p[0]]) assert.ok(stage < 2 ? p.length === GROUP[p[0]] : p.length - GROUP[p[0]] + GROUP_COST[p[0]] <= hi, `${w} pack ${n}: a group (${p}), alone early, filled later`);
       if (stage <= 1 && !GROUP[p[0]]) assert.ok(p.filter(rangedKind).length <= 1, `${w} pack ${n}: at most one ranged early (${p})`);
-      for (const k of p) assert.ok(!RETIRED.includes(archetypeOfKind(k)), `${w} pack ${n}: ${k} retired`);
     }
   }
 });
 
-test('the route\'s difficulty rises to the Market: stages never fall, packs grow, the prowlers lead at the end', () => {
+test('the route\'s difficulty rises to the Market: stages never fall, packs grow, the late kinds lead at the end (the roster\'s step 8)', () => {
   const stages = ORDER.map((w) => WORLDS[w].stage);
   stages.forEach((s, i) => i && assert.ok(s >= stages[i - 1], `${ORDER[i]}: stage ${s} after ${stages[i - 1]}`));
   assert.ok(WORLDS.bazaar.stage > WORLDS.spheres.stage, 'the Signal Market stands alone at the top');
@@ -173,9 +158,15 @@ test('the route\'s difficulty rises to the Market: stages never fall, packs grow
   const mean = (ws) => ws.reduce((a, w) => a + size(w), 0) / ws.length;
   const early = mean(ORDER.slice(0, 5)), middle = mean(ORDER.slice(5, 8)), late = mean(ORDER.slice(8));
   assert.ok(early < middle && middle < late, `packs grow: ${early.toFixed(2)} < ${middle.toFixed(2)} < ${late.toFixed(2)} (a flock of skitters not counted)`);
-  // the prowlers, the quick ones, a bigger share of the packs further on
-  const share = (w) => { let n = 0, all = 0; for (let i = 1; i <= 600; i++) { const p = packOf(i, w, rng); all += p.length; n += p.filter((k) => k === 'prowler').length; } return n / all; };
-  assert.ok(share('desert') < share('perdide') && share('perdide') < share('bazaar'), `prowlers: ${['desert', 'perdide', 'bazaar'].map((w) => share(w).toFixed(2))}`);
+  // (the Market's packs the heaviest: in places, a big one two, a pair two; issue #722's fillers take their own places, so
+  // a bell or a pair in a Market pack is fewer bodies than a drone's pack of four in the Floating City, and more weight)
+  const weight = (w) => { let n = 0; for (let i = 1; i <= 600; i++) { const p = packOf(i, w, rng); n += [...new Set(p)].reduce((a, k) => a + (GROUP[k] ? GROUP_COST[k] * Math.round(p.filter((x) => x === k).length / GROUP[k]) : costOf(k) * p.filter((x) => x === k).length), 0); } return n / 600; };
+  assert.ok(ORDER.every((w) => w === 'bazaar' || weight(w) < weight('bazaar')), 'the Market\'s packs are the heaviest on the route');
+  // the hounds and the marionettes lead in the last two (from the third pack on in the Garden)
+  for (const [w, kinds] of [['spheres', ['hound']], ['bazaar', ['hound', 'marionette']]]) {
+    let n = 0; for (let i = 3; i < 603; i++) if (kinds.includes(packOf(i, w, rng)[0])) n++;
+    assert.ok(n / 600 > 0.15, `${w}: ${kinds} lead ${Math.round((n / 600) * 100)} % of the later packs`);
+  }
 });
 
 test('the last worlds press harder: three strikers at once, quicker turns, heavier blows; the Market heaviest; Gentle as ever', () => {
@@ -209,12 +200,13 @@ test('spawning by world: the wilds draw each world’s archetypes (or the old ki
     for (const a of worldArchetypes(w)) if (ARCHETYPES[a].status === 'planned') assert.ok(!kinds.has(a), `${w}: ${a} waits until built`);
     assert.equal(R.first, spawnKindOf(WORLDS[w].lead) ?? R.first, `${w}: its first pack is its lead`);
   }
-  // a pack in the Signal Market: roster v4's, in their one skin (issue #726: no world costumes)
+  // a pack in the Signal Market: coin lizards, in pairs, in their skin
   clearTargets();
   const P = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'bazaar', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: () => 0.05 });
   foes.packs = 2; foes.spawnPack();
   assert.ok(foes.list.length >= 1);
-  for (const f of foes.list) assert.ok(V4.has(archetypeOfKind(f.kind)) || f.kind === 'drone', `${f.kind}: roster v4's`);
+  // (a share of them in their stronger tier, issue #722: 'banded coin lizard')
+  for (const f of foes.list) if (f.kind === 'lizard') { assert.equal(f.skin, 'bazaar'); assert.equal(f.model.group.name, f.tierN ? 'banded coin lizard' : 'coin lizard'); }
   assert.ok(foes.list.every((f) => !f.provoked || !f.def.calm), 'out in the wilds they keep to their calm');
   foes.dispose(); clearTargets();
 });
