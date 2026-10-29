@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.36 — 2026-10-29
 
+- Locked on, clicking the left stick (Shift on a keyboard) with the stick pushed toward your foe now sprints you straight at it, the camera still framing you both; a slash pressed on the way in is the running cut. Sideways or back you still circle it at a jog.
 - Cutting into a raised guard now throws your sword back, as in Breath of the Wild: the blade bounces off with a clang, you are knocked back half a step and your combo ends, and for a moment you can’t cut, block or roll while the foe hits back. What breaks each guard still gets through: the charged cut, the air cut, a parry and riposte or a bomb, or a cut round its side.
 - Sending a shot back no longer stuns whoever fired it. A plain guard just stops an arrow, a rock, a glob or a bolt; a perfect parry sends it back to hurt its shooter and make it flinch, the same for every kind of shot, the ember wisp’s fireball too.
 - The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena and the creatures gallery for now.

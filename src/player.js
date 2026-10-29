@@ -220,6 +220,17 @@ export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe
   backRun: true,
   twist: [['spine_01', 0.3], ['spine_02', 0.35], ['spine_03', 0.35]] };
 /**
+ * Locked on, the sprint runs you in (v2.36, issue #770, the author: "I should be able to run towards an enemy with l3 when
+ * fighting and locked on"): the run (L3 / Shift) with the stick toward the locked foe (its forward share at least
+ * `forward` of the push) is the sprint, straight at the foe, facing it, at the run's speed and stamina, until `near` m
+ * from it (then the lock's jog, and its body keeps you off: Foes.keepOff). Sideways or back the run is ignored: the strafe
+ * and the walk back at the lock's pace, as before. The camera keeps its lock-on framing (#752). A cut pressed on the way
+ * in is the running cut (src/fluid-blade.js RUN_CUT).
+ */
+export const LOCK_RUN = { forward: 0.55, near: 2.6 };
+/** Does the run carry him in at the locked foe (pure: tests)? run held, the stick `f` toward it / `s` round it, `dist` m off. */
+export const lockRunWanted = ({ run = false, f = 0, s = 0, dist } = {}, L = LOCK_RUN) => !!run && f > 0 && f >= L.forward * Math.hypot(f, s) && !(dist <= L.near);
+/**
  * Which captured step a locked-on move wants (pure: tests): 'left' / 'right' / 'back' / null (forward: the loops), from
  * the speed along the facing `vf` and to the right `vr` (m/s). The side `was` playing is kept until the move is clearly
  * another's (its sideways share under LOCK_MOVE.keep of the forward one; a new side needs LOCK_MOVE.side of it).
@@ -1672,9 +1683,13 @@ export class Player {
     // locked on, the stick is read against the foe, not the camera: forward toward it, sideways round it (issue #314, "the
     // sidestep is bugged": the camera trails the lock by 0.1-0.25 rad as you step, so its right carried you off the foe
     // 0.2 m for every m stepped, out of a guardian's reach in three sidesteps; with orbitLock below, you circle it)
+    // (locked on, the run with the stick toward it: straight at the foe, the sprint, LOCK_RUN, issue #770)
+    const L0 = this.lockOn, lockDist = L0?.at ? Math.hypot(L0.at.x - this.pos.x, L0.at.z - this.pos.z) : undefined;
+    const lockRun = !!L0 && !this.aim && !this.carrying && canSprint(this) && lockRunWanted({ run, f, s, dist: lockDist });
     if (this.lockOn && !this.aim && (f || s)) {
       const D = this.lockOn.hop ?? this.lockOn.dir, Rt = _lk1.crossVectors(D, F.up).normalize();
-      if (Rt.lengthSq() > 0.5) move.copy(D).multiplyScalar(f).addScaledVector(Rt, s);
+      if (lockRun) move.copy(this.lockOn.dir);
+      else if (Rt.lengthSq() > 0.5) move.copy(D).multiplyScalar(f).addScaledVector(Rt, s);
     }
     // walked on through a doorway (src/door-walk.js): its way and its pace, whatever the stick, the lock or the aim say
     const DW = this.doorWalk;
@@ -1709,12 +1724,12 @@ export class Player {
     } else {
       this.thrusting = false; this.jetHold = false; this.jetPower = 0;
       // sprinting spends the stamina climbing does (src/stamina.js); winded, you jog
-      const sprint = run && canSprint(this) && !this.aim && !this.lockOn && !this.carrying;   // (locked on: no sprint, you strafe; carrying: a walk)
+      const sprint = run && canSprint(this) && !this.aim && (!this.lockOn || lockRun) && !this.carrying;   // (locked on: no sprint, you strafe, unless running in at it: LOCK_RUN; carrying: a walk)
       this.sprinting = sprint && this.onGround && !this.gliding && move.lengthSq() > 0.01;
       let speed = (sprint ? RUN : WALK) * movementScale(stickScale);
       if (this.gliding) speed *= 1.25;
       if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
-      else if (this.lockOn && !this.gliding) speed = Math.min(speed, LOCK_MOVE.speed);   // locked on: a jog at most
+      else if (this.lockOn && !this.gliding && !lockRun) speed = Math.min(speed, LOCK_MOVE.speed);   // locked on: a jog at most (running in at it: the run, LOCK_RUN)
       if (this.carrying) speed = Math.min(speed, WALK) * CARRY.speed;   // something in both hands: a slower walk (src/carry.js)
       if (this.onGround && this.combatMotion) speed *= this.combatMotion.scale;
       speed *= this.wadeSlow;                                                   // wading (src/swim.js)

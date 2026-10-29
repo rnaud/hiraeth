@@ -1550,6 +1550,13 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
   `strafeStep` fades the old step out (`LOCK_MOVE.swap`) before the new one comes in, and locked on the starts,
   stops, pivots and the chest's lead are off.
 - A fast approach toward the locked foe counts as a run for the lunge.
+- **Running in** (v2.36, issue #770, the author: "I should be able to run towards an enemy with l3 when fighting and
+  locked on"; `LOCK_RUN`, `lockRunWanted`): the run (L3 / Shift) with the stick toward the locked foe (its forward share
+  at least `forward` 0.55 of the push) is the sprint straight at it, facing it, at the run's speed and stamina, until
+  `near` 2.6 m from it, where the lock's jog takes over and its body stops him (`Foes.keepOff`). Sideways or back the run
+  is still ignored (the strafe, the walk back). A cut pressed on the way in is the running cut. The camera keeps the
+  lock-on framing of #752 (`tests/lock-run.test.js` runs the lock camera in node through a 14 m run-in: green, he never
+  off the screen, the foe never hidden, no spin; `scripts/camera-qc/sim-lock.mjs` segments take `run` m/s).
 
 ## Bodies: you can't walk through a foe (v1.41, `src/foes.js` `BODY_BLOCK`, `Foes.keepOff`)
 

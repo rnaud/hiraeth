@@ -1,5 +1,6 @@
-// Issue #774 in the engines (Unity, Godot): engine/game.js in a bare V8 context (the bundle the engines run). A cut into
-// a fencer's raised shield rebounds the blade and the fencer answers at once.
+// Issues #774 and #770 in the engines (Unity, Godot): engine/game.js in a bare V8 context (the bundle the engines run).
+// A cut into a fencer's raised shield rebounds the blade and the fencer answers at once; locked on, the run with the
+// stick toward a foe sprints him in at it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
@@ -43,4 +44,15 @@ test('the engine: a cut into a fencer\'s raised shield rebounds, and the fencer 
   assert.equal(f.atk?.id, 'bash', 'with its shield bash');
   g.foes.lock = null; quietly(() => { for (const x of g.foes.list) { x.hp = 0; x.state = 'dead'; } });
   run(g, 30);
+});
+
+test('the engine: locked on, the run with the stick toward the foe sprints him in (issue #770)', async () => {
+  const g = await engine();
+  const [f] = g.foes.spawnKind('blot', { n: 1, dist: 14 });
+  f.update = () => [];   // (held still)
+  g.foes.lock = f; run(g, 4);
+  let top = 0;
+  run(g, 30, { KeyW: true, ShiftLeft: true }, () => { top = Math.max(top, Math.hypot(g.player.vel.x, g.player.vel.z)); return false; });
+  run(g, 10, { KeyW: false, ShiftLeft: false });
+  assert.ok(top > 6, `a sprint, not the lock's jog (${top.toFixed(2)} m/s)`);
 });

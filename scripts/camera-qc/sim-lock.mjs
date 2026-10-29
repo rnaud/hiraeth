@@ -43,7 +43,7 @@ export function antechamber(level) {
 const rng = (seed) => { let s = seed >>> 0; return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
 
 /**
- * One locked-on walk: `segs` the scenario's segments (stick, run; lock taken at the start), the foe `foe` (a position, held
+ * One locked-on walk: `segs` the scenario's segments (stick, run: m/s running in; lock taken at the start), the foe `foe` (a position, held
  * still; `foeR` its radius, chest `chestY` m up), him from `start`, the camera's yaw `yaw` (the scenario's: looking along
  * `ax`). Returns the samples as the browser records them (lib.mjs), and the rig.
  */
@@ -87,7 +87,8 @@ export function lockWalk(world, { segs, foe, start, yaw, jitter = 0, seed = 1, s
         else { move = d.normalize(); sc = Math.min(1, s.pace ?? 1); }
         if (!stuckP || stuckP.distanceTo(pos) > 0.3) { stuckP = pos.clone(); stuck = 0; } else if ((stuck += dt) > 2) { wp++; stuck = 0; stuckP = null; }
       }
-      if (move?.lengthSq() > 0) move.normalize().multiplyScalar(Math.min(WALK * (sc < 1 ? THREE.MathUtils.lerp(0.35, 1, sc) : 1), LOCK_SPEED));
+      // (`run`: m/s, running in at the foe with the run held: src/player.js LOCK_RUN, issue #770; else a jog at most)
+      if (move?.lengthSq() > 0) move.normalize().multiplyScalar(s.run ?? Math.min(WALK * (sc < 1 ? THREE.MathUtils.lerp(0.35, 1, sc) : 1), LOCK_SPEED));
       else move = null;
       const a = 1 - Math.exp(-(move ? 8 : 16) * dt);
       vel.addScaledVector((move ?? new THREE.Vector3()).sub(vel), a);
