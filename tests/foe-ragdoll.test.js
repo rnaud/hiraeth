@@ -89,19 +89,47 @@ test('every humanoid on the rig ragdolls on flat ground and a slope, none of it 
   }
 });
 
-test(`at most ${RAGDOLL.most} ragdolls step at once; the rest fall the old way; each cheap`, async () => {
+// (a calibration: the same kind of arithmetic as a ragdoll's frame, three.js vectors, quaternions and matrices, timed
+// on this machine now, the best of five: a slow CI runner is slow at both)
+function calibrate() {
+  const a = v(1, 2, 3), b = v(), q = new THREE.Quaternion(), m = new THREE.Matrix4(), e = new THREE.Euler();
+  let best = Infinity, sink = 0;
+  for (let r = 0; r < 5; r++) {
+    const t0 = performance.now();
+    for (let i = 0; i < 20000; i++) {
+      q.setFromEuler(e.set(i * 1e-3, i * 2e-3, 0.3));
+      m.compose(a, q, b.set(1, 1, 1));
+      b.set(i & 7, 1, 2).applyMatrix4(m).normalize();
+      a.addScaledVector(b, 1e-6);
+      sink += b.x;
+    }
+    best = Math.min(best, performance.now() - t0);
+  }
+  assert.ok(Number.isFinite(sink));   // (its result used: nothing optimised away)
+  return best;
+}
+function sevenGoingDown() {
   const { foes, done } = world();
   const list = Array.from({ length: 7 }, (_, i) => foes.add('grunt', v(i * 3 - 9, 0, 4)));
   for (let i = 0; i < 10; i++) foes.update(DT);
   for (const f of list) kill(foes, f);
-  assert.equal(list.filter((f) => f.dying?.rag).length, RAGDOLL.most);
-  assert.ok(list.every((f) => f.dying), 'every one going down');
   const t0 = performance.now();
   for (let i = 0; i < 30; i++) foes.update(DT);
-  const ms = (performance.now() - t0) / 30;
-  // (the budget grows with the machine's load, as tests/foe-hit-defeat.test.js's)
+  return { ms: (performance.now() - t0) / 30, list, done };
+}
+test(`at most ${RAGDOLL.most} ragdolls step at once; the rest fall the old way; each cheap`, async () => {
+  // (once to warm up, so what is timed is the frames and not their code being compiled: a runner's first pass at
+  // the ragdoll's, the hull's and the recipes' code cost more than the frames themselves)
+  sevenGoingDown().done();
+  const cal = calibrate();
+  const { ms, list, done } = sevenGoingDown();
+  assert.equal(list.filter((f) => f.dying?.rag).length, RAGDOLL.most);
+  assert.ok(list.every((f) => f.dying), 'every one going down');
+  // the budget: 6 ms on this Mac, or 6 calibrations (seven going down measure about 2 here: a runner three times slower
+  // is allowed three times as long, and the frame three times its cost still fails), growing with the machine's load
   const os = await import('node:os'), busy = Math.max(1, os.loadavg()[0] / os.cpus().length);
-  assert.ok(ms < 6 * busy, `${ms.toFixed(2)} ms a frame for seven going down (budget ${(6 * busy).toFixed(1)})`);
+  const budget = Math.max(6, 6 * cal) * busy;
+  assert.ok(ms < budget, `${ms.toFixed(2)} ms a frame for seven going down (budget ${budget.toFixed(1)}: calibration ${cal.toFixed(2)} ms, load × ${busy.toFixed(2)})`);
   done();
 });
 
