@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7ecd2">
+<title>Hiraeth · The walkthrough</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<style>
+  /* The walkthrough (src/walkthrough-page/, docs/systems/testing.md "The walkthrough"): the lore page's ink and paper */
+  :root { --paper: #f7ecd2; --card: #fbf4e2; --ink: #2b211f; --soft: #6d5f57; --rule: #d8c9a8; --accent: #8a5a3c; --jade: #3d8f80; --gold: #f2c54b; --bad: #b2452f; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 70px; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 Georgia, 'Iowan Old Style', serif; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  nav, .btn, small, summary, h2, h3, h4, .n, .proof, .run, .state, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  code { font-size: 0.88em; }
+
+  body > header { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 8px; background: var(--paper); border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font: bold 18px ui-monospace, Menlo, monospace; letter-spacing: 0.16em; }
+  #sections { display: flex; gap: 4px 12px; flex-wrap: wrap; flex: 1 1 auto; font-size: 13px; }
+  #sections a { text-decoration: none; border-bottom: 1.5px solid var(--rule); }
+  .links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn { padding: 4px 10px; background: var(--card); border: 2px solid var(--ink); text-decoration: none; font-size: 12.5px; white-space: nowrap; }
+  .btn:hover { background: #fff; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 8px 16px 60px; }
+  .top { margin: 18px 0 8px; }
+  .top > p { max-width: 760px; }
+  .run { font-size: 12.5px; color: var(--soft); }
+  details > summary { cursor: pointer; font-size: 12.5px; color: var(--accent); }
+  .legend dl { margin: 6px 0 0; font-size: 13.5px; }
+  .legend dl > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; padding: 4px 0; border-top: 1px solid var(--rule); }
+  .legend dt { font: bold 12px ui-monospace, Menlo, monospace; } .legend dd { margin: 0; }
+
+  .part { margin: 26px 0 0; background: var(--card); border: 2px solid var(--ink); padding: 12px 16px 14px; box-shadow: 4px 4px 0 var(--ink); }
+  .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; justify-content: space-between; margin-bottom: 4px; }
+  h3 { margin: 0; font-size: 18px; letter-spacing: 0.06em; }
+  .n { display: inline-block; min-width: 1.6em; padding: 0 4px; margin-right: 8px; background: var(--ink); color: var(--paper); text-align: center; font-size: 14px; }
+  .intro { font-size: 14.5px; color: var(--soft); }
+  h4 { margin: 14px 0 4px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
+  h4 small { font-size: 11px; font-weight: normal; letter-spacing: 0.04em; text-transform: none; color: var(--accent); margin-left: 8px; }
+  h4.temple { border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 18px; }
+  .about { font-size: 14px; }
+  .also { font-size: 12px; color: var(--soft); border-left: 3px solid var(--jade); padding-left: 8px; }
+  ol.steps { margin: 4px 0 0; padding-left: 2.2em; }
+  ol.steps > li { padding: 5px 0; border-top: 1px solid var(--rule); }
+  ol.steps > li p { margin: 0; }
+  ol.steps > li.broke { background: #f6dfd6; }
+  .note { font-size: 13px; color: var(--soft); font-style: italic; }
+  .proof { font-size: 11px; color: var(--accent); margin-top: 2px !important; overflow-wrap: anywhere; }
+  .how { border-bottom: 1px dotted var(--accent); cursor: help; }
+  .mark { font: bold 13px ui-monospace, Menlo, monospace; margin-right: 6px; }
+  .mark.ok, .state.ok { color: var(--jade); } .mark.bad, .state.bad { color: var(--bad); }
+  .state { font-size: 11.5px; }
+  b.key { display: inline-block; padding: 0 6px; border: 1.5px solid var(--ink); border-radius: 9px; background: #fff; font: bold 11.5px ui-monospace, Menlo, monospace; line-height: 1.5; white-space: nowrap; }
+  .extras { margin-top: 12px; border-top: 1.5px dashed var(--rule); padding-top: 6px; }
+  .extras ul { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }
+
+  @media (max-width: 760px) {
+    body > header { position: static; }
+    html, body { font-size: 14.5px; }
+    .legend dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  }
+</style>
+</head>
+<body data-debug-back>
+<header>
+  <h1 class="debug-room">THE WALKTHROUGH</h1>
+  <nav id="sections" aria-label="The page’s parts"></nav>
+  <div class="links"><a class="btn" href="lore.html">Lore</a><a class="btn" href="changelog.html">What changed</a><a class="btn" href="./">Play</a></div>
+</header>
+<main id="walkthrough"></main>
+<noscript><p>Turn on JavaScript to read the walkthrough.</p></noscript>
+<script type="module" src="/src/walkthrough-page/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
+</body>
+</html>

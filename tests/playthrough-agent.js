@@ -52,6 +52,15 @@ const freshListeners = () => { game.listeners = new Map([...baseListeners].map((
 export { game, items, ORDER, CONTENT, LEVELS, Player, boxesFound, migrateSave, allTargets, allInteractables, bestInteractable };
 
 export const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+
+/**
+ * The walkthrough's trace (src/walkthrough-page/steps.js, tests/walkthrough.js): every step the agent plays, in order, as
+ * { id, how }: a quest's stage as it comes up ('<quest>:<stage>', its opening talk '<quest>:opener'), a temple's door and
+ * each thing done in it ('temple:<temple>:<element>', a ball's stop after '@'), the route's own acts ('act:<name>'), the
+ * flights ('ship:<world>') and the homecomings. `how` says how the agent did it (WALKTHROUGH_HOW).
+ */
+export const TRACE = [];
+export const trace = (id, how, more = null) => { TRACE.push({ id, how, ...more }); };
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 export { flat };
 const quiet = (f) => { const w = console.warn, l = console.log, i = console.info, e = console.error; console.warn = console.log = console.info = console.error = () => {}; try { return f(); } finally { console.warn = w; console.log = l; console.info = i; console.error = e; } };
@@ -357,6 +366,7 @@ export async function playQuest(W, qid, { solvers = {}, ways = {}, checks = {}, 
         if (!o.label && first && by && flat(first, by.pos) > 3) issue('giver', `the first step points ${flat(first, by.pos).toFixed(0)} m from ${o.who[0]}, who opens it`);
         const r = talkTo(W, giver, goalOf(W, qid));
         if (r.error) issue('talk', r.error);
+        trace(`${qid}:opener`, way ? 'way' : 'talk');
         W.step(2);
         steps.push(`talk to ${giver} (opens it): ${q.stage(qid)}`);
       }
@@ -367,7 +377,7 @@ export async function playQuest(W, qid, { solvers = {}, ways = {}, checks = {}, 
   // ---- stage by stage: each try must move something (the stage, the objective, a flag), or it is stuck
   let flagsSet = 0;
   const offFlag = game.on('flag', () => { flagsSet++; });
-  let last = null, idle = 0;
+  let last = null, idle = 0, traced = null;
   for (let n = 0; n < maxSteps && q.isActive(qid); n++) {
     const stage = q.stage(qid), st = q.current(qid);
     if (track) q.choose(qid);
@@ -388,7 +398,8 @@ export async function playQuest(W, qid, { solvers = {}, ways = {}, checks = {}, 
         // and the walk there from where he stands now
         const walk = way || !R.spot ? '' : walkCheck(W, W.player.pos, R.door ?? R.spot, (t) => issue('unreachable', `stage "${stage}": ${t}`));
         steps.push(`${stage}: ${raw.label ?? ob?.label} (${fmt(raw.position)}; ${R.how})${walk}`);
-      }
+        if (stage !== traced) { traced = stage; trace(`${qid}:${stage}`, solvers[`${qid}:${stage}`] ? 'scripted' : way ? 'way' : st.talk ? 'talk' : R.climb || walk.includes('climb') ? 'climb' : 'on foot'); }
+      } else if (stage !== traced) { traced = stage; trace(`${qid}:${stage}`, solvers[`${qid}:${stage}`] ? 'scripted' : 'no target'); }
       // what the world says must hold at this step
       if (each) { const why = each(W, st, qid); if (why) issue('ability', `stage "${stage}": ${why}`); }
       const c = checks[`${qid}:${stage}`];
@@ -597,10 +608,14 @@ export async function generic(W, qid, st, raw) {
  * he does it (a chest, or a temple's second chest: E; a brazier, a switch, a bell: lit with the right mode; a drum: rolled onto
  * its plate; a plate: stood on; the guardian: resolved). Returns the log; issues go to `issue`.
  */
+/** How the agent does a temple's thing (the trace's `how`): its own prompt, its chest, through the logic where he stands, … */
+export const templeHow = (e) => (e.type === 'find' && !e.box ? 'prompt' : e.type === 'gadget' || e.type === 'find' ? 'chest' : e.type === 'arena' ? 'arena'
+  : e.type === 'key' ? 'key' : e.lock ? 'unlock' : e.type === 'weight' ? 'carry' : e.type === 'boss' ? 'guardian' : 'logic');
 export async function templeTo(W, until, issue, { nextSpot, id = null }) {
   // (a temple by its id: a merged world has two, and the Glass Dunes' is the Clock-House, `garage`)
   const T = (id ? W.level.temples?.find((t) => t.id === id) : null) ?? W.level.temple, L = T?.logic, log = [];
   if (!T) { issue('no-temple', `${W.id} has no temple`); return log; }
+  const firstIn = !game.flag(`temple.${T.id}.entered`);   // (its door the walkthrough's step, the first time: tests/walkthrough.js)
   const door = T.outside?.door?.at;
   if (door) {
     const s = standNear(W, door, { radius: 5, up: 3 });
@@ -609,6 +624,7 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
   }
   W.at(T.arrival.pos.clone()); W.step(3);
   if (!game.flag(`temple.${T.id}.entered`)) issue('temple', `in through the door of ${T.def.name}, but it never counted as entered`);
+  if (firstIn) trace(`temple:${T.id}:door`, 'on foot');
   const reached = () => (typeof until === 'function' ? until() : until === 'gadget' ? L.gadget : L.resolved);   // (or a test of its own: the Rose House's font, issue #729)
   let n = 0;
   for (; n < 80 && !reached(); n++) {
@@ -632,6 +648,7 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       ?? (T.piece(id)?.o?.from && T.kit ? standNear(W, T.kit.world(...T.piece(id).o.from), { radius: 3, up: 3 }) : null);   // (a ring hung high, hooked from where it says: the Warden's Well's crown ring, issue #413)
     if (!s && e.type !== 'boss') issue('no-ground', `${T.def.name}: ${e.type} ${id} (${fmt(at)}) has nowhere to stand by it`);
     if (s) { W.at(s); W.step(2); }
+    let stopAt = '';
     if (e.type === 'find' && !e.box) {
       // (a find with no chest: the Rose House's font, issue #729: its own prompt where it stands)
       const by = at ? standNear(W, at, { radius: 2.4, up: 2 }) : null;
@@ -687,6 +704,7 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       const stop = worth ? [worth, e.stops[worth]] : e.stops ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p) && L.awaited(p))
         ?? (Object.keys(e.stops).some((p) => L.drumOn(id, p) && L.holdsShut(p)) ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p)) : null) : null;
       L.moveDrum(id, stop ? stop[1] : (e.plateAt ?? 1)); log.push(`roll ${id}${stop ? ` onto ${stop[0]}` : ''}`);
+      stopAt = stop ? `@${stop[0]}` : '';
     }
     else if (e.type === 'weight') {
       // (a weight, issue #337: picked up where it lies with the use button, set on its plate; the real carry is
@@ -702,6 +720,7 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
     }
     else if (e.type === 'plate') { L.press(id, 'player'); T.applyDoors(); W.step(2); L.release(id, 'player'); log.push(`stand on ${id}`); }
     else if (e.type === 'boss') { if (T.guardian?.resolve) T.guardian.resolve(); else T.onBossResolved(); log.push(`guardian ${id}`); }
+    trace(`temple:${T.id}:${id}${stopAt}`, templeHow(e));
     T.applyDoors(); W.step(4);
     await sleep(5);
   }

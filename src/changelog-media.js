@@ -1438,6 +1438,8 @@ const FROM762 = 'scripts/changelog-shots.mjs at this change (68f1c3302) and its 
 
 /** (v2.37, issues #765, #767, #773: the enemies' deaths) */
 const DEATHS765 = 'Hand-made strips of the web game (no `view`): a script of mine (scratch, on scripts/changelog-shots.mjs serve/chrome) drove muted headless Chrome (--mute-audio, hiraeth.muted and the volumes at 0 set before load) against its own Vite (port 5420 for the after, 5422 for the before), the Arena at 10:00, clear, High, 1280 × 720, practice with no waves; one foe set down 6 m before the traveller, struck down with Foes.hurt (blade, damage 99, the combo’s third) away from the camera; the game’s own captureView from a pinned eye before the blow and at real times after it (labelled; approximate: a hit-stop and the last foe’s slow motion stretch them), 4 × 2 frames; before: origin/main 95cbaff29 (git archive), after: this branch; 29 October 2026; cwebp -q 72';
+/** (v2.37, issue #777: the walkthrough page) */
+const FROM777 = 'Hand-made (no `view`): walkthrough.html on this branch’s own Vite dev server (port 5460, revision 699d01bda plus the change), headless Chrome (muted, no GPU) at 1280 × 1900, cropped to two 1280 × 720 frames, 29 October 2026; its status file, put there for the picture only, is the walkthrough-status.json this branch’s full local play-through wrote (every part passed), the file the daily run writes and the deploy puts on the site';
 
 export const CHANGELOG_MEDIA = {
   '2.37': [
@@ -1475,6 +1477,11 @@ export const CHANGELOG_MEDIA = {
     { name: 'rootknot769-pod-flight', only: 'after', size: [1280, 720], title: 'In the air', caption: 'The same pod at 87 %: the cap snapped forward, the pod high in its arc, the mark’s shadow dark and the ring tightened onto exactly where it lands', from: FROM769, view: 'The Arena, the same reed knot, its pod at 87 % of the wind-up, held still' },
     { name: 'rootknot769-seeds', only: 'after', size: [1280, 720], title: 'The seeds', caption: 'The Deep Wood’s root crawler at 81 % of its seed volley: up on its arms, three seeds in the air over a row of three marks across where the traveller stands', from: FROM769, view: 'The Arena, a root crawler 9 m ahead of the traveller, its volley at 81 % of the wind-up, held still' },
   ], see: 'Meet a root knot in Lorn, its Deep Wood or Viridel, or pick it from the FOES list in the Arena: watch its cap tip back, then step out of the mark.' },
+  // (issue #777: the new page, after only; its ✓ marks are this branch's own full local play-through, the same file the daily run writes)
+  { match: 'A walkthrough of the whole game is on the site', shots: [
+    { name: 'walkthrough777-page', only: 'after', title: 'The page', caption: 'The walkthrough’s top: how to read it and the buttons, the last run’s result, then the Desert’s first steps, each with the test and the step that prove it and how the test plays it', from: FROM777 },
+    { name: 'walkthrough777-temple', only: 'after', title: 'A temple', caption: 'The Rose House, step by step: its heading names the temple and guardian tests that play it for real, then each step in the order the daily play-through takes it', from: FROM777 },
+  ], see: 'Open Debug → Pages → Walkthrough and follow the Desert down to the Rose House.' },
   ],
   '2.36': [
   { match: 'The Moon Foundry is closed in', shots: [

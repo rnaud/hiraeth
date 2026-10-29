@@ -19,6 +19,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | File | What |
 |---|---|
 | [game-brief.md](game-brief.md) | the brief and its working decisions |
+| [walkthrough.md](walkthrough.md) | how to finish the game: the walkthrough page on the site, proven step by step by the daily play-through |
 | [story-bible.md](story-bible.md) | each world's story, quests, keepsake and clue |
 | [story-audit.md](story-audit.md) | the October 2026 story audit: every world's beat against what you can do, what was thin, pacing, what was fixed, proposals for the author |
 | [fun-and-story-review.md](fun-and-story-review.md) | the October 2026 review of the experience's shape: the ending before the peak, the unanswered light, choices, pacing; ranked recommendations |
@@ -117,6 +118,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [cloudflare.md](cloudflare.md) | the Cloudflare Worker that serves the game and its update feed |
 | [release-storage.md](systems/release-storage.md) | independent R2 storage for large release files and the Steam Deck runtime |
 | [notes.md](systems/notes.md) | the private notebook: one-line notes backed by GitHub Issues, each note's status (Open, In progress, Needs you, Blocked, Done: the labels the coordinator sets), Worker secrets and access setup |
+| [testing.md, "The walkthrough"](systems/testing.md) | the walkthrough page (`walkthrough.html`): how to finish the game world by world and temple by temple, drawn from the steps the daily play-through plays (`src/walkthrough-page/steps.js`, `tests/walkthrough.js`), each step marked with the last daily result; [walkthrough.md](walkthrough.md) points at it |
 | [lore-page.md](systems/lore-page.md) | the lore page (`lore.html`): the story, the traveller, each world's lore, people, temples, guardians and gadgets read from the game's data at build time, and a Note on every part that files an issue through the notebook |
 | [steam-deck.md](steam-deck.md) | the Steam Deck package: install, release, its updates from the site and the settings' Updates section |
 | [makehuman.md](makehuman.md) | the MakeHuman / MPFB bodies pipeline (pictures in `makehuman/`) |

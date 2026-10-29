@@ -50,6 +50,12 @@ jobs:
       - run: npm run build
       # the changelog's pictures, which changelog.html reads from the site (as cloudflare.yml does)
       - run: cp -R changelog-media dist/changelog-media
+      # the walkthrough's last daily result, which walkthrough.html reads from the site (best effort: no marks without it)
+      - name: The walkthrough's last daily result
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/walkthrough-status.sh dist
       # the references page's index, thumbnails and web-size copies (scripts/references-site.mjs, as cloudflare.yml
       # does): encoded once, kept in the cache between runs (keyed on the pictures and the script)
       - uses: actions/cache@v4

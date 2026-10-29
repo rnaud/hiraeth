@@ -102,6 +102,13 @@ jobs:
           # never in the APK, the update zip or the Deck; changelog.html reads them from here)
           cp -R changelog-media dist/changelog-media
           du -sh dist/changelog-media
+      # the walkthrough's last daily result (scripts/walkthrough-status.sh: the newest daily run's walkthrough-status.json),
+      # site-only like the pictures; best effort: walkthrough.html shows its steps without marks when it is not there
+      - name: The walkthrough's last daily result on the site
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/walkthrough-status.sh dist
       # the references page's pictures (scripts/references-site.mjs: the index, 360 px thumbnails and web-size
       # copies in dist/references/, ≈ 70 MB; site-only like the changelog's, never the originals): encoded once,
       # kept in the cache between runs (keyed on the pictures and the script)

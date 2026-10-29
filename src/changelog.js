@@ -26,6 +26,9 @@ export const CHANGELOG = [
       // the horn lizards, stilt herons and marionettes out of play; the root knot shoots (#769, #772)
       'The horn lizards, stilt herons and marionettes have left the worlds, their camps, nests and fight temples. Each world’s other creatures take their places: alley hounds lead the Signal Market’s packs, cliff crabs come down onto Vael’s plain, a mummer keeps a stash in the Desert, and the Garden’s glass puppet no longer hangs by the white archway.',
       'The root knot, the big mushroom, no longer grabs you: it fights from afar. Its cap tips back as a pod of spores swells under the rim, then it flings the pod onto a mark in the ground, where it bursts into spores that slow you; or it rears up on its arms and throws three seeds onto a row of marks. Walk out of the marks, or close in: it can’t follow you.',
+      // the walkthrough (#777)
+      { text: 'A walkthrough of the whole game is on the site: from a new game to the true ending, each world’s main quest and every temple step by step, with the buttons to press. Every step is one the game is played through by a test each day, in the same order, and the page marks each step with how the last day’s run went.',
+        see: 'Open Debug → Pages → Walkthrough (walkthrough.html on the site) and follow a world or a temple step by step; under each step, the test that plays it.' },
     ],
   },
   {

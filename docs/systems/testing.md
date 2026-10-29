@@ -416,6 +416,64 @@ run now boots its new game the same way. (#628's question, "can every temple be 
 node, by its logic with earned items, and piece by piece with injected items. The guardians are fought
 separately. Neither of these is a device or Unity walkthrough.)
 
+## The walkthrough (issue #777)
+
+How to finish the game, as a page on the site: `walkthrough.html` (Debug → Pages → Walkthrough, linked from the Notes
+page and the lore page; `src/walkthrough-page/`). It goes from a new game to the true ending: each world on the route in
+its order, its main quest, every temple step by step, then home, the Lantern and home again, in a player's words with the
+buttons in Xbox / PlayStation form. Each step names the test that proves it and how that test does it.
+
+**One list, played every day.** The steps are data, `src/walkthrough-page/steps.js` (`WALKTHROUGH`: a part per world,
+home, the Lantern and the ending; each step `[id, how, words, note?]`). The page is drawn from it, and the play-through
+(`tests/playthrough.test.js`) is held to it. While it plays, its agent records every step it takes
+(`tests/playthrough-agent.js` `TRACE`):
+
+- `<quest>:<stage>` as each stage of a quest comes up, and `<quest>:opener` for the talk that starts it;
+- `temple:<temple>:door`, then each thing done in the temple, `temple:<temple>:<element>`, with `@<stop>` for a ball
+  rolled to one of several stops;
+- `act:<name>` for the route's own steps between quests, and `ship:<world>` for each flight;
+- `home:first` and `home:final` for the two homecomings, and one scripted step of the Desert's,
+  `desert.power:stone.cage` (the spring, the weight and the stone after the Keeper).
+
+Each record carries `how`: `talk`, `on foot` (a path on foot was found over the real ground, then he was set down),
+`climb`, `way` (a declared way: the wings, the bird, an air pillar, a shot), `scripted` (the world's own moves in
+`tests/playthrough-worlds.js`), `ship`, `cinematic`, and inside a temple `prompt`, `chest`, `key`, `unlock`, `carry`,
+`logic`, `arena` and `guardian`. At the end of each part's test, `tests/walkthrough.js` `checkPart` holds what was played
+against that part of the list: the same ids in the same order with the same `how`, and the part's `test` naming the test
+that played it. A part that differs fails its own test with the first step that broke ("the walkthrough's part "desert"
+(The Desert) broke at its step 12: the guide says …, the play-through did …"). Neither side can change without the other.
+
+**When the route or a temple changes**, the play-through fails at the step that moved. Run it with
+`WALKTHROUGH_RECORD=<file>` to write what was played, part by part, then write the new or moved steps in `steps.js` in
+players' words. `PLAYTHROUGH_UNTIL=<world>` plays the route only as far as that world (the rest skipped), one world at a
+time while working on it. `tests/walkthrough-page.test.js` (cheap, every commit it reaches) checks the list's shape:
+every world, home, the Lantern and the ending in order with their tests' names; every step a traced id, a known `how`
+and a sentence with Xbox / PlayStation buttons; every temple under its own heading, named as its temple and guardian
+tests name it, ending with its guardian. It also checks the check itself, the page with and without a daily result, the
+links, the build input and the packaging.
+
+**What is real and what is shortened** is written on every step (the `how` and, where the test's way differs from a
+player's, a note). The order and everything the story, quests, conversations, chests, keys and temple logic do are the
+game's own. Between places he is set down once a path on foot (or the declared way) is found, not walked frame by frame;
+inside a temple the balls, eyes and plates are done through the temple's logic. Each temple's heading names the two
+tests that do the rest for real: `tests/temple-playthrough.test.js` rolls every ball by real hits and stands on every
+plate (its order is the route's in eight of the fourteen houses; in the others it differs in places: what a
+ball lights by itself is not a step of its own there, a house's state is set again, or it does a piece the route's order
+does not need, as it carries other things in), and `tests/guardian-completable.test.js` fights every guardian from three stances at 60
+and 30 frames a second. A path check between the things inside a temple was tried for this issue and dropped: done
+through the logic, the bridges and balls the next walk needs have not moved (122 of 325 legs failed for that reason
+alone), and it doubled the run's time.
+
+**Daily.** The steps are checked wherever `tests/playthrough.test.js` runs: every push that reaches it (it is one of the
+long files the commit hook leaves to the push, `tests/hook-deferred.json`), the daily full suite, and the daily
+`completion` job (`.github/workflows/nightly-tests.yml`), which writes `walkthrough-status.json` (every part and step,
+passed or not, the revision and the run's link) beside its evidence and uploads it with `completion-evidence/`. The
+temple and guardian tests run in the daily full suite. **On the site**, each deploy (`deploy.yml`, `cloudflare.yml`) runs
+`scripts/walkthrough-status.sh dist`, which fetches the newest finished daily run's `walkthrough-status.json` into
+`dist/walkthrough/status.json` (best effort: without it the page shows its steps unmarked). The page reads it and marks
+each step ✓ or ✗, with the run's date and revision. It is the site's alone (`scripts/content-policy.mjs`
+`WALKTHROUGH_FILE`); `walkthrough.html` itself is small and ships with the game, like the lore page.
+
 ### Recorded sound decoder on test hosts (#622)
 
 The Node audio harness decodes the actual packaged effects before game startup. Its WAV reader is built in; compressed MP3 takes require macOS `afconvert` or `ffmpeg` on PATH. The Ubuntu Tests workflow installs FFmpeg explicitly when it is absent. Its setup has a four-minute bound and uses an explicit task-local Ubuntu source list, package indexes and cache. This excludes the runner’s indirect Azure mirror list while retaining Ubuntu’s signed-package verification and archive keyring. Download retries and connection timeouts are bounded, leaving the existing twenty-minute job limit for the actual tests. Local Linux test hosts need FFmpeg too. The `sound-qc-decoder` regression uses a fresh OS-temporary cache and checks every packaged MP3 produces finite, non-silent PCM, so a warm developer cache cannot hide a missing decoder. Test caches use `os.tmpdir()` rather than a macOS-specific `/private/tmp` directory. This changes test prerequisites only; game readiness and production decoders are unchanged.

@@ -50,6 +50,7 @@ export const DEV_PAGES = [
   { path: 'src/characters/outfit-page.js', why: 'the outfits test page for the v2 traveller (#540): its panel and readout swap outfits in a world; a dev page, not in the game' },
   { path: 'src/items-page/', why: 'the items page' },
   { path: 'src/lore-page/', why: 'the lore page' },
+  { path: 'src/walkthrough-page/', why: 'the walkthrough page (#777): a page of the site, the steps the daily play-through plays' },
   { path: 'src/trailer/', why: 'the trailer recorder' },
   { path: 'src/levels/reference-picker.js', why: 'the References world\'s picker (a dev world)' },
   { path: 'src/levels/references.js', why: 'the References world (a dev world of the reference pictures)' },

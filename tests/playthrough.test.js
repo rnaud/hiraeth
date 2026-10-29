@@ -57,6 +57,18 @@ const EVIDENCE = { test: 'tests/playthrough.test.js', rev, node: process.version
     untested: 'rendering, input devices, audio, the traveller\'s own movement between objectives, Unity/native hosts (see docs/systems/testing.md, "Completion coverage")',
   } };
 const writeEvidence = () => { try { mkdirSync(OUT, { recursive: true }); const f = join(OUT, 'playthrough-evidence.json'); writeFileSync(f, JSON.stringify({ ...EVIDENCE, issues: ISSUES }, null, 1)); return f; } catch { return null; } };
+// The walkthrough (src/walkthrough-page/steps.js, the site's walkthrough.html): each part's steps are the ids this run plays,
+// in the same order and done the same way (tests/walkthrough.js); a part that differs fails its own test here, naming the
+// first step that broke. Every part's result goes into the evidence and walkthrough-status.json beside it.
+const { checkPart, statusFile } = await import('./walkthrough.js');
+const WALK = { parts: [] };
+function walkthroughCheck(part, testName, from) {
+  const r = checkPart(part, A.TRACE.slice(from), testName);
+  WALK.parts.push(r);
+  EVIDENCE.walkthrough = WALK.parts;
+  try { mkdirSync(OUT, { recursive: true }); writeFileSync(join(OUT, 'walkthrough-status.json'), JSON.stringify(statusFile(WALK.parts, { rev, at: new Date().toISOString() }), null, 1)); } catch { /* */ }
+  assert.ok(r.ok, r.message);
+}
 const templeState = (id) => ({ id, entered: !!game.flag(`temple.${id}.entered`), gadget: !!game.flag(`temple.${id}.gadget`), done: !!game.flag(`temple.${id}.done`) });
 /** The save as the game wrote it, read back as a fresh page reads it; differences are issues. */
 const SAVE_KEY = 'hiraeth.game.v1';
@@ -73,16 +85,23 @@ let prev = null;
 // a new game, then the page that boots it: the save read back and its migrations' marks set (main.js), as every page after does
 game.reset(); game.reload(); A.migrateSave(game);
 
+// PLAYTHROUGH_UNTIL=<world>: play the route only as far as that world (one world at a time while working on it; the rest,
+// the ending and the completion checks skipped). The daily run plays it all.
+const UNTIL = process.env.PLAYTHROUGH_UNTIL ? ROUTE.findIndex((r) => r.id === process.env.PLAYTHROUGH_UNTIL) : -1;
+if (process.env.PLAYTHROUGH_UNTIL && UNTIL < 0) throw new Error(`PLAYTHROUGH_UNTIL: no world ${process.env.PLAYTHROUGH_UNTIL} on the route`);
+const play = (k = Infinity) => (UNTIL >= 0 && k > UNTIL ? test.skip : test);
 for (const [k, R] of ROUTE.entries()) {
-  test(`${k + 1}. ${R.id}`, async () => {
+  play(k)(`${k + 1}. ${R.id}`, async () => {
     const issue = (kind, text) => report({ world: R.id, quest: '-', stage: '-', kind, text });
     const ev = { world: R.id, plays: [], doneAfter: null, temples: [], save: null };
     EVIDENCE.worlds.push(ev);
     here = { world: R.id, step: 'arrival' };
     const doneYet = (label) => { if (!ev.doneAfter && game.flag(`world.${R.id}.done`)) ev.doneAfter = label; };
+    const from = A.TRACE.length;
     if (prev) {
       // the first flight to a world never visited meets the chime-pirates (src/ambush.js): the playthrough wins the fight
       const fresh = !journal.seen.has(R.id), t = A.shipTurn({ from: prev, to: R.id, journal, issue });
+      A.trace(`ship:${R.id}`, 'ship');
       if (fresh !== !!t.ambushed) issue('ambush', `the flight to ${R.id} ${fresh ? 'was not ambushed though it is new' : 'was ambushed though he has been there'}`);
     }
     const W = A.loadWorld(R.id, { journal, report });
@@ -97,7 +116,7 @@ for (const [k, R] of ROUTE.entries()) {
       const label = p.temple ? `temple ${p.id ?? R.id} to its ${p.temple === 'done' ? 'guardian' : 'chest'}` : p.act ? `${p.act}` : p;
       here.step = label;
       if (p.temple) { const log = await A.templeTo(W, p.temple, issue, { nextSpot, id: p.id }); say(`  temple: ${log.join(' / ')}`); ev.plays.push({ step: label, steps: log.length }); doneYet(label); continue; }
-      if (p.act) { ACTIONS[p.act](W, issue); ev.plays.push({ step: label }); doneYet(label); continue; }
+      if (p.act) { ACTIONS[p.act](W, issue); A.trace(`act:${p.act}`, /^meet|^ask/.test(p.act) ? 'talk' : 'scripted'); ev.plays.push({ step: label }); doneYet(label); continue; }
       const r = await A.playQuest(W, p, { solvers: SOLVERS, ways: WAYS, checks: CHECKS, each });
       say(`  ${p}${r.done ? ' (done)' : ' (NOT DONE)'}:\n    ${r.steps.join('\n    ')}`);
       ev.plays.push({ step: label, done: r.done, steps: r.steps.length });
@@ -120,16 +139,19 @@ for (const [k, R] of ROUTE.entries()) {
     ev.save = saveRoundTrip(R.id, issue);
     prev = R.id;
     for (const i of ISSUES.filter((x) => x.world === R.id)) say(`  ISSUE [${i.kind}] ${i.quest} ${i.stage}: ${i.text}`);
+    walkthroughCheck(R.id, `${k + 1}. ${R.id}`, from);
   });
 }
 
 // ------------------------------------------------------------------ home
 const { Ship } = await import('../src/ship/ship.js');
 const { HomecomingDirector } = await import('../src/ship/homecoming.js');
-test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, the first homecoming plays to the stone`, async () => {
+play()(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, the first homecoming plays to the stone`, async () => {
   const issue = (kind, text) => report({ world: 'home', quest: '-', stage: '-', kind, text });
   here = { world: 'home', step: 'the first homecoming' };
+  const from = A.TRACE.length;
   const { heard, map, ambushed } = A.shipTurn({ from: prev, to: 'home', journal, issue });
+  A.trace('ship:home', 'ship');
   assert.equal(ambushed, false, 'no pirates on the way home');
   say(`  messages heard on the way: ${heard.join(', ') || 'none'}; charted: ${map.filter((e) => e.known).map((e) => e.id).join(', ')}`);
   const W = A.loadWorld('home', { journal, report });
@@ -149,12 +171,14 @@ test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, 
     if ((t * 30 | 0) % 300 === 0) await A.sleep(1);
   }
   if (!dir.done || !game.flag('ending.done')) issue('ending', `the homecoming stopped at "${dir.stage}"`);
+  else A.trace('home:first', 'cinematic');
   EVIDENCE.ending.first = { stage: dir.stage, done: dir.done, kind: dir.kind, worldsDone: A.completedWorlds(A.ORDER, { flag: (k) => game.flag(k), storyDone: journal.storyDone }).length };
   if (dir.kind !== 'first' || game.flag('ending.final')) issue('ending', 'the first flight home should be the first homecoming, and not end the story');
   else say(`  the homecoming: done; ${W.level.tomb.tokens.children.length} tokens on the stone`);
   W.dispose();
   here.step = 'the save, written and read back'; EVIDENCE.ending.firstSave = saveRoundTrip('the first homecoming', issue);
   for (const i of ISSUES.filter((x) => x.world === 'home')) say(`  ISSUE [${i.kind}] ${i.quest} ${i.stage}: ${i.text}`);
+  walkthroughCheck('home', `${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, the first homecoming plays to the stone`, from);
 });
 
 // ------------------------------------------------------------------ the final chapter: the Lantern, Ilen, the true ending
@@ -179,11 +203,13 @@ const homecoming = async (issue, kind) => {
   }
   return { W, dir };
 };
-test(`${ROUTE.length + 2}. the Lantern: the light's trace on the map, Ilen at the lantern's step, she comes home with him`, async () => {
+play()(`${ROUTE.length + 2}. the Lantern: the light's trace on the map, Ilen at the lantern's step, she comes home with him`, async () => {
   const issue = (kind, text) => report({ world: 'lantern', quest: '-', stage: '-', kind, text });
   here = { world: 'lantern', step: 'lantern.ilen' };
   if (!game.flag('ending.done') || game.flag('ending.final')) issue('ending', 'the first homecoming should be over, and only it');
+  const from = A.TRACE.length;
   const { heard } = A.shipTurn({ from: 'home', to: 'lantern', journal, issue });
+  A.trace('ship:lantern', 'ship');
   if (!heard.includes('trace')) issue('ship', `the ship's log of the light over the hill did not wait on the voicemail (heard: ${heard.join(', ')})`);
   const W = A.loadWorld('lantern', { journal, report });
   const r = await A.playQuest(W, 'lantern.ilen', { solvers: SOLVERS, ways: WAYS, checks: CHECKS, each });
@@ -194,18 +220,23 @@ test(`${ROUTE.length + 2}. the Lantern: the light's trace on the map, Ilen at th
   if (!game.keepsakes().some((k) => k.id === 'lantern.person')) issue('ending', 'no keepsake from the Lantern');
   W.dispose();
   here.step = 'the save, written and read back'; EVIDENCE.ending.lanternSave = saveRoundTrip('the Lantern', issue);
+  walkthroughCheck('lantern', `${ROUTE.length + 2}. the Lantern: the light's trace on the map, Ilen at the lantern's step, she comes home with him`, from);
 });
-test(`${ROUTE.length + 3}. home again, with Ilen: the true ending at the stone, the oldest recording, the end card, the credits`, async () => {
+play()(`${ROUTE.length + 3}. home again, with Ilen: the true ending at the stone, the oldest recording, the end card, the credits`, async () => {
   const issue = (kind, text) => report({ world: 'home', quest: '-', stage: '-', kind, text });
   here = { world: 'home', step: 'the true ending' };
+  const from = A.TRACE.length;
   A.shipTurn({ from: 'lantern', to: 'home', journal, issue });
+  A.trace('ship:home', 'ship');
   const { W, dir } = await homecoming(issue, 'final');
   if (!dir.done || !game.flag('ending.final')) issue('ending', `the true ending stopped at "${dir.stage}"`);
+  else A.trace('home:final', 'cinematic');
   EVIDENCE.ending.final = { stage: dir.stage, done: dir.done, flag: !!game.flag('ending.final') };
   if (!dir.lines?.some((l) => l.reel)) issue('ending', 'the reel was not set down at the true ending');
   if (!W.level.family?.ilen) issue('ending', 'Ilen is not at home');
   W.dispose();
   for (const i of ISSUES.filter((x) => x.world === 'home' || x.world === 'lantern')) say(`  ISSUE [${i.kind}] ${i.quest} ${i.stage}: ${i.text}`);
+  walkthroughCheck('ending', `${ROUTE.length + 3}. home again, with Ilen: the true ending at the stone, the oldest recording, the end card, the credits`, from);
 });
 
 // ------------------------------------------------------------------ the report
@@ -216,7 +247,7 @@ const KNOWN = [
   // tests/home-family.test.js). The "call you over, never start the talk" rule is for everyone else.
   { world: 'home', kind: 'auto-talk', match: /^lou /, why: 'intentional: Lou runs to meet you at home and starts the homecoming talk herself (the author’s decision)' },
 ];
-test('completion: every condition of tests/completion-spec.js met by what was played (every world, every temple, the core gadgets, the true ending)', () => {
+play()('completion: every condition of tests/completion-spec.js met by what was played (every world, every temple, the core gadgets, the true ending)', () => {
   const spec = completionSpec(), missing = [];
   for (const w of spec.worlds) {
     if (!game.flag(w.doneFlag)) missing.push(w.doneFlag);
@@ -228,7 +259,7 @@ test('completion: every condition of tests/completion-spec.js met by what was pl
   const f = writeEvidence();
   assert.deepEqual(missing, [], `not completed: ${missing.join(', ')} (state and evidence: ${f})`);
 });
-test('the report: no soft-lock, no step without a target, nothing out of reach, nothing early', () => {
+play()('the report: no soft-lock, no step without a target, nothing out of reach, nothing early', () => {
   const known = (i) => KNOWN.find((k) => k.world === i.world && k.kind === i.kind && k.match.test(i.text));
   const fresh = ISSUES.filter((i) => !known(i));
   const f = writeEvidence();

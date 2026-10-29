@@ -24,6 +24,7 @@ test('Vite uses the same page-input object exported for page consumers', () => {
     'audits': 'audits.html',
     'references': 'references.html',
     'lore': 'lore.html',
+    'walkthrough': 'walkthrough.html',
     'soundEffects': 'sound-effects.html',
     'music': 'music.html',
     'serendipity': 'serendipity.html',

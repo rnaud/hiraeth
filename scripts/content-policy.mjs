@@ -24,6 +24,9 @@ export const REFERENCE_FILE = /^references(\/|$)/;
 /** The lore page's pictures (public/lore-pictures/: scripts/lore-pictures.mjs, the reference picks made small) are the
  * site's alone: lore.html, small, ships with the game and shows its words without them. */
 export const LORE_FILE = /^lore-pictures(\/|$)/;
+/** The walkthrough's daily result (dist/walkthrough/status.json: tests/playthrough.test.js writes walkthrough-status.json
+ * beside its evidence) is the site's alone: walkthrough.html, small, ships with the game and shows its steps without it. */
+export const WALKTHROUGH_FILE = /^walkthrough\//;
 /** The site's own configuration (public/_headers: Cloudflare's headers by path, the themes' CORS). */
 export const SITE_CONFIG = /^_headers$/;
 /** The recorded themes a device fetches from the site the first time it needs one, and keeps (src/music-store.js):
@@ -33,7 +36,7 @@ export const SITE_CONFIG = /^_headers$/;
 export const onDemand = (name) => /^music\/[^/]+\.mp3$/.test(name) && !ON_DEVICE_THEMES.includes(name.slice('music/'.length));
 
 /** Is a file of dist/ (its path from dist/, with / between folders) one the devices never get? */
-export const siteOnly = (rel) => SHEET_FILE.test(rel) || MEDIA_FILE.test(rel) || AUDIT_FILE.test(rel) || REFERENCE_FILE.test(rel) || LORE_FILE.test(rel) || SITE_CONFIG.test(rel);
+export const siteOnly = (rel) => SHEET_FILE.test(rel) || MEDIA_FILE.test(rel) || AUDIT_FILE.test(rel) || REFERENCE_FILE.test(rel) || LORE_FILE.test(rel) || WALKTHROUGH_FILE.test(rel) || SITE_CONFIG.test(rel);
 /** Is it a recorded theme a device fetches from the site when it needs it (and keeps)? */
 export const fetchedOnDemand = (rel) => onDemand(rel);
 /** What the APK and the Deck package leave out: the site's own files and the themes fetched on demand. */

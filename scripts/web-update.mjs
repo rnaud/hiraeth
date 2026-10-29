@@ -23,8 +23,8 @@ import { CHANGELOG } from '../src/changelog.js';
 import { desktopApi, gameBuild, unityJson, webJson, xboxApi } from './release-info.mjs';
 import { sfxFiles } from '../src/sfx.js';
 
-import { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
-export { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
+import { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, WALKTHROUGH_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
+export { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, WALKTHROUGH_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
 
 // 2000-01-01 00:00 in MS-DOS time (zip entries carry a local date and time, not a timestamp)
 const DOS_TIME = 0, DOS_DATE = ((2000 - 1980) << 9) | (1 << 5) | 1;
@@ -171,7 +171,7 @@ export async function writeUnityUpdate({ out, dir, build, version = CHANGELOG[0]
 export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART, music = process.env.OTA_MUSIC === '1', unity = null }) {
   const out = join(dist, UPDATES);
   await rm(out, { recursive: true, force: true });
-  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) || AUDIT_FILE.test(n) || REFERENCE_FILE.test(n) || LORE_FILE.test(n) || SITE_CONFIG.test(n) || (!music && onDemand(n)) });
+  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) || AUDIT_FILE.test(n) || REFERENCE_FILE.test(n) || LORE_FILE.test(n) || WALKTHROUGH_FILE.test(n) || SITE_CONFIG.test(n) || (!music && onDemand(n)) });
   if (!names.includes('index.html')) throw new Error('no index.html in the build: run npm run build first');
   await mkdir(out, { recursive: true });
   const file = join(out, `web-${build}.zip`);

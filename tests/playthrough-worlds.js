@@ -64,6 +64,7 @@ Object.assign(SOLVERS, {
     ball.hit('push', ball.dir, { strength: 1 }); W.step(30 * 30);
     if (!game.flag('desert.hearth.open')) return issue('soft-lock', 'the pushed weight did not open the spark cage');
     W.at(H.stoneRest); A.useHere(W, 'hearth.stone');
+    A.trace('desert.power:stone.cage', 'scripted');   // (the walkthrough's step after the Keeper: the spring, the weight, the stone)
   },
   // (issue #730) the giant's skull, a little temple with monsters: down its mouth with the blade, its monsters beaten (the
   // fight's own tests: tests/skull-hall.test.js), the shrine's door sinks, the lift valve's chest, up the keepers' stair
