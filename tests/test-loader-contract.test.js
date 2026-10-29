@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { affectedTests, dependenciesOf, gitSelection } from '../scripts/affected-tests.mjs';
+import { affectedTests, dependenciesOf, gitSelection, repositorySyntax } from '../scripts/affected-tests.mjs';
 import { join } from 'node:path';
 import { tempDir, removeTemp } from '../scripts/temp-dirs.mjs';
 import { boundedGameInputs, CONTRACT_FILE } from '../scripts/test-loader-contract.mjs';
@@ -11,16 +11,17 @@ const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclud
 const sources = new Map(), presence = new Map();
 const read = f => { if (!sources.has(f)) sources.set(f, readFileSync(f, 'utf8')); return sources.get(f); };
 const exists = f => { if (!presence.has(f)) presence.set(f, existsSync(f)); return presence.get(f); };
-const syntax = new Map(), analysisCache = new Map();
+// Syntax of exact source bytes may come from the selector's own cache (warm after the hook's run); selections are recomputed.
+const syntax = new Map(), analysisCache = new Map(), store = repositorySyntax();
 const analyze = (f,text,o) => {
   const key=f+'\0'+!!o?.explain, old=syntax.get(key);
   if(old?.text===text)return old.value;
-  const value=dependenciesOf(f,text,o);syntax.set(key,{text,value});return value;
+  const id=store?.key(f,text,!!o?.explain), value=(id&&store.get(id))||dependenciesOf(f,text,o);syntax.set(key,{text,value});return value;
 };
 const options = {read, exists, files, analyze};
 const witness = 'tests/bounded-input-witness.test.js';
 function selected(path, consumer, override={}) {
-  return affectedTests([path], {files, tests:[consumer,witness], modifiedRegularOnly:true, analysisCache,
+  return affectedTests([path], {files, tests:[consumer,witness], modifiedRegularOnly:true, analysisCache, syntax:store,
     exists:f=>f===witness||exists(f), read:f=>f===witness?`import '../${path}';`:read(f), ...override});
 }
 test('bounded engine inputs include the real source closure and both asset roots', () => {

@@ -232,6 +232,11 @@ export function syntaxStore({dir=join(ROOT,'.cache','affected-tests'),fingerprin
     },
   };
 }
+/** The command line's store, read-only, for tests that analyse the real repository (null with AFFECTED_TESTS_CACHE=0). */
+export function repositorySyntax() {
+  if(process.env.AFFECTED_TESTS_CACHE==='0')return null;
+  try{return {...syntaxStore(),save(){}};}catch{return null;}
+}
 export function refsOf(file,text) {const d=dependenciesOf(file,text);return [...new Set([...d.imports,...d.resources])];}
 
 /** Unknown/unowned changes select all. An opaque consumer selects that consumer's tests, not unrelated tests. */

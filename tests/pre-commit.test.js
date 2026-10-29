@@ -7,7 +7,7 @@ import { readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { affectedTests, refsOf } from '../scripts/affected-tests.mjs';
+import { affectedTests, refsOf, repositorySyntax } from '../scripts/affected-tests.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
@@ -155,7 +155,7 @@ test('refsOf follows relative imports, re-exports and new URL, not packages', ()
 });
 
 test('the real repository: a change to dev-gate.js reaches the first-run test, and not the whole suite', () => {
-  const r = affectedTests(['src/dev-gate.js']);
+  const r = affectedTests(['src/dev-gate.js'], { syntax: repositorySyntax() });   // (exact-bytes syntax from the selector's cache)
   assert.ok(Array.isArray(r) && r.includes('tests/first-run.test.js'));
   assert.ok(r.length > 0, 'known consumer retained alongside conservative dynamic consumers');
 });

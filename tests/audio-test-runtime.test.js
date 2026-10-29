@@ -8,19 +8,20 @@ import {decodedTakes,effectBytes,installEffectFileDecoder,RATE} from '../scripts
 import {decodedTakes as genericDecoder} from '../scripts/sound-qc/render.mjs';
 import {sfxFiles} from '../src/sfx.js';
 import {installAudio} from '../engine/webaudio.js';
-import {affectedTests,dependenciesOf} from '../scripts/affected-tests.mjs';
+import {affectedTests,dependenciesOf,repositorySyntax} from '../scripts/affected-tests.mjs';
 import {boundedAudioInputs,AUDIO_CONTRACT_FILE} from '../scripts/test-loader-contract.mjs';
 const files=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{encoding:'utf8'}).split('\0').filter(Boolean);
 // Freeze repository inputs per process; source-mutation tests supply their own overlays.
-const sources=new Map(), presence=new Map(), syntax=new Map();
+// Syntax of exact source bytes may come from the selector's own cache (warm after the hook's run); selections are recomputed.
+const sources=new Map(), presence=new Map(), syntax=new Map(), store=repositorySyntax();
 const read=f=>{if(!sources.has(f))sources.set(f,readFileSync(f,'utf8'));return sources.get(f);};
 const exists=f=>{if(!presence.has(f))presence.set(f,existsSync(f));return presence.get(f);};
-const analyze=(f,text,o)=>{const key=f+'\0'+!!o?.explain, old=syntax.get(key);if(old?.text===text)return old.value;const value=dependenciesOf(f,text,o);syntax.set(key,{text,value});return value;};
+const analyze=(f,text,o)=>{const key=f+'\0'+!!o?.explain, old=syntax.get(key);if(old?.text===text)return old.value;const id=store?.key(f,text,!!o?.explain),value=(id&&store.get(id))||dependenciesOf(f,text,o);syntax.set(key,{text,value});return value;};
 const options={read,exists,files,analyze};
 const consumers=['tests/action-sounds.test.js','tests/engine-sound.test.js','tests/music-page.test.js','tests/sound-qc-decoder.test.js'];
 const witness='tests/audio-input-witness.test.js';
 const analysisCache=new Map();
-const selected=(path,consumer,override={})=>affectedTests([path],{read:f=>f===witness?`import '../${path}';`:read(f),exists:f=>f===witness||exists(f),files,tests:[consumer,witness],modifiedRegularOnly:true,analysisCache,...override});
+const selected=(path,consumer,override={})=>affectedTests([path],{read:f=>f===witness?`import '../${path}';`:read(f),exists:f=>f===witness||exists(f),files,tests:[consumer,witness],modifiedRegularOnly:true,analysisCache,syntax:store,...override});
 test('audio consumers exclude presentation while retaining real sound, decoder and packaged assets',()=>{
  const d=boundedAudioInputs(options);assert.ok(d);assert.equal(d.unknown,false);
  for(const consumer of consumers){

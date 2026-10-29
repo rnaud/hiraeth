@@ -6,17 +6,18 @@ import {readFileSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {affectedTests,dependenciesOf} from '../scripts/affected-tests.mjs';
+import {affectedTests,dependenciesOf,repositorySyntax} from '../scripts/affected-tests.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const motion='tests/motion-qc.test.js', witness='tests/selection-witness.test.js';
 const inventory=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{cwd:root,encoding:'utf8'}).split('\0').filter(Boolean);
-const files=new Map(),presence=new Map(),analysisCache=new Map();
+// Syntax of exact source bytes from the selector's own cache (warm after the hook's run); every selection is recomputed.
+const files=new Map(),presence=new Map(),analysisCache=new Map(),syntax=repositorySyntax();
 const exists=f=>{if(!presence.has(f))presence.set(f,existsSync(join(root,f)));return presence.get(f);};
 const read=f=>{if(!files.has(f))files.set(f,readFileSync(join(root,f),'utf8'));return files.get(f);};
 function selection(path,consumer=motion){
  // A virtual direct consumer supplies ownership; every real consumer/dependency
  // is read from the repository, without executing the expensive gameplay test.
- return affectedTests([path],{root,files:inventory,tests:[consumer,witness],modifiedRegularOnly:true,analysisCache,
+ return affectedTests([path],{root,files:inventory,tests:[consumer,witness],modifiedRegularOnly:true,analysisCache,syntax,
   read:f=>f===witness?`import '../${path}';`:read(f),exists:f=>f===witness||exists(f)});
 }
 test('HUD edits do not select motion QC; real motion inputs still do',()=>{
@@ -263,7 +264,7 @@ test('approved PCM mix tests exclude theme edits but retain audio and packaged f
 // A virtual consumer importing one module, so a boundary can be checked for any module, not only for a test of it.
 function reach(path, module) {
   const consumer = 'tests/virtual-consumer.test.js';
-  return affectedTests([path], { root, files: inventory, tests: [consumer, witness], modifiedRegularOnly: true, analysisCache,
+  return affectedTests([path], { root, files: inventory, tests: [consumer, witness], modifiedRegularOnly: true, analysisCache, syntax,
     read: f => f === consumer ? `import '../${module}';` : f === witness ? `import '../${path}';` : read(f),
     exists: f => f === consumer || f === witness || exists(f) }).includes(consumer);
 }
