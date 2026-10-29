@@ -71,6 +71,12 @@ for (const id of ORDER) {
     // (issue #354) it glides in nose first along its bow from well back, in the frame for the last 60 % of the way
     // (the bow: the hatch faces the ship's left, so the bow is the ramp's way turned a quarter round)
     const o = [v.stand[0] - v.ship[0], v.stand[2] - v.ship[2]], n = Math.hypot(...o), fwd = [-o[1] / n, 0, o[0] / n];
+    // (down a shaft, the Moon Foundry's roofed dock, issue #731: straight down its hatch, in the frame from the hatch down)
+    if (v.shaft) {
+      const cam = AV.viewCamera(v.wide);
+      assert.ok(AV.inFrame(AV.screenOf(cam, [v.ship[0], v.ship[1] + 45, v.ship[2]]), { top: 0.95 }), `${id}: the ship in the frame coming down the hatch`);
+      return;
+    }
     const back = AV.wideBack(v.wide, v.ship, fwd);
     assert.ok(back >= 150, `${id}: it glides in from ${back} m back`);
   });

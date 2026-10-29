@@ -200,7 +200,9 @@ test('solid as drawn: the pillars, the moons, the furnace; drawn only overhead; 
   const T = level.temple?.root;
   const under = (o) => { for (let q = o; q; q = q.parent) if (q === T) return true; return false; };
   scene.traverse((o) => { if (o.isMesh && o.visible) { if (T && under(o)) temple++; else meshes++; } });
-  assert.ok(meshes < 260, `meshes ${meshes}`);
+  // (issue #731, the foundry closed in: 245 → 266, the raised roof over the casting bay a mesh or two a cell, the walls two
+  //  meshes, everything else round them merged by material, the steam one)
+  assert.ok(meshes < 275, `meshes ${meshes}`);
   // (180 until the house's map chest, issue #405: its little chest and rolled map; 190 until the house round its Pouring
   // Hall, issue #416: twelve steps, not six, its heat-gates, taps and the pour's iron: about 250, as the other reworked
   // houses, 216 to 432, the Footprint 295; the taps' wheels and the gauges' iron one mesh each to keep it there)

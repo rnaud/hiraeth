@@ -197,8 +197,10 @@ export const SITES = {
   moonfoundry: [
     { id: 'grunt-camp', kind: 'camp', at: [-145, 0, -86], heading: 1.09, foes: ['grunt', 'grunt', 'hulk', 'grunt'], lookout: 'grunt', rack: true, unarmed: 2 },   // (the fencer fire)
     { id: 'warlord-hold', kind: 'warlord-hold', at: [-131, 0, -2], heading: 2.11, foes: ['warlord', 'grunt', 'grunt', 'grunt'] },   // (the brute hoard)
-    { id: 'droid-beat', kind: 'patrol', at: [149, 0, 159], heading: -2.77, foes: ['fencer', 'sentinel', 'crawler'] },   // (the fencer beat)
-    { id: 'prowler-nest', kind: 'nest', at: [177, 0, -184], heading: -0.94, foes: ['prowler', 'prowler', 'prowler'] },   // (the skitter nest)
+    // (issue #731: the foundry closed in; the beat and the nest, out on the plain before, brought in under the roof: the beat in
+    //  the east bay by the east furnace, the nest in the north-west corner under the second hung moon)
+    { id: 'droid-beat', kind: 'patrol', at: [148, 0, -8], heading: -Math.PI / 2, foes: ['fencer', 'sentinel', 'crawler'] },   // (the fencer beat)
+    { id: 'prowler-nest', kind: 'nest', at: [-128, 0, -250], heading: 0.6, foes: ['prowler', 'prowler', 'prowler'] },   // (the skitter nest)
   ],
   spheres: [
     { id: 'prowler-nest', kind: 'nest', at: [-58, 0, -650], heading: 1.09, foes: ['prowler', 'prowler', 'prowler'] },   // (the centipede nest)

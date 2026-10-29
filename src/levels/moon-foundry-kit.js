@@ -67,6 +67,15 @@ export const MF_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.12, uHatch: 0.42, 
 export const MF_DAY = ['#bccad0', '#ece6d0', '#787482', '#fff6e4', '#fff0d0'];
 export const MF_DUSK = ['#9fa8c8', '#f2cfa6', '#8a80a8', '#ffe2c4', '#ffc890'];
 export const MF_NIGHT = ['#151a34', '#2a3050', '#30365e', '#7278a4', '#dce0f2'];
+/**
+ * The world closed in (issue #731): dim under its roof and walls, lit by its furnaces. The sky (seen only up the dock's
+ * crater) smoky ochre, the haze a dark warm umber that swallows the far end of the hall, the shade a deep plum-brown,
+ * the light (the dock's patch of day, the furnaces' pools) amber. The References views keep the sheets' look above.
+ */
+export const MF_DIM_DAY = ['#a99a84', '#4a3a34', '#3a2e34', '#f8c890', '#ffd8a8'];
+export const MF_DIM_DUSK = ['#8e7068', '#4e3a38', '#3e3038', '#f2b080', '#ffb880'];
+export const MF_DIM_NIGHT = ['#141624', '#2a2026', '#2a2230', '#a88060', '#e0d0c0'];
+export const MF_DIM_LOOK = { ...MF_LOOK, uFogDensity: 0.0018, uSkyDots: 0.05, uHazeLayers: [60, 1.6, 0.2, 5], uHazeTone: [0.36, 0.28, 0.25, 0.85] };
 /** The surfaces' tones, read off the sheets. */
 export const MF_TONES = {
   ivory: '#f4e4c8', ivory2: '#eedfc6', plated: '#bdb9b0', ivory3: '#f2e8d4', crater: '#d8c4a4', inner: '#a99a86', innerMint: '#9dc4b4', edge: '#f6eedc',
@@ -74,6 +83,7 @@ export const MF_TONES = {
   steel: '#465260', steel2: '#5a6874', ceiling: '#4a5462', strut: '#3e3634', strutRust: '#8a4a30',
   plank: '#9a6a4c', floor: '#c4baa8', floor2: '#bcb2a0', floor3: '#cbc3b2', rail: '#4a4040',
   wall: '#d9844e', wall2: '#ead2aa', wall3: '#c9a07a', roofing: '#8a4a34', glow: '#ffd88a', trunk: '#4c4a3e',
+  wallIron: '#7a5442', wallRib: '#5e3e32',
   leaf: '#9cc9b4', leaf2: '#86bba8', leaf3: '#b2d6c2', molten: '#ffd466', molten2: '#ff8a3c', molten3: '#fff0a8',
 };
 

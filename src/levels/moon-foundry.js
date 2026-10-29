@@ -13,7 +13,7 @@ import { PEOPLE as SPHERES_PEOPLE } from '../story/spheres-data.js';
 import { PEOPLE as MF_PEOPLE, VISITORS as MF_VISITORS } from '../story/moonfoundry-people.js';
 import {
   moon, courtyard, lipFloor, bowl, cradle, hangRig, pillar, roof, gantry, house, tree, jibCrane, pourStream, beam, bar, moveParts,
-  MF_LOOK, MF_DAY, MF_DUSK, MF_NIGHT, MF_TONES,
+  MF_TONES,
 } from './moon-foundry-kit.js';
 import { trussStair, lathe } from './antennas-kit.js';
 import { attachTempleDefinition } from '../temples/attachment.js';
@@ -24,14 +24,21 @@ import { buildNightPour, floorHeight, slabRects, sunkUnder, runnelAt, RECTS as R
 const RUNNEL_NAMES = RUNNELS.map((r) => r.name);
 import { streetPlan, cutHoles, snapHoles, buildStreet, HATCH } from '../foundry-street.js';
 import { buildSignalBox, buildCranes, BOX, RIDE } from '../foundry-cranes.js';
+import { HALL, BAY, DOCK, GRATES, GATES, WALL, HATCH as DOCK_HATCH, buildEnclosure, steamVents, chainSpots, chainParts, outside, inHall, dockDepth } from '../foundry-hall.js';
+import { FoundrySteam } from '../foundry-steam.js';
+import { MF_DIM_DAY, MF_DIM_DUSK, MF_DIM_NIGHT, MF_DIM_LOOK } from './moon-foundry-kit.js';
+export { HALL };
 
 // ---------------------------------------------------------------------------
 // The Moon Foundry (?level=moonfoundry): an abandoned monumental workshop where miniature moons were made, after its
 // reference sheets (references/levels/The Moon Foundry/; its views in the References, reference-moonfoundry.js; the shapes in
 // moon-foundry-kit.js; docs/systems/worlds.md "The Moon Foundry"). Off the route: no story to follow, a few people.
 //
-//   the apron      the ship lands on the open ground south of the hangar's mouth
-//   the hangar     a vast roof on rust pillars, open on every side (HALL), the floor in great slabs, rails in it
+//   the dock       the ship lands in a walled crater south of the hall (DOCK, src/foundry-hall.js; the old apron, its mould,
+//                  its siding, the founders' yard), open to the sky only overhead (issue #731: the foundry closed in)
+//   the gate       the great gate through the hall's front wall where its open mouth was; the rail gate in the east bay
+//   the hangar     a vast roof on rust pillars, walled on every side (HALL), the floor in great slabs, rails in it, lit by
+//                  its furnaces: eight in the walls and the last one on the floor; steam and smoke drifting under the roof
 //   the aisle      north from the mouth between the workstations, a gantry's stair at its side
 //   the hung moon  a moon hung from the roof by its crown (HUNG); a second further back (HUNG2)
 //   the cradle     a cratered moon in an orange cradle's claws (CRADLE)
@@ -42,7 +49,6 @@ import { buildSignalBox, buildCranes, BOX, RIDE } from '../foundry-cranes.js';
 //                  trees, a terrace and its stair; the gantry comes in over its lip
 //   the bowl       the lower half of a shell in its cradle, a garden and two houses on its deck (BOWL)
 //   the pillar moon a moon set on top of a tall pillar, a lookout house below it (PMOON)
-//   beyond         more moons in their cradles and on their cranes far off in the haze, drawn only
 //
 // Solid as drawn where it can be walked or touched: the floor, the pillars and their ladders, the cradles, the moons,
 // the houses, the machinery dressing on them, the gantries' decks, rails and legs, the stairs, the courtyard and the
@@ -50,7 +56,6 @@ import { buildSignalBox, buildCranes, BOX, RIDE } from '../foundry-cranes.js';
 // ---------------------------------------------------------------------------
 
 const T = MF_TONES;
-export const HALL = { x0: -170, x1: 170, z0: -292, z1: 46, roof: 88 };
 export const SHIP = { x: 0, z: 120 };
 export const MOUTH = 46;
 export const COURT = { x: 0, z: -190, R: 30, yc: 32, yaw: 0.25, angle: 0.85, thick: 0.8 };
@@ -80,7 +85,7 @@ export const APRON = { mould: [-15, 72], siding: [13, 66, 90], carts: [72, 81], 
  * The casting rails (v1.54, issue #180): x between its two rails, from beside the Casting-House's door (z0) north up the
  * hangar's east bay and out of the mouth onto the apron (z1); the test cast's flat cart and the cart of cracked moons on them.
  */
-export const CASTING_RAILS = { x: 125.2, z0: -146, z1: 104, test: { z: -64 }, cracked: { z: 34 } };
+export const CASTING_RAILS = { x: 125.2, z0: -146, z1: 104, test: { z: -64 }, cracked: { z: 72 } };   // (the cracked moons through the rail gate in the dock since issue #731: the ship in sight from them)
 export const FURNACE = { x: 70, z: -14, r: 6.5, h: 9 };
 export const QUARTER = { x: -102, z: -46, r: 26 };
 export const LIMIT = 330;
@@ -88,16 +93,17 @@ export const LIMIT = 330;
 export const MF_SHOP = { x: -28, z: 14, heading: Math.atan2(0 - -28, 120 - 14) };
 
 const noise = createNoise2D(91101), noiseB = createNoise2D(91102);
-/** The ground: the hangar's floor level, the apron, the plain outside rolling gently up into low hills far off. */
+/**
+ * The ground: the hangar's floor level and the dock's, and outside their walls the crater's rock rising steeply past the
+ * dock's walls to its rim (issue #731: no plain, no horizon; src/foundry-hall.js outside).
+ */
 export function height(x, z) {
   // (v1.57, issue #193: under the slabs, well in from their edge, the drawn ground sinks out of sight: the night pour's
   //  runnels are cut 1 m into the floor, and the floor you walk is the slabs' (floorHeight, src/foundry-pour.js))
   if (sunkUnder(x, z)) return -SUNK.depth;
-  const out = Math.max(HALL.x0 - 30 - x, x - HALL.x1 - 30, HALL.z0 - 30 - z, z - (SHIP.z + 60), 0);
-  let h = smoothstep(0, 120, out) * (fbm(noise, x * 0.006, z * 0.006, 3) * 2.5 + 1.2);
-  const e = Math.hypot(x, (z + 120) * 0.9);
-  h += smoothstep(520, 760, e) * (14 + fbm(noiseB, x * 0.004, z * 0.004, 3) * 12);
-  return h;
+  const d = outside(x, z);
+  if (d <= 0) return 0;
+  return smoothstep(2, 22, d) * (DOCK.rim - 26 + fbm(noise, x * 0.02, z * 0.02, 3) * 18) + smoothstep(22, 60, d) * (14 + fbm(noiseB, x * 0.01, z * 0.01, 2) * 10);
 }
 
 /** Where the gantry goes: [x, y, z] points of its deck (the main way, then the branch to the bowl). */
@@ -160,9 +166,9 @@ export const MOONFOUNDRY_CONTENT = {
       ] } },
     // the foundry's own folk
     { at: [QUARTER.x + 6, QUARTER.z + 4], radius: 3, lang: 'moonfoundry', lines: ['~happy~ We live in the old machines. They keep the rain off and they hum at night.', '~neutral~ That drum was a polishing wheel once. Now it is my kitchen.'] },
-    { at: [QUARTER.x - 8, QUARTER.z - 6], radius: 2, lang: 'moonfoundry', lines: ['~curious~ You came in from the apron? Most people come by the rails.', '~tired~ Sweeping a floor this size is not a job. It is a way of life.'] },
+    { at: [QUARTER.x - 8, QUARTER.z - 6], radius: 2, lang: 'moonfoundry', lines: ['~curious~ You came in from the dock? Most people come by the rails.', '~tired~ Sweeping a floor this size is not a job. It is a way of life.'] },
     { at: [CRADLE.x - 20, CRADLE.z + 10], radius: 3, lang: 'moonfoundry', lines: ['~solemn~ The claws still hold that moon. Nobody ever switched them off.', '~playful~ My grandmother polished that moon. One crater a day. She got to nine.'] },
-    { at: [10, 30], radius: 2, lang: 'moonfoundry', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
+    { at: [10, 30], radius: 2, lang: 'moonfoundry', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship in the dock! Usually only pigeons come down that hatch.'] },
     // Bertil at the last furnace (the light's trace from the world's detour days, and the ladle-hook's end): src/story/moonfoundry-people.js
     { ...MF_PEOPLE.bertil, at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'moonfoundry', palette: pal('#c8693c', { cloth: '#e8d2a8' }) },
     // Liesel mends in the quarter (her ladle-hook goes on the last furnace's crane; the cast bell to the Garden of Spheres: src/levels/content.js)
@@ -176,8 +182,8 @@ export const MOONFOUNDRY_CONTENT = {
   ],
 };
 
-/** The level's colours: a pale blue-mint day, a peach dusk, an indigo night where the homes and the furnace glow. */
-export const MOONFOUNDRY_SKY = { day: MF_DAY, dusk: MF_DUSK, night: MF_NIGHT };
+/** The level's colours, closed in (issue #731): a dim smoky day under the roof, an umber dusk, a deep night where the homes and the furnaces glow. */
+export const MOONFOUNDRY_SKY = { day: MF_DIM_DAY, dusk: MF_DIM_DUSK, night: MF_DIM_NIGHT };
 
 // ------------------------------------------------------------------ building
 const SOLID = { solid: true, shadow: true }, SOLID_NS = { solid: true, shadow: false }, LOOSE = { solid: false, shadow: true }, LOOSE_NS = { solid: false, shadow: false };
@@ -190,7 +196,7 @@ export const THIN = 1.5;
 export function* buildMoonFoundry(scene) {
   const rng = mulberry32(91100), R = (a, b) => a + rng() * (b - a);
   const terrain = yield* Terrain.make({
-    size: 1700, seg: 200, height,   // (8.5 m: the hangar's floor is flat; the plain outside is gentle)
+    size: 900, seg: 180, height,   // (5 m: the floors flat, the crater's rock steep past the dock's walls)
     material: { color: T.floor, color2: T.floor2, color3: T.floor3, mode: MODE_TERRAIN, hatch: 0.15 },
   });
   scene.add(terrain.mesh);
@@ -241,6 +247,10 @@ export function* buildMoonFoundry(scene) {
     line: mat({ color: '#9a8f7c', flat: true }),
     // the polishing drum lying on its side: its metal's pen detail, not the sheet's flat panels, which broke up on its curve (issue #677)
     tank: mat({ color: T.rust2, shade: 0.18, hatch: 0.38, detail: 'built', detailDensity: 0.4 }),
+    // (issue #731: the walls round it all, riveted iron, ribbed and banded darker; the grilles dull with the furnaces' heat)
+    wallIron: mat({ color: T.wallIron, ...METAL }),
+    wallRib: mat({ color: T.wallRib, ...METAL }),
+    grille: mat({ color: '#c46a3a', glow: 0.45, flat: true }),
   };
   const FLORA = new Set([...M.leaf, M.trunk]);
   // a merged-by-tone surface: kept per cell and solid flag, merged at the end with its material values per vertex
@@ -268,7 +278,7 @@ export function* buildMoonFoundry(scene) {
           case 'inner': k.add(inner, g, { solid, shadow: false }); break;
           case 'dark': k.add(M.dark, g, { solid, shadow }); break;
           case 'steel': k.add(M.steel, g, { solid, shadow }); break;
-          case 'ceiling': k.add(M.ceiling, g, LOOSE_NS); break;
+          case 'ceiling': k.add(M.ceiling, g, LOOSE); break;   // (issue #731: the roof shades the floor under it)
           case 'strut': k.add(M.strut, g, LOOSE_NS); break;
           case 'rail': k.add(M.rail, g, { solid, shadow: false }); break;
           case 'plank': k.add(M.plank, g, { solid, shadow }); break;
@@ -305,8 +315,9 @@ export function* buildMoonFoundry(scene) {
   // ---------------------------------------------------------------- the roof: girders and its dark ceiling, by cell; the pillars holding it
   yield;
   for (let x = HALL.x0; x < HALL.x1 - 1; x += 85) for (let z = HALL.z0; z < HALL.z1 - 1; z += 84.5) {
-    if (x >= 85 && z >= -292 && z < -38) continue; // open casting bay above the temple
-    const P = roof({ x0: x, x1: x + 85, z0: z, z1: z + 84.5, y: HALL.roof, bay: 21.25, depth: 3.6, web: 4, cables: 7, seed: x * 3 + z, detail: 0.8 });
+    // (the casting bay over the Casting-House under a raised roof of its own: issue #731, src/foundry-hall.js BAY)
+    const raised = x >= BAY.x0 && z < BAY.z1;
+    const P = roof({ x0: x, x1: x + 85, z0: z, z1: z + 84.5, y: raised ? BAY.roof : HALL.roof, bay: 21.25, depth: 3.6, web: 4, cables: 7, seed: x * 3 + z, detail: 0.8 });
     put(x + 42, z + 42, P, { solid: false, shadow: false });
     yield;
   }
@@ -562,7 +573,7 @@ export function* buildMoonFoundry(scene) {
     if (Math.abs(x - STAIR.x) < 3 && z < STAIR.z0 + 4 && z > ways.top - 4) continue;
     put(x, z, { dark: [bar(V(x, -0.2, z), V(x, 3.4, z), 0.07, 0.06, 6)] });
     kitAt(x, z).kit.add(M.lamp, new THREE.SphereGeometry(0.24, 8, 6).translate(x, 3.6, z), LOOSE_NS);
-    lamp(x, 3.6, z, 8);
+    lamp(x, 3.6, z, 12);
   }
   for (let i = 0; i < 26; i++) {
     const x = R(HALL.x0 + 10, HALL.x1 - 10), z = R(HALL.z0 + 10, MOUTH - 5);
@@ -637,33 +648,20 @@ export function* buildMoonFoundry(scene) {
     }
   }
 
-  // ---------------------------------------------------------------- beyond the hangar: moons far off on their cradles and cranes (drawn only)
+  // ---------------------------------------------------------------- closed in (issue #731): the walls, the gates, the dock, the
+  // raised bay's roof, the wall furnaces, the galleries (src/foundry-hall.js); the chains; the steam's vents
   yield;
   const far = [];
+  const grates = GRATES.filter(([x, z]) => !nearRunnel(x, z, 3) && !pillars.some(([px, pz]) => Math.hypot(px - x, pz - z) < 6));
+  const enclosure = buildEnclosure({ root, M, lamp, noShadow, V, grates, roof: (o) => roof({ bay: 19, depth: 3, web: 4, cables: 3, seed: o.x0 + o.z0, detail: 0.7, ceiling: false, ...o }) });
   {
-    const spheres = [], stands = [], frng = mulberry32(91140);
-    const cN = new THREE.Color(T.ivory3), cF = new THREE.Color('#e6e6da'), cR = new THREE.Color('#d9a07c'), cRF = new THREE.Color('#e2d4c6');
-    const m4 = (x, y, z, sx, sy, sz) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion(), new THREE.Vector3(sx, sy, sz));
-    for (let i = 0; i < 70; i++) {
-      const a = frng() * Math.PI * 2, d = 380 + Math.pow(frng(), 0.7) * 520, x = Math.cos(a) * d, z = Math.sin(a) * d - 120;
-      if (z > SHIP.z + 40 && Math.abs(x) < 300) continue;   // (the apron's side stays open: the way in)
-      const k = smoothstep(380, 900, d), Rr = 10 + frng() * 34, g0 = H(x, z) - 0.5, hung = frng() < 0.4;
-      const cy = g0 + (hung ? Rr * 1.6 + 10 : Rr * 1.08);
-      spheres.push([m4(x, cy, z, Rr, Rr, Rr), cN.clone().lerp(cF, k)]);
-      if (hung) stands.push([m4(x + Rr * 1.2, g0, z, 3 + Rr * 0.08, cy + Rr + 14 - g0, 3 + Rr * 0.08), cR.clone().lerp(cRF, k)]);
-      else stands.push([m4(x, g0, z, Rr * 0.6, Rr * 0.3, Rr * 0.6), cR.clone().lerp(cRF, k)]);
-      if (i % 3 === 0) stands.push([m4(x + (frng() - 0.5) * 80, g0, z + (frng() - 0.5) * 80, 2.6, 50 + frng() * 30, 2.6), cR.clone().lerp(cRF, k)]);
-    }
-    const farMat = makeMaterial({ color: '#ffffff', shade: 0.5, hatch: 0.15, line: 0.45, lineTint: 0.6 });
-    const pole = new THREE.CylinderGeometry(1, 1, 1, 12).translate(0, 0.5, 0);
-    for (const [geo, list, name] of [[new THREE.SphereGeometry(1, 28, 16), spheres, 'far moons'], [pole, stands, 'far stands']]) {
-      geo.deleteAttribute('uv');
-      const m = new THREE.InstancedMesh(geo, farMat, list.length);
-      list.forEach(([mx, c], i) => { m.setMatrixAt(i, mx); m.setColorAt(i, c); });
-      m.userData.noCollide = true; m.userData.floats = true; m.name = name;
-      m.computeBoundingSphere();
-      scene.add(m); noShadow.push(m); far.push(m);
-    }
+    const busy = [HUNG, HUNG2, CRADLE, { ...COURT, R: COURT.R + 4 }, { ...BOWL, R: BOWL.R + 4 }, { x: PMOON.x, z: PMOON.z, R: PMOON.R + 6 }, { x: HOIST.x, z: HOIST.z, R: 10 }];
+    const clear = (x, z) => !busy.some((m) => Math.hypot(m.x - x, m.z - z) < m.R + 6)
+      && !(x > -106 && x < -44 && z > -274 && z < -90) && !(x > 44 && x < 106 && z > -156 && z < -24)   // (the travelling cranes' runs: src/foundry-cranes.js CRANES)
+      && !(x > 40 && x < 118 && z > -224 && z < -166) && !(x > BAY.x0 - 4 && z < BAY.z1 + 4)   // (the carrier's runway; the raised bay)
+      && nearWay(WAYS.main, x, z) > 5 && nearWay(WAYS.branch, x, z) > 5 && !pillars.some(([px, pz]) => Math.hypot(px - x, pz - z) < 5)
+      && Math.hypot(x - walk.door.x, z - walk.door.z) > 12 && Math.abs(x) > 4;
+    for (const [x, z, len] of chainSpots(clear)) enclosure.put(x, z, chainParts(x, HALL.roof - 3.6, z, len, V), { solid: false, shadow: false });
   }
 
   // ---------------------------------------------------------------- finishing: each cell's meshes, the tones merged per vertex
@@ -684,11 +682,18 @@ export function* buildMoonFoundry(scene) {
   }
   yield;
 
+  enclosure.finish();
+  // the steam and the smoke (src/foundry-steam.js): the walls' vents and valves, the furnaces' hoods, the last furnace's
+  // mouth, the moulds cooling, a valve on the pillars
+  const steam = new FoundrySteam(scene, steamVents({ furnace: F, pillars, grates, moulds: [[pour.mould[0], 2.8, pour.mould[1]], [APRON.mould[0], 2.6, APRON.mould[1]]] }));
+  noShadow.push(steam.mesh);
   // the cranes' moving parts: the moon-carrier (a moving collider: init) and the two travelling cranes (src/foundry-cranes.js)
   const cranes = buildCranes(scene, T, noShadow);
   const spawn = new THREE.Vector3(0, H(0, SHIP.z - 26) + 0.05, SHIP.z - 26);   // (clear of the ship's hull and ramp, the camera too)
-  // the furnace's drone: strongest at its mouth, gone across the floor
-  const humAt = (p) => 0.75 * smoothstep(34, 4, Math.hypot(p.x - F.x, p.z - F.z));
+  // the furnaces' drone: strongest at the last one's mouth, at each wall furnace's too, a low murmur all over the hall
+  // under its roof (issue #731), gone in the dock
+  const hearths = [[F.x, F.z, 0.75], ...enclosure.furnaces.map((f) => [f.at.x, f.at.z, 0.6])];
+  const humAt = (p) => Math.max(inHall(p.x, p.z) ? 0.18 : 0, ...hearths.map(([x, z, k]) => k * smoothstep(34, 4, Math.hypot(p.x - x, p.z - z))));
   // where a person stands: on the courtyard's floor, the bowl's deck, or the ground
   const placeAt = (p) => {
     if (p.x > BOX.x0 - 0.5 && p.x < BOX.x1 + 0.5 && p.z > BOX.z0 - 0.5 && p.z < BOX.z1 + 0.5 && Math.abs(p.y - BOX.y) < 4) return 'The signal box';
@@ -700,7 +705,8 @@ export function* buildMoonFoundry(scene) {
     if (p.y > G - 2) return 'The gantry';
     if (Math.hypot(p.x - F.x, p.z - F.z) < 22) return 'The last furnace';
     if (Math.hypot(p.x - QUARTER.x, p.z - QUARTER.z) < QUARTER.r + 6) return 'The workers’ quarter';
-    if (p.z > MOUTH) return 'The apron';
+    if (p.z > MOUTH + 2 && dockDepth(p.x, p.z) > -4) return 'The landing dock';
+    for (const f of enclosure.furnaces) if (Math.hypot(p.x - f.at.x, p.z - f.at.z) < 14) return `The ${f.name.slice(4)}`;
     if (p.y < -0.3 && runnelAt(p.x, p.z) >= 0) return 'The runnels';
     return 'The Moon Foundry';
   };
@@ -725,7 +731,7 @@ export function* buildMoonFoundry(scene) {
     portals: [...shop.portals],
     shops: [shop],
     floraAvoid: shop.avoid(),
-    edgeHint: 'The plain runs on into the haze and the far moons, and turns you back.',
+    edgeHint: 'The foundry’s iron walls close round you here.',
     // the lookout on the pillar under the moon on its pillar (Wen's count: src/story/moonfoundry-people.js), the hung moon
     // the climax looks up at (src/story/moonfoundry-moments.js)
     lookout: { x: PMOON.x, y: PMOON.h * 0.78, z: PMOON.z },
@@ -753,6 +759,10 @@ export function* buildMoonFoundry(scene) {
       ...night.lines,
     ],
     hung: { x: HUNG.x, y: HUNG.y, z: HUNG.z },
+    // (issue #731: the great gate from the dock into the hall, and the dock's hatch over the ship: the first views'
+    //  landmarks, src/ship/arrival-view.js)
+    gate: { x: (GATES.main.x0 + GATES.main.x1) / 2, y: GATES.main.h, z: WALL.z1 },
+    dockHatch: { x: (DOCK_HATCH.x0 + DOCK_HATCH.x1) / 2, y: DOCK.h, z: DOCK_HATCH.z0 },
     // the hung moons, each turning on its crown (the climax turns them toward the Casting-House: src/temples/moonfoundry.js)
     hungMoons,
     sights: [
@@ -780,10 +790,15 @@ export function* buildMoonFoundry(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     limit: LIMIT,
-    shipSite: { x: SHIP.x, z: SHIP.z, heading: Math.PI },   // (its ramp toward the hangar's mouth)
+    // (its ramp toward the hall's gate; in the roofed dock it comes down and goes up through the hatch: `shaft`,
+    //  src/ship/cinematics.js, issue #731)
+    shipSite: { x: SHIP.x, z: SHIP.z, heading: Math.PI, shaft: true },
     features: { mount: false, wind: false, jetpack: false, climb: true },
-    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0, look: MF_LOOK },
+    defaults: { hour: 10.5, preset: 'Moebius print', cloudShadows: 0, look: MF_DIM_LOOK },
     sky: { script: MOONFOUNDRY_SKY, planets: [{ az: 200, el: 34, size: 3.2, color: '#f2e6cc', craters: true }, { az: 120, el: 22, size: 1.1, color: '#e6dccb', craters: true }] },
+    // (issue #731: the light comes down from overhead, so the roof shades the hall's floor whole and the dock's crater is
+    //  lit from its open top: the furnaces' pools are the hall's light)
+    lightAt(p, dir) { if (dir.y > 0) { dir.y = Math.max(dir.y, 0.25) + 2.2; dir.normalize(); } },
     killY: -Infinity,
     lights,
     noShadow,
@@ -792,13 +807,13 @@ export function* buildMoonFoundry(scene) {
     court: { x: COURT.x, z: COURT.z, y: courtY, floorR: CY.floorR, lip, terrace: CY.terrace }, bowlDeck, ways, pillars,
     life: {
       flocks: [{ count: 12, color: '#3a3438', size: 0.45, radius: 80, height: [30, 56], speed: 0.4, seed: 91 }],
-      motes: { count: 60, color: '#fff2d6', size: 0.04, glow: 0.2, rise: 0.015, wind: [0.04, 0.01] },
+      motes: { count: 60, color: '#ffb070', size: 0.035, glow: 0.6, rise: 0.04, wind: [0.04, 0.01] },   // (embers off the furnaces, issue #731)
     },
     atmo: (x, z, y) => ({ tint: [1, 1, 1], fog: 0.8, name: placeAt({ x, y: y ?? 0, z }) }),
     hum: humAt,
     crowdLines: [
       '~neutral~ Nothing runs on the rails any more. We walk on them, mostly.',
-      '~happy~ Morning light comes in under the roof and the moons go pink. Best hour of the day.',
+      '~happy~ When they stoke the furnaces at dawn, the moons go pink. Best hour of the day.',
       '~curious~ Who were the moons for? Somebody ordered thirty-one of them and never came.',
       '~tired~ Up and down that stair all day, and nobody pays me for it. The view’s nice, at least.',
       '~playful~ I live in a crater. Well, beside one. It is a very good address.',
@@ -828,8 +843,10 @@ export function* buildMoonFoundry(scene) {
     },
     /** The moon-carrier as a moving collider (src/main.js, after the collision is baked). */
     init(physics) { cranes.init(physics); },
+    steam, enclosure,
     update(dt, t, ctx = {}) {
       for (const Cc of kits.values()) for (const m of Cc.kit.movers) m(t);
+      steam.update(dt, t, ctx.camera?.position ?? ctx.player?.pos);
       updatePour(t);
       cranes.update(dt, t, ctx.hour ?? 10.5);
       night.update(t, ctx.player);

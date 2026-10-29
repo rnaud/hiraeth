@@ -397,15 +397,17 @@ Market and Zazie in the City-Shaft; none of them mentions the Hangar.)*
 
 ### 9b. The Moon Foundry — "The Moon Nobody Came For" (v1.40)
 *(A detour until v1.40; on the route since, after the Buried Machine: `src/levels/moon-foundry.js`.)*
-- **Local story**: Under a vast roof on rust pillars the founders cast small moons
-  for somebody's sky; nobody came for them. They hang from the cranes, lie in
+- **Local story**: Walled in deep in a crater, under a vast roof on rust pillars lit
+  only by its furnaces and steaming at every vent (closed in since issue #731: the
+  ship lands in a roofed dock through its hatch and you walk in by the great gate),
+  the founders cast small moons for somebody's sky; nobody came for them. They hang from the cranes, lie in
   orange claws, one is broken open with a street inside it, and the foundry's folk
   live in the old machinery. One furnace is still warm (Bertil's). The night the
   sky rang every hung moon turned on its hook toward where the light went, and
   since then the makers' **Casting-House** on the east of the floor pours again by
   itself at night, and the moulds crack, and the floor shakes.
 - **Quests**: the foundry's own, *Nobody Poured It* (v1.48): Hedda, who pours the
-  small moons on the apron by the ship, found a moon in her mould at dawn that
+  small moons in the landing dock by the ship, found a moon in her mould at dawn that
   nobody there poured; from the old hoist's first deck every hung moon faces one
   way, at the Casting-House; then in at its door. The temple, **the Casting-House**
   (Petra at its door with the founders' ledger): find the **founders' tongs** inside

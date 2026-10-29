@@ -93,7 +93,7 @@ export const WORLD_LORE = {
     'Lit again, the wheel turns and does not stop. Wen’s reading, the morning after: a wheel has no last tooth; the last tooth is whichever one keeps it turning.',
   ],
   moonfoundry: [
-    'Under a vast roof on rust pillars the founders cast small moons for somebody’s sky, and nobody came for them. They hang from the cranes and lie in orange claws, and the foundry’s folk live in the old machinery.',
+    'Walled in deep in a crater, under a vast roof on rust pillars lit only by its furnaces, the founders cast small moons for somebody’s sky, and nobody came for them. They hang from the cranes and lie in orange claws, and the foundry’s folk live in the old machinery.',
     'The night the singing went over, every hung moon turned on its hook toward where the light went, and since then the makers’ Casting-House pours again by itself at night. Its ledger’s first page: the first moons were sent to a garden far off, and fell short.',
   ],
   spheres: [

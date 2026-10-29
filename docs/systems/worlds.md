@@ -2208,7 +2208,7 @@ moons: the moons were never finished and nobody came for them; the workers live 
   made here, not stood on; the jump keeps the game's one gravity, `GRAVITY` in player.js, which has no world scale).
   The pictures have no molten metal (it is abandoned), so the heat is one landmark of its own, the last furnace, drawn
   the Moebius way: flat hot tones, a pour as printed bands, no shimmer.
-- **The layout**: the ship lands on the apron south of the hangar's mouth (`SHIP`, z 120; nothing over it). The hangar
+- **The layout** (closed in since issue #731: walls, the gate, the roofed dock; "The Moon Foundry, closed in" below): the ship lands on the apron south of the hangar's mouth (`SHIP`, z 120; nothing over it). The hangar
   (`HALL`, 340 × 338 m) is a roof 88 m up on rust pillars (a grid of 60 × 78 m, kept off the stations and the gantry),
   open on every side; its floor is level slabs (a plain material with a 9 m grid over the terrain: no terrain ink, the
   pictures' floor is clean), rails in it, the aisle's painted edges and lamps north from the mouth. Along it: the **hung
@@ -2304,6 +2304,46 @@ Casting-House, home by the casting rails.
   up and down, the windows open with the floor beyond, the high walk walked into the box, the moons in sight from it, the
   timetables, the carrier carrying a traveller to the jetty, the lever and the bell, the runnels (clear beds, steps down
   and out, walls a step can't climb, the bridges, the hazard by night only).
+
+## The Moon Foundry, closed in (issue #731)
+
+The author (2026-10-28): "The moon foundry should be closed up. Not in an open world. With more mood and steam." The floor,
+its moons, people, quests, ways and the Casting-House stay where they were; round them (`src/foundry-hall.js`):
+
+- **The layout.** The hall (`HALL`, 340 × 338 m under the 88 m roof) is walled on every side from the floor to the roof
+  (`WALL`: riveted iron 3 m thick, ribbed every roof bay, banded at 5.5, 30 and 58 m, dull vent grilles high up), never
+  climbed (`noClimb`). Where the open mouth was, the front wall is shut but for the **great gate** (`GATES.main`, 76 m wide
+  and 34 high over the aisle and the floor's rails) and the **rail gate** (`GATES.rail`: the casting rails and the long
+  runnel). The ship lands south of it in the **landing dock** (`DOCK`, the old apron: Hedda's mould, the siding, the
+  founders' yard, the bench), walled 60 m high and roofed but for the **hatch** (`HATCH`, 92 × 70 m) over the ship. The
+  Casting-House's bay (`BAY`, the old roofless casting bay) has a raised roof at 104 m with a lit clerestory. Outside the
+  walls the ground rises into the crater's rock (`outside`, `height`): no plain, no far moons, no horizon from anywhere.
+- **The light.** One dim palette (`MF_DIM_DAY/DUSK/NIGHT`, `MF_DIM_LOOK`: an umber haze from 60 m, more fog; the References
+  keep the sheets' `MF_LOOK`). The level's `lightAt` stands the sun up overhead so the roofs' ceilings (shadow casters
+  now) shade the floor whole; the dock's hatch lets a patch of day down onto the ship. The hall's light is its furnaces':
+  eight **wall furnaces** (`FURNACES`: a dark iron hood, a glowing mouth behind fire bars, a flue up the wall, a 24 m pool
+  of light) and the last furnace, plus the aisle's lamps (12 m pools), the gates' lamps and the dock's wall lamps.
+- **The steam** (`src/foundry-steam.js`): ink-outlined flat puffs, one pooled instanced mesh (`STEAM.max` 360 blobs),
+  only the 12 vents nearest the camera breathing (`nearestVents`, chosen every 0.5 s), a full pool skipping a puff rather
+  than taking a live one, each vent its own seeded sequence (no rng per frame). Vents at the walls' feet (`vent`, `hiss`
+  valves that burst now and then), smoke off every furnace's hood and the last furnace's mouth, the moulds cooling, a
+  valve on every third pillar, and fourteen floor grates (`GRATES`) with a column out of each. Embers for motes.
+- **The mood besides.** Chains with hooks hang from the roof's bays (`chainSpots`: clear of the moons, the cranes' runs,
+  the gantry, the hoist and the raised bay); galleries hang along the walls 30 m up (drawn only); the furnaces' drone
+  (`hum`) is heard at each furnace and as a low murmur all over the hall (the world's `machine` ambience under it).
+- **The ship.** Its site is a `shaft` (`shipSite.shaft`, src/ship/cinematics.js): it comes straight down through the
+  hatch and goes straight up out of it, never along its bow (the walls would be in its way); the first arrival's wide
+  shot is picked inside the dock (`VIEW_OPTS.moonfoundry`: near and low; the marks are the great gate, the hung moon
+  through it, the hatch: src/ship/arrival-view.js).
+- **The sites.** The droid beat moved in from the plain to the east bay by the east furnace, the prowler nest to the
+  north-west corner under the second hung moon (`src/encounters/sites.js`); the camp and the warlord's hold stayed.
+- **The words.** "The landing dock" (was the apron), "the gate" (was the mouth): Hedda's label, Liesel's and two floor
+  hands' lines, the court's box hint, the Floor round's rules and Marta, the lore page, the edge hint.
+- **Budget.** 266 meshes outside the Casting-House (245 before; the walls two meshes, everything else round them merged
+  by material, the steam one), collision 200 k triangles (195 k).
+- **Tests.** `tests/moonfoundry-closed.test.js`: walls on every side to the roof, the gates walked through, no level ray
+  out of the foundry from five eyes, a roof over the hall and the dock but the hatch, everything the world places inside,
+  the quests' places walked to from the ship, the steam's pool.
 
 ## The Underside (`underside`, off the route, October 2026)
 

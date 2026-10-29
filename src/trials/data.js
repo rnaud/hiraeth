@@ -119,7 +119,7 @@ export const TRIALS = {
   moonfoundry: {
     id: 'trial-moonfoundry', world: 'moonfoundry', mode: 'foot', name: 'Floor round', color: '#e89a5a',
     blurb: 'A round of the foundry floor on foot, under the hung moons and past the last furnace.',
-    rules: 'Run through every gate in order, round the floor and back to the mouth. Climb, jump, boost: anything goes.',
+    rules: 'Run through every gate in order, round the floor and back to the gate. Climb, jump, boost: anything goes.',
     marker: [-10, 30], start: [-6, null, 24], heading: 3.1, speed: 6, ground: true, up: 1.3,
     gates: [[20, -10, 4], [36, -70, 4], [30, -128, 4], [84, -140, 4], [120, -80, 4], [120, -20, 4], [80, 12, 4], [30, 12, 4], [0, 30, 5]],
     reward: 'lodestone',

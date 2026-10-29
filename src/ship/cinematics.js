@@ -973,7 +973,11 @@ export class ArrivalDirector extends Sequence {
     // (issue #354: it arrives nose first along its bow, slows to a hover over its spot, then comes straight down on its
     // jets: src/ship/flight.js landingPose. The short arrival flies the glide out of the clouds and on into the low
     // shot; the first one flies the glide in its wide shot, from as far back as keeps it in the frame)
-    const L = wide ? wideFlight(wideBack(wide, ship.restPos.toArray(), fwd.toArray())) : LANDING;
+    // (a site down a shaft, a roofed dock open only overhead (`shaft`: the Moon Foundry's, issue #731): straight down
+    //  through its hatch from high over it, no glide in along the bow)
+    const shaft = !!ship.site?.shaft;
+    const L0 = wide ? wideFlight(shaft ? 0 : wideBack(wide, ship.restPos.toArray(), fwd.toArray())) : LANDING;
+    const L = shaft ? { ...L0, back: 0, flare: 0 } : L0;
     const t0 = wide ? L.glide : APPROACH.sky, landDur = wide ? WIDE.land : landingDur(L) - APPROACH.sky;
     const flyAt = (t) => {
       const p = landingPose(t, L);
@@ -1079,9 +1083,11 @@ export class ArrivalDirector extends Sequence {
         frame: (t, dt) => {
           flyAt(t);
           exhaust(ship, m, dt, { power: 0.8, palette: dust() });
-          const c = ship.restPos.clone().addScaledVector(ship.outDir, 135).addScaledVector(fwd, -50).add(V(0, 80, 0));
+          // (down a shaft: from the dock's floor, out from the ramp's side, looking up at it coming down the hatch)
+          const c = shaft ? ship.rampFoot.clone().addScaledVector(ship.outDir, 46).addScaledVector(side, 14).setY(ship.viewGround(ship.rampFoot.x, ship.rampFoot.z) + 3)
+            : ship.restPos.clone().addScaledVector(ship.outDir, 135).addScaledVector(fwd, -50).add(V(0, 80, 0));
           look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-6 * dt));
-          ship.shot({ pos: c, look, fov: 44 });
+          ship.shot({ pos: c, look, fov: shaft ? 58 : 44 });
         },
       },
       {
@@ -1199,6 +1205,8 @@ export class TakeoffDirector extends Sequence {
     const look = new THREE.Vector3(), tilt = new THREE.Quaternion();
     const fwd = V(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize(), across = V(-fwd.z, 0, fwd.x);
     const B = ship.berth, base = ship.berthPos(B ? berthOut(B.spec) : null);
+    // (a site down a shaft, the Moon Foundry's roofed dock, issue #731: straight up out of its hatch, never along the bow)
+    const shaft = !!ship.site?.shaft;
     super(ship, [
       {
         dur: m.authored ? 4.6 : 2.0,
@@ -1237,8 +1245,9 @@ export class TakeoffDirector extends Sequence {
         frame: (t, dt) => {
           const k = t / TAKEOFF.dur, p = takeoffPose(t);
           // up off its feet to a hover, then tipped forward and away along its bow, climbing
-          m.group.position.copy(base).addScaledVector(fwd, p.ahead).add(V(0, p.up, 0));
-          m.group.quaternion.copy(tilt.setFromAxisAngle(across, p.pitch)).multiply(ship.restQuat);
+          if (shaft) m.group.position.copy(base).add(V(0, p.up + p.ahead * 0.7, 0));
+          else m.group.position.copy(base).addScaledVector(fwd, p.ahead).add(V(0, p.up, 0));
+          m.group.quaternion.copy(tilt.setFromAxisAngle(across, shaft ? 0 : p.pitch)).multiply(ship.restQuat);
           // (low, out from the hatch and a little behind the stern: the lift and the hover side on, then it goes away
           // across and ahead of the lens rather than over it)
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 40).addScaledVector(fwd, -26);

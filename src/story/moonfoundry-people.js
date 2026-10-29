@@ -23,7 +23,7 @@ export const QUESTS = [
     id: 'moonfoundry.moons', title: 'Nobody Poured It', world: 'moonfoundry', main: true,
     outro: 'Every hung moon on the floor faces the Casting-House. Whatever pours at night pours in there.',
     stages: [
-      { id: 'hedda', text: 'Hear Hedda out by her mould', label: 'Hedda, on the apron', flag: 'moonfoundry.hedda.heard', at: 'hedda' },
+      { id: 'hedda', text: 'Hear Hedda out by her mould', label: 'Hedda, in the dock', flag: 'moonfoundry.hedda.heard', at: 'hedda' },
       { id: 'hoist', text: 'Look at the moons from the signal box', label: 'The signal box on the old hoist', goto: 'hoistDeck', radius: 6, vertical: 3, at: 'hoistDeck' },
       { id: 'house', text: 'Go in at the Casting-House’s door', label: 'The Casting-House’s door', flag: 'temple.moonfoundry.entered', at: 'temple.moonfoundry.door' },
     ],
@@ -102,7 +102,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m walking the other way.', end: true },
           ],
         },
-        go: { say: ['~playful~ *The crane at the last furnace, across the floor toward the mouth.* Walk toward the heat. The hook’s straighter than he is.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        go: { say: ['~playful~ *The crane at the last furnace, across the floor toward the gate.* Walk toward the heat. The hook’s straighter than he is.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         waiting: { say: ['~neutral~ The crane by the last furnace, east of the aisle. Walk toward the heat.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~happy~ He sent a pot of soup back with a boy. That’s Bertil for thank you.' },
@@ -133,7 +133,7 @@ export const PEOPLE = {
           do: { set: { 'sight.moonfoundry.bertil': true } },
           choices: [{ text: '~curious~ Where did she go?', goto: 'where' }, { text: '~neutral~ It’s a clean corner.', end: true }],
         },
-        where: { say: ['~neutral~ Up. Same as everyone who lands on the apron. She looked back at the moons the whole way out to her ship.'], choices: [{ text: '~solemn~ I’d have looked back too.', end: true }] },
+        where: { say: ['~neutral~ Up. Same as everyone who lands in the dock. She looked back at the moons the whole way out to her ship.'], choices: [{ text: '~solemn~ I’d have looked back too.', end: true }] },
         again: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~whisper~ At night the old Casting-House pours by itself. I hear the moulds crack from here. Petra says it’s the founders’ machine, still at it.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~happy~ Quiet, the Casting-House, at last. My furnace sounds lonely without it. I’ve started talking to it more.' }],

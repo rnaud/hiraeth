@@ -41,7 +41,7 @@ const PICK = (id) => `(async () => {
   const exit = AV.pickExit({ stand, out: ship.site.heading, marks, los, hit, away: ship.hinge.toArray(), ...AV.VIEW_OPTS[${JSON.stringify(id)}] });
   const wf = wide ? AV.framed(wide, marks, los) : [];
   const ef = exit ? AV.framed(AV.rigView(stand, exit.heading, exit.pitch), marks, los, { figure: true }) : [];
-  return JSON.stringify({ rest, stand, wide, exit, marks: marks.map((m) => ({ name: m.name, main: !!m.main })), wf, ef });
+  return JSON.stringify({ rest, stand, wide, exit, shaft: !!ship.site?.shaft, marks: marks.map((m) => ({ name: m.name, main: !!m.main })), wf, ef });
 })()`;
 
 const { createServer } = await import('vite');
@@ -74,6 +74,7 @@ try {
       wide: wide && { pos: wide.pos, look: wide.look, fov: wide.fov, drift: wide.drift },
       exit: exit && { heading: exit.heading, pitch: exit.pitch, swing: exit.swing },
       marks: { wide: names(R.wf), exit: names(R.ef) },
+      ...(R.shaft ? { shaft: true } : {}),   // (a roofed dock: straight down its hatch, no glide in along the bow; issue #731)
     };
     await c.send('Page.navigate', { url: 'about:blank' }); await sleep(300);
   }

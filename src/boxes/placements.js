@@ -292,8 +292,8 @@ export const PLACEMENTS = {
   // court's gadget behind the gate its puzzle opens)
   moonfoundry: [
     { id: 'moonfoundry.court', item: 'keeper', site: courtSite('moonfoundry'), beacon: 160, court: 'moonfoundry',
-      hint: 'Behind the gate in the apron’s court',
-      note: 'In the makers’ court on the apron west of the way in, in the alcove behind its gate: lift the iron crate out of its cage with the magnet glove and set it in the pit, on the plate only iron presses.' },
+      hint: 'Behind the gate in the dock’s court',
+      note: 'In the makers’ court in the landing dock west of the way in, in the alcove behind its gate: lift the iron crate out of its cage with the magnet glove and set it in the pit, on the plate only iron presses.' },
     // the pocket bellows, a gift in the open: on the crown of the moon in its cradle's claws (a climb up the claws and the shell)
     // (issue #518: an iron disc on a post beside it: the magnet glove, earned in the Casting-House, pulls you to it)
     { id: 'moonfoundry.bellows', item: 'bellows', at: [64, 46, -92], toward: [40, -60], lock: { tool: 'magnet' },

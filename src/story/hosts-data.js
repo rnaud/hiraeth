@@ -242,7 +242,7 @@ export const HOSTS = {
   'trial-moonfoundry': P({
     id: 'host.trial-moonfoundry', name: 'Rudi', title: 'who ran the pour times', color: '#e89a5a', kind: 'm',
     palette: { cloak: '#e89a5a', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#d98c58', hair: '#6b5a4a' }, head: 'skullcap', look: { body: 'toolbelt' },
-    say: ['~tired~ Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round.', '~neutral~ Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it.'],
+    say: ['~tired~ Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round.', '~neutral~ Every gate in order, round the floor and back to the big gate, before the pour cools. I always made it.'],
     lines: ['~tired~ Forty years of pours. My knees feel every one.'],
   }),
   'trial-spacecity': P({

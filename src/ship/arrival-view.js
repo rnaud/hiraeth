@@ -127,12 +127,14 @@ export const MARKS = {
     ...mk(beacon(L, 'Fisk’s flag'), { w: 1.5 }),
     ...mk(temple(L, null, 'the temple’s door'), { w: 1.5 }),
   ],
+  // (issue #731: the foundry closed in, the ship lands in its roofed dock under the hatch: what is seen from there is the
+  //  great gate into the hall, the first hung moon through it, the hatch overhead)
   moonfoundry: (L) => {
-    const lk = L.lookout, cr = L.crane;
+    const g = L.gate, h = L.hung, d = L.dockHatch;
     return [
-      ...mk(temple(L, null, 'the Casting-House'), { main: true, w: 3 }),
-      ...(lk ? mk([{ name: 'the lookout moon', top: [lk.x, lk.y + 14, lk.z], height: lk.y + 14 }], { w: 2 }) : []),
-      ...(cr ? mk([{ name: 'the last furnace’s crane', top: [cr.x, cr.y + 18, cr.z], height: 18 }], { w: 1.5 }) : []),
+      ...(g ? mk([{ name: 'the great gate', top: [g.x, g.y, g.z], height: g.y }], { main: true, w: 3 }) : []),
+      ...(h ? mk([{ name: 'the hung moon through the gate', top: [h.x, h.y, h.z], height: 30 }], { w: 2 }) : []),
+      ...(d ? mk([{ name: 'the hatch over the dock', top: [d.x, d.y, d.z], height: 6 }], { w: 1 }) : []),
     ];
   },
   spheres: (L) => {
@@ -166,7 +168,8 @@ export const VIEW_OPTS = {
   // (down the ramp the camps' lane runs straight to the gate and the tree: the first view looks along it, issue #706)
   desert: { exitTurn: 0.15 },
   underwater: { dists: [90, 130, 170], heights: [16, 28, 40] },
-  moonfoundry: { dists: [90, 120, 160], heights: [16, 28, 42], haze: 220 },
+  // (in its roofed dock, issue #731: near and low under the dock's roof, the ship coming straight down the hatch: `shaft`)
+  moonfoundry: { dists: [40, 52, 64], heights: [5, 10, 16], shaft: true },
   bazaar: { dists: [200, 280, 360], heights: [170, 230, 290] },
 };
 const DISTS = [140, 190, 250], HEIGHTS = [22, 40, 65, 110];
@@ -346,13 +349,14 @@ const yawTo = (a, b) => Math.atan2(b[0] - a[0], b[2] - a[2]);
  * ship comes down into the frame from above (WIDE.from to WIDE.to m over its rest). Scored by the landmarks it shows
  * (by weight, the main ones a must), the ship in the frame, nothing near filling it, and the sky's share.
  */
-export function pickWide({ rest, marks, los, hit, ground, aspect = ASPECT, dists = DISTS, heights = HEIGHTS, haze = Infinity }) {
+export function pickWide({ rest, marks, los, hit, ground, aspect = ASPECT, dists = DISTS, heights = HEIGHTS, haze = Infinity, shaft = false }) {
   const W = marks.reduce((s, m) => s + m.w, 0) || 1;
   const cx = marks.reduce((s, m) => s + m.top[0] * m.w, 0) / W, cz = marks.reduce((s, m) => s + m.top[2] * m.w, 0) / W;
   const toMarks = marks.length ? yawTo(rest, [cx, 0, cz]) : 0;
   // (under a ceiling, the Underwater City's sea: the ship seen coming down under it, the camera under it too)
   const roof = rest[1] + 12 + hit([rest[0], rest[1] + 12, rest[2]], [0, 1, 0], 400);
-  const shipLow = [rest[0], rest[1] + WIDE.to, rest[2]], shipMid = [rest[0], Math.min(rest[1] + 110, roof - 6), rest[2]], shipSeen = [rest[0], rest[1] + 12, rest[2]];
+  // (down a shaft, a roofed dock's hatch: the ship seen coming down it, from just under the hatch: issue #731)
+  const shipLow = [rest[0], rest[1] + WIDE.to, rest[2]], shipMid = [rest[0], Math.min(rest[1] + (shaft ? 45 : 110), roof - 6), rest[2]], shipSeen = [rest[0], rest[1] + 12, rest[2]];
   const cands = [];
   for (let ai = 0; ai < 18; ai++) {
     const a = toMarks + Math.PI + ((ai % 2 ? 1 : -1) * Math.ceil(ai / 2) * Math.PI) / 9;   // behind the ship first, then round
