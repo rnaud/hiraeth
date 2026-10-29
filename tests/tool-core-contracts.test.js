@@ -11,6 +11,7 @@ test('score and GLB public modules re-export the same core implementations',asyn
   [await import('../scripts/score-features.mjs'),await import('../scripts/score-features-core.mjs')],
   [await import('../scripts/tripo/slim-traveller.mjs'),await import('../scripts/tripo/slim-traveller-core.mjs')],
   [await import('../scripts/tripo/slim-father.mjs'),await import('../scripts/tripo/slim-father-core.mjs')],
+  [await import('../scripts/motion-qc/feel.mjs'),await import('../scripts/motion-qc/feel-core.mjs')],
  ];
  for(const [facade,core] of pairs){assert.deepEqual(Object.keys(facade),Object.keys(core));for(const key of Object.keys(core))assert.strictEqual(facade[key],core[key],key);}
 });

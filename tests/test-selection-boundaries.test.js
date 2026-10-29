@@ -259,3 +259,32 @@ test('approved PCM mix tests exclude theme edits but retain audio and packaged f
       assert.ok(selection(input, consumer).includes(consumer), consumer + ' tracks ' + input);
   }
 });
+
+// A virtual consumer importing one module, so a boundary can be checked for any module, not only for a test of it.
+function reach(path, module) {
+  const consumer = 'tests/virtual-consumer.test.js';
+  return affectedTests([path], { root, files: inventory, tests: [consumer, witness], modifiedRegularOnly: true, analysisCache,
+    read: f => f === consumer ? `import '../${module}';` : f === witness ? `import '../${path}';` : read(f),
+    exists: f => f === consumer || f === witness || exists(f) }).includes(consumer);
+}
+
+test('changelog text stays out of modules that only show the version; What\'s new keeps it', () => {
+  for (const module of ['src/version.js', 'src/ui.js', 'src/title.js', 'src/world-picker.js', 'src/update-panel.js']) {
+    assert.equal(reach('src/changelog.js', module), false, module + ' only shows the version');
+    assert.equal(reach('src/version.js', module), true, module + ' shows the version');
+  }
+  // the real readers of the lines: the native What's new (and so the whole game), the web panel, the release notes
+  for (const module of ['engine/menus.js', 'engine/game.js', 'engine/unity/game.js', 'src/main.js', 'scripts/release-metadata.mjs', 'scripts/changelog-md.mjs'])
+    assert.equal(reach('src/changelog.js', module), true, module + ' reads the lines');
+  assert.equal(dependenciesOf('scripts/changelog-md.mjs', read('scripts/changelog-md.mjs')).unknown, false, 'its two outputs are read by name');
+});
+
+test('the controller-feel numbers follow the traveller, not the command line\'s tuning', () => {
+  const consumer = 'tests/locomotion-botw.test.js';
+  assert.deepEqual(selection('src/hud.js', consumer), [witness]);
+  for (const path of ['scripts/motion-qc/feel-core.mjs', 'tests/gait-sim.js', 'src/locomotion.js', 'src/loco-moves.js', 'src/player.js', 'src/gait-course.js'])
+    assert.ok(selection(path, consumer).includes(consumer), path);
+  const cli = dependenciesOf('scripts/motion-qc/feel.mjs', read('scripts/motion-qc/feel.mjs'));
+  assert.ok(cli.imports.includes('scripts/motion-qc/feel-core.mjs'), 'the command measures with the same core');
+  assert.equal(cli.unknown, true, 'TUNE\'s chosen imports keep the command conservative');
+});

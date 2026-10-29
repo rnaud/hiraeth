@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { braking, stopSetting, STOP_FEEL } from '../src/loco-moves.js';
 import { Locomotion, LOCO } from '../src/locomotion.js';
-import { feel } from '../scripts/motion-qc/feel.mjs';
+import { feel } from '../scripts/motion-qc/feel-core.mjs';
 
 // Issue #699, the Breath of the Wild study (docs/design/locomotion-botw-study.md): the carried stop from a run (the default since
 // issue #702, tests/stop-feel.test.js; the snap stop, on the switch, is exactly the old one), the chest's lean setting off into a run and its carriage at a run (the hips' share
