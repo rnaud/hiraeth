@@ -88,17 +88,49 @@ existence queries, reporting e.g. 466 tests for `src/changelog-media.js` where t
 - Boundary cases in `tests/test-selection-boundaries.test.js` for both (a virtual-consumer helper,
   `reach(path, module)`, checks any module): unrelated edits excluded, the real inputs kept.
 
+### Round 2: the compiled game kept, Node's compile cache, catalogues, workflows
+
+- **The compiled game between processes.** Each whole-game test file (43 files, 51 compile calls)
+  compiled `engine/game.js` with rolldown again: ~3.1 s a call here. `engine/game-test-runtime.mjs` keeps
+  the bundle in `.cache/game-bundles/` (git-ignored) and uses it only while everything its compile read
+  is as it was: the compiler and `package-lock.json` (the key), every module rolldown put in the
+  bundle byte for byte (from the build's own module list), the names of every file under `src/` and
+  `engine/` (a new file a glob would take in), and the kept bytes against their hash; otherwise it
+  compiles afresh (`GAME_BUNDLE_CACHE=0` turns it off). A kept bundle loads in ~0.3-0.4 s. The loader
+  contract's fingerprints were updated by hand after review; `tests/bounded-engine-runtime.test.js`
+  checks a kept bundle equals a fresh compile and is refused after an edit, a new file, tampering or an
+  unreadable module.
+- **Node's compile cache.** The hook sets `NODE_COMPILE_CACHE` to `.cache/node-compile` for its test
+  processes (V8 checks every entry against its source). Six cheap files took 7.1 CPU seconds without
+  it and 3.2 with it warm; cheap files are most of a commit's count.
+- **Literal catalogues for source scans.** `node scripts/test-catalogs.mjs` writes `tests/catalogs/*.js`
+  (src/story, src/temples, src/levels, src/gadgets, src/** and engine/**, each file a literal import
+  or read); `tests/test-catalogs.test.js` lists each directory by its literal path and fails when a
+  catalogue isn't exactly what `scripts/test-catalogs-core.mjs` renders, so a new file can't be missed
+  (run the command after adding, removing or renaming a file there). 30 tests that listed a directory
+  now read a catalogue (`tests/src-tree.js` for whole-src scans) and run when those directories change:
+  the always-run set (tests selected for five unrelated probe edits) went from 143 files (238 runner
+  seconds) to 113 (214).
+- **Deploy-only workflows.** A workflow edit selects everything only when the workflow runs the unit
+  suite (Tests, the daily run, one that calls Tests, runs `node --test`, the selector, the plan, the
+  shard runner or the hook); otherwise its readers are selected, and an unread or unreadable one still
+  selects everything. Today android, deploy, steam-deck, unity-android and unity-xbox are deploy-only;
+  tests, nightly-tests, xbox (calls Tests) and cloudflare (runs `node --test`) are not.
+- **Not done:** the remaining always-run files spawn processes, compile bundles, use vm or
+  `new Function`, or read files named in data tables; the release tool scripts most of them import are
+  opaque too. The longest files the hook runs (desert-spark, engine-trials, temples, the reach
+  sweeps) spend their time building worlds and simulating, which no cache here can keep; making them
+  faster means changing what they check or the world builders, not done.
+
 ### What was not narrowed, and why
 
 The hubs (`src/enemies/archetypes.js` 596 files, `src/player.js` 581, `src/foes.js` 543) reach their
 tests genuinely: every world spawns foes, `src/npc.js` builds its people with the traveller's
 `buildCharacter`, the story imports `CAPSULE`, and every whole-game test compiles `engine/game.js`.
-Every selected file over 15 runner seconds was checked by its shortest chain; none was incidental. 144 cheap files (238
-runner seconds) run for every change because they are opaque: they list a directory and read or import
-each entry, spawn processes, or compile bundles. Making those finite (the literal catalogues used for
-the story and minigame audits) is the next lever on the count. Non-test workflow edits
-(`cloudflare.yml`, `steam-deck.yml`, ...) still select everything by policy (`SHARED`); 6 of the last
-150 commits on main paid a full suite for one.
+Every selected file over 15 runner seconds was checked by its shortest chain; none was incidental. The
+cheap files that ran for every change (144 after round 1, 113 after round 2) are opaque: they spawn
+processes, compile bundles, or read what a data table names; round 2's catalogues took the
+directory-listing ones out.
 
 ### Measured, before and after
 
