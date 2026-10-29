@@ -1399,6 +1399,10 @@ const SITES726 = 'scripts/changelog-shots.mjs at this change and its parent (a60
 const UNITY726C = 'Issue #726, the world rosters: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level desert -fight site:grunt-camp,site:droid-hoard, an APFS clone of the main checkout’s Library, deleted after), its follow camera and HUD at 1280 × 720 (scaled from the run), the traveller set down 16 m in front of each site by the script, 3 s after; 28 October. After only; the same JS through engine/, not a device performance claim; cwebp -q 72';
 const BENCH726 = 'the combat review v2.34’s fight-core bench (node, no browser: real Foes on flat ground; every route world’s packs 0–5 from packOf, three seeds each, 216 packs; every encounter site once, 50), the masher (the light combo at the blade’s cadence, never guarding) and the guard (every blow blocked, every other one a perfect parry and its riposte), with the hearts he has on arriving; before a607ab40c, after this change; docs/design/enemy-roster-v4.md, “The curve, measured”';
 
+// (issue #748: one look per kind; the camp's grunts and hulk all asked for in their stronger tier, as the late worlds bring some)
+const LOOK748 = { commit: '28e4201e5' };
+const TIER_CAMP748 = "const F = window.foes, add = F.add.bind(F); F.add = (k, at, o = {}) => add(k, at, /^(grunt|hulk)$/.test(k) ? { ...o, tier: 1 } : o); await new Promise((r) => setTimeout(r, 2500)); for (const f of F.list.slice()) if (f.site && /^(grunt|hulk)$/.test(f.kind) && !f.tierN) F.remove(f); await new Promise((r) => setTimeout(r, 2000))";
+
 export const CHANGELOG_MEDIA = {
   '2.35': [
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
@@ -1424,6 +1428,14 @@ export const CHANGELOG_MEDIA = {
       { where: 'Sentinel cut', before: 120, after: 7 },
     ] },
   ], see: 'In the Arena, pick the warlord and bring it low to see its last stand, or watch the makers’ fencer’s overhead cut from the side; knock a hulk down and watch its hands as it gets up.' },
+  { match: 'Every kind of enemy now has one look wherever you meet it', shots: [
+    { name: 'one-look-camp-market', title: 'A late camp', caption: 'The Signal Market’s camp with its grunts and hulk all in their stronger tier (as the last worlds bring some): before, darker and banded in near-black stripes; after, the same plain red grunts and slate-blue hulk as in the Desert', ...LOOK748,
+      from: 'scripts/changelog-shots.mjs at this change (28e4201e5) and its parent (35d2c0e2c), muted headless Chrome (--mute-audio, hiraeth.muted), High, 1280 × 720, 10:00, clear, a save holding the sword and the shield, the camera pinned where the #726 camp picture stood; the camp’s grunts and hulk asked for in their stronger tier by the view’s setup (Foes.add wrapped, the site’s own foes let go and brought out again) so both pictures show the tier; 28 October 2026. The camp lies in a building’s shade; a frame catches a foe mid-turn now and then',
+      view: { level: 'bazaar', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [-80.0, 6, -0.27], target: [-94, 0.9, 0], player: [-64.01, 0.2, -0.58], setup: TIER_CAMP748 } },
+    { name: 'one-look-gallery', title: 'The gallery', size: [1280, 480], caption: 'Six foes from the creatures gallery, in rows: a grunt and a hulk in their stronger tier, a sentinel in its tier; a sky ray met in the Glass Dunes, a ring drone met in the Floating City, the Desert’s lamp tripod. Before: banded, scorched with a red eye, the glass manta, the airlock drone, the cistern pump; after: each in its one look (the grunt’s red, the hulk’s slate blue, the ivory sentinel, the storm ray, the rust drone, the inspection tripod)',
+      from: 'Issue #748: the creatures gallery (enemies.html, the game’s own body through Foes.look, inked by the post pass) via scripts/changelog-shots.mjs foe views at this change (28e4201e5) and its parent (35d2c0e2c), muted headless Chrome, three-quarter (yaw 0.75, pitch 0.12, the ray from above at 0.75, zoom 0.8), standing (the ray and the drone moving); the six pictures of each side laid three by two with ffmpeg (hstack/vstack) and cwebp -q 72; 28 October 2026',
+      view: 'grunt@desert*, hulk@desert*, sentinel@desert*; ray@glassdunes, drone@spacecity, tripod@desert (top row then bottom row)' },
+  ] },
   { match: 'Every armed enemy now holds its weapon like a fighter', shots: [
     { name: 'grip-hulk-smash', size: [1280, 720], caption: 'The hulk’s smash held at 80 % of its wind-up: before, the club lying across its open, upturned hands; after, both fists stacked on the haft, the club up and back over its shoulder', from: GRIP744, view: 'hulk@desert, three-quarter (yaw 0.75, pitch 0.12, zoom 0.95, on the body alone), the smash at 80 % of its wind-up' },
     { name: 'grip-hulk-carry', size: [1280, 720], caption: 'The hulk standing: before, the club across its open claws; after, its fist closed round the butt and the head down by its feet, its empty hand open (the sheet’s)', from: GRIP744, view: 'hulk@desert, from its front left (yaw 0.45, pitch 0.12, zoom 1.25, on the body alone), standing, 1.5 s into its idle' },
