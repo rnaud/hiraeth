@@ -412,7 +412,15 @@ export const bladeLag = (speed, L = BLADE_LOOK) => Math.min(L.lagMax, Math.max(0
  * bearings between its rim's edges round the chest); `angle` is that arc for a shield held `reach` in
  * front of the chest, used when there is no shield drawn to measure.
  */
-export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, reach: 0.45, radius: SHIELD.radius, perfect: 0.18, rearm: 0.35 };
+export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, reach: 0.45, radius: SHIELD.radius, perfect: 0.18, rearm: 0.35, cancel: 0.1 };
+/**
+ * The guard at any moment (v2.35, issue #757, the author: "I should be able to shield/parry at any time even in the middle of
+ * an attack animation"): a fresh press of the guard stops any swing at once, in its wind-up, its cut or its follow-through
+ * (the combo's, the charge, the riposte, the dash cut, the running cut, the air cuts), and the guard comes up from the pose
+ * the swing had reached over `GUARD.cancel` s (drawn at once, not grown from the walk's arms). Its parry window and timing
+ * are a fresh guard's (guardAge, rearm, the shield's rise): only the gate changed. Held, the guard still lets a riposte begin.
+ */
+export const guardCancels = ({ press = false, swinging = false, ok = true } = {}) => !!press && !!swinging && !!ok;
 GUARD.angle = shieldArc(new THREE.Vector3(), new THREE.Vector3(0, 0, GUARD.reach), new THREE.Vector3(0, 0, 1), SHIELD.radius).half;
 /** How long the blade stays in the fist after the last swing, guard, evade or blow (s); locked on it stays out. (The draw and the sheathe: src/sword-sheath.js.) */
 export const STANCE = { linger: 2.5 };
@@ -705,7 +713,8 @@ export class FluidBlade {
     if (this.hopWin && this.hopAge > this.hopWin[1] + 1) this.hopWin = null;
     this.guardRearm = Math.max(0, this.guardRearm - dt);
     this.guardAge += dt;
-    if (held && !this.guardHeld) { this.guardAge = 0; this.perfectReady = this.guardRearm === 0; this.guardRearm = GUARD.rearm; }
+    const guardPress = held && !this.guardHeld;
+    if (guardPress) { this.guardAge = 0; this.perfectReady = this.guardRearm === 0; this.guardRearm = GUARD.rearm; }
     if (!held) this.perfectReady = false;
     this.guardHeld = held;
     const dodgePress = evade && !this.evadeHeld; this.evadeHeld = evade;
@@ -734,6 +743,12 @@ export class FluidBlade {
       this.guardK = 0;
     }
     if (held) this.queued = false;
+    // (the guard at any moment: a fresh press stops the swing, whatever its phase, #757)
+    if (guardCancels({ press: guardPress, swinging: this.swinging, ok: ok && !!p })) {
+      this.stop(); this.chainT = 0; this.buffered = 0; this.dashWant = false; this.last = -1;
+      this.guardLead = true;   // (drawn at once from the swing's pose: placed below)
+    }
+    if (!held) this.guardLead = false;
     if (p) p.combatMotion = null;
     this.chainT = Math.max(0, this.chainT - dt);
     this.parry = Math.max(0, this.parry - dt);
@@ -862,7 +877,8 @@ export class FluidBlade {
         const m = (p.swingMove ??= {});
         if (this.parry > 0 && A.moveClip(GUARD.parry)) { m.clip = GUARD.parry; m.t = GUARD.parryFor - this.parry; }
         else { m.clip = GUARD.idle; m.t = this.guardT % idle.duration; }
-        m.w = this.guardK; m.full = false; m.id = this.parry > 0 ? "block" : "guard";
+        // (out of a swing it cancelled: the guard pose whole at once, blended from the swing's over GUARD.cancel s: #757)
+        m.w = this.guardLead ? 1 : this.guardK; m.full = false; m.id = this.parry > 0 ? "block" : "guard"; m.blend = this.guardLead ? GUARD.cancel : 0.09;
       }
       this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
       this.pose.k = this.guardK; this.pose.noArm = !!idle;

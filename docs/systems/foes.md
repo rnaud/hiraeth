@@ -116,7 +116,17 @@ The first things in the game that fight back, and the tool's answer to them.
 - **Guard:** Ctrl or Z / LB / L1 / touch ◇ independently opens the shield on the left hand (below: *In the hands*); it covers what it covers as drawn. A fresh guard has a
   0.18 s parry window (0.35 s rearm), consumes that opportunity on contact, and spends no charge.
   A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
-  open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
+  open for 1.8× its normal recovery; an ordinary block for 0.65×. **The guard at any moment** (v2.35, issue #757, the
+  author: "I should be able to shield/parry at any time even in the middle of an attack animation"; `guardCancels`,
+  `GUARD.cancel`): a fresh press of the guard stops whatever swing is under way, in its wind-up, its cut or its
+  follow-through (the combo's three, the charge held or let go, the riposte, the dash cut, the running cut, the air
+  combo and the air cut), and the chain with it. The guard comes up from the pose the swing had reached, drawn whole at
+  once (`guardLead`: the block idle at full weight) and blended from the pose on screen over `GUARD.cancel` (0.1 s), so
+  it reads as the sword pulled back into guard rather than a snap. Its parry window, rearm and the shield's rise are a
+  fresh guard's: only the gate changed. Held from before, the guard still lets the riposte begin under it. Until v2.35 the
+  guard waited for the swing to end (the third's 0.93 s). Tests: `tests/guard-cancel.test.js` (each of the three swings
+  in each phase, the charge, the dash cut, the running cut and an air swing; a perfect parry in the fresh window; no bone
+  turning 0.8 rad in a frame).
 - **Evade:** Alt / B / ○ / touch ↶ moves in the input direction, or backward without input, for
   0.28 s with a 0.65 s cooldown. It uses Player's collision controller and may cancel attack recovery
   but not wind-up or release. It is available on the ground.

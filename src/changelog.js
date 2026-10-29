@@ -40,6 +40,7 @@ export const CHANGELOG = [
       // the traveller's blade
       { text: 'He never jumps by himself in a fight any more: striking at a hulk or a warlord no longer leaps him up at its chest (his three blows land on it from the ground), and backing or rolling into a wall while you fight no longer starts him climbing it. Jump at a wall to climb it.', see: 'In the Arena, fight a hulk and press attack three times: he stays on his feet for all three blows. Lock on and walk backwards into the wall: he stops against it instead of climbing.' },
       { text: 'You can no longer pass through an enemy: rolling, dashing, the dash cut, the running cut and the hops all stop at its body and slide round it, big ones like the hulk and the warlord hold you further off, and standing next to a grunt your bodies no longer overlap. Pinned against a wall, the enemy is the one pushed back.', see: 'In the Arena, roll or dash straight at a grunt or a hulk: you stop against it and slide round its side instead of coming out behind it.' },
+      { text: 'You can raise your shield at any moment now, even halfway through a swing: the guard cuts the attack short wherever it is, from the wind-up to the follow-through, and a parry works exactly as it does from a standstill. This goes for the charged cut, the dash and running cuts and the swings in the air too.' },
     ],
   },
   {

@@ -1496,6 +1496,11 @@ export const CHANGELOG_MEDIA = {
       { where: 'knocked back by the third swing', before: 1.41, after: 0.21 },
     ], note: 'The crawler, the lamp tripod and the skitter walk on the procedural kit and already held their feet (0.01 or less).' },
   ] },
+  { match: 'You can raise your shield at any moment now', shots: [
+    { name: 'guard-anytime', size: [1280, 364], caption: 'The guard pressed in the third blow’s wind-up (the third picture), every 0.05 s: before, the swing went on to its end with no shield; after, the swing stops and the shield is up within a tenth of a second',
+      from: 'Issue #757: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; Medium, 960 × 640, the Arena, ?level=arena) on this branch’s own Vite (port 5491), the clock stepped by hand at 60 frames a second, the blade and the guard pressed from the game’s own input; the combo pressed and the guard (Z) pressed and held 72 frames in, a grunt set 1.4 m off and held still, the camera pinned in front of him at three-quarters; before: main at 35d2c0e2c, after: this branch with this change; 28 October; cwebp -q 72',
+      view: 'Ten frames from 66 to 93 after the first press, cropped round him; the before’s third began three frames earlier.' },
+  ], see: 'In the Arena, start any swing and press the guard (Z, LB / L1) halfway through it: the shield comes up at once.' },
   { match: 'Every armed enemy now holds its weapon like a fighter', shots: [
     { name: 'grip-hulk-smash', size: [1280, 720], caption: 'The hulk’s smash held at 80 % of its wind-up: before, the club lying across its open, upturned hands; after, both fists stacked on the haft, the club up and back over its shoulder', from: GRIP744, view: 'hulk@desert, three-quarter (yaw 0.75, pitch 0.12, zoom 0.95, on the body alone), the smash at 80 % of its wind-up' },
     { name: 'grip-hulk-carry', size: [1280, 720], caption: 'The hulk standing: before, the club across its open claws; after, its fist closed round the butt and the head down by its feet, its empty hand open (the sheet’s)', from: GRIP744, view: 'hulk@desert, from its front left (yaw 0.45, pitch 0.12, zoom 1.25, on the body alone), standing, 1.5 s into its idle' },
