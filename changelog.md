@@ -2,12 +2,15 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v2.35 — 2026-10-28
+## v2.36 — 2026-10-29
 
 - In the Moon Foundry, the droids’ patrol now walks the east bay by the east furnace, and the prowlers nest in the north-west corner under the second hung moon.
 - Steam and smoke drift through the Moon Foundry: vents hiss at the foot of its walls, columns of steam rise from grates in the floor, smoke rolls off every furnace, and the moulds steam as they cool. Embers float in the air.
 - Inside, the Moon Foundry is dim and lit by its furnaces: eight new furnaces glow at the foot of its walls, each throwing a pool of warm light, chains with hooks hang between the moons, and galleries run along the walls high up.
 - The Moon Foundry is closed in: iron walls run up to the roof on every side, its open mouth is now a great gate, and your ship sets down in a roofed landing dock, straight down through a hatch overhead, and leaves the same way.
+
+## v2.35 — 2026-10-28
+
 - Attacking while sprinting is a real running slash now: he raises the sword over his shoulder and cleaves down in front of him without breaking stride, then slows to a stop. Before, he spun round on the spot and ended up slashing behind himself, his feet sliding along the ground.
 - The third, heavy blow of your combo now lands: through its wind-up he keeps turned to the enemy instead of twisting away from it, and if the second blow knocked the enemy back he steps in after it, so the cleave comes down on it. An enemy that deliberately flips or hops out of your combo can still escape it.
 - You can raise your shield at any moment now, even halfway through a swing: the guard cuts the attack short wherever it is, from the wind-up to the follow-through, and a parry works exactly as it does from a standstill. This goes for the charged cut, the dash and running cuts and the swings in the air too.

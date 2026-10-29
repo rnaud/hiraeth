@@ -1417,7 +1417,7 @@ const UNITY731 = 'Issue #731: Unity 6000.6.4f1 editor batch run of this change (
 const MF731 = (eye, target, player) => ({ level: 'moonfoundry', hour: 10.5, fov: 60, eye, target, player });
 
 export const CHANGELOG_MEDIA = {
-  '2.35': [
+  '2.36': [
   { match: 'The Moon Foundry is closed in', shots: [
     { name: 'foundry731-landing', title: 'Off the ramp', caption: 'Out of the ship toward the hall: before, the open apron under the sky, the hangar open on every side; after, the landing dock, its walls and the great gate into the dim hall, the hung moon through it', from: FROM731, ...FOUNDRY731, view: MF731([3, 4.2, 104], [-4, 6, 40], [0, 0, 94]) },
     { name: 'foundry731-dock', title: 'The landing dock', caption: 'The dock from beside the founders’ yard: before, the open apron and the plain behind the ship; after, the walled, roofed dock, its hatch open over the ship', from: FROM731, ...FOUNDRY731, view: MF731([-60, 8, 70], [10, 22, 140], [-50, 0, 76]) },
@@ -1434,6 +1434,8 @@ export const CHANGELOG_MEDIA = {
     { name: 'foundry731-steam', title: 'The last furnace', caption: 'The last furnace and its mould: before, in daylight, no steam; after, dim, steam off the mould and smoke from the furnace’s mouth, the ladle’s pour glowing', from: FROM731, ...FOUNDRY731, view: MF731([40, 4, 4], [66, 5, -16], [44, 0, 0]) },
   ], see: 'Walk along any wall of the Moon Foundry: the vents at its foot breathe, and every few seconds a valve hisses out a puff; columns rise from the grates in the floor.' },
   { match: 'In the Moon Foundry, the droids’ patrol', see: 'With the sword, walk into the Moon Foundry’s east bay south of the east furnace: the droids walk their beat there; the prowlers sleep in the north-west corner under the second hung moon.' },
+  ],
+  '2.35': [
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
     { name: 'grip746-whirl', size: [1280, 720], caption: 'The warlord’s last stand at the end of its wind-up, from behind: before, its left hand had let go (out of reach); after, both fists on the shaft behind it', from: GRIP746, view: 'warlord@desert from behind (yaw 3.14, pitch 0.12, zoom 0.5), 1.25 s into the last stand’s 1.3 s wind-up' },
     { name: 'grip746-charge', size: [1280, 720], caption: 'The warlord’s charge, running: before, its left hand back by the right at its hip; after, forward on the shaft like a lance', from: GRIP746, view: 'warlord@desert from its front left (yaw −1.2, pitch 0.12, zoom 0.6), 0.5 s into the charge’s run' },
