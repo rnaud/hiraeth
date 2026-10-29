@@ -124,3 +124,38 @@ At 12 enemies, submitted scene triangles rise from 611,025 to 1,373,037 across r
 These generated meshes are reasonable candidates; the full export does not show a large extra cost in this desktop comparison. Do not ship every raw export by default. First test a 512–1024² atlas (1.33–5.33 MiB with RGBA8 mipmaps instead of 21.33 MiB), since most of this asset is flat color. Preserve eyes, teeth and strap/cloth boundaries. Then target roughly 10–15k triangles for the normal enemy LOD, retaining the 31k source for close views if visibly useful; compare silhouettes, fingers and deformation before accepting reduction. These are proposed starting budgets, not measured optimized outputs. A reduced asset has not been generated in this trial.
 
 Use one shared atlas/material per enemy type and measure the intended simultaneous count on the actual handheld. Texture compression could further reduce GPU memory, but no compressed texture variant is part of this trial. At 20 distinct 2K atlases, the simple RGBA8+mipmap estimate alone is about 427 MiB; repeated instances of one atlas do not multiply that number. Drastic geometry simplification is not supported by the desktop evidence; texture/LOD work and better rig fitting are the immediate priorities.
+
+## Side by side (2026-10-29, resumed)
+
+The Arena trial's model selector has a third choice, **Side by side · current | Tripo**: two grunts 1.6 m apart, the left
+keeping the procedural body, the right wearing the native Tripo mesh, both driven by the same humanoid clip rig
+(`src/enemies/humanoid-rig.js`, issue #724) on one clock, so they play the same clip at the same moment. **Pair view**
+frames them square on. The page exposes `window.__gruntTrial` (spawn, a fixed clock, `runTo(t)`, `turn(yaw)` to turn
+both in place) for `side-by-side-capture.mjs`, which drives headless Chrome (`--mute-audio`, the page's review mute
+checked before any capture), and `side-by-side-sheet.mjs`, which builds the labelled sheets:
+
+```sh
+npx vite --host 127.0.0.1 --port 5448 --strictPort      # never 5173
+node references/enemy-archetypes/grunt/tripo-trial/side-by-side-capture.mjs <scratch folder>
+node references/enemy-archetypes/grunt/tripo-trial/side-by-side-sheet.mjs <scratch folder>
+```
+
+- `review/side-by-side-poses.jpg`: idle, two walk frames, the club's wind-up (90 %), strike (60 %) and recover (30 %), front.
+- `review/side-by-side-turnaround.jpg`: idle, wind-up and strike at front, three-quarter, side and back.
+
+Captured from the running web Arena (High, Apple M3 Pro, ANGLE Metal, headless Chrome, 1280×720) on this branch
+(base `677d67ee8` plus this trial). Both grunts are the real game's foe with its AI frozen to the trial's scripted
+modes; the Tripo one is the retargeting adapter above, so its limits show: the club's grip is provisional (in the
+recover the club leaves the open hands), the head sits lower and further forward than the procedural one, and its
+eyes do not flash. After-only pictures of the two models; neither is a before/after of a game change.
+
+Per foe, measured by the page (`inventory`, main pass): procedural 10,234 triangles, 30,060 vertices, 8 draws,
+27 bones, no texture; Tripo 31,213 triangles, 33,495 vertices, 1 draw (+2 for the trial club), 54 bones, one 2048²
+atlas (≈21.3 MiB RGBA8 with mips). The Arena crowd numbers are in "Measured Arena cost" above.
+
+**Reading the pictures.** The Tripo body is closer to the picked sheet in silhouette: the head sunk into the
+shoulders, the hanging belly in profile, bandy legs and three-toed feet, the ragged loincloth. The procedural grunt
+reads more clearly at play distance: a clean snout and round yellow eyes, flat colour fields and few lines, which
+is what the house ink pass is built for; the Tripo texture carries its own baked hatching and noise, so it prints
+busier and darker than everything round it, and its face is muddier from the front. Worth pursuing only with a
+cleaner flat-colour texture (512–1024², no baked lines) and a fitted grip; not a drop-in replacement.
