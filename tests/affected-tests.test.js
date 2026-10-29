@@ -535,3 +535,22 @@ test('the persistent syntax cache reuses only exact bytes under one analyzer and
   assert.notEqual(analyzerFingerprint({read,parser,version:'v25'}),base);
  }finally{removeTemp(dir);}
 });
+
+test('a deploy-only workflow selects the tests that read it; one that runs the unit suite selects everything',()=>{
+ const files={
+  'tests/deploy.test.js':"readFileSync(new URL('../.github/workflows/deploy.yml',import.meta.url));",
+  'tests/other.test.js':"import '../src/a.js';",'src/a.js':'export const a=1;',
+  '.github/workflows/deploy.yml':"on:\n  workflow_run:\n    workflows: [Tests]   # after tests.yml and node --test passed\n# node --test, in a comment, runs nothing\njobs:\n  deploy:\n    steps:\n      - run: npx wrangler deploy\n",
+  '.github/workflows/tests.yml':'jobs:\n  unit:\n    steps:\n      - run: node scripts/run-test-shard.mjs 1/5\n',
+  '.github/workflows/nightly-tests.yml':'jobs:\n  gameplay:\n    uses: ./.github/workflows/tests.yml\n',
+  '.github/workflows/installer.yml':'jobs:\n  unit:\n    uses: ./.github/workflows/tests.yml\n  build:\n    steps:\n      - run: make\n',
+  '.github/workflows/runs.yml':'jobs:\n  a:\n    steps:\n      - run: node --test --test-concurrency=2 tests/deploy.test.js\n',
+  '.github/workflows/selector.yml':'jobs:\n  a:\n    steps:\n      - run: node scripts/affected-tests.mjs --all --json\n',
+  '.github/workflows/unread.yml':'jobs:\n  a:\n    steps:\n      - run: make\n',
+ };
+ const f=fixture(files);
+ assert.deepEqual(affectedTests(['.github/workflows/deploy.yml'],f),['tests/deploy.test.js'],'its readers only (comments that name the suite run nothing)');
+ for(const w of ['tests','nightly-tests','installer','runs','selector'])assert.equal(affectedTests([`.github/workflows/${w}.yml`],f),'ALL',w+' runs the unit suite');
+ assert.equal(affectedTests(['.github/workflows/unread.yml'],f),'ALL','a workflow no test reads is unowned');
+ assert.equal(affectedTests(['.github/workflows/gone.yml'],f),'ALL','one that cannot be read (deleted, renamed away) stays test infrastructure');
+});

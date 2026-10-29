@@ -308,3 +308,13 @@ test('source scans read literal catalogues: no longer run for every change, stil
   // a file added to a catalogued directory selects the catalogue's check, which fails until it is regenerated
   for (const added of ['src/story/new-world-data.js', 'src/temples/new-data.js', 'src/levels/new-world.js', 'src/new.css', 'engine/new.js'])
     assert.ok(affectedTests([added], { root, files: inventory, tests: ['tests/test-catalogs.test.js'], analysisCache, syntax, read, exists }).includes('tests/test-catalogs.test.js'), added);
+});
+
+test('deploy-only workflows select their readers; the ones that run the unit suite select everything', () => {
+  for (const [workflow, reader] of [['deploy.yml', 'tests/ci-test-plan.test.js'], ['steam-deck.yml', 'tests/deck-runtime.test.js'], ['unity-android.yml', 'tests/unity-ci.test.js'], ['android.yml', 'tests/android-ota.test.js']]) {
+    assert.deepEqual(selection('.github/workflows/' + workflow), [witness], workflow + ' does not reach motion QC');
+    assert.ok(selection('.github/workflows/' + workflow, reader).includes(reader), reader + ' reads ' + workflow);
+  }
+  // (Tests and the daily run, the Xbox installer that calls Tests, Cloudflare's job that runs node --test)
+  for (const workflow of ['tests.yml', 'nightly-tests.yml', 'xbox.yml', 'cloudflare.yml']) assert.equal(selection('.github/workflows/' + workflow), 'ALL', workflow);
+});

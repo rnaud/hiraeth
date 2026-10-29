@@ -11,8 +11,20 @@ import { boundedGameInputs, GAME_ADAPTER, CONTRACT_FILE, boundedAudioInputs, AUD
 import { parseAst } from 'rolldown/parseAst'; // Vite's version is pinned by package-lock.json.
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SHARED = /^(package(?:-lock)?\.json$|\.githooks\/|\.github\/workflows\/|scripts\/(?:affected-tests|test-dependency-bindings|test-loader-contract|test-shards|test-file-times)\.mjs$)/;
+const SHARED = /^(package(?:-lock)?\.json$|\.githooks\/|scripts\/(?:affected-tests|test-dependency-bindings|test-loader-contract|test-shards|test-file-times)\.mjs$)/;
 const JS = /\.(?:js|mjs|cjs)$/;
+// A workflow is test infrastructure (an edit runs everything) when it runs the unit suite: Tests itself, or one that
+// calls it, runs node --test, or the selector, the plan or the shard runner (comments aside). A deploy-only workflow
+// is an ordinary file: the tests that read it are selected, and one no test reads still selects everything as unowned.
+// Unreadable (deleted, renamed away) stays test infrastructure.
+const WORKFLOW = /^\.github\/workflows\/[^/]+\.ya?ml$/;
+const RUNS_TESTS = /^\s*uses:\s*\.\/\.github\/workflows\/(?:tests|nightly-tests)\.ya?ml\b|\bnode\b[^\n]*\s--test\b|affected-tests|ci-test-plan|run-test-shard|test-shards|test-file-times|\.githooks/m;
+export function testWorkflow(f, read) {
+  if (/^\.github\/workflows\/(?:tests|nightly-tests)\.ya?ml$/.test(f)) return true;
+  let text; try { text = read(f); } catch { return true; }
+  if (typeof text !== 'string') return true;
+  return RUNS_TESTS.test(text.split('\n').filter((l) => !/^\s*#/.test(l)).map((l) => l.replace(/\s#.*$/, '')).join('\n'));
+}
 const clean = f => posix.normalize(f.replaceAll('\\', '/'));
 const local = f => !f.startsWith('../') && !posix.isAbsolute(f);
 const walk = (n, fn) => { if (!n || typeof n !== 'object') return; if (n.type) fn(n); for (const [k,v] of Object.entries(n)) if (!['start','end','loc'].includes(k)) { if (Array.isArray(v)) v.forEach(x=>walk(x,fn)); else if (v && typeof v==='object') walk(v,fn); } };
@@ -244,7 +256,8 @@ export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,
   const touched=[...new Set(changed.map(clean))];
   if(diagnostics)Object.assign(diagnostics,{changed:touched,tests:{},fallbacks:[],unmatched:[]});
   if(!touched.length)return [];
-  if(touched.some(f=>!local(f)) || touched.some(f=>SHARED.test(f) || (f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE))){if(diagnostics)diagnostics.fallbacks.push({reason:'global-policy',outside:touched.filter(f=>!local(f)),shared:touched.filter(f=>SHARED.test(f)||(f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE))});return 'ALL';}
+  const shared=f=>SHARED.test(f)||f===CONTRACT_FILE||f===AUDIO_CONTRACT_FILE||WORKFLOW.test(f)&&testWorkflow(f,read);
+  if(touched.some(f=>!local(f)) || touched.some(shared)){if(diagnostics)diagnostics.fallbacks.push({reason:'global-policy',outside:touched.filter(f=>!local(f)),shared:touched.filter(shared)});return 'ALL';}
   const all=tests??readdirSync(join(root,'tests')).filter(f=>f.endsWith('.test.js')).map(f=>'tests/'+f);
   const cache=new Map(),matched=new Set();
   const analyze=(f,text,{explain=false}={})=>{
@@ -344,7 +357,7 @@ export function gitSelection({root=ROOT,base,head,staged=false,all=false,diagnos
     const read=f=>{
       if(!texts){
         texts=new Map(); // Cache failure too: never repeat a failed bulk read for each test.
-        const paths=files.filter(f=>JS.test(f)||(f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE));
+        const paths=files.filter(f=>JS.test(f)||WORKFLOW.test(f)||(f===CONTRACT_FILE || f===AUDIO_CONTRACT_FILE));
         if(paths.some(f=>/[\r\n]/.test(f)))throw Error('Unsupported newline in source path');
         const specs=paths.map(f=>ref?ref+':'+f:':'+f);
         const out=execFileSync('git',['cat-file','--batch'],{cwd:root,input:specs.join('\n')+'\n',maxBuffer:256*1024*1024});
