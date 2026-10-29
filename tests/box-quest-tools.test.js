@@ -4,7 +4,8 @@
 // it; the tool's coming offers it. Every little chest of every world on the route, run through the boxes' own quests.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+// (src/story/ through its literal catalogue, checked against the directory: tests/test-catalogs.test.js)
+import * as storySources from './catalogs/story-sources.js';
 import * as THREE from 'three';
 import './register-gadgets.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
@@ -107,10 +108,10 @@ test('no box quest is given or offered while its tool is missing; the tool’s c
 test('nobody’s line points at a little chest before its tool is yours (issue #557)', () => {
   // a line that speaks of one box (its condition names the box's flag) also asks for that box's tool
   const files = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'underwater', 'incal', 'glassdunes', 'buried', 'moonfoundry', 'spheres', 'spacecity', 'bazaar']
-    .map((w) => `src/story/${w}-data.js`).filter((f) => { try { readFileSync(new URL(`../${f}`, import.meta.url)); return true; } catch { return false; } });
+    .map((w) => `${w}-data.js`).filter((f) => storySources.files.includes(f));   // (those there are: src/story/'s literal catalogue)
   let seen = 0;
   for (const f of files) {
-    const lines = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8').split('\n');
+    const lines = storySources.source(f).split('\n');
     lines.forEach((line, n) => {
       if (/^\s*\/\//.test(line)) return;
       for (const p of LITTLE) {

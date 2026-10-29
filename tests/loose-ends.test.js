@@ -46,8 +46,8 @@ test('the Lodestar: fading all Nima’s life, and going out since the night the 
 // names the night by what it saw, the temple guides too (issue #119: the Whale-House's, the Hush-House's, the
 // Engine-House's and the Undertower's said it). Every string in the worlds' data and the temples', comments aside.
 test('only the City-Shaft says “the night the sky rang”, its temple guide included', async () => {
-  const { readdirSync } = await import('node:fs');
-  const SRC = new URL('../src/', import.meta.url);
+  // (src/story/ and src/temples/ through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+  const storyData = await import('./catalogs/story-data-modules.js'), templeData = await import('./catalogs/temples-data-modules.js');
   const strings = (v, out = []) => {
     if (typeof v === 'string') out.push(v);
     else if (Array.isArray(v)) v.forEach((x) => strings(x, out));
@@ -55,14 +55,14 @@ test('only the City-Shaft says “the night the sky rang”, its temple guide in
     return out;
   };
   const files = [
-    ...readdirSync(new URL('story/', SRC)).filter((x) => /-(data|people)\.js$/.test(x)).map((x) => `story/${x}`),
-    ...readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
+    ...storyData.files.filter((x) => /-(data|people)\.js$/.test(x)).map((x) => `story/${x}`),
+    ...templeData.files.filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
   ];
   assert.ok(files.includes('temples/underwater-data.js'));
   const bad = [];
   for (const f of files) {
     if (/\/incal-data\.js$/.test(f)) continue;   // (the City-Shaft's own)
-    const m = await import(new URL(f, SRC));
+    const m = await (f.startsWith('story/') ? storyData.load(f.slice('story/'.length)) : templeData.load(f.slice('temples/'.length)));
     // (the rumours' lines are by world: the City-Shaft's are its own, issue #340)
     const vals = /rumours-data\.js$/.test(f) ? Object.values(m).map((v) => (v?.incal ? { ...v, incal: null } : v)) : Object.values(m);
     for (const s of strings(vals)) if (/sky rang/i.test(s)) bad.push(`${f}: ${s.slice(0, 80)}`);

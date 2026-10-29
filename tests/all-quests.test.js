@@ -2,27 +2,33 @@
 // world defines must be in it, the temples' (built at run time from their words) and the Lantern's included.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { ALL_QUESTS } from '../src/story/all-quests.js';
 import { questsData } from '../src/game-menu-data.js';
+// (src/story/ and src/temples/ through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storySources from './catalogs/story-sources.js';
+import * as storyModules from './catalogs/story-modules.js';
+import * as templeSources from './catalogs/temples-sources.js';
 
 const ids = new Set(ALL_QUESTS.map((q) => q.id));
-const src = new URL('../src/', import.meta.url);
+const HANGAR = 'levels/dismissed/hangar/story-data.js';
+const text = (f) => (f === HANGAR ? readFileSync(new URL('../src/levels/dismissed/hangar/story-data.js', import.meta.url), 'utf8') : storySources.source(f.slice('story/'.length)));
+const load = (f) => (f === HANGAR ? import('../src/levels/dismissed/hangar/story-data.js') : storyModules.load(f.slice('story/'.length)));
 
 test('every module that exports QUESTS has all of them in ALL_QUESTS', async () => {
-  const files = [...readdirSync(new URL('story/', src)).map((f) => `story/${f}`), 'levels/dismissed/hangar/story-data.js']
-    .filter((f) => f.endsWith('.js') && f !== 'story/people-book.js' && /export const QUESTS\b/.test(readFileSync(new URL(f, src), 'utf8')));
+  const files = [...storySources.files.map((f) => `story/${f}`), HANGAR]
+    .filter((f) => f.endsWith('.js') && f !== 'story/people-book.js' && /export const QUESTS\b/.test(text(f)));
   assert.ok(files.length >= 16, files.join());
   for (const f of files) {
-    const { QUESTS } = await import(new URL(f, src));
+    const { QUESTS } = await load(f);
     for (const q of QUESTS) assert.ok(ids.has(q.id), `${q.id} (${f}) is not in ALL_QUESTS`);
   }
 });
 
 test('every temple quest is in ALL_QUESTS', () => {
-  const files = readdirSync(new URL('temples/', src)).filter((f) => f.endsWith('-data.js'));
+  const files = templeSources.files.filter((f) => f.endsWith('-data.js'));
   for (const f of files) {
-    const m = readFileSync(new URL(`temples/${f}`, src), 'utf8').match(/export const QUEST = \{\s*id: '([^']+)'/);
+    const m = templeSources.source(f).match(/export const QUEST = \{\s*id: '([^']+)'/);
     assert.ok(m, f);
     assert.ok(ids.has(m[1]), `${m[1]} (${f}) is not in ALL_QUESTS`);
   }

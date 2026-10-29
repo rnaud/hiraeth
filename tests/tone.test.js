@@ -2,7 +2,10 @@
 // voice (src/story/voice.js) says each tone, world and speaker differently.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+import * as storySources from './catalogs/story-sources.js';
+import * as levelSources from './catalogs/levels-sources.js';
 import { TONES, parseLine, inferTone, stripTone, UNTAGGED } from '../src/story/tone.js';
 import { planLine, contourOf, voiceOf, LANGUAGES, CALL_VOICES, TONE_SHAPES, REVEAL_CPS, revealAt } from '../src/story/voice.js';
 import { SCRIPTS } from '../src/story/scripts.js';
@@ -13,10 +16,9 @@ const npc = await import('../src/npc.js');
 const { callLines, PROLOGUE_CALL, CALL_COUNT, ILEN_CALL, TRACE_CALL, ILEN_AFTER_CALL } = await import('../src/story/calls.js');
 const { tombLines, tokenList, TOKEN_ITEMS, choiceLines, ilenOnChoices } = await import('../src/story/ending.js');
 
-const SRC = new URL('../src/', import.meta.url);
-const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data.js'));
-const LEVELS = readdirSync(new URL('levels/', SRC)).filter((f) => f.endsWith('.js'));
-const STORY = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('.js') && !f.endsWith('-data.js'));
+const DATA = storyData.files.filter((f) => f.endsWith('-data.js'));
+const LEVELS = levelSources.files.filter((f) => f.endsWith('.js'));
+const STORY = storySources.files.filter((f) => f.endsWith('.js') && !f.endsWith('-data.js'));
 const SPOKEN_LISTS = /LINES|MURMURS|_TALK/;
 const NOT_SPOKEN = new Set(['QUESTS', 'ITEMS', 'KEEPSAKE', 'MACHINES', 'SOUNDS', 'STAGE_MIGRATION', 'STAGE_MERGE', 'SIGNAL', 'CAIRN_STONES', 'BOARD_GLYPH']);
 
@@ -71,7 +73,7 @@ test('tones: a tag, an object, or punctuation; tags never show', () => {
 test('every conversation, balloon and crowd line in the story data is tagged with a tone', async () => {
   let total = 0;
   for (const f of DATA) {
-    const m = await import(new URL(`story/${f}`, SRC));
+    const m = await storyData.load(f);
     const list = [];
     for (const [k, v] of Object.entries(m)) {
       if (NOT_SPOKEN.has(k)) continue;
@@ -91,7 +93,7 @@ test('every level’s people, errands and crowd lines are tagged', async () => {
   collect(ERRANDS, 'ERRANDS', list);
   // crowd lines written straight into a level's builder (e.g. bazaar.js): read from the source
   for (const f of LEVELS) {
-    const src = readFileSync(new URL(`levels/${f}`, SRC), 'utf8');
+    const src = levelSources.source(f);
     for (const m of src.matchAll(/crowdLines:\s*\[([^\]]*)\]/g)) for (const s of m[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)) list.push([`${f}:crowdLines`, s[1]]);
   }
   for (const k of ['STARTLE_LINES', 'SPLASH_LINES', 'SHOVE_LINES', 'SINGE_LINES', 'GREET_LINES']) crowd[k].forEach((s, i) => list.push([`crowd.${k}[${i}]`, s]));
@@ -103,7 +105,7 @@ test('every level’s people, errands and crowd lines are tagged', async () => {
 test('the story scripts’ own shouts and balloon lines are tagged (source scan)', () => {
   const bad = [];
   for (const f of STORY) {
-    const src = readFileSync(new URL(`story/${f}`, SRC), 'utf8');
+    const src = storySources.source(f);
     const pats = [/shout = \{ text: ([^,]+?), until/g, /\bsay\(\w+(?:\.\w+)*, ('(?:[^'\\]|\\.)*')/g, /\.lines = \[([^\]]*)\]/g, /const line = [^;]*?\? ('(?:[^'\\]|\\.)*')/g];
     for (const re of pats) for (const m of src.matchAll(re)) {
       for (const s of m[1].replace(/[!=]== '[^']*'/g, '').matchAll(/'((?:[^'\\]|\\.)*)'/g)) if (!parseLine(s[1]).explicit) bad.push(`${f}: ${s[1]}`);

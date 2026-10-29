@@ -1,7 +1,8 @@
 // Hearts, the magic bar and the potions (src/resources.js; docs/systems/items.md "Hearts, magic and potions").
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import * as templeSources from './catalogs/temples-sources.js';
 import { HEARTS, MAGIC, MAGIC_COST, MAGIC_ITEMS, POTION, DAMAGE, HIT, quarters, strikeDamage, sparing, heartsOf, meetsWith, Resources, RES_VERSION } from '../src/resources.js';
 import { GameState } from '../src/game-state.js';
 import { migrateFlags, MIGRATED } from '../src/save-migrate.js';
@@ -40,10 +41,10 @@ test('the damage table: every foe and guardian attack in whole quarters, ordinar
   assert.equal(FOES.blot.attacks.find((a) => a.id === 'lunge').damage, DAMAGE.blow, 'the ink blot\'s lunge: the baseline');
   assert.equal(FOES.machine.attacks.find((a) => a.id === 'slam').damage, DAMAGE.crushing, 'a machine\'s slam: a heart');
   // the guardians' strikes: half a heart (a combo's link, a volley's shard) to a heart
-  const dir = new URL('../src/temples/', import.meta.url);
   let n = 0;
-  for (const f of readdirSync(dir).filter((x) => x.endsWith('.js'))) {
-    for (const m of src(`src/temples/${f}`).matchAll(/wind: [\d.]+,[^}]*?damage: ([\d.]+)/g)) {
+  // (src/temples/ through its literal catalogue, checked against the directory: tests/test-catalogs.test.js)
+  for (const f of templeSources.files.filter((x) => x.endsWith('.js'))) {
+    for (const m of templeSources.source(f).matchAll(/wind: [\d.]+,[^}]*?damage: ([\d.]+)/g)) {
       const d = +m[1]; n++;
       assert.ok(d >= DAMAGE.blow && d <= DAMAGE.crushing && d * 4 === Math.round(d * 4), `${f}: a guardian strike of ${d} hearts`);
     }

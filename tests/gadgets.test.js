@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import { readFileSync } from 'node:fs';
+import * as gadgetSources from './catalogs/gadgets-sources.js';
 import * as THREE from 'three';
 import { GADGETS, registerGadget, checkGadget, nextGadget, wheelSlot, gadgetById } from '../src/gadgets/registry.js';
 import hook, { HOOK, reelTarget, reelVelocity, inReach } from '../src/gadgets/hook.js';
@@ -41,11 +43,10 @@ function player(at = v()) {
 // ------------------------------------------------------------------ the registry
 
 test('every module in src/gadgets with a default export is a whole gadget, and becomes an item with a model', () => {
-  const dir = new URL('../src/gadgets/', import.meta.url);
-  const files = readdirSync(dir).filter((f) => f.endsWith('.js') && f !== 'all.js');
+  const files = gadgetSources.files.filter((f) => f.endsWith('.js') && f !== 'all.js');
   let n = 0;
   for (const f of files) {
-    const src = readFileSync(new URL(f, dir), 'utf8');
+    const src = gadgetSources.source(f);
     if (!/export default/.test(src)) continue;
     n++;
     assert.match(src, /create\(ctx\)/, `${f}: create(ctx)`);
@@ -62,7 +63,7 @@ test('every module in src/gadgets with a default export is a whole gadget, and b
     assert.ok(Math.max(size.x, size.y, size.z) < 0.6, `${g.id}'s model is item-sized`);
   }
   // all.js finds them by their default export (Vite's import.meta.glob), nothing keeps a list
-  assert.match(readFileSync(new URL('all.js', dir), 'utf8'), /import\.meta\.glob\(\['\.\/\*\.js', '!\.\/all\.js'\], \{ eager: true \}\)/);
+  assert.match(gadgetSources.source('all.js'), /import\.meta\.glob\(\['\.\/\*\.js', '!\.\/all\.js'\], \{ eager: true \}\)/);
 });
 
 test('a bad gadget is refused; registering keeps the order and replaces an id given again', () => {

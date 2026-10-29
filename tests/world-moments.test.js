@@ -3,7 +3,10 @@
 // once per save and skippable (src/story/moment.js; each world's own test plays it: tests/moments-<world>.test.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyModules from './catalogs/story-modules.js';
+import * as storySources from './catalogs/story-sources.js';
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
@@ -11,7 +14,7 @@ globalThis.document ??= { createElement: el, body: el(), getElementById: () => n
 const { WORLD_MOMENTS, momentDef } = await import('../src/story/film.js');
 const { ORDER } = await import('../src/levels/names.js');
 const { Moment } = await import('../src/story/moment.js');
-const src = (f) => readFileSync(new URL(`../src/story/${f}`, import.meta.url), 'utf8');
+const src = (f) => storySources.source(f);
 
 test('every route world has its climax filmed, registered once', () => {
   const ids = new Set(), flags = new Set();
@@ -29,8 +32,8 @@ test('every route world has its climax filmed, registered once', () => {
 test('each world’s module plays its moments with the registry’s id and flag, and its story calls it', async () => {
   for (const w of ORDER.filter((x) => x !== 'desert')) {
     const file = `${w}-moments.js`;
-    assert.ok(existsSync(new URL(`../src/story/${file}`, import.meta.url)), file);
-    const mod = await import(`../src/story/${file}`);
+    assert.ok(storyModules.files.includes(file), file);
+    const mod = await storyModules.load(file);
     assert.deepEqual(mod.MOMENTS.map((m) => [m.id, m.flag]), WORLD_MOMENTS[w].map((m) => [m.id, m.flag]), `${w}: as registered`);
     const code = src(file);
     for (const m of WORLD_MOMENTS[w]) {

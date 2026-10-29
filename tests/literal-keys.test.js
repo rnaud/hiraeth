@@ -4,7 +4,9 @@
 // literal, in Xbox / PlayStation form.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as gadgetSources from './catalogs/gadgets-sources.js';
+import * as storySources from './catalogs/story-sources.js';
 import { ITEMS } from '../src/items.js';
 import { CONTROLS } from '../src/trials/index.js';
 import { keyText } from '../src/prompt-keys.js';
@@ -22,9 +24,8 @@ test('the item and gadget cards name no literal keys', () => {
       assert.doesNotMatch(s, KEYS, `${id}.${f}`);
     }
   }
-  const dir = new URL('../src/gadgets/', import.meta.url);
-  for (const f of readdirSync(dir).filter((f) => f.endsWith('.js'))) {
-    for (const m of readFileSync(new URL(f, dir), 'utf8').matchAll(/^\s+text: (?:ITEMS\.\w+\?\.text \?\? )?'([^']*)'/gm)) {
+  for (const f of gadgetSources.files.filter((f) => f.endsWith('.js'))) {
+    for (const m of gadgetSources.source(f).matchAll(/^\s+text: (?:ITEMS\.\w+\?\.text \?\? )?'([^']*)'/gm)) {
       assert.doesNotMatch(m[1], PAD, f); assert.doesNotMatch(m[1], KEYS, f);
     }
   }
@@ -48,9 +49,8 @@ test('the trials’ start cards name their inputs as verbs', () => {
 });
 
 test('the story’s notices and toasts name no literal pad buttons', () => {
-  const dir = new URL('../src/story/', import.meta.url);
-  for (const f of readdirSync(dir).filter((f) => f.endsWith('.js'))) {
-    const src = readFileSync(new URL(f, dir), 'utf8');
+  for (const f of storySources.files.filter((f) => f.endsWith('.js'))) {
+    const src = storySources.source(f);
     for (const m of src.matchAll(/\b(?:toast|notice|once)\??\.?\(\s*(?:'[^']*',\s*)?(['"`])((?:(?!\1).)*)\1/g)) {
       assert.doesNotMatch(m[2], PAD, `${f}: ${m[2].slice(0, 60)}`);
     }

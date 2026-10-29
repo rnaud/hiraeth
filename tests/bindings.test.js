@@ -2,8 +2,9 @@
 // context, the controller doing what the table says, and every prompt in the game naming the new buttons.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
 import { Controller } from '../src/controller.js';
 import { BINDINGS, FREE, PAD, PAD_VERBS } from '../src/bindings.js';
 
@@ -95,15 +96,8 @@ test('menus, talking and photo mode follow the table (Xbox faces; a Retroid swap
 
 // ------------------------------------------------------------------ the prompts
 
-function files(dir, out = []) {
-  for (const f of readdirSync(dir)) {
-    const p = join(dir, f);
-    if (statSync(p).isDirectory()) files(p, out);
-    else if (/\.(js|html)$/.test(f)) out.push(p);
-  }
-  return out;
-}
-const ROOT = new URL('..', import.meta.url).pathname;
+/** The .js and .html files under src/ and index.html: [path from the repository root, its text] (tests/src-tree.js). */
+const files = () => [...srcPaths(/\.(js|html)$/).map((p) => [p, () => srcText(p)]), ['index.html', () => readFileSync(new URL('../index.html', import.meta.url), 'utf8')]];
 // (the changelog keeps its old lines as they were released; the motion lab is a dev page with its own keys)
 const SKIP = /src\/(changelog|changelog-media)\.js$|src\/motion\//;
 const STALE = [
@@ -132,10 +126,10 @@ const STALE = [
 
 test('every prompt names the buttons of the new layout', () => {
   const bad = [];
-  for (const f of [...files(join(ROOT, 'src')), join(ROOT, 'index.html')]) {
+  for (const [f, read] of files()) {
     if (SKIP.test(f)) continue;
-    const lines = readFileSync(f, 'utf8').split('\n');
-    lines.forEach((line, i) => { for (const [re, why] of STALE) if (re.test(line)) bad.push(`${f.slice(ROOT.length)}:${i + 1} ${why}: ${line.trim().slice(0, 120)}`); });
+    const lines = read().split('\n');
+    lines.forEach((line, i) => { for (const [re, why] of STALE) if (re.test(line)) bad.push(`${f}:${i + 1} ${why}: ${line.trim().slice(0, 120)}`); });
   }
   assert.deepEqual(bad, []);
 });
@@ -155,9 +149,9 @@ test('the Controls page names every verb\'s button, and the interact prompt is X
   assert.ok(L.pad.some(([what, how]) => /^Lock on to a foe/.test(what) && how.includes('R3') && /camera behind you/.test(what)), 'R3: the lock, nothing else');
   assert.ok(L.pad.some(([what, how]) => /^Bell-note whistle/.test(what) && how === 'Y / △'));
   assert.ok(L.pad.some(([what, how]) => /^Jets/.test(what) && how.startsWith('hold A / × in the air')));
-  const main = readFileSync(join(ROOT, 'src/main.js'), 'utf8');
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /name === 'call' && quickMenu\) quickMenu\.toggle\(true\)/, 'a level\'s quick menu (the Arena\'s foes, the Arcade\'s board, the References\' views) keeps D-pad ↓: no mount there');
   assert.match(main, /name === 'potion'\) drinkPotion\(\)/, 'D-pad ← drinks');
-  const story = readFileSync(join(ROOT, 'src/story/index.js'), 'utf8');
+  const story = readFileSync(new URL('../src/story/index.js', import.meta.url), 'utf8');
   assert.match(story, /key: controller \? PAD\.interact : 'E'/);
 });

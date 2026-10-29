@@ -2,7 +2,9 @@
 // father's signal, written down as it is met and kept in the save; the game menu's page of them.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storySources from './catalogs/story-sources.js';
+import * as levelSources from './catalogs/levels-sources.js';
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
@@ -50,7 +52,7 @@ test('every sighting is in a thread, unique, short, and every route world has so
 
 test('every route sighting is keyed on a real line: the person, the node, the words', async () => {
   const people = await everyone();
-  const src = readdirSync(new URL('../src/story/', import.meta.url)).filter((f) => f.endsWith('.js')).map((f) => readFileSync(new URL(`../src/story/${f}`, import.meta.url), 'utf8')).join('\n');
+  const src = storySources.files.filter((f) => f.endsWith('.js')).map((f) => storySources.source(f)).join('\n');
   for (const s of SIGHTINGS) {
     if (s.flag) { assert.ok(src.includes(`'${s.flag}'`), `${s.id}: its flag ${s.flag} is set by the story`); continue; }
     if (!s.heard) continue;   // (a detour's: its own flag)
@@ -140,8 +142,8 @@ test('the page counts only traces that can be met: none in a world still being m
     assert.ok(ROUTE_PARTS.includes(s.world) || Object.hasOwn(SUBS, s.world), `${s.id}: in a route world or one reached from it`);
   }
   // the detour traces still to be met: the Overnight Train's chalk mark, met by its own flag in its world's content
-  const read = (dir) => readdirSync(new URL(`../src/${dir}/`, import.meta.url)).filter((f) => f.endsWith('.js') && !f.startsWith('sightings')).map((f) => readFileSync(new URL(`../src/${dir}/${f}`, import.meta.url), 'utf8'));
-  const where = [...read('story'), ...read('levels')].join('\n');
+  const read = (sources) => sources.files.filter((f) => f.endsWith('.js') && !f.startsWith('sightings')).map((f) => sources.source(f));
+  const where = [...read(storySources), ...read(levelSources)].join('\n');
   for (const s of counted.filter((x) => !x.heard && !x.flag)) assert.ok(where.includes(`sight.${s.id}`) || where.includes(`'${s.id}'`), `${s.id}: something in its world sets sight.${s.id}`);
 });
 

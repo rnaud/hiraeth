@@ -4,11 +4,11 @@
 // node, tries every combination of the conditions its choices depend on.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
 import { check } from '../src/story/dialogue.js';
+// (src/story/ and src/temples/ through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
 
-const SRC = new URL('../src/', import.meta.url);
-const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data.js'));
+const DATA = storyData.files.filter((f) => f.endsWith('-data.js'));
 const { CONTENT } = await import('../src/levels/content.js');
 
 /** Every talk tree under a value: [where, talk]. */
@@ -24,7 +24,7 @@ function trees(v, where, out = [], seen = SEEN) {
 const QUEST_STAGES = new Map();
 const ALL = [];
 for (const f of DATA) {
-  const m = await import(new URL(`story/${f}`, SRC));
+  const m = await storyData.load(f);
   for (const q of m.QUESTS ?? []) QUEST_STAGES.set(q.id, q.stages.map((s) => s.id));
   for (const [k, v] of Object.entries(m)) if (k !== 'QUESTS') trees(v, `${f}:${k}`, ALL);
 }

@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyDataModules from './catalogs/story-data-modules.js';
+import * as templeData from './catalogs/temples-data-modules.js';
+import * as storySources from './catalogs/story-sources.js';
+import * as templeSources from './catalogs/temples-sources.js';
+import * as levelSources from './catalogs/levels-sources.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
 import { NOTICE_CHARS } from '../src/temples/boss.js';
 
@@ -10,12 +16,15 @@ import { NOTICE_CHARS } from '../src/temples/boss.js';
 // (.claude/skills/quest-qc/check.mjs lists them all, with the other checks.)
 const MAX = 9;
 const words = (s) => (String(s).match(/[\p{L}\p{N}’'-]+/gu) ?? []).length;
-const SRC = new URL('../src/', import.meta.url);
+const DATA = { 'story/': storyDataModules, 'temples/': templeData };
+const SOURCES = { story: storySources, temples: templeSources, levels: levelSources };
+/** A source under src/ by its path there (story/…, temples/…, levels/…, and the boxes' placements). */
+const text = (f) => (f === 'boxes/placements.js' ? readFileSync(new URL('../src/boxes/placements.js', import.meta.url), 'utf8') : SOURCES[f.slice(0, f.indexOf('/'))].source(f.slice(f.indexOf('/') + 1)));
 
 test('every quest step in the story data is one short line, no buttons named', async () => {
   let n = 0;
-  for (const f of readdirSync(new URL('story/', SRC)).filter((x) => /-(data|people)\.js$/.test(x))) {
-    const m = await import(new URL(`story/${f}`, SRC));
+  for (const f of storyDataModules.files.filter((x) => /-(data|people)\.js$/.test(x))) {
+    const m = await storyDataModules.load(f);
     for (const q of m.QUESTS ?? []) for (const s of q.stages) {
       n++;
       assert.ok(words(s.text) <= MAX, `${q.id}.${s.id}: “${s.text}” (${words(s.text)} words)`);
@@ -28,8 +37,8 @@ test('every quest step in the story data is one short line, no buttons named', a
 });
 
 test('the temples’ steps and the makers’ boxes’ are short too', async () => {
-  for (const f of readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x))) {
-    const { QUEST } = await import(new URL(`temples/${f}`, SRC));
+  for (const f of templeData.files.filter((x) => /-data\.js$/.test(x))) {
+    const { QUEST } = await templeData.load(f);
     if (!QUEST) continue;
     for (const k of ['find', 'gadget', 'keeper']) if (QUEST[k]) assert.ok(words(QUEST[k]) <= MAX, `${f} ${k}: “${QUEST[k]}”`);
     if (QUEST.use?.text) assert.ok(words(QUEST.use.text) <= MAX, `${f} use: “${QUEST.use.text}”`);
@@ -43,7 +52,7 @@ test('the temples’ steps and the makers’ boxes’ are short too', async () =
 const PERSON_VERB = /^(Ask|Talk to|Speak (?:to|with)|Go and (?:see|ask)|Meet|See|Find|Visit|Go (?:back )?(?:down |up )?to)\s+(.+)/;
 async function storyData() {
   const out = [];
-  for (const f of readdirSync(new URL('story/', SRC)).filter((x) => /-(data|people)\.js$/.test(x))) out.push([f, await import(new URL(`story/${f}`, SRC))]);
+  for (const f of storyDataModules.files.filter((x) => /-(data|people)\.js$/.test(x))) out.push([f, await storyDataModules.load(f)]);
   return out;
 }
 /** Every person's name in the story data (Sister Aube, Brother Calix, Madame Sel, Wen…). */
@@ -73,12 +82,12 @@ test('no quest step sends you to a person: no “Ask Hask”, “Find Brother Ca
 
 test('no line ends by sending you on: no “Ask her.”, no “go and ask X” (issue #118)', () => {
   const files = [
-    ...readdirSync(new URL('story/', SRC)).filter((x) => /-(data|people)\.js$/.test(x)).map((x) => `story/${x}`),
-    ...readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
+    ...storySources.files.filter((x) => /-(data|people)\.js$/.test(x)).map((x) => `story/${x}`),
+    ...templeSources.files.filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
   ];
   const bad = [];
   for (const f of files) {
-    for (const [i, line] of readFileSync(new URL(f, SRC), 'utf8').split('\n').entries()) {
+    for (const [i, line] of text(f).split('\n').entries()) {
       if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;   // (comments)
       if (/\b[Aa]sk (her|him|them)\b|\b[Gg]o (and )?(ask|talk to|see) [A-Z]/.test(line)) bad.push(`${f}:${i + 1}: ${line.trim().slice(0, 90)}`);
     }
@@ -96,7 +105,7 @@ test('in the Moon Foundry, the City Floating in Space and the Underwater City no
   const bad = [];
   let n = 0;
   for (const [world, f] of Object.entries(NEW_WORLDS)) {
-    const m = await import(new URL(`story/${f}`, SRC)), T = await import(new URL(`temples/${world}-data.js`, SRC));
+    const m = await storyDataModules.load(f), T = await templeData.load(`${world}-data.js`);
     const who = new Set([...Object.keys(m.PEOPLE ?? {}), ...Object.keys(m.VISITORS ?? {}), ...Object.keys(T.PEOPLE ?? {})]);
     assert.ok(who.size >= 4, `${world}: ${[...who]}`);
     const talk = (s) => !!(s.talk || who.has(s.at) || (s.bring && who.has(s.to)));
@@ -183,9 +192,9 @@ test('no quest ends carrying one person’s answer back to another (issue #279)'
 // under the tree”, “X sits by it” after the place. A line where talking to the person is itself the goal (Nour calling
 // you over) or the traveller's own answer is on the allow-list.
 const POINTER_FILES = () => [
-  ...readdirSync(new URL('levels/', SRC)).filter((x) => x.endsWith('.js')).map((x) => `levels/${x}`),
-  ...readdirSync(new URL('story/', SRC)).filter((x) => x.endsWith('.js')).map((x) => `story/${x}`),
-  ...readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
+  ...levelSources.files.filter((x) => x.endsWith('.js')).map((x) => `levels/${x}`),
+  ...storySources.files.filter((x) => x.endsWith('.js')).map((x) => `story/${x}`),
+  ...templeSources.files.filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
   'boxes/placements.js',
 ];
 const POINTER_OK = [
@@ -198,8 +207,8 @@ const POINTER_OK = [
 test('no hint or pointer names a person as the way: they say where, not who', async () => {
   const names = new Set();
   const look = (v) => { if (v && typeof v === 'object' && typeof v.name === 'string' && (v.talk || v.lines || v.title) && /^\p{Lu}[\p{L}-]*( \p{Lu}[\p{L}-]*)*$/u.test(v.name)) { names.add(v.name); names.add(v.name.split(' ').at(-1)); } };
-  for (const d of ['story/', 'temples/']) for (const f of readdirSync(new URL(d, SRC)).filter((x) => /-(data|people)\.js$/.test(x))) {
-    for (const v of Object.values(await import(new URL(`${d}${f}`, SRC)))) {
+  for (const d of ['story/', 'temples/']) for (const f of DATA[d].files.filter((x) => /-(data|people)\.js$/.test(x))) {
+    for (const v of Object.values(await DATA[d].load(f))) {
       if (Array.isArray(v)) v.forEach(look);
       else if (v && typeof v === 'object') { look(v); for (const w of Object.values(v)) { look(w); if (Array.isArray(w)) w.forEach(look); } }
     }
@@ -216,7 +225,7 @@ test('no hint or pointer names a person as the way: they say where, not who', as
   ];
   const bad = [];
   for (const f of POINTER_FILES()) {
-    for (const [i, line] of readFileSync(new URL(f, SRC), 'utf8').split('\n').entries()) {
+    for (const [i, line] of text(f).split('\n').entries()) {
       if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;   // (comments)
       const strs = line.replace(/\s\/\/ .*$/, '').match(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g) ?? [];
       for (const s of strs) {

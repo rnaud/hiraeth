@@ -5,20 +5,15 @@
 // `for (const t …)` loop, must not call t( in its body.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
+import * as engineSources from './catalogs/engine-sources.js';
 
-const ROOT = join(import.meta.dirname, '..');
 const IMPORTS_T = /import\s*\{[^}]*(?<![\w$])t(?![\w$])(?!\s+as)[^}]*\}\s*from\s*'[^']*i18n(?:\.js)?'/;
 
-function files(dir, out = []) {
-  for (const f of readdirSync(dir)) {
-    const p = join(dir, f);
-    if (statSync(p).isDirectory()) files(p, out);
-    else if (f.endsWith('.js')) out.push(p);
-  }
-  return out;
-}
+/** The .js files under src/ and engine/: [path from the repository root, its text]. */
+const files = () => [...srcPaths(/\.js$/).map((p) => [p, () => srcText(p)]),
+  ...engineSources.files.filter((f) => f.endsWith('.js')).map((f) => ['engine/' + f, () => engineSources.source(f)])];
 
 /** From `i` (just after a header), the body: a { … } block (strings and comments skipped), or the expression to the line's end. */
 function bodyFrom(src, i) {
@@ -67,10 +62,10 @@ test('the scan finds the shape of issue #374', () => {
 
 test('no file that imports i18n\'s t calls a local t in its place', () => {
   const bad = [];
-  for (const f of [...files(join(ROOT, 'src')), ...files(join(ROOT, 'engine'))]) {
-    const src = readFileSync(f, 'utf8');
+  for (const [f, read] of files()) {
+    const src = read();
     if (!IMPORTS_T.test(src)) continue;
-    for (const s of shadowedCalls(src)) bad.push(`${relative(ROOT, f)}:${s.line} ${s.head}`);
+    for (const s of shadowedCalls(src)) bad.push(`${f}:${s.line} ${s.head}`);
   }
   assert.deepEqual(bad, [], 'a local t hides i18n\'s t() (rename the import: import { t as tr })');
 });

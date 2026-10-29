@@ -67,8 +67,9 @@ test('every renderer\'s materials go through it, the copies culling back faces a
   assert.match(renderer, /n\.batched \|\| n\.sidedMesh \|\| !\(n\.r is MeshRenderer\)/, 'the big still meshes\' levels leave a turned one whole (they would change the original, not its copy)');
 });
 
-for (const [who, file] of [['the Xbox\'s', 'Direct3D12.graphicsstate'], ['the Deck\'s', 'Vulkan.graphicsstate']])
-test(`${who} pipeline list holds no Surface G-buffer state BridgeSided no longer draws (scripts/bench/pso-one-cull.mjs)`, () => {
+// (each file named in the loop itself, so the test selector reads which two it reads)
+for (const file of ['Direct3D12.graphicsstate', 'Vulkan.graphicsstate'])
+test(`${file.startsWith('Direct3D12') ? 'the Xbox\'s' : 'the Deck\'s'} pipeline list holds no Surface G-buffer state BridgeSided no longer draws (scripts/bench/pso-one-cull.mjs)`, () => {
   const c = JSON.parse(read(`StreamingAssets/hiraeth-pso/${file}`).replace(/"(first|vertexLayout|renderPass|renderState)": (\d+)/g, '"$1": "$2"'));
   const states = new Map(c.m_RenderStateMap.map((x) => [x.first, x.second.renderState]));
   const sansCull = (r) => JSON.stringify({ ...r, rasterState: { ...r.rasterState, cullMode: 0 } });

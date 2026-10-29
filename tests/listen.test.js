@@ -4,17 +4,18 @@
 // react to what you've done (the temple, the world's main quest).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
 import { DialogueRunner, Dialogue, pickListen, choiceHtml } from '../src/story/dialogue.js';
 import { parseLine } from '../src/story/tone.js';
 
-const SRC = new URL('../src/', import.meta.url);
-const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data.js'));
+// (src/story/ and src/temples/ through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+
+const DATA = storyData.files.filter((f) => f.endsWith('-data.js'));
 const { CONTENT } = await import('../src/levels/content.js');
 const mod = {};
-for (const f of DATA) mod[f.replace('-data.js', '')] = await import(new URL(`story/${f}`, SRC));
+for (const f of DATA) mod[f.replace('-data.js', '')] = await storyData.load(f);
 // (the Sealed Hangar's, dismissed in October 2026, kept with its world: src/levels/dismissed/hangar/)
-mod.garage = await import(new URL('levels/dismissed/hangar/story-data.js', SRC));
+mod.garage = await import('../src/levels/dismissed/hangar/story-data.js');
 
 /** A save and a quest log in a few lines: flags, items (item.<id>) and quests (quest.<id> = stage | 'done'). */
 function world(flags = {}) {

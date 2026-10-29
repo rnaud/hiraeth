@@ -10,10 +10,11 @@
 // Those are listed below, each with its reason; a new one needs its reason too, or a page that names the thing first.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+// (src/story/ and src/temples/ through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+import * as templeData from './catalogs/temples-data-modules.js';
 
-const SRC = new URL('../src/', import.meta.url);
-const DIRS = [['story', /-(data|people)\.js$/], ['temples', /-data\.js$/]];
+const DIRS = [['story', /-(data|people)\.js$/, storyData], ['temples', /-data\.js$/, templeData]];
 
 /** The traveller's own search, known wherever he goes: the light he follows, and the couple who went before him. */
 const HIS_OWN = ['singing light', 'Odile', 'Talo'];
@@ -65,8 +66,8 @@ const said = (word, text) => (word === 'singing' ? /\bsing/i : new RegExp(`(?<!\
 /** Every conversation: [file, who, talk] (who: the speaker's id or key, name). */
 async function conversations() {
   const out = [];
-  for (const [dir, re] of DIRS) for (const f of readdirSync(new URL(`${dir}/`, SRC)).filter((x) => re.test(x))) {
-    const m = await import(new URL(`${dir}/${f}`, SRC));
+  for (const [dir, re, catalogue] of DIRS) for (const f of catalogue.files.filter((x) => re.test(x))) {
+    const m = await catalogue.load(f);
     const seen = new Set();
     const walk = (v, key, owner) => {
       if (!v || typeof v !== 'object' || seen.has(v)) return;

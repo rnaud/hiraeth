@@ -3,7 +3,8 @@
 // and builds only the world it opens on.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import * as levelSources from './catalogs/levels-sources.js';
 import * as THREE from 'three';
 import {
   REFERENCE_WORLDS, firstView, totalViews, worldIndex, locateView, loadWorld, loadedWorld, loadAllWorlds, startOf, findView, viewSearch,
@@ -24,9 +25,9 @@ test('a world is not loaded until asked for, and the sync build needs it loaded'
 test('nothing the game loads imports a world\'s views: only the registry, by dynamic import', () => {
   const ids = REFERENCE_WORLDS.map((w) => w.id);
   const world = new RegExp(`from '\\./reference-(${ids.join('|')})\\.js'`);
-  const dir = new URL('../src/levels/', import.meta.url);
-  for (const f of readdirSync(dir).filter((x) => x.endsWith('.js'))) {
-    const s = readFileSync(new URL(f, dir), 'utf8');
+  // (src/levels/ through its literal catalogue, checked against the directory: tests/test-catalogs.test.js)
+  for (const f of levelSources.files.filter((x) => x.endsWith('.js'))) {
+    const s = levelSources.source(f);
     if (ids.some((id) => f === `reference-${id}.js`)) continue;   // (a world's module may borrow another's pieces)
     assert.ok(!world.test(s), `${f}: imports a world's module statically`);
     if (f !== 'reference-views.js') assert.ok(!/from '\.\/reference-views\.js'/.test(s), `${f}: imports every view (reference-views.js)`);

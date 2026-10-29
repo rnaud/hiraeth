@@ -56,21 +56,20 @@ test('curved ink follows its surface and keeps the gap between the two strokes',
 // (The futuristic skins, src/temples/skins/, are scanned too: they take the shared mark, see below; src/levels/dismissed/
 // is not in the game.)
 test('no source draws the old dots-over-arc mark: every glyph is the shared one', async () => {
-  const { readdirSync, statSync } = await import('node:fs');
-  const { join } = await import('node:path');
-  const root = new URL('../src/', import.meta.url).pathname, files = [];
-  const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) { if (!/^(makers-mark|dismissed)$/.test(f)) walk(p); } else if (p.endsWith('.js')) files.push(p); } };
-  walk(root);
+  // (every .js file under src/ but in a folder named makers-mark or dismissed, from the source's literal catalogue:
+  // tests/src-tree.js)
+  const { srcPaths, srcText } = await import('./src-tree.js');
+  const files = srcPaths(/\.js$/).filter((p) => !p.split('/').slice(1, -1).some((d) => /^(makers-mark|dismissed)$/.test(d)));
   // three dots in a row (x offsets -a, 0, a, or [x, y] pairs), each a disc, a cylinder seen end-on or a sphere
   const dots = /(for \(const [^)]*of |\(\[)\[\s*(\[\s*)?-[\d.]+[^\n]*?\b0\b[^\n]*?(Circle|Cylinder|Sphere)Geometry/;
   const arc = /TorusGeometry\([^\n]*Math\.PI(\s*\*\s*0?\.\d+)?\s*\)/;
   const found = [];
   for (const f of files) {
-    const L = readFileSync(f, 'utf8').split('\n');
+    const L = srcText(f).split('\n');
     for (let i = 0; i < L.length; i++) {
       if (!dots.test(L[i]) || !L.slice(i, i + 3).some((l) => arc.test(l))) continue;
       if (L.slice(Math.max(0, i - 3), i).some((l) => /if \(candidate\)/.test(l))) continue;   // (the review fallback)
-      found.push(`${f.slice(root.length)}:${i + 1}`);
+      found.push(`${f.slice('src/'.length)}:${i + 1}`);
     }
   }
   assert.deepEqual(found, [], 'the old mark is still drawn here');
@@ -104,7 +103,6 @@ test('the temple kit draws the shared mark along its friezes: the Greenhouse, an
 // A skin keeps its colour, glow and setting, never its own shape of the makers' sign: every sign in a skinned house
 // (the frieze, the threshold, the doors' medallions, the cradles' hoods, the bells, the spout slab, the terminals) is
 // the shared glyphGeometry's, found in the built house by its vertex signature (its outline up to size and pose).
-import { readdirSync } from 'node:fs';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TEMPLES as skTEMPLES } from '../src/temples/index.js';
 import { TempleRuntime as SkRuntime } from '../src/temples/runtime.js';
@@ -170,10 +168,10 @@ test('the vertex signature knows the shared mark at any size and pose, and not t
   assert.equal(skMarks(arch).marks.length, 0);
 });
 
-test('no temple skin draws its own sign: each takes the shared makers’ mark (story/sign-text.js glyphGeometry)', () => {
-  const dir = new URL('../src/temples/skins/', import.meta.url);
-  for (const f of readdirSync(dir).filter((f) => f.endsWith('.js'))) {
-    const src = readFileSync(new URL(f, dir), 'utf8');
+test('no temple skin draws its own sign: each takes the shared makers’ mark (story/sign-text.js glyphGeometry)', async () => {
+  const { srcPaths, srcText } = await import('./src-tree.js');
+  for (const p of srcPaths(/^src\/temples\/skins\/[^/]+\.js$/)) {
+    const f = p.slice('src/temples/skins/'.length), src = srcText(p);
     assert.doesNotMatch(src, /function\s+(signGeometry|engineSign|belfrySign|\w*Sign)\s*\(/, `${f} draws a sign of its own`);
     assert.doesNotMatch(src, /candidateGeometry|makers-mark\/candidates\.js/, `${f} picks a mark itself, not the shared glyphGeometry`);
   }

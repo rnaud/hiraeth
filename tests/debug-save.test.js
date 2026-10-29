@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
 
 // (levels/content.js, for the errands, builds nothing at import, but its modules want a page to exist)
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
@@ -18,8 +18,7 @@ const { SlotStore, slotKey, DEBUG_SLOT, SLOT_COUNT } = await import('../src/save
 const { GameState } = await import('../src/game-state.js');
 const { pickHref, alongLine } = await import('../src/world-picker.js');
 
-const SRC = path.join(path.dirname(new URL(import.meta.url).pathname), '../src');
-const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8');
+const read = (f) => srcText('src/' + f);   // (a path within src/)
 const mem = (init = {}) => {
   const m = new Map(Object.entries(init));
   return { m, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
@@ -168,12 +167,10 @@ test('every keepsake the story code gives is kept', () => {
 });
 
 test('every magical water that colours the tank is a band, and the code grants items only from boxes', () => {
-  const files = [];
-  const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (p.endsWith('.js')) files.push(p); } };
-  walk(SRC);
+  const files = srcPaths(/\.js$/);
   const sites = [], grants = [], gives = [];
   for (const f of files) {
-    const src = fs.readFileSync(f, 'utf8').split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n'), rel = path.relative(SRC, f);   // (code, not comments)
+    const src = srcText(f).split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n'), rel = f.slice('src/'.length);   // (code, not comments)
     for (const m of src.matchAll(/emit\('tool:refill',\s*\{\s*addColour(?!\s*:\s*false\b)/g)) sites.push(rel);
     if (/items\.grant\(/.test(src) && rel !== 'items.js') grants.push(rel);
     for (const m of src.matchAll(/quests\.give\('([^']+)'\)/g)) if (ITEMS[m[1]]) gives.push(`${rel}: ${m[1]}`);
@@ -285,7 +282,7 @@ test('into one of the player\'s slots only when chosen: that slot alone is writt
   assert.equal(new GameState(store.view(2)).flag('world.edena.done'), true);
   for (const [k, v] of keep) assert.equal(st.getItem(k), v, `${k} untouched`);
   // (boot passes the slot from the link, then drops it)
-  const boot = fs.readFileSync(path.join(SRC, 'boot.js'), 'utf8');
+  const boot = read('boot.js');
   assert.match(boot, /seedDebugSave\(q\.get\('level'\), \{ state: game, slot: q\.get\(SLOT_PARAM\), legacyLanding: q\.get\('debuglanding'\) === 'legacy' \}\)/);
   assert.match(boot, /q\.delete\(DEBUG_PARAM\); q\.delete\(SLOT_PARAM\);/);
 });
@@ -301,7 +298,7 @@ test('the Saves screen\'s debug saves: every world of the route, marked debug, t
   assert.match(html, /a new journey/); assert.match(html, /1 world done before it/); assert.match(html, new RegExp(`${ORDER.length - 1} worlds done before it`));
   assert.match(debugSavesHtml(2, ORDER, true), /Into: Save 2/);
   assert.deepEqual([nextDebugInto(DEBUG_SLOT), nextDebugInto(1), nextDebugInto(SLOT_COUNT)], [1, 2, DEBUG_SLOT], 'the debug slot, then each of the player\'s, round again');
-  const title = fs.readFileSync(path.join(SRC, 'title.js'), 'utf8');
+  const title = read('title.js');
   assert.match(title, /devMode\(\{ settings \}\) \? `<li class="debug-saves\$\{debugOpen \? ' open' : ''\}">\$\{debugSavesHtml\(debugInto, ORDER, debugOpen\)\}/, 'shown where src/dev-gate.js says, folded or open');
   assert.match(title, /if \(slot !== DEBUG_SLOT && !asked && !store\.summary\(slot\)\.empty\) \{ askDebug\(id, slot\); return; \}/, 'a slot holding a save: asked first');
   assert.match(title, /if \(!store\.holding\) store\.holdWrites\(\);/, 'the game behind the title writes nothing into the slot it was loading');
@@ -322,7 +319,7 @@ test('the Saves screen\'s debug section is one closed "Debug" row until chosen: 
   // the pad's rows: Back, the saves, then whatever buttons the debug section holds (one while folded)
   const fake = { querySelector: (q) => (q === '[data-a="back"]' ? 'back' : null), querySelectorAll: (q) => (assert.equal(q, '.slot, .debug-saves button'), ['s1', 's2', 's3', 'debug']) };
   assert.deepEqual(savesRows(fake), ['back', 's1', 's2', 's3', 'debug']);
-  const title = fs.readFileSync(path.join(SRC, 'title.js'), 'utf8');
+  const title = read('title.js');
   assert.match(title, /else if \(a === 'saves'\) \{ debugOpen = false; show\('saves'/, 'folded each time the screen opens');
   assert.match(title, /else if \(a === 'debug-open'\) \{\s*debugOpen = !debugOpen;\s*renderSaves\(\);/, 'A opens it (and folds it)');
   assert.match(title, /const rows = savesRows\(savesEl\);/);

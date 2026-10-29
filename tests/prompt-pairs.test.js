@@ -5,8 +5,8 @@
 // each kind of pad and for none listed yet (the Steam Deck before its first press showed both halves).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
 import { promptText, padText, pageFamily, platformFamily, familyOf, onSteam, rememberFamily, rememberedFamily, watchLabels, labelState, PAD_FAMILY_KEY } from '../src/native-pad.js';
 import { EN } from '../src/i18n/en.js';
 import { FR } from '../src/i18n/fr.js';
@@ -19,18 +19,11 @@ import { padCue } from '../src/hud-state.js';
 const PAIR_ONLY = /\b[ABXY] ?\/ ?[×○□△]|\b(?:LB ?\/ ?L1|RB ?\/ ?R1|LT ?\/ ?L2|RT ?\/ ?R2)\b/;
 
 // ---- every prompt string
-function walk(dir, out = []) {
-  for (const f of readdirSync(dir)) {
-    const p = join(dir, f);
-    if (statSync(p).isDirectory()) walk(p, out); else if (/\.js$/.test(f)) out.push(p);
-  }
-  return out;
-}
 const LITERAL = /'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g;
 function sourceStrings() {
   const out = [];
-  for (const file of walk('src')) {
-    for (const m of readFileSync(file, 'utf8').matchAll(LITERAL)) if (PAIR_ONLY.test(m[0])) out.push(m[0].slice(1, -1));
+  for (const file of srcPaths(/\.js$/)) {
+    for (const m of srcText(file).matchAll(LITERAL)) if (PAIR_ONLY.test(m[0])) out.push(m[0].slice(1, -1));
   }
   return out;
 }

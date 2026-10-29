@@ -5,8 +5,8 @@
 // build with, on every shape of shell, and a scan of src/ for new helpers so none comes in untested.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
 import * as THREE from 'three';
 import { rough as roughCity } from '../src/desert-city.js';
 import { rough as roughHearth } from '../src/desert-hearth.js';
@@ -61,10 +61,10 @@ test('jitter\'s vertical noise still moves the rest of a shell up and down', () 
 });
 
 test('every helper in src/ that moves a geometry\'s vertices is checked here, or named as not a shell', () => {
-  const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : e.name.endsWith('.js') ? [join(d, e.name)] : []));
-  const root = new URL('../src/', import.meta.url).pathname, found = [];
-  for (const f of walk(root)) {
-    const s = readFileSync(f, 'utf8'), re = /export function (\w+)\((?:g|geo|geometry)\b[^)]*\)\s*\{/g;
+  // (every .js file under src/, from the source's literal catalogue: tests/src-tree.js)
+  const found = [];
+  for (const f of srcPaths(/\.js$/)) {
+    const s = srcText(f), re = /export function (\w+)\((?:g|geo|geometry)\b[^)]*\)\s*\{/g;
     for (let m; (m = re.exec(s));) {
       const end = s.indexOf('\n}', m.index), body = s.slice(m.index, end > 0 ? end : m.index + 1500);
       if (/setXYZ|setY\(/.test(body)) found.push(m[1]);

@@ -7,7 +7,11 @@
 // every world: one name, one title, one home world (a traveller, `world` naming their home, keeps their own).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+import * as templeData from './catalogs/temples-data-modules.js';
+const DATA = { story: storyData, temples: templeData };
 
 await import('./register-gadgets.js');
 const { EVERYONE } = await import('../src/story/people-book.js');
@@ -51,8 +55,8 @@ async function listings() {
   for (const p of EVERYONE) out.push({ id: p.id, name: p.name, where: `the book, ${p.world}` });
   for (const [w, c] of Object.entries(CONTENT)) for (const n of c?.npcs ?? []) if (n.id && n.name) out.push({ id: n.id, name: n.name, title: n.title, at: w, home: n.world, where: w });
   for (const dir of ['story', 'temples']) {
-    for (const f of readdirSync(new URL(`../src/${dir}/`, import.meta.url)).filter((x) => x.endsWith('-data.js') && x !== 'aliens-data.js')) {
-      const m = await import(`../src/${dir}/${f}`);
+    for (const f of DATA[dir].files.filter((x) => x.endsWith('-data.js') && x !== 'aliens-data.js')) {
+      const m = await DATA[dir].load(f);
       for (const key of ['PEOPLE', 'LANDING', 'LOCALS', 'KEEPERS', 'RIM', 'STREET', 'VILLAGERS', 'WREN']) {
         const v = m[key];
         if (!v || typeof v !== 'object') continue;

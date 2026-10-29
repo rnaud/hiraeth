@@ -3,7 +3,9 @@
 // and kept by the translation tables. And no line in the story names a button in prose any more.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+import * as srcSources from './catalogs/src-sources.js';
 import { keyText, keysHtml, keySig, verbKey, hasKeys, badgeLine } from '../src/prompt-keys.js';
 import { setControlPrefs } from '../src/remap.js';
 import { formatText, revealHtml } from '../src/story/dialogue.js';
@@ -106,7 +108,6 @@ test('keys in lines: a translation table keeps them ({names} are words only)', (
 
 // the ways the lines used to name buttons (docs/audits/dialogue-v1.0.md, finding 6)
 const PROSE = /push mode|D-pad|\b[LR][TB] \/ [LR][12]\b|\b[ABXY] \/ [×○□△]|left click|right click|right mouse|\(E, or|\(shoot:|\bpress [A-Z]\b|\bSPACE\b|\b(LT|RT|LB|RB)\b/;
-const SRC = new URL('../src/', import.meta.url);
 
 /** Every string under a value (ids and the like included: none of them looks like a button). */
 function strings(v, where, out, seen = new Set()) {
@@ -119,11 +120,11 @@ function strings(v, where, out, seen = new Set()) {
 }
 
 test('no line in the story data names a button in prose: conversations, things, balloons, quest steps', async () => {
-  const files = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data.js'));
+  const files = storyData.files.filter((f) => f.endsWith('-data.js'));
   const bad = [];
   let n = 0;
   for (const f of files) {
-    const m = await import(new URL(`story/${f}`, SRC));
+    const m = await storyData.load(f);
     for (const [k, v] of Object.entries(m)) for (const [w, s] of strings(v, `${f}:${k}`, [])) { n++; if (PROSE.test(s)) bad.push(`${w}: ${s.slice(0, 90)}`); }
   }
   assert.ok(n > 3000, `the story's strings (${n})`);
@@ -136,8 +137,9 @@ test('no item card and no toast names a button in prose', () => {
   const dirs = ['', 'story/', 'gadgets/', 'boxes/', 'temples/'];
   const CALL = /\b(toast|notice|hint)\??\.?\(\s*(['`])((?:\\.|(?!\2).)*)\2/g;
   for (const d of dirs) {
-    for (const f of readdirSync(new URL(d, SRC)).filter((x) => x.endsWith('.js'))) {
-      const src = readFileSync(new URL(d + f, SRC), 'utf8');
+    // (the files directly in src/<d>: the source catalogue's entries there, with no further folder)
+    for (const f of srcSources.files.filter((x) => x.startsWith(d) && !x.slice(d.length).includes('/')).map((x) => x.slice(d.length)).filter((x) => x.endsWith('.js'))) {
+      const src = srcSources.source(d + f);
       for (const m of src.matchAll(CALL)) if (PROSE.test(m[3])) bad.push(`${d}${f}: ${m[3].slice(0, 90)}`);
     }
   }

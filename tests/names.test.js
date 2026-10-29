@@ -4,7 +4,12 @@
 // and the player's head; and nobody but the protagonist is "the traveller".
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+// (src/ directories through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+import * as templeData from './catalogs/temples-data-modules.js';
+const DATA = { story: storyData, temples: templeData };
+import { srcPaths, srcText } from './src-tree.js';
+import { loadMinigameModules } from './minigame-modules.js';
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
@@ -18,8 +23,8 @@ async function everyone() {
   const out = [];
   const add = (world, where, p) => { if (p?.name && (p.talk || p.lines || p.listen || p.kind || p.species)) out.push({ world, where, id: p.id, name: p.name }); };
   for (const dir of ['story', 'temples']) {
-    for (const f of readdirSync(new URL(`../src/${dir}/`, import.meta.url)).filter((x) => x.endsWith('-data.js') && x !== 'aliens-data.js')) {
-      const m = await import(`../src/${dir}/${f}`), world = f.replace('-data.js', '');
+    for (const f of DATA[dir].files.filter((x) => x.endsWith('-data.js') && x !== 'aliens-data.js')) {
+      const m = await DATA[dir].load(f), world = f.replace('-data.js', '');
       for (const key of LISTS) {
         const v = m[key];
         if (!v || typeof v !== 'object') continue;
@@ -73,14 +78,13 @@ const RENAMES_LINE = 'A few names were too alike to keep apart';
 const uncommented = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[\s;,{}()[\]])\/\/.*$/gm, '$1');
 
 test('the old names are gone from what a player sees: the Rose House, Brune, Yusuf, Halden, Petra, Ines, Liesel', async () => {
-  const { readFileSync: read, readdirSync: list } = await import('node:fs');
-  const root = new URL('../src/', import.meta.url);
   const SKIP = /^(?:levels\/dismissed\/|changelog\.js$|changelog-media\.js$|save-migrate\.js$)/;
-  const files = list(root, { recursive: true }).filter((f) => f.endsWith('.js') && !SKIP.test(f.split('\\').join('/')));
+  // (every .js file under src/, from the source's literal catalogue: tests/src-tree.js)
+  const files = srcPaths(/\.js$/).map((p) => p.slice('src/'.length)).filter((f) => !SKIP.test(f));
   assert.ok(files.length > 300, `read ${files.length} files`);
   const found = [];
   for (const f of files) {
-    uncommented(read(new URL(f, root), 'utf8')).split('\n').forEach((line, i) => { const m = line.match(OLD_NAMES); if (m) found.push(`src/${f}:${i + 1} ${m[0]}`); });
+    uncommented(srcText('src/' + f)).split('\n').forEach((line, i) => { const m = line.match(OLD_NAMES); if (m) found.push(`src/${f}:${i + 1} ${m[0]}`); });
   }
   assert.deepEqual(found, []);
   const names = new Set((await everyone()).map((p) => p.name));
@@ -154,8 +158,8 @@ test('within a world, no two people’s names look or sound alike (issue #281)',
   const { HOSTS } = await import('../src/minigames/kit/hosts.js');
   const { THRUM } = await import('../src/story/scientist-data.js');
   const { TANSY, STOPS } = await import('../src/story/fellow-data.js');
-  const files = readdirSync(new URL('../src/minigames/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'index.js');
-  const markers = Object.fromEntries((await Promise.all(files.map((f) => import(`../src/minigames/${f}`))))
+  // (every minigame module but index.js: the literal catalogue tests/minigame-modules.js, checked by tests/audit-module-inputs.test.js)
+  const markers = Object.fromEntries(Object.values(await loadMinigameModules())
     .flatMap((m) => Object.values(m)).filter((g) => g?.id && g.markers?.length).map((g) => [g.id, g.markers[0].level]));
   const fileWorld = { 'night-train': 'overnighttrain' };
   const worldOf = (w) => { const p = partOf(fileWorld[w] ?? w); return SUB[p] ?? p; };

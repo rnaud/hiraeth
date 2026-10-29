@@ -289,3 +289,22 @@ test('the controller-feel numbers follow the traveller, not the command line\'s 
   assert.ok(cli.imports.includes('scripts/motion-qc/feel-core.mjs'), 'the command measures with the same core');
   assert.equal(cli.unknown, true, 'TUNE\'s chosen imports keep the command conservative');
 });
+
+test('source scans read literal catalogues: no longer run for every change, still run for their directories and new files', () => {
+  const cases = [
+    ['tests/dialogue-choices.test.js', 'src/story/desert-data.js'],
+    ['tests/quest-steps.test.js', 'src/temples/desert-data.js'],
+    ['tests/tone.test.js', 'src/levels/desert.js'],
+    ['tests/no-slant.test.js', 'src/menus.css'],
+    ['tests/i18n-shadow.test.js', 'engine/menus.js'],
+    ['tests/gadgets.test.js', 'src/gadgets/hook.js'],
+    ['tests/names.test.js', 'src/minigames/canyon.js'],
+  ];
+  for (const [consumer, input] of cases) {
+    for (const unrelated of ['docs/systems/ui.md', 'scripts/playthrough-browser.mjs', 'public/manifest.webmanifest'])
+      assert.deepEqual(selection(unrelated, consumer), [witness], `${consumer} no longer runs for ${unrelated}`);
+    assert.ok(selection(input, consumer).includes(consumer), `${consumer} still reads ${input}`);
+  }
+  // a file added to a catalogued directory selects the catalogue's check, which fails until it is regenerated
+  for (const added of ['src/story/new-world-data.js', 'src/temples/new-data.js', 'src/levels/new-world.js', 'src/new.css', 'engine/new.js'])
+    assert.ok(affectedTests([added], { root, files: inventory, tests: ['tests/test-catalogs.test.js'], analysisCache, syntax, read, exists }).includes('tests/test-catalogs.test.js'), added);

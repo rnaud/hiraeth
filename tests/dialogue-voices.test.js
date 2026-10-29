@@ -7,10 +7,11 @@
 // tests/dialogue-choices.test.js does.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
 import { parseLine } from '../src/story/tone.js';
-
-const SRC = new URL('../src/', import.meta.url);
+// (src/story/ and src/temples/ through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as storyData from './catalogs/story-data-modules.js';
+import * as templeData from './catalogs/temples-data-modules.js';
+const CATALOGUES = { story: storyData, temples: templeData };
 const { CONTENT } = await import('../src/levels/content.js');
 
 const SEEN = new Set();
@@ -29,8 +30,8 @@ function people(v, where, out = []) {
 
 const ALL = [];
 for (const dir of ['story', 'temples']) {
-  for (const f of readdirSync(new URL(`${dir}/`, SRC)).filter((x) => x.endsWith('-data.js'))) {
-    const m = await import(new URL(`${dir}/${f}`, SRC));
+  for (const f of CATALOGUES[dir].files.filter((x) => x.endsWith('-data.js'))) {
+    const m = await CATALOGUES[dir].load(f);
     for (const [k, v] of Object.entries(m)) if (!['QUESTS', 'ITEMS'].includes(k)) people(v, `${dir}/${f}:${k}`, ALL);
   }
 }

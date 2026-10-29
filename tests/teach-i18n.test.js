@@ -3,24 +3,21 @@
 // notice that names an input ({key:verb}) go through t(), with French beside the English.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
 import { setLanguage, missing } from '../src/i18n.js';
 import { lookLine, jumpLine } from '../src/first-steps.js';
 import { nudgeText } from '../src/ship/prologue.js';
 import { keyText, verbKey } from '../src/prompt-keys.js';
 
-const SRC = fileURLToPath(new URL('../src/', import.meta.url));
-const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : p.endsWith('.js') ? [p] : []; });
 
 test('no toast or notice that teaches an input passes literal English', () => {
   const bad = [];
-  for (const f of walk(SRC)) {
+  for (const f of srcPaths(/\.js$/)) {
     if (/[/\\](i18n|changelog)[/\\.]/.test(f) || f.endsWith('changelog.js') || f.endsWith('changelog-media.js')) continue;
-    const src = readFileSync(f, 'utf8');
+    const src = srcText(f);
     for (const m of src.matchAll(/\b(?:toast|showToast|notice|hint|hoistHint)\??\.?\(([^\n;]*)/g)) {
-      if (/(['"`])(?:(?!\1).)*\{key:/.test(m[1])) bad.push(`${f.slice(SRC.length)}: ${m[0].slice(0, 90)}`);
+      if (/(['"`])(?:(?!\1).)*\{key:/.test(m[1])) bad.push(`${f.slice('src/'.length)}: ${m[0].slice(0, 90)}`);
     }
   }
   assert.deepEqual(bad, []);

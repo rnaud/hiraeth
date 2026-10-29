@@ -4,10 +4,12 @@
 // spread its taps 2.7 times too far: every shadow torn into ragged streaks that crawled as the creature moved.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
 import { Cascade, FINE_CASCADE, fitShadowExtent, shadowDirection } from '../src/shadows.js';
+// (the source through its literal catalogue, checked against the directory: tests/src-tree.js, tests/test-catalogs.test.js)
+import { srcPaths, srcText } from './src-tree.js';
 
 const uniforms = (texels) => ({ map: { value: null }, matrix: { value: new THREE.Matrix4() }, bias: { value: 0 }, offset: { value: 0 }, ...(texels ? { texel: texels } : {}) });
 
@@ -27,21 +29,17 @@ test('a cascade given its uShadowTexel slot keeps the shader\'s texel in step wi
 // every `new Cascade({...})` call in src, with the file it is in
 function cascadeCalls() {
   const calls = [];
-  const walk = (dir) => {
-    for (const f of readdirSync(dir)) {
-      const p = join(dir, f);
-      if (statSync(p).isDirectory()) walk(p);
-      else if (p.endsWith('.js') && p !== join('src', 'shadows.js')) {
-        const s = readFileSync(p, 'utf8');
+  // (the .js files under src/ through their literal catalogue: tests/src-tree.js)
+  for (const p of srcPaths(/\.js$/)) {
+      if (p !== 'src/shadows.js') {
+        const s = srcText(p);
         for (const m of s.matchAll(/new Cascade\(\{/g)) {
           let depth = 0, i = m.index + 'new Cascade('.length;
           for (; i < s.length; i++) { if (s[i] === '{') depth++; else if (s[i] === '}' && --depth === 0) break; }
           calls.push({ file: p, src: s.slice(m.index, i + 1) });
         }
       }
-    }
-  };
-  walk('src');
+  }
   return calls;
 }
 
