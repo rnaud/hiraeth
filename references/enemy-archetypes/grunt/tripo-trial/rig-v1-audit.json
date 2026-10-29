@@ -1,0 +1,144 @@
+{
+  "file": "rigged.glb",
+  "bytes": 3277520,
+  "triangles": 31213,
+  "vertices": 33608,
+  "drawCalls": 1,
+  "materials": 1,
+  "images": 1,
+  "animations": [
+    "Armature|clip0|baselayer"
+  ],
+  "skins": [
+    {
+      "joints": 24,
+      "maxWeightError": 1.4901161193847656e-7,
+      "invalidWeights": 0,
+      "invalidJointIndices": 0,
+      "bindMatrixErrorAgainstIdentity": 3.68115514737255e-8,
+      "influences": [
+        {
+          "name": "Hips",
+          "countAbove01": 1539,
+          "totalWeight": 59.06373042062478
+        },
+        {
+          "name": "Spine02",
+          "countAbove01": 668,
+          "totalWeight": 52.99526234596851
+        },
+        {
+          "name": "Spine01",
+          "countAbove01": 109,
+          "totalWeight": 5.122165054701327
+        },
+        {
+          "name": "Spine",
+          "countAbove01": 53,
+          "totalWeight": 1.5763538980390877
+        },
+        {
+          "name": "neck",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "Head",
+          "countAbove01": 17373,
+          "totalWeight": 9944.195712876855
+        },
+        {
+          "name": "head_end",
+          "countAbove01": 0,
+          "totalWeight": 0.1784878718899563
+        },
+        {
+          "name": "headfront",
+          "countAbove01": 10221,
+          "totalWeight": 5653.3621050284055
+        },
+        {
+          "name": "LeftShoulder",
+          "countAbove01": 7995,
+          "totalWeight": 2295.6048151525174
+        },
+        {
+          "name": "LeftArm",
+          "countAbove01": 4365,
+          "totalWeight": 443.1974937786654
+        },
+        {
+          "name": "LeftForeArm",
+          "countAbove01": 337,
+          "totalWeight": 72.45301401283359
+        },
+        {
+          "name": "LeftHand",
+          "countAbove01": 4035,
+          "totalWeight": 439.2443717589631
+        },
+        {
+          "name": "RightShoulder",
+          "countAbove01": 10134,
+          "totalWeight": 1451.959783542523
+        },
+        {
+          "name": "RightArm",
+          "countAbove01": 545,
+          "totalWeight": 44.757835588221496
+        },
+        {
+          "name": "RightForeArm",
+          "countAbove01": 3979,
+          "totalWeight": 358.9454252446885
+        },
+        {
+          "name": "RightHand",
+          "countAbove01": 11821,
+          "totalWeight": 2189.3890996401897
+        },
+        {
+          "name": "LeftUpLeg",
+          "countAbove01": 7631,
+          "totalWeight": 1883.88803082073
+        },
+        {
+          "name": "LeftLeg",
+          "countAbove01": 1959,
+          "totalWeight": 333.55685896857176
+        },
+        {
+          "name": "LeftFoot",
+          "countAbove01": 1308,
+          "totalWeight": 116.13672572048381
+        },
+        {
+          "name": "LeftToeBase",
+          "countAbove01": 1332,
+          "totalWeight": 737.9571124913637
+        },
+        {
+          "name": "RightUpLeg",
+          "countAbove01": 9104,
+          "totalWeight": 4704.505283551349
+        },
+        {
+          "name": "RightLeg",
+          "countAbove01": 8380,
+          "totalWeight": 2354.9762691204232
+        },
+        {
+          "name": "RightFoot",
+          "countAbove01": 301,
+          "totalWeight": 25.07232787318935
+        },
+        {
+          "name": "RightToeBase",
+          "countAbove01": 1595,
+          "totalWeight": 439.86201359771076
+        }
+      ]
+    }
+  ],
+  "extensions": []
+}

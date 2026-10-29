@@ -1,0 +1,128 @@
+{
+  "file": "custom-rigged.glb",
+  "bytes": 2791476,
+  "triangles": 31213,
+  "vertices": 33494,
+  "drawCalls": 1,
+  "materials": 1,
+  "images": 1,
+  "animations": [],
+  "skins": [
+    {
+      "joints": 21,
+      "maxWeightError": 4.1443854570388794e-8,
+      "invalidWeights": 0,
+      "invalidJointIndices": 0,
+      "bindMatrixErrorInMeshSpace": 1.1462431670494766e-8,
+      "bindMatrixConsistencyError": 1.1462431670494766e-8,
+      "influences": [
+        {
+          "name": "Hips",
+          "countAbove01": 5721,
+          "totalWeight": 4091.2104240588196
+        },
+        {
+          "name": "Spine",
+          "countAbove01": 3624,
+          "totalWeight": 1790.2805746582465
+        },
+        {
+          "name": "Chest",
+          "countAbove01": 4592,
+          "totalWeight": 2898.595461918124
+        },
+        {
+          "name": "Neck",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "Head",
+          "countAbove01": 12336,
+          "totalWeight": 11200.052628608624
+        },
+        {
+          "name": "LeftShoulder",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "LeftArm",
+          "countAbove01": 1071,
+          "totalWeight": 714.1006724358595
+        },
+        {
+          "name": "LeftForeArm",
+          "countAbove01": 1309,
+          "totalWeight": 813.9658958619111
+        },
+        {
+          "name": "LeftHand",
+          "countAbove01": 2654,
+          "totalWeight": 2382.3871166304452
+        },
+        {
+          "name": "LeftUpLeg",
+          "countAbove01": 1348,
+          "totalWeight": 754.6648258027708
+        },
+        {
+          "name": "LeftLeg",
+          "countAbove01": 740,
+          "totalWeight": 282.2567874266738
+        },
+        {
+          "name": "LeftFoot",
+          "countAbove01": 1968,
+          "totalWeight": 1845.9284788817167
+        },
+        {
+          "name": "LeftToeBase",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "RightShoulder",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "RightArm",
+          "countAbove01": 1066,
+          "totalWeight": 716.6735132700851
+        },
+        {
+          "name": "RightForeArm",
+          "countAbove01": 1258,
+          "totalWeight": 786.3510897727974
+        },
+        {
+          "name": "RightHand",
+          "countAbove01": 2561,
+          "totalWeight": 2295.6945346369175
+        },
+        {
+          "name": "RightUpLeg",
+          "countAbove01": 1283,
+          "totalWeight": 697.7629746152543
+        },
+        {
+          "name": "RightLeg",
+          "countAbove01": 823,
+          "totalWeight": 315.8928154139726
+        },
+        {
+          "name": "RightFoot",
+          "countAbove01": 2063,
+          "totalWeight": 1908.1822173595428
+        },
+        {
+          "name": "RightToeBase",
+          "countAbove01": 0,
+          "totalWeight": 0
+        }
+      ]
+    }
+  ],
+  "extensions": []
+}

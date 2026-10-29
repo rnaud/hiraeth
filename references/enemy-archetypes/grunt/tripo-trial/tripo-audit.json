@@ -1,0 +1,296 @@
+{
+  "file": "tripo-rigged.glb",
+  "bytes": 3000368,
+  "triangles": 31213,
+  "vertices": 33495,
+  "drawCalls": 1,
+  "materials": 1,
+  "images": 1,
+  "animations": [],
+  "skins": [
+    {
+      "joints": 54,
+      "maxWeightError": 9.778887033462524e-8,
+      "invalidWeights": 0,
+      "invalidJointIndices": 0,
+      "bindMatrixErrorInMeshSpace": 7.024459561799645e-7,
+      "bindMatrixConsistencyError": 7.024459393045746e-7,
+      "influences": [
+        {
+          "name": "mixamorig:Hips",
+          "countAbove01": 4372,
+          "totalWeight": 1427.9294321308844
+        },
+        {
+          "name": "mixamorig:LeftUpLeg",
+          "countAbove01": 3819,
+          "totalWeight": 1867.603941693902
+        },
+        {
+          "name": "mixamorig:LeftLeg",
+          "countAbove01": 1229,
+          "totalWeight": 538.0745209087618
+        },
+        {
+          "name": "mixamorig:LeftFoot",
+          "countAbove01": 2008,
+          "totalWeight": 1022.1490405867808
+        },
+        {
+          "name": "mixamorig:LeftToeBase",
+          "countAbove01": 1316,
+          "totalWeight": 688.9960895655677
+        },
+        {
+          "name": "mixamorig:LeftToe_End",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "mixamorig:RightUpLeg",
+          "countAbove01": 4977,
+          "totalWeight": 2718.313749208115
+        },
+        {
+          "name": "mixamorig:RightLeg",
+          "countAbove01": 1371,
+          "totalWeight": 573.0117761706933
+        },
+        {
+          "name": "mixamorig:RightFoot",
+          "countAbove01": 2091,
+          "totalWeight": 1021.2784526245669
+        },
+        {
+          "name": "mixamorig:RightToeBase",
+          "countAbove01": 1348,
+          "totalWeight": 758.4745177254081
+        },
+        {
+          "name": "mixamorig:RightToe_End",
+          "countAbove01": 0,
+          "totalWeight": 0
+        },
+        {
+          "name": "mixamorig:Spine",
+          "countAbove01": 2507,
+          "totalWeight": 381.07451840955764
+        },
+        {
+          "name": "mixamorig:Spine1",
+          "countAbove01": 4579,
+          "totalWeight": 622.3804032327607
+        },
+        {
+          "name": "mixamorig:Spine2",
+          "countAbove01": 1436,
+          "totalWeight": 231.1647129720077
+        },
+        {
+          "name": "mixamorig:LeftShoulder",
+          "countAbove01": 3642,
+          "totalWeight": 1161.2274809670635
+        },
+        {
+          "name": "mixamorig:LeftArm",
+          "countAbove01": 1747,
+          "totalWeight": 915.494125363417
+        },
+        {
+          "name": "mixamorig:LeftForeArm",
+          "countAbove01": 1352,
+          "totalWeight": 837.8156900932081
+        },
+        {
+          "name": "mixamorig:LeftHand",
+          "countAbove01": 1191,
+          "totalWeight": 585.2392197395675
+        },
+        {
+          "name": "mixamorig:LeftHandIndex1",
+          "countAbove01": 467,
+          "totalWeight": 186.0784336766228
+        },
+        {
+          "name": "mixamorig:LeftHandIndex2",
+          "countAbove01": 224,
+          "totalWeight": 94.69411966903135
+        },
+        {
+          "name": "mixamorig:LeftHandIndex3",
+          "countAbove01": 156,
+          "totalWeight": 108.23137342184782
+        },
+        {
+          "name": "mixamorig:LeftHandMiddle1",
+          "countAbove01": 388,
+          "totalWeight": 126.76470777392387
+        },
+        {
+          "name": "mixamorig:LeftHandMiddle2",
+          "countAbove01": 242,
+          "totalWeight": 111.95686435280368
+        },
+        {
+          "name": "mixamorig:LeftHandMiddle3",
+          "countAbove01": 154,
+          "totalWeight": 89.25490259379148
+        },
+        {
+          "name": "mixamorig:LeftHandPinky1",
+          "countAbove01": 488,
+          "totalWeight": 199.10196212260053
+        },
+        {
+          "name": "mixamorig:LeftHandPinky2",
+          "countAbove01": 245,
+          "totalWeight": 92.50196279445663
+        },
+        {
+          "name": "mixamorig:LeftHandPinky3",
+          "countAbove01": 159,
+          "totalWeight": 112.66666753590107
+        },
+        {
+          "name": "mixamorig:LeftHandRing1",
+          "countAbove01": 478,
+          "totalWeight": 144.40392289217561
+        },
+        {
+          "name": "mixamorig:LeftHandRing2",
+          "countAbove01": 267,
+          "totalWeight": 109.16862939484417
+        },
+        {
+          "name": "mixamorig:LeftHandRing3",
+          "countAbove01": 175,
+          "totalWeight": 113.96078529953957
+        },
+        {
+          "name": "mixamorig:LeftHandThumb1",
+          "countAbove01": 652,
+          "totalWeight": 209.20000192290172
+        },
+        {
+          "name": "mixamorig:LeftHandThumb2",
+          "countAbove01": 368,
+          "totalWeight": 140.16078640753403
+        },
+        {
+          "name": "mixamorig:LeftHandThumb3",
+          "countAbove01": 250,
+          "totalWeight": 146.12549165263772
+        },
+        {
+          "name": "mixamorig:Neck",
+          "countAbove01": 7570,
+          "totalWeight": 650.1686427295208
+        },
+        {
+          "name": "mixamorig:Head",
+          "countAbove01": 12723,
+          "totalWeight": 10743.596130120568
+        },
+        {
+          "name": "mixamorig:RightShoulder",
+          "countAbove01": 3197,
+          "totalWeight": 525.7921658568084
+        },
+        {
+          "name": "mixamorig:RightArm",
+          "countAbove01": 1676,
+          "totalWeight": 936.1254973802716
+        },
+        {
+          "name": "mixamorig:RightForeArm",
+          "countAbove01": 1173,
+          "totalWeight": 707.1607877979986
+        },
+        {
+          "name": "mixamorig:RightHand",
+          "countAbove01": 1165,
+          "totalWeight": 676.0470625474118
+        },
+        {
+          "name": "mixamorig:RightHandIndex1",
+          "countAbove01": 443,
+          "totalWeight": 159.2313751638867
+        },
+        {
+          "name": "mixamorig:RightHandIndex2",
+          "countAbove01": 197,
+          "totalWeight": 83.82745282445103
+        },
+        {
+          "name": "mixamorig:RightHandIndex3",
+          "countAbove01": 160,
+          "totalWeight": 116.96078514307737
+        },
+        {
+          "name": "mixamorig:RightHandMiddle1",
+          "countAbove01": 398,
+          "totalWeight": 131.90588420489803
+        },
+        {
+          "name": "mixamorig:RightHandMiddle2",
+          "countAbove01": 223,
+          "totalWeight": 98.24313844973221
+        },
+        {
+          "name": "mixamorig:RightHandMiddle3",
+          "countAbove01": 154,
+          "totalWeight": 93.61176528036594
+        },
+        {
+          "name": "mixamorig:RightHandPinky1",
+          "countAbove01": 483,
+          "totalWeight": 201.5254917992279
+        },
+        {
+          "name": "mixamorig:RightHandPinky2",
+          "countAbove01": 221,
+          "totalWeight": 85.36078608734533
+        },
+        {
+          "name": "mixamorig:RightHandPinky3",
+          "countAbove01": 150,
+          "totalWeight": 99.09411846101284
+        },
+        {
+          "name": "mixamorig:RightHandRing1",
+          "countAbove01": 462,
+          "totalWeight": 129.83529569674283
+        },
+        {
+          "name": "mixamorig:RightHandRing2",
+          "countAbove01": 257,
+          "totalWeight": 99.964707469102
+        },
+        {
+          "name": "mixamorig:RightHandRing3",
+          "countAbove01": 165,
+          "totalWeight": 111.47843215893954
+        },
+        {
+          "name": "mixamorig:RightHandThumb1",
+          "countAbove01": 628,
+          "totalWeight": 200.78431695559993
+        },
+        {
+          "name": "mixamorig:RightHandThumb2",
+          "countAbove01": 375,
+          "totalWeight": 148.32157127186656
+        },
+        {
+          "name": "mixamorig:RightHandThumb3",
+          "countAbove01": 258,
+          "totalWeight": 161.4666679603979
+        }
+      ]
+    }
+  ],
+  "extensions": [
+    "KHR_materials_volume",
+    "FB_ngon_encoding"
+  ]
+}

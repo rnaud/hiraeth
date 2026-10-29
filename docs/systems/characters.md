@@ -2638,3 +2638,8 @@ default's body was drawn in for the default's clothes, so a tight outfit may nee
 **(Lamplighter):** no gloves or oil can; the quilting is paint, not puffed geometry; the jacket's hem
 pinches over the trousers at a jog and a sprint (up to 9 mm, 9 verts); the shoulders bunch a little with
 the arms lowered.
+
+
+### Grunt generated-mesh arena trial (2026-10-29, issue #768)
+
+The separate [grunt trial](../../references/enemy-archetypes/grunt/tripo-trial/README.md) compares native Tripo, Meshy and an authored body rig on one approved OpenAI T-pose model. Native Tripo greatly reduces the unwanted belly motion and supplies finger joints. Its `arena.html` uses the real Arena, renderer and combat controller through a temporary visual adapter, with memory-only saves and startup review mute. Normal gameplay assets are unchanged. The full 31,213-triangle body has only 11% more vertices than the existing 10,234-triangle procedural grunt; fewer draws offset some extra raster work. Two short M3 Pro High-preset runs with 12 enemies measured about +0.58 ms GPU / +0.10 ms CPU, with noisy frame pacing. The 2K atlas adds an estimated 21.33 MiB shared texture memory; 512–1024² is the first proposed optimization. Shoulder/grip/cloth refinement, reduced LOD review and target-device testing remain required before production replacement. See the trial notes and raw results for method and limitations; this is web-only experimental evidence, not Unity/mobile acceptance.

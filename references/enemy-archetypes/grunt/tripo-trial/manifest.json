@@ -1,0 +1,121 @@
+{
+  "issue": 768,
+  "date": "2026-10-29",
+  "status": "separate-trial",
+  "gameRevision": "699d01bdabc470f8532748ce75ba22647fb3729b",
+  "reference": {
+    "file": "tpose-openai.png",
+    "identity": "../sheet-1.jpg",
+    "generator": "OpenAI built-in image_gen",
+    "approvedBy": "user in chat 2026-10-29",
+    "higgsfieldMediaId": "7aac30ff-b8e4-4807-9bdb-836e240bd5f0"
+  },
+  "generation": {
+    "jobId": "079022ae-5f20-4795-b9b0-097dc733c7fc",
+    "params": {
+      "model": "tripo_p2_image_to_3d",
+      "medias": [
+        {
+          "role": "image",
+          "value": "7aac30ff-b8e4-4807-9bdb-836e240bd5f0"
+        }
+      ],
+      "texture": true,
+      "pbr": false,
+      "texture_version": "v3.5-20260815",
+      "delight": true,
+      "texture_quality": "standard",
+      "face_limit": 30000,
+      "quad": false,
+      "count": 1
+    },
+    "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3KKkDN3t5vRZLlXZZl3FDJncB9h/hf_20261029_211041_079022ae-5f20-4795-b9b0-097dc733c7fc.glb",
+    "file": "source.glb",
+    "quoteCredits": 34
+  },
+  "orientation": {
+    "file": "source-z-forward.glb",
+    "operation": "Bake -90 degree Y rotation into POSITION/NORMAL; preserve UVs/topology/texture",
+    "mediaId": "0f3c6ecf-7444-43db-83ba-dfebaac1f148"
+  },
+  "rigging": [
+    {
+      "jobId": "84bcc955-132d-4343-9277-5b092631e918",
+      "input": "source.glb",
+      "output": "rigged-v1-orientation-failed.glb",
+      "status": "failed visual review: 90 degree skeleton alignment error",
+      "quoteCredits": 5,
+      "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3KKkDN3t5vRZLlXZZl3FDJncB9h/hf_20261029_211325_84bcc955-132d-4343-9277-5b092631e918.glb"
+    },
+    {
+      "jobId": "11096bcf-8050-4f3b-8d84-efaca4686d27",
+      "input": "source-z-forward.glb",
+      "output": "rigged.glb",
+      "status": "body rig trial; no finger bones, pelvis deformation needs refinement",
+      "quoteCredits": 5,
+      "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3KKkDN3t5vRZLlXZZl3FDJncB9h/hf_20261029_211602_11096bcf-8050-4f3b-8d84-efaca4686d27.glb"
+    },
+    {
+      "provider": "Tripo Studio native auto-rig",
+      "assetId": "aa04b176-0238-4188-96e2-4490af5c286e",
+      "url": "https://studio.tripo3d.ai/workspace/rigging/aa04b176-0238-4188-96e2-4490af5c286e",
+      "input": "source-z-forward.glb",
+      "output": "tripo-rigged.glb",
+      "rigType": "Humanoid",
+      "skeletonPreset": "Mixamo",
+      "importYDegrees": 90,
+      "useOriginalUV": true,
+      "exportSkeleton": true,
+      "textureResolution": "2k",
+      "credits": 20,
+      "balanceBefore": 2025,
+      "balanceAfter": 2005,
+      "status": "preferred trial starting point; fingers curl; hip/cloth still needs review"
+    },
+    {
+      "provider": "locally authored anatomical prototype",
+      "input": "source-z-forward.glb",
+      "output": "custom-rigged.glb",
+      "script": "custom-rig.py",
+      "sourceSkeletonOrWeightsReused": false,
+      "bones": 21,
+      "status": "belly isolation verified; body-only; shoulder/hip and fused cloth refinement needed"
+    }
+  ],
+  "rigParams": {
+    "model": "3d_rigging",
+    "height_meters": 1.3,
+    "enable_animation": false
+  },
+  "totalQuotedCredits": 44,
+  "review": {
+    "renderer": "Three.js standard/unlit/clay, no AO or audio; not game renderer",
+    "provenance": "Actual after-only model screenshots in local browser",
+    "limitations": [
+      "No retargeted game animation or Unity review",
+      "Fused clothing still stretches/intersects around hip",
+      "Custom and Meshy hands have no finger articulation",
+      "Tripo finger curl reviewed, not weapon grip or production hand animation",
+      "No production optimization or device benchmark"
+    ],
+    "comparison": "compare.html",
+    "kneeMetrics": "knee-metrics.json"
+  },
+  "totalQuotedCreditsCurrency": "Higgsfield",
+  "additionalTripoStudioCredits": 20,
+  "arenaTrial": {
+    "entry": "arena.html",
+    "performance": "arena-performance.json",
+    "combatEvidence": "arena-combat-state.json",
+    "device": "Apple M3 Pro / ANGLE Metal / Chrome 156",
+    "preset": "high",
+    "drawingBuffer": [
+      2560,
+      1440
+    ],
+    "normalGameEntryChanged": false,
+    "unityTested": false,
+    "mobileTested": false,
+    "productionReady": false
+  }
+}
