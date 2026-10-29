@@ -127,6 +127,8 @@ test('native installers skip per-push builds; Unity has a conditional daily buil
   assert.match(unity, /check:\n    needs: changes\n    if: needs.changes.outputs.build == 'true'/);
   const web = workflows['cloudflare.yml'];
   assert.match(web, /build_deck_runtime:[\s\S]*?default: false/);
-  assert.match(web, /deck-runtime.mjs[^\n]*--reuse-only/);
+  assert.match(web, /name: Publish a requested Steam Deck runtime to R2\n        if: github.event_name == 'workflow_dispatch' && inputs.build_deck_runtime/);
+  assert.match(web, /node scripts\/r2-deck.mjs --from dist\/updates/);
+  assert.doesNotMatch(web, /--reuse-only/);
   assert.ok(web.indexOf('name: Verify the public deployment') < web.indexOf('run: scripts/web-publish.sh'));
 });

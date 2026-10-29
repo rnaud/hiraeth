@@ -299,14 +299,14 @@ holds back the other; see `update.log`):
   `DESKTOP_API`) waits for one. The newest two and any one running are kept.
 - **The runtime** (Electron, `main.mjs`, this updater and a packaged copy of the game): the
   newer of two feeds, the game's site (`/updates/steam-deck.json`, the package in 20 MiB
-  parts, put there by the Cloudflare deploy: `scripts/deck-runtime.mjs`, see
-  `docs/cloudflare.md`) and the preserved legacy `steam-deck` GitHub feed (no longer advanced; private now: that
+  parts stored independently in R2: `scripts/r2-deck.mjs`, see
+  `docs/systems/release-storage.md`) and the preserved legacy `steam-deck` GitHub feed (no longer advanced; private now: that
   check fails quietly, a line in `update.log`). A new build is downloaded into a temporary
   directory, size and SHA-256 verified, and unpacked before the `current` symlink is
   atomically changed. The newest two builds and any build still running are retained. A
   runtime's build number is its commit's (`release-info.mjs build` × 1000 + attempt, the same
-  in both feeds; run-numbered up to 189001 before). The site's runtime only changes when what
-  it runs does (`main.mjs`, `deck.py`, the packaging, Electron's lockfile: its `key`); the game
+  in both feeds; run-numbered up to 189001 before). The site's runtime changes only on an explicit
+  manual build; its `key` records the launcher, updater, packaging and Electron inputs. The game
   inside updates through the content feed meanwhile. Runtimes up to 189001 only know GitHub:
   install the first site-aware one by hand (above).
 - **The music**: neither the runtime's packaged game nor a content update carries the recorded

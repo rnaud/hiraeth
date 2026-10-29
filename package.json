@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "dev:cloudflare": "npm run build && node scripts/web-update.mjs --no-previous && wrangler dev --port 8787",
     "check:cloudflare": "npm run build && node scripts/web-update.mjs && wrangler deploy --dry-run",
-    "deploy:cloudflare": "npm run build && node scripts/web-update.mjs --unity .cache/unity-ota && node scripts/deck-runtime.mjs && wrangler deploy",
+    "deploy:cloudflare": "npm run build && node scripts/web-update.mjs --unity .cache/unity-ota && wrangler deploy",
     "check:deployment": "node scripts/check-deployment.mjs"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
+    "aws4fetch": "1.0.20",
     "sharp": "0.35.4",
     "vite": "^8.3.0",
     "wrangler": "4.143.0"

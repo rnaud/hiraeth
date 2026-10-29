@@ -8,8 +8,9 @@
 //
 // The game updates on its own (web.json), so the runtime only changes with what it runs: its key is
 // a hash of main.mjs, deck.py, the packaging (and what it leaves out), Electron's lockfile and Steam's artwork. While the live site's runtime
-// has the same key its parts are fetched, checked and published again unchanged (a deploy uploads
-// nothing for them); a new key packages a new runtime (scripts/package-steam-deck.mjs, DECK_BUILD).
+// has the same key it can be reused for a migration. Normal web deploys do not run this script:
+// R2 retains the runtime independently. --build-only packages a manually requested runtime;
+// scripts/r2-deck.mjs publishes its verified parts and then its manifest to R2.
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -91,7 +92,7 @@ async function main(args) {
   const site = at >= 0 ? args[at + 1] : SITE;
   const key = await runtimeKey();
   const reuseOnly = args.includes('--reuse-only');
-  const live = await liveRuntime(site, key, { reuseOnly });
+  const live = args.includes('--build-only') ? null : await liveRuntime(site, key, { reuseOnly });
   if (live) {
     await writeRuntime(dist, live.manifest, live.parts);
     console.log(`updates/steam-deck.json: the live runtime ${live.manifest.build} again (${live.parts.length} parts)`);
