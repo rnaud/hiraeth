@@ -1101,6 +1101,63 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   glance's own look; every archetype's defeat 0.8–1.5 s, harmless, its body moving, the burst and chimes only at the end;
   sixteen at once).
 
+### Ragdolls (v2.35, issue #750, `src/enemies/foe-ragdoll.js`)
+
+The author: "enemies should ragdoll on being defeated, not fall on their side". A humanoid on the clip rig (the grunt, the
+hulk, the prowler, the warlord, the sentinel, the fencer, the mummers and their king) struck down goes limp instead of
+playing its recipe (`Foes.letGo`): the people's ragdoll (src/ragdoll.js: fifteen joint particles, the trunk rigid, knees
+that bend only forward, thighs that don't swing far back, elbows and knees that never fold flat, the head kept over the
+neck, each particle landing on the ground under it and its slope) is started from the rig's pose as it was struck
+(`rigPoints`, the trunk's rest shape from the rig's own proportions), thrown along the blow (`toppleVelocities`:
+`RAGDOLL.carry` of its shove, at most `shove` 3.5 m/s, the top tipping over `tip` m/s faster, × `heavy` for a heavy blow, a
+`punch` at the joint nearest where it was struck, a twist from the foes' rng) and laid back on the rig each frame
+(`applyFoeRagdoll`: the body's frame onto the hips, pelvis and chest, the head over the neck, each limb aimed joint to joint,
+the feet slack), blended in from the struck pose over `blend` 0.12 s. Its particles are as thick as it is drawn
+(`bodyShape`: the trunk from the torso's own drawn box, its belly half counted, a big head's sphere over its horns and
+snout, clawed hands), its hanging parts (hems, kilts, a horn on its back, the face its gaze turned) go back to rest on the
+body, a tail is laid back over the ground (`TailSpring.keepUp`), and what it held flies as a piece of its own
+(`Foes.looseGrips`, "Pieces and plates" below). The drawn hull still keeps it on the ground (`groundDefeat`, as every
+defeat: 4-14 cm for the roster's hems and big heads), held once it lies still.
+
+- **Steps**: time is gathered into steps of at least `minStep` (1/120 s; a hit-stop's sliver of a frame divided the
+  constraints' pushes into thousands of m/s and threw a warlord 300 m up) and at most a 30th; lying with three joints or
+  more down, what is left of its slide dies at `drag` 3.5/s; asleep (no reads, its pose held) once still `RAG.stillFor` +
+  `sleepAfter` s or after `maxSecs` 3.2 s; it keeps settling through the second it lies before its puff (`SMOKE.linger`).
+- **Cap**: at most `RAGDOLL.most` (4) stepping at once; any more, a spirit (the shade, `ragdoll: false`: its cloak falls empty), a
+  floater (the oracle) or a burrower go down the old way.
+- **The kit's walkers** (the crawler, the lamp tripod, the skitter and the rest): their recipe still tips, rolls or flips the
+  body and their legs go limp (`Rig.goLimp`, src/motion-kit/limp.js: each foot a point under gravity, sliding to a stop on
+  the ground, held within its leg's reach of its hip; the IK bends the leg between), the recipe's curl left out.
+- Cost (node, this Mac at load ~25): a ragdoll's step 0.03-0.05 ms, laying it on the rig 0.01-0.08 ms, the hull's ground
+  check while it moves 0.6-0.8 ms (held once it lies); four ragdolls and three recipes going down 2.4-2.9 ms a frame.
+  The ground for it is Foes' own height read (`groundPhysics`: one read a particle, two more for the slope near the ground);
+  the world's walls are left out (`WALLS.on`).
+- Tests: tests/foe-ragdoll.test.js (thrown along the blow, limits, asleep, the rig on its particles; the same blow the same
+  fall; every humanoid on flat ground and a slope, its drawn parts 3 cm under at most; the cap and the cost; the crawler's
+  limp feet), tests/foe-hit-defeat.test.js as before.
+
+### Pieces and plates (v2.35, issues #753 and #754, `src/enemies/debris.js`)
+
+The author: "when enemies are exploding in pieces they should follow physics (the pieces)", "when an enemy loses a plate
+element it should follow physics". One small rigid-body integrator for both: a box a piece (`boxOf`: its meshes' bounds and
+the points a skinned body binds to its bones, worked out once a geometry and bone), gravity 14 m/s², the ground's plane under
+it (`groundPlane`: three height reads, again once it has gone `reread` 0.25 m across), an impulse at each corner in the
+ground (restitution `bounce` 0.38 above `soft` 1.2 m/s, Coulomb friction μ 0.55, the box's own inertia: it tumbles onto a
+face), a rocking slide and spin that die at `rest` 2.5/s, asleep once still 0.25 s. It holds on a 20° slope and slides down a
+40° one (tests/foe-debris.test.js, deterministic: the throw is the caller's, `throwFrom` with the foes' rng).
+
+- **A body broken** (`Foes.breakApart`: a machine's parts, glass, a shell, a drone; and since now a crawler's self-destruct,
+  `f.blast`): each part thrown out from its chest (`BREAK.fall` 2.6 m/s ± a third, 2.6 up, 1.6 along the killing blow, a
+  spin to 7 rad/s; the blast 7 m/s, 4.5 up, 14 rad/s), lying `BREAK.lie` 1.4 s once asleep (at most `life` 3.4 s), then
+  shrinking away over `fade` 0.5 s. A skinned body's joints carry its skin (kept with them till the last piece goes). A
+  clatter as a piece lands hard (two a frame at most). At most `DEBRIS.max` 48 flying: the oldest put to rest.
+- **What it held** (`Foes.looseGrips`, a ragdoll's): its weapon let go, tossed gently along the blow.
+- **A blot's ink**: its drops land on the ground under it and lie a moment as flat splashes (`Dots`' `floor`/`land`).
+- **A plate knocked off** (`Foes.dropPlate`, #722): thrown out from the body at `PLATE.out` and `up`, along the blow, spinning
+  to 9 rad/s; it bounces and clatters (a glance's ring for its first two), slides to rest on the slope, lies `PLATE.lie` s
+  and sinks as before. Before, it fell straight, bounced on the flat height under it and stopped dead where it met it.
+- Cost: 48 pieces flying 2 s, 0.2 ms a frame in node; asleep none.
+
 ## Ink and the blade's growth (`src/ink.js`)
 
 The blots are the drawing's unfinished margins, gathered thickest where the singing light passed. Cut down,

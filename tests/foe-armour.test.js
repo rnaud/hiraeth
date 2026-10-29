@@ -94,9 +94,12 @@ test('a knocked-off plate falls from its body: hidden there, a copy tumbles to t
   assert.equal(off.length, 1, 'one plate gone from its body');
   assert.equal(F.fallen.length, 1);
   assert.equal(F.group.children.length, before + 1, 'its copy in the world');
-  const c = F.fallen[0].o, y0 = c.position.y;
+  // (a rigid piece since #754: its middle falls to the ground, lying on a face, within its box's reach of it)
+  const c = F.fallen[0].o, Pc = F.fallen[0].P, y0 = Pc.pos.y;
   for (let i = 0; i < 90; i++) F.updatePlates(DT);
-  assert.ok(c.position.y < y0 && c.position.y >= -0.01 && c.position.y < 0.4, `it fell to the ground (${c.position.y.toFixed(2)})`);
+  const reach = Math.min(Pc.half.x, Pc.half.y, Pc.half.z) + 0.02;
+  assert.ok(Pc.pos.y < y0 && Pc.pos.y >= -0.01 && Pc.pos.y < reach + 0.15, `it fell to the ground (${Pc.pos.y.toFixed(2)}, its thinnest half ${reach.toFixed(2)})`);
+  assert.ok(Math.hypot(Pc.pos.x - f.pos.x, Pc.pos.z - f.pos.z) > 0.4, 'thrown off the body');
   for (let i = 0; i < (PLATE.lie + PLATE.sink) * 60 + 10; i++) F.updatePlates(DT);
   assert.equal(F.fallen.length, 0); assert.ok(!c.parent, 'sunk away');
   F.dispose(); clearTargets();

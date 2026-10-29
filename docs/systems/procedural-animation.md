@@ -1022,6 +1022,15 @@ Cost (`Foes.look` whole, node on this Mac, median a frame): shade 0.024 → 0.04
 fencer 0.007 → 0.026 ms walking, 0.012 → 0.031 ms winding up (the kit's LOD skipped most of the fencer's legs). In
 Chrome: see the changelog's numbers.
 
+### Limp legs (v2.35, issue #750, `src/motion-kit/limp.js`)
+
+A walker on the kit struck down lets its legs go (`Rig.goLimp(vel)`, from `Foes.letGo`): the planner stops; each foot is a
+point at the speed of the blow's shove, falling under `LIMP.gravity`, sliding to a stop on the ground (`slide`, `grip`), and
+held within `reach` of its leg's full length from its hip (`LimpLegs.hold`, in `Rig.write`, what it was moving away at taken
+off), so the legs hang off a body that rolls or flips, drag behind one that slides, and lie where they fall; the IK bends each
+between its hip and its point as it does a planted foot. Asleep once every foot lies still. The humanoid foes ragdoll
+instead (docs/systems/foes.md, "Ragdolls").
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--skins] [--pack] [--cost] [--pace=0.5] [--json]` walks the archetypes

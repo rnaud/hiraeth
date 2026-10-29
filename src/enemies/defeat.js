@@ -41,7 +41,7 @@ export const DEFEATS = {
   brute: { time: 1.5, sag: { y: -0.75, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
   fencer: { time: 1.2, sag: { y: -0.5, at: [0, 0.45] }, topple: { angle: 1.35, at: [0.3, 0.9] }, puff: 'vent' },   // (onto its knees, then forward onto its shield)
   blot: { time: 0.9, squash: { sy: 0.12, sxz: 1.75, at: [0, 0.75] }, puff: 'ink' },
-  shade: { time: 1.2, sag: { y: -0.55, at: [0.1, 0.7] }, squash: { sy: 0.4, sxz: 1.45, at: [0.15, 0.85] }, puff: 'ink' },
+  shade: { time: 1.2, sag: { y: -0.55, at: [0.1, 0.7] }, squash: { sy: 0.4, sxz: 1.45, at: [0.15, 0.85] }, puff: 'ink', ragdoll: false },   // (its cloak falls empty: no body to ragdoll, issue #750)
   hound: { time: 1.2, sag: { y: -0.3, at: [0, 0.35] }, roll: { side: 1, angle: 1.4, at: [0.25, 0.7] }, curl: [0.4, 0.9, 0.6], puff: 'ink' },
   marionette: { time: 1.3, land: { at: [0.15, 0.45], to: 0 }, slack: true, puff: 'ink' },
   wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, roll: { side: 1, angle: 0.7, at: [0.1, 0.6] }, puff: 'ink' },

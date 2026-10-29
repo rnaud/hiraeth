@@ -5,6 +5,7 @@ import { BodyFromFeet } from './body.js';
 import { PoseBlend } from './pose.js';
 import { poleFor } from './plans.js';
 import { inView } from './view.js';
+import { LimpLegs } from './limp.js';
 
 // The rig: binds a model's joints by role to the kit (docs/systems/procedural-animation.md, "The kit") and runs
 // it once a frame per foe. The mind (src/foes.js Foe) only moves f.pos and f.heading; the rig follows them:
@@ -214,7 +215,9 @@ export class Rig {
     const pose = this.pose.update(dt, { state: f.state, k: f.k, atk: f.atk, recovery: ctx.recovery, stunned: f.stunned });
     this.planner.setStance(pose.lock && !ctx.free, pose.spread);   // (ctx.free: still aiming, the feet may step round)
     const air = ctx.air ?? 0;
-    if (air > 0.01) { this.air = air; this.planner.ready = false; }
+    // (struck down: its feet let go, points under gravity on the ground held within reach of their hips: src/motion-kit/limp.js)
+    if (this.limp) this.limp.step(dt, ctx.ground ?? null);
+    else if (air > 0.01) { this.air = air; this.planner.ready = false; }
     else if (this.air > 0) {
       this.air = 0; this.planner.ready = false;
       // (a hopper lands with its feet where they hang, at their homes, not spread over a stride: ctx.landHome)
@@ -269,6 +272,13 @@ export class Rig {
   /** The planted (or swinging) foot of leg i in the world. */
   footOf(i) { return this.planner.feet[i].pos; }
 
+  /** Its legs let go (a defeat, issue #750): each foot from where it is now, at `vel` (world m/s). */
+  goLimp(vel) {
+    this.limp = new LimpLegs(this.planner.feet.map((x) => x.pos), vel);
+    this.drawn = true;
+    return this.limp;
+  }
+
   /**
    * Solve and draw the legs, once the model has placed its body for this frame (call last: after the group and
    * the body are where they will be drawn). Off the ground (ctx.air), the feet hang from the body (tucked by
@@ -291,10 +301,14 @@ export class Rig {
       matrixTo(L.hip, g, _m2);
       _hip.setFromMatrixPosition(_m2);
       _pole.copy(L.pole).applyQuaternion(_q);
-      // the foot: planted in the world (into the group's frame), or hanging from the body
-      _foot.copy(this.planner.feet[i].pos).applyMatrix4(_inv);
+      // the foot: planted in the world (into the group's frame), or hanging from the body; limp, its point held in reach
+      if (this.limp) {
+        _b.copy(_hip).applyMatrix4(g.matrix);
+        this.limp.hold(i, _b, (L.lenA + L.lenB + (L.lenC || 0)) * g.scale.x);
+        _foot.copy(this.limp.x[i]).applyMatrix4(_inv);
+      } else _foot.copy(this.planner.feet[i].pos).applyMatrix4(_inv);
       _foot.y += L.ankle;
-      if (air > 0) {
+      if (air > 0 && !this.limp) {
         _b.copy(L.restBody).add(L.air).applyMatrix4(bodyM);
         _b.lerp(_hip, Math.max(0, air - 1) * 0.6);   // (air above 1: tucked up under the body)
         _foot.lerp(_b, Math.min(1, air));

@@ -861,6 +861,22 @@ function makePlan(args) {
       { kind: 'wait', frames: 120, secs: 3 }, ...moves('third', 16, 0.27), ...shot('flip-roar'),
       { kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'face' }, { kind: 'wait', frames: 20, secs: 0.4 }, { kind: 'foe', what: 'prowler@desert*', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'warlord@desert*', dist: 8, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['prowler'] }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
   }
+  if (fights.includes('physics')) {
+    // (-fight physics, issues #750 #753 #754 #756: a grunt 4.5 m ahead struck down (it ragdolls, its club let go), pictured
+    // 0.3 s and 1.2 s after; a warlord's plates knocked off onto the ground; a crawler's self-destruct, its pieces flying and
+    // at rest; then at night a lamp tripod 8 m ahead hunting the traveller, its light's pool on him)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-physics-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'grunt@desert', dist: 4.5, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['grunt'] }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('stand'),
+      { kind: 'foe', what: 'kill' }, { kind: 'wait', frames: 18, secs: 0.3 }, { kind: 'foe', what: 'debris' }, ...shot('ragdoll-0.3'), { kind: 'wait', frames: 54, secs: 0.9 }, { kind: 'foe', what: 'debris' }, ...shot('ragdoll-1.2'),
+      { kind: 'wait', frames: 120, secs: 2.5 }, { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'warlord@desert', dist: 5, hp: 99 }, { kind: 'wait', frames: 90, secs: 2 },
+      { kind: 'foe', what: 'strip' }, { kind: 'wait', frames: 70, secs: 1.4 }, { kind: 'foe', what: 'debris' }, ...shot('plates'),
+      { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crawler@desert', dist: 3.5, hp: 99 }, { kind: 'foe', what: 'aside', kinds: ['crawler'] }, { kind: 'wait', frames: 60, secs: 1.5 },
+      { kind: 'foe', what: 'blast' }, { kind: 'wait', frames: 14, secs: 0.25 }, { kind: 'foe', what: 'debris' }, ...shot('blast'), { kind: 'wait', frames: 70, secs: 1.4 }, { kind: 'foe', what: 'debris' }, ...shot('blast-rest'),
+      { kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'clear' },
+      { kind: 'key', code: 'F2', down: true }, { kind: 'key', code: 'F2', down: false }, { kind: 'wait', frames: 10 }, { kind: 'dev', what: 'night' }, { kind: 'wait', frames: 5 },
+      { kind: 'key', code: 'F2', down: true }, { kind: 'key', code: 'F2', down: false }, { kind: 'wait', frames: 20 },
+      { kind: 'foe', what: 'tripod@desert', dist: 8, hp: 99 }, { kind: 'wait', frames: 150, secs: 3.5 }, { kind: 'foe', what: 'lamp' }, ...shot('lamp-night'));
+  }
   if (fights.includes('duelists')) {
     // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
     // shade 4 m ahead, standing; their rig said; then each winds up its first blow, pictured at three quarters of it; then
@@ -1434,6 +1450,23 @@ function playFrame(dt) {
       }
     } else if (step.what === 'windup') {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }
+    } else if (step.what === 'kill') {
+      // (-fight physics, #750: each one struck down by a heavy blow from the traveller, as the blade's third swing)
+      for (const f of F.list.filter((x) => x.alive)) {
+        const V = f.pos.constructor, p = game.player.pos, dir = new V(f.pos.x - p.x, 0, f.pos.z - p.z).normalize();
+        f.hp = 0.1; f.state = 'recover'; f.timer = 0.5; F.hurt(f, 'blade', dir, { damage: 9, combo: 2 }, f.chest.clone());
+        console.log(`[unity] ${f.kind} struck down: ${f.dying?.rag ? 'a ragdoll' : f.model?.rig?.limp ? 'limp legs' : 'its recipe'}`);
+      }
+    } else if (step.what === 'blast') {
+      // (-fight physics, #753: a crawler's self-destruct set off at once)
+      for (const f of F.list.filter((x) => x.alive && x.def.attacks.some((a) => a.selfDestruct))) F.shatter(f, f.def.attacks.find((a) => a.selfDestruct));
+    } else if (step.what === 'debris') {
+      // (-fight physics: the pieces and plates in flight or at rest, the ragdolls)
+      const d = F.debris ?? [], p = F.fallen ?? [], r = F.list.filter((x) => x.dying?.rag);
+      console.log(`[unity] pieces ${d.length} (${d.filter((x) => x.P.asleep).length} at rest, lowest ${Math.min(...d.map((x) => x.P.pos.y)).toFixed(2)}), plates ${p.length} (${p.filter((x) => x.P?.asleep).length} at rest), ragdolls ${r.map((x) => `${x.kind} ${x.dying.rag.asleep ? 'still' : 'moving'} pelvis y ${x.dying.rag.rag.pelvis.y.toFixed(2)}`).join(', ') || 'none'}`);
+    } else if (step.what === 'lamp') {
+      // (-fight physics, #756: the lamp tripod's light in the shared list, its shaft)
+      for (const f of F.list.filter((x) => x.model?.lamp)) console.log(`[unity] lamp on ${f.model.lamp.on}, light ${f.lampFx?.v?.toArray().map((x) => x.toFixed(2)).join(',')}, in the list ${(game.level.lights ?? []).includes(f.lampFx?.v)}, shaft ${!!f.lampFx?.shaft}`);
     } else if (step.what === 'clear') {
       for (const f of F.list.slice()) F.remove(f);
       console.log('[unity] the foes cleared');
@@ -1474,6 +1507,7 @@ function playFrame(dt) {
       D.tabs.forEach((t, i) => more.push({ kind: 'wait', frames: 8 }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-dev-${String(i).padStart(2, '0')}-${t.id}.png` }] : []), { kind: 'menu', act: 'tabNext' }));
       P.steps.splice(P.i + 1, 0, ...more);
     }
+    else if (step.what === 'night') { if (!M.open) game.openDev(); console.log(`[unity] dev menu: the hour, ${pick('toggles', (r) => r.act?.do === 'hour' && r.act.h > 20)}`); M.action('confirm'); }
     else if (step.what === 'noon') { if (!M.open) game.openDev(); console.log(`[unity] dev menu: the hour, ${pick('toggles', (r) => r.act?.do === 'hour' && r.act.h === 12)}`); M.action('confirm'); }
     else if (step.what === 'tp') { if (!M.open) game.openDev(); console.log(`[unity] dev menu: teleport to ${pick('world', (r) => r.act?.point?.key === 'temple')}`); M.action('confirm'); }
     else if (step.what === 'god' || step.what === 'fps') {

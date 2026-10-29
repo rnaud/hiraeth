@@ -41,6 +41,8 @@ import { keyText } from './prompt-keys.js';
 import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
+import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS } from './enemies/debris.js';
+import { RAGDOLL, startFoeRagdoll, stepFoeRagdoll, groundPhysics } from './enemies/foe-ragdoll.js';
 import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
@@ -293,6 +295,16 @@ export const FLICK = { px: 70, decay: 8, rest: 0.35 };
  * that fly to the tank (was 10), a guard's or a glance's sparks (was 14).
  */
 export const HIT_SPLASH = { stagger: 9, flinch: 5, shrug: 3, burst: 24, toTank: 6, sparks: 8 };
+/**
+ * A body broken into pieces (issue #753, src/enemies/debris.js): each piece thrown out from its chest at `speed` m/s (± a
+ * third), `up`, along the killing blow by `blow`, spinning up to `spin` rad/s; it lies `lie` s once asleep (at most
+ * `life` s in all), then shrinks away over `fade` s. A crawler's self-destruct (`blast`) throws harder.
+ */
+export const BREAK = {
+  fall: { speed: 2.6, up: 2.6, blow: 1.6, spin: 7 },
+  blast: { speed: 7, up: 4.5, blow: 0, spin: 14 },
+  lie: 1.4, life: 3.4, fade: 0.5, clatter: 2.2,
+};
 /** A cut that lands and doesn't stop it (a heavy foe, a late wind-up, a strike): its armour's answer, a dull thunk and sparks. */
 export const ARMOUR = { ring: 0.9 };
 /**
@@ -432,7 +444,11 @@ export const WORKS = {
 };
 const _hz = new THREE.Vector3(), _pb = new THREE.Vector3(), _fb = new THREE.Vector3(), _cs = new THREE.Vector3(), _cf = new THREE.Vector3();
 
-const _wk = new THREE.Vector3(), _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _pm = new THREE.Matrix4();
+const _wk = new THREE.Vector3(), _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _pm = new THREE.Matrix4(), _pq = new THREE.Quaternion();
+const _I = new THREE.Matrix4();
+const isIdentity = (m) => m.equals(_I);
+/** Six draws of rng, handed out in turn (a throw takes what the old ones did from the game's rng: the fights' seeded runs unchanged). */
+const draws = (rng) => { const v = [rng(), rng(), rng(), rng(), rng(), rng()]; let i = 0; return () => v[i++ % 6]; };
 /**
  * Where f's weak point is now (world; issue #722, C12: model.weak, its part's place), or null (none, or no body). Shared
  * vector: copy it to keep it.
@@ -3149,29 +3165,63 @@ export class Foes {
     }
   }
 
-  /** A machine comes apart: its pieces fly off, bounce on the ground, settle and fade. */
-  breakApart(f) {
-    const floor = f.pos.y;
-    for (const part of f.model.parts) {
-      this.group.attach(part);
-      (this.debris ??= []).push({ owner:f, o: part, floor, t: 0, vel: new THREE.Vector3((this.rng() - 0.5) * 6, 3 + this.rng() * 4, (this.rng() - 0.5) * 6), spin: new THREE.Vector3(this.rng() * 8 - 4, this.rng() * 8 - 4, this.rng() * 8 - 4) });
+  /**
+   * A machine comes apart (issue #753): its parts fly as rigid pieces (src/enemies/debris.js): thrown out from its chest
+   * (and along the killing blow; a blast harder, BREAK.blast), tumbling, bouncing and sliding on the ground under them to
+   * rest, lying a while, then shrinking away. A skinned body's joints carry its skin with them (the skin kept with them).
+   */
+  breakApart(f, { blast = false } = {}) {
+    const M = f.model, skinned = [];
+    M.group.traverse((x) => { if (x.isSkinnedMesh) skinned.push(x); });
+    M.group.updateMatrixWorld(true); this.group.updateMatrixWorld(true);
+    const parts = M.parts.filter((p) => p?.parent && !this.debris?.some((d) => d.o === p));
+    for (const part of parts) this.group.attach(part);
+    // (a skin drawn by these joints goes with them: it would leave with the body's group)
+    const skins = skinned.filter((S) => S.skeleton?.bones.some((b) => parts.includes(b)));
+    for (const S of skins) { this.group.attach(S); S.frustumCulled = false; }
+    const from = f.chest.clone(), B = blast ? BREAK.blast : BREAK.fall, dir = f.recoilDir?.lengthSq() > 0.5 ? f.recoilDir : null;
+    const inv = _pm.copy(this.group.matrixWorld).invert();
+    for (const part of parts) {
+      const own = []; part.traverse((x) => own.push(x));
+      const { half, centre } = boxOf(part, skinned, own);
+      const pos = part.localToWorld(centre.clone()), q = part.getWorldQuaternion(new THREE.Quaternion());
+      const t = throwFrom(pos, from, { dir, speed: B.speed, up: B.up, blow: dir ? B.blow : 0, spin: B.spin, rng: draws(this.rng) });
+      (this.debris ??= []).push({ owner: f, o: part, P: new Piece({ pos, q, half, vel: t.vel, spin: t.spin }), centre, t: 0, s0: part.scale.clone(), inv: !isIdentity(inv) });
     }
+    if (skins.length) (this.skins ??= []).push({ owner: f, list: skins });
+    this.capDebris();
+  }
+  /** No more than DEBRIS.max pieces in flight: the oldest put to rest where they are. */
+  capDebris() {
+    const flying = (this.debris ?? []).filter((d) => !d.P.asleep);
+    for (let i = 0; i < flying.length - DEBRIS.max; i++) { flying[i].P.asleep = true; flying[i].P.vel.set(0, 0, 0); flying[i].P.w.set(0, 0, 0); }
   }
 
   updateDebris(dt) {
-    for (const d of this.debris ?? []) {
+    if (!this.debris?.length) return;
+    const ground = this.env.ground;
+    let clatters = 0;
+    this.group.updateMatrixWorld();
+    const inv = _pm.copy(this.group.matrixWorld).invert(), qi = _pq.setFromRotationMatrix(inv);
+    for (const d of this.debris) {
       d.t += dt;
-      d.vel.y -= 9.8 * dt;
-      d.o.position.addScaledVector(d.vel, dt);
-      d.o.rotation.x += d.spin.x * dt; d.o.rotation.y += d.spin.y * dt; d.o.rotation.z += d.spin.z * dt;
-      if (d.o.position.y < d.floor + 0.12) { d.o.position.y = d.floor + 0.12; d.vel.y *= -0.3; d.vel.x *= 0.6; d.vel.z *= 0.6; d.spin.multiplyScalar(0.5); }
-      if (d.t > 2.4) d.o.scale.multiplyScalar(Math.max(0, 1 - dt * 3));
-      if (d.t > 3.4) {d.o.removeFromParent();disposeOwnShapes(d.o);}
+      const P = d.P, hits = P.hits;
+      stepPiece(P, dt, ground);
+      placePiece(P, d.o, d.centre);
+      if (d.inv) { d.o.position.applyMatrix4(inv); d.o.quaternion.premultiply(qi); }
+      if (P.hits > hits && P.lastHit > BREAK.clatter && clatters++ < 2) worldSnd.thud(this.sound, Math.min(0.35, P.lastHit * 0.05));
+      if (P.asleep) d.slept ??= d.t;
+      const fadeAt = Math.min(BREAK.life - BREAK.fade, d.slept != null ? d.slept + BREAK.lie : Infinity);
+      if (d.t > fadeAt) d.o.scale.copy(d.s0).multiplyScalar(Math.max(0.001, 1 - (d.t - fadeAt) / BREAK.fade));
+      if (d.t > fadeAt + BREAK.fade) { d.gone = true; d.o.removeFromParent(); disposeOwnShapes(d.o); }
     }
-    if (this.debris) {
-      const expired=new Set(this.debris.filter(d=>d.t>3.4).map(d=>d.owner));
-      this.debris = this.debris.filter((d) => d.t <= 3.4);
-      for(const f of expired)if(f.awaitingDebrisDisposal&&!this.debris.some(d=>d.owner===f)){f.model.dispose();f.awaitingDebrisDisposal=false;}
+    const gone = new Set(this.debris.filter((d) => d.gone).map((d) => d.owner));
+    this.debris = this.debris.filter((d) => !d.gone);
+    for (const f of gone) {
+      if (this.debris.some((d) => d.owner === f)) continue;
+      for (const k of (this.skins ?? []).filter((x) => x.owner === f)) for (const S of k.list) S.removeFromParent();
+      if (this.skins) this.skins = this.skins.filter((x) => x.owner !== f);
+      if (f.awaitingDebrisDisposal) { f.model.dispose(); f.awaitingDebrisDisposal = false; }
     }
   }
 
@@ -3200,7 +3250,7 @@ export class Foes {
     // (the dash cut through its back, double: a gold ring runs out round it, as the riposte's does)
     if (f.backstab) { f.backstab = false; this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: 1.4, life: 0.35, color: '#ffd27a', thick: 1 }); }
     if (r === 'flushed') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
-    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.react(f, mode, dir, info, point, true); this.defeat(f); return true; }
+    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.react(f, mode, dir, info, point, true); this.defeat(f, { dir, point, heavy: (info.damage ?? 1) >= 2 || !!info.breaks || info.combo === 2 || !!info.riposte }); return true; }
     if (f.shrugged) { this.react(f, mode, dir, info, point); this.armour(f, dir); return true; }
     if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
     if (mode !== 'stun' && mode !== 'bloom' && mode !== 'push') this.react(f, mode, dir, info, point);
@@ -3287,33 +3337,29 @@ export class Foes {
     m.visible = false;
     if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
     const at = m.localToWorld(_pc.copy(m.geometry.boundingSphere.center));
-    const out = _pd.set(at.x - f.pos.x, 0, at.z - f.pos.z);
-    if (out.lengthSq() < 1e-4) out.set(dir?.x ?? Math.sin(f.heading), 0, dir?.z ?? Math.cos(f.heading));
-    out.normalize();
-    const r = () => this.rng() * 2 - 1;
-    (this.fallen ??= []).push({ o: c, owner: f, t: 0, vel: new THREE.Vector3(out.x * PLATE.out + r() * 0.6, PLATE.up * (0.8 + 0.4 * this.rng()), out.z * PLATE.out + r() * 0.6),
-      spin: new THREE.Vector3(r() * 7, r() * 5, r() * 7), floor: f.pos.y, bounced: 0, r: m.geometry.boundingSphere.radius * c.scale.x });
+    // (a rigid piece, issue #754: thrown out from the body and along the blow, spinning; src/enemies/debris.js)
+    c.updateMatrixWorld(true);
+    const { half, centre } = boxOf(c), pos = c.localToWorld(centre.clone()), q = c.getWorldQuaternion(new THREE.Quaternion());
+    const T = throwFrom(pos, f.chest, { dir, speed: PLATE.out, up: PLATE.up, blow: dir ? 2.2 : 0, spin: 9, spread: 0.3, rng: draws(this.rng) });
+    (this.fallen ??= []).push({ o: c, owner: f, t: 0, P: new Piece({ pos, q, half, vel: T.vel, spin: T.spin }), centre });
     this.sound?.foeArmour?.(); this.sound?.foeGlance?.(at);
     this.sparks(f, at); hitStop(0.06); kick(0.3);
   }
-  /** The plates knocked off, tumbling down, bouncing once or twice, lying a while, then sinking into the ground (PLATE). */
+  /**
+   * The plates knocked off (issue #754): rigid pieces on the ground's physics (src/enemies/debris.js), tumbling, bouncing
+   * and clattering, sliding to rest on the slope they land on; lying PLATE.lie s, then sinking into the ground (PLATE).
+   */
   updatePlates(dt) {
     if (!this.fallen?.length) return;
+    const ground = this.env.ground;
     for (const d of this.fallen) {
       d.t += dt;
       const o = d.o;
       if (d.t < PLATE.lie) {
-        if (!d.still) {
-          d.vel.y -= 14 * dt;
-          o.position.addScaledVector(d.vel, dt);
-          o.rotation.x += d.spin.x * dt; o.rotation.y += d.spin.y * dt; o.rotation.z += d.spin.z * dt;
-          const floor = (this.env?.ground?.(o.position.x, o.position.y + 1.2, o.position.z) ?? d.floor) + Math.min(0.12, d.r * 0.25);
-          if (o.position.y < floor) {
-            o.position.y = floor;
-            if (d.bounced++ < 2 && d.vel.y < -1.5) { d.vel.y *= -0.32; d.vel.x *= 0.5; d.vel.z *= 0.5; d.spin.multiplyScalar(0.4); worldSnd.thud(this.sound, 0.25); this.sound?.foeGlance?.(o.position); }
-            else { d.still = true; worldSnd.thud(this.sound, 0.15); }
-          }
-        }
+        const hits = d.P.hits;
+        stepPiece(d.P, dt, ground);
+        placePiece(d.P, o, d.centre);
+        if (d.P.hits > hits) { worldSnd.thud(this.sound, Math.min(0.3, 0.06 * d.P.lastHit)); if (d.P.hits <= 2) this.sound?.foeGlance?.(o.position); }
       } else {
         const k = Math.min(1, (d.t - PLATE.lie) / PLATE.sink);
         o.position.y -= dt * 0.35;
@@ -3381,7 +3427,7 @@ export class Foes {
    * freeze, the kick, the slow motion of a fight's last). One with no recipe (an old kind), or gone out of the world, bursts
    * at once. Nothing it does after this hurts you or stands in your way: its mind is done (state 'dead').
    */
-  defeat(f) {
+  defeat(f, blow = {}) {
     if (f.dying || f.dead !== undefined) return;
     const R = DEFEATS[f.archetype];
     if (!R || f.lost || !f.model?.anim) { this.burst(f); return; }
@@ -3391,9 +3437,64 @@ export class Foes {
     f.state = 'dead'; f.k = 0; f.letGo = true;
     this.packFell(f);
     f.dying = startDefeat(f, R);
+    this.letGo(f, R, blow);
     if (!f.def.burrow) groundStart(f.dying, f.model.group, this.physics, f.pos, f.def.radius);   // (the ground under it, as it stood: issue #304)
     if (this.hold?.f === f) this.hold = null;
     if (f.id) this.game.set(f.id, true);   // (counted at the blow: a save taken while it falls keeps it)
+  }
+
+  /**
+   * The killing blow lets go of its body (issue #750): a humanoid on the clip rig ragdolls (src/enemies/foe-ragdoll.js),
+   * thrown along the blow, at most RAGDOLL.most stepping at once (any more, a spirit or a floater: the recipe's fall); a
+   * walker on the kit lets its legs go limp (src/motion-kit/limp.js) under the recipe's body.
+   */
+  letGo(f, R, blow = {}) {
+    const M = f.model, dir = blow.dir && Math.hypot(blow.dir.x, blow.dir.z) > 1e-4 ? blow.dir : f.recoilDir, shove = Math.max(1.2, Math.hypot(f.vel.x, f.vel.z));
+    if (M.joints && R.ragdoll !== false && !M.floats && !f.def.hover && !f.def.burrow && this.ragdolls() < RAGDOLL.most) {
+      M.group.updateMatrixWorld(true);
+      f.dying.rag = startFoeRagdoll(M.joints, { dir, shove, heavy: !!blow.heavy, at: blow.point ?? null, twist: this.fxRng()() * 2 - 1, bulk: f.def.stout ? 1.45 : 1 });
+      f.vel.set(0, 0, 0);
+      // (its hands let go: what it held flies as a piece of its own and lands, src/enemies/debris.js)
+      this.looseGrips(f, dir);
+    } else if (M.rig?.goLimp && !f.def.hover && !f.def.burrow && R.limp !== false) {
+      const d = _w.set(dir?.x ?? 0, 0, dir?.z ?? 0);
+      M.rig.goLimp(new THREE.Vector3(d.x * shove * 0.6, 1.2, d.z * shove * 0.6));
+    }
+  }
+  /** What a struck-down humanoid held (its Wielder's grips) let go: each a rigid piece, tossed along the blow. */
+  looseGrips(f, dir) {
+    const M = f.model, grips = (M.wield?.grips ?? []).filter((g) => g?.parent && g.visible !== false);
+    if (!grips.length) return;
+    const skinned = [];
+    M.group.traverse((x) => { if (x.isSkinnedMesh) skinned.push(x); });
+    M.group.updateMatrixWorld(true); this.group.updateMatrixWorld(true);
+    for (const g of grips) {
+      this.group.attach(g);
+      const own = []; g.traverse((x) => own.push(x));
+      const { half, centre } = boxOf(g, skinned, own), pos = g.localToWorld(centre.clone()), q = g.getWorldQuaternion(new THREE.Quaternion());
+      const t = throwFrom(pos, f.chest, { dir, speed: 1.4, up: 1.8, blow: dir ? 1.6 : 0, spin: 5, rng: this.fxRng() });
+      (this.debris ??= []).push({ owner: f, o: g, P: new Piece({ pos, q, half, vel: t.vel, spin: t.spin }), centre, t: 0, s0: g.scale.clone(), inv: !isIdentity(_pm.copy(this.group.matrixWorld).invert()), held: true });
+    }
+  }
+  /** The looks' own seeded random (what is new since #750 draws on it, so the game's rng, the fights' sequence, is as it was). */
+  fxRng() { return (this._fx ??= ((s) => () => ((s = (s * 16807) % 2147483647) / 2147483647))(1234567)); }
+  /** How many ragdolls are stepping (not yet asleep). */
+  ragdolls() { let n = 0; for (const x of this.list) if (x.dying?.rag && !x.dying.rag.asleep) n++; return n; }
+  /** A ragdoll's frame (issue #750): stepped and laid on the rig, its eyes going out, a puff of dust as it lands, kept on the ground. */
+  ragdollFrame(f, dt) {
+    const D = f.dying, R = D.rag, M = f.model, g = M.group;
+    g.position.copy(f.pos); g.position.y += f.over ?? 0;
+    g.updateMatrixWorld(true);
+    this.ragPhys ??= groundPhysics(this.env.ground, this.physics);
+    // (a tail laid back over the ground it lies on: src/enemies/plans/monster.js TailSpring.keepUp)
+    if (stepFoeRagdoll(R, dt, this.ragPhys) && M.tail?.keepUp) { const gy = this.env.ground(R.rag.pelvis.x, R.rag.pelvis.y + 1, R.rag.pelvis.z) ?? f.pos.y; for (let k = 0; k < 4; k++) M.tail.keepUp(gy, 0.05, this.env.ground); }
+    dimEyes(M, Math.min(1, D.u));
+    const land = R.rag.takeLanding();
+    if (land > 2.2 && D.R.puff === 'dust') this.animKit(f, 0, {}).dust(R.rag.pelvis, '#cdb89a', 6, 0.5);
+    // (kept on the ground by its drawn hull, as every defeat is: read while it moves, the last lift held once it lies still)
+    if (f.def.burrow) return;
+    if (R.asleep && D.held != null) g.position.y += D.held;
+    else D.held = groundDefeat(D, g, { sink: 0 }, this.physics, f.pos, { size: M.size ?? 1, radius: f.def.radius });
   }
 
   /** A centipede cut from behind sheds its tail: its last segments break off and run as skitterers (def.shed). */
@@ -3421,14 +3522,17 @@ export class Foes {
     this.packFell(f);
     const T = this.tool, at = f.chest.clone();
     const tones = f.model.tones ?? BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];   // (an archetype's from its skin)
-    for (let i = 0; i < HIT_SPLASH.burst; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
+    // (its ink flies and lands: a drop that reaches the ground lies there a moment as a flat splash, issue #753)
+    const floor = (this.env.ground(at.x, at.y + 0.5, at.z) ?? f.pos.y) + 0.015, drops = T?.drops;
+    const land = (d) => drops?.add({ pos: _v.set(d.pos.x, floor, d.pos.z), flat: true, size: d.size * 1.7, life: 1.1 + Math.random() * 0.5, color: d.color });
+    for (let i = 0; i < HIT_SPLASH.burst; i++) drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 1.2 + Math.random() * 0.5, color: tones[i % 3], floor, land });
     if (T?.reserve) {
       T.reserve.level = Math.min(T.reserve.max, T.reserve.level + 1);
       T.flash = 1; T.wave = Math.max(T.wave ?? 0, 0.6);
       const tank = T.tank?.group ? T.tank.group.localToWorld(_w.set(0, 0.3, 0)) : null;
       if (tank) for (let i = 0; i < HIT_SPLASH.toTank; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
-    if (f.def.breaks) this.breakApart(f);   // (a machine, glass, a shell, a drone: its pieces fly)
+    if (f.def.breaks || f.blast) this.breakApart(f, { blast: !!f.blast });   // (a machine, glass, a shell, a drone, a crawler blown up: its pieces fly)
     else this.stain(f);
     // a glass golem breaks into its splinters, and they come on
     if (f.def.splits) for (let i = 0; i < f.def.splits.n; i++) {
@@ -3448,7 +3552,8 @@ export class Foes {
   puff(f) {
     this.puffs ??= new SmokePuffs(this.scene ?? this.group);
     const size = Math.max(0.5, (f.def.radius ?? 0.6) * 2 * Math.min(1.6, f.model.size ?? 1));
-    this.puffs.add(f.dying ? _w.copy(f.pos).addScaledVector(_up, Math.min(0.6, f.def.radius ?? 0.5)) : f.chest, size, f.model.tones ?? BURST_TONES[f.kind]);
+    const at = f.dying?.rag ? _w.copy(f.dying.rag.rag.pelvis) : f.dying ? _w.copy(f.pos).addScaledVector(_up, Math.min(0.6, f.def.radius ?? 0.5)) : f.chest;
+    this.puffs.add(at, size, f.model.tones ?? BURST_TONES[f.kind]);
   }
 
   update(dt, paused = false) {
@@ -3485,6 +3590,7 @@ export class Foes {
     for (const f of this.list.slice()) {
       if (f.dead !== undefined) {   // done: it lies a moment (SMOKE.linger), then shrinks away inside a puff of smoke, then gone
         f.dead -= dt;
+        if (f.dying?.rag && !f.dying.rag.asleep) this.ragdollFrame(f, dt);   // (still settling as it lies: issue #750)
         if (!f.puffed && f.dead <= SMOKE.fade) { f.puffed = true; this.puff(f); }
         f.model.group.scale.setScalar(Math.max(0.01, Math.min(1, f.dead / SMOKE.fade)) * (f.model.size ?? 1));
         if (f.dead <= 0) this.remove(f);
@@ -4061,7 +4167,7 @@ export class Foes {
     if (W) this.ringOut(f, W, f.pos.clone(), 0.8);
     // (a crawler's self-destruct, issue #726: a flash of light the size of its blast, its ceramic flung out)
     if (isArea(a)) this.gw.impact('area', f.attackAt ?? f.pos, markRadius(a));   // (the blast flower, to exactly its ring: #758)
-    if (a.selfDestruct) this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: a.radius ?? 2.5, life: 0.35, color: f.def.tone, thick: 2 });
+    if (a.selfDestruct) { this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: a.radius ?? 2.5, life: 0.35, color: f.def.tone, thick: 2 }); f.blast = true; }   // (its pieces blown out: issue #753)
     this.animKit(f, 0, {}).spray(f.chest, f.model.tones ?? ['#f3e8dc', '#ffffff'], 30, 6, 9);
     worldSnd.thud(this.sound, 0.8); kick(0.3);
     this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
@@ -4445,7 +4551,11 @@ export class Foes {
     const strike = f.state === 'strike', recover = f.state === 'recover';
     const recovery = recover ? THREE.MathUtils.clamp(f.timer / f.def.recover, 0, 1) : 0;
     const release = strike ? THREE.MathUtils.smoothstep(f.k, 0, 0.7) : 0;
-    if (M.anim) {
+    if (M.anim && D?.rag) {
+      // (struck down on the rig: its ragdoll lays the body, issue #750; its own pose and springs stand still)
+      g.scale.setScalar(M.size ?? 1); g.rotation.x = 0; g.rotation.z = 0;
+      this.ragdollFrame(f, dt);
+    } else if (M.anim) {
       // each world's own kind moves itself (src/foe-kinds.js)
       g.scale.setScalar(M.size ?? 1); g.rotation.x = 0; g.rotation.z = 0;
       const kit = this.animKit(f, dt, { t, wind, release, recovery, moving });
