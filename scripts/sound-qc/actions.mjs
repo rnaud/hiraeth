@@ -121,6 +121,8 @@ export const ACTIONS = [
   A('pen-set', 'the pen\'s bridge set', 'the gadgets', 'action', (s) => KIT.pen.set(s), { key: true, web: [[GAD + 'bridge.js', /penSfx\.set\(/]] }),
   // ------------------------------------------------------------------ the foes and the fight temples
   A('foe-warn', 'a foe winding up (its telegraph)', 'the foes', 'action', (s) => s.foeWarn('blot', 0.8), { key: true, web: [['src/foes.js', /this\.sound\?\.foeWarn\?\.\(/]] }),
+  // (each foe's own, issue #771: src/foe-sounds.js through src/foes.js; a grunt for a voice, others for their blows)
+  ...foeActions(),
   A('wave', 'a fight temple\'s wave coming', 'the foes', 'action', (s) => s.foeWarn('machine', 0.8), { web: [['src/fight-temples/session.js', /sound\?\.foeWarn\?\.\('machine'\)/]] }),
   A('foe-kill', 'a foe killed in a fight temple', 'the foes', 'impact', (s) => s.foeKill(1), { web: [['src/fight-temples/kill-fx.js', /this\.sound\?\.foeKill\?\.\(/]] }),
   A('fight-pickup', 'a heart or a fury picked up in a fight temple', 'the foes', 'cue', (s) => s.potionPickup(), { web: [['src/fight-temples/session.js', /sound\?\.potionPickup\?\.\(\)/]] }),
@@ -159,6 +161,27 @@ export const ACTIONS = [
  * before an action is played (they import three and the world's modules: not for the list's tests). `KIT.gadget.hookFire(s)`.
  */
 export const KIT = {};
+/** The foes' voices (issue #771): each event of a grunt's, a crab's chitter and a tripod's whistle, and the blows by sort. */
+function foeActions() {
+  const FS = 'src/foe-sounds.js', F = 'src/foes.js';
+  const say = (id, ev) => (s) => new KIT.foes.FoeSounds(() => s).voice(KIT.foe(id), ev);
+  const blow = (id, atk) => (s) => { const f = KIT.foe(id); new KIT.foes.FoeSounds(() => s).blow(f, f.def.attacks.find((a) => a.id === atk)); };
+  const calls = [[F, /this\.voices\.call\(f, kind\)/]], events = [[F, /this\.voices\.event\(f, ev\)/]], frames = [[F, /this\.voices\.frame\(dt, P, this\.list\)/]];
+  return [
+    A('foe-alert', 'a foe spotting you (a grunt\'s snort and squeal)', 'the foes', 'action', say('grunt', 'alert'), { web: calls }),
+    A('foe-alert-chitin', 'a skitter spotting you (its chitter)', 'the foes', 'action', say('skitter', 'alert'), { web: calls }),
+    A('foe-alert-steam', 'a tripod spotting you (its steam whistle)', 'the foes', 'action', say('tripod', 'alert'), { web: calls }),
+    A('foe-cry', 'a foe\'s cry as it winds up (a grunt\'s snarl)', 'the foes', 'action', say('grunt', 'cry'), { web: [...events, [FS, /this\.voice\(f, 'cry'\)/]] }),
+    A('foe-swing', 'a foe\'s blow: a club swung, with its grunt', 'the foes', 'action', blow('grunt', 'club'), { web: [...frames, [FS, /this\.blow\(f, a\)/]] }),
+    A('foe-slam', 'a foe\'s blow: a hulk\'s smash landing', 'the foes', 'action', blow('hulk', 'smash'), { web: [...frames, [FS, /this\.blow\(f, a\)/]] }),
+    A('foe-shot', 'a foe\'s blow: a tripod\'s bolt', 'the foes', 'action', blow('tripod', 'beam'), { web: [...frames, [FS, /this\.blow\(f, a\)/]] }),
+    A('foe-bite', 'a foe\'s blow: a crab\'s snap', 'the foes', 'action', blow('crab', 'snap'), { web: [...frames, [FS, /this\.blow\(f, a\)/]] }),
+    A('foe-idle', 'a foe now and then (a grunt\'s snuffle)', 'the foes', 'foley', say('grunt', 'idle'), { web: [...frames, [FS, /this\.voice\(f, 'idle'/]] }),
+    A('foe-step', 'a foe\'s footstep (a grunt walking)', 'the foes', 'foley', (s) => new KIT.foes.FoeSounds(() => s).step(KIT.foe('grunt')), { web: [...frames, [FS, /this\.step\(f, /]] }),
+    A('foe-death', 'a foe going down (a grunt\'s cry)', 'the foes', 'impact', say('grunt', 'death'), { web: [...frames, [FS, /this\.voice\(f, 'death'\)/]] }),
+    A('foe-burst', 'a foe coming apart (a grunt\'s)', 'the foes', 'impact', (s) => s.foeBurst('grunt', 'flesh'), { web: [[F, /this\.sound\?\.foeBurst\?\.\(f\.kind, f\.def\.sound, \(\) => f\.chest\)/]] }),
+  ];
+}
 export async function loadKit() {
   const [g, b, m, bu, f, sp, r, l, p] = await Promise.all([
     import('../../src/gadgets/sfx.js'),
@@ -171,6 +194,9 @@ export async function loadKit() {
     import('../../src/gadgets/lens.js'),
     import('../../src/gadgets/bridge.js')
   ]);
+  const [fs, ar] = await Promise.all([import('../../src/foe-sounds.js'), import('../../src/enemies/archetypes.js')]);
+  KIT.foes = fs;
+  KIT.foe = (id) => { const A = ar.ARCHETYPES[id], pos = { x: 0, y: 0, z: 0 }; return { kind: A.kind, archetype: id, def: A.def, pos, chest: pos, state: 'chase', alive: true }; };
   return Object.assign(KIT, { gadget: g.sfx, boomerang: b.snd, magnet: m.snd, bubble: bu.bubbleSfx, fan: f.fanSfx, springs: sp.springSfx, recall: r.recallSfx, lens: l.lensSfx, pen: p.penSfx });
 }
 

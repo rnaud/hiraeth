@@ -19,10 +19,24 @@ export const BRONZE = [[0.5, 0.6, 1], [1, 1, 0.8], [1.19, 0.55, 0.6], [1.5, 0.4,
 export const CRACKED = [[1, 1, 1], [1.07, 0.8, 0.9], [1.61, 0.5, 0.5], [2.43, 0.35, 0.35], [3.2, 0.2, 0.2]];   // (a cracked bell: the partials pulled apart, beating)
 export const CLAY = [[1, 1, 1], [1.72, 0.45, 0.5], [2.9, 0.2, 0.3]];
 
-const N = (type, f, dur, vol, o = {}) => ({ p: 'noise', type, f, dur, vol, q: 0.8, rate: 1, at: 0, ...o });
-const T = (wave, f, f1, dur, vol, o = {}) => ({ p: 'tone', wave, f, f1, dur, vol, at: 0, ...o });
-const R = (f, partials, dur, vol, o = {}) => ({ p: 'ring', f, partials, dur, vol, at: 0, ...o });
-const C = (n, every, f, dur, vol, o = {}) => ({ p: 'clicks', n, every, f, dur, vol, q: 4, at: 0, ...o });
+export const N = (type, f, dur, vol, o = {}) => ({ p: 'noise', type, f, dur, vol, q: 0.8, rate: 1, at: 0, ...o });
+export const T = (wave, f, f1, dur, vol, o = {}) => ({ p: 'tone', wave, f, f1, dur, vol, at: 0, ...o });
+export const R = (f, partials, dur, vol, o = {}) => ({ p: 'ring', f, partials, dur, vol, at: 0, ...o });
+export const C = (n, every, f, dur, vol, o = {}) => ({ p: 'clicks', n, every, f, dur, vol, q: 4, at: 0, ...o });
+/**
+ * A throat's vowels (issue #771): the two formants [Hz, Q, gain] a growl's buzz is sung through. A bigger body sings
+ * them lower (pitched() moves them with the buzz).
+ */
+export const VOWELS = {
+  a: [[800, 6, 1], [1250, 7, 0.55]], o: [[480, 6, 1], [880, 7, 0.5]], u: [[340, 6, 1], [720, 7, 0.4]],
+  e: [[500, 6, 1], [1750, 8, 0.45]], i: [[320, 6, 1], [2300, 9, 0.4]],
+};
+/**
+ * growl (issue #771): a creature's voice, a buzz (wave, f → f1 over dur) through a vowel's formants (VOWELS), roughened
+ * by a tremolo `am` Hz deep `depth` (0..1: a snarl, a croak's pulses), with breath (bandpassed noise round `breath` Hz,
+ * `bvol` of the voice). Swells in over its first 20 % (at most 30 ms), held to 60 %, dies after.
+ */
+export const G = (f, f1, dur, vol, vowel = 'a', o = {}) => ({ p: 'growl', wave: 'sawtooth', f, f1, dur, vol, formants: VOWELS[vowel] ?? VOWELS.a, am: 0, depth: 0.5, breath: 0, bvol: 0.4, at: 0, ...o });
 
 /** Every archetype's voice, by its foe kind (src/enemies/archetypes.js `kind`); the makers' machine and anything else: `machine` or `ink`. */
 export const FOE_VOICES = {
@@ -139,7 +153,8 @@ export const GLANCE = [C(1, 0, 5200, 0.012, 0.1, { q: 3 }), R(2900, GLASS, 0.14,
 
 /** A voice's layers with every frequency x k (a take a little apart: Sound.vary). */
 export function pitched(layers, k = 1) {
-  return layers.map((L) => ({ ...L, f: L.f * k, ...(L.f1 ? { f1: L.f1 * k } : {}) }));
+  return layers.map((L) => ({ ...L, f: L.f * k, ...(L.f1 ? { f1: L.f1 * k } : {}),
+    ...(L.formants ? { formants: L.formants.map(([f, q, g]) => [f * k, q, g]) } : {}), ...(L.breath ? { breath: L.breath * k } : {}) }));
 }
 
 /** A foe's voice: its kind's own; or by its def's sound ('machine'); or the ink's. */

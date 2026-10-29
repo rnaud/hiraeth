@@ -8,6 +8,7 @@ import { raceSounds } from '../minigames/rings.js';
 import { dropSounds } from '../minigames/wingdrop.js';
 import { SFX } from '../sfx.js';
 import { FOE_VOICES } from '../foe-voices.js';
+import { FOE_CALLS } from '../foe-sounds.js';
 import { ACTION_SFX } from '../action-sfx.js';
 import { recordedOrigin } from '../sfx-trace.js';
 
@@ -64,7 +65,8 @@ export const PROCEDURAL = new Set(`grunt heartbeat wade bubbles gasp waterRise f
 // These controller cues were reviewed individually. New named cues fail coverage until classified.
 export const PIRATE_PROCEDURAL = new Set('shot enemy tell hit boom clank deflect roll charge lock missile dry pickup rearm hull warning incoming combo comms tally boost brake spent upgrade gunLost arrive bed thunder'.split(' '));
 export const AMBIENT_PROCEDURAL = new Set('wind storm high rain rainRoof cloak jet roar hum bike rails'.split(' '));
-const foeIds = new Set(Object.keys(FOE_VOICES).map(kind=>'foe:'+kind));
+// (each foe's hurt and burst, and its calls, movement and blows: issue #771, all synthesised)
+const foeIds = new Set([...Object.keys(FOE_VOICES).map(kind=>'foe:'+kind), ...Object.keys(FOE_CALLS).map(k=>'foecall:'+k), 'foemove', 'foeblow']);
 export function routeFor(entry, variant = 0) {
   if(entry.id.startsWith('sample:')) return record(entry.id.slice(7),false,'Raw recording group; missing files stop this preview.');
   if(entry.route) return entry.route;
