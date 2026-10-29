@@ -59,7 +59,7 @@ const SPEEDS = { walk: 1.1, jog: 2.8, sprint: 5.5 };
  * the point at you over the shield.
  */
 export const SENTINEL_HOLD = {
-  blade: { side: 0, r: 0.021, wrist: SWORD_WRIST, reach: [1.03, 0.14], carry: { dir: [0, -0.6, 0.8] },
+  blade: { side: 0, r: 0.021, wrist: SWORD_WRIST, edge: [0, 1], reach: [1.03, 0.14], carry: { dir: [0, -0.6, 0.8] },
     moves: {
       cut: { wind: [-0.35, 0.8, -0.48], via: [-0.68, 0.3, 0.67], hit: [0.75, -0.1, 0.65], follow: [0.6, -0.6, 0.5] },
       riposte: { wind: [0.55, 0.62, -0.56], via: [0.4, 0.2, 0.9], hit: [-0.8, 0, 0.6] },

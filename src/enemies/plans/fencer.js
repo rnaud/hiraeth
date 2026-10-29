@@ -58,11 +58,13 @@ export function shieldGeometry(w = 0.5, h = 0.86, t = 0.05) {
 }
 /** The sword along +y from the grip: pommel, grip, cross-guard, a straight blade to a point (its edge line apart). */
 function swordParts(L = BLADE) {
-  const blade = new THREE.CylinderGeometry(0.012, 0.035, L, 4, 1).scale(1, 1, 0.28).rotateY(Math.PI / 4).translate(0, 0.08 + L / 2, 0);
-  const tip = new THREE.ConeGeometry(0.035, 0.12, 4).scale(1, 1, 0.28).rotateY(Math.PI / 4).translate(0, 0.08 + L + 0.06, 0);
+  // (a diamond section, its flats facing ±x and its two edges ±z: the grip's knuckles' way, so an edge leads the cut,
+  // #746; the cross-guard and the lit line down its middle across the edges)
+  const blade = new THREE.CylinderGeometry(0.012, 0.035, L, 4, 1).scale(0.28, 1, 1).translate(0, 0.08 + L / 2, 0);
+  const tip = new THREE.ConeGeometry(0.035, 0.12, 4).scale(0.28, 1, 1).translate(0, 0.08 + L + 0.06, 0);
   const hilt = [new THREE.CylinderGeometry(0.022, 0.022, 0.18, 8).translate(0, -0.03, 0), new THREE.SphereGeometry(0.035, 8, 6).translate(0, -0.13, 0),
-    new THREE.BoxGeometry(0.2, 0.035, 0.05).translate(0, 0.07, 0)];
-  const edge = [new THREE.BoxGeometry(0.012, L * 0.92, 0.035).translate(0, 0.1 + L * 0.46, 0)];
+    new THREE.BoxGeometry(0.05, 0.035, 0.2).translate(0, 0.07, 0)];
+  const edge = [new THREE.BoxGeometry(0.035, L * 0.92, 0.012).translate(0, 0.1 + L * 0.46, 0)];
   return { steel: [blade, tip], hilt, edge };
 }
 
@@ -96,7 +98,7 @@ const FENCER_SPEEDS = { walk: 1.0, jog: 2.6, sprint: 5 };
  * air, down on where you stood; its guard drawn back over its shoulder, the point at you over the shield.
  */
 export const FENCER_HOLD = {
-  sword: { side: 0, r: 0.022, wrist: SWORD_WRIST, reach: [1.17, 0.17], carry: { dir: [0, 0.3, 0.95] },
+  sword: { side: 0, r: 0.022, wrist: SWORD_WRIST, edge: [0, 1], edges: 2, reach: [1.17, 0.17], carry: { dir: [0, 0.3, 0.95] },
     moves: {
       overhead: { wind: [-0.05, 0.5, -0.86], via: [0, 0.95, 0.3], hit: [0, -0.45, 0.89] },
       sweep: { wind: [-0.55, -0.15, -0.82], via: [-0.72, -0.1, 0.68], hit: [0.75, -0.1, 0.65] },
@@ -188,7 +190,7 @@ export function fencerModel(skin) {
   const parts = [hull, head, ...J.arms, ...J.elbows, ...J.hands, strap, grip, ...J.legs, ...J.knees, ...J.feet];
   const lagS = new SecondOrder(3.2, 0.5, 0.2);   // (the shield's servo: a little overshoot as it comes up)
   let guard = 0, broke = 0, glow = 0;
-  const local = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _eu = new THREE.Euler();
+  const local = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _eu = new THREE.Euler(), _qy = new THREE.Vector3(0, 1, 0);
   return {
     group: g, gaze, body: rig, rig: null, upright: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.plate, P.seam, P.frame],
     driver, joints: J, wield,
@@ -230,7 +232,8 @@ export function fencerModel(skin) {
         g.worldToLocal(dropped.position.copy(local));
         // (its turn in the world: spinning end over end in the air, then lying on the ground pointing away)
         _eu.set(u < 1 ? S.t * 14 : Math.PI / 2, Math.atan2(S.at.x - S.from.x, S.at.z - S.from.z), 0, 'YXZ');
-        _q.setFromEuler(_eu);
+        // (turned on its haft first: its flats, ±x as built, up and down when it lies)
+        _q.setFromEuler(_eu).multiply(_qb.setFromAxisAngle(_qy, Math.PI / 2));
         dropped.quaternion.copy(g.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(_q));
         dropped.scale.setScalar(1 / (skin.scale ?? 1));
       }

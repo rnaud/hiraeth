@@ -665,7 +665,7 @@ export const PROWLER_HEAD = { z0: -0.09, z1: 0.32, jaw: 0.026,
  * then straight ahead with it.
  */
 export const PROWLER_HOLD = {
-  blade: { side: 0, r: 0.016, wrist: SWORD_WRIST, reach: [0.52, 0.08], carry: { dir: [0.05, -0.72, 0.7] },
+  blade: { side: 0, r: 0.016, wrist: SWORD_WRIST, edge: [0, 1], reach: [0.52, 0.08], carry: { dir: [0.05, -0.72, 0.7] },
     moves: {
       slash: { wind: [0.55, 0.5, -0.67], via: [0.1, 0.35, 0.93], hit: [-0.8, 0.05, 0.6], follow: [-0.85, -0.2, -0.3] },
       dart: { wind: [-0.25, 0.15, -0.95], hit: [0, 0.05, 1] },
@@ -900,13 +900,13 @@ export const WARLORD_HORN = { c: [0.17, 0.17, -0.02], fwd: 0.4, r0: 0.13, r1: 0.
  * raised in its fist; the last stand swung back round behind it in both fists, then out at its full reach as it whirls.
  */
 export const WARLORD_HOLD = {
-  glaive: { side: 0, r: 0.032, wrist: SWORD_WRIST, reach: [2.45, 0.8], carry: { frame: 'body', dir: [-0.1, 1, 0.06], fore: [-0.05, -0.35, 0.94] },
+  glaive: { side: 0, r: 0.032, wrist: SWORD_WRIST, edge: [-1, 0], reach: [2.45, 0.8], carry: { frame: 'body', dir: [-0.1, 1, 0.06], fore: [-0.05, -0.35, 0.94] },
     moves: {
       sweep: { frame: 'body', wind: [-0.55, 0.6, -0.58], via: [-0.62, 0.12, 0.78], hit: [0.8, 0.02, 0.6], follow: [0.9, -0.15, -0.35], both: { at: 0.5, from: -0.6, to: 1.0 } },
       overhead: { wind: [-0.12, 0.45, -0.88], via: [0, 0.95, 0.3], hit: [0, -0.45, 0.89], both: { at: -0.35, from: -0.6, to: 1.0 } },
-      charge: { frame: 'body', wind: [0, -0.12, 1], hit: [0, -0.12, 1], both: { at: 0.6, from: -0.6, to: 1.0 } },
+      charge: { frame: 'body', wind: [0, -0.12, 1], hit: [0, -0.12, 1], both: { at: 0.6, from: 0.4, to: 1.0 } },
       roar: { frame: 'body', wind: [-0.35, 1, 0.25], hit: [-0.35, 1, 0.25] },
-      whirl: { frame: 'body', wind: [-0.45, 0.05, -0.9], hit: [-1, 0.05, 0.2], both: { at: 0.5, from: -0.6, to: 1.0 } },
+      whirl: { frame: 'body', wind: [-0.45, 0.05, -0.9], hit: [-1, 0.05, 0.2], both: { at: 0.5, from: 0.3, to: 1.0 } },
     } },
 };
 export function warlordModel(skin) {

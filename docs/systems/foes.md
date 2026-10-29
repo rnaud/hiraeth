@@ -1603,6 +1603,11 @@ shoulder before the smash, the sentinel's blade up over its shoulder before the 
 next to each plan's moves); how the fist, the fingers and the second hand are solved: docs/systems/procedural-animation.md,
 "Holding a weapon". No timing, damage, hitbox or reach changed.
 
+Since #746 (v2.35): the other fist stays on a two-handed haft through the whole move (the warlord's last stand never
+lets go, its lance's other hand ahead), the blades' edges lead their cuts (the fencer's, the warlord's, the sentinel's,
+the shade's, the prowler's: the blade rolled on its haft to the cut), and no fist sinks into the ground lying down,
+getting up or asleep.
+
 ## The mummers (v2.33, issue #724, `src/enemies/plans/mummer.js`)
 
 The camp tribe of docs/design/enemy-roster-v2.md, the first humanoids on clips (docs/design/enemy-roster-v3.md; the rig:

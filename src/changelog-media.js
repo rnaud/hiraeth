@@ -1381,6 +1381,7 @@ const DROIDS726 = 'Issue #726: the creatures gallery (enemies.html: the game’s
 const DROIDS726U = 'Issue #726: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level arena -fight droids, an APFS clone of the main checkout’s Library, deleted after), its follow camera and HUD at 1280 × 720, the three set side by side ahead of the camera by the script; 28 October. After only; editor evidence of the same JS, not a device performance claim; cwebp -q 72';
 /** (v2.34, issue #727: the Thor at 60, round two) */
 const FROM727B = 'The bench’s own frame captures (host.Shot, the game’s 1920 × 1080 picture as the screen shows it, without the HUD) on the AYN Thor (Adreno 740, 1920 × 1080), Handheld as Android picks it, muted, a review store, the same pinned camera, 28 October 2026, scaled to 1280 × 720 (cwebp -q 72). Before: round one’s release APK (versionCode 2964); after: this branch’s release APK (versionCode 2969, built locally with the same signing key); both at the dynamic resolution’s floor of a third. The people move between the two runs; nothing else should differ: the change is how the GPU draws the same picture';
+const GRIP746 = 'Issue #746: the creatures gallery (enemies.html) in muted headless Chrome (--mute-audio, no audio context), its own Vite (port 5495), 1280 × 720, cwebp -q 72, 28 October 2026: the before from 35d2c0e2c (its src served the same way), the after from this change, the same view and the same moment of the move, the camera kept on the body as it moves';
 const GRIP744 = 'Issue #744: the creatures gallery (enemies.html) in muted headless Chrome (--mute-audio, the game muted, Vite on port 5483), 1280 × 720, cwebp -q 72, 28 October 2026: the before from 48828cd5b (an export of it), the after from this change, the same view and the same moment of the move; the body alone in the frame (compare.mjs’s framing)';
 const SRC727B = 'the bench (-bench 6, one 6 s run per view, muted, a review store), every route world, Home and the ship, round one’s sweep before and this one after, 28 October 2026; GPU at a fixed 0.385 (-render-scale 0.385 -upscale linear) for the per-change rows; docs/systems/performance.md, “Unity on the AYN Thor, round two”';
 /** (v2.34, issue #728: the makers' battery) */
@@ -1400,6 +1401,29 @@ const BENCH726 = 'the combat review v2.34’s fight-core bench (node, no browser
 
 export const CHANGELOG_MEDIA = {
   '2.35': [
+  { match: 'Two-handed enemies keep both hands on their weapon', shots: [
+    { name: 'grip746-whirl', size: [1280, 720], caption: 'The warlord’s last stand at the end of its wind-up, from behind: before, its left hand had let go (out of reach); after, both fists on the shaft behind it', from: GRIP746, view: 'warlord@desert from behind (yaw 3.14, pitch 0.12, zoom 0.5), 1.25 s into the last stand’s 1.3 s wind-up' },
+    { name: 'grip746-charge', size: [1280, 720], caption: 'The warlord’s charge, running: before, its left hand back by the right at its hip; after, forward on the shaft like a lance', from: GRIP746, view: 'warlord@desert from its front left (yaw −1.2, pitch 0.12, zoom 0.6), 0.5 s into the charge’s run' },
+    { name: 'grip746-hulk-sweep', size: [1280, 720], caption: 'The hulk’s sweep just after it strikes: before, its other claw open beside the club; after, closed round the haft', from: GRIP746, view: 'hulk@desert three-quarter (yaw 0.75, pitch 0.12, zoom 0.6), 0.33 s into the sweep’s 0.35 s strike' },
+    { name: 'grip746-fencer-edge', size: [1280, 720], caption: 'The makers’ fencer’s overhead cut on its way down, from the side: before, the blade’s flat led the cut (seen edge-on, a thin line); after, its edge leads (its broad side seen)', from: GRIP746, view: 'fencer@moonfoundry from its side (yaw 1.2, pitch 0.12, zoom 0.5), 0.02 s into the overhead’s strike' },
+    { name: 'grip746-hulk-getup', size: [1280, 720], caption: 'A knocked-down hulk getting back up: before, its right fist and its club sunk into the ground (its fists went as deep as 74 cm under it while it got up); after, the fist on the ground and the club out to its side (every fist point 2 cm or more over the ground through the knock-down)', from: GRIP746, view: 'hulk@desert from its front (yaw 0.3, pitch 0.12, zoom 0.5), 2.4 s after it went down (0.2 s before it stands)' },
+  ], numbers: [
+    { title: 'The other fist’s worst distance from the haft while the move holds it with both, in cm', unit: 'cm', better: 'lower', device: 'node, the clips and the foes’ own update at 60 frames a second, every frame from 0.35 s after the move takes the haft to the end of its strike', source: 'Issue #746: a measure of the Wielder (the fist’s haft point against the weapon’s line), before 35d2c0e2c, after this change; tests/wield-grips.test.js', rows: [
+      { where: 'Warlord sweep', before: 19.5, after: 0.8 },
+      { where: 'Warlord last stand', before: 166.7, after: 1.5 },
+      { where: 'Warlord charge', before: 89.7, after: 1.8 },
+      { where: 'Hulk smash', before: 63.0, after: 0.8 },
+      { where: 'Hulk sweep', before: 19.8, after: 1.2 },
+      { where: 'Mummer king swing', before: 34.5, after: 1.3 },
+    ], note: 'Before, the last stand, the charge and the smashes let go early in their wind-up (out of reach) and took the haft again late; the hand now takes it in about 0.3 s and keeps it.' },
+    { title: 'A blade’s edge off the way it cuts, through the strike (speed-weighted), in degrees', unit: '°', better: 'lower', device: 'node, as above', source: 'Issue #746: the edge against the tip’s motion square to the blade, every frame it moves over 1.5 m/s', rows: [
+      { where: 'Fencer overhead', before: 49, after: 5 },
+      { where: 'Fencer sweep', before: 50, after: 12 },
+      { where: 'Warlord sweep', before: 72, after: 8 },
+      { where: 'Warlord last stand', before: 83, after: 5 },
+      { where: 'Sentinel cut', before: 120, after: 7 },
+    ] },
+  ], see: 'In the Arena, pick the warlord and bring it low to see its last stand, or watch the makers’ fencer’s overhead cut from the side; knock a hulk down and watch its hands as it gets up.' },
   { match: 'Every armed enemy now holds its weapon like a fighter', shots: [
     { name: 'grip-hulk-smash', size: [1280, 720], caption: 'The hulk’s smash held at 80 % of its wind-up: before, the club lying across its open, upturned hands; after, both fists stacked on the haft, the club up and back over its shoulder', from: GRIP744, view: 'hulk@desert, three-quarter (yaw 0.75, pitch 0.12, zoom 0.95, on the body alone), the smash at 80 % of its wind-up' },
     { name: 'grip-hulk-carry', size: [1280, 720], caption: 'The hulk standing: before, the club across its open claws; after, its fist closed round the butt and the head down by its feet, its empty hand open (the sheet’s)', from: GRIP744, view: 'hulk@desert, from its front left (yaw 0.45, pitch 0.12, zoom 1.25, on the body alone), standing, 1.5 s into its idle' },

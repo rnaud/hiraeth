@@ -180,7 +180,7 @@ export const SHADE_MOVES = {
  * straight in; its guard up across its body to its left.
  */
 export const SHADE_HOLD = {
-  sword: { side: 0, r: 0.022, wrist: SWORD_WRIST, reach: [1.12, 0.05], carry: { dir: [0, -0.5, 0.86] },
+  sword: { side: 0, r: 0.022, wrist: SWORD_WRIST, edge: [0, 1], edges: 2, reach: [1.12, 0.05], carry: { dir: [0, -0.5, 0.86] },
     moves: {
       cut: { wind: [-0.3, 0.78, -0.55], via: [-0.62, 0.3, 0.72], hit: [0.75, -0.1, 0.65] },
       recut: { wind: [0.5, 0.62, -0.6], via: [0.35, 0.2, 0.9], hit: [-0.8, 0, 0.6] },

@@ -847,16 +847,33 @@ bow hung from the end of a limb. Now the weapon decides and the hand follows (`W
   (knuckles, tips), bent so the middle joint and the tip lie on a haft of the weapon's own radius (worked out once a
   radius); open when it is empty (the hulk lifting a grunt, the king's horn, a mummer unmasked, a fencer disarmed).
   The droids' and the shade's hands are one piece already.
-- **Both hands** (`both: { at, from, to, phases }`): the other arm by two-bone IK onto the haft `at` m along it (+ toward
-  its head), or the nearest point it reaches within `from..to`, never in the first fist (`gap`); still out of reach, the
-  weapon is brought over toward that shoulder (the holding arm reaches it there, its line kept, at most 30 % of the arm);
-  beyond that the hand lets go (eased) rather than hold the air (`WIELD.miss`). The smash, the overheads, the sweeps,
-  the lance and the beam's swings; the overhead pose's fists brought together over the head.
+- **Both hands** (`both: { at, from, to, phases }`; reworked in v2.35, #746): the other arm by two-bone IK onto the haft
+  `at` m along it (+ toward its head), or as near it as the arm reaches within `from..to`, always on `at`'s side of the
+  first fist (never through it: `gap`), and slid there (`WIELD.slide`) rather than jumping. The wrist is solved so the
+  fist's own haft point lands on the shaft (`onHaft`: the hand turns with the forearm, so a step search from the best
+  wrist so far, `WIELD.tol` 1 cm); short of it, the weapon is brought over toward that shoulder by what the hand fell
+  short (the holding arm reaching it there, its line kept) for up to `ROUNDS` rounds. The hand takes the haft in about
+  0.3 s (`WIELD.both`) and then holds it within 3 cm every frame the move holds it (tests/wield-grips.test.js: the
+  warlord's sweep, overhead, lance and last stand, the hulk's smash and sweep, the king's smash and swing, the grunt's
+  and the mummer's clubs). The lance's other hand is ahead on the shaft (`from: 0.4`), the last stand's never lets go
+  (`from: 0.3`). The smash, the overheads, the sweeps, the lance and the beam's swings; the overhead pose's fists
+  brought together over the head.
+- **Edges that lead** (`edge: [x, z]`, `edges: 2`; `turnEdge`, #746): a blade is rolled on its own haft (round in the
+  fist) so its edge faces where it is going: through a move the way its tip moves square to it (in the rig's frame,
+  over `EDGE.fast` 1.5 m/s, turned at `EDGE.rate` 40/s), in the loaded pose the way the strike will go (toward its
+  first key), back to as built out of a move. The fencer's, the warlord's, the sentinel's, the shade's and the
+  prowler's: the edge 4–18° off the cut on average through each strike (was 34–120°). The fencer's blade was a
+  diamond turned 45° on its haft; its edges now run the grip's knuckles' way (its cross-guard with them).
+- **Hands over the ground** (`handUp`, `HANDS_DOWN`, `FIST_UP`, #746): knocked down (falling, lying, getting up),
+  asleep, sitting or bending, each fist's wrist, knuckles and fingertips are kept 2 cm over the ground by lifting that
+  arm (two-bone IK); the get-up clip pushed the hulk's and the king's fists 0.7 m into it. A lying weapon lies out to the
+  holding hand's side (`LYING`'s `out`), not across its legs. A defeat is not touched (its own).
 - **The bow**: held at the middle of its stave, its belly at you, its cord two halves on pivots at the limb tips pulled
   to the right fist through the volley's draw (`drawCord`, `drawOf`) and let go at the strike; the right hand pinches.
 
 Nothing here touches the timing, the damage, the hitboxes or the reach. Cost: about 0.06 ms a foe a frame in node
-(tests/prowler-warlord.test.js's walking frame), most of it the two-handed IK's rounds.
+(tests/prowler-warlord.test.js's walking frame); in a two-handed move about 0.1 ms (0.07 before #746), most of it the
+other hand's solve.
 
 **The mummers' last moves** (v2.34, issue #724 polish; tests/mummers.test.js). The full Quaternius Universal Animation
 Library is not on this machine (only the shipped `ual.glb` subset), so each is a shipped clip, or one with a hand-made
