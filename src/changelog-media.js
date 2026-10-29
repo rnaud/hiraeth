@@ -1439,6 +1439,13 @@ const DEATHS765 = 'Hand-made strips of the web game (no `view`): a script of min
 
 export const CHANGELOG_MEDIA = {
   '2.37': [
+  // (issue #776: the caravan's three holes, at the change's commit and its parent, the camera pinned on the parked ship in Vael)
+  { match: 'Your ship is no longer see-through', tags: ['ship'], shots: [
+    { name: 'shell776-back', title: 'The back', caption: 'The ship from behind, between its four engines: before, the hull’s open end, a look down inside it to the hold’s tiled back wall; after, closed by a cap in the hull’s paint', from: FROM776, ...SHELL776, view: SHIP776([-252.11, 64.74, -1161.9], [-268.34, 65.74, -1125.34], 50) },
+    { name: 'shell776-door-left', title: 'Left of the door', caption: 'From the porch, looking left past the open door toward the bow: before, a tunnel inside the hull between its skin and the room’s wall, running on toward the cockpit; after, a wall closes it just past the door’s pocket', from: FROM776, ...SHELL776, view: SHIP776([-264.53, 63.54, -1115.44], [-270.72, 63.74, -1108.89], 60) },
+    { name: 'shell776-tunnel', title: 'Down the gap', caption: 'Looking straight forward from the doorway’s edge, along the gap between skin and wall: before, open down the hull’s length; after, the pocket’s end wall a few steps in', from: FROM776, ...SHELL776, view: SHIP776([-266.84, 64.14, -1115.92], [-272.25, 63.94, -1105.19], 60) },
+    { name: 'shell776-cockpit', title: 'The cockpit', caption: 'The cockpit’s port side behind the traveller: before, a slot between the floor’s edge and the curved wall, the hull’s coral stripe seen down through it; after, the floor runs to the wall', from: FROM776, ...SHELL776, view: SHIP776([-279.42, 69.14, -1105.31], [-273.15, 66.84, -1098.48], 60, [-278.74, 67.0, -1103.15]) },
+  ], see: 'Walk round your parked ship and look at its back between the engines; on the porch look left past the door; climb to the cockpit and look along the floor’s edges.' },
   { match: 'An enemy you strike down now comes to rest where it falls', shots: [
     { name: 'deaths-grunt765', size: [1280, 520], caption: 'A grunt struck down, frame by frame: before, it was thrown out of the frame along the blow and lay out of sight; after, it falls limp face down where it was struck, its club let go beside it, lies still, and goes up in its puff where it lies', from: DEATHS765 },
   ], numbers: [
@@ -1524,13 +1531,6 @@ export const CHANGELOG_MEDIA = {
       view: 'grunt@desert*, hulk@desert*, sentinel@desert*; ray@glassdunes, drone@spacecity, tripod@desert (top row then bottom row)' },
   ] },
   { match: 'The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena', see: 'In the Arena, the run and the creatures gallery (debug menu) still bring the grunt, hulk, prowler, warlord, sentinel, oracle and crawler.' },
-  // (issue #776: the caravan's three holes, at the change's commit and its parent, the camera pinned on the parked ship in Vael)
-  { match: 'Your ship is no longer see-through', tags: ['ship'], shots: [
-    { name: 'shell776-back', title: 'The back', caption: 'The ship from behind, between its four engines: before, the hull’s open end, a look down inside it to the hold’s tiled back wall; after, closed by a cap in the hull’s paint', from: FROM776, ...SHELL776, view: SHIP776([-252.11, 64.74, -1161.9], [-268.34, 65.74, -1125.34], 50) },
-    { name: 'shell776-door-left', title: 'Left of the door', caption: 'From the porch, looking left past the open door toward the bow: before, a tunnel inside the hull between its skin and the room’s wall, running on toward the cockpit; after, a wall closes it just past the door’s pocket', from: FROM776, ...SHELL776, view: SHIP776([-264.53, 63.54, -1115.44], [-270.72, 63.74, -1108.89], 60) },
-    { name: 'shell776-tunnel', title: 'Down the gap', caption: 'Looking straight forward from the doorway’s edge, along the gap between skin and wall: before, open down the hull’s length; after, the pocket’s end wall a few steps in', from: FROM776, ...SHELL776, view: SHIP776([-266.84, 64.14, -1115.92], [-272.25, 63.94, -1105.19], 60) },
-    { name: 'shell776-cockpit', title: 'The cockpit', caption: 'The cockpit’s port side behind the traveller: before, a slot between the floor’s edge and the curved wall, the hull’s coral stripe seen down through it; after, the floor runs to the wall', from: FROM776, ...SHELL776, view: SHIP776([-279.42, 69.14, -1105.31], [-273.15, 66.84, -1098.48], 60, [-278.74, 67.0, -1103.15]) },
-  ], see: 'Walk round your parked ship and look at its back between the engines; on the porch look left past the door; climb to the cockpit and look along the floor’s edges.' },
   ],
   '2.35': [
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
