@@ -5,6 +5,7 @@
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   "preview_urls": false,
+  "r2_buckets": [{ "binding": "RELEASE_ASSETS", "bucket_name": "hiraeth-assets" }],
   "ratelimits": [
     { "name": "ANALYTICS_LIMITER", "namespace_id": "17291003", "simple": { "limit": 60, "period": 60 } },
     { "name": "NOTES_LOGIN_LIMITER", "namespace_id": "17291001", "simple": { "limit": 5, "period": 60 } },
@@ -19,7 +20,7 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/updates/web-*.zip", "/updates/unity-*.zip", "/api/notes/*", "/api/analytics/*", "/api/admin/*"],
+    "run_worker_first": ["/updates/steam-deck*", "/updates/web-*.zip", "/updates/unity-*.zip", "/api/notes/*", "/api/analytics/*", "/api/admin/*"],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
   }

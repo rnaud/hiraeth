@@ -5,7 +5,7 @@ name: Deploy to Cloudflare Workers
 # (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read, and the Unity players' script,
 # /updates/unity.json and /updates/unity-<build>.zip (BridgeUpdates.cs). This is the only
 # workflow that deploys the Worker: a deploy replaces every asset. The Steam Deck runtime
-# (Electron and the launcher, /updates/steam-deck.json and its parts) is on it too.
+# (Electron and the launcher) lives independently in R2, served at the same URLs.
 #
 # When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
 # run finishing and goes on only when that run was a push to main here and succeeded), building that run's
@@ -21,7 +21,11 @@ on:
   workflow_dispatch:
     inputs:
       build_deck_runtime:
-        description: Build a new Steam Deck runtime if its native inputs changed (manual only)
+        description: Build and publish a new Steam Deck runtime to R2 (manual only)
+        type: boolean
+        default: false
+      migrate_deck_runtime:
+        description: Copy and verify the existing runtime into R2 only; do not build or deploy the site
         type: boolean
         default: false
 
@@ -40,7 +44,7 @@ concurrency:
 jobs:
   deploy:
     # (the suite passed on a push to main in this repository, or a run by hand from main; else skipped)
-    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
+    if: github.event.inputs.migrate_deck_runtime != 'true' && ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 30   # (a new Deck runtime: Electron packaged and 150 MB uploaded and checked)
     env:
@@ -75,22 +79,22 @@ jobs:
           # StreamingAssets/hiraeth-js, made into that folder, then unity-<build>.zip and unity.json, the previous kept too
           node scripts/web-update.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/ --unity "$RUNNER_TEMP/unity-ota"
           cat dist/updates/web.json dist/updates/unity.json
-      - name: The Steam Deck runtime on the site
+      - name: Publish a requested Steam Deck runtime to R2
+        if: github.event_name == 'workflow_dispatch' && inputs.build_deck_runtime
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
-          BUILD_DECK_RUNTIME: ${{ github.event_name == 'workflow_dispatch' && inputs.build_deck_runtime }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_SEND_METRICS: 'false'
         run: |
-          # Automatic content updates retain the verified published runtime.
-          # Only explicit manual opt-in may rebuild Electron and the launcher.
+          # Ordinary web deploys never fetch or upload the native runtime.
           WEB_BUILD=$(node scripts/release-info.mjs build)
           export WEB_BUILD
           export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))
-          if [ "$BUILD_DECK_RUNTIME" = true ]; then
-            node scripts/deck-runtime.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/
-          else
-            node scripts/deck-runtime.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/ --reuse-only
-          fi
-          cat dist/updates/steam-deck.json
+          node scripts/deck-runtime.mjs --build-only
+          node scripts/r2-deck.mjs --from dist/updates
+          # The runtime is now independent of the static asset deployment.
+          rm dist/updates/steam-deck*
       - name: The changelog's pictures on the site
         run: |
           # (after the content update and the Deck's runtime are made: the pictures are the site's alone,
@@ -160,3 +164,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           scripts/commit-status.sh "${{ job.status }}" "release: web (cloudflare)"
+
+  migrate-runtime:
+    # This can run on the migration branch before the new serving routes reach main.
+    # It only copies the existing verified package; it never builds a new installer or deploys a Worker.
+    if: github.event_name == 'workflow_dispatch' && inputs.migrate_deck_runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Test runtime storage before copying
+        run: node --test --test-concurrency=2 tests/r2-runtime.test.js tests/deck-runtime.test.js
+      - name: Copy the published runtime to R2 and verify it
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: node scripts/r2-deck.mjs --migrate

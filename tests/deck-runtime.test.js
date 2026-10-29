@@ -68,14 +68,14 @@ test('the live runtime is published again while its key holds, checked against i
   assert.equal(JSON.parse(readFileSync(join(dist, 'updates/steam-deck.json'), 'utf8')).key, 'same');
 });
 
-test('the Cloudflare deploy puts the runtime on the site, numbered as the GitHub release numbers it', () => {
+test('manual Cloudflare publication puts the runtime in R2, numbered as the GitHub release numbers it', () => {
   const yml = read('../.github/workflows/cloudflare.yml'), deckYml = read('../.github/workflows/steam-deck.yml');
   const update = yml.indexOf('node scripts/web-update.mjs'), runtime = yml.indexOf('node scripts/deck-runtime.mjs'), deploy = yml.indexOf('npx wrangler deploy');
   assert.ok(update > 0 && update < runtime && runtime < deploy, 'after the update (which empties updates/), before the deploy');
   const number = 'export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))';
   assert.ok(yml.includes(number) && deckYml.includes(number), 'one commit, one runtime number in both');
   assert.doesNotMatch(deckYml, /GITHUB_RUN_NUMBER/);
-  assert.match(JSON.parse(read('../package.json')).scripts['deploy:cloudflare'], /web-update\.mjs( --unity [^ ]+)? && node scripts\/deck-runtime\.mjs && wrangler deploy/);
+  assert.match(JSON.parse(read('../package.json')).scripts['deploy:cloudflare'], /web-update\.mjs( --unity [^ ]+)? && wrangler deploy/);
   // the packaged game leaves the site's updates out
   assert.match(read('../scripts/package-steam-deck.mjs'), /filter: \(src\) => !\/\^dist\[\\\\\/\]updates/);
 });

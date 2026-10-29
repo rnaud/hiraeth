@@ -15,9 +15,12 @@ Android app and the Steam Deck updater:
 | `/updates/web-<build>.zip` | this build's `dist/` (without `updates/`), deterministic: the same build gives the same bytes |
 | `/updates/web-<previous>.zip` | the previous build's zip, fetched from the live site before deploying and checked against the live `web.json`, so a device that read the old manifest a moment ago can finish its download |
 | `/updates/steam-deck.json` | the Steam Deck runtime (Electron, `main.mjs`, `deck.py`, a packaged game): `build`, `version`, `sha256`, `size`, `key`, `parts` (`scripts/deck-runtime.mjs`, read by `deck.py`) |
-| `/updates/steam-deck-<build>.tar.gz.<nnn>` | its package in 20 MiB parts (the 25 MiB file limit). Automatic deploys always fetch, verify and retain the published runtime, including when its native inputs changed. A manual dispatch with `build_deck_runtime=true` may package a new runtime; a missing/corrupt published runtime fails rather than building automatically |
+| `/updates/steam-deck-<build>.tar.gz.<nnn>` | its package in 20 MiB parts, stored in R2 independently of the web deploy. A manual dispatch with `build_deck_runtime=true` packages and verifies a new runtime |
 
-`scripts/web-update.mjs` writes them into `dist/updates/` after the build. The build number
+`scripts/web-update.mjs` writes the content updates into `dist/updates/` after the build.
+The Deck runtime lives in the private R2 bucket `hiraeth-assets`, exposed by the Worker
+at its existing URLs. Ordinary deploys never copy it. See [release storage](systems/release-storage.md)
+for provisioning, migration and publication. The build number
 is `node scripts/release-info.mjs build`, the commit count up to HEAD, the same in every
 workflow: the APK's versionCode and the Deck package's game get the same number from the same
 commit, so a device compares a downloaded bundle with the one it carries. It needs the whole
@@ -74,7 +77,8 @@ created by `wrangler deploy` from the migration there; nothing to set up by hand
 1. In Cloudflare, select the account that should own `hiraeth`. Check that the
    name is not already used by another application in that account.
 2. Create an API token for GitHub Actions, scoped to that account, with
-   **Account → Workers Scripts → Edit**. Cloudflare's **Edit Cloudflare Workers**
+   **Account → Workers Scripts → Edit**, plus **Workers R2 Storage Bucket Item Read/Write**
+   restricted to the `hiraeth-assets` bucket. Cloudflare's **Edit Cloudflare Workers**
    template can be used as a starting point; DNS/zone permissions are unnecessary
    for the default `workers.dev` address. Do not use a Global API Key.
 3. In this repository's **Settings → Secrets and variables → Actions**, add

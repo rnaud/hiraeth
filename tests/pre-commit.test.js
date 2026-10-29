@@ -107,6 +107,7 @@ test('shared affected selection runs per change, and automatic web deploys wait 
   // cloudflare.yml by hand only from main (the Worker is production)
   const cf = /\n  deploy:\n(?: *#[^\n]*\n)*    if: ([^\n]*)\n/.exec(read('.github/workflows/cloudflare.yml'))[1];
   assert.equal(!!evalExpr(cf, { ...DISPATCH, ref: 'refs/heads/try' }), false);
+  assert.equal(!!evalExpr(cf, { ...DISPATCH, event: { inputs: { migrate_deck_runtime: 'true' } } }), false, 'migration never deploys the site');
   for (const f of ['android.yml','steam-deck.yml','xbox.yml','unity-android.yml']) {
     const code=read(`.github/workflows/${f}`).split('\n').filter(l=>!/^\s*#/.test(l)).join('\n');
     assert.match(code,/\n  workflow_dispatch:/, `${f}: manual native release`);
