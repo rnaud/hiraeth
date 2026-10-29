@@ -126,6 +126,14 @@ export class Ragdoll {
     this.mass = JOINTS.reduce((m, j) => m + j[3], 0);
     this.r = JOINTS.map(([, , r]) => r);
     this.links = [];                       // [i, j, length, stiffness]
+    // (a defeated foe's, src/enemies/foe-ragdoll.js; the people's keep 0 and Infinity, as they were): Coulomb friction in
+    // the solver, μ of each push out of the ground taken off the particle's slide along it that sub-step (it holds on
+    // a slope up to atan μ, and the links' and the limits' small pushes no longer creep a lying body along), and no
+    // particle faster than maxSpeed m/s (a constraint that could not be met, a big head in the ground, threw a body 15 m)
+    this.friction = 0;
+    this.maxSpeed = Infinity;
+    this.headUp = 0.55;                    // (the head over the neck: the least cosine of its line from the chest to the
+                                           //  trunk's up; a foe's head drawn low on its neck, a maned one, sets its own)
     this.t = 0;
     this.stillT = 0;
     this.speed = 0;                        // the fastest particle (m/s)
@@ -258,6 +266,18 @@ export class Ragdoll {
             const s = pen / Math.max(0.2, out[i].dot(nrm[i]));
             x[i].addScaledVector(out[i], s); cor[i].addScaledVector(out[i], s); this.contact[i] = 1;
           }
+          // (friction, on each pass while it touches: its slide along the ground this sub-step held back by μ of all the
+          //  ground has pushed it out this sub-step, so the links' pulls of a later pass are held too; not a push, so its
+          //  speed loses it as well)
+          if (this.friction > 0 && this.contact[i]) {
+            const G = out[i], N = cor[i].dot(G);
+            if (N > 0) {
+              const d = _d.subVectors(x[i], prev[i]).sub(cor[i]);
+              d.addScaledVector(G, -d.dot(G));
+              const st = d.length();
+              if (st > 1e-9) x[i].addScaledVector(d, -Math.min(1, (this.friction * N) / st));
+            }
+          }
         }
       }
       // walls: the trunk as a capsule, pelvis to head (once a frame, on the last sub-step)
@@ -304,6 +324,7 @@ export class Ragdoll {
           vt.multiplyScalar(st > lose ? (st - lose) / st : 0);
           vi.copy(vt).addScaledVector(G, vo);
         }
+        if (vi.lengthSq() > this.maxSpeed * this.maxSpeed) vi.setLength(this.maxSpeed);
         fastest = Math.max(fastest, vi.lengthSq());
         if (this.contact[i]) touched = true;
       }
@@ -357,7 +378,7 @@ export class Ragdoll {
     const hd = _a.subVectors(x[J.head], x[J.chest]), hl = hd.length();
     if (hl > 1e-4) {
       const k = hd.dot(U) / hl;
-      if (k < 0.55) x[J.head].addScaledVector(U, (0.55 - k) * hl);
+      if (k < this.headUp) x[J.head].addScaledVector(U, (this.headUp - k) * hl);
     }
   }
 

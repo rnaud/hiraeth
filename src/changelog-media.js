@@ -1430,7 +1430,25 @@ const C762 = { commit: '68f1c3302', before: '1598bafc4' };
 const UNITY762 = 'Issue #762: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level desert -fight site:mummer-camp,site:skull-hall, an APFS clone of the main checkout’s Library, deleted after), its follow camera and HUD at 1280 × 720, the traveller set down 16 m in front of each site by the script, 3 s after; 29 October 2026. After only; the same JS through engine/; cwebp -q 72';
 const FROM762 = 'scripts/changelog-shots.mjs at this change (68f1c3302) and its parent (1598bafc4), muted headless Chrome (--mute-audio, hiraeth.muted), High, 1280 × 720, 10:00, clear, a save holding the sword and the shield (so the sites’ foes come out), the camera pinned where the v2.35 camp pictures stood, 8 s after the world came up; 29 October 2026. The foes sit, sleep or stand as the site keeps them; a frame now and then catches one turning';
 
+/** (v2.37, issues #765, #767, #773: the enemies' deaths) */
+const DEATHS765 = 'Hand-made strips of the web game (no `view`): a script of mine (scratch, on scripts/changelog-shots.mjs serve/chrome) drove muted headless Chrome (--mute-audio, hiraeth.muted and the volumes at 0 set before load) against its own Vite (port 5420 for the after, 5422 for the before), the Arena at 10:00, clear, High, 1280 × 720, practice with no waves; one foe set down 6 m before the traveller, struck down with Foes.hurt (blade, damage 99, the combo’s third) away from the camera; the game’s own captureView from a pinned eye before the blow and at real times after it (labelled; approximate: a hit-stop and the last foe’s slow motion stretch them), 4 × 2 frames; before: origin/main 95cbaff29 (git archive), after: this branch; 29 October 2026; cwebp -q 72';
+
 export const CHANGELOG_MEDIA = {
+  '2.37': [
+  { match: 'An enemy you strike down now comes to rest where it falls', shots: [
+    { name: 'deaths-grunt765', size: [1280, 520], caption: 'A grunt struck down, frame by frame: before, it was thrown out of the frame along the blow and lay out of sight; after, it falls limp face down where it was struck, its club let go beside it, lies still, and goes up in its puff where it lies', from: DEATHS765 },
+  ], numbers: [
+    { title: 'Humanoids struck down (the grunt, hulk, prowler, warlord, sentinel, fencer, mummer and mummer king; four blows each on the flat, a 14° and a 24° slope: 96 falls)', unit: '', better: 'lower', device: 'node, the game’s own models and Foes.update at 60 frames a second, a plane for the ground', source: 'Issue #765: a scratch measure of Foes on planes; before at origin/main 95cbaff29', rows: [
+      { where: 'worst slide once lying (m)', before: 15.1, after: 0.51 },
+      { where: 'mean slide once lying (m)', before: 2.29, after: 0.07 },
+      { where: 'still moving at its puff (of 96)', before: 57, after: 6 },
+      { where: 'worst travel while shrinking in its puff (m)', before: 12.5, after: 0.26 },
+      { where: 'mean lift of the whole body over the ground (cm)', before: 12.6, after: 4.4 },
+      { where: 'worst lift of the whole body over the ground (cm)', before: 39.5, after: 19.6 },
+      { where: 'fastest any part of it moved (m/s)', before: 80, after: 18 },
+    ] },
+  ], see: 'In the Arena, cut a grunt or a warlord down with the third swing, on the flat and on the slope by the wall: it lies where it falls and goes up in smoke there.' },
+  ],
   '2.36': [
   { match: 'The Moon Foundry is closed in', shots: [
     { name: 'foundry731-landing', title: 'Off the ramp', caption: 'Out of the ship toward the hall: before, the open apron under the sky, the hangar open on every side; after, the landing dock, its walls and the great gate into the dim hall, the hung moon through it', from: FROM731, ...FOUNDRY731, view: MF731([3, 4.2, 104], [-4, 6, 40], [0, 0, 94]) },

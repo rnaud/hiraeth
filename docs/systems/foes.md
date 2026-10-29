@@ -1158,6 +1158,35 @@ body, a tail is laid back over the ground (`TailSpring.keepUp`), and what it hel
 (`Foes.looseGrips`, "Pieces and plates" below). The drawn hull still keeps it on the ground (`groundDefeat`, as every
 defeat: 4-14 cm for the roster's hems and big heads), held once it lies still.
 
+**It comes to rest** (v2.37, issue #765, the author: "Enemies ragdoll and the slide on the ground?"). Measured over the
+eight humanoids, four blows each on the flat, a 14° and a 24° slope (96 falls, node): before, it slid 2.3 m on average
+once lying (15 m at worst, a warlord thrown at 47 m/s by a constraint fighting the ground), 57 of 96 still moving at their
+puff, the whole body lifted 12.6 cm on average over the ground (40 at worst), and as it shrank in its puff it slid back to
+where it was struck (0.8-1.8 m on the flat). After: 0.07 m on average (0.5 at worst), 6 of 96 still settling, lifted 4.4
+cm (20 at worst), shrinking where it lies (0.26 m at most, its pelvis's own drop). What changed:
+- **Friction** (`Ragdoll.friction`, opt-in, the people's keep 0): on each solver pass while a particle touches, its slide
+  along the ground that sub-step is held back by μ (`RAGDOLL.mu` 0.9: it lies still on a slope to 42°) of all the ground
+  has pushed it out that sub-step, so the links' and limits' pulls of a later pass are held too; not a push, so its speed
+  loses it as well. The people's velocity friction alone held only the particles touching, while the rest of the body's
+  weight dragged them on.
+- **No throw across the arena**: no particle faster than `RAGDOLL.maxSpeed` 18 m/s (`Ragdoll.maxSpeed`); the head's limit
+  (`Ragdoll.headUp`, the people's 0.55) set from how the head is drawn over its neck (the warlord's maned head sits behind
+  and below its neck joint, and the people's limit threw it back up every step).
+- **Asleep once its trunk is still** (pelvis, chest, head, hips, shoulders within `stillMove` 3.5 cm for `stillFor` 0.4 s):
+  a knee caught between its limit and the ground trembles in place and kept the people's speed test awake.
+- **Shaped as it is drawn** (`bodyShape`): each limb's particle as thick as its segment is drawn (thigh, shin, foot, upper
+  arm, forearm, hand), the trunk up to 3.6 a person's (the mummer king's belly), the head's particle at the middle of
+  its drawn box, as big as most of it (measured as it rests on its neck), the head turned onto it along that line.
+- **Laid on the ground** (`LAY`, `layParts`): while it moves, its feet (slack, or turned flat or back), its head (turned on
+  its neck, a cheek to the ground), its hands at the wrist, its fingers and what hangs off it (a hem, a horn strapped to
+  its back) each tried in a few turns against the ground's plane under its pelvis (three reads a frame), the first that
+  keeps its drawn box out of the ground kept. A shield on its arm is let go with its weapon (`Foes.looseGrips`).
+- **On its back or its front** (`ROLL`, `rollFlat`): down on its side (its hips' line tipped over 22°), it turns
+  about its spine at up to 1 rad/s toward level, its upper hip and shoulder pushed over, for at most 0.9 s; 40 blows on the
+  flat end within 22° but one (40°).
+- **Shrinks where it lies** (`anchorRagdoll`, at its puff): the model's origin moved to the ground under its pelvis, every
+  part kept where it is drawn, and the body laid at its scale now (`applyFoeRagdoll`), so it shrinks about its pelvis.
+
 - **Steps**: time is gathered into steps of at least `minStep` (1/120 s; a hit-stop's sliver of a frame divided the
   constraints' pushes into thousands of m/s and threw a warlord 300 m up) and at most a 30th; lying with three joints or
   more down, what is left of its slide dies at `drag` 3.5/s; asleep (no reads, its pose held) once still `RAG.stillFor` +

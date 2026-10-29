@@ -148,3 +148,87 @@ test('kit walkers go limp: the crawler\'s feet fall and drag under its legs\' re
   for (let i = 0; i < 60; i++) { L.step(DT, () => 0); L.hold(0, v(0, 0.6, 0), 0.5); }
   assert.ok(L.x[0].y >= 0 && L.x[0].distanceTo(v(0, 0.6, 0)) <= 0.5 + 1e-6, 'on the ground, within reach');
 });
+
+// Issue #765: down, it comes to rest (friction against the ground), on the flat and on a slope; it shrinks in its puff
+// where it lies, not back where it was struck; nothing throws it across the arena; its drawn limbs lie on the ground
+// rather than lifting the whole body over it.
+const lyingFrom = (R) => {
+  const x = R.rag.x, ax = v().subVectors(x[RJ.chest], x[RJ.pelvis]).normalize();
+  return Math.abs(ax.y) < 0.57;
+};
+test('down, a ragdoll comes to rest: no slide on the flat or down a 20° slope, asleep before its puff', () => {
+  const tan20 = Math.tan((20 * Math.PI) / 180);
+  for (const [where, ground] of [['flat', plane(0, 0)], ['a 20° slope', plane(tan20, 0)]]) {
+    let worst = 0, who = '', awake = [];
+    for (const kind of ['grunt', 'hulk', 'prowler', 'warlord', 'mummer']) {
+      for (const dir of [v(0, 0, 1), v(1, 0, 0), v(-0.6, 0, -0.8)]) {
+        const { foes, done } = world((x, z) => ground(x, z));
+        const f = foes.add(kind, v(0, 0, 0)); f.heading = Math.PI;
+        for (let i = 0; i < 10; i++) foes.update(DT);
+        kill(foes, f, dir);
+        const R = f.dying.rag;
+        let from = null;
+        for (let t = 0; t < 2.6 && foes.list.includes(f) && !(f.dead <= 0.36); t += DT) {
+          foes.update(DT);
+          if (!from && t > 0.6 && lyingFrom(R)) from = R.rag.pelvis.clone();
+          for (const p of R.rag.v) assert.ok(p.length() <= RAGDOLL.maxSpeed + 1e-6, `${kind}: no particle past ${RAGDOLL.maxSpeed} m/s`);
+        }
+        const slid = from ? Math.hypot(R.rag.pelvis.x - from.x, R.rag.pelvis.z - from.z) : 0;
+        if (slid > worst) { worst = slid; who = `${kind} struck along ${dir.toArray()}`; }
+        if (!R.asleep) awake.push(`${kind} ${dir.toArray()}`);
+        done();
+      }
+    }
+    assert.ok(worst < 0.3, `on ${where}, ${who} slid ${worst.toFixed(2)} m once it lay`);
+    // (on a slope a warlord, its big head on a short neck, can still be settling its arms at its puff, its trunk within
+    // the slide above: a few of the fifteen; before, 9 of 15 slid on and on)
+    assert.ok(awake.length <= (where === 'flat' ? 1 : 4), `on ${where}, still moving at its puff: ${awake.join('; ')}`);
+  }
+});
+
+test('it shrinks away in its puff where it lies, not back where it was struck down', () => {
+  const { foes, done } = world();
+  const f = foes.add('grunt', v(0, 0, 0)); f.heading = Math.PI;
+  for (let i = 0; i < 10; i++) foes.update(DT);
+  kill(foes, f, v(0, 0, 1));
+  const J = f.model.joints, R = f.dying.rag, p = v();
+  let from = null, worst = 0;
+  for (let t = 0; t < 3 && foes.list.includes(f); t += DT) {
+    foes.update(DT);
+    if (f.dead === undefined || f.dead > 0.35 || f.model.group.scale.x < 0.15) continue;
+    J.torso.getWorldPosition(p);
+    if (!from) from = p.clone();
+    worst = Math.max(worst, Math.hypot(p.x - from.x, p.z - from.z));
+  }
+  assert.ok(from && from.z > 0.5, `it lay along the blow (${from?.z.toFixed(2)} m)`);
+  assert.ok(worst < 0.25, `its body slid ${worst.toFixed(2)} m as it shrank (before: back to where it stood, 0.8-1.8 m)`);
+  assert.ok(Math.hypot(f.pos.x - R.rag.pelvis.x, f.pos.z - R.rag.pelvis.z) < 0.05, 'its position moved to where it lies');
+  done();
+});
+
+test('lying, its drawn limbs are on the ground, not lifting the whole body over it', () => {
+  const lifts = [];
+  for (const kind of ['grunt', 'hulk', 'prowler', 'warlord', 'mummer', 'mummerking', 'sentinel', 'fencer']) {
+    for (const dir of [v(0, 0, 1), v(1, 0, 0), v(-0.6, 0, -0.8)]) {
+      const { foes, done } = world();
+      const f = foes.add(kind, v(0, 0, 0)); f.heading = Math.PI;
+      for (let i = 0; i < 10; i++) foes.update(DT);
+      kill(foes, f, dir);
+      const R = f.dying.rag;
+      for (let t = 0; t < 2 && !R.asleep && f.dead === undefined; t += DT) foes.update(DT);
+      lifts.push([f.dying.held ?? 0, `${kind} ${dir.toArray()}`]);
+      done();
+    }
+  }
+  // (the drawn hull's lift: its lowest drawn point kept on the ground lifts all of it; 4-58 cm, 11 on average before)
+  const mean = lifts.reduce((s, [h]) => s + h, 0) / lifts.length, [top, who] = lifts.sort((a, b) => b[0] - a[0])[0];
+  assert.ok(mean < 0.07, `lifted ${(mean * 100).toFixed(1)} cm on average`);
+  assert.ok(top < 0.25, `${who} lifted ${(top * 100).toFixed(1)} cm`);
+});
+
+test('the people\'s ragdoll is as it was: no friction of the foes\' and no speed limit unless asked', async () => {
+  const { Ragdoll } = await import('../src/ragdoll.js');
+  const r = new Ragdoll();
+  assert.equal(r.friction, 0);
+  assert.equal(r.maxSpeed, Infinity);
+});

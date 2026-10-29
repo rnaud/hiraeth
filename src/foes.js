@@ -42,7 +42,7 @@ import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS } from './enemies/debris.js';
-import { RAGDOLL, startFoeRagdoll, stepFoeRagdoll, groundPhysics } from './enemies/foe-ragdoll.js';
+import { RAGDOLL, startFoeRagdoll, stepFoeRagdoll, groundPhysics, anchorRagdoll } from './enemies/foe-ragdoll.js';
 import { Veils, LightShaft } from './veil.js';
 import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
@@ -3498,9 +3498,14 @@ export class Foes {
       M.rig.goLimp(new THREE.Vector3(d.x * shove * 0.6, 1.2, d.z * shove * 0.6));
     }
   }
-  /** What a struck-down humanoid held (its Wielder's grips) let go: each a rigid piece, tossed along the blow. */
+  /**
+   * What a struck-down humanoid held (its Wielder's grips) let go: each a rigid piece, tossed along the blow. A shield on
+   * its arm goes too (issue #765: strapped on, the fencer's and the sentinel's stood 24 cm into the ground under the arm
+   * they lay on, and lifted the whole body off it).
+   */
   looseGrips(f, dir) {
     const M = f.model, grips = (M.wield?.grips ?? []).filter((g) => g?.parent && g.visible !== false);
+    M.joints?.body.traverse((o) => { if (o.name === 'shield' && !o.isMesh && o.visible !== false && !grips.includes(o)) grips.push(o); });
     if (!grips.length) return;
     const skinned = [];
     M.group.traverse((x) => { if (x.isSkinnedMesh) skinned.push(x); });
@@ -3657,7 +3662,12 @@ export class Foes {
       if (f.dead !== undefined) {   // done: it lies a moment (SMOKE.linger), then shrinks away inside a puff of smoke, then gone
         f.dead -= dt;
         if (f.dying?.rag && !f.dying.rag.asleep) this.ragdollFrame(f, dt);   // (still settling as it lies: issue #750)
-        if (!f.puffed && f.dead <= SMOKE.fade) { f.puffed = true; this.puff(f); }
+        if (!f.puffed && f.dead <= SMOKE.fade) {
+          f.puffed = true;
+          // (a ragdoll shrinks where it lies, not back to where it was struck down: issue #765)
+          if (f.dying?.rag) anchorRagdoll(f.dying.rag, f.model.group, f.pos, this.env.ground);
+          this.puff(f);
+        }
         f.model.group.scale.setScalar(Math.max(0.01, Math.min(1, f.dead / SMOKE.fade)) * (f.model.size ?? 1));
         if (f.dead <= 0) this.remove(f);
         continue;

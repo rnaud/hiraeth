@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.37 — 2026-10-29
+
+- An enemy you strike down now comes to rest where it falls: it no longer slides along the ground, skates on down a slope or slides back to where it stood as it goes up in smoke, and it lies on the ground rather than floating a hand’s breadth over it.
+
 ## v2.36 — 2026-10-29
 
 - The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena and the creatures gallery for now.

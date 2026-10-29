@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.37', date: '2026-10-29',
+    items: [
+      // enemy deaths (#765, #767, #773)
+      'An enemy you strike down now comes to rest where it falls: it no longer slides along the ground, skates on down a slope or slides back to where it stood as it goes up in smoke, and it lies on the ground rather than floating a hand’s breadth over it.',
+    ],
+  },
+  {
     v: '2.36', date: '2026-10-29',
     items: [
       // the Moon Foundry closed in
