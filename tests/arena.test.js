@@ -128,7 +128,7 @@ test('every temple guardian can be called into the ring: it wakes as you step in
     for (let i = 0; i < 40 / DT; i++) {
       t += DT; A.update(DT, t);
       // (read from its body: its wind-up's pose, nothing on the floor)
-      if (g.attack && !g.attack.lob && g.attackK > 0 && !g.tele.group.visible) tele = true;
+      if (g.attack && !g.attack.lob && g.attackK > 0 && !g.gw.of(g).some((w) => w.kind !== 'shock')) tele = true;
       P.down = null; P.dead = false; P.health = 1;
     }
     assert.notEqual(g.state, 'sleep', `${G.id}: awake`);

@@ -310,7 +310,7 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   bl.attacksAt = () => [attackOf('blot', 'lunge')];
   sp.attacksAt = () => [attackOf('toad', 'lob')];
   let droneDrawn = false, blotDrawn = false, lobDrawn = false, droneWound = false;
-  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && d.tele.group.visible; droneWound ||= d.state === 'wind' && d.k > 0.5; blotDrawn ||= bl.state === 'wind' && bl.tele.group.visible; lobDrawn ||= sp.state === 'wind' && sp.tele.group.visible; }
+  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && foes.gw.has(d); droneWound ||= d.state === 'wind' && d.k > 0.5; blotDrawn ||= bl.state === 'wind' && foes.gw.has(bl); lobDrawn ||= sp.state === 'wind' && foes.gw.has(sp); }
   assert.equal(droneDrawn, false, 'the harpoon’s lane is not drawn: the gun tips at you');
   assert.ok(droneWound && d.glow === undefined, 'no diamond on the harpoon as it winds up (issue #733)');
   assert.equal(blotDrawn, false, 'the blot’s lunge reads from its body');

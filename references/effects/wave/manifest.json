@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Visual effect design sheet for a science fiction exploration game in ink-drawn Moebius style: a huge creature stomps and a visible shockwave rolls out across the ground, shown in four panels side by side seen from a three-quarter view above, on pale desert sand: first panel, the wind-up, the great foot raised, a thin ring of trembling grit marking how far the wave will go; second panel, the stomp lands and a ring-shaped wave of force bursts out, a curling wall of sand and air knee-high with a bright inked crest, a distortion ripple in the air above it and dust thrown up behind; third panel, the shockwave further out, a clear rolling ring of displaced sand and blasting air with speed lines, pebbles flung outward, the small traveller jumping over its crest; fourth panel, the wave fading at its full radius, a scored ring in the sand and settling dust. The shockwave is the star: a strong readable ring of force travelling along the ground, drawn with bold ink lines and a warm orange-red accent along its crest, not a flat circle. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse hatching, luminous flat pastel colours, cream paper grain, clear readable construction, no characters except the creature's foot and a small cloaked traveller for scale, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, user interface icons, flat circle, neon.",
+      "from": "docs/design/ground-warnings-prompts.md#wave",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-23-17-35-12a0",
+      "candidate": "gemini/1",
+      "sha256": "98ab5e277945f90854b93c9dc0824fcc851534687d2ffc1850a2e09a3af4742f",
+      "bytes": 977131,
+      "costUSD": 0.0336
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-28-23-00-36-25e5",
+      "why": "there should be a wave shock here",
+      "date": "2026-10-28",
+      "prompt": "Visual effect design sheet for a science fiction exploration game in ink-drawn Moebius style: the warning that appears on the ground a moment before a huge creature's stomp sends a shockwave out across the ground, shown in four panels side by side seen from a three-quarter view above, on pale desert sand: first panel, the stomp is coming, a faint ring of cracks and lifting dust traced on the ground around the creature's foot at the radius the wave will reach; second panel, the ring sharpens, small pebbles and dust jump along it, inked hatching shadows under the lifted grit; third panel, the wave itself, a rolling ridge of sand and ink-lined debris travelling outward with a bright leading edge; fourth panel, the wave passed, settling dust and a scored ring in the sand. The warning is drawn into the ground itself, cracks, lifting grit and a thin bright inked line, not a flat floating circle, readable at a glance from a distance, with a warm orange-red accent along the danger edge. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse hatching, luminous flat pastel colours, cream paper grain, clear readable construction, no characters except a small cloaked traveller for scale, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, user interface icons, flat circle, neon, glow.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

@@ -186,7 +186,9 @@ export const SEQUENCES = [
     beats: [
       { name: 'ready', act: (G) => { const F = G.foes; F.setPractice?.(''); F.waveRest = F.packRest = 1e9; for (const f of [...F.list]) F.remove(f); }, wait: 1 },
       // (wait 1.6: the blot's alert beat, src/enemies/fight.js ALERT, over and it on its way before the lock: issue #722)
-      { name: 'spawn', act: (G) => { G.foe = G.foes.spawnKind('blot', { n: 1, dist: 5, entrance: false })[0]; G.foeHp = G.foe?.hp; }, wait: 1.6 },
+      // (its health made four times a blot's: the 'hit' beat's two cuts may not end it, whatever the run's random draws, so the
+      // lock is read on a living foe on both sides; the engines' seeded run had ended it there once its draws moved, #758)
+      { name: 'spawn', act: (G) => { G.foe = G.foes.spawnKind('blot', { n: 1, dist: 5, entrance: false })[0]; if (G.foe) G.foe.hp *= 4; G.foeHp = G.foe?.hp; }, wait: 1.6 },
       { name: 'lock', keys: tap('Tab'), wait: 0.8 },
       { name: 'cut', keys: tap('KeyF'), wait: 0.1 },
       { name: 'hit', keys: tap('KeyF', 'KeyF'), until: (G) => !G.foe || G.foe.hp < G.foeHp, timeout: 4, wait: 0.1 },

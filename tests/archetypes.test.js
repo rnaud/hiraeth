@@ -11,7 +11,7 @@ import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, ra
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
-import { windMin, groundMark, isProjectile } from '../src/telegraph.js';
+import { windMin, groundMark, isProjectile, isArea } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
 import { ORDER, SIDE, TITLES, ROUTE_PARTS } from '../src/levels/names.js';
 import { sitesOf } from '../src/encounters/sites.js';
@@ -260,7 +260,7 @@ test('batches 1 and 2: each attack winds up at least its telegraph minimum; only
     for (const x of D.attacks) {
       assert.ok(x.wind >= windMin(x) - 1e-9, `${a}.${x.id}: ${x.wind} s ≥ ${windMin(x)} s`);
       assert.ok(x.damage * 4 === Math.round(x.damage * 4) && x.damage <= 1, `${a}.${x.id}: hearts in quarters`);
-      if (groundMark(x)) assert.ok(x.lob && isProjectile(x), `${a}.${x.id}: only a lob marks the ground`);
+      if (groundMark(x)) assert.ok((x.lob && isProjectile(x)) || isArea(x), `${a}.${x.id}: only a lob or a blast about to go off marks the ground`);
       if (x.lob) assert.ok(groundMark(x), `${a}.${x.id}: a lob keeps its landing mark`);
       if (!x.chain) assert.ok(x.tell && x.counter && x.name, `${a}.${x.id}: its tell, its answer, its name`);
       assert.ok((x.max ?? D.reach) <= D.reach + 1e-9 || x.far, `${a}.${x.id}: within its reach`);

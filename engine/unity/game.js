@@ -885,6 +885,16 @@ function makePlan(args) {
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'sentinel@desert*', dist: 5, hp: 99 }, { kind: 'foe', what: 'oracle@desert*', dist: 9, hp: 99 }, { kind: 'foe', what: 'crawler@desert*', dist: 3.5, hp: 99 },
       { kind: 'foe', what: 'droid-spread' }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
   }
+  if (fights.includes('warnings')) {
+    // (-fight warnings, issue #758: what is drawn into the ground, src/ground-warnings.js: a grunt 7 m ahead throws its rock
+    // (the landing mark at the traveller's feet, its shadow crisp and its ring tight), a crawler 3.5 m ahead lights its
+    // fuse (its blast's reach hatched in and turning orange), a hulk 6 m ahead stomps (the shockwave rolling out to him))
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-warnings-${name}.png` }] : []);
+    const one = (what, dist, move, secs) => [{ kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'face' }, { kind: 'foe', what, dist, hp: 99 }, { kind: 'wait', frames: 30, secs: 0.5 },
+      { kind: 'foe', what: 'warn-move', move }, { kind: 'wait', frames: Math.round(secs * 60), secs }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...one('grunt@desert', 7, 'rock', 0.7), ...shot('lob'), ...one('crawler@desert', 3.5, 'blast', 1.45), ...shot('area'),
+      ...one('hulk@desert', 6, 'stomp', 1.55), ...shot('wave'));
+  }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
   for (const f of fights.filter((x) => x.startsWith('site:'))) {
@@ -1366,6 +1376,17 @@ function playFrame(dt) {
         if (f.kind === 'oracle' && sen) f.allies = [sen];
         f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player);
         console.log(`[unity] ${f.kind} winds up its ${a.id}${f.allyTarget ? ` (on the ${f.allyTarget.kind})` : ''}`);
+      }
+    } else if (step.what === 'warn-move') {
+      // (-fight warnings, #758: the move wound up at once; the hulk's stomp sends its quake, as its banded tier's does)
+      game.monsterH ??= game.player.heading;
+      for (const f of F.list.filter((x) => x.alive)) {
+        const a0 = f.def.attacks.find((x) => x.id === step.move);
+        if (!a0) continue;
+        const a = step.move === 'stomp' ? { ...a0, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } } : a0;
+        if (f.kind === 'grunt') { f.weapon = 'none'; f.disarmed = null; }
+        f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player);
+        console.log(`[unity] ${f.kind} winds up its ${a.id} (ground warning)`);
       }
     } else if (step.what === 'mummer-moves') {
       // (-fight mummers, #724 polish: a mummer with its bow looses a volley, the king calls on its horn)

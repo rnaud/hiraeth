@@ -12,9 +12,11 @@ import * as THREE from 'three';
 //   the sound    rising with the wind-up, over exactly its length (src/audio.js foeWarn / guardianWarn).
 //   the eyes     orange through the wind-up (as before).
 //
-// The one exception: a lobbed or thrown projectile (a glob, a hurled chunk, a cog, a seed) keeps a landing mark
-// on the ground where it will fall (`lob: true`), since the thrower's wind-up can't show where it lands.
-// The hitbox overlay (src/hitboxes.js) still draws every zone, for debugging.
+// The exceptions, drawn into the ground by src/ground-warnings.js (issue #758, after the author's picked sheets): a
+// lobbed or thrown projectile (a glob, a hurled chunk, a cog, a seed) keeps a landing mark where it will fall (`lob:
+// true`), since the thrower's wind-up can't show where it lands; and a blast about to go off round a foe that destroys
+// itself (`selfDestruct`, the crawler), whose reach the little body can't show. A shockwave is the attack itself,
+// drawn as it runs (not a warning). The hitbox overlay (src/hitboxes.js) still draws every zone, for debugging.
 
 /** The share of a wind-up the pose takes to build; held still after it (the stillness before the strike). */
 export const POSE_DONE = 0.75;
@@ -42,8 +44,12 @@ export const guardianWindMin = (a) => (a.link ? WIND_MIN.link : WIND_MIN.guardia
 
 /** Is this attack a projectile that may mark where it lands? Only lobbed or thrown ones (`lob`), at your feet. */
 export const isProjectile = (a) => !!a?.lob && (a.at === 'target' || a.at === 'player' || a.motion === 'lob');
-/** Is anything drawn on the ground for this attack while it winds up? Only a projectile's landing mark. */
-export const groundMark = (a) => isProjectile(a);
+/** Is this attack a blast about to go off round the foe (its reach drawn on the ground as it winds up)? */
+export const isArea = (a) => !!a?.selfDestruct && a.shape === 'ring';
+/** Is anything drawn on the ground for this attack while it winds up? A projectile's landing mark, a blast's reach. */
+export const groundMark = (a) => isProjectile(a) || isArea(a);
+/** The radius a ring's warning is drawn at: the hit's own (src/temples/boss.js inArea: a ring's `radius`, 4 if none). */
+export const markRadius = (a) => a.radius ?? 4;
 
 /** Shared by everything that winds up: Gentle's slower wind-ups (src/foes.js sets it each frame from the setting). */
 export const TELL = { slow: 1 };

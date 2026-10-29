@@ -9,12 +9,13 @@ import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
 import { workingsAt } from './workings.js';
-import { Telegraph, inArea, GUARDIANS_LIVE } from './temples/boss.js';
+import { inArea, GUARDIANS_LIVE } from './temples/boss.js';
 import { foeThreat, guardianThreat, perfectAgainst } from './flurry.js';
 import { SmokePuffs, SMOKE } from './smoke-puff.js';
 import { AttackTrails, trailPhase, trailSize } from './attack-trail.js';
 import { FoeClouds, ENTRANCE, bodyGrown } from './foe-entrance.js';
-import { TELL, groundMark, poseK } from './telegraph.js';
+import { TELL, groundMark, poseK, isArea, markRadius } from './telegraph.js';
+import { GroundWarnings } from './ground-warnings.js';
 import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
@@ -2302,7 +2303,7 @@ const worldSnd = {
   hiss(s) { const t = sndAt(s); if (t == null) return; s.burst(t, { dur: 0.35, type: 'highpass', freq: 3200, q: 0.7, vol: 0.1 }); s.sweep(t, 300, 140, 0.2, 0.04, 'sawtooth'); },
   thud(s, k = 1) { const t = sndAt(s); if (t == null) return; s.burst(t, { dur: 0.18, type: 'lowpass', freq: 400, q: 0.8, vol: 0.12 + 0.18 * k }); s.sweep(t, 120, 50, 0.2, 0.08 * k); },
 };
-let _waveGeo, _waveMat, _waveInk, _patchGeo, _patchMat, _rimGeo, _patchRim;   // (shared by every shockwave and slag patch)
+let _patchGeo, _patchMat, _rimGeo, _patchRim;   // (shared by every slag patch)
 /** The fireballs' shape, and their materials by colour (the game's glowing ink, as a thrown glob's: no shader of their own). */
 const BALL_GEO = new THREE.IcosahedronGeometry(0.3, 1), BALL_BACK = '#fff4d0', _ballMats = {};
 const ballMaterial = (color) => (_ballMats[color] ??= makeMaterial({ color, flat: true, glow: 1, key: `foe-ball-${color}` }));
@@ -2382,6 +2383,8 @@ export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
     Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.balls = []; this.group = new THREE.Group(); this.group.name = 'Foes';
+    // (what is drawn into the ground: a lob's landing mark, a blast's reach, a shockwave: src/ground-warnings.js, #758)
+    this.gw = new GroundWarnings(this.group, { groundAt: (x, y, z, d) => this.physics?.groundAt?.(x, y, z, d), drops: () => this.tool?.drops });
     this.racks = [];   // (a camp's weapon racks: RACK, src/encounters/index.js)
     setFoeClips(lib);   // (the humanoid foes' clips: src/enemies/humanoid-rig.js)
     this.shapes = new Map();   // (kind@skin → the geometries its foes share: src/foe-shapes.js)
@@ -2714,7 +2717,6 @@ export class Foes {
     }
     f.model.group.position.copy(at);
     this.group.add(f.model.group);
-    f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
     if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)
     // its hit reaction (src/foe-react.js); an archetype's legs are solved after it, so its feet stay planted as it flinches
     const fam = ARCHETYPES[f.archetype]?.family;
@@ -2779,7 +2781,8 @@ export class Foes {
       group.add(model.group);
       made.push(kind);
     }
-    const tele = new Telegraph(group, '#6d4fa8');
+    // (the ground warnings' materials, drawn once in the pass that compiles the rest: src/ground-warnings.js)
+    const gw = new GroundWarnings(group); gw.prewarm();
     // the ink a foe leaves where it falls (stain, ShadePools: its decal, drops and licks), in the group too, so their programs
     // are compiled by the same pass (v1.42, issue #1: the first foe cut down in the Arena compiled the decal's, a 120 ms
     // frame). Only for the warm: kept in the world from the start, its dynamic meshes had every shadow map redrawn each
@@ -2789,16 +2792,15 @@ export class Foes {
     // building it is the spawn's script frame, issue #468)
     return { group, kinds: made, dispose: ({ keep = false } = {}) => {
       if (keep) for (const m of models) { m.model.group.removeFromParent(); if (!this.spares.has(m.key)) this.spares.set(m.key, m); else disposeOwnShapes(m.model.group); }
-      tele.dispose?.(); pools.dispose(); group.removeFromParent(); disposeOwnShapes(group);
+      gw.dispose(); pools.dispose(); group.removeFromParent(); disposeOwnShapes(group);
     } };
   }
 
   remove(f) {
-    f.target?.(); f.weakTarget?.(); f.tele?.dispose(); this.trails?.drop(f); f.model.group.removeFromParent();
+    f.target?.(); f.weakTarget?.(); this.trails?.drop(f); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
     for (const b of this.balls.slice()) if (b.owner === f) this.popBall(b, 'fizzle');   // (its fireball burns out with it)
     if (f.ward) f.unward(); for (const T of f.wards ?? []) if (T.ward?.by === f) T.unward();   // (a ward on it, or the ones it held: their threads with them)
-    for (const t of f.teles ?? []) t.dispose();
     for (const g of f.globs ?? []) g.removeFromParent();
     f.stars?.removeFromParent();
     if (this.hold?.f === f) this.hold = null;
@@ -3453,7 +3455,7 @@ export class Foes {
     TELL.slow = this.difficulty === 'gentle' ? GENTLE.wind : 1;   // (the guardians' wind-ups too: src/telegraph.js)
     const P = this.player;
     if (!P) { this.sound?.combat?.(false); return; }
-    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); } return; }
+    if (!this.on) { this.sound?.combat?.(false); for (const f of this.list) f.model.group.visible = false; this.gw.clear(); this.gw.update(dt); return; }
     // (held still by a scene, a conversation or a menu: nothing is fighting you. The flag kept its last value before, so a
     // toad that was chasing as a world's moment began kept the hearts and the wallet up over the whole of it: issue #264,
     // Lorn's crystal moment in the Unity batch run, whose foes had a few seconds more to wake than the page's)
@@ -3485,14 +3487,12 @@ export class Foes {
         f.dead -= dt;
         if (!f.puffed && f.dead <= SMOKE.fade) { f.puffed = true; this.puff(f); }
         f.model.group.scale.setScalar(Math.max(0.01, Math.min(1, f.dead / SMOKE.fade)) * (f.model.size ?? 1));
-        f.tele.hide();
         if (f.dead <= 0) this.remove(f);
         continue;
       }
       if (f.dying) {   // going down its own way (src/enemies/defeat.js), then the burst
         const D = f.dying;
         D.t += dt; D.u = Math.min(1, D.t / D.R.time);
-        f.tele.hide();
         this.look(f, dt);
         if (D.u >= 1) this.burst(f);
         continue;
@@ -3535,6 +3535,7 @@ export class Foes {
         if (f.kind === 'shade') this.slashTrail(f);
         const a = e.atk ?? f.def.attack;
         if (a.wave) this.addWave(f, a);
+        if (a.lob) for (const p of f.attackPts ?? [f.attackAt]) this.gw.impact('lob', p, markRadius(a));   // (grit inside exactly its ring)
         if (a.leave === 'spores') this.leaveSpores(f, a);
         else if (a.leave) this.leaveSlag(f, a);
         if (a.surface || a.blink) this.burstUp(f, a);
@@ -3554,6 +3555,7 @@ export class Foes {
     this.keepApart();
     this.keepOff();
     this.warnings();
+    this.gw.update(dt);
     this.updateLock(dt);
     this.updateDebris(dt);
     this.updatePlates(dt);
@@ -4058,6 +4060,7 @@ export class Foes {
     const W = a.shatter;
     if (W) this.ringOut(f, W, f.pos.clone(), 0.8);
     // (a crawler's self-destruct, issue #726: a flash of light the size of its blast, its ceramic flung out)
+    if (isArea(a)) this.gw.impact('area', f.attackAt ?? f.pos, markRadius(a));   // (the blast flower, to exactly its ring: #758)
     if (a.selfDestruct) this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: a.radius ?? 2.5, life: 0.35, color: f.def.tone, thick: 2 });
     this.animKit(f, 0, {}).spray(f.chest, f.model.tones ?? ['#f3e8dc', '#ffffff'], 30, 6, 9);
     worldSnd.thud(this.sound, 0.8); kick(0.3);
@@ -4093,12 +4096,8 @@ export class Foes {
   }
   /** One ring of shock running out from `at` over the floor (addWave). */
   ringOut(f, W, at, r0 = 1.5) {
-    const mesh = new THREE.Mesh(_waveGeo ??= new THREE.RingGeometry(0.86, 1, 56).rotateX(-Math.PI / 2), _waveMat ??= makeMaterial({ color: '#e0703a', flat: true, glow: 0.7, side: THREE.DoubleSide, key: 'foe-wave' }));
-    const inner = new THREE.Mesh(_waveGeo, _waveInk ??= makeMaterial({ color: '#2b211f', flat: true, side: THREE.DoubleSide, key: 'foe-wave-ink' }));
-    inner.scale.setScalar(0.94); inner.position.y = -0.01; mesh.add(inner);
-    mesh.position.set(at.x, at.y + 0.08, at.z); mesh.userData.noCollide = true;
-    this.group.add(mesh);
-    (this.shocks ??= []).push({ f, at, r: r0 ?? 1.5, W, mesh, hit: false });
+    // (drawn as the wave itself, a curl of sand and air with a red-orange crest, along the ground: src/ground-warnings.js, #758)
+    (this.shocks ??= []).push({ f, at, r: r0 ?? 1.5, r0: r0 ?? 1.5, W, hit: false });
     if (this.player?.pos) rumblePlay('slam', { dist: this.player.pos.distanceTo(at) });   // felt underfoot, by how near (src/rumble.js)
   }
 
@@ -4164,7 +4163,7 @@ export class Foes {
     if (this.waveQueue) this.waveQueue = this.waveQueue.filter((q) => q.n > 0);
     for (const s of this.shocks ?? []) {
       s.r += s.W.speed * dt;
-      s.mesh.scale.setScalar(s.r);
+      if (s.r <= s.W.reach) this.gw.shock(s, s.at, s.r, { r0: s.r0, reach: s.W.reach, width: s.W.width, tone: s.W.tone });
       const d = Math.hypot(P.pos.x - s.at.x, P.pos.z - s.at.z);
       // caught by the front only on your feet: a jump clears it
       if (!s.hit && ground && Math.abs(d - s.r) < s.W.width && Math.abs(P.pos.y - s.at.y) < 1.2 && !P.dead && !P.down) {
@@ -4176,8 +4175,8 @@ export class Foes {
           P.vel?.addScaledVector(_v, 4).addScaledVector(_up, 3); P.flinch?.();
         }
       }
-      if (s.r > s.W.reach) s.mesh.removeFromParent();
     }
+    for (const s of this.shocks ?? []) if (s.r > s.W.reach) this.gw.impact('wave', s.at, s.W.reach);   // (a scored ring where it died)
     if (this.shocks) this.shocks = this.shocks.filter((s) => s.r <= s.W.reach);
     this.burnCool = Math.max(0, (this.burnCool ?? 0) - dt);
     for (const p of this.patches ?? []) {
@@ -4523,13 +4522,12 @@ export class Foes {
     }
     this.daze(f, dt, S.stars);
     {
-    // The body is the tell (src/telegraph.js); only a lobbed shot's landing mark is drawn on the floor.
-    const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
-    const drawn = f.state === 'wind' && groundMark(a);
-    for (let i = 0; i < Math.max(pts.length, 1 + (f.teles?.length ?? 0)); i++) {
-      const T = i === 0 ? f.tele : ((f.teles ??= [])[i - 1] ??= new Telegraph(this.group, f.def.tone ?? '#6d4fa8'));
-      if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, pts[i].y); T.set(f.k, t); }
-      else T.hide();
+    // The body is the tell (src/telegraph.js); only a lobbed shot's landing mark and a blast's reach are drawn, into
+    // the ground (src/ground-warnings.js, issue #758), over exactly its wind-up
+    const a = f.atk ?? f.def.attack;
+    if (f.state === 'wind' && f.alive && groundMark(a)) {
+      if (isArea(a)) this.gw.area(f, f.attackAt ?? f.pos, markRadius(a), f.k);
+      else (f.attackPts ?? [f.attackAt]).forEach((p, i) => this.gw.lob(f, p, markRadius(a), f.k, i));
     }
     }
     this.attackTrail(f);
@@ -4646,5 +4644,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { for (const d of this.fallen ?? []) { d.o.removeFromParent(); d.o.geometry.dispose(); } this.fallen = null; this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
+  dispose() { for (const d of this.fallen ?? []) { d.o.removeFromParent(); d.o.geometry.dispose(); } this.fallen = null; this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.gw.dispose(); this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
 }

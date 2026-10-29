@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Visual effect design sheet for a science fiction exploration game in ink-drawn Moebius style: the warning for a small area about to erupt, a self-destructing little machine's blast zone, shown in four panels side by side seen from a three-quarter view above, on green grass: first panel, a faint dashed inked ring on the grass at the blast's radius with blades of grass beginning to lean outward; second panel, the ring fills with inked radial hatching that grows inward, grass flattening, sparks of amber light; third panel, a moment before, the whole zone tinted warm orange with crisp ink lines and lifting leaves; fourth panel, the burst, a flat ink-drawn blast flower exactly filling the ring. Drawn into the ground and the grass, not a flat floating circle, readable at a glance, warm orange-red accent. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse hatching, luminous flat pastel colours, cream paper grain, clear readable construction, no characters except a small cloaked traveller for scale, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, user interface icons, flat circle, neon, glow.",
+      "from": "docs/design/ground-warnings-prompts.md#area",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-23-00-36-4323",
+      "candidate": "gemini/1",
+      "sha256": "7d72600cb733bd57c9df29e633403911c37508c55dfdf33ba24362a1d306df81",
+      "bytes": 965063,
+      "costUSD": 0.0336
+    }
+  ]
+}

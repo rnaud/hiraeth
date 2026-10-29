@@ -325,7 +325,7 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
   0.24 s; machines plant and raise their arms for 1.05 s, then slam over 0.32 s. Direction locks
   when the wind-up begins. Damage occurs 55% through the strike, with a wall check. Movement
   checks footing and walls. Every wind-up is told by the body (pose, glow, rising sound: "Telegraphs: the body,
-  not the floor" below); only a lob marks the floor. The off-screen warning marker remains. Light hits interrupt blots;
+  not the floor" below); only a lob and a crawler's blast mark the floor. The off-screen warning marker remains. Light hits interrupt blots;
   since v2.33 (issue #722) everyone else's wind-up is committed once begun, and only a broken poise stops it ("Poise, tiers
   and states" below). Before, a cut in the first two thirds of any wind-up cancelled it.
 - **What hurts them:**
@@ -407,11 +407,45 @@ Tests: `tests/resources.test.js` (the table, quarters, Gentle, the rule), `tests
 ## Telegraphs: the body, not the floor (v1.6, `src/telegraph.js`)
 
 No attack is drawn on the ground. Every attack of every foe, world enemy and guardian is told by the body that
-makes it; the only mark on the floor is a **projectile's landing mark** (`lob: true`: a spitter's globs, a golem's
+makes it; the only marks on the floor are a **projectile's landing mark** (`lob: true`: a spitter's globs, a golem's
 hurled chunk, the guardians' seeds, clods, cogs, mortars, notes and hail), drawn where it will fall, because the
-thrower's wind-up can't show where it lands. `groundMark(a)` is the one test (src/foes.js `look`, the world
-enemies' zone tells, src/temples/boss.js `tells`); `tests/telegraphs.test.js` walks every attack definition and
-fails on a ground zone that isn't a lob. The hitbox overlay (`src/hitboxes.js`, debug) still draws every zone.
+thrower's wind-up can't show where it lands, and since v2.35 (issue #758) a **blast about to go off** round a foe
+that destroys itself (`selfDestruct`, the crawler: `isArea`), whose reach the little body can't show. `groundMark(a)`
+is the one test (src/foes.js `look`, src/temples/boss.js `tells`); `tests/telegraphs.test.js` walks every attack
+definition and fails on a ground zone that is neither. The hitbox overlay (`src/hitboxes.js`, debug) still draws every
+zone. How they are drawn: "Ground warnings" below.
+
+### Ground warnings (v2.35, issue #758, `src/ground-warnings.js`)
+
+The marks and the shockwaves are drawn into the ground after the author's picked sheets
+(`references/effects/lob/sheet-1.jpg`, `references/effects/area/sheet-1.jpg`, `references/effects/wave/sheet-1.jpg`; the prompts in `docs/design/ground-warnings-prompts.md`), in ink,
+never a flat disc floating over it:
+
+- **lob** (over exactly the wind-up, `f.k` 0..1): the projectile's own shadow at the landing spot, small, pale and
+  hatched round its edge, then darker and crisp (`lobShadow`); a thin red-orange ring, dashed for the first 30 %,
+  tightening from 1.45 × the hit's radius onto exactly it by 90 % (`lobRing`, never inside it), a dark ink line just
+  outside it, four ticks pointing in from 25 %. At the strike (the `strike` event; a guardian's `strike`), a burst of
+  grit strokes inside exactly the ring for 0.4 s, and grit thrown up.
+- **area** (the crawler's fuse): a dashed ink ring at the blast's radius and short ink blades leaning out round it;
+  from 35 % radial hatching grows in from the ring (`areaFill`) and the ring goes solid; from 72 % a warm orange disc
+  grows out from the middle and the ring and hatching turn red-orange. At the blast (`Foes.shatter`), a flower of
+  twelve petals whose tips reach exactly the ring, for 0.45 s.
+- **wave** (`Foes.ringOut`, a guardian's `addWave`: the shock itself, not a warning): a knee-high (0.55 m) curl of sand
+  with a red-orange crest, in segments round the front (one each 0.45 m, 24 to 96), each a little higher or lower,
+  its footprint exactly the hit's band `r ± width`; it grows in over the first 15 % of its run and sinks over the last
+  20 %; speed lines inked on the ground behind it, grit thrown off its crest. A segment is not drawn where the ground
+  is more than `SHOCK_STEP` (1.2 m) above or below where it started (the hit's own rule: it does not hit there). At its
+  reach it leaves a scored ring that fades over 1.1 s.
+
+Everything sits on the ground under it: each stroke's two ends and each disc's middle on `physics.groundAt`, cached
+on a 0.5 m grid (bilinear between cells; a cell sampled once, the cache cleared after 2 s with nothing drawn), so a
+ring on a slope or a stair follows it. Four `InstancedMesh`es with a colour an instance (strokes, discs, the curl,
+the crest) on plain `makeMaterial` surfaces (thin lines, `line: 0.25`; no shadow), so Unity draws them through the
+mirror as it draws the Rings. What draws a warning touches it each frame (`gw.lob(key, at, R, k, i)`, `gw.area`,
+`gw.shock`); `gw.update(dt)` draws what was touched and lets the rest go back to a pool. Measured (Mac, Chrome,
+the Arena, High and Handheld): `update` 0.17 ms a frame on average while anything is drawn (p95 0.4 ms), about 1 000
+ground rays for a whole run of nine attacks; at most four draws, none when idle (the pools are hidden). Tests:
+`tests/ground-warnings.test.js` (radii, slope, timing with the attacks, pooling).
 
 **The rules a new enemy follows** (the coming archetypes reuse them; nothing per enemy is needed for the generic
 path):

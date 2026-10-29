@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-28",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Visual effect design sheet for a science fiction exploration game in ink-drawn Moebius style: the mark that shows on the ground where a lobbed rock or a spat glob of ink will land, while it is still in the air, shown in four panels side by side seen from a three-quarter view above, on pale stone paving: first panel, the projectile just thrown high in an arc, its shadow appearing small and soft on the ground at the landing spot; second panel, mid-flight, the shadow grows darker and sharper with a thin inked ring tightening around it and four small inked tick marks pointing inward; third panel, a moment before impact, the ring tight and bright, the shadow crisp; fourth panel, the impact, a splash of ink or a burst of grit inside exactly that ring. The mark reads as the projectile's own shadow plus a tightening inked ring drawn on the ground, not a flat floating disc, readable at a glance, with a warm orange-red accent. Moebius science-fiction, Franco-Belgian ligne claire, fine pen contours, sparse hatching, luminous flat pastel colours, cream paper grain, clear readable construction, no characters except a small cloaked traveller for scale, no lettering. Avoid: photorealism, 3d render, text, lettering, labels, user interface icons, flat disc, neon, glow.",
+      "from": "docs/design/ground-warnings-prompts.md#lob",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-28",
+      "batch": "2026-10-28-23-00-36-3092",
+      "candidate": "gemini/2",
+      "sha256": "bb5f8e86efefbd3fd64608f11f9d9d89fa93772967cc80b7f922121fa75f7153",
+      "bytes": 896441,
+      "costUSD": 0.0336
+    }
+  ]
+}

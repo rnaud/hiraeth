@@ -9,7 +9,7 @@ import { FOES } from '../src/foes.js';
 import { ATTACKS } from '../src/enemies/attacks.js';
 import { GUARDIANS } from '../src/arena-guardians.js';
 import { Guardian, comboOf, windOf, SHIFT } from '../src/temples/boss.js';
-import { WIND_MIN, windMin, guardianWindMin, groundMark, isProjectile, TELL, POSE_DONE } from '../src/telegraph.js';
+import { WIND_MIN, windMin, guardianWindMin, groundMark, isProjectile, isArea, TELL, POSE_DONE } from '../src/telegraph.js';
 import { clearTargets } from '../src/targets.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -24,11 +24,12 @@ function everyAttack() {
   return out;
 }
 
-test('nothing is drawn on the ground for an attack unless it is a lobbed or thrown projectile, and then where it lands', () => {
+test('nothing is drawn on the ground for an attack unless it is a lobbed or thrown projectile (where it lands) or a blast about to go off round the foe (#758)', () => {
   let lobs = 0, bodies = 0;
   for (const [where, a] of everyAttack()) {
     assert.ok(!('tele' in a), `${where}: no floor telegraph flag`);
     assert.ok(!('telegraph' in a), `${where}: a wind-up (wind), not a floor telegraph`);
+    if (groundMark(a) && isArea(a)) { assert.ok(a.selfDestruct && a.at === 'self', `${where}: a blast round itself`); continue; }
     if (groundMark(a)) {
       lobs++;
       assert.ok(a.lob && isProjectile(a), `${where}: only a projectile marks the ground`);
@@ -132,7 +133,7 @@ test('a move told by the body: it rears, the sound rises over the wind-up; only 
   run(K.attacks.stamp.wind * 0.6);
   assert.equal(g.glows, undefined, 'no diamond on its feet (issue #733)');
   assert.ok(m.tellRig.rotation.x < -0.1, 'it rears back');
-  assert.equal(g.tele.group.visible, false, 'nothing on the floor');
+  g.gw.update(0); assert.equal(g.gw.has(g), false, 'nothing on the floor');
   assert.ok(Math.abs(sounds.at(-1) - K.attacks.stamp.wind) < 1e-9, 'its sound rises over the whole wind-up');
   run(K.attacks.stamp.wind * 0.1 + K.attacks.stamp.recover + 0.1);
   assert.equal(g.state, 'open', 'it missed you: wedged, open');
@@ -140,8 +141,9 @@ test('a move told by the body: it rears, the sound rises over the wind-up; only 
   // a lob: its landing marks drawn where it will fall
   g.enter('fight'); g.cool = 9; g.begin(P, null, 'spit');
   run(K.attacks.spit.wind * 0.5);
-  assert.ok(g.tele.group.visible && g.teles.filter((T) => T.group.visible).length === K.attacks.spit.volley - 1, 'three landing marks');
-  assert.ok(Math.hypot(g.tele.group.position.x - P.pos.x, g.tele.group.position.z - P.pos.z) < 8, 'round where you stand');
+  const marks = g.gw.of(g);
+  assert.ok(marks.length === K.attacks.spit.volley && marks.every((w) => w.kind === 'lob'), 'three landing marks');
+  assert.ok(marks.every((w) => Math.hypot(w.at.x - P.pos.x, w.at.z - P.pos.z) < 8), 'round where you stand');
   // Gentle
   TELL.slow = 1.35;
   assert.ok(Math.abs(windOf(K.attacks.stamp) - K.attacks.stamp.wind * 1.35) < 1e-9);

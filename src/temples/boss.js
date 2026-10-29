@@ -3,7 +3,8 @@ import { makeMaterial, releaseMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { HIT, strikeDamage, heartsOf, quarters, DAMAGE } from '../resources.js';
-import { TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js';
+import { TELL, groundMark, poseK, POSE_DONE, markRadius } from '../telegraph.js';
+import { GroundWarnings } from '../ground-warnings.js';
 import { SecondOrder } from '../motion-kit/spring.js';
 
 // The thing at the heart of every temple. The makers were gentle: what waits
@@ -82,7 +83,7 @@ import { SecondOrder } from '../motion-kit/spring.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
-const _a = V(), _b = V(), _c = V(), _d = V(), _e = V();
+const _a = V(), _b = V(), _c = V(), _d = V(), _e = V(), _f = V();
 let uid = 0;
 
 /**
@@ -115,63 +116,6 @@ export function inArea(a, o, h, p) {
   return false;
 }
 
-/**
- * A mark drawn on the floor: a fill that grows, inside an outline that pulses. Only a projectile's landing mark
- * (src/telegraph.js groundMark: a lob) and the hitbox overlay use it; every other attack is read from the body.
- */
-export class Telegraph {
-  constructor(parent, color) {
-    this.fillM = makeMaterial({ color, glow: 0.7, flat: true, side: THREE.DoubleSide, key: `tele.fill.${uid++}` });
-    // (the fill's glow is its own, the outline is everyone's)
-    this.edgeM = makeMaterial({ color: '#2b211f', flat: true, side: THREE.DoubleSide, key: 'tele.edge' });
-    this.group = new THREE.Group();
-    this.fill = new THREE.Mesh(new THREE.BufferGeometry(), this.fillM);
-    this.edge = new THREE.Mesh(new THREE.BufferGeometry(), this.edgeM);
-    this.group.add(this.fill, this.edge);
-    this.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
-    this.group.visible = false;
-    parent.add(this.group);
-    this.shape = null;
-  }
-  show(a, o, h, y) {
-    if (this.shape !== a) {
-      this.shape = a;
-      this.fill.geometry.dispose(); this.edge.geometry.dispose();
-      if (a.shape === 'ring') {
-        this.fill.geometry = new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2);
-        this.edge.geometry = new THREE.RingGeometry(0.93, 1.0, 48).rotateX(-Math.PI / 2);
-      } else if (a.shape === 'cone') {
-        const an = a.angle ?? 0.6;
-        // (theta from +x toward -z after the flat turn; start so the fan's middle is along +z)
-        this.fill.geometry = new THREE.CircleGeometry(1, 24, Math.PI / 2 - an, 2 * an).rotateX(Math.PI / 2);
-        this.edge.geometry = new THREE.RingGeometry(0.95, 1.0, 24, 1, Math.PI / 2 - an, 2 * an).rotateX(Math.PI / 2);
-      } else {
-        this.fill.geometry = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0).rotateX(Math.PI / 2);
-        this.edge.geometry = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0).rotateX(Math.PI / 2).scale(1.08, 1, 1.02).translate(0, -0.004, 0);
-      }
-    }
-    this.group.position.set(o.x, y + 0.07, o.z);
-    this.group.rotation.y = a.shape === 'ring' ? 0 : h;
-    const R = a.shape === 'ring' ? a.radius ?? 4 : a.range ?? 12;
-    if (a.shape === 'lane') this.group.scale.set(a.width ?? 2.4, 1, R); else this.group.scale.set(R, 1, R);
-    this.group.visible = true;
-  }
-  set(k, t) {
-    // the fill grows out from the middle (or along the fan, the lane) as the strike comes
-    const s = Math.max(0.02, k);
-    if (this.shape?.shape === 'lane') this.fill.scale.set(1, 1, s); else this.fill.scale.set(s, 1, s);
-    this.fill.position.y = 0.01;
-    this.fillM.uniforms.uGlow.value = 0.35 + 0.5 * k + 0.15 * Math.sin(t * 22);
-  }
-  hide() { this.group.visible = false; }
-  /** Gone for good (its foe let go): out of the scene, its shapes and its own fill disposed. */
-  dispose() {
-    this.group.removeFromParent();
-    this.fill.geometry.dispose(); this.edge.geometry.dispose();
-    releaseMaterial(this.fillM);
-  }
-}
-
 /** The parts that come in pairs (both arms, both wings, both forefeet). */
 const PAIRED = new Set(['arms', 'wings', 'feet']);
 /** The traveller as a guardian's body blow meets him (m): a column this high over his feet, this far round (Guardian.touches). */
@@ -192,8 +136,6 @@ export const SHIFT = 2.4;
  * screen size (its type follows the screen's height); 72 keeps a margin. The quest steps keep under it too (tests/quest-steps.test.js).
  */
 export const NOTICE_CHARS = 72;
-/** The shockwave ring a slam sends out: drawn as it runs (it is the attack, not a warning), jump it. */
-const WAVE_GEO = new THREE.TorusGeometry(1, 0.06, 4, 64).rotateX(Math.PI / 2);
 
 /**
  * A move's facts as the fight uses them: its wind-up on this setting (Gentle: TELL.slow), whether it is heavy (the
@@ -486,9 +428,8 @@ export class Guardian {
     this.combo = 0;     // moves chained in the current combo (0: none)
     this.hitLast = false;
     const tone = def.kind === 'robot' ? '#e0644a' : '#f0a04b';
-    // a lobbed projectile's landing marks (the only thing drawn on the floor)
-    this.tele = new Telegraph(rt.root, tone);
-    this.teles = [];
+    // a lobbed projectile's landing marks (the only warning drawn on the floor) and its shockwaves: src/ground-warnings.js
+    this.gw = new GroundWarnings(rt.root, { groundAt: (x, y, z, d) => rt.physics?.groundAt?.(x, y, z, d), drops: () => rt.tool?.drops });
     this.balls = [];
     this.waves = [];
     this.ballM = makeMaterial({ color: tone, glow: 0.8, flat: true, key: `guardian.ball.${uid++}` });
@@ -602,7 +543,6 @@ export class Guardian {
   /** Whatever it was winding up or chaining is broken off (stilled, knocked out, a phase change). */
   stop() {
     this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null; this.live = null; this.blast?.draw(false);
-    this.tele.hide(); for (const T of this.teles) T.hide();
     for (const b of this.balls) b.visible = false;
   }
   /**
@@ -800,6 +740,7 @@ export class Guardian {
     this.blast.draw(!!this.live?.blast && this.state === 'fight');
     this.marks.set(Math.min(this.phaseIndex, this.def.phases.filter((p) => !p.weary).length - 1), t, this.state);
     this.tells(t);
+    this.gw.update(dt);
   }
 
   fight(dt, t, P) {
@@ -934,6 +875,7 @@ export class Guardian {
     this.def.onStrike?.(this, a);
     if (a.dash) this.dashing = a.dash;
     if (a.wave) this.addWave(a);
+    if (a.lob) for (const p of this.points(a)) this.gw.impact('lob', p, markRadius(a));   // (grit inside exactly its ring: #758)
     // a blow on its bones (a.parts) or drawn (a.blast): live over its active window, landing where it meets you (contact)
     if (this.bodyBlow(a) || a.blast) {
       const S = a.blast, blast = S ? this.blast.aim(this, a, this.partAt(S.from ?? a.part ?? 'core', V(), a.side ?? 1), this.aimP) : null;
@@ -1106,23 +1048,19 @@ export class Guardian {
 
   /** A shockwave: a ring running out along the floor from where it struck (you jump it, or a jet carries you over). */
   addWave(a) {
-    const W = a.wave, mesh = new THREE.Mesh(WAVE_GEO, this.ballM);
-    mesh.userData.noCollide = true; mesh.userData.dynamic = true;
-    const at = this.points(a)[0].clone();
-    mesh.position.set(at.x, this.arena.y + 0.15, at.z);
-    this.rt.root.add(mesh);
-    this.waves.push({ at, r: a.shape === 'ring' ? a.radius ?? 3 : 1, W, a, mesh, hit: false });
+    const W = a.wave, at = this.points(a)[0].clone().setY(this.arena.y), r = a.shape === 'ring' ? a.radius ?? 3 : 1;
+    this.waves.push({ at, r, r0: r, W, a, hit: false });   // (drawn as the wave itself, along the floor: src/ground-warnings.js)
   }
   updateWaves(dt, P) {
     for (const w of this.waves.slice()) {
       w.r += w.W.speed * dt;
-      w.mesh.scale.set(w.r, 1 + 6 * (1 - w.r / (w.W.reach + 0.01)) * 0.3, w.r);
+      if (w.r <= w.W.reach) this.gw.shock(w, w.at, w.r, { r0: w.r0, reach: w.W.reach, width: w.W.width ?? 0.6, tone: w.W.tone });
       const d = P ? Math.hypot(P.pos.x - w.at.x, P.pos.z - w.at.z) : Infinity;
       if (!w.hit && P && !P.dead && !P.down && !P.staggered && !P.untouchable?.() && Math.abs(d - w.r) < (w.W.width ?? 0.6) && P.pos.y - this.arena.y < 0.6) { w.hit = true; this.catch(w.a, P, w.at, w.W.damage ?? 0.5, w.W.knock ?? 7); }
-      if (w.r > w.W.reach) { w.mesh.removeFromParent(); this.waves.splice(this.waves.indexOf(w), 1); }
+      if (w.r > w.W.reach) { this.gw.impact('wave', w.at, w.W.reach); this.waves.splice(this.waves.indexOf(w), 1); }
     }
   }
-  clearWaves() { for (const w of this.waves) w.mesh.removeFromParent(); this.waves.length = 0; }
+  clearWaves() { this.waves.length = 0; }
 
   /** Where a part of it is (its swing's trail, its reach): the model's own `part`, else from its mouth, body and radius. */
   partAt(name, out, side = 1) {
@@ -1139,14 +1077,11 @@ export class Guardian {
   /** The tells drawn each frame: a lob's landing marks and its projectile (the body's wind-up is the rest of the tell). */
   tells(t) {
     const a = this.attack, live = a && (this.state === 'fight') && (!this.struck || this.at < this.windFor + 0.12);
-    if (!live) { this.tele.hide(); for (const T of this.teles) T.hide(); for (const b of this.balls) b.visible = false; return; }
+    if (!live) { for (const b of this.balls) b.visible = false; return; }
     const part = a.part ?? 'core';
     // a lob: its landing marks through the wind-up, and the thrown thing in the air over its last half
     const pts = this.points(a);
-    for (let i = 0; i < Math.max(pts.length, 1 + this.teles.length); i++) {
-      const T = i === 0 ? this.tele : (this.teles[i - 1] ??= new Telegraph(this.rt.root, this.def.kind === 'robot' ? '#e0644a' : '#f0a04b'));
-      if (groundMark(a) && i < pts.length && !this.struck) { T.show(a, pts[i], this.attackH, this.arena.y); T.set(this.attackK, t); } else T.hide();
-    }
+    if (groundMark(a) && !this.struck) pts.forEach((p, i) => this.gw.lob(this, _f.set(p.x, this.arena.y, p.z), markRadius(a), this.attackK, i));
     const u = a.lob && !this.struck ? (this.attackK - 0.55) / 0.45 : -1;
     for (let i = 0; i < Math.max(pts.length, this.balls.length); i++) {
       const b = this.balls[i] ??= this.newBall();
@@ -1202,8 +1137,7 @@ export class Guardian {
   dispose() {
     GUARDIANS_LIVE.delete(this);
     for (const f of this.offs) f();
-    this.tele.group.removeFromParent(); this.tele.dispose?.();
-    for (const T of this.teles) T.dispose();
+    this.gw.dispose();
     for (const b of this.balls) { b.removeFromParent(); b.geometry.dispose(); }
     this.clearWaves(); this.marks.dispose(); this.ground.dispose(); this.blast.dispose(); releaseMaterial(this.ballM); releaseMaterial(this.blastM);
   }
