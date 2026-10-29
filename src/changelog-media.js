@@ -1470,6 +1470,15 @@ export const CHANGELOG_MEDIA = {
       { where: 'a furnace brute, 2 m', before: 300, after: 40 },
     ], source: 'src/lock-reticle.js markerHalf (RETICLE.size 24–40 px × the screen’s scale); every kind’s medians 47–300 px before, 24–40 after', note: 'A bigger screen draws it larger in proportion (reticleScale), as before.' },
   ], see: 'In the Arena, lock on to a crawler far off and a hulk close in: the arrows keep one small size round the head; press R3 again on a foe that has a weak point and they ring that.' },
+  { match: 'Enemies no longer slide over the ground', numbers: [
+    { title: 'How far a planted foot slides, per metre the body moves (grunt, hulk, prowler, warlord, sentinel, fencer: the worst of the six)', unit: 'm/m', better: 'lower', device: 'node, the game’s own models and clips (Foes.look), flat ground, 60 frames a second', source: 'Issue #749: scripts/motion-audit/foe-slide.mjs, the ball of each foot while it is down; before at 35d2c0e2c', rows: [
+      { where: 'walking', before: 0.21, after: 0.01 },
+      { where: 'running', before: 0.08, after: 0.00 },
+      { where: 'circling you (strafing)', before: 1.00, after: 0.06 },
+      { where: 'turning on the spot (per radian)', before: 0.43, after: 0.04 },
+      { where: 'knocked back by the third swing', before: 1.41, after: 0.21 },
+    ], note: 'The crawler, the lamp tripod and the skitter walk on the procedural kit and already held their feet (0.01 or less).' },
+  ] },
   { match: 'Every armed enemy now holds its weapon like a fighter', shots: [
     { name: 'grip-hulk-smash', size: [1280, 720], caption: 'The hulk’s smash held at 80 % of its wind-up: before, the club lying across its open, upturned hands; after, both fists stacked on the haft, the club up and back over its shoulder', from: GRIP744, view: 'hulk@desert, three-quarter (yaw 0.75, pitch 0.12, zoom 0.95, on the body alone), the smash at 80 % of its wind-up' },
     { name: 'grip-hulk-carry', size: [1280, 720], caption: 'The hulk standing: before, the club across its open claws; after, its fist closed round the butt and the head down by its feet, its empty hand open (the sheet’s)', from: GRIP744, view: 'hulk@desert, from its front left (yaw 0.45, pitch 0.12, zoom 1.25, on the body alone), standing, 1.5 s into its idle' },

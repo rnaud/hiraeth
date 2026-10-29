@@ -324,6 +324,32 @@ export function gaitOf(lib, clip) {
   return clip.userData.gaitFeet;
 }
 
+/**
+ * A strafe loop's stance speed (issue #749): the planted ball's speed under the pelvis, level (library m/s at rate 1, the
+ * median while it is within 1.2 cm of its lowest), measured once a clip. The library's sword-and-shield strafes travel
+ * more forward or back than sideways (their feet sweep ~0.55 m along and ~0.25 m across): a foe plays its strafe at the
+ * rate that makes its steps cover its own speed, and its feet are held where they land (FOOT_LOCK).
+ */
+export function sideSpeedOf(lib, clip) {
+  if (clip.userData.sideSpeed != null) return clip.userData.sideSpeed;
+  const s = cloneSkeleton(lib.scene), mixer = new THREE.AnimationMixer(s), by = (n) => byName(s, n);
+  const action = mixer.clipAction(clip); action.play();
+  const N = CONTACT_N, dt = clip.duration / N, pel = new THREE.Vector3(), cur = new THREE.Vector3(), speeds = [];
+  for (const f of ['l', 'r']) {
+    const h = [], x = [], z = [];
+    for (let i = 0; i <= N; i++) {
+      mixer.setTime(i * dt); s.updateMatrixWorld(true);
+      by('pelvis').getWorldPosition(pel); by(`ball_${f}`).getWorldPosition(cur);
+      h.push(cur.y); x.push(cur.x - pel.x); z.push(cur.z - pel.z);
+    }
+    const min = Math.min(...h);
+    for (let i = 0; i < N; i++) if (h[i] - min < 0.012 && h[i + 1] - min < 0.012) speeds.push(Math.hypot(x[i + 1] - x[i], z[i + 1] - z[i]) / dt);
+  }
+  action.stop(); mixer.stopAllAction();
+  speeds.sort((a, b) => a - b);
+  return (clip.userData.sideSpeed = speeds[Math.floor(speeds.length / 2)] || 0.6);
+}
+
 /** Where in a contact curve's cycle (0..1) the foot comes down. */
 function touchdown(curve) {
   const N = curve.length;
@@ -762,7 +788,7 @@ export class Animator {
       if (G) {
         // the loop's true stance sweep on this body, shortened by STRIDE_K (plantFeet warps the feet to match)
         const c = G.clips[k], full = c.speed * c.duration * size;
-        sweep += w * full; stride += w * full * (c.strideK ?? STRIDE_K[k]);
+        sweep += w * full; stride += w * full * (s.trueStride ? 1 : (c.strideK ?? STRIDE_K[k]));
       } else stride += w * N[k] * this.clips[k].duration;
     }
     this.footSpeed = 0;

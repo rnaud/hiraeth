@@ -948,6 +948,44 @@ Cost (`Foes.look` whole, node on this Mac, median of 600 frames, two runs each; 
 noise walking, winding up and throwing (mummer 0.029 / 0.037 / 0.033 ms, king 0.024 / 0.030 / 0.028); sitting +0.008 ms
 (the seat's IK: mummer 0.024 → 0.032, king 0.019 → 0.025); turning 0.024 / 0.019 ms.
 
+**Feet that stay where they land** (v2.35, issue #749; `FOOT_LOCK`, `HumanoidDriver.lockFeet`, `footBall`;
+tests/foe-slide.test.js). The author: "some enemies are sliding on the ground?". Measured with
+`node scripts/motion-audit/foe-slide.mjs` (each foe walking at 0.35 of its speed, running, strafing at 0.6 of it, turning on
+the spot a quarter turn a second, shoved back by the heavy third swing every second; the slide of the ball of each foot over the
+ground while it is down, per metre the body moved, a radian for the turn), the causes were four:
+
+- **The stride.** The Animator shortens the loops' stride by `STRIDE_K` (walk 0.8, jog 0.55, sprint 0.75) for the
+  traveller, whose `plantFeet` then warps his feet to match; the foes have no plantFeet, so their planted feet swept back
+  1.25-1.8 × as fast as the ground went by. They now play the loops at their own stride (`trueStride`).
+- **The strafe.** `ss_strafe_1` steps to the body's right, and was played for going left (its mirror for going right); and
+  its clip time was 0.9 s a metre walked in all, clamped at the clip's end, so after the first metre a circling foe slid on a
+  held frame (6 m in one contact). Now the mirror goes left, and the clip runs at the rate that makes its steps cover the
+  foe's speed (`sideSpeedOf`, measured once a clip: the library's two strafes travel more along than across, so the feet are
+  also held).
+- **The turn on the spot and the shove.** The turn clips and the stagger keep both feet down while the body turns or slides
+  under them.
+- **The lock.** After the pose and the slope, each foot the clip has down (its contact share ≥ `on` 0.6, or its ball within
+  1.5 cm of the ground) is held where its ball came down, the leg reached to it by two-bone IK (the knee on the clip's side),
+  the foot turned as the clip has it; lifted, it eases back to the clip's over `free` 0.1 s. Left `reach` 0.3 × the leg
+  behind (a turn, a shove), it steps: an arc `lift` 0.12 × the leg high to the clip's spot over `step` 0.17 s, quicker the
+  faster the body goes (to `quick` 0.07 s), one foot at a time unless one is out past the leg's reach. Not while it lies,
+  sits, hops, flies, is carried, its own move carries it past `fast` 7 m/s (a lunge, a dash) or past `RIG_LOD.mid`.
+
+| slide m/m (worst contact m) | walk | run | strafe | turn (/rad) | shove |
+|---|---|---|---|---|---|
+| grunt, before → after | 0.21 → 0.00 | 0.04 → 0.00 | 0.53 (6.6) → 0.05 | 0.43 (1.9) → 0.04 | 0.45 → 0.16 |
+| hulk | 0.11 → 0.01 | 0.05 → 0.00 | 0.16 → 0.01 | 0.33 → 0.01 | 0.50 → 0.05 |
+| prowler | 0.13 → 0.01 | 0.02 → 0.00 | 0.50 (8.4) → 0.01 | 0.42 → 0.01 | 0.22 → 0.04 |
+| warlord | 0.17 → 0.00 | 0.05 → 0.00 | 1.00 (6.3) → 0.02 | 0.28 → 0.01 | 1.41 → 0.21 |
+| sentinel | 0.13 → 0.00 | 0.08 → 0.00 | 0.54 (5.4) → 0.06 | 0.39 → 0.01 | 0.45 → 0.03 |
+| fencer | 0.15 → 0.00 | 0.08 → 0.00 | 0.55 (5.0) → 0.05 | 0.43 → 0.01 | 0.35 → 0.03 |
+
+The kit's walkers (the crawler, the lamp tripod, the skitter) already held their feet (≤ 0.01; their lowest vertex rolls
+10-20 cm across a round pad as the leg tilts, so the measure reads the foot's pivot); the oracle hovers, the ray and the drone
+fly, the blot is a glob. What is left: the grunt's shove at 11 m/s (its first frames carry it 0.9 m before a foot can step:
+0.75 m worst), the warlord's stagger lifts a foot 2-3 cm and lets it trail. Cost: `Foes.look` +0.004-0.009 ms a foe a frame
+(node, median: grunt 0.038 → 0.047, sentinel 0.031 → 0.035, warlord 0.033 → 0.038).
+
 **Cost** (one Animator a foe): the rig's own update 0.02-0.06 ms a foe in node and in Unity's V8 (its `cost`, the log of
 `-fight mummers`); a pack of 8 mummers in the Arena on this Mac (Chrome, High) 0.3 ms a frame all eight together, median
 (0.5 ms at the 90th percentile).

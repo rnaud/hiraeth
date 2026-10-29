@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Animator } from '../animator.js';
+import { Animator, sideSpeedOf } from '../animator.js';
 import { twoBone } from '../motion-kit/ik.js';
 import { SecondOrder } from '../motion-kit/spring.js';
 import { moveShape } from '../loco-moves.js';
@@ -61,6 +61,18 @@ export const RELEASE = { hold: 0.18, cut: 0.45 };
 export const TURN = { rate: 5.5, from: 0.6, maxSpeed: 0.6, snap: 0.06, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], blendIn: 0.1, blendOut: 0.2, minRate: 0.8, maxRate: 3.2 };
 /** Distance tiers: past `mid` m the pose is made every 2nd frame, past `far` every 4th (the time between kept). */
 export const RIG_LOD = { mid: 22, far: 40 };
+/**
+ * Feet that stay where they land (issue #749): a foot the clip has on the ground is held where it came down (its
+ * ground point, in the world) while the body moves over it, the leg reached to it by two-bone IK; let go as the clip
+ * lifts it (eased back to the clip's over `free` s). A planted foot the body has moved too far from (`reach` × the leg,
+ * a turn on the spot, a shove) steps: lifted `lift` × the leg and set down under the clip's over `step` s, one foot at a
+ * time; both at once if a foot is out past `most` of the leg's reach (a hard shove), each step quicker the faster the
+ * body goes (down to `quick` s). Not while it lies, sits, hops or flies, its own move carries it faster than `fast` m/s
+ * (a lunge, a dash: a shove still steps), or far off. A foot counts as down from the clip's contact share `on`, or with its
+ * ball within `low` × its scale of the ground it stands on (a turn's, a strafe's or a stagger's planted foot the clip's
+ * contact curve calls up).
+ */
+export const FOOT_LOCK = { on: 0.6, low: 0.015, reach: 0.3, most: 0.97, step: 0.17, quick: 0.07, lift: 0.12, free: 0.1, fast: 7 };
 
 const UP = new THREE.Vector3(0, 1, 0), DOWN = new THREE.Vector3(0, -1, 0);
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -120,7 +132,7 @@ export const STATE_CLIPS = {
   // then crossfaded into the lying frame)
   down: { clip: 'get_up_back', at: 0.6, rise: { from: 2.65, to: 5.55, secs: 0.9 }, fall: { clip: 'ss_impact_1', from: 0, to: 0.7, secs: 0.3, tip: -1.35 } },
   pickup: { clip: 'kneeling_inspecting', from: 0.3, to: 1.6 },
-  // (circling you while it waits its turn: the sword-and-shield strafe, mirrored the other way)
+  // (circling you while it waits its turn: the sword-and-shield strafe, to its right; mirrored to its left)
   strafe: { clip: 'ss_strafe_1' },
 };
 
@@ -183,7 +195,9 @@ export function stateClip(f, moves = {}, o = {}, states = STATE_CLIPS) {
     if (I.at != null) return { ...at(I, I.at, mode), ...extra };
     return { ...at(I, pingpong(o.t ?? 0, I.from, I.to), mode), ...extra };
   }
-  if (Math.abs(o.strafe ?? 0) > 0.6 && S.strafe) return { clip: S.strafe.clip + (o.strafe < 0 ? '_m' : ''), t: o.strafeT ?? 0, kind: 'strafe' };
+  // (o.strafe > 0: going to its left, +x; ss_strafe_1 steps to the right, so its mirror. It was the other way round, and
+  // a circling foe's feet stepped against its slide, issue #749)
+  if (Math.abs(o.strafe ?? 0) > 0.6 && S.strafe) return { clip: S.strafe.clip + (o.strafe > 0 ? '_m' : ''), t: o.strafeT ?? 0, kind: 'strafe' };
   return { loop: 'move' };
 }
 
@@ -324,7 +338,7 @@ export class HumanoidDriver {
     Object.assign(this, { J, rig, moves, states: { ...STATE_CLIPS, ...states }, speeds, style, seat: seat ?? J.D.hip * 0.3 });
     this.shownH = null; this.turn = null; this.downFor = null; this.seatW = 0;
     this.A = null; this.lib = null;
-    this.prev = null; this.speed = 0; this.side = 0; this.walked = 0; this.t = (seed++ * 0.731) % 7;
+    this.prev = null; this.speed = 0; this.side = 0; this.walked = 0; this.strafeT = 0; this.vNow = 0; this.t = (seed++ * 0.731) % 7;
     this.moveW = 0; this.last = null; this.procW = 0; this.proc = null;
     this.frame = seed; this.acc = 0;
     this.cost = 0;   // (ms this foe's pose took last time it was made: the measure, scripts/enemy-roster/rig-cost.mjs)
@@ -361,19 +375,25 @@ export class HumanoidDriver {
         this.speed += (v - this.speed) * (1 - Math.exp(-12 * dt));
         this.side += (side * Math.min(1, v / 0.6) - this.side) * (1 - Math.exp(-8 * dt));
         this.walked += d;
-      }
+        this.vNow = v;
+        // (the strafe's clip time: run at the rate that carries its planted foot across at the body's own sideways speed,
+        // so it stays put; it was 0.9 s a metre walked, clamped at the clip's end: a foe circling you long after its
+        // first metre skated on a held frame, issue #749)
+        this.strafeT += (d * Math.abs(side)) / Math.max(0.2, this.strafeRate());
+      } else this.vNow = 0;
       this.prev.copy(p);
     }
     this.t += dt;
     // far off: every 2nd or 4th frame (the time between carried)
     const dist = c.eye ? Math.hypot(c.eye.x - p.x, c.eye.z - p.z) : 0, every = dist > RIG_LOD.far ? 4 : dist > RIG_LOD.mid ? 2 : 1;
     this.acc += dt;
+    if (every > 1) this.locks = null;   // (far off: no feet held)
     if (every > 1 && ++this.frame % every && this.drawnOnce) return this.chosen;
     const step = this.acc; this.acc = 0;
     const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
     // (how long it has been going down: its fall first)
     this.downFor = f.downT > 0 ? (this.downFor == null ? 0 : this.downFor + step) : null;
-    const want = stateClip(f, this.moves, { strafe: this.side, strafeT: this.walked * 0.9, t: this.t, downFor: this.downFor }, this.states);
+    const want = stateClip(f, this.moves, { strafe: this.side, strafeT: this.strafeT % this.strafeDur(), t: this.t, downFor: this.downFor }, this.states);
     this.chosen = want;
     const A = this.animator();
     this.turnInPlace(f, want, step, A);
@@ -384,6 +404,7 @@ export class HumanoidDriver {
     this.seatPose(want, step);
     this.procPose(want, o, step);
     this.plant(f);
+    this.lockFeet(f, want, step);
     this.drawnOnce = true;
     if (t0) this.cost = performance.now() - t0;
     return want;
@@ -415,7 +436,7 @@ export class HumanoidDriver {
     A.calm = !!loop;
     A.update(dt, {
       speed: move && move.kind !== 'strafe' ? 0 : this.speed, onGround: true, mode: 'ground',
-      walkAt: S.walk, jogAt: S.jog, sprintAt: S.sprint, strideScale: 1,
+      walkAt: S.walk, jogAt: S.jog, sprintAt: S.sprint, strideScale: 1, trueStride: true,
     });
     // the look round: the library's own loop (Animator plays it only after standing a while; here, at once)
     if (loop && A.actions.look) {
@@ -558,6 +579,78 @@ export class HumanoidDriver {
     });
   }
 
+  /** The strafe clip's length (s) and its foot's sideways speed on this body (m/s at rate 1: the library's × legRatio). */
+  strafeDur() { const c = this.A?.moveClip(this.states.strafe?.clip); return c?.duration || 1.1; }
+  strafeRate() {
+    const A = this.A, c = A?.moveClip(this.states.strafe?.clip);
+    if (!c) return 1 / 0.9;
+    return sideSpeedOf(this.lib, c) * (A.legRatio || 1);
+  }
+
+  /** The feet held where they came down (FOOT_LOCK, issue #749): after the pose, the slope and the clip's contacts. */
+  lockFeet(f, want, dt) {
+    const A = this.A, J = this.J, K = FOOT_LOCK;
+    const lying = want.kind === 'down' || want.kind === 'fall' || want.kind === 'sleep' || want.kind === 'sit' || this.seatW > 0.2;
+    const shoved = (f.vel?.lengthSq?.() ?? 0) > 1;
+    if (!A || dt <= 0 || lying || f.dying || f.hop || f.hopBack || f.air || f.flight || f.yank || f.carriedBy || f.riding || (f.alt ?? 0) > 0.05 || want.ground || (this.vNow > K.fast && !shoved)) {
+      this.locks = null; return;
+    }
+    const g = this.rig;
+    g.updateWorldMatrix(true, true);
+    const s = g.getWorldScale(_b).y || 1, L = (J.D.thigh + J.D.shin) * s;
+    const locks = this.locks ??= [{}, {}];
+    const stepping = locks.some((k) => k.step);
+    const stepT = Math.max(K.quick, Math.min(K.step, (0.5 * K.reach * L) / Math.max(0.05, this.vNow)));
+    const root = g.getWorldPosition(_h).clone(), S0 = f.slope;
+    const groundY = (p) => root.y + (S0 ? S0.sx * (p.x - root.x) + S0.sz * (p.z - root.z) : 0);
+    J.legs.forEach((leg, i) => {
+      const S = locks[i], foot = J.feet[i], c = A.contact[i ? 'l' : 'r'] ?? 1;
+      // (the ball of the foot is what is held: the ankle rolls over it from heel-off to toe-off)
+      const ball = (this.balls ??= J.feet.map((ft) => footBall(ft) ?? new THREE.Vector3(0, -(J.D.hip - J.D.thigh - J.D.shin), 0)))[i];
+      const ankle = foot.getWorldPosition(_a).clone(), posed = foot.localToWorld(_x.copy(ball)).clone();
+      const down = c >= K.on || posed.y - groundY(posed) < K.low * s;
+      if (S.step) S.step.t += dt;
+      if (down) {
+        if (S.step) { if (S.step.t >= S.step.T) { S.step = null; S.at = posed.clone(); } }
+        else if (!S.at) { S.at = S.free && S.free.t < K.free ? S.free.from.clone() : posed.clone(); S.free = null; }
+        else {
+          const off = Math.hypot(posed.x - S.at.x, posed.z - S.at.z);
+          leg.getWorldPosition(_k);
+          // (out past the leg's reach, and further than the clip's own leg is stretched: it can't hold on)
+          const far = _k.distanceTo(_z.set(S.at.x, posed.y, S.at.z).add(_y.subVectors(ankle, posed))) > Math.max(K.most * L, _k.distanceTo(ankle) + 0.06 * L);
+          if ((off > K.reach * L && !stepping && !locks[1 - i].step) || far) { S.step = { from: S.at.clone(), t: 0, T: stepT }; S.at = null; }
+        }
+      } else {
+        if (S.at) S.free = { from: S.at.clone(), t: 0 };
+        S.at = null;
+        if (S.step && S.step.t >= S.step.T) S.step = null;
+        if (S.free) { S.free.t += dt; if (S.free.t >= K.free) S.free = null; }
+      }
+      // where the ball goes: held (its height the clip's, on its slope), stepping (an arc to the clip's), let go (eased)
+      let target = null;
+      if (S.at) target = _c.set(S.at.x, posed.y, S.at.z);
+      else if (S.step) {
+        const u = smooth(S.step.t / S.step.T);
+        target = _c.lerpVectors(S.step.from, posed, u); target.y = posed.y + K.lift * L * Math.sin(Math.PI * Math.min(1, S.step.t / S.step.T));
+      } else if (S.free) { target = _c.lerpVectors(S.free.from, posed, smooth(S.free.t / K.free)); target.y = posed.y; }
+      if (target) target.add(_y.subVectors(ankle, posed));   // (the ankle where it must be for the ball to be there, the foot turned as the clip has it)
+      if (!target || target.distanceToSquared(ankle) < 1e-8) return;
+      const knee = J.knees[i];
+      const footQ = foot.getWorldQuaternion(_q2).clone();
+      leg.getWorldPosition(_h); knee.getWorldPosition(_k);
+      // (the knee bends the way the clip had it: the pole from the hip-ankle line out to the clip's knee)
+      _y.lerpVectors(_h, ankle, 0.5); _z.subVectors(_k, _y);
+      if (_z.lengthSq() < 1e-8) { J.body.getWorldQuaternion(_q); _z.set(0, 0, 1).applyQuaternion(_q); }
+      const goal = target.clone();
+      twoBone(_h, goal, J.D.thigh * s, J.D.shin * s, _z, _k);
+      aimWorld(leg, _x.subVectors(_k, _h)); leg.updateMatrixWorld(true);
+      knee.getWorldPosition(_h);
+      aimWorld(knee, _x.subVectors(goal, _h)); knee.updateMatrixWorld(true);
+      foot.parent.getWorldQuaternion(_q).invert();
+      foot.quaternion.copy(_q.multiply(footQ)); foot.updateMatrixWorld(true);
+    });
+  }
+
   /**
    * The feet reach the ground on a slope: each foot's ground from the plane the foe stands on (f.slope, read from its
    * five ground rays: src/enemies/slope.js; no ray of its own), against the root's; the body lowered to the lower foot,
@@ -601,6 +694,40 @@ export class HumanoidDriver {
       foot.updateMatrixWorld(true);
     });
   }
+}
+
+/** Every drawn vertex (world) of a joint: its own meshes', or a skinned mesh's bound to its bones (and theirs under it). */
+function verticesOf(obj) {
+  const out = [], q = new THREE.Vector3();
+  obj.traverse((o) => { if (o.isMesh && !o.isSkinnedMesh) { const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) out.push(q.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).clone()); } });
+  if (out.length) return out;
+  const joints = new Set(); obj.traverse((o) => joints.add(o));
+  let top = obj; while (top.parent) top = top.parent;
+  top.traverse((m) => {
+    if (!m.isSkinnedMesh) return;
+    const bones = new Set(m.skeleton.bones.map((b, i) => (joints.has(b) ? i : -1)).filter((i) => i >= 0));
+    if (!bones.size) return;
+    m.skeleton.update();
+    const p = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight;
+    for (let i = 0; i < p.count; i++) if (bones.has(si.getX(i)) && sw.getX(i) > 0.5) out.push(m.getVertexPosition(i, q).applyMatrix4(m.matrixWorld).clone());
+  });
+  return out;
+}
+
+/**
+ * The ball of a foot, in its ankle's frame (issue #749): of its sole (the drawn points within 1.5 cm of its lowest along
+ * the ankle's own down), 70 % of the way from the heel to the toe along the foot's own forward. The point a walking
+ * foot stays on through its stance (heel-off to toe-off); the lowest point rolls from the heel to the toe. Read once
+ * from the drawn foot (any pose: in the ankle's own frame), null with nothing drawn under it.
+ */
+export function footBall(foot) {
+  foot.updateWorldMatrix(true, true);
+  const V = verticesOf(foot).map((p) => foot.worldToLocal(p));
+  if (V.length < 3) return null;
+  // (the ankle's -y is down the leg at rest; its +z the toes)
+  const lo = Math.min(...V.map((p) => p.y)), sole = V.filter((p) => p.y < lo + 0.015 * (1 / (foot.getWorldScale(_b).y || 1)));
+  const zs = sole.map((p) => p.z), a = Math.min(...zs), b = Math.max(...zs);
+  return new THREE.Vector3(0, lo, a + 0.7 * (b - a));
 }
 
 /** A limb joint's -y aimed along dir (world), its parent's frame read now. */
