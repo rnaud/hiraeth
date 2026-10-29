@@ -32,6 +32,107 @@ CI uses:
 `test-selection` artifact. All five `unit (shard N/5)` checks must pass. Empty shards explicitly
 succeed without invoking Node's automatic test discovery. Invalid selections or source refs fail visibly.
 
+## Fewer and faster tests per commit (October 2026)
+
+The author: "We are testing too much and tests are too long on each commit." What was measured,
+what changed and what it bought; the selection stays sound (nothing below marks a test independent
+of code it runs, and no test was removed or weakened).
+
+### Long end-to-end files on push
+
+The hook leaves the files in `tests/hook-deferred.json` to GitHub, which runs every selected file,
+those included, for each push before any deploy, and to the daily full suite. `RUN_DEFERRED=1`
+(or `FULL_TESTS=1`) runs them in the hook; a missing or malformed list defers nothing, and the hook
+names what it left. The list holds only files over 100 s on a runner (`tests/shard-timings.json`)
+that play or sweep whole houses, worlds or the engines' game: door-bypass-1/2, wings-reach-1/2,
+sequences-opening/-moments/-play, engine-finishable, playthrough, temple-playthrough,
+temple-trial-flow, temple-finale, guardian-twists, guardian-completable, camera-qc-guardians,
+contact-audit, ball-room and zfight (2,525 of the suite's 8,489 runner seconds). Left in the hook on
+purpose: `motion-qc` (the traveller's own check, not a world sweep) and `desert-spark` (one errand).
+`tests/hook-deferred.test.js` holds the list to that bar and checks that the CI plan, the shard runner
+and the workflows never read it; `tests/pre-commit.test.js` runs the real hook in a fixture repository.
+The risk taken: a commit that breaks one of these is caught on its push (before it can deploy), not
+at the commit. Lowering the bar would cut more (deferring every file over 60 s: 38 files, the median
+gameplay commit 3,773 runner seconds instead of 5,169); that is the author's call.
+
+### The selector's syntax cache
+
+Parsing every source took ~20 s a run on a loaded Mac. The command line now keeps the parser's output
+in `.cache/affected-tests/` (git-ignored): each entry is `dependenciesOf` for one exact path, mode and
+source bytes (the key hashes all three), in a file named by a hash of the analyzer's own bytes, the
+bindings module, the parser's entry and package and Node's version. Contracts, ownership and the closure
+are recomputed from each snapshot every run; a corrupt, malformed or foreign file is a cold start;
+`AFFECTED_TESTS_CACHE=0` turns it off. A warm run takes ~2 s; a cold one ~12 s (the AST child walk is a
+plain loop now, the same nodes in the same order). `dependenciesOf`'s output was byte-identical to the
+previous analyzer's for all 2,451 tracked sources in both modes, and CLI selections with the cache off,
+cold and warm were identical (`tests/affected-tests.test.js` has the cache's own case).
+The four selector tests that analyse the real repository on every commit (test-selection-boundaries,
+test-loader-contract, audio-test-runtime, pre-commit's real-repository case) read the same store
+(`repositorySyntax()`, read-only): the hook has just analysed the same bytes, so they took 15 s instead
+of 68 s here. CI has no cache and runs them cold, as before.
+
+Positional mode (`node scripts/affected-tests.mjs <file>`, for sizing a change) now passes the
+working tree's inventory and treats a tracked regular file with an unchanged executable bit as an
+edit, exactly as the hook's staged range does. Before, it left executable globs unresolved and counted
+existence queries, reporting e.g. 466 tests for `src/changelog-media.js` where the hook selects 144.
+
+### Narrower inputs
+
+- `src/version.js` is a literal written by `node scripts/changelog-md.mjs` with `changelog.md`
+  (`tests/changelog.test.js` fails if it differs from the newest entry). The title, settings, update
+  panel and world picker no longer have the 1 MB changelog in their graph. Changelog text still reaches
+  every whole-game test, genuinely: `engine/menus.js` renders the newest versions' lines in the native
+  What's new, and `engine/game.js` (and Unity's game) import it.
+- `tests/locomotion-botw.test.js` imports `scripts/motion-qc/feel-core.mjs`; `feel.mjs` keeps the
+  command, its TUNE imports (environment-chosen, so opaque) and the table, and re-exports the core.
+- Boundary cases in `tests/test-selection-boundaries.test.js` for both (a virtual-consumer helper,
+  `reach(path, module)`, checks any module): unrelated edits excluded, the real inputs kept.
+
+### What was not narrowed, and why
+
+The hubs (`src/enemies/archetypes.js` 596 files, `src/player.js` 581, `src/foes.js` 543) reach their
+tests genuinely: every world spawns foes, `src/npc.js` builds its people with the traveller's
+`buildCharacter`, the story imports `CAPSULE`, and every whole-game test compiles `engine/game.js`.
+Every selected file over 15 runner seconds was checked by its shortest chain; none was incidental. 144 cheap files (238
+runner seconds) run for every change because they are opaque: they list a directory and read or import
+each entry, spawn processes, or compile bundles. Making those finite (the literal catalogues used for
+the story and minigame audits) is the next lever on the count. Non-test workflow edits
+(`cloudflare.yml`, `steam-deck.yml`, ...) still select everything by policy (`SHARED`); 6 of the last
+150 commits on main paid a full suite for one.
+
+### Measured, before and after
+
+Method: the last 30 first-parent commits on main up to 01d743e06 (2026-10-29). For each, the paths it
+changed were selected against one fixed tree, with the hook's file inventory and an edit's semantics:
+the tree before this work (01d743e06) and after it (this branch), so the two columns differ only by
+the changes above. (`--base <parent> --head <commit>` on those commits reads their own old trees, so it
+cannot show a change made later.) Time is the sum of the selected files' runner seconds in
+`tests/shard-timings.json`: workload, not wall time; on the Mac a file takes about 1/1.9 of that, two at
+a time.
+
+| per commit (30 commits) | files: mean / median / max | runner seconds: mean / median / max |
+|---|---|---|
+| before | 482 / 608 / 972 | 5,657 / 7,712 / 8,489 |
+| after, selected (what GitHub runs) | 478 / 604 / 973 | 5,635 / 7,694 / 8,489 |
+| after, run by the hook | 465 / 586 / 955 | 3,863 / 5,169 / 5,964 |
+
+On top of that, each commit's selector run went from ~19 s to ~2 s, and the four selector tests above
+from 68 s to 15 s on the Mac. Estimated hook time for the median commit, two files at a time on the
+Mac: ~34 min before, ~23 min after.
+
+One changed file each, hook-mode selection (positional mode now gives the same numbers):
+
+| changed file | before: files / runner s | after, selected: files / runner s | after, run by the hook |
+|---|---|---|---|
+| src/enemies/archetypes.js | 597 / 7,823 | 596 / 7,807 | 578 / 5,282 |
+| src/player.js | 581 / 7,978 | 581 / 7,978 | 563 / 5,453 |
+| src/foes.js | 544 / 7,619 | 543 / 7,603 | 525 / 5,078 |
+| src/changelog.js | 222 / 2,485 | 206 / 2,365 | 202 / 1,751 |
+| src/ship/ship.js | 227 / 3,051 | 226 / 3,035 | 219 / 2,069 |
+| src/changelog-media.js | 145 / 254 | 144 / 238 | 144 / 238 |
+
+The earlier positional counts (602, 588, 550, 480, 469, 466) were inflated by that mode, not the hook's.
+
 ## Automatic web, separately built installers
 
 `tests.yml` (`Tests`) runs on pushes to main, pull requests and manual requests. Only `deploy.yml`
@@ -449,8 +550,10 @@ Normal selection builds the reachable import graph once and propagates changed i
 back to their consumers. Explanation mode preserves per-test chains; regression tests
 compare its results with normal selection. Old/new Git snapshots share syntax analysis
 only when file path, complete source bytes and diagnostic mode match. Missing files,
-changed source and changed modes cannot reuse stale analysis. This cache lives only for
-one invocation; it does not rely on mtimes or a previous successful run.
+changed source and changed modes cannot reuse stale analysis. This in-process cache lives
+for one invocation; it does not rely on mtimes or a previous successful run. Between
+invocations the command line keeps a content-addressed syntax store ("The selector's
+syntax cache" under "Fewer and faster tests per commit").
 
 A URL passed directly to the builtin `existsSync` stays an existence dependency.
 Unknown reference-image names still select their checks for additions, deletions and mode
