@@ -43,6 +43,7 @@ import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS } from './enemies/debris.js';
 import { RAGDOLL, startFoeRagdoll, stepFoeRagdoll, groundPhysics } from './enemies/foe-ragdoll.js';
+import { Veils, LightShaft } from './veil.js';
 import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
@@ -305,6 +306,12 @@ export const BREAK = {
   blast: { speed: 7, up: 4.5, blow: 0, spin: 14 },
   lie: 1.4, life: 3.4, fade: 0.5, clatter: 2.2,
 };
+/**
+ * The lamp tripod's light (issue #756): a local light (the shared eight, src/materials.js uLights) over where its beam
+ * meets the ground, `lift` m up, reaching `reach` × the pool's radius (+0.6 m), so the ground and anyone in it are lit,
+ * and a faint shaft of light from the lens down to it (src/veil.js LightShaft, washes at `alpha`): no solid cone.
+ */
+export const LAMP_LIGHT = { lift: 0.45, reach: 2.2, alpha: [0.035, 0.055], near: 2.5 };
 /** A cut that lands and doesn't stop it (a heavy foe, a late wind-up, a strike): its armour's answer, a dull thunk and sparks. */
 export const ARMOUR = { ring: 0.9 };
 /**
@@ -2408,6 +2415,8 @@ export class Foes {
     this.group.userData.noCollide = true;
     scene?.add(this.group);
     this.peaceful = PEACEFUL.has(levelId) || !!level?.peaceful;   // (a minigame's arena: no foes, src/minigames/kit/world.js)
+    // (the washes a lamp tripod's shaft of light is drawn in, issue #756: made now, before main.js binds them to the ink pass)
+    if (level && !this.peaceful) level.veils ??= new Veils();
     this.packRest = 8; this.wildFor = 0; this.packs = 0; this.wave = 0; this.waveRest = WAVE.rest;
     this.people = (content?.npcs ?? []).filter((n) => n.at).map((n) => ({ x: n.at[0], z: n.at[1] }));
     this.env = {
@@ -2813,6 +2822,7 @@ export class Foes {
   }
 
   remove(f) {
+    this.lampOff(f);
     f.target?.(); f.weakTarget?.(); this.trails?.drop(f); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
     for (const b of this.balls.slice()) if (b.owner === f) this.popBall(b, 'fizzle');   // (its fireball burns out with it)
@@ -3495,6 +3505,35 @@ export class Foes {
     if (f.def.burrow) return;
     if (R.asleep && D.held != null) g.position.y += D.held;
     else D.held = groundDefeat(D, g, { sink: 0 }, this.physics, f.pos, { size: M.size ?? 1, radius: f.def.radius });
+  }
+
+  /**
+   * A lamp tripod's light (issue #756, model.lamp: { on, from, at, r, rTop, n, color } as its anim aimed it): a local light
+   * over where its beam meets the ground (level.lights: the shaders' eight nearest), and a faint shaft of light from its
+   * lens down to that pool (level.veils' washes). Off while it goes down, gone with it.
+   */
+  lampLight(f) {
+    const L = f.model.lamp, S = (f.lampFx ??= {});
+    if (!(L.on && !f.dying && f.dead === undefined && f.model.group.visible && this.on)) { this.lampOff(f, false); return; }
+    const lights = this.level ? (this.level.lights ??= []) : null;
+    S.v ??= new THREE.Vector4();
+    S.v.set(L.at.x, L.at.y + LAMP_LIGHT.lift, L.at.z, L.r * LAMP_LIGHT.reach + 0.6);
+    if (lights && !lights.includes(S.v)) lights.push(S.v);
+    const V = this.level?.veils;
+    if (V && !S.shaft) S.shaft = new LightShaft(V, this.group, { color: L.color, alpha: LAMP_LIGHT.alpha, inner: 0.5, near: LAMP_LIGHT.near, segments: 14 });
+    if (S.shaft) { S.shaft.visible = true; S.shaft.set(L.from, L.rTop, L.at, L.r, { bottomN: L.n }); }
+  }
+  /** Its light out (dispose: and its shaft's washes let go). */
+  lampOff(f, dispose = true) {
+    const S = f.lampFx;
+    if (!S) return;
+    const lights = this.level?.lights, i = lights && S.v ? lights.indexOf(S.v) : -1;
+    if (i >= 0) lights.splice(i, 1);
+    if (S.shaft) {
+      S.shaft.visible = false;
+      if (dispose) { for (const w of S.shaft.washes) this.level?.veils?.remove(w); for (const m of S.shaft.meshes) m.geometry.dispose(); S.shaft.group.removeFromParent(); S.shaft = null; }
+    }
+    if (dispose) f.lampFx = null;
   }
 
   /** A centipede cut from behind sheds its tail: its last segments break off and run as skitterers (def.shed). */
@@ -4572,6 +4611,7 @@ export class Foes {
       if (f.possessed && M.eyeMat?.uniforms?.uColor) M.eyeMat.uniforms.uColor.value.set(POSSESS_EYE);   // (driven by strings: its eyes go black)
       if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? f.restPose ?? null);   // (a body with no legs to solve: after its pose)
       if (DP) this.falling(f, DP, kit);
+      if (M.lamp) this.lampLight(f);   // (a lamp tripod's light: issue #756)
     } else if (f.kind !== 'machine') {
       const w = Math.sin(performance.now() / 160 + f.home.x) * 0.06;
       const stretch = strike ? Math.sin(Math.PI * f.k) : 0;

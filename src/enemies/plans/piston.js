@@ -26,6 +26,13 @@ import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V
 // Fallen Ring), a cistern pump with its handle (the Desert).
 
 const HIP_Y = 1.55, FOOT_R = 0.64, LAMP_Y = 3.1, LAMP_R = 0.36;
+/**
+ * Its searchlight's spot (issue #756): the beam's half angle (rad; `narrow` as the shutter closes), how far it reaches
+ * (m: past that, or aimed over the level, no pool), the pool's largest radius (m), how far down it looks patrolling (rad:
+ * its pool on the ground some 6 m before it; it was 0.32, lighting nothing near)
+ */
+export const SPOT = { half: 0.2, narrow: 0.07, far: 18, most: 3.2, patrol: 0.5 };
+const _lf = new THREE.Vector3(), _ld = new THREE.Vector3(), _lm = new THREE.Matrix3();
 /** Its legs nearly upright, as drawn: the plan's machine with a straighter knee (thigh and shin 0.535 of hip to foot). */
 const LEGS = { ...PLANS.machine, knee: { ...PLANS.machine.knee, lenA: 0.535, lenB: 0.535 } };
 /** The boiler's profile: a barrel, a little fuller below its middle, rounding in at the shoulder. */
@@ -114,9 +121,9 @@ export function tripodModel(skin) {
   if (props.has('pump')) { const h = pivot(hull, 0.5, 2.5, 0); rod(h, [0, 0, 0], [0.45, 0.35, -0.1], 0.035, brassM); add(h, new THREE.SphereGeometry(0.06, 8, 6), darkM, 0.45, 0.35, -0.1); rings.push(h);
     tube(hull, [[-0.45, 2.0, 0.1], [-0.75, 2.05, 0.2], [-0.85, 1.75, 0.25]], 0.06, brassM); }
   if (props.has('enamel')) for (const s of [-1, 1]) { const p = pivot(hull, 0, 2.2, 0); p.rotation.y = s * 0.55; add(p, new THREE.BoxGeometry(0.05, 0.6, 0.02), accentM, 0, 0, R(2.2) + 0.006); }
-  // the light: a short cone of it always (sweeping as it patrols), a shaft to you as it aims, and the bolt
+  // the light: a real one where its beam meets the ground and a faint shaft down to it (SPOT, model.lamp: src/foes.js
+  // lampLight; issue #756, a solid glowing cone before), a shaft to you as it aims, and the bolt
   const light = pivot(lamp, 0, 0, 0.2, 'light');
-  const glowCone = add(light, new THREE.ConeGeometry(LAMP_R * 0.95, 0.8, 16, 1, true).rotateX(-Math.PI / 2).translate(0, 0, 0.4), beamM);
   const shaft = add(light, new THREE.CylinderGeometry(1, 1, 1, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, 0.5), beamM); shaft.visible = false;
   const bolt = pivot(light, 0, 0, 0, 'bolt');
   add(bolt, new THREE.ConeGeometry(0.06, 0.3, 6).rotateX(Math.PI / 2), brassM, 0, 0, 0.5); rod(bolt, [0, 0, -0.1], [0, 0, 0.36], 0.018, darkM); bolt.visible = false;
@@ -142,9 +149,10 @@ export function tripodModel(skin) {
   const parts = [boiler, band, keel, ...bands, panel, ...portholes, lampYaw, ...legs.map((l) => l.root)];
   const sweepPhase = Math.random() * 6;
   let aimYaw = 0, aimPitch = 0, close = 0, stamp = 0, twitch = 0, twitchLeg = 0, nextTwitch = 2 + Math.random() * 3;
+  const spot = { on: false, from: new THREE.Vector3(), at: new THREE.Vector3(), r: 1, rTop: LAMP_R * 0.9, n: new THREE.Vector3(0, 1, 0), color: P.lamp };
   return {
     group: g, body: hull, rig, parts, eyeMat: eyeM, base: '#f8f0dc', size: skin.scale, skin: skin.id, tones: [P.body, P.brass, '#141019'],
-    plates, weak: { obj: lamp, r: LAMP_R + 0.14, name: 'lamp' },
+    plates, weak: { obj: lamp, r: LAMP_R + 0.14, name: 'lamp' }, lamp: spot,
     tell: (id) => (id === 'beam' ? lens : id === 'stamp' ? legs[0].foot : vents[0]),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
@@ -165,7 +173,7 @@ export function tripodModel(skin) {
       const hunting = f.state !== 'idle' && f.state !== 'home';
       const d = Math.max(1, f.dist === Infinity ? 10 : f.dist);
       const wantYaw = hunting ? 0 : Math.sin(c.now / 1400 + sweepPhase) * 0.9;
-      const wantPitch = hunting ? Math.atan2(LAMP_Y * (skin.scale ?? 1) - 1.1, d) : 0.32 + Math.sin(c.now / 900 + sweepPhase) * 0.12;
+      const wantPitch = hunting ? Math.atan2(LAMP_Y * (skin.scale ?? 1) - 1.1, d) : SPOT.patrol + Math.sin(c.now / 900 + sweepPhase) * 0.12;
       aimYaw = ease(aimYaw, wantYaw, wind ? 12 : 3, dt); aimPitch = ease(aimPitch, wantPitch, 6, dt);
       lampYaw.rotation.y = Math.round(aimYaw / 0.06) * 0.06;
       lamp.rotation.x = Math.round(aimPitch / 0.04) * 0.04 - o.pitch;
@@ -174,8 +182,6 @@ export function tripodModel(skin) {
       close = id === 'beam' && wind ? Math.floor(c.wind * 5) / 5 : id === 'beam' && strike ? 1 : 0;
       shutter.forEach((s) => { s.children[0].position.y = lerp(LAMP_R * 0.95, LAMP_R * 0.4, close); });
       const aiming = id === 'beam' && (wind || strike);
-      glowCone.visible = !aiming && f.state !== 'dead';
-      glowCone.scale.set(1, 1, hunting ? 1.4 : 1);
       shaft.visible = aiming;
       if (aiming) { const len = Math.min(f.atk.range ?? 18, Math.hypot(d, LAMP_Y - 1)); const r = lerp(0.36, 0.05, close); shaft.scale.set(r, r, len); }
       lampM.uniforms.uGlow.value = 0.7 + close * 0.3; lampM.uniforms.uColor.value.set(close > 0.7 ? '#ffffff' : P.lamp);
@@ -199,6 +205,34 @@ export function tripodModel(skin) {
       face.scale.setScalar(1 + aimBack * 0.06);
       g.position.y += f.alt;   // (held up off its feet by the magnet glove)
       rig.write();
+      // its light's spot: where the lamp's axis meets the ground (a few reads along it), its pool as wide as the beam there
+      g.updateMatrixWorld(true);
+      light.getWorldPosition(spot.from);
+      _ld.set(0, 0, 1).applyMatrix3(_lm.setFromMatrix4(light.matrixWorld)).normalize();
+      let t = SPOT.far, hit = false;
+      if (_ld.y < -0.04 && c.ground) {
+        t = Math.min(SPOT.far, (spot.from.y - f.pos.y) / -_ld.y);
+        for (let k = 0; k < 3; k++) {
+          _lf.copy(spot.from).addScaledVector(_ld, t);
+          const gy = c.ground(_lf.x, spot.from.y, _lf.z) ?? f.pos.y;
+          t = (spot.from.y - gy) / -_ld.y;
+        }
+        hit = t > 0.3 && t < SPOT.far;
+      }
+      if (hit) spot.at.copy(spot.from).addScaledVector(_ld, t);
+      // (hunting, its beam on you: the pool round your feet, where the beam reaches you, not on the ground past you)
+      const reach = hunting && Number.isFinite(f.dist) ? Math.hypot(d, LAMP_Y * (skin.scale ?? 1) - 1.1) : Infinity;
+      if (reach < (hit ? t : Infinity) && reach < SPOT.far) {
+        t = reach; hit = true;
+        spot.at.copy(spot.from).addScaledVector(_ld, t);
+        spot.at.y = c.ground?.(spot.at.x, spot.at.y + 1, spot.at.z) ?? f.pos.y;
+      }
+      spot.on = hit && f.state !== 'dead';
+      if (hit) {
+        const half = lerp(SPOT.half, SPOT.narrow, close);
+        spot.r = Math.min(SPOT.most, (t * Math.tan(half)) / Math.sqrt(Math.max(0.2, -_ld.y)));
+        spot.rTop = LAMP_R * 0.9 * (lerp(1, 0.4, close)) * (skin.scale ?? 1);
+      }
     },
     dispose: M.dispose,
   };

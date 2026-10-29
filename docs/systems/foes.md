@@ -1655,6 +1655,19 @@ Signal Market (stage 4), Normal, before → after, time to clear and hearts lost
 tests/foe-armour.test.js. Unity: `-fight armour` (engine/unity/game.js: a plated bell, three charged cuts, its
 tier).
 
+### The lamp tripod's light (v2.35, issue #756, `src/enemies/plans/piston.js` `SPOT`, `Foes.lampLight`)
+
+The author: "some lamp enemies feel like they have a cone of light but it's not real light? It's just a weird floating
+cone." The lamp tripod's searchlight was a solid, inked, glowing open cone 0.8-1.1 m long off its lens, lighting nothing (no
+other foe has one). Now its light is light: where the lamp's axis meets the ground (three reads along it; hunting, at the
+traveller's feet where the beam reaches them) a local light (`level.lights`, the shaders' eight nearest: the ground, the
+traveller and any foe in it are lit, at night a warm pool, by day faintly), its reach `LAMP_LIGHT.reach` × the beam's
+footprint there (half angle `SPOT.half` 0.2 rad, narrowing to `narrow` as the shutter closes), and a faint shaft of light from
+the lens down to that pool (src/veil.js `LightShaft`, washes at alpha 0.035/0.055: no ink, no shadow), in every preset (the
+eight lights are shared; the Handheld draws the same). Patrolling it now looks down `SPOT.patrol` 0.5 rad, its pool some
+6 m before it (0.32 before: past 9 m). Off as it goes down, gone with it. The beam attack's shaft (its telegraph) is as it
+was. Foes makes the level's washes (`level.veils`) if it has none, before main.js binds them.
+
 ## The makers' fencer (v2.27, issue #665, `src/enemies/plans/fencer.js`)
 
 A sword-and-shield duelist that fights the way you do (archetype `fencer`, a machine, role `mirror`, tier 3, plan

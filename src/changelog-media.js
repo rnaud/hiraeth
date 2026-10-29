@@ -1482,6 +1482,11 @@ export const CHANGELOG_MEDIA = {
   { match: 'An armour plate knocked off an enemy now flies off', shots: [
     { name: 'plates-warlord', size: [1280, 366], caption: 'Every plate knocked off the warlord, frame by frame: before, each dropped, bounced once on the flat and stopped dead, some hanging half in the air (its greave stood on edge, a shoulder plate in mid-fall); after, they fly out along the blow, tumble and come to rest lying on the sand', from: FOEPHYS, view: 'the Arena, the warlord at 0 m (camera at 3.6, 2.0, 3.4 looking at −0.5, 0.6, −0.6, fov 38), Foes.dropPlate on each plate toward −x−z; frames before and 0.05 to 5 s after' },
   ] },
+  { match: 'The lamp tripod’s searchlight is a real light now', shots: [
+    { name: 'lamp-night', size: [1280, 720], caption: 'A lamp tripod hunting the traveller at night: before, a solid pale cone stuck out of its lamp and nothing was lit; after, its light falls on him, a warm pool round his feet, with a faint shaft from the lamp', from: FOEPHYS, view: 'the Arena at 21:00, High, a lamp tripod at 0 m, the traveller at (1.5, 0, 7); camera pinned at (8, 5.5, −4) looking at (0, 0.3, 4), fov 50; a page screenshot 4.7 s after it was set down' },
+    { name: 'lamp-day', size: [1280, 720], caption: 'The same at 13:00: the pool is faint in the sun, the shaft barely there; the cone is gone', from: FOEPHYS, view: 'as the night’s, at 13:00' },
+    { name: 'lamp-handheld', size: [1280, 720], caption: 'The same at night on the Handheld preset (the Retroid’s): the pool and the shaft as on High', from: FOEPHYS, view: 'as the night’s, the Handheld preset' },
+  ] },
   { match: 'Enemies no longer slide over the ground', numbers: [
     { title: 'How far a planted foot slides, per metre the body moves (grunt, hulk, prowler, warlord, sentinel, fencer: the worst of the six)', unit: 'm/m', better: 'lower', device: 'node, the game’s own models and clips (Foes.look), flat ground, 60 frames a second', source: 'Issue #749: scripts/motion-audit/foe-slide.mjs, the ball of each foot while it is down; before at 35d2c0e2c', rows: [
       { where: 'walking', before: 0.21, after: 0.01 },
