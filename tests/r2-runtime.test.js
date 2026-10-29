@@ -79,7 +79,7 @@ const runtime = (build = 123) => ({ manifest: runtimeJson({ build, version: '2.3
 
 test('S3 uses scoped credentials, retries interrupted reads and never treats denial as a missing object', async () => {
   const requests = [], waits = [];
-  const responses = [new Response(null, { status: 503 }), new Response(data),
+  const responses = [new Response(new ReadableStream({ start(controller) { controller.error(Error('interrupted body')); } })), new Response(data),
     new Response(null, { status: 404 }), new Response(null, { status: 403 }),
     new Response(null, { status: 200 })];
   const store = s3Store({ accountId: 'a'.repeat(32), tokenId: 'b'.repeat(32), token: 'test-token',

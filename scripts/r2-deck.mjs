@@ -72,7 +72,10 @@ export function s3Store({ accountId = process.env.CLOUDFLARE_ACCOUNT_ID,
         if (response.ok) return Buffer.from(await response.arrayBuffer());
         await response.body?.cancel();
         if (method === 'GET' && status === 404) return null;
-      } catch { /* Retry interrupted transfers without logging signed requests or secrets. */ }
+      } catch {
+        // Includes a body interrupted after HTTP 200. Never log signed requests or secrets.
+        status = undefined;
+      }
       if (attempt >= 3 || (status && status !== 429 && status < 500)) {
         throw Error(`R2 ${method} failed for ${key}: ${status ?? 'transfer interrupted'}`);
       }
