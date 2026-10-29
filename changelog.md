@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.37 — 2026-10-29
 
+- Locked on, clicking the left stick (Shift on a keyboard) with the stick pushed toward your foe now sprints you straight at it, the camera still framing you both; a slash pressed on the way in is the running cut. Sideways or back you still circle it at a jog.
+- Cutting into a raised guard now throws your sword back, as in Breath of the Wild: the blade bounces off with a clang, you are knocked back half a step and your combo ends, and for a moment you can’t cut, block or roll while the foe hits back. What breaks each guard still gets through: the charged cut, the air cut, a parry and riposte or a bomb, or a cut round its side.
+- Sending a shot back no longer stuns whoever fired it. A plain guard just stops an arrow, a rock, a glob or a bolt; a perfect parry sends it back to hurt its shooter and make it flinch, the same for every kind of shot, the ember wisp’s fireball too.
 - Only machines break into pieces when you defeat them now: crabs, centipedes, moths, root knots and the other creatures lie whole and go up in smoke, while the crawler and the oracle come apart like the other droids.
 - No enemy ends up lying on its side any more: each goes down in its own way. Beasts fold their legs and slump onto their bellies, the centipede sinks flat from head to tail, flyers drop and land flat, machines power down and sag or tip forward, and a fighter falls the way your blow pushed it, rolling onto its back or its front.
 - An enemy you strike down now comes to rest where it falls: it no longer slides along the ground, skates on down a slope or slides back to where it stood as it goes up in smoke, and it lies on the ground rather than floating a hand’s breadth over it.
@@ -12,9 +15,6 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.36 — 2026-10-29
 
-- Locked on, clicking the left stick (Shift on a keyboard) with the stick pushed toward your foe now sprints you straight at it, the camera still framing you both; a slash pressed on the way in is the running cut. Sideways or back you still circle it at a jog.
-- Cutting into a raised guard now throws your sword back, as in Breath of the Wild: the blade bounces off with a clang, you are knocked back half a step and your combo ends, and for a moment you can’t cut, block or roll while the foe hits back. What breaks each guard still gets through: the charged cut, the air cut, a parry and riposte or a bomb, or a cut round its side.
-- Sending a shot back no longer stuns whoever fired it. A plain guard just stops an arrow, a rock, a glob or a bolt; a perfect parry sends it back to hurt its shooter and make it flinch, the same for every kind of shot, the ember wisp’s fireball too.
 - The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena and the creatures gallery for now.
 - Enemies wear their own world’s colours again, and the stronger ones further along are darker and banded once more.
 - Each world has its own enemies again: the mummers’ camp in the Desert, toads by Lorn’s swamp, horn lizards in the City-Shaft, coin lizards in the Signal Market. Lorn’s wood cutter and the Garden’s glass puppet are back.
