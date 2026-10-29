@@ -4,7 +4,7 @@
 // same directories and fails when a catalogue is not exactly what this renders, so a new file can't be missed.
 // Pure: no file system here (the command and the test list the directories).
 
-/** name → { dir (from the repository root), recursive, match (of a path within dir), kind: 'import' | 'source' }. */
+/** name → { dir (from the repository root), recursive, match (of a path within dir), kind: 'import' | 'source' | 'bytes' }. */
 export const SPECS = {
   'story-modules': { dir: 'src/story', recursive: false, match: /\.js$/, kind: 'import' },
   'story-data-modules': { dir: 'src/story', recursive: false, match: /-(?:data|people)\.js$/, kind: 'import' },
@@ -15,6 +15,10 @@ export const SPECS = {
   'gadgets-sources': { dir: 'src/gadgets', recursive: false, match: /\.js$/, kind: 'source' },
   'src-sources': { dir: 'src', recursive: true, match: /\.(?:js|css|html)$/, kind: 'source' },
   'engine-sources': { dir: 'engine', recursive: true, match: /\.m?js$/, kind: 'source' },
+  'fight-temples-modules': { dir: 'src/fight-temples', recursive: false, match: /\.js$/, kind: 'import' },
+  'unity-shaders-sources': { dir: 'unity/Hiraeth/Assets/Hiraeth/Shaders', recursive: false, match: /\.(?:shader|hlsl)$/, kind: 'source' },
+  'sfx-files': { dir: 'public/sfx', recursive: false, match: /\.(?:mp3|wav)$/, kind: 'bytes' },
+  'audio-references': { dir: 'references/audio', recursive: true, match: /\.(?:mp3|wav)$/, kind: 'bytes' },
 };
 
 /** The entries a catalogue holds, from a directory listing (names, or paths within it for a recursive one). */
@@ -43,14 +47,15 @@ export function renderCatalog(name, files) {
     '  return loaders[name]();',
     '}',
     ''].join('\n');
+  const bytes = kind === 'bytes';
   return [...head,
     "import { readFileSync } from 'node:fs';",
     'const readers = {',
-    ...files.map((f) => `  ${q(f)}: () => readFileSync(new URL(${at(f)}, import.meta.url), 'utf8'),`),
+    ...files.map((f) => `  ${q(f)}: () => readFileSync(new URL(${at(f)}, import.meta.url)${bytes ? '' : ", 'utf8'"}),`),
     '};',
     'export const files = Object.freeze(Object.keys(readers));',
-    '/** The text of one entry (a path within the directory, as listed in `files`). */',
-    'export function source(name) {',
+    bytes ? '/** The bytes of one entry (a path within the directory, as listed in `files`). */' : '/** The text of one entry (a path within the directory, as listed in `files`). */',
+    `export function ${bytes ? 'bytes' : 'source'}(name) {`,
     `  if (!Object.hasOwn(readers, name)) throw Error(\`\${name}: not in ${dir}/ (node scripts/test-catalogs.mjs)\`);`,
     '  return readers[name]();',
     '}',

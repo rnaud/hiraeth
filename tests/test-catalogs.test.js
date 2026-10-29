@@ -14,9 +14,13 @@ const LISTINGS = {
   'src/gadgets': readdirSync(new URL('../src/gadgets/', import.meta.url)),
   src: readdirSync(new URL('../src/', import.meta.url), { recursive: true }),
   engine: readdirSync(new URL('../engine/', import.meta.url), { recursive: true }),
+  'src/fight-temples': readdirSync(new URL('../src/fight-temples/', import.meta.url)),
+  'unity/Hiraeth/Assets/Hiraeth/Shaders': readdirSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/', import.meta.url)),
+  'public/sfx': readdirSync(new URL('../public/sfx/', import.meta.url)),
+  'references/audio': readdirSync(new URL('../references/audio/', import.meta.url), { recursive: true }),
 };
 // (NAMES only ever iterated: the selector reads each catalogue's path from it)
-const NAMES = ['story-modules', 'story-data-modules', 'story-sources', 'temples-data-modules', 'temples-sources', 'levels-sources', 'gadgets-sources', 'src-sources', 'engine-sources'];
+const NAMES = ['story-modules', 'story-data-modules', 'story-sources', 'temples-data-modules', 'temples-sources', 'levels-sources', 'gadgets-sources', 'src-sources', 'engine-sources', 'fight-temples-modules', 'unity-shaders-sources', 'sfx-files', 'audio-references'];
 
 test('every catalogue is listed here and its directory is listed by name', () => {
   const listed = [];
@@ -41,6 +45,9 @@ test('a catalogue is what it says: its loaders import, its readers read, each en
   assert.equal(src.source('story/desert-data.js'), readFileSync(new URL('../src/story/desert-data.js', import.meta.url), 'utf8'));
   assert.ok(src.files.includes('levels/desert.js') && src.files.includes('main.js'));
   assert.equal(new Set(src.files).size, src.files.length);
+  const sfx = await import('./catalogs/sfx-files.js');
+  assert.deepEqual(sfx.bytes('chest-open-0.wav'), readFileSync(new URL('../public/sfx/chest-open-0.wav', import.meta.url)), 'a bytes catalogue reads the file as it is');
+  assert.throws(() => sfx.bytes('manifest.json'), /not in public\/sfx/);
   // the check catches a file added, dropped or renamed
   const files = entries('story-sources', LISTINGS['src/story']);
   const text = renderCatalog('story-sources', files);

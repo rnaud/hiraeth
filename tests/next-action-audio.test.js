@@ -6,6 +6,10 @@ import { NextActionAudio } from '../src/next-action-audio.js';
 import { Sound } from '../src/audio.js';
 import { ring, beep } from '../src/ship/sfx.js';
 import { ACTION_SFX } from '../src/action-sfx.js';
+// (public/sfx and references/audio through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as sfxBank from './catalogs/sfx-files.js';
+import * as audioRefs from './catalogs/audio-references.js';
+const reference = (path) => { assert.ok(path.startsWith('references/audio/'), `${path}: under references/audio/`); return audioRefs.bytes(path.slice('references/audio/'.length)); };
 function fixture() {
  const calls=[], active=new Set(); let ready=true;
  const s={ctx:{currentTime:0},fx:{},muted:false,uiOut:()=>({ui:true}),bank:{start(group,opts){if(!ready)return null;const h={stop(){active.delete(h);}};active.add(h);calls.push({group,opts});return h;}},nextAction:Sound.prototype.nextAction};
@@ -53,6 +57,6 @@ test('exact eight approved NEXT sources match packaged WAV hashes and finite saf
  const sources=JSON.parse(readFileSync(new URL('../references/audio/elevenlabs-next-2026-10-22/manifest.json',import.meta.url))).sources;
  const runtime=JSON.parse(readFileSync(new URL('../public/sfx/manifest.json',import.meta.url))).files;
  assert.equal(sources.length,8);assert.equal(new Set(sources.map(x=>x.generationId)).size,8);
- for(const s of sources){assert.ok(ACTION_SFX[s.group]);const p=readFileSync(new URL('../references/audio/elevenlabs-next-2026-10-22/'+s.file,import.meta.url));assert.equal(createHash('sha256').update(p).digest('hex'),s.sha256);const m=runtime[s.group+'-0'];const b=readFileSync(new URL('../public/sfx/'+s.group+'-0.wav',import.meta.url));assert.equal(createHash('sha256').update(b).digest('hex'),m.sha256);assert.equal(m.sourceSha256,s.sha256);assert.ok(m.peakDbfs<=-5.99&&Number.isFinite(m.rmsDbfs));assert.equal(b.readUInt16LE(22),1);assert.equal(b.readUInt32LE(24),44100);}
+ for(const s of sources){assert.ok(ACTION_SFX[s.group]);const p=reference('references/audio/elevenlabs-next-2026-10-22/'+s.file);assert.equal(createHash('sha256').update(p).digest('hex'),s.sha256);const m=runtime[s.group+'-0'];const b=sfxBank.bytes(s.group+'-0.wav');assert.equal(createHash('sha256').update(b).digest('hex'),m.sha256);assert.equal(m.sourceSha256,s.sha256);assert.ok(m.peakDbfs<=-5.99&&Number.isFinite(m.rmsDbfs));assert.equal(b.readUInt16LE(22),1);assert.equal(b.readUInt32LE(24),44100);}
  assert.ok(!sources.some(s=>/hologram|hoverbike/.test(s.group)));
 });

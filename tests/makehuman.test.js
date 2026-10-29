@@ -32,19 +32,20 @@ const { SkinnedLod } = await import('../src/skinned-lod.js');
 const { triCount } = await import('../src/lod.js');
 const { Hands, HAND_POSES } = await import('../src/hands.js');
 
+// (each file by its literal path, so the test selector follows the reads)
 const url = (p) => new URL(`../public/anim/${p}`, import.meta.url);
-const bin = readFileSync(url('mh/body.bin'));
+const bin = readFileSync(new URL('../public/anim/mh/body.bin', import.meta.url));
 const data = parseBody(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
 const meta = data.meta;
 const parse = async (p) => {
-  const b = await readFile(url(p));
+  const b = await readFile(new URL(`../public/anim/${p}`, import.meta.url));
   return (await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), '')).scene;
 };
 const KEYS = ['smile', 'frown', 'jawOpen', 'browInnerUp', 'browDown', 'browOuterUp', 'blink', 'squint'];
 const look = (o = {}) => ({ ...BLANK(o.kind ?? 'm'), ...o });
 
 test('one parametric body for everyone: about 2 MB, MakeHuman\'s macro corners, the game\'s bones, face keys, the hair', () => {
-  const bytes = statSync(url('mh/body.bin')).size;
+  const bytes = statSync(new URL('../public/anim/mh/body.bin', import.meta.url)).size;
   assert.ok(!existsSync(url('mh/body.json')), 'one file, one fetch: the header is in body.bin');
   assert.ok(bytes < 2.2e6, `${(bytes / 1e6).toFixed(2)} MB`);
   assert.ok(gzipSync(bin).length < 1.4e6, 'compresses well');

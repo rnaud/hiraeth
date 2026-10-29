@@ -310,6 +310,41 @@ test('source scans read literal catalogues: no longer run for every change, stil
     assert.ok(affectedTests([added], { root, files: inventory, tests: ['tests/test-catalogs.test.js'], analysisCache, syntax, read, exists }).includes('tests/test-catalogs.test.js'), added);
 });
 
+test('round 2: data-named reads through literal calls and catalogues: off the always-run set, still run for their inputs', () => {
+  const cases = [
+    ['tests/mocap.test.js', 'public/anim/moves.glb'],
+    ['tests/monsters.test.js', 'public/anim/ual.glb'],
+    ['tests/mummers.test.js', 'public/anim/moves.glb'],
+    ['tests/monster-shapes.test.js', 'public/anim/gestures.glb'],
+    ['tests/prowler-warlord.test.js', 'public/anim/ual.glb'],
+    ['tests/makehuman.test.js', 'public/anim/mh/body.bin'],
+    ['tests/makehuman.test.js', 'public/anim/human_f.glb'],
+    ['tests/route.test.js', 'src/levels/incal.js'],
+    ['tests/webaudio.test.js', 'src/audio.js'],
+    ['tests/unity-gat.test.js', 'unity/Hiraeth/Assets/Hiraeth/Shaders/Mote.shader'],
+    ['tests/unity-pretransform.test.js', 'unity/Hiraeth/Assets/Hiraeth/Shaders/FXAA.shader'],
+    ['tests/fight-temple-harm.test.js', 'src/fight-temples/desert.js'],
+    ['tests/hud-look.test.js', 'src/hud-styles/box-card.js'],
+    ['tests/hud-look.test.js', 'index.html'],
+    ['tests/sound-qc.test.js', 'engine/combat.js'],
+    ['tests/shade.test.js', 'src/levels/buried.js'],
+    ['tests/unity-decals.test.js', 'src/life.js'],
+    ['tests/sfx.test.js', 'public/sfx/chest-open-0.wav'],
+    ['tests/sfx.test.js', 'references/audio/elevenlabs-sfx-2026-10-21/deck-open-take4.wav'],
+    ['tests/selected-world-audio.test.js', 'references/audio/elevenlabs-revisions-2026-10-22/chest-open.wav'],
+    ['tests/next-action-audio.test.js', 'references/audio/elevenlabs-next-2026-10-22/blade-form.wav'],
+    ['tests/next-action-audio.test.js', 'public/sfx/chest-open-0.wav'],
+  ];
+  for (const [consumer, input] of cases) {
+    for (const unrelated of ['docs/systems/ui.md', 'scripts/playthrough-browser.mjs', 'public/manifest.webmanifest'])
+      assert.deepEqual(selection(unrelated, consumer), [witness], `${consumer} no longer runs for ${unrelated}`);
+    assert.ok(selection(input, consumer).includes(consumer), `${consumer} still reads ${input}`);
+  }
+  // a file added to one of the new catalogues' directories selects the catalogue's check, which fails until it is regenerated
+  for (const added of ['src/fight-temples/new-world.js', 'unity/Hiraeth/Assets/Hiraeth/Shaders/New.shader', 'public/sfx/new-0.wav', 'references/audio/new-take/new.wav'])
+    assert.ok(affectedTests([added], { root, files: inventory, tests: ['tests/test-catalogs.test.js'], analysisCache, syntax, read, exists }).includes('tests/test-catalogs.test.js'), added);
+});
+
 test('deploy-only workflows select their readers; the ones that run the unit suite select everything', () => {
   for (const [workflow, reader] of [['deploy.yml', 'tests/ci-test-plan.test.js'], ['steam-deck.yml', 'tests/deck-runtime.test.js'], ['unity-android.yml', 'tests/unity-ci.test.js'], ['android.yml', 'tests/android-ota.test.js']]) {
     assert.deepEqual(selection('.github/workflows/' + workflow), [witness], workflow + ' does not reach motion QC');

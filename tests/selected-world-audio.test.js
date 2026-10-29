@@ -8,6 +8,10 @@ import { Hologram } from '../src/ship/hologram.js';
 import { StarMap } from '../src/ship/starmap.js';
 import { EngineStarMap } from '../engine/starmap.js';
 import { ACTION_SFX } from '../src/action-sfx.js';
+// (public/sfx and references/audio through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as sfxBank from './catalogs/sfx-files.js';
+import * as audioRefs from './catalogs/audio-references.js';
+const reference = (path) => { assert.ok(path.startsWith('references/audio/'), `${path}: under references/audio/`); return audioRefs.bytes(path.slice('references/audio/'.length)); };
 
 function fixture() {
   const calls = [], active = new Set();
@@ -68,9 +72,9 @@ test('only five approved masters are added, with exact hashes and full ceremonia
   const expected = ['6v8ydEBWhWfJKDVhhCyT', 'Ak7Yopx8iZoob3dziDFo', 'trmVin8bzPHwRKJDSVqN', 'um63HuXstJuaBAgHv8KQ', 'NgRi2FfFHOwQeBr2AZgh'];
   assert.deepEqual(source.sources.map(s => s.generationId), expected);
   for (const s of source.sources) {
-    const master = readFileSync(new URL('../references/audio/elevenlabs-revisions-2026-10-22/' + s.file, import.meta.url));
+    const master = reference('references/audio/elevenlabs-revisions-2026-10-22/' + s.file);
     assert.equal(createHash('sha256').update(master).digest('hex'), s.sha256);
-    const m = runtime[s.group + '-0'], wav = readFileSync(new URL('../public/sfx/' + s.group + '-0.wav', import.meta.url));
+    const m = runtime[s.group + '-0'], wav = sfxBank.bytes(s.group + '-0.wav');
     assert.equal(createHash('sha256').update(wav).digest('hex'), m.sha256); assert.equal(m.sourceSha256, s.sha256);
     assert.equal(wav.readUInt16LE(22), 1); assert.equal(wav.readUInt32LE(24), 44100);
     assert.ok(m.peakDbfs <= -5.99); assert.ok(Number.isFinite(m.rmsDbfs)); assert.ok(ACTION_SFX[s.group]);

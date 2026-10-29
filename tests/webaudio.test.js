@@ -138,7 +138,8 @@ test('recorded and played elsewhere (the Unity bridge\'s audio thread): the same
     // (the same random numbers for both: the noise buffers, the music's choices)
     let seed = 7; Math.random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     delete G.AudioContext; installAudio(G, { sampleRate: 48000, record });
-    const { Sound } = await import(`../src/audio.js?rec=${record}`);
+    // (a module instance of its own for each: run(false), then run(true); literal, so the test selector follows it)
+    const { Sound } = record ? await import('../src/audio.js?rec=true') : await import('../src/audio.js?rec=false');
     const s = new Sound('desert');
     s.start();
     const replay = record ? new AudioReplay(48000) : null;

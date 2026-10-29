@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { parseASF, asfAmcTake } from '../scripts/mocap/asf-amc.js';
 import { bvhTake } from '../scripts/mocap/bvh.js';
@@ -20,11 +19,6 @@ import { mulberry32 } from '../src/noise.js';
 // matching for the traveller (src/motion-match.js, off by default) and the people's own captured
 // walks (Animator.useWalk, locomotion.js walkFor). The raw downloads aren't in the repository, so
 // the pipeline is tested on small made-up files and the shipped library is tested as built.
-
-const parse = async (name) => {
-  const b = await readFile(new URL(`../public/anim/${name}`, import.meta.url));
-  return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), '');
-};
 
 // a two-bone ASF: a femur hanging straight down, a tibia under it, in inches at length 0.45
 const ASF = `:version 1.10

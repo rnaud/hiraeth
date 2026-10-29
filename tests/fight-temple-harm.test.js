@@ -11,9 +11,11 @@ import { HAZARD, hazardEvery, STEADY, LINGERING } from '../src/fight-temples/haz
 import { rankFor, RANK } from '../src/fight-temples/rules.js';
 import { Foes, HARM_BY_STAGE } from '../src/foes.js';
 import * as L from '../scripts/combat-review/lib.mjs';
+import * as fightTemples from './catalogs/fight-temples-modules.js';
 
 // the twelve tables (src/fight-temples/<world>.js: <WORLD>_FIGHT)
-const FIGHT_TEMPLES = Object.fromEntries(await Promise.all(ORDER.map(async (w) => [w, Object.values(await import(`../src/fight-temples/${w}.js`)).find((v) => v?.rooms && v.world === w)])));
+// (src/fight-temples through its literal catalogue, checked against the directory: tests/test-catalogs.test.js)
+const FIGHT_TEMPLES = Object.fromEntries(await Promise.all(ORDER.map(async (w) => [w, Object.values(await fightTemples.load(`${w}.js`)).find((v) => v?.rooms && v.world === w)])));
 
 test('the hearts on arrival: the start, then every container sold before; the same as the combat review plays with', () => {
   const review = L.heartsOnArrival(SHOPS, ORDER);

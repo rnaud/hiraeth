@@ -9,7 +9,8 @@
 // Now the pixel is scaled to the G-buffer's size (_GPixelScale, set by the composite from its target's size).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import * as shaders from './catalogs/unity-shaders-sources.js';
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 const DIR = 'unity/Hiraeth/Assets/Hiraeth/Shaders/';
@@ -18,8 +19,9 @@ const FEATURE = read('unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs')
 
 test('every shader reading the G-buffer at its own pixel does it through GAt.hlsl', () => {
   const users = [];
-  for (const f of readdirSync(new URL(`../${DIR}`, import.meta.url)).filter((f) => /\.(shader|hlsl)$/.test(f) && f !== 'GAt.hlsl')) {
-    const s = read(DIR + f);
+  // (the directory through its literal catalogue, checked against it: tests/test-catalogs.test.js)
+  for (const f of shaders.files.filter((f) => /\.(shader|hlsl)$/.test(f) && f !== 'GAt.hlsl')) {
+    const s = shaders.source(f);
     if (!/_GNormalTex|GAt\(/.test(s)) continue;
     users.push(f);
     assert.match(s, /#include "GAt\.hlsl"/, `${f}: includes GAt.hlsl`);

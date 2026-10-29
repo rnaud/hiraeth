@@ -1,5 +1,6 @@
 import test from 'node:test';
-import { readFileSync } from 'node:fs';
+// (src/levels through its literal catalogue, checked against the directory: tests/test-catalogs.test.js)
+import { source as levelSource } from './catalogs/levels-sources.js';
 import assert from 'node:assert/strict';
 import { knownWorlds, newlyKnown, AHEAD, AFTER } from '../src/story/route.js';
 import { mapEntries, StarMap } from '../src/ship/starmap.js';
@@ -53,7 +54,7 @@ test('the wings come first and the jets in the later half: no world before the j
   // the worlds before it never ask for the jets (features.jetpack: the debug jets fly there; since v1.38 no box of
   // them anywhere, the City-Shaft's own Warden's harness flies there only), and none of them comes earlier
   const FILE = { glassdunes: 'glass-dunes', moonfoundry: 'moon-foundry', spacecity: 'space-city' };
-  const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(readFileSync(new URL(`../src/levels/${FILE[id] ?? id}.js`, import.meta.url), 'utf8'));
+  const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(levelSource(`${FILE[id] ?? id}.js`));
   for (const id of ORDER.slice(0, jets)) assert.equal(wants(id), false, `${id} comes before the jets and doesn't want them`);
   assert.equal(wants('incal'), true);
   for (const id of ORDER.filter(wants)) assert.ok(ORDER.indexOf(id) >= jets, `${id} wants the jets: after the City-Shaft`);

@@ -7,7 +7,8 @@
 // the constant is 0 and every branch is skipped.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import * as shaders from './catalogs/unity-shaders-sources.js';
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 const DIR = 'unity/Hiraeth/Assets/Hiraeth/Shaders/';
@@ -16,11 +17,12 @@ const ROTATE = /if \(_TargetFlip > 0\.5\) o\.pos\.y = -o\.pos\.y;[^\n]*\n(\s*\/\
 test('every full-screen pass that can write a player\'s back buffer turns its triangle with the display', () => {
   assert.match(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset'), /vulkanEnablePreTransform: 1/);
   // (the ones with _TargetFlip are exactly those HiraethFeature lets write the back buffer; Bloom only ever writes textures)
-  const fullScreen = readdirSync(new URL(`../${DIR}`, import.meta.url))
-    .filter((f) => f.endsWith('.shader') && /SV_VertexID/.test(read(DIR + f)) && /o\.pos = float4\(uv \* 2\.0 - 1\.0/.test(read(DIR + f)));
-  const toScreen = fullScreen.filter((f) => /_TargetFlip/.test(read(DIR + f))).sort();
+  // (the directory through its literal catalogue, checked against it: tests/test-catalogs.test.js)
+  const fullScreen = shaders.files
+    .filter((f) => f.endsWith('.shader') && /SV_VertexID/.test(shaders.source(f)) && /o\.pos = float4\(uv \* 2\.0 - 1\.0/.test(shaders.source(f)));
+  const toScreen = fullScreen.filter((f) => /_TargetFlip/.test(shaders.source(f))).sort();
   assert.deepEqual(toScreen, ['Composite.shader', 'FXAA.shader', 'Upscale.shader', 'WaterOver.shader']);
-  for (const f of toScreen) assert.match(read(DIR + f), ROTATE, `${f}: the rotation after the flip`);
+  for (const f of toScreen) assert.match(shaders.source(f), ROTATE, `${f}: the rotation after the flip`);
   assert.deepEqual(fullScreen.filter((f) => !toScreen.includes(f)), ['Bloom.shader'], 'only the glow is left unturned');
   const feature = read('unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs');
   const glow = feature.slice(feature.indexOf('TextureHandle Blur('), feature.indexOf('public override void RecordRenderGraph', feature.indexOf('TextureHandle Blur(')));

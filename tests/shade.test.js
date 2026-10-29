@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { SHADE, shadeOf, packShade, unpackShade, makeMaterial, sharedUniforms, MODE_TERRAIN, MODE_STRATA } from '../src/materials.js';
 import { PRESETS } from '../src/post.js';
 import { GROUND } from '../src/ground-ink.js';
+import { srcText } from './src-tree.js';
 
 // Shade and hatching by surface (docs/systems/materials.md): each material's shade has its own lift and hue, the light's
 // geometry adds a half-tone and the ground's bounce, packed over the hatch strokes for post.js.
@@ -182,7 +183,7 @@ test('worn by time: the odd hairline crack, clear of the openings, dust at the f
   assert.ok(post.includes('float wearW = step(15.5, surface.b)') && post.indexOf('wearW = step') < post.indexOf('float spotQ'), 'post.js unpacks the flag before the spot steps');
   // on in every world's plaster, mud and stone buildings
   for (const [file, pat] of [['../src/desert-landmarks.js', /adobe: makeMaterial\(\{[^}]*weathered/], ['../src/levels/bazaar.js', /shop = colors\.map\(c => mat\(c, \{ weathered/], ['../src/levels/home-houses.js', /cream = mat\('#f3ead8', \{ weathered/], ['../src/desert-city.js', /wall: makeMaterial\(\{[^}]*weathered: true/]])
-    assert.match(await readFile(new URL(file, import.meta.url), 'utf8'), pat, file);
+    assert.match(srcText(file.slice('../'.length)), pat, file);   // (through the source's literal catalogue: tests/src-tree.js)
 });
 
 test('faceted normals come from the position measured from the camera (no specks on facets edge-on to the sun far out)', () => {
@@ -206,7 +207,6 @@ test('pen detail at every scale: built seams, rectangles and bolts, organic grai
   assert.ok(f.includes('float detailLod(') && f.includes('builtDetail(q / L') && f.includes('grainDetail('), 'the levels by distance');
   assert.ok(f.includes('uWearLite < 0.5'), 'the handheld keeps the coarse level only');
   assert.ok(!makeMaterial({ color: '#e8d0b0', key: 't.detail.none' }).defines.S_DETAIL, 'compiled only where used');
-  const { readFile } = await import('node:fs/promises');
   for (const [file, pat] of [['../src/levels/spheres.js', /trunk: makeMaterial\(\{[^}]*detail: 'organic'/], ['../src/levels/perdide2.js', /detail: 'organic'/], ['../src/levels/buried.js', /detail: 'built'/], ['../src/levels/edena.js', /detail: 'organic'/]])
-    assert.match(await readFile(new URL(file, import.meta.url), 'utf8'), pat, file);
+    assert.match(srcText(file.slice('../'.length)), pat, file);   // (through the source's literal catalogue: tests/src-tree.js)
 });

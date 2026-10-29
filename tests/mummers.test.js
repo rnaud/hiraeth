@@ -176,7 +176,7 @@ test('the Desert: the mummers\' camp (the blots\' old fire) with its lookout and
 // (#724, the polish: the moves that had no clip) every move a clip, or a clip with a hand-made pose of the arms over it
 const parse = async (n) => { const b = await readFile(new URL(`../public/anim/${n}`, import.meta.url)); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
 let libP = null;
-const library = () => (libP ??= Promise.all(['ual.glb', 'moves.glb', 'gestures.glb'].map(parse)).then(([u, m, g]) => { const lib = libraryFrom(u); attachMotion(lib, m); attachMotion(lib, g); return lib; }));
+const library = () => (libP ??= Promise.all([parse('ual.glb'), parse('moves.glb'), parse('gestures.glb')]).then(([u, m, g]) => { const lib = libraryFrom(u); attachMotion(lib, m); attachMotion(lib, g); return lib; }));
 
 test('every mummer move is a shipped clip (a pose of the arms over it at most); the wind-ups pinned; the thrown ones held, then thrown as they let go', async () => {
   // the mind's timing is the contract: wind-up, strike, contact as before the clips

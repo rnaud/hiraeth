@@ -5,7 +5,8 @@
 // states in all, and BridgePrewarm keeps a pair for each (its state key names the offset).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { srcPaths, srcText } from './src-tree.js';
 import { inkSpec } from '../engine/ink-spec.js';
 import { portMaterial, DECAL_OFFSET } from '../engine/unity/port-format.js';
 import { makeMaterial } from '../src/materials.js';
@@ -28,10 +29,8 @@ test('every web decal\'s offset reaches Unity as the shared decal state; the spl
 });
 
 test('the decals with an offset in src/ are the ones this issue counted (a new one: check it in Unity)', () => {
-  const files = [];
-  const walk = (d) => { for (const e of readdirSync(new URL(`../${d}`, import.meta.url), { withFileTypes: true })) e.isDirectory() ? walk(`${d}/${e.name}`) : e.name.endsWith('.js') && files.push(`${d}/${e.name}`); };
-  walk('src');
-  const found = files.filter((f) => /polygonOffsetFactor\s*[:=]\s*-/.test(read(f))).sort();
+  // (every .js file under src/, through the source's literal catalogue: tests/src-tree.js)
+  const found = srcPaths(/\.js$/).filter((f) => /polygonOffsetFactor\s*[:=]\s*-/.test(srcText(f))).sort();
   assert.deepEqual(found, ['src/chimes.js', 'src/desert-dunes.js', 'src/desert-vistas.js', 'src/desert-water.js', 'src/jump-shadow.js', 'src/life.js',
     'src/levels/incal.js', 'src/sand-drifts.js', 'src/ship/crash.js', 'src/splat-decal.js', 'src/temples/boss.js'].sort());
   // (the footprints, the jump's shade, the chimes' shade: their own shaders' Offset, as the web's)

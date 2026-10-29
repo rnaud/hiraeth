@@ -4,6 +4,10 @@ import { readFileSync, statSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { SFX, sfxFiles, variation, RoundRobin, SampleBank } from '../src/sfx.js';
 import { AudioContext } from '../engine/webaudio.js';
+// (public/sfx and references/audio through their literal catalogues, checked against the directories: tests/test-catalogs.test.js)
+import * as sfxBank from './catalogs/sfx-files.js';
+import * as audioRefs from './catalogs/audio-references.js';
+const reference = (path) => { assert.ok(path.startsWith('references/audio/'), `${path}: under references/audio/`); return audioRefs.bytes(path.slice('references/audio/'.length)); };
 
 const seeded = (seed = 7) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
@@ -15,7 +19,7 @@ test('every runtime take has accurate per-file provenance and a bounded payload'
   const foundSelected = new Set();
   let priorBytes = 0, selectedBytes = 0;
   for (const f of sfxFiles()) {
-    const bytes = readFileSync(new URL(`../public/sfx/${f}`, import.meta.url));
+    const bytes = sfxBank.bytes(f);
     if (selectedFive.has(f)) { selectedBytes += bytes.length; foundSelected.add(f); }
     else priorBytes += bytes.length;
     const m = manifest.files[f.replace(/\.(mp3|wav)$/, '')];
@@ -24,7 +28,7 @@ test('every runtime take has accurate per-file provenance and a bounded payload'
     if (f.endsWith('.wav')) {
       assert.match(m.from, /ElevenLabs/); assert.match(m.licence, /not CC0/);
       assert.equal(createHash('sha256').update(bytes).digest('hex'), m.sha256);
-      const source = readFileSync(new URL(`../${m.source}`, import.meta.url));
+      const source = reference(m.source);
       assert.equal(createHash('sha256').update(source).digest('hex'), m.sourceSha256);
       assert.equal(bytes.toString('ascii',0,4), 'RIFF');
       assert.equal(bytes.readUInt16LE(22), 1, 'mono');
@@ -185,7 +189,7 @@ test('bounded contacts keep their scheduled onset and fade out at a wall-clock d
 
 test('sand contacts start at the measured impact and settle before the next running step', () => {
   for (let i = 0; i < 4; i++) {
-    const wav = readFileSync(new URL(`../public/sfx/step-sand-${i}.wav`, import.meta.url));
+    const wav = sfxBank.bytes(`step-sand-${i}.wav`);
     const rate = wav.readUInt32LE(24), frames = wav.readUInt32LE(40) / 2;
     assert.equal(frames, Math.round(.24 * rate), 'a core contact, not the long settling scrape');
     const window = Math.round(.02 * rate), energy = [];

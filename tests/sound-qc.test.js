@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ROLES } from '../scripts/sound-qc/lib.mjs';
-import { readFileSync } from 'node:fs';
+import { gameText } from './game-text.js';
 import { ACTIONS, loadKit } from '../scripts/sound-qc/actions.mjs';
 import { SCENARIOS } from '../scripts/sound-qc/scenarios.mjs';
 
@@ -23,7 +23,7 @@ test('the list: every action has a role, a call, where the game asks for it, and
 // issue #499: the code patterns went stale when the hurts and the fight moved into the one game setup (#427, #435): six
 // heard sounds were called missing. Every pattern must match the code as it is, so a refactor fails here, not the QC.
 test('the list against the code: every action\'s patterns match where the game asks for it, in the browser and the engines', () => {
-  const src = new Map(), read = (f) => { if (!src.has(f)) src.set(f, readFileSync(new URL(`../${f}`, import.meta.url), 'utf8')); return src.get(f); };
+  const src = new Map(), read = (f) => { if (!src.has(f)) src.set(f, gameText(f)); return src.get(f); };   // (the files the list names, through the source's literal catalogues: tests/game-text.js)
   const stale = [];
   for (const a of ACTIONS) {
     for (const [f, re] of a.web) if (!re.test(read(f))) stale.push(`${a.id}: web ${f} ${re}`);

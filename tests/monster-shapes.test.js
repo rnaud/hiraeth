@@ -92,7 +92,7 @@ test('the silhouettes: the warlord\'s ram horns show as big curls from the front
 
 const parse = async (n) => { const b = await readFile(new URL(`../public/anim/${n}`, import.meta.url)); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
 test('with the clips: the grunt\'s club tilted back over its shoulder, the hulk tall on its other leg as it stomps, the kilts from the hips, the warlord\'s glaive on the diagonal', async () => {
-  const [u, m, g] = await Promise.all(['ual.glb', 'moves.glb', 'gestures.glb'].map(parse));
+  const [u, m, g] = await Promise.all([parse('ual.glb'), parse('moves.glb'), parse('gestures.glb')]);
   const lib = libraryFrom(u); attachMotion(lib, m); attachMotion(lib, g);
   setFoeClips(lib);
   clearTargets();

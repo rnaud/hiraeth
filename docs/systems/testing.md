@@ -111,6 +111,15 @@ existence queries, reporting e.g. 466 tests for `src/changelog-media.js` where t
   now read a catalogue (`tests/src-tree.js` for whole-src scans) and run when those directories change:
   the always-run set (tests selected for five unrelated probe edits) went from 143 files (238 runner
   seconds) to 113 (214).
+- **Data-named reads.** A helper called only with literals is followed (`parse('ual.glb')`, not
+  `['ual.glb', ...].map(parse)`); a file named by a data table is read through a catalogue. Four more
+  catalogues: `src/fight-temples` (imports), the Unity shaders (text), `public/sfx` and `references/audio`
+  (`kind: 'bytes'`, the file as it is); `tests/game-text.js` reads `src/`, `engine/` or `index.html` by a
+  table's path and refuses any other. 18 more files left the always-run set (113 to 95 for a doc edit):
+  the five clip readers (mocap, monsters, mummers, monster-shapes, prowler-warlord), makehuman, route,
+  webaudio, unity-gat, unity-pretransform, fight-temple-harm, hud-look, sound-qc, shade, unity-decals,
+  sfx, selected-world-audio and next-action-audio (`test-selection-boundaries`: unrelated edits
+  excluded, each real input kept, a new file in each new directory selects the catalogue check).
 - **Deploy-only workflows.** A workflow edit selects everything only when the workflow runs the unit
   suite (Tests, the daily run, one that calls Tests, runs `node --test`, the selector, the plan, the
   shard runner or the hook); otherwise its readers are selected, and an unread or unreadable one still

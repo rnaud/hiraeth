@@ -287,7 +287,7 @@ test('at the hold the warlord noticing you does not wake its band: its roar does
 // (with the clips: the held poses read)
 const parse = async (n) => { const b = await readFile(new URL(`../public/anim/${n}`, import.meta.url)); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
 test('with the clips: the dart crouched, the tail swung out at knee height round it, the back-flip upside down, the spit\'s head reared; the warlord\'s lance, roar and whirl; the cost a foe', async (t) => {
-  const [u, m, g] = await Promise.all(['ual.glb', 'moves.glb', 'gestures.glb'].map(parse));
+  const [u, m, g] = await Promise.all([parse('ual.glb'), parse('moves.glb'), parse('gestures.glb')]);
   const lib = libraryFrom(u); attachMotion(lib, m); attachMotion(lib, g);
   setFoeClips(lib);
   const { foes, P, done } = arena({ dead: true, frame: { up: v(0, 1, 0) } });

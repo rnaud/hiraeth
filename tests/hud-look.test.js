@@ -6,11 +6,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ENAMEL, ENAMEL_VARS, ENAMEL_ENGINE, HUD_MESSAGES, HUD_PROMPTS, en, enamelCard, enamelStrip, enamelPrompt } from '../src/hud-look.js';
 import { HINT } from '../src/hint-look.js';
+// (the files the tables name, through the source's literal catalogues: tests/game-text.js)
+import { gameText } from './game-text.js';
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 const ENAMEL_EXPR = /^(en|enamel\w+)\(/;
 /** A file's CSS with its template expressions put in: an enamel helper as the variable it writes, anything else as X. */
-const cssOf = (f) => read(f).replace(/\$\{([^}]*)\}/g, (_, e) => (ENAMEL_EXPR.test(e.trim()) ? 'var(--en-token)' : 'X')).replace(/\/\*[\s\S]*?\*\//g, '');
+const cssOf = (f) => gameText(f).replace(/\$\{([^}]*)\}/g, (_, e) => (ENAMEL_EXPR.test(e.trim()) ? 'var(--en-token)' : 'X')).replace(/\/\*[\s\S]*?\*\//g, '');
 /** The declarations of every block whose selector list has `sel` itself. */
 function rules(css, sel) {
   const out = [];
@@ -74,7 +76,7 @@ test('a card\'s prompts are the button\'s glyph and its word, no box: no fill, n
   assert.ok(HUD_PROMPTS.length >= 3);
   const BOXED = /background(-color)?:\s*(?![\s;]|none|transparent)|border(-left)?:\s*[1-9]|padding:\s*[\d.]+(px|em)?\s+[\d.]*[1-9]/;
   for (const q of HUD_PROMPTS) {
-    const src = read(q.file);
+    const src = gameText(q.file);
     const written = q.file.endsWith('.js') ? src.includes(`enamelPrompt('${q.sel}')`) : enamelPrompt(q.sel).split('\n').every((l) => src.includes(l));
     assert.ok(written, `${q.id} (${q.what}): written with enamelPrompt('${q.sel}') in ${q.file}`);
     // (no rule of its own boxing it again)

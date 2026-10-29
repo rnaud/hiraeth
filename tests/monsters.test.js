@@ -284,7 +284,7 @@ test('the Desert\'s mummer camp stages the grunts and a hulk with their rack beh
 // (with the clips: the held poses read)
 const parse = async (n) => { const b = await readFile(new URL(`../public/anim/${n}`, import.meta.url)); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
 test('with the clips: the club held high over its head, the stomp\'s foot up then down, the grunt held over the hulk then thrown; the cost a foe', async (t) => {
-  const [u, m, g] = await Promise.all(['ual.glb', 'moves.glb', 'gestures.glb'].map(parse));
+  const [u, m, g] = await Promise.all([parse('ual.glb'), parse('moves.glb'), parse('gestures.glb')]);
   const lib = libraryFrom(u); attachMotion(lib, m); attachMotion(lib, g);
   setFoeClips(lib);
   const { foes, P, done } = arena({ dead: true, frame: { up: v(0, 1, 0) } });
