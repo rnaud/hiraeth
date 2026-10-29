@@ -14,6 +14,7 @@ export const CHANGELOG = [
       // the ship (#775, #776)
       { text: 'Going back aboard your ship is your own walk: the game no longer takes over at the foot of the ramp and walks you up the stairs. Walk up the ramp yourself, and you are aboard as soon as you step inside.',
         see: 'Step out of the ship, walk off a few steps, then walk back up its ramp: you keep the controls all the way in, and the camera closes in over your shoulder as you enter the main room.' },
+      'Your ship is no longer see-through: its back between the four engines is closed, the space to the left of the door as you board is walled off (the door still slides into its pocket), and the cockpit floor now reaches the curved walls with no gap down into the hull.',
       // enemy deaths (#765, #767, #773)
       'An enemy you strike down now comes to rest where it falls: it no longer slides along the ground, skates on down a slope or slides back to where it stood as it goes up in smoke, and it lies on the ground rather than floating a hand’s breadth over it.',
       'No enemy ends up lying on its side any more: each goes down in its own way. Beasts fold their legs and slump onto their bellies, the centipede sinks flat from head to tail, flyers drop and land flat, machines power down and sag or tip forward, and a fighter falls the way your blow pushed it, rolling onto its back or its front.',

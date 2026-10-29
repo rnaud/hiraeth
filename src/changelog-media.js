@@ -1424,6 +1424,10 @@ const FROM763 = 'Issue #763: the web game in muted headless Chrome (hiraeth.mute
 const KIT763 = 'the Desert by the ship, the traveller standing (an idle frame, the game paused), the game’s captureView from round him (yaw from in front, π/2 his right side)';
 const UNITY731 = 'Issue #731: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level moonfoundry -views, six fixed views, -fresh -no-hud), an APFS clone of the main checkout’s Library deleted after, 1280 × 720, 10:30, 28 October 2026; the same views as the web’s pictures';
 const MF731 = (eye, target, player) => ({ level: 'moonfoundry', hour: 10.5, fov: 60, eye, target, player });
+/** (v2.36, issue #776: the ship's shell closed) */
+const SHELL776 = { commit: '66a1f8ae1', before: '9c775a516' };
+const FROM776 = 'scripts/changelog-shots.mjs at this change (66a1f8ae1) and its parent (9c775a516), muted headless Chrome (--mute-audio, hiraeth.muted), High, 1280 × 720, 10:00, clear, the rounded caravan parked in Vael, the camera pinned, 29 October 2026';
+const SHIP776 = (eye, target, fov, player = [-244.98, 62, -1104.03]) => ({ level: 'arzach', hour: 10, fov, wait: 5000, eye, target, player });
 
 /** (v2.36, issue #762: each world's own foes and their looks again; the same spots as the v2.35 camp pictures) */
 const C762 = { commit: '68f1c3302', before: '1598bafc4' };
@@ -1520,6 +1524,13 @@ export const CHANGELOG_MEDIA = {
       view: 'grunt@desert*, hulk@desert*, sentinel@desert*; ray@glassdunes, drone@spacecity, tripod@desert (top row then bottom row)' },
   ] },
   { match: 'The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena', see: 'In the Arena, the run and the creatures gallery (debug menu) still bring the grunt, hulk, prowler, warlord, sentinel, oracle and crawler.' },
+  // (issue #776: the caravan's three holes, at the change's commit and its parent, the camera pinned on the parked ship in Vael)
+  { match: 'Your ship is no longer see-through', tags: ['ship'], shots: [
+    { name: 'shell776-back', title: 'The back', caption: 'The ship from behind, between its four engines: before, the hull’s open end, a look down inside it to the hold’s tiled back wall; after, closed by a cap in the hull’s paint', from: FROM776, ...SHELL776, view: SHIP776([-252.11, 64.74, -1161.9], [-268.34, 65.74, -1125.34], 50) },
+    { name: 'shell776-door-left', title: 'Left of the door', caption: 'From the porch, looking left past the open door toward the bow: before, a tunnel inside the hull between its skin and the room’s wall, running on toward the cockpit; after, a wall closes it just past the door’s pocket', from: FROM776, ...SHELL776, view: SHIP776([-264.53, 63.54, -1115.44], [-270.72, 63.74, -1108.89], 60) },
+    { name: 'shell776-tunnel', title: 'Down the gap', caption: 'Looking straight forward from the doorway’s edge, along the gap between skin and wall: before, open down the hull’s length; after, the pocket’s end wall a few steps in', from: FROM776, ...SHELL776, view: SHIP776([-266.84, 64.14, -1115.92], [-272.25, 63.94, -1105.19], 60) },
+    { name: 'shell776-cockpit', title: 'The cockpit', caption: 'The cockpit’s port side behind the traveller: before, a slot between the floor’s edge and the curved wall, the hull’s coral stripe seen down through it; after, the floor runs to the wall', from: FROM776, ...SHELL776, view: SHIP776([-279.42, 69.14, -1105.31], [-273.15, 66.84, -1098.48], 60, [-278.74, 67.0, -1103.15]) },
+  ], see: 'Walk round your parked ship and look at its back between the engines; on the porch look left past the door; climb to the cockpit and look along the floor’s edges.' },
   ],
   '2.35': [
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
