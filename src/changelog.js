@@ -43,6 +43,7 @@ export const CHANGELOG = [
       'The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena and the creatures gallery for now.',
       // the fight (#766, #774, #770)
       { text: 'Sending a shot back no longer stuns whoever fired it. A plain guard just stops an arrow, a rock, a glob or a bolt; a perfect parry sends it back to hurt its shooter and make it flinch, the same for every kind of shot, the ember wisp’s fireball too.', see: 'In the Arena, let a grunt with a bow, a lamp tripod or an oracle fire at you and raise the guard just as the shot lands: a bright ring flies back, the shooter flinches and keeps fighting, never stunned. A guard raised early only stops the shot.' },
+      { text: 'Cutting into a raised guard now throws your sword back, as in Breath of the Wild: the blade bounces off with a clang, you are knocked back half a step and your combo ends, and for a moment you can’t cut, block or roll while the foe hits back. What breaks each guard still gets through: the charged cut, the air cut, a parry and riposte or a bomb, or a cut round its side.', see: 'In the Arena, cut a furnace brute, a shellback crab, a shade, a fencer or a sentinel while its guard is up: your arm swings back along its cut, you slide back a step, and it hits back at once; block or roll as soon as you can move again.' },
     ],
   },
   {

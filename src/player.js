@@ -1777,7 +1777,8 @@ export class Player {
       // jump / glide
       let jumped = false;
       // locked on, the stick back or to a side: the back flip, the side hop (hop: src/jump.js HOP), instead of the jump
-      const jumpReady = groundJumpReady && this.time <= (this._jumpQueuedUntil ?? -Infinity);
+      // (thrown back off a foe's guard: no jump, no hop while it locks, src/fluid-blade.js REBOUND)
+      const jumpReady = groundJumpReady && this.time <= (this._jumpQueuedUntil ?? -Infinity) && !this.recoilLock;
       const hk = jumpReady && this.onGround && this.lockOn && this.time >= this._hopReady && !this.down
         ? hopKind(move.dot(this.lockOn.hop ?? this.lockOn.dir) * stickScale, move.dot(_g6.crossVectors(this.lockOn.hop ?? this.lockOn.dir, U).normalize()) * stickScale) : null;
       if (hk) {

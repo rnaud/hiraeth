@@ -9,6 +9,8 @@
 // Never a wall: a guard is held at most `hold` s, then lowered for `rest` s (its next blow comes), and `blocks` blows
 // glanced off it in a row are answered at once with its `counter` (a blow you can guard, parry or hop: the parry opens
 // it). So spamming the wrong attack is turned away, but never for long, and it always ends in a blow you can answer.
+// A cut it turns throws the traveller's blade back (issue #774, src/fluid-blade.js REBOUND: the swing stopped, a step back,
+// a moment with no cut, guard or evade), and the guard answers that rebound at once with its `counter` (Foe.rebounded).
 //
 // def.guard:
 //   pose     what the body does (the plan reads it: 'arms', 'sword', 'tuck', 'shield')

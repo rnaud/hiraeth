@@ -451,6 +451,28 @@ export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1',
  * the swing had reached over `GUARD.cancel` s (drawn at once, not grown from the walk's arms). Its parry window and timing
  * are a fresh guard's (guardAge, rearm, the shield's rise): only the gate changed. Held, the guard still lets a riposte begin.
  */
+/**
+ * The rebound off a raised guard (v2.36, issue #774, the author: "If I hit an enemy with their guard up I should recoil.
+ * Research how botw does it and fix"; docs/systems/foes.md "The rebound off a raised guard"). A cut a foe's guard turns
+ * (src/foe-guard.js; Foes.guarded marks it `rebound`) throws the blade back as a raised shield does Link's in Breath of the
+ * Wild: the swing stops, the combo's chain and every queued press go; a hit-stop of `stop` s and a nudge of the camera
+ * (`kick`); the arm plays the swing's own clip back from where it met the guard toward its wind-up (`to` of the way back)
+ * over `back` s, then is let go over the rest of `time` (the upper body only: the legs carry the step back); he is carried
+ * back along the blow at `push` m/s, easing out. For `time` s no swing begins and presses then are dropped (mashing is not
+ * kept through it); for the first `lock` s no guard rises and no evade, roll or hop begins. Then the guard and the evade
+ * answer the foe's counter (Foe.rebounded: it answers at once, its wind-up 0.75-1.05 s), the next cut after `time`.
+ */
+export const REBOUND = { time: 0.5, lock: 0.3, back: 0.2, to: 0.65, push: 2.6, stop: 0.06, kick: 0.22 };
+/** Is a rebound under way and still locking the guard and the evade out (`age` s into it)? (pure: tests) */
+export const reboundLocks = (age, R = REBOUND) => age >= 0 && age < R.lock;
+/** The rebound's pose at `age` s (pure: tests): the clip time from `hitT` (where it met the guard) back toward `fromT` (its
+ * wind-up), and its weight, whole through the way back, then let go to 0 by `time`. */
+export function reboundPose(age, hitT, fromT, R = REBOUND) {
+  const k = THREE.MathUtils.clamp(age / R.back, 0, 1), e = 1 - (1 - k) * (1 - k);
+  const t = hitT + (fromT - hitT) * R.to * e;
+  const w = age <= R.back ? 1 : THREE.MathUtils.clamp(1 - (age - R.back) / Math.max(1e-3, R.time - R.back), 0, 1);
+  return { t, w: w * w * (3 - 2 * w) };
+}
 export const guardCancels = ({ press = false, swinging = false, ok = true } = {}) => !!press && !!swinging && !!ok;
 GUARD.angle = shieldArc(new THREE.Vector3(), new THREE.Vector3(0, 0, GUARD.reach), new THREE.Vector3(0, 0, 1), SHIELD.radius).half;
 /** How long the blade stays in the fist after the last swing, guard, evade or blow (s); locked on it stays out. (The draw and the sheathe: src/sword-sheath.js.) */
@@ -588,6 +610,8 @@ export class FluidBlade {
     this.hitTargets = new Set(); this.previousBlade = null; this.buffered = 0; this.closeIn = 0;
     // the counters: the riposte's window after a perfect parry, the dash cut's after an evade (and its cooldown)
     this.sinceParry = Infinity; this.sinceEvade = Infinity; this.dashWant = false; this.dashCool = 0;
+    // the rebound off a raised guard (REBOUND): its time left, its age, the swing's clip it plays back, the way it carries him
+    this.reboundT = 0; this.reboundAge = Infinity; this.rebounding = null; this.reboundDir = new THREE.Vector3();
     this.device = new ShieldDevice(tool);
     this.shield = this.device.root;
     this.guardArc = null;
@@ -727,6 +751,10 @@ export class FluidBlade {
     if (p) p.chargeHold = null;
     // (how long the blade button has been down since its press: CHARGE.after)
     this.holdT = bladeHeld ? (press ? 0 : (this.holdT ?? -Infinity) + dt) : -Infinity;
+    // (thrown back off a guard, REBOUND: no swing through it, and a press then is dropped, not kept for after)
+    if (this.reboundT > 0) { this.reboundT = Math.max(0, this.reboundT - dt); this.reboundAge += dt; press = false; this.buffered = 0; this.dashWant = false; }
+    const stuck = this.reboundT > 0 && reboundLocks(this.reboundAge);   // (and at first no guard, no evade: REBOUND.lock)
+    if (p) p.recoilLock = stuck;
     if (p?.onGround) { this.airUsed = false; this.airN = 0; }
     this.cool = Math.max(0, this.cool - dt);
     this.evadeCool = Math.max(0, this.evadeCool - dt);
@@ -756,7 +784,7 @@ export class FluidBlade {
     // Both forms remember a short grounded press, but never cancel an active cut or shorten cooldown/i-frame rest.
     if (!ok || !p?.onGround) this.rollWant = 0;
     else if (dodgePress) this.rollWant = (this.roll ?? EVADE).buffer ?? EVADE.buffer;
-    if (ok && (dodgePress || this.rollWant > 0) && !this.evadeT && !this.evadeCool && p?.onGround && outOfSwing) {
+    if (ok && (dodgePress || this.rollWant > 0) && !this.evadeT && !this.evadeCool && p?.onGround && outOfSwing && !stuck) {
       const E = this.evadeSpec = this.roll ?? EVADE;
       this.rollWant = 0;
       this.stop(); this.evadeT = E.duration; this.evadeCool = E.cooldown;
@@ -859,7 +887,7 @@ export class FluidBlade {
         if (displayed !== null && displayed >= from && (this.contactT ?? displayed) <= to) this.strike();
         this.contactT = displayed;
       } else if (this.t * this.dur >= this.sample.wind && previousTime < this.sample.wind + this.sample.active) this.strike();
-      if (this.t >= 1) {
+      if (this.t >= 1 && this.n >= 0) {   // (not a swing a guard just threw back: rebound)
         this.last = this.n; this.n = -1; p.swingMove = null;
         if (this.last === 2 || ENDS.has(this.special)) { this.cool = BLADE.cooldown * (flurryLeft() > 0 ? FLURRY.cool : 1) * (this.quick?.cooldown ?? 1); this.chainT = 0; }   // (a flurry's blows come quicker)
         else { this.chainT = BLADE.chain; if (this.queued) this.start(this.last + 1); }
@@ -900,7 +928,7 @@ export class FluidBlade {
       p.aim = this.pose;
     }
     // the guard: held after the swing (or with no swing to finish), turned to the nearest foe
-    const want = held && !this.swinging && !this.evadeT && T.k < 0.05;
+    const want = held && !this.swinging && !this.evadeT && !(this.reboundT > 0 && reboundLocks(this.reboundAge)) && T.k < 0.05;   // (not while a rebound locks it: REBOUND)
     this.guardWant = want;
     this.guardK += ((want ? 1 : 0) - this.guardK) * (1 - Math.exp(-(want ? 14 : 10) * dt));
     if (this.guardK < 0.01) this.guardK = 0;
@@ -922,6 +950,18 @@ export class FluidBlade {
       this.pose.k = this.guardK; this.pose.noArm = !!idle;
       p.aim = this.pose;
     } else if (!this.swinging && p.swingMove) p.swingMove = null;
+    // (thrown back off a guard: the swing's own clip played back toward its wind-up, then let go, REBOUND; the guard, once
+    // it may rise, takes over from it blended)
+    if (this.reboundT > 0 && this.rebounding && !this.swinging && !(this.guardK > 0.05) && T.k < 0.05) {
+      const R = this.rebounding, P = reboundPose(this.reboundAge, R.hitT, R.fromT);
+      if (P.w > 0.01) {
+        const m = (this._reboundMove ??= {});
+        m.clip = R.clip; m.t = P.t; m.w = P.w; m.full = false; m.air = false; m.id = 'rebound'; m.blend = 0.05;
+        p.swingMove = m;
+        this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
+        this.pose.k = P.w; this.pose.noArm = true; p.aim = this.pose;
+      } else if (p.swingMove === this._reboundMove) p.swingMove = null;
+    }
     if (!want && this.guardK === 0) this.guardT = 0;
     // (a fight: a foe engaged near or locked on, FIGHT; it lasts FIGHT.after s past the last of them, so it never flickers between cuts)
     this.fightSince = (p.lockOn || foeEngaged(p.pos)) ? 0 : (this.fightSince ?? Infinity) + dt;
@@ -937,6 +977,10 @@ export class FluidBlade {
       p.combatMotion = { dir: this.evadeDir, speed: E.speed * (0.55 + 0.45 * Math.sin(Math.PI * this.evadeT / E.duration)), scale: 0, evade: this.evadeT / E.duration, roll: this.rolling };
     } else if (this.charging && p.onGround) {
       p.combatMotion = { dir: this.dir, speed: 0, scale: CHARGE.move };   // (gathering: a slow step at most)
+    } else if (this.reboundT > 0 && !this.swinging && p.onGround) {
+      // (thrown back off a guard: carried back along the blow, easing out; the stick barely heard while it locks: REBOUND)
+      const k = Math.max(0, 1 - this.reboundAge / REBOUND.time);
+      p.combatMotion = { dir: this.reboundDir, speed: REBOUND.push * k * k, scale: stuck ? 0.1 : 0.5 };
     } else if (this.swinging && p.onGround) {
       this.follow(p);
       const active = this.phase === 'strike';
@@ -954,7 +998,7 @@ export class FluidBlade {
     }
     // in a fight the blade stays in the fist (a while after, and all the time locked on), then is put away
     this.since += dt;
-    if (this.swinging || this.evadeT || this.guardK > 0.05 || p._flinch) this.since = 0;
+    if (this.swinging || this.evadeT || this.guardK > 0.05 || p._flinch || this.reboundT > 0) this.since = 0;
     const drawWant = bladeDrawn({ ok, swinging: this.swinging, guarding: this.guardK > 0.05, evading: this.evadeT > 0, locked: !!p.lockOn, fighting, since: this.since });
     // (drawn over the shoulder; a swing pressed with it on the back starts at once and the hilt is in the fist before its cut)
     const drawEvent = this.sheath.update(dt, drawWant, { quick: this.swinging });
@@ -1155,9 +1199,11 @@ export class FluidBlade {
     // Geometry proposes a contact; the target owns its outcome. Preserve callbacks
     // without a return value, but respect explicit rejection and the shared dull
     // result (armour / a guardian whose current state did not answer the cut).
+    let turned = null;   // (a foe's raised guard turned it: the rebound, REBOUND)
     hits = hits.filter((h) => {
       const result = { ...info, mode: 'blade' };
       const accepted = h.target.onHit?.('blade', h.point, h.dir, result);
+      if (result.rebound && !turned) turned = h;
       return accepted !== false && !result.dull;
     });
     // a creature the blade passes through is bonked (v1.41: it was only scared off, from anywhere in the cone): knocked
@@ -1192,7 +1238,27 @@ export class FluidBlade {
       this.rippleAt(THREE.MathUtils.clamp(at, 0.2, 1), heavy ? BLADE_LOOK.ripple.heavy : BLADE_LOOK.ripple.hit, S === RIPOSTE ? 1 : 0);
     }
     if (hits.length || bonked) T.sound?.fluidSlashHit?.(true, hits.length > 0 && info.combo === 2);
+    if (turned) this.rebound(turned.dir);
     return hits;
+  }
+
+  /**
+   * Thrown back off a raised guard (REBOUND, issue #774): the swing stops where it met it, the chain and every queued press
+   * go, the air combo ends; the freeze and the nudge; the arm played back along its own swing (update), and he is carried
+   * back along `dir` (the blow's way, from him to the foe).
+   */
+  rebound(dir = null) {
+    const T = this.tool, p = T.player;
+    if (!p) return;
+    const shown = p.swingMove?.id === this.swingId ? p.swingMove.t : null;
+    this.rebounding = this.move && shown != null ? { clip: this.move.clip, hitT: shown, fromT: this.spec?.from ?? 0 } : null;
+    this.stop(); this.chainT = 0; this.buffered = 0; this.queued = false; this.dashWant = false; this.last = -1; this.closeLeft = 0;
+    if (!p.onGround) this.airUsed = true;
+    this.reboundT = REBOUND.time; this.reboundAge = 0; p.recoilLock = true;
+    this.reboundDir.copy(dir ?? this.dir).addScaledVector(p.frame.up, -(dir ?? this.dir).dot(p.frame.up)).negate();
+    if (this.reboundDir.lengthSq() > 1e-8) this.reboundDir.normalize(); else p.frame.dir(p.heading, this.reboundDir).negate();
+    hitStop(REBOUND.stop); kick(REBOUND.kick);
+    this.rippleAt(0.85, BLADE_LOOK.ripple.block);
   }
 
   /** How far through its cut the swing is (0..1): the clip's displayed time across its active window, or the arc's strike phase. */

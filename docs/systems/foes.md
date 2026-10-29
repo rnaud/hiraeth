@@ -1674,7 +1674,8 @@ defence is opened by one move of the kit. A kind with `def.guard` raises it betw
 drops the moment it winds up, is stunned or reels (`lowerGuard`). Up (`guardUp`; also through a `shielded` wind-up), a
 blow inside its `arc` that `guardTurns` (the blade, a bomb; a shot or an ember only off a shield, `shots`) glances
 (`Foe.hit` → `'guarded'`, `Foes.guarded`: the clang, sparks, a shrug of the body without the flash, the blade's hit dull:
-no hit-stop, no splash). The `breaks` move goes through (`guardBreaker`: `charged`, the charged cut, full or not; `air`,
+no splash; since v2.36 the blade rebounds off it and the guard answers at once, "The rebound off a raised guard"
+below). The `breaks` move goes through (`guardBreaker`: `charged`, the charged cut, full or not; `air`,
 the air cut's plunge, not the air combo's light swings; `riposte`; `bomb`): the blow lands as a cut, the guard is thrown
 open (`openGuard`: stunned `open` s, 0.9–1.4: BotW's reel, never a long free stun; every first cut into it double; a
 crab `onBreak: 'flip'` on its back), told by the body flung wide, the gold ring, the stagger and the stun's stars
@@ -1699,6 +1700,57 @@ unset: any) names the hop that answers it (`src/flurry.js` `hopFits`): only that
 and feint (side), the fencer's overhead (side), sweep (back) and leap (side).
 
 The creatures gallery (enemies.html) shows each guard and its broken pose beside the moves ('Guarding', 'Guard broken').
+
+### The rebound off a raised guard (v2.36, issue #774, `src/fluid-blade.js` `REBOUND`)
+
+The author: "If I hit an enemy with their guard up I should recoil. Research how botw does it and fix". Until v2.36 a cut
+into a raised guard only clanged: the blade's hit was marked dull and the combo went on, so three quick light cuts in a
+row were the cheapest way to make a guard answer, and nothing in the traveller's body said the cut had been turned.
+
+**How the Zelda games do it** (from play and the footage of `docs/design/combat-botw-study.md`; no frame-exact BotW
+number is claimed here: the wikis that list the mechanics, Zelda Dungeon and Fandom, refused automated reads, and the
+guides found, GameWith's combat guide and Mic's parry guide, cover the perfect guard and the flurry only):
+
+- **The rebound.** A melee hit on a raised enemy shield (a Bokoblin's or Moblin's wooden shield, a Lizalfos's, a Lynel's)
+  does no harm: Link's weapon bounces back off it with a clang and sparks, he is knocked half a step back, and his combo
+  ends there. The same rebound throws him off stone and metal (a Stone Talus' rock, a Guardian's hull) and, since
+  Ocarina of Time, off walls and shields ("tink"); in Skyward Sword a slash into the side a Bokoblin guards bounces back
+  the same way. It is short, about half a second by eye, and it is an opening: shield foes swing or bash back into it.
+- **How long he is open.** The bounce takes his next press away for that half second; the guard and the roll come back
+  sooner, so a player who reads the clang can still shield or dodge the answer, and one who mashes eats it. The foe's
+  own reel after a perfect guard is 0.5–0.75 s (the study, Lynel 1:22.5–1:30): about as long.
+- **What breaks a guard.** Going round it (the side or the back, a jump over it); a heavy blow (a two-handed weapon's
+  charged spin or smash knocks the shield aside); a perfect guard of the foe's own blow (it stumbles, may drop its
+  weapon); a perfect dodge into the flurry rush; a bomb, an arrow in the face, a thrown weapon, stasis; and the shield's
+  durability (a wooden one breaks after a few blows). In BotW the "shield bash" is the perfect guard itself (A while
+  shielding); Hiraeth's fencer and sentinel bash *you* when you turtle.
+
+**What Hiraeth does now.** A blade blow its guard turns (`Foe.hit` → `'guarded'`, the guard's `arc`, not its breaker)
+rebounds the traveller: the swing stops, the chain, the queued and buffered presses go (`FluidBlade.rebound`); a
+hit-stop of `REBOUND.stop`, a camera nudge, the blade's ripple; the arm plays the swing's own clip back from where it met
+the guard toward its wind-up over `REBOUND.back` s and is let go over the rest (upper body, `id` 'rebound'), and he is
+carried back along the blow at `REBOUND.push` m/s, easing (a step: about 0.4 m). For `REBOUND.time` (0.5 s) no swing
+starts and presses made then are dropped (mashing is not buffered through it); for the first `REBOUND.lock` (0.3 s) no
+guard rises, no evade or hop starts. In the air the swing stops and the air combo ends.
+
+The foe punishes it: a rebound counts as a full row of turned blows (`Foe.rebounded`), so its guard answers at once with
+its `counter` (the brute's backhand, the crab's snap, the shade's cut, the fencer's bash, the sentinel's riposte), its
+wind-up from 0.5 s (the sentinel's quick riposte) to about 1 s, so the blow lands at least 0.15 s after the lock lifts:
+guard it, parry it or roll it then, or be hit. Its breakers are as
+before (the charged cut, the air cut's plunge, the riposte, a bomb, round its side), and a bomb or a shot it turns never
+rebounds anyone.
+
+| Kind | Guard | Turned, its answer |
+|---|---|---|
+| Furnace brute | forearms crossed (`arms`) | its backhand (`sweep`) |
+| Shellback crab | clamped in its shell (`tuck`) | its `snap` |
+| Shade | its ink sword across (`sword`) | its `cut` |
+| Makers' fencer | its kite shield (`shield`) | its shield `bash` |
+| Sentinel | its round shield (`shield`) | its `riposte` |
+
+Tests: `tests/rebound.test.js` (the traveller's rebound on the gait course: stopped, carried back, presses dropped, the
+guard and the evade after the lock, the pose without a jump; and each guarded kind answering a rebound at once) and
+`tests/engine-rebound.test.js` (a fencer's shield in the engines' bundle, the blade pressed on the keys).
 
 ## Poise, tiers and states (v2.33, issue #722, `src/enemies/fight.js`)
 

@@ -594,7 +594,7 @@ export class Foe {
     // a guard (issue #661, src/foe-guard.js): how far it is raised (0..1), s held, s resting after it, blows turned in a
     // row; s you have held your own guard up in its reach (def.turtle: the fencer's bash); its sword knocked away
     // ({ at, t, from }: where it lies, s since; issue #665)
-    this.guardK = 0; this.guardT = 0; this.guardRest = 0; this.blocked = 0; this.turtle = 0; this.disarmed = null;
+    this.guardK = 0; this.guardT = 0; this.guardRest = 0; this.blocked = 0; this.rebounded = false; this.turtle = 0; this.disarmed = null;
     // issue #722 (src/enemies/fight.js): its weight and poise (worn by blows, broken by the breakers: it goes down, `downT` s),
     // its low-health change (enraged, fleeing to a packmate for `fleeT` s, its last move), the alert beat (`alertT` s), a hop
     // back from your swing (`hopBack`), the move it walks to make (`plan`), a follow-up chained (`chained`), its waiting beat
@@ -1601,7 +1601,7 @@ export class Foe {
   /** Its guard comes down (stunned, or busy with a blow of its own); down, the blows it turned are forgotten. */
   lowerGuard(dt) {
     this.guardK = Math.max(0, this.guardK - dt / STANCE.lower);
-    if (this.guardK === 0) { this.guardT = 0; this.blocked = 0; }
+    if (this.guardK === 0) { this.guardT = 0; this.blocked = 0; this.rebounded = false; }
   }
   /**
    * Chasing you: the guard up between its blows while you are near (wantsGuard), held at most `hold` s, then down a while
@@ -1616,8 +1616,10 @@ export class Foe {
       if (G.close && d > G.close && this.cool > 0 && !this.disarmed) { const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z; this.step(dx / d * this.def.speed * 0.4 * dt, dz / d * this.def.speed * 0.4 * dt, env); }
       if (this.guardT >= G.hold) { this.guardRest = G.rest; this.cool = 0; }   // (held long enough: down, and its blow comes)
     } else this.lowerGuard(dt);
-    if (this.blocked >= (G.blocks ?? Infinity)) {
-      // the answer to a blow spammed at its guard: out of the guard straight into its counter (guard it, parry it, hop it)
+    if (this.blocked >= (G.blocks ?? Infinity) || this.rebounded) {
+      // the answer to a blow spammed at its guard, or to a cut it rebounded (issue #774: the traveller thrown back off it,
+      // open a moment, src/fluid-blade.js REBOUND): out of the guard straight into its counter (guard it, parry it, hop it)
+      this.rebounded = false;
       const a = this.def.attacks.find((x) => x.id === G.counter && (!x.armed || !this.disarmed) && (!x.unarmed || this.disarmed))
         ?? this.def.attacks.find((x) => x.answer && (!x.armed || !this.disarmed) && (!x.unarmed || this.disarmed));
       this.blocked = 0; this.guardK = 0; this.guardT = 0; this.guardRest = G.rest;
@@ -1640,7 +1642,7 @@ export class Foe {
   /** A breaker went through its guard: it reels, open (stunned) `open` s, every cut double; a crab on its back. */
   openGuard() {
     const G = this.def.guard;
-    this.guardK = 0; this.guardT = 0; this.blocked = 0; this.guardRest = G.rest;
+    this.guardK = 0; this.guardT = 0; this.blocked = 0; this.rebounded = false; this.guardRest = G.rest;
     this.state = 'recover'; this.timer = 0.25; this.k = 0; this.letGo = true;
     this.stunned = Math.max(this.stunned, G.open); this.reel = 'guardbroken';
     this.recoil = 1; this.heavyRecoil = true;
@@ -2069,6 +2071,8 @@ export class Foe {
       guardBreak = guardBreaker(D.guard, mode, info);
       if (!guardBreak) {
         this.blocked++; this.flash = 0.25; this.recoil = 0.35; this.heavyRecoil = false; this.recoilDir.copy(dir).setY(0).normalize();
+        // (a blade blow turned rebounds the traveller, issue #774: the guard answers it at once, into his opening: tendGuard)
+        if (mode === 'blade' && src !== 'bomb') this.rebounded = true;
         return 'guarded';
       }
     }
@@ -4131,6 +4135,8 @@ export class Foes {
    */
   guarded(f, mode, dir, info, point) {
     if (info) info.dull = true;
+    // (the blade's cut turned: it rebounds, src/fluid-blade.js FluidBlade.rebound, issue #774; a bomb or a shot never)
+    if (info && mode === 'blade' && info.source !== 'bomb') info.rebound = true;
     this.sound?.foeGlance?.(point ?? f.chest); this.sparks(f, point ?? f.chest);
     this.react(f, 'guard', dir, { reel: 'shrug', flash: false });
     const G = f.def.guard, flag = `foes.guard.${f.kind}`;
