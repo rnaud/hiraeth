@@ -513,7 +513,7 @@ const _qId = new THREE.Quaternion();
 const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
-const _lkA = new THREE.Vector3(), _lkB = new THREE.Vector3(), _lkC = new THREE.Vector3();
+const _lkA = new THREE.Vector3(), _lkB = new THREE.Vector3(), _lkC = new THREE.Vector3(), _lkD = new THREE.Vector3();
 const _fl = new THREE.Vector3(), _fb = new THREE.Vector3(), _fd = new THREE.Vector3();   // (fitFrame)
 const _hs = new THREE.Vector3(), _pv = new THREE.Vector3(), _pb = new THREE.Vector3();
 const _sr = new THREE.Vector3(), _sp = new THREE.Vector3(), _lb = new THREE.Vector3();   // (CameraRig.pickShoulder)
@@ -3904,10 +3904,14 @@ export class CameraRig {
     if (this.boss) this._boss = { ...BOSS_CAM, ...this.boss };
     this.bossK += ((this.boss ? 1 : 0) - this.bossK) * (1 - Math.exp(-this._boss.rate * dt));
     // locked on a guardian: the fit (LOCK_FRAME), eased in; the close-in framing gives way to it as to the boss framing
-    const fitOn = !!(this.locked && this.frameWith);
+    // (any other foe, LOCK_FRAME_FOE, issue #752: only in the open, its `open` [on under, off over] of the close-in
+    // framing: in a corridor or a temple's antechamber the arm can't stand back anyway, and the close-in camera keeps him)
+    const tRaw = this.updateTight(playerPos, dt, U, Fw, Rt), Fo = this.locked ? this.frameWith?.F?.open : null;
+    if (Fo) this._fitOpen = this._jumped || this._fitOpen == null ? tRaw < (Fo[0] + Fo[1]) / 2 : this._fitOpen ? tRaw < Fo[1] : tRaw < Fo[0];
+    const fitOn = this._fitOn = !!(this.locked && this.frameWith && (!Fo || this._fitOpen));
     this.fitK = this._jumped ? (fitOn ? 1 : 0) : this.fitK + ((fitOn ? 1 : 0) - this.fitK) * (1 - Math.exp(-LOCK_FRAME.in * dt));
     if (this.fitK < 1e-3 && !fitOn) this.fitK = 0;
-    const tk = this.updateTight(playerPos, dt, U, Fw, Rt) * (1 - Math.max(this.bossK, this.fitK));
+    const tk = tRaw * (1 - Math.max(this.bossK, this.fitK));
     const k = Math.max(ik, tk);   // how close-quarters the framing is
     // closing in (a doorway, an alley), or done aiming: a steep look up eases back down to what fits
     // (with the aim's own easing: aimK)
@@ -3989,7 +3993,7 @@ export class CameraRig {
     // (never over whatever is overhead: on a table by a carriage's curved wall, the look point rose through the ceiling,
     // and the camera behind it ended up outside the train looking at its hull; the cap eased, down quickly, up slowly)
     // (and locked on a guardian, framed: higher, its arm over the low things round him, LOCK_FRAME.lift)
-    let lh = this.lookHeight(k, ak, pitch) + this.bossK * (1 - ak) * this._boss.look + fw * (this._fitNearK ?? 1) * LOCK_FRAME.lift;
+    let lh = this.lookHeight(k, ak, pitch) + this.bossK * (1 - ak) * this._boss.look + fw * (this._fitNearK ?? 1) * this.fitF.lift;
     if (k > 0.05 && U.y > 0.999) {
       const roof = Math.min(this.physics.rayDistance(_pv.copy(this.target).addScaledVector(U, 0.9), U, lh + 0.3), 10) + 0.9 - 0.25;
       this._lookCap = this._jumped || this._lookCap == null ? roof : this._lookCap + (roof - this._lookCap) * (1 - Math.exp(-(roof < this._lookCap ? 12 : 2) * dt));
@@ -4215,48 +4219,57 @@ export class CameraRig {
     const nearGoal = smoothstep(LOCK_FRAME.near[0], LOCK_FRAME.near[1], Math.min(this._curDist, this._fitGoal?.arm ?? Infinity));
     this._fitNearK = this._jumped || this._fitNearK == null ? nearGoal : this._fitNearK + (nearGoal - this._fitNearK) * (1 - Math.exp(-LOCK_FRAME.nearRate * dt));
     const fwl = fw * this._fitNearK;
-    if (fwl > 0.002 && this._fitBox) {
-      // (locked on a guardian: the view turned to the middle of the two of you and the floor between, LOCK_FRAME; from
-      // where the camera is now, so a wall that cut the arm still frames what it can, his feet first)
-      const toL = _lkA.subVectors(this._look, cam).normalize();
-      const pts = framePoints(this.target, this._fitBox, this._fitPts ??= []);
-      const { dir } = frameAim(cam, pts, _lkC.copy(this._dir).negate(), U, Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2), this.camera.aspect || 16 / 9, _lkB);
-      // (eased a little: what it frames moves smoothly, but a point coming round past the lens's side must not flick it)
-      const fl = (this._fitLook ??= dir.clone());
-      if (this._jumped || !(Math.abs(this._fitLookT - (this._now - dt)) < 1e-4)) fl.copy(dir); else fl.lerp(dir, 1 - Math.exp(-LOCK_FRAME.look * dt)).normalize();
-      this._fitLookT = this._now;
-      toL.lerp(fl, fwl).normalize();
-      this.camera.lookAt(_lkC.copy(cam).add(toL));
-    } else if (this._twoK > 0.005 && this.lockAt) {
+    // the view: at the look point (along the arm when it is very short), or the two-shot turned toward the foe; then, framed
+    // locked on, turned toward the middle of what it frames by the fit's weight (blended from whichever look it had, so the
+    // fit easing in or out never switches the look from one frame to the next: #752, a foe's fit given way in a corner)
+    const view = _lkD;
+    if (this._twoK > 0.005 && this.lockAt) {
       // (him: his chest, not the look point off his shoulder; the look point's own direction blended toward that aim)
-      const toL = _lkA.subVectors(this._look, cam).normalize(), toF = _lkB.subVectors(this.lockAt, cam).normalize();
+      const toL = view.subVectors(this._look, cam).normalize(), toF = _lkB.subVectors(this.lockAt, cam).normalize();
       const toH = _lkC.copy(this.target).addScaledVector(U, 1.35).sub(cam).normalize();
       const S = Math.acos(THREE.MathUtils.clamp(toH.dot(toF), -1, 1));
       // (the frame is less tall than wide: a separation up and down, climbed over him, keeps him nearer its centre)
       const up = S > 1e-3 ? Math.min(1, Math.abs(Math.asin(THREE.MathUtils.clamp(toH.dot(U), -1, 1)) - Math.asin(THREE.MathUtils.clamp(toF.dot(U), -1, 1))) / S) : 0;
       const w = S > LOCK_ROOM.two ? Math.min(0.5, (S - LOCK_ROOM.two) / S, THREE.MathUtils.lerp(LOCK_ROOM.him, LOCK_ROOM.himUp, up) / S) : 0;
-      toL.lerp(toH.multiplyScalar(1 - w).addScaledVector(toF, w).normalize(), this._twoK);
-      this.camera.lookAt(_lkC.copy(cam).add(toL));
+      toL.lerp(toH.multiplyScalar(1 - w).addScaledVector(toF, w).normalize(), this._twoK).normalize();
     } else {
       // (an arm cut very short, his back to a cabin's wall: the lens a hand's breadth from the look point, where a shove
       // off the wall of a few cm turned the view by tens of degrees in a frame, 2000°/s; there the view looks along the
       // arm itself, as the yaw and the pitch say, not at the look point; issue #324)
-      const toL = _lkA.subVectors(this._look, cam), Ld = toL.length(), along = 1 - smoothstep(SHORT_LOOK[0], SHORT_LOOK[1], Ld);
-      if (along > 0.001 && Ld > 1e-4) this.camera.lookAt(_lkC.copy(cam).add(toL.divideScalar(Ld).lerp(_lkB.copy(this._dir).negate(), along).normalize()));
-      else this.camera.lookAt(this._look);
+      const toL = view.subVectors(this._look, cam), Ld = toL.length(), along = 1 - smoothstep(SHORT_LOOK[0], SHORT_LOOK[1], Ld);
+      if (Ld > 1e-4) toL.divideScalar(Ld); else toL.copy(this._dir).negate();
+      if (along > 0.001) toL.lerp(_lkB.copy(this._dir).negate(), along).normalize();
     }
+    if (fwl > 0.002 && this._fitBox) {
+      // (locked on: the view turned to the middle of the two of you and the floor between, LOCK_FRAME; from where the
+      // camera is now, so a wall that cut the arm still frames what it can, his feet first)
+      const F = this.fitF, pts = framePoints(this.target, this._fitBox, this._fitPts ??= [], F);
+      const { dir } = frameAim(cam, pts, _lkC.copy(this._dir).negate(), U, Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2), this.camera.aspect || 16 / 9, _lkB, F.margin, F.low ?? 0);
+      // (eased a little: what it frames moves smoothly, but a point coming round past the lens's side must not flick it)
+      const fl = (this._fitLook ??= dir.clone());
+      if (this._jumped || !(Math.abs(this._fitLookT - (this._now - dt)) < 1e-4)) fl.copy(dir); else fl.lerp(dir, 1 - Math.exp(-LOCK_FRAME.look * dt)).normalize();
+      this._fitLookT = this._now;
+      view.lerp(fl, fwl).normalize();
+    }
+    this.camera.lookAt(_lkC.copy(cam).add(view));
     (this._camPrev ??= new THREE.Vector3()).copy(cam);
     this._yawPrev = this.yaw;
   }
 
+  /** The fit's tuning: the box's own (a guardian's LOCK_FRAME, any other foe's LOCK_FRAME_FOE), kept while it eases out. */
+  get fitF() {
+    if (this.locked && this.frameWith?.F) this._fitFLast = this.frameWith.F;
+    return this._fitFLast ?? LOCK_FRAME;
+  }
+
   /**
-   * Locked on a guardian (issue #359): the arm and the camera's height that frame the traveller whole, the guardian and
+   * Locked on a foe (issue #359, a guardian; #752, any foe): the arm and the camera's height that frame the traveller whole, the guardian and
    * the floor between them (src/lock-frame.js solveFrame, from the eased box `frameWith` main.js gives), solved every
    * LOCK_FRAME.every s against the room behind the look point at each height (a swept ball: the walls), and eased after
    * on a critically damped spring (`_fitArm`, `_fitPitch`). `dist` and `pitch` the arm and height it would have.
    */
   fitFrame(dt, dist, pitch, k, ak, U, Fw, Rt, turnRate = 0) {
-    const F = LOCK_FRAME, B = this.locked ? this.frameWith : null;
+    const F = this.fitF, B = this.locked && this._fitOn !== false ? this.frameWith : null;
     if (!B && this.fitK <= 0) {
       this._fitSet = false; this._fitBox = null; this._fitGoal = null; this._fitArm = dist; this._fitPitch = pitch;
       if (this._fovBase != null) { this.camera.fov = this._fovBase; this.camera.updateProjectionMatrix(); this._fovBase = null; }
@@ -4265,6 +4278,8 @@ export class CameraRig {
     if (B) {
       const fb = (this._fitBox ??= { min: B.min.clone(), max: B.max.clone() }), a = this._jumped || !this._fitSet ? 1 : 1 - Math.exp(-6 * dt);
       fb.min.lerp(B.min, a); fb.max.lerp(B.max, a);
+      // (a flyer's footing, the ground under it: eased as the box is; LOCK_FRAME_FOE, issue #752)
+      fb.ground = B.ground == null ? null : fb.ground == null || a === 1 ? B.ground : fb.ground + (B.ground - fb.ground) * a;
     }
     if (!this._fitBox) { this._fitArm = dist; this._fitPitch = pitch; return; }
     if (!this._fitSet || this._jumped) { this._fitArm = dist; this._fitPitch = pitch; this._fitArmV = 0; this._fitPitchV = 0; this._fitT = 0; this._fitSet = true; this._fovBase ??= this.camera.fov; this._fitFov ??= this._fovBase; }
@@ -4286,14 +4301,14 @@ export class CameraRig {
         }
         room[i] = Math.max(F.arm[0] * 0.5, r - F.wall);
       });
-      const pts = framePoints(this.target, this._fitBox, this._fitPts ??= []);
-      const s = solveFrame(look, back, U, pts, tanV, aspect, Math.max(F.arm[0], this.dist + this._distBoost), room);
+      const pts = framePoints(this.target, this._fitBox, this._fitPts ??= [], F);
+      const s = solveFrame(look, back, U, pts, tanV, aspect, Math.max(F.arm[0], this.dist + this._distBoost), room, F);
       this._fitGoal = s;
       // (too little room behind for it all, his back near its wall: the lens a little wider, up to `fov`°, rather than
       // its middle lost)
       this._fitFovGoal = s.fill > 1 - F.margin ? Math.min(F.fov, THREE.MathUtils.radToDeg(2 * Math.atan(tanV * s.fill / (1 - F.margin)))) : this._fovBase;
       // (and the arm it would want with nothing behind: the room the lock's turn off the line looks for, lockRoom)
-      this._fitNeed = solveFrame(look, back, U, pts, tanV, aspect, Math.max(F.arm[0], this.dist + this._distBoost), null).arm;
+      this._fitNeed = solveFrame(look, back, U, pts, tanV, aspect, Math.max(F.arm[0], this.dist + this._distBoost), null, F).arm;
     }
     this._fitFov += ((B ? this._fitFovGoal ?? this._fovBase : this._fovBase) - this._fitFov) * (1 - Math.exp(-F.fovRate * dt));
     const g = this._fitGoal ?? { arm: dist, pitch };

@@ -786,6 +786,16 @@ function makePlan(args) {
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-cut.png` });
     steps.push({ kind: 'wait', frames: 60, secs: 2 });
   }
+  if (fights.includes('lockon')) {
+    // (-fight lockon, issues #752 / #755: locked on in the open, the BotW framing and the head-sized ring: a hulk 2.5 m
+    // ahead, a grunt 5 m, a crawler 8 m, each alone, kept up and slow to strike, Tab, a picture after the camera eases)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-lockon-${name}.png` }] : []);
+    const lock = [{ kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 90, secs: 2 }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 });
+    for (const [what, dist, name] of [['hulk@desert', 2.5, 'hulk'], ['grunt@desert', 5, 'grunt'], ['crawler@desert', 8, 'crawler']]) {
+      steps.push({ kind: 'foe', what: 'clear' }, { kind: 'wait', frames: 20, secs: 0.4 }, { kind: 'foe', what, dist, hp: 99 }, { kind: 'wait', frames: 30, secs: 1 }, ...lock, ...shot(name));
+    }
+  }
   if (fights.includes('combo')) {
     // (-fight combo, issues #712 / #713: a toad set down 2.4 m ahead, kept alive, locked on; the three cuts pressed in a
     // chain, a picture every few frames from the first press: the hit bursts, the heavy third)

@@ -1402,6 +1402,8 @@ const BENCH726 = 'the combat review v2.34’s fight-core bench (node, no browser
 // (issue #748: one look per kind; the camp's grunts and hulk all asked for in their stronger tier, as the late worlds bring some)
 const LOOK748 = { commit: '28e4201e5' };
 const TIER_CAMP748 = "const F = window.foes, add = F.add.bind(F); F.add = (k, at, o = {}) => add(k, at, /^(grunt|hulk)$/.test(k) ? { ...o, tier: 1 } : o); await new Promise((r) => setTimeout(r, 2500)); for (const f of F.list.slice()) if (f.site && /^(grunt|hulk)$/.test(f.kind) && !f.tierN) F.remove(f); await new Promise((r) => setTimeout(r, 2000))";
+/** (v2.35, issues #752 / #755: the lock-on framing and its ring, from the camera QC's frame-<kind> scenarios) */
+const LOCK752 = 'Issues #752 and #755: the camera QC (.claude/skills/camera-qc/run.mjs, SHOTS=1: the page itself, the ring and the HUD on it) in muted headless Chrome (--mute-audio, the game’s volumes at 0), Medium, 1280 × 720, Vite on port 5492, the game stepped 1/60 s a frame, 28 October 2026: the Arena, the foe held at its middle (its own update running, its blows dropped), the traveller locked on and standing at that distance; the before on this branch with only the measuring added (the camera and the ring as at 35d2c0e2c), the after with the change; cwebp -q 72. The two runs walk the same points, but the foe’s idle pose and the camera’s turn differ a little';
 
 export const CHANGELOG_MEDIA = {
   '2.35': [
@@ -1436,6 +1438,34 @@ export const CHANGELOG_MEDIA = {
       from: 'Issue #748: the creatures gallery (enemies.html, the game’s own body through Foes.look, inked by the post pass) via scripts/changelog-shots.mjs foe views at this change (28e4201e5) and its parent (35d2c0e2c), muted headless Chrome, three-quarter (yaw 0.75, pitch 0.12, the ray from above at 0.75, zoom 0.8), standing (the ray and the drone moving); the six pictures of each side laid three by two with ffmpeg (hstack/vstack) and cwebp -q 72; 28 October 2026',
       view: 'grunt@desert*, hulk@desert*, sentinel@desert*; ray@glassdunes, drone@spacecity, tripod@desert (top row then bottom row)' },
   ] },
+  { match: 'Locked on to an enemy, the camera now frames the fight as in Breath of the Wild', tags: ['combat'], shots: [
+    { name: 'lock-hulk-2m', title: 'A hulk 2 m off', size: [1280, 720], caption: 'Locked on to a hulk 2 m away: before, the camera low behind him and his body across the hulk’s; after, higher, looking down onto the ground between them, the hulk whole over his shoulder and both their feet', from: LOCK752 },
+    { name: 'lock-grunt-2m', title: 'A grunt 2 m off', size: [1280, 720], caption: 'Locked on to a grunt 2 m away: before, it half behind his hip; after, the camera stands off to the side and higher, the grunt beside him, the ground round both', from: LOCK752 },
+    { name: 'lock-jelly-5m', title: 'A lantern jelly 5 m off', size: [1280, 720], caption: 'Locked on to a lantern jelly hovering 5 m away: before, its bell cut by the top of the picture; after, its whole bell and lanterns, the ground under it and him from head to foot', from: LOCK752 },
+  ], numbers: [
+    { title: 'Locked on in the Arena, the share of frames with the enemy’s whole body, the traveller head to foot, his feet and the ground at its feet on the screen (and his body over at most a third of it)', unit: '%', better: 'higher', device: 'this Mac, headless Chrome, Medium, 1280 × 720: the camera QC’s 32 frame-<kind> scenarios, about 30,000 locked frames each run', rows: [
+      { where: 'about 2 m off', before: 60.0, after: 82.4 },
+      { where: 'about 5 m off', before: 84.7, after: 95.9 },
+      { where: 'about 9 m off', before: 97.9, after: 98.1 },
+      { where: 'a grunt, 2 m', before: 19, after: 76 },
+      { where: 'a hulk, 2 m', before: 88, after: 100 },
+      { where: 'a lantern jelly, 5 m', before: 0, after: 100 },
+      { where: 'a stilt heron, 5 m', before: 23, after: 100 },
+    ], source: 'scripts/camera-qc/lib.mjs lockFraming over the recorder’s `whole`; every scenario green on pops, jumps, spins and the rest before and after, ante-lock, arena-lock, guardian-lock and snapper-lock too', note: 'In node (scripts/camera-qc/sim-foes.mjs, the real rig and the Arena’s collision, 6 points round each of the 32 kinds at each distance), framed from 129 → 187 of 192 points 2 m off, 180 → 192 at 5 m, 192 → 192 at 9 m. A warlord walked round 2 m off went 99 → 78 % (its glaive’s tip at the top edge while the camera turns); the ember wisp stays near 55 % (held at the Arena’s middle its body drifts off its footing: the scenario’s, not the camera’s).' },
+  ], see: 'In the Arena, pick a hulk, a grunt or a lantern jelly from the foe list and lock on (R3, Tab) a step, a few steps and further away.' },
+  { match: 'The lock-on arrows now turn round the enemy’s head', tags: ['combat'], shots: [
+    { name: 'ring-crawler-9m', title: 'A crawler 9 m off', size: [1280, 720], caption: 'Locked on to a crawler 9 m away: before, the four arrows twice its size round it; after, a small ring round its body', from: LOCK752 },
+    { name: 'ring-grunt-5m', title: 'A grunt 5 m off', size: [1280, 720], caption: 'Locked on to a grunt 5 m away: before, the arrows round its whole body and beyond; after, round its head', from: LOCK752 },
+    { name: 'ring-brute-2m', title: 'A furnace brute 2 m off', size: [1280, 720], caption: 'Locked on to a furnace brute 2 m away: before, the arrows at the corners of the screen round its whole body; after, a small ring on its weak point at its middle, the brute whole', from: LOCK752 },
+  ], numbers: [
+    { title: 'The lock-on ring’s half-size on a 1280 × 720 screen (the median while locked at that distance)', unit: 'px', better: 'lower', device: 'this Mac, headless Chrome, Medium: the camera QC’s frame-<kind> scenarios, the reticle’s own numbers', rows: [
+      { where: 'a crawler, 9 m', before: 47, after: 24 },
+      { where: 'a grunt, 5 m', before: 78, after: 27 },
+      { where: 'a hulk, 2 m', before: 175, after: 34 },
+      { where: 'a warlord, 2 m', before: 223, after: 33 },
+      { where: 'a furnace brute, 2 m', before: 300, after: 40 },
+    ], source: 'src/lock-reticle.js markerHalf (RETICLE.size 24–40 px × the screen’s scale); every kind’s medians 47–300 px before, 24–40 after', note: 'A bigger screen draws it larger in proportion (reticleScale), as before.' },
+  ], see: 'In the Arena, lock on to a crawler far off and a hulk close in: the arrows keep one small size round the head; press R3 again on a foe that has a weak point and they ring that.' },
   { match: 'Every armed enemy now holds its weapon like a fighter', shots: [
     { name: 'grip-hulk-smash', size: [1280, 720], caption: 'The hulk’s smash held at 80 % of its wind-up: before, the club lying across its open, upturned hands; after, both fists stacked on the haft, the club up and back over its shoulder', from: GRIP744, view: 'hulk@desert, three-quarter (yaw 0.75, pitch 0.12, zoom 0.95, on the body alone), the smash at 80 % of its wind-up' },
     { name: 'grip-hulk-carry', size: [1280, 720], caption: 'The hulk standing: before, the club across its open claws; after, its fist closed round the butt and the head down by its feet, its empty hand open (the sheet’s)', from: GRIP744, view: 'hulk@desert, from its front left (yaw 0.45, pitch 0.12, zoom 1.25, on the body alone), standing, 1.5 s into its idle' },

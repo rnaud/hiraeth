@@ -16,6 +16,9 @@
 //   ride         riding, gliding, on the jets, climbing or swimming (the open framing is judged on foot only)
 //   body         the lens's distance from the traveller's own axis (his feet + 0.2 m to 1.75 m; m), pitch the view's (+ down)
 //   cut          he is left out of the view (the lens in him: materials.js uHeroCut): not judged in his body nor out of the frame
+//   whole        locked on: [the foe's drawn body whole, his body whole, his feet, the ground at its feet] each on the screen (1/0,
+//                within FRAME_EDGE), and the share of its screen box his body covers; issue #752: "I should see the whole enemy and
+//                myself and the ground"; with foeD its distance (m)
 
 /** The thresholds a scenario is green under. Per minute of the run unless said. */
 export const LIMITS = {
@@ -115,6 +118,30 @@ export function framing(S, L = LIMITS) {
   return { share: xs.length ? +pct(xs, 0.5).toFixed(3) : null, frames: xs.length };
 }
 
+/** Locked on, what counts as framed: on the screen within this much of its half-size (NDC), and his body covering at most `FRAME_COVER` of its screen box. */
+export const FRAME_EDGE = 0.95, FRAME_COVER = 0.35;
+/** The distance bands the lock's framing is reported in (m from him to the foe; issue #752: 2, 5 and 9 m). */
+export const FRAME_BANDS = { 2: [1, 3.2], 5: [3.8, 6.4], 9: [7.4, 11] };
+/**
+ * Locked on, the share of frames with everything framed (the foe whole, him whole, his feet and the ground at its feet,
+ * and his body covering no more than FRAME_COVER of it: `whole`), in each distance band and over all: { all: { share, frames }, 2: …, 5: …, 9: … }, and how often each part was lost.
+ */
+export function lockFraming(S, bands = FRAME_BANDS) {
+  const out = {}, lost = [0, 0, 0, 0, 0];
+  const add = (k, ok) => { const o = (out[k] ??= { ok: 0, frames: 0 }); o.frames++; if (ok) o.ok++; };
+  for (const s of S) {
+    if (!s.whole || s.foeD == null) continue;
+    const seen = s.whole.slice(0, 4).map(Boolean).concat((s.whole[4] ?? 0) <= FRAME_COVER), ok = seen.every(Boolean);
+    seen.forEach((v, i) => { if (!v) lost[i]++; });
+    add('all', ok);
+    for (const [k, [lo, hi]] of Object.entries(bands)) if (s.foeD >= lo && s.foeD <= hi) add(k, ok);
+  }
+  for (const o of Object.values(out)) o.share = +(o.ok / Math.max(1, o.frames)).toFixed(3);
+  const n = out.all?.frames ?? 0;
+  out.lost = { foe: +(lost[0] / Math.max(1, n)).toFixed(3), him: +(lost[1] / Math.max(1, n)).toFixed(3), feet: +(lost[2] / Math.max(1, n)).toFixed(3), ground: +(lost[3] / Math.max(1, n)).toFixed(3), covered: +(lost[4] / Math.max(1, n)).toFixed(3) };
+  return out;
+}
+
 /** The scenario's measures, its events (worst first) and its verdict against LIMITS (opts.framing: judge the open framing too). */
 export function analyse(S, L = LIMITS, opts = {}) {
   const st = steps(S), ok = st.filter(Boolean);
@@ -164,6 +191,7 @@ export function analyse(S, L = LIMITS, opts = {}) {
     lockHidden: +(hid / Math.max(1, locked)).toFixed(3), locked, inBody: +(inBody / Math.max(1, n)).toFixed(3),
     armMin: +Math.min(...ok.map((x) => x.arm), Infinity).toFixed(2), armMax: +Math.max(...ok.map((x) => x.arm), 0).toFixed(2),
     framing: framing(S, L).share,
+    lockFrame: S.some((s) => s.whole) ? lockFraming(S) : null,
   };
   const fails = [];
   // (so many a minute, rounded up: a half-minute run may have one)

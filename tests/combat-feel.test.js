@@ -257,34 +257,37 @@ test('the rising cut: a swing from the ground at a foe hovering over you leaps u
   tool.dispose(); clearTargets();
 });
 
-test('the lock-on reticle: four arrows turning round the body, never on it, pointing in at it; readable far off and on a handheld', async () => {
-  const { reticleRing, arrowAt, reticleScale } = await import('../src/lock-reticle.js');
-  const box = { x0: 500, y0: 200, x1: 620, y1: 420 }, cx = 560, cy = 310;
+test('the lock-on reticle: four arrows turning round the head, never on it, pointing in at it; one size whatever the foe (#755); readable on a handheld', async () => {
+  const { reticleRing, arrowAt, reticleScale, markerHalf } = await import('../src/lock-reticle.js');
+  // a head 40 px across (a grunt's 5 m off on a 720 p screen)
+  const box = { x0: 540, y0: 290, x1: 580, y1: 330 }, cx = 560, cy = 310;
   for (const ease of [0, 0.5, 1]) {
     const r = reticleRing(box, ease);
     for (let a = 0; a < Math.PI * 2; a += 0.05) {
       const p = arrowAt(r, a);
       const x = cx + p.x, y = cy + p.y;
-      // the tip stays outside the body's box, but for the box's very corners (a body's box is empty there): never within its inner 85 %
-      const inX = Math.abs(x - cx) < 0.85 * 60, inY = Math.abs(y - cy) < 0.85 * 110;
-      assert.ok(!(inX && inY), `at ${ease}, ${a.toFixed(2)}: the tip (${x.toFixed(0)}, ${y.toFixed(0)}) on the body`);
+      // the tip stays clear of the head's box
+      const inX = Math.abs(x - cx) < 20, inY = Math.abs(y - cy) < 20;
+      assert.ok(!(inX && inY), `at ${ease}, ${a.toFixed(2)}: the tip (${x.toFixed(0)}, ${y.toFixed(0)}) on the head`);
       // and points in, at the middle
       assert.ok(p.dx * -p.x + p.dy * -p.y > 0, 'points in');
       assert.ok(Math.abs(Math.hypot(p.dx, p.dy) - 1) < 1e-9);
     }
   }
-  // flying in: from wider, settling round the body
+  // flying in: from wider, settling round the head
   assert.ok(reticleRing(box, 0).rx > reticleRing(box, 1).rx * 2);
-  // far away (a body a few px across) the ring still stands clear of it; close, it never grows past its max
-  const far = reticleRing({ x0: 640, y0: 360, x1: 643, y1: 366 });
-  assert.ok(far.rx >= RETICLE.min && far.ry >= RETICLE.min);
-  assert.ok(reticleRing({ x0: -900, y0: -900, x1: 2000, y1: 2000 }).rx <= RETICLE.max);
+  // one size, as BotW's arrow (#755): a speck far off and a whole screen of hulk close in get rings within RETICLE.size
+  const far = reticleRing({ x0: 640, y0: 360, x1: 643, y1: 366 }), huge = reticleRing({ x0: -900, y0: -900, x1: 2000, y1: 2000 });
+  assert.equal(far.rx, RETICLE.size[0]); assert.equal(far.ry, RETICLE.size[0]);
+  assert.equal(huge.rx, RETICLE.size[1]);
+  assert.ok(huge.rx / far.rx <= 40 / 24 + 1e-9, 'never more than 5:3 between the smallest ring and the largest');
+  assert.equal(markerHalf(NaN, 1), RETICLE.size[0]);
   // drawn larger on a bigger screen, and larger again on a small one (a handheld's CSS pixels are tiny)
   assert.equal(reticleScale(1280, 720), 1);
   assert.ok(reticleScale(1920, 1080) > 1.4 && reticleScale(3840, 2160) <= RETICLE.scale.hi + 1e-9);
   assert.ok(reticleScale(860, 420) > 1.2, `a handheld (${reticleScale(860, 420).toFixed(2)})`);
   const farK = reticleRing({ x0: 640, y0: 360, x1: 643, y1: 366 }, 1, {}, 1.5);
-  assert.ok(farK.rx >= RETICLE.min * 1.5 - 1e-9, 'a far foe\'s ring no smaller than min × the scale');
-  assert.ok(RETICLE.min * reticleScale(860, 420) >= 36, 'on a handheld a far foe is ringed at least 72 px across');
+  assert.ok(farK.rx >= RETICLE.size[0] * 1.5 - 1e-9, 'a far foe\'s ring no smaller than its least × the scale');
+  assert.ok(RETICLE.size[0] * reticleScale(860, 420) >= 28, 'on a handheld a far foe is ringed at least 56 px across');
   assert.ok(RETICLE.arrow * reticleScale(860, 420) >= 18, 'and each arrow is big enough to see');
 });

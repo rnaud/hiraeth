@@ -67,7 +67,7 @@ await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceSc
 // ---------------------------------------------------------------- the recorder and the hands, put into the page
 // (one function, stringified: it wraps rig.update, so every frame's camera is read right after the rig placed it, and
 // the script's hands for the next frame are set there too; renderer.render is wrapped to keep a picture of a bad frame)
-function install(L, at = [], seed = 1) {
+function install(L, at = [], seed = 1, B = null, inAt = []) {
   const { THREE, rig, camera, player, physics, input, renderer } = window;
   const V = (a) => new THREE.Vector3(...a), up = new THREE.Vector3(0, 1, 0);
   const st = window.__cq = { samples: [], shots: [], segs: [], seg: -1, segT: 0, done: true, wp: 0, stuck: 0, stuckP: null, lastT: 0, log: [] };
@@ -185,6 +185,20 @@ function install(L, at = [], seed = 1) {
       foeCover: (() => { const f = window.foes?.lock; if (!f?.pos || !f.def) return null; const r = f.def.radius ?? 0.6;
         const fb = rect(f.pos, r, f.pos.y, f.chest.y + r * 0.5), pb = rect(player.pos, 0.3, player.pos.y, player.pos.y + 1.75);
         return fb && pb ? +L.cover(fb, pb).toFixed(3) : 0; })(),
+      // locked on: the foe's drawn body whole on the screen, his whole, his feet, the ground at its feet (L.lockFraming, #752)
+      whole: (() => { const f = window.foes?.lock; if (!f?.pos || !f.model?.group || !B) return null;
+        const E = L.FRAME_EDGE, inF = (x, y, z) => { _n.set(x, y, z).project(camera); return _n.z < 1 && Math.abs(_n.x) <= E && Math.abs(_n.y) <= E; };
+        const sp = B.bodySpan(f.model, st._span ??= { lo: 0, hi: 0, centre: new THREE.Vector3(), radius: 0 }), b = sp._box;
+        let foe = !b.isEmpty(); for (let k = 0; k < 8 && foe; k++) foe = inF(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z);
+        let him = true; for (let k = 0; k < 8 && him; k++) him = inF(player.pos.x + (k & 1 ? 0.3 : -0.3), player.pos.y + (k & 2 ? 1.75 : 0), player.pos.z + (k & 4 ? 0.3 : -0.3));
+        // (and how much of its screen box his body covers: L.cover, of its drawn body's box)
+        let fr = [Infinity, Infinity, -Infinity, -Infinity], behind = b.isEmpty();
+        for (let k = 0; k < 8 && !behind; k++) { _n.set(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).project(camera); if (_n.z > 1) behind = true;
+          fr = [Math.min(fr[0], _n.x), Math.min(fr[1], _n.y), Math.max(fr[2], _n.x), Math.max(fr[3], _n.y)]; }
+        const pb = rect(player.pos, 0.3, player.pos.y, player.pos.y + 1.75);
+        return [+foe, +him, +inF(player.pos.x, player.pos.y + 0.03, player.pos.z), +inF(f.pos.x, f.pos.y + 0.03, f.pos.z), behind || !pb ? 0 : +L.cover(fr, pb).toFixed(3)]; })(),
+      // (the lock's reticle: its ring's half-sizes on the screen, px of the frame's W × H: lock-reticle.js, #755)
+      ret: window.foes?.reticle?.view && window.foes?.lock ? [+window.foes.reticle.view.rx?.toFixed(1), +window.foes.reticle.view.ry?.toFixed(1)] : null,
       foeD: window.foes?.lock?.pos ? +Math.hypot(window.foes.lock.pos.x - player.pos.x, window.foes.lock.pos.z - player.pos.z).toFixed(2) : null,
       // the framing: the traveller's height on the screen (his feet to 1.75 m over them, a share of the frame's height), and
       // whether he rides or flies (the open framing is judged on foot only: L.analyse's framing)
@@ -192,6 +206,7 @@ function install(L, at = [], seed = 1) {
       ride: !!(player.riding || player.gliding || player.onJets || player.climbing || player.swim),
       seg: st.seg, stick: input.stick ? [+input.stick.x.toFixed(2), +input.stick.y.toFixed(2)] : null, spd: +Math.hypot(player.vel.x, player.vel.z).toFixed(2),
     };
+    st.t0 ??= s.t;
     st.samples.push(s);
     // a quick read of how bad this frame is (the full judgement is node's): worth a picture?
     if (prev2 && !L.isCut(prev, s) && !L.isCut(prev2, prev)) {
@@ -200,8 +215,14 @@ function install(L, at = [], seed = 1) {
         s.clear < L.LIMITS.clip ? 1 + (L.LIMITS.clip - s.clear) / L.LIMITS.clip : 0, s.body < L.LIMITS.body ? 1 + (L.LIMITS.body - s.body) / L.LIMITS.body : 0);
       const weakest = st.shots.length < 10 ? 0 : Math.min(...st.shots.map((x) => x.sev));
       // (SHOT_AT: a picture at those times as well, whatever happened, for a before and after of the same moment)
-      const asked = at.some((t) => s.t >= t && s.t - s.dt < t);
-      if (asked) st.atShots.push({ t: s.t, pend: true });   // (SHOT_AT: also kept whole, the frame's own size, for a changelog pair)
+      // (SHOT_IN: seconds into the scenario, from its first recorded frame: the same moment of every scenario)
+      const into = s.t - st.t0, inHit = inAt.find((t) => into >= t && into - s.dt < t);
+      // (a segment marked `shot` (a name): a picture halfway through it, for SHOTS=1: the frame-<kind> scenarios at 2, 5 and 9 m)
+      // (the page itself is shot from node, the reticle and the HUD over the picture: st.wantShot)
+      const sg = st.segs[st.seg];
+      if (st.shotSegs && sg?.shot && !sg._shot && st.segT >= sg.for / 2) { sg._shot = true; st.wantShot = sg.shot; }
+      const asked = at.some((t) => s.t >= t && s.t - s.dt < t) || inHit != null;
+      if (asked) st.atShots.push({ t: s.t, into: inHit, pend: true });   // (SHOT_AT: also kept whole, the frame's own size, for a changelog pair)
       if (asked || (sev >= 1 && sev > weakest && !st.shots.some((x) => Math.abs(x.t - s.t) < 0.6 && x.sev >= sev))) pending = { t: s.t, sev, what: `Δarm ${one.dArm.toFixed(2)} m · off-path ${one.move.toFixed(2)} m · look ${one.look.toFixed(2)} m · spin ${one.spin.toFixed(0)}°/s · lens ${s.clear.toFixed(2)} m · body ${s.body.toFixed(2)} m` };
     }
     prev2 = prev; prev = s;
@@ -231,7 +252,7 @@ function install(L, at = [], seed = 1) {
     let fs = (jseed * 7919) >>> 0;
     window.__cqRand = () => { fs = (fs + 0x6d2b79f5) >>> 0; let t = fs; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
   st.frames = 0;
-  st.start = (segs) => { st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.atShots = []; st.log = []; st.wa = null; st.rate = 0; rs = seed >>> 0; st.done = false; st.rec = true; prev = prev2 = null; };
+  st.start = (segs) => { st.t0 = null; st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.atShots = []; st.log = []; st.wa = null; st.rate = 0; rs = seed >>> 0; st.done = false; st.rec = true; prev = prev2 = null; };
   return true;
 }
 
@@ -268,7 +289,8 @@ for (const [wn, world] of byWorld.entries()) {
   if (!up) { console.log(`${world}: never booted`); for (const s of plan.filter((x) => x.world === world)) results[s.name] = { error: 'never booted' }; continue; }
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; } return true; })()`);
-  await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'); return (${install.toString()})(L, ${JSON.stringify((process.env.SHOT_AT ?? '').split(',').filter(Boolean).map(Number))}, ${SEED}); })()`);
+  await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'), B = await import('/src/foe-body.js'); return (${install.toString()})(L, ${JSON.stringify((process.env.SHOT_AT ?? '').split(',').filter(Boolean).map(Number))}, ${SEED}, B, ${JSON.stringify((process.env.SHOT_IN ?? '').split(',').filter(Boolean).map(Number))}); })()`);
+  if (process.env.SHOTS) await ev('window.__cq.shotSegs = true; true');
   for (const sc of plan.filter((s) => s.world === world)) for (let run = 1; run <= (RUNS ?? sc.runs ?? 1); run++) {
     // (run 1 at the even 1/60 s step; runs 2, 3… again with the step wobbled ±JITTER, seeded by the run: a scenario
     // with `runs` is green only if it is green every time, issue #289. --clock: the browser's own frame times, as before)
@@ -285,7 +307,11 @@ for (const [wn, world] of byWorld.entries()) {
     await ev(`window.__cq.start(${JSON.stringify(sc.segs)}); true`);
     const total = sc.segs.reduce((s, x) => s + x.for, 0);
     const t0 = Date.now();
-    while (!(await ev('window.__cq.done')) && Date.now() - t0 < (total * 6 + 60) * 1000) await sleep(250);
+    while (!(await ev('window.__cq.done')) && Date.now() - t0 < (total * 6 + 60) * 1000) {
+      const want = await ev('(() => { const w = window.__cq.wantShot; window.__cq.wantShot = null; return w; })()');
+      if (want) { const d = await send('Page.captureScreenshot', { format: 'png' }); if (d.result?.data) writeFileSync(join(OUT, `${key}-in-${want}.png`), Buffer.from(d.result.data, 'base64')); }
+      await sleep(want ? 0 : 100);
+    }
     const { samples, shots, log, at: atShots } = await ev('(() => { const s = window.__cq; s.rec = false; return { samples: s.samples, shots: s.shots, log: s.log, at: s.atShots }; })()');
     const r = L.analyse(samples, L.LIMITS, { framing: sc.framing });
     results[key] = { world, about: sc.about, run, ...r, events: r.events.slice(0, 40) };
@@ -293,8 +319,8 @@ for (const [wn, world] of byWorld.entries()) {
     writeFileSync(join(OUT, `${key}.json`), JSON.stringify(samples));
     const png = await sheet(key, shots.sort((a, b) => b.sev - a.sev).slice(0, 6));
     if (png) writeFileSync(join(OUT, `${key}.png`), Buffer.from(png.split(',')[1], 'base64'));
-    for (const a of atShots ?? []) if (a.img) writeFileSync(join(OUT, `${key}-at-${a.t.toFixed(2)}.png`), Buffer.from(a.img.split(',')[1], 'base64'));
-    console.log(`${key.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% in body ${(r.measures.inBody * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
+    for (const a of atShots ?? []) if (a.img) writeFileSync(join(OUT, a.into != null ? `${key}-in-${a.into}.png` : `${key}-at-${a.t.toFixed(2)}.png`), Buffer.from(a.img.split(',')[1], 'base64'));
+    console.log(`${key.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% in body ${(r.measures.inBody * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${r.measures.lockFrame ? ` framed ${['all', 2, 5, 9].map((k) => r.measures.lockFrame[k] ? `${k}: ${(r.measures.lockFrame[k].share * 100).toFixed(0)}%` : '').filter(Boolean).join(' ')}` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
   }
   if (!CLOCK) await ev('delete window.__stepDt; true');
 }

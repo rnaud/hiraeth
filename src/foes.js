@@ -207,9 +207,11 @@ export function lockSight(physics, eyes, target, radius = 0.5) {
  * his on the screen: from an arm `arm` m behind him, a foe `d` m on, its centre `body` (his half-width) + its own
  * radius + `margin` (rad) off his, at most `max` rad. A foe that stands tall over him (its chest over `tall`) needs none,
  * nor one in the cut's reach (under `near`): there the two overlap from any camera behind him, and the swing would only
- * churn the view as it dodges round him.
+ * churn the view as it dodges round him. In the open, framed (LOCK_VIEW_OPEN, issue #752: the higher camera of a foe's
+ * framing, BotW's, sees a small foe 2 m off beside him), whole from 1.9 m; close in, where the swing meets walls, from 2.6.
  */
 export const LOCK_VIEW = { body: 0.42, margin: 0.06, max: 0.7, tall: [1.5, 2.6], near: [1.2, 2.6] };
+export const LOCK_VIEW_OPEN = { ...LOCK_VIEW, near: [1.2, 1.9] };
 /** The angle (rad, ≥ 0) the lock camera swings off the line, for a foe `d` m away, `r` its radius, `h` its chest's height (pure: tests). */
 export function lockViewAngle(d, arm, r = 0.6, h = 1, V = LOCK_VIEW) {
   if (!(d > 0.1) || !(arm > 0.1)) return 0;
@@ -259,7 +261,9 @@ export function lockFollow(view, rig, f, pos, F, dt) {
   view.line = line; view.turn += (dl - view.turn) * (1 - Math.exp(-4 * dt));
   if (Math.abs(view.turn) > 0.3) view.side = -Math.sign(view.turn);
   else if (Math.abs(off) > 0.03 && Math.sign(off) !== view.side) view.side = Math.sign(off);
-  const goal = view.side * lockViewAngle(d, rig._curDist, f.def?.radius ?? 0.6, (f.chest?.y ?? f.pos.y + 1) - f.pos.y);
+  // (framed in the open, rig.fitK, the swing whole nearer: LOCK_VIEW_OPEN, #752)
+  const fr = f.def?.radius ?? 0.6, fh = (f.chest?.y ?? f.pos.y + 1) - f.pos.y, ok = rig.fitK ?? 0;
+  const goal = view.side * THREE.MathUtils.lerp(lockViewAngle(d, rig._curDist, fr, fh), ok > 0 ? lockViewAngle(d, rig._curDist, fr, fh, LOCK_VIEW_OPEN) : 0, ok);
   view.angle += (goal - view.angle) * (1 - Math.exp(-4 * dt));
   line += view.angle;
   // (his back to a wall, the line yields: turned off it toward the side with room behind him, the foe kept on the

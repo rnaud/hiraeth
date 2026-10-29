@@ -1257,10 +1257,14 @@ with nothing round it.
   is attacking: it should be obvious"): four gold arrowheads, their tips in at the foe, turning round it at `RETICLE.spin`
   (1.4 rad/s), an SVG over the game. Each is two-toned (a lit and a shaded face, like a little pyramid) over an ink edge
   (`edge` 2.6 px) and a soft pale halo (`halo` 5 px at 0.45), so it reads on bright sand and on dark rock; `arrow` 18 px
-  long, `wide` 17. They ride a rounded box (`reticleRing`, a superellipse of power `round` 4, `arrowAt`) round the foe's
-  drawn body on the screen (its parts' box as posed, `foe-body.js` `bodySpan`; no parts: its sphere) grown by `gap` (14 px,
-  breathing ±6 %), `min` 30 to `max` 300 px half-size, so they turn round the body without sitting on it and a far foe's
-  ring stays visible. The drawing scales with the screen (`reticleScale`: 1 at 720 px on the shorter side, up to 1.7,
+  long, `wide` 17. They ride a rounded ring (`reticleRing`, a superellipse of power `round` 4, `arrowAt`) round the foe's
+  **head** (issue #755, the author: "Sometimes the lock on feels too big vs the size of the enemy. Check how botw handles
+  this"; BotW marks its target with one arrow over the head, about one size whatever the foe: `markerAt`, its weak point
+  `model.weak` or the eyes its gaze turns, else its drawn body's top less `top` 0.3 m; switched to the weak point, #722
+  `Foe.aimWeak`, that) grown by `gap` (14 px, breathing ±6 %), its half-size held within `size` 24–40 px (`markerHalf`):
+  measured in the camera QC's `frame-<kind>` scenarios (1280 × 720), every kind's median 24–40 px, where round the whole
+  body (v1.42 to v2.35, `min` 30 to `max` 300 px, still `bodyBox`) it was 47–300: a crawler 9 m off 47 → 24, a hulk 2 m
+  off 175 → 34, a furnace brute 300 → 40. Tests: `tests/lock-frame-foe.test.js`, `tests/combat-feel.test.js`. The drawing scales with the screen (`reticleScale`: 1 at 720 px on the shorter side, up to 1.7,
   × 1.25 under 560 px, a handheld's small CSS pixels). A new lock flies them in over `snap` (0.35 s) from `from` (2.4) ×
   the ring with an extra `whirl` of turn. With Reduce motion on (v1.48, combat-v1.47 rec. 4, `reticleMotion`) none of
   that moves: the arrows rest at the box's corners (`still`, π/4), the gap doesn't breathe, a new lock appears at its ring

@@ -18,10 +18,20 @@ import { motionState } from './feel.js';
 // With Reduce motion on (src/feel.js setMotion; combat-v1.47 recommendation 4) the arrows hold still at the box's
 // corners: no turn, no breathing, no fly-in or whirl; a new lock only fades in (reticleMotion).
 //
+// v2.x, issue #755, the author: "Sometimes the lock on feels too big vs the size of the enemy. Check how botw handles this".
+// BotW marks the target with one small arrow over its head, about the same size on the screen whatever the foe's size or
+// distance. So the ring no longer goes round the whole body (a hulk 2 m off had arrows 300 px apart, a crawler 9 m off
+// arrows bigger than it): it goes round the head (its weak point, model.weak, or the eyes its gaze turns; a body with
+// neither, its top), and its size on the screen is held within RETICLE.size whatever the foe (markerHalf). Switched to
+// the weak point (#722, Foes.cycleLock: aimWeak) it rings that, at the same size.
+//
 //   const r = new LockReticle(); r.update(foe | null, camera, dt); r.acquire(); r.dispose()
 
 export const RETICLE = {
-  min: 30, max: 300,          // px: the ring's half-size on the screen, at least / at most (× reticleScale)
+  min: 30, max: 300,          // px: the edge marker's half-size (off the screen); the old whole-body ring's bounds
+  size: [24, 40],             // px: the ring's half-size round the head, at least / at most (× reticleScale; markerHalf, #755)
+  head: 0.18,                 // m: a head's radius when its model gives none (the eyes' node: src/enemies/gaze.js)
+  top: 0.3,                   // m: a body with no head: the ring round this far under its top
   margin: 0.35,               // m round the foe's body (the ring of a body with no parts to measure: its sphere)
   gap: 14,                    // px between the body's box and the arrows' tips
   round: 4,                   // the ring's shape: a superellipse of this power (2 an ellipse, higher a rounder box)
@@ -85,8 +95,38 @@ export function reticleRing(box, ease = 1, out = {}, k = 1, t = 0) {
   const R = RETICLE, g = R.gap * k * (1 + R.breathe * Math.sin(t * 2.6));
   const grow = 1 + (R.from - 1) * (1 - ease);
   out.cx = (box.x0 + box.x1) / 2; out.cy = (box.y0 + box.y1) / 2;
-  out.rx = THREE.MathUtils.clamp((box.x1 - box.x0) / 2 + g, R.min * k, R.max * k) * grow;
-  out.ry = THREE.MathUtils.clamp((box.y1 - box.y0) / 2 + g, R.min * k, R.max * k) * grow;
+  // (round the head now, #755: one size both ways, held within RETICLE.size: markerHalf)
+  out.rx = out.ry = markerHalf(Math.max(box.x1 - box.x0, box.y1 - box.y0) / 2, k, g) * grow;
+  return out;
+}
+
+/**
+ * The ring's half-size on the screen (px, pure: tests; issue #755): the head's own half-size `px` there plus the gap,
+ * held within RETICLE.size × k. BotW's arrow is about one size whatever the foe: so a hulk's head 2 m off and a
+ * crawler's 9 m off get rings within 24-40 px of each other, not 30-300 as round the whole body before.
+ */
+export function markerHalf(px, k = 1, gap = RETICLE.gap * k, R = RETICLE) {
+  return THREE.MathUtils.clamp((Number.isFinite(px) ? px : 0) + gap, R.size[0] * k, R.size[1] * k);
+}
+
+/**
+ * Where the ring goes on foe f (world), and how round that is (m), into `out` ({ at, r }), or null (pure but for the
+ * model's matrices; issue #755): switched to its weak point (#722, f.aimR), that; else its head (model.weak, or the
+ * eyes its gaze turns: src/enemies/gaze.js); else the top of its drawn body (`span`, src/foe-body.js bodySpan) less
+ * RETICLE.top; else its chest.
+ */
+export function markerAt(f, out = { at: new THREE.Vector3(), r: 0 }, span = null) {
+  const R = RETICLE, M = f.model;
+  if (f.aimR) { out.at.copy(f.aim); out.r = f.aimR; return out; }
+  const W = M?.weak, node = W?.obj ?? M?.gaze?.[0]?.node;
+  if (node && M?.group) {
+    M.group.updateMatrixWorld?.(true);
+    node.getWorldPosition(out.at); out.r = (W ? W.r : R.head) * (M.size ?? 1);
+    return out;
+  }
+  if (span) { out.at.set(span.centre.x, Math.max(span.lo, span.hi - R.top), span.centre.z); out.r = R.head; return out; }
+  if (!f.chest) return null;
+  out.at.copy(f.chest); out.r = R.head;
   return out;
 }
 
@@ -156,21 +196,30 @@ export class LockReticle {
   /** A new foe locked: the arrows fly in on it. */
   acquire() { this.snap = 0; }
 
-  /** The foe's drawn body as a box on the screen (px), or null (behind the camera: the caller holds it at the edge). */
+  /**
+   * The ring's spot as a box on the screen (px): round the foe's head or the weak point the lock was switched to (#755,
+   * markerAt; a guardian's weak point too, GuardianLock.aim, issue #314), or null (behind the camera: the caller holds it
+   * at the edge). `bodyBox` the old whole-body box (the tests' and the engines' reference).
+   */
   screenBox(f, camera, W, H) {
+    let span = null;
+    if (!f.aimR && f.model?.group && !(f.model.weak?.obj || f.model.gaze?.[0]?.node)) { try { span = bodySpan(f.model, this.span); if (span._box.isEmpty()) span = null; } catch { span = null; } }
+    const m = markerAt(f, this._mark ??= { at: new THREE.Vector3(), r: 0 }, span);
+    if (!m) return null;
+    const b = _box;
+    _p.copy(m.at).project(camera);
+    if (_p.z > 1) return null;
+    const x = (_p.x * 0.5 + 0.5) * W, y = (0.5 - _p.y * 0.5) * H;
+    const dist = Math.max(0.5, camera.position.distanceTo(m.at)), fov = THREE.MathUtils.degToRad(camera.fov ?? 60);
+    const r = m.r / dist * (H / 2) / Math.tan(fov / 2);
+    b.x0 = x - r; b.x1 = x + r; b.y0 = y - r; b.y1 = y + r;
+    return b;
+  }
+
+  /** The foe's whole drawn body as a box on the screen (px), or null (behind the camera): the ring's bounds before #755. */
+  bodyBox(f, camera, W, H) {
     const model = f.model;
     let box = null;
-    // (a guardian's weak point, GuardianLock.aim: the ring round its mouth, not its whole body, issue #314)
-    if (f.aimR) {
-      const b = _box; b.x0 = b.y0 = Infinity; b.x1 = b.y1 = -Infinity;
-      const at = f.aim; _p.copy(at).project(camera);
-      if (_p.z > 1) return null;
-      const x = (_p.x * 0.5 + 0.5) * W, y = (0.5 - _p.y * 0.5) * H;
-      const dist = Math.max(0.5, camera.position.distanceTo(at)), fov = THREE.MathUtils.degToRad(camera.fov ?? 60);
-      const r = (f.aimR + RETICLE.margin) / dist * (H / 2) / Math.tan(fov / 2);
-      b.x0 = x - r; b.x1 = x + r; b.y0 = y - r; b.y1 = y + r;
-      return b;
-    }
     if (model?.group) {
       try { bodySpan(model, this.span); box = this.span._box; } catch { box = null; }
       if (box?.isEmpty()) box = null;
@@ -225,7 +274,7 @@ export class LockReticle {
     const turn = M.turn;
     // (what is drawn, as numbers, for a screen with no page: the engines' HUD, engine/combat.js; px of this W × H)
     const V = this.view ??= { arrows: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]] };
-    Object.assign(V, { cx: ring.cx, cy: ring.cy, k: K, hollow: A.hollow, opacity: A.opacity * M.fade, W, H });
+    Object.assign(V, { cx: ring.cx, cy: ring.cy, rx: ring.rx, ry: ring.ry, k: K, hollow: A.hollow, opacity: A.opacity * M.fade, W, H });
     this.arrows.forEach((g, i) => {
       const a = arrowAt(ring, turn + i * Math.PI / 2, _at);
       const deg = Math.atan2(a.dy, a.dx) * 180 / Math.PI - 90;   // (drawn pointing down, +y: turned to point along dx, dy)

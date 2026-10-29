@@ -64,7 +64,8 @@ import { screen } from '../platform.js';
 import { sceneHolds } from '../hud-shows.js';
 import { Foes, lockFollow, LOCK_NEAR } from '../foes.js';
 import { Encounters } from '../encounters/index.js';
-import { guardianBox } from '../lock-frame.js';
+import { guardianBox, foeBox } from '../lock-frame.js';
+import { bodySpan } from '../foe-body.js';
 import { hopAxis } from '../jump.js';
 import { lockAim } from '../fluid-tool.js';
 import { AimNudge, AIM_NUDGE, lockAimStep } from '../lock-aim.js';
@@ -777,7 +778,7 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
   if (tool?.blade) tool.blade.onHopDodge = () => startFlurry();
   player.untouchable = () => flurryLeft() > 0;   // (a guardian's blows and rings pass you by: src/temples/boss.js)
   const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: lockViewAngle)
-  const lockBox = { min: new THREE.Vector3(), max: new THREE.Vector3() };
+  const lockBox = { min: new THREE.Vector3(), max: new THREE.Vector3() }, foeLockBox = { min: new THREE.Vector3(), max: new THREE.Vector3() };
   const aimNudge = new AimNudge();
   const _hopView = new THREE.Vector3();
   let padLook = () => null, off = false;
@@ -865,7 +866,10 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
       rig.locked = !!(foes.lock && !off);
       rig.lockAt = rig.locked ? (L.chest ?? L.pos) : null;
       // (a guardian: its box round its steady stand-in, so the camera frames you both whole: CameraRig.fitFrame, #359)
-      rig.frameWith = rig.locked && foes.lock.guardian && foes.lock.model?.group ? guardianBox(foes.lock.model, L.pos, lockBox, performance.now() / 1000) : null;
+      // (any other foe, issue #752: its drawn body's box, so the camera frames it whole, him whole and the ground at both
+      // your feet, as BotW's targeting does: LOCK_FRAME_FOE, src/lock-frame.js foeBox)
+      rig.frameWith = !rig.locked ? null : foes.lock.guardian ? (foes.lock.model?.group ? guardianBox(foes.lock.model, L.pos, lockBox, performance.now() / 1000) : null)
+        : foeBox(foes.lock, L.pos, foeLockBox, performance.now() / 1000, bodySpan);
       rig.boss = off ? null : foes.bossFight()?.def.camera ?? null;   // (a guardian's arena, awake: further back and higher)
       if (!rig.locked) rig.lockRoom?.(realDt, null);
       if (foes.lock && !off) {

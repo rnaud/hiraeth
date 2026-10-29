@@ -40,6 +40,9 @@ point's, the turn nobody asked for, the lens's room) and `<scenario>.json` (the 
 is red.
 `SHOT_AT=13.97[,…]` (seconds into each scenario) keeps a picture of those frames too, whatever happened there: the
 same moment before and after a fix, for the changelog; each is also written whole at the frame's own size, `<scenario>-at-<t>.png`.
+`SHOT_IN=3,9.5[,…]` does the same at seconds from each scenario's first recorded frame (`<scenario>-in-<t>.png`): the
+same moment of every scenario in one run. `SHOTS=1` keeps one halfway through every segment marked `shot` (its name:
+the `frame-<kind>` lock scenarios' stands at 2, 5 and 9 m, `<scenario>-in-2m.png`).
 
 **Without a browser** (seconds, for trying a fix): `node scripts/camera-qc/sim-lock.mjs [runs] [jitter]` walks ante-lock
 (the market's collision, the blot held, the lock camera as main.js turns it: `lockFollow`, src/foes.js; `RUN=k DUMP=t0-t1`
@@ -73,6 +76,7 @@ the real player's physics, frame times and crowd differ.
 | snapper-lock | perdide | in the Hush-House, locked on to the Mother Snapper awake (its blows held): circling it, backing off, running round it (issue #359: he whole, it and the floor framed) |
 | arena-lock | arena | from the spawn, locked on to an ink blot (its chance seeded): circling, stepping in and back; three runs |
 | arena-lock-lizard | arena | locked on to a horn lizard: standing, stepping back, circling it |
+| `frame-<kind>` | arena | each of the 32 built kinds held in the Arena's middle (its update running, its blows dropped): locked on 2 m off, round it, back to 5 m, round it, 9 m, round it; `SHOTS=1` keeps the page (reticle and HUD) at each distance (issues #752, #755). `node scripts/camera-qc/sim-foes.mjs [kind …] [--before] [--circle]` is the same in node |
 | incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |
 
 A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, pace (a path's stick tilt), near (m: a path point reached), run, jumpEvery, hold (jump held), turn / pitch (°/s), steer (°/s), lock }`;
@@ -96,6 +100,7 @@ line, as the game does).
 | **reversals** | the arm going in and out (moves > 1 cm changing direction): jitter against small or moving geometry | ≤ 1.5 a second |
 | **roughness** | the kinks' root mean square, every frame | ≤ 1.5 cm |
 | **foe hidden** | locked on: the frames where the traveller's body covers half the locked foe's screen box or more (`cover`; combat-v1.47, a small foe lined up behind him) | ≤ 10 % of the locked frames |
+| **framed** (report) | locked on: the share of frames with the foe's drawn body whole, his whole, his feet and the ground at its feet on the screen (within `FRAME_EDGE` 0.95) and his body over at most `FRAME_COVER` 35 % of it, by distance band (2, 5, 9 m: `lockFraming`); the reticle's ring size is recorded as `ret` | reported, not judged |
 | **framing** | a scenario with `framing` (desert-open): the traveller's median height on the screen (feet to 1.75 m), on foot in the open (not riding, gliding, climbing or swimming; tight < 0.1): Sable's third of the frame (v1.49) | 0.28–0.40 |
 
 "A minute" is rounded up for a short run (a 30-second scenario may have one). A teleport (> 3 m in a frame) is not

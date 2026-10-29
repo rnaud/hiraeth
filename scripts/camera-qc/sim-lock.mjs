@@ -12,6 +12,7 @@ import { Physics } from '../../src/physics.js';
 import { CameraRig } from '../../src/player.js';
 import { lockFollow } from '../../src/foes.js';
 import { analyse, cover } from './lib.mjs';
+import { foeBox } from '../../src/lock-frame.js';
 import { ANTE_WAY, ANTE_SEGS } from './scenarios.mjs';
 
 globalThis.window ??= { addEventListener() {} };
@@ -46,7 +47,8 @@ const rng = (seed) => { let s = seed >>> 0; return () => { s = (s + 0x6d2b79f5) 
  * still; `foeR` its radius, chest `chestY` m up), him from `start`, the camera's yaw `yaw` (the scenario's: looking along
  * `ax`). Returns the samples as the browser records them (lib.mjs), and the rig.
  */
-export function lockWalk(world, { segs, foe, start, yaw, jitter = 0, seed = 1, settle = 3, foeR = 0.6, chestY = 0.5 }) {
+export function lockWalk(world, { segs, foe, start, yaw, jitter = 0, seed = 1, settle = 3, foeR = 0.6, chestY = 0.5, frame = true }) {
+  const fbox = { min: new THREE.Vector3(), max: new THREE.Vector3() };
   const { physics } = world;
   const camera = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 5000);
   const rig = new CameraRig(camera, dom, physics);
@@ -71,6 +73,8 @@ export function lockWalk(world, { segs, foe, start, yaw, jitter = 0, seed = 1, s
       const dt = step(); st += dt; t += dt;
       // the lock (main.js: before the traveller moves, the frame before's camera)
       rig.locked = true; rig.lockAt = f.chest;
+      // (its box, as the game gives any locked foe's since #752: src/lock-frame.js foeBox; a blot of its radius and chest here)
+      rig.frameWith = frame ? foeBox(f, f.pos, fbox, t, null) : null;
       // him: the stick read from the lock's line (rig.yaw less its turn off the line for room), a jog at most
       let move = null, sc = 0;
       if (s.stick) {

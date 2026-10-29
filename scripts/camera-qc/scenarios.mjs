@@ -151,3 +151,29 @@ export const SCENARIOS = [
         const f = foes.add('lizard', new V(-2.4, 0, -1)); f.heading = 0; f.update = () => []; f.state = 'chase'; }`, settle: 3,
     segs: [{ for: 1, lock: true }, { for: 3 }, { for: 5, stick: [1, 0.3] }, { for: 1.5, stick: [0, -1] }, { for: 5, stick: [-1, 0.3] }, { for: 2, stick: [0, 1] }] },
 ];
+
+// ---------------------------------------------------------------- locked on each foe in the Arena, at 2, 5 and 9 m (issues #752, #755)
+// The author: "When locked on enemies I should see the whole enemy and myself and the ground like Zelda botw." Each built
+// kind stands held in the Arena's middle (its own update runs, its pose and its hover, but it stays put and its blows are
+// dropped); he locks on 2 m off, steps round it, backs out to 5 m, round it the other way, out to 9 m and round again.
+// The frames are judged as every lock scenario, and `whole` says whether it, he, his feet and the ground at its feet are
+// all on the screen (lib.mjs lockFraming, by distance band).
+export const FRAME_KINDS = ['crab', 'skitter', 'centipede', 'toad', 'lizard', 'heron', 'roller', 'rootknot', 'jelly', 'moth', 'ray', 'worm', 'tripod', 'cart', 'bell', 'drone',
+  'brute', 'fencer', 'blot', 'shade', 'hound', 'marionette', 'wisp', 'mummer', 'mummerking', 'grunt', 'hulk', 'sentinel', 'oracle', 'crawler', 'prowler', 'warlord'];
+const ring = (R, a0, a1, n = 4) => Array.from({ length: n + 1 }, (_, i) => { const a = a0 + ((a1 - a0) * i) / n; return [+(R * Math.sin(a)).toFixed(2), +(R * Math.cos(a)).toFixed(2)]; });
+export const FRAME_SEGS = [
+  { for: 1, lock: true }, { for: 2, shot: '2m' },
+  { for: 4, path: ring(2, 0, 0.9), pace: 0.6, near: 0.3 }, { for: 3, path: [ring(5, 0.9, 0.9, 1)[0]], pace: 0.8, near: 0.3 }, { for: 2, shot: '5m' },
+  { for: 6, path: ring(5, 0.9, -0.3), pace: 0.6, near: 0.3 }, { for: 4, path: [ring(9, -0.3, -0.3, 1)[0]], pace: 0.8, near: 0.3 }, { for: 2, shot: '9m' },
+  { for: 7, path: ring(9, -0.3, 0.4), pace: 0.6, near: 0.3 },
+];
+for (const kind of FRAME_KINDS) SCENARIOS.push({
+  name: `frame-${kind}`, world: 'arena', about: `locked on to a ${kind} held in the Arena: 2 m, round it, 5 m, round it, 9 m, round it`,
+  setup: `foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x)); foes.waveRest = 1e9; if (window.__cqRand) foes.rng = window.__cqRand; player.health = 1;
+    window.__cqHeal ??= setInterval(() => { if (window.player) player.health = 1; }, 200);
+    // (his frame the world's, fwd +z and right +x, so the hands' points read as the game reads the stick; the camera behind him)
+    { const V = THREE.Vector3; player.teleport(new V(0, 0, 2), new V(0, 1, 0), new V(0, 0, 1)); player.heading = Math.PI; rig.yaw = 0;
+      const f = foes.add(${JSON.stringify(kind)}, new V(0, 0, 0)); f.heading = 0; f.state = 'chase'; f.provoked = true;
+      const u = f.update.bind(f); f.update = (dt, P, env) => { try { u(dt, P, env); } catch {} f.pos.x = 0; f.pos.z = 0; return []; }; }`, settle: 2,
+  segs: FRAME_SEGS,
+});

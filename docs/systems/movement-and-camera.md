@@ -212,6 +212,55 @@ fetch `/guardians/<id>/model.glb`, so sim-guardians reads the GLBs from `public/
 before, their old procedural bodies' boxes: the Keeper's 10.2 × 8.2 × 11.6 m, now 3.3 × 7.3 × 7.8; the Elder's 12 × 9.9
 × 12, now 6.3 × 6.6 × 4.9, its top on the screen at every point instead of none).
 
+## Locked on any foe: the BotW framing (v2.35, issue #752; `LOCK_FRAME_FOE`, `foeBox`)
+
+The author: "When locked on enemies I should see the whole enemy and myself and the ground like Zelda botw." Until
+v2.35 only a guardian gave the rig its box (#359); locked on any other foe the camera stayed the free one, 4.8 m back
+and nearly level (0.16 rad down), so a grunt 2 m off stood behind his back, a stilt heron's or a jelly's top was off the
+picture and a hulk filled it behind him. BotW's targeting camera (notes from play and the Zelda Wiki: no images kept)
+stands behind Link a little to the side and higher than the free one, looks down onto the ground between the two with
+the horizon still level, pulls back for a big foe and hardly at all for a small one, and keeps its field of view.
+
+- **Every locked foe's box** (`src/lock-frame.js` `foeBox`, main.js through `src/host/game-host.js`, so Unity too): its
+  drawn body's bounds (`foe-body.js` `bodySpan`, the parts as posed, not trails or drops), measured every 0.25 s round its
+  footing, grown at once and shrunk by `hold` 0.15 a measure (a club swung up or a wing beat stays framed), kept within
+  `box` × its size, and its footing as `ground` (a flyer's: the ground under it is framed too).
+- **The fit** (`LOCK_FRAME_FOE`, the guardians' solve with its own tuning): its eight corners, his box, the floor halfway
+  and under a flyer; camera heights from 0.3 rad (0.2 and 0.1 last, for a flyer straight overhead), the arm 4.5–10 m,
+  preferably under 7; the look point 0.3 m up; the lens widened by 7° at most. The view is aimed with what fits set
+  `low` 0.75 of the way toward the frame's foot (`frameAim`'s `low`): the two of you in its lower part, the land and the
+  sky above, looking 0.3 rad down (0.16 free), not at the sand.
+- **Only in the open** (`open` [0.1, 0.25] of the close-in framing, `tightK`, on under the first, off over the second):
+  in the Undertower's antechamber (0.13 and up) the arm can't stand back, and the fit made it pop against the walls.
+- **The stand-off swing nearer** (`LOCK_VIEW_OPEN`, src/foes.js `lockFollow`, by the fit's weight): whole from 1.9 m in
+  the open (2.6 close in, where it met the antechamber's walls), so a small foe 2 m off is beside him.
+- **The look blended**: the fit's aim is laid over whichever look the rig had (the two-shot or the look point), never
+  switched to from one frame to the next (a 2100°/s spin in sim-lock's antechamber when a fit eased out).
+
+Measured: the camera QC's new `frame-<kind>` scenarios (`scripts/camera-qc/scenarios.mjs`: each of the 32 built kinds
+held in the Arena's middle, its own update running, its blows dropped; locked on 2 m off, round it, 5 m, round it, 9 m,
+round it), the frames with its drawn body whole, him whole, his feet and the ground at its feet on the screen (within
+0.95 of its half-size) and his body over at most 35 % of it (`lib.mjs` `lockFraming`, the recorder's `whole`):
+| locked frames framed | before | after |
+|---|---|---|
+| about 2 m off (1–3.2 m) | 60.0 % | 82.4 % |
+| about 5 m off | 84.7 % | 95.9 % |
+| about 9 m off | 97.9 % | 98.1 % |
+| all | 82.4 % | 93.0 % |
+| a grunt 2 / 5 / 9 m | 19 / 93 / 100 % | 76 / 100 / 100 % |
+| a crawler | 61 / 93 / 100 % | 76 / 100 / 100 % |
+| a hulk | 88 / 100 / 100 % | 100 / 100 / 100 % |
+| a warlord | 99 / 78 / 100 % | 78 / 100 / 100 % |
+| a lantern jelly | 0 / 0 / 94 % | 40 / 100 / 100 % |
+| a stilt heron | 0 / 23 / 100 % | 44 / 100 / 100 % |
+All 32 green on the QC's other measures before and after; ante-lock, arena-lock (three runs each), arena-lock-lizard,
+guardian-lock and snapper-lock green. In node (`scripts/camera-qc/sim-foes.mjs`, the real rig and the Arena's collision,
+6 points round each kind at each distance): framed from 129 → 187 of 192 points 2 m off, 180 → 192 at 5 m, 192 → 192 at 9 m; circling each at 4 m green, framed 97–100 % of the frames. Tests: `tests/lock-frame-foe.test.js`.
+Left: the ember wisp's and the sky ray's numbers are the scenario's, not the camera's (held at the Arena's middle the
+wisp's body drifts away from its footing; the ray swoops); big bodies 2 m off (the brute, the bell walker, the heron) still
+lose a part of their top while he walks round them in the cut's reach, and the warlord's glaive tip touches the top edge
+there (99 → 78 % 2 m off) while the camera turns.
+
 ## Aiming locked on: centred, then nudged (v1.77, issue #362; `src/lock-aim.js`)
 
 The author: "When pressing L2 to aim we should always center to the center of the lock on and I should be able to use the
