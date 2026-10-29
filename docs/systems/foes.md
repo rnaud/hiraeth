@@ -128,6 +128,17 @@ The first things in the game that fight back, and the tool's answer to them.
   (an ink upgrade) still takes a run's swing first. Standing with Shift held, the blade is the plain first swing. Tested
   in `tests/blade-attacks.test.js` (from a sprint: the running cut, the speed carried into the cut and eased to a stop,
   never a lurch); the same with the default sprint and with `?sprint=kevin`.
+  **No spin** (v2.35, issue #760, the author: "Running attack animation is still non sensical"). Frame by frame (the Arena,
+  side on, every 0.05 s) attack 2 is a spinning cut: his hips turned 108° one way through its wind-up and 141° the other
+  through its follow-through (measured on the traveller), so a cut begun at a sprint ended with him turned round, the
+  blade pointing back the way he came, and his whole body planted and slid along at the run's speed. The running cut is
+  now the Great Sword pack's slash 1 (the charged cut's clip) from the sword going up (0.3 s; cut 0.54–0.76, as the
+  charge's, 0.14/0.14/0.36 s): raised over his right shoulder and cleaved down and across in front of him the way he runs,
+  his hips within ±32° of it, played over the upper body only (`RUN_CUT.upper`: `swingMove.full` false), so the legs keep
+  running as the run carries him and slow to a stop with it. Slash 1 of the Sword and Shield pack (the combo's first) over
+  the run read the same way but lighter; the great sword's slash with the whole body slid its planted feet. The dash cut
+  keeps attack 2: it passes a foe on purpose and ends turned back to it. Tested: the hips never more than 69° off the way
+  he runs (the old spin 141°), the blade 0.9 m and more out in front through the cut, the legs his own.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.

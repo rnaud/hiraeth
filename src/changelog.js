@@ -42,6 +42,7 @@ export const CHANGELOG = [
       { text: 'You can no longer pass through an enemy: rolling, dashing, the dash cut, the running cut and the hops all stop at its body and slide round it, big ones like the hulk and the warlord hold you further off, and standing next to a grunt your bodies no longer overlap. Pinned against a wall, the enemy is the one pushed back.', see: 'In the Arena, roll or dash straight at a grunt or a hulk: you stop against it and slide round its side instead of coming out behind it.' },
       { text: 'You can raise your shield at any moment now, even halfway through a swing: the guard cuts the attack short wherever it is, from the wind-up to the follow-through, and a parry works exactly as it does from a standstill. This goes for the charged cut, the dash and running cuts and the swings in the air too.' },
       { text: 'The third, heavy blow of your combo now lands: through its wind-up he keeps turned to the enemy instead of twisting away from it, and if the second blow knocked the enemy back he steps in after it, so the cleave comes down on it. An enemy that deliberately flips or hops out of your combo can still escape it.' },
+      { text: 'Attacking while sprinting is a real running slash now: he raises the sword over his shoulder and cleaves down in front of him without breaking stride, then slows to a stop. Before, he spun round on the spot and ended up slashing behind himself, his feet sliding along the ground.' },
     ],
   },
   {

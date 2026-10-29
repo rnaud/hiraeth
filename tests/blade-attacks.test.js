@@ -399,8 +399,19 @@ test('the blade pressed at a sprint is the running cut: the run carried into one
   assert.ok(p.sprinting && v0 > RUN_CUT.min, `sprinting at ${v0.toFixed(2)} m/s`);
   tick({ KeyW: true, ShiftLeft: true, KeyF: true });
   assert.equal(blade.special, RUN_CUT, 'the running cut, not the standing first slash');
-  const speeds = [], phases = [];
-  for (let i = 0; i < 80 && blade.swinging; i++) { tick({ KeyW: true, ShiftLeft: true }); speeds.push(Math.hypot(p.vel.x, p.vel.z)); phases.push(blade.phase); }
+  const speeds = [], phases = [], run = blade.runDir.clone();
+  // (#760: no spin. His hips stay turned the way he runs and the blade cuts out in front of him, over running legs)
+  let hips = 0, ahead = -Infinity;
+  const pel = p.humanoid.b.pelvis, q = new THREE.Quaternion();
+  for (let i = 0; i < 80 && blade.swinging; i++) {
+    tick({ KeyW: true, ShiftLeft: true }); speeds.push(Math.hypot(p.vel.x, p.vel.z)); phases.push(blade.phase);
+    if (p.swingMove) assert.equal(p.swingMove.full, false, 'over the upper body: the legs keep running');
+    pel.getWorldQuaternion(q); const f = v(0, 0, 1).applyQuaternion(q).setY(0).normalize();
+    hips = Math.max(hips, Math.acos(THREE.MathUtils.clamp(f.dot(run), -1, 1)));
+    if (blade.cutting) { const seg = blade.bladeSegment(); if (seg) ahead = Math.max(ahead, v().subVectors(seg.b, p.pos).dot(run)); }
+  }
+  assert.ok(hips < 1.2, `his hips never turned round (${(hips * 57.3).toFixed(0)}° off the way he runs at most; the old spin 141°)`);
+  assert.ok(ahead > 0.9, `the blade cuts out in front, the way he runs (${ahead.toFixed(2)} m ahead)`);
   const cutAt = phases.indexOf('strike'), recAt = phases.indexOf('recover');
   assert.ok(cutAt > 0 && speeds[cutAt] > v0 * 0.85, `carried into the cut (${speeds[cutAt]?.toFixed(2)} m/s)`);
   for (let i = recAt + 1; i < speeds.length; i++) assert.ok(speeds[i] <= speeds[i - 1] + 0.05, `easing to a stop through the follow-through, never a lurch (${speeds[i - 1].toFixed(2)} → ${speeds[i].toFixed(2)})`);

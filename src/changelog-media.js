@@ -1496,6 +1496,11 @@ export const CHANGELOG_MEDIA = {
       { where: 'knocked back by the third swing', before: 1.41, after: 0.21 },
     ], note: 'The crawler, the lamp tripod and the skitter walk on the procedural kit and already held their feet (0.01 or less).' },
   ] },
+  { match: 'Attacking while sprinting is a real running slash now', shots: [
+    { name: 'sprint-slash', size: [1280, 488], caption: 'Sprinting and pressing the blade, every 0.05 s from the press: before, he spun round and slashed behind himself, his feet sliding; after, the sword raised over his shoulder and cleaved down in front of him, his legs still running',
+      from: 'Issue #760: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; Medium, 960 × 640, the Arena, ?level=arena) on this branch’s own Vite (port 5491), the clock stepped by hand at 60 frames a second, the blade and the guard pressed from the game’s own input; no foe, W and Shift held 1.5 s and through the attack, the camera pinned side on; before: main at 35d2c0e2c, after: this branch with this change; 28 October; cwebp -q 72',
+      view: 'Ten frames from the press, cropped round him, as the v2.32 running-cut pair was.' },
+  ], see: 'Hold Shift and run in the Arena, then press the blade.' },
   { match: 'The third, heavy blow of your combo now lands', shots: [
     { name: 'third-blow', size: [1280, 304], caption: 'The third blow at a prowler the second cut shoved back, every 0.05 s from its wind-up: before, he turned away into the wind-up and cleaved the air 2.9 m short of it; after, he keeps turned to it, steps in after it and the blow lands',
       from: 'Issue #759: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; Medium, 960 × 640, the Arena, ?level=arena) on this branch’s own Vite (port 5491), the clock stepped by hand at 60 frames a second, the blade and the guard pressed from the game’s own input; the combo pressed at a prowler set 1.3 m off with its own mind (its blows and its dodges out of the combo switched off, so the picture shows the shove alone), the camera following side on; before: main at 35d2c0e2c, after: this branch with this change; 28 October; cwebp -q 72',

@@ -332,8 +332,15 @@ export const DASH = { clip: 'mixamo_ss_attack_2', late: 0.15, cooldown: 1.1, spe
  * running cut (the dash cut's clip, attack 2), the run's own speed (at most `carry` m/s) carried on through the wind-up and
  * the cut along the way he runs (or at a foe in reach), easing to a stop through the follow-through (as (1 − u)^`ease`), `damage` 2 and heavy (the knockback, the hit-stop, the heavy hit burst); then the cooldown, as after a third
  * swing. Not the dash cut's backstab (that stays the evade's). The lunge (an ink upgrade) still takes a run's swing first.
+ *
+ * v2.35, issue #760 (the author: "Running attack animation is still non sensical"): attack 2 is a spin. Measured on the
+ * traveller, its hips turn 108° one way through the wind-up and 141° the other through the follow-through, so a cut begun
+ * at a sprint ended with him turned round, the blade pointing back the way he came, his whole body (`full`) planted and slid
+ * at the run's speed. Now the Great Sword pack's slash 1 (the charged cut's clip) from the sword going up (0.3 s): raised
+ * over his right shoulder and cleaved down and across in front, the way he runs, his hips within ±32° of it; played over
+ * the upper body only (`upper`), the legs still running as the run carries him, slowing to a stop through the follow-through.
  */
-export const RUN_CUT = { clip: 'mixamo_ss_attack_2', min: 5.2, carry: 9, ease: 1.6, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.14, active: 0.14, recover: 0.36,
+export const RUN_CUT = { clip: 'mixamo_gs_slash_1', upper: true, min: 5.2, carry: 9, ease: 1.6, from: 0.3, hit: 0.65, activeFrom: 0.54, activeTo: 0.76, to: 1.05, wind: 0.14, active: 0.14, recover: 0.36,
   angle: 1.7, reach: 3.2, damage: 2 };
 /** Does a press start the running cut (RUN_CUT): on the ground, sprinting or at `min` m/s, not in a chain (`chained`)? */
 export const runCutOpen = ({ onGround = false, sprinting = false, speed = 0, chained = false } = {}, R = RUN_CUT) => onGround && !chained && (sprinting || speed >= R.min);
@@ -864,7 +871,7 @@ export class FluidBlade {
       const S = this.move, u = Math.min(this.t, 1), m = (p.swingMove ??= {});
       if (this.charging) { m.clip = CHARGE.clip; m.t = chargePose(this.charging.t); }
       else { m.clip = S.clip; m.t = this.sample.t; }
-      m.air = S === AIR; m.full = !!p.onGround || m.air; m.id = this.swingId; m.blend = this.charging ? CHARGE.draw : 0.09;
+      m.air = S === AIR; m.full = !S.upper && (!!p.onGround || m.air); m.id = this.swingId; m.blend = this.charging ? CHARGE.draw : 0.09;
       // (in over 70 ms, out over 120; the charged cut let go is already in: no dip back toward the loops)
       m.w = this.charging ? 1 : THREE.MathUtils.clamp(Math.min(S === CHARGE ? 1 : u * this.dur / 0.07, (1 - u) * this.dur / 0.12), 0, 1);
       // (the riposte: turned into its chop, which comes down to his right)
