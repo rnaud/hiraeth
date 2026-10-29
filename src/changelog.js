@@ -22,6 +22,8 @@ export const CHANGELOG = [
       'The spark-stone alone lights Qanat’s tree: set it in the roots and the living water rises to meet it.',
       'The giant’s skull is a little temple with monsters: two grunts and two prowlers guard its dry pool, a Givers’ lamp lights for each one you cut down, and when the last falls the shrine opens on the lift valve. Its mouth lets you down once you carry the blade.',
       'Saves already part-way through the Desert carry on from the next thing still to do there, keeping everything you found.',
+      // the sword on his back (#763)
+      'The sword on your back sits against you again, slung across your right shoulder blade, instead of hanging in the air where the old backpack was. Outfits with a pack or a hood carry it over them.',
     ],
   },
   {

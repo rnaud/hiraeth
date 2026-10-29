@@ -570,7 +570,7 @@ export class FluidBlade {
     // out of a fight the sword sits on his back, in a leather frog behind the right shoulder (src/sword-sheath.js):
     // drawn over the shoulder when a fight starts, put back when it is over
     this.sheath = new SheathState();
-    this.sheathAt = sheathFrame();
+    this.sheathAt = sheathFrame(); this.sheathOutfit = null;
     this.frog = buildFrog();
     this.frog.visible = false;
     // the guard's shield: the makers' hub on a bracer round the left forearm, opening into a disc of the sword's water (src/shield.js)
@@ -1387,6 +1387,9 @@ export class FluidBlade {
     const T = this.tool, p = T.player, S = this.sheath;
     const on = p?.object?.visible !== false && T.swordOn !== false;   // (once found: main.js sets tool.swordOn from the items; a scene may put it away)
     const held = S.held;
+    // (the frog stood off an outfit's pack or hood: src/sword-sheath.js SHEATH_OUT, the v2 Wardrobe's outfit worn)
+    const worn = p?.character?.v2?.wardrobe?.worn?.id ?? null;
+    if (worn !== this.sheathOutfit) { this.sheathOutfit = worn; this.sheathAt = sheathFrame(undefined, worn); if (p?.sheathReach) p.sheathReach.at = this.sheathAt.position; }
     this.group.visible = on;
     const frogOn = on && !!this.mountBack(this.frog);
     this.frog.visible = frogOn;

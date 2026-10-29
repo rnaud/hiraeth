@@ -1,9 +1,8 @@
 // The fluid sword on the traveller's back (src/sword-sheath.js; the author: "hide the sword at rest, like move it
-// back to your back?"): out of a fight the hilt sits in a leather frog behind his right shoulder, beside the flask,
-// the pommel over the shoulder; drawn over the shoulder as a fight starts and put back after. Checked here: where
-// it sits and how it lies, that it touches neither the flask nor his body in the poses he takes (standing, walking,
-// jogging, running, talking, the title's stance, climbing, the ledge, riding, in the air, swimming, gliding), the
-// draw and the sheathe and their timing, and that a swing pressed with the sword on the back is not held up.
+// back to your back?"): out of a fight the hilt sits in a leather frog on his right shoulder blade, the pommel up by
+// the shoulder; drawn over the shoulder as a fight starts and put back after. Checked here: where it sits and how it
+// lies (that it sits against him and clear of him in every pose: tests/sword-sheath-seat.test.js), the draw and the
+// sheathe and their timing, and that a swing pressed with the sword on the back is not held up.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -18,16 +17,21 @@ import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
 
-test('on his back: behind the right shoulder, the pommel over it, the cup down toward the spine, the flat to his back', () => {
+test('on his back: diagonal over the right shoulder blade, the pommel up by the shoulder, the cup down toward the spine, the flat to his back', () => {
   const F = sheathFrame();
   const along = v(0, 1, 0).applyQuaternion(F.quaternion), flat = v(0, 0, 1).applyQuaternion(F.quaternion);
   const pommel = v(0, HILT.pommel, 0).applyQuaternion(F.quaternion).add(F.position), cup = v(0, HILT.mouth, 0).applyQuaternion(F.quaternion).add(F.position);
-  assert.ok(along.y < -0.95, `the cup down (${along.y.toFixed(2)})`);
-  assert.ok(along.x > 0.1, 'leaning in toward the spine as it goes down: the pommel out over the shoulder');
-  assert.ok(flat.z > 0.99, 'its flat to his back');
-  assert.ok(F.position.x < -0.15 && F.position.z < -0.18, 'on his right (-x), behind him');
-  assert.ok(pommel.y > 0.8 && pommel.y < 0.9, `the pommel just over the shoulder (${pommel.y.toFixed(3)} m up the chest frame; the collar 0.76)`);
-  assert.ok(cup.y < 0.65 && cup.x > pommel.x, 'the cup down on the shoulder blade, nearer the spine');
+  assert.ok(along.y < -0.8, `the cup down (${along.y.toFixed(2)})`);
+  assert.ok(along.x > 0.35, 'diagonal: leaning in toward the spine as it goes down, the pommel out over the shoulder');
+  assert.ok(along.z < -0.1, 'leaned with his back: the cup further back than the pommel');
+  assert.ok(flat.z > 0.95, 'its flat to his back');
+  assert.ok(F.position.x < -0.08 && F.position.x > -0.16 && F.position.z < -0.14 && F.position.z > -0.18, 'on his right shoulder blade (-x), just behind it (since #763: not where the flask stood)');
+  assert.ok(pommel.y > 0.76 && pommel.y < 0.84, `the pommel up by the shoulder (${pommel.y.toFixed(3)} m up the chest frame; the collar 0.76)`);
+  assert.ok(cup.y < 0.65 && cup.x > pommel.x + 0.07, 'the cup down on the shoulder blade, nearer the spine');
+  // (an outfit with something on its back stands it off along its flat, away from him)
+  const out = sheathFrame(undefined, 'gravity-ranger');
+  assert.ok(out.position.distanceTo(F.position) > 0.02 && out.position.clone().sub(F.position).dot(flat) < 0, 'stood off his pack');
+  assert.ok(sheathFrame(undefined, 'default').position.equals(F.position));
   // the frog: a strip between the hilt and his back, two loops round the grip
   const [strip, loops] = frogGeometry();
   strip.geometry.computeBoundingBox(); loops.geometry.computeBoundingBox();
@@ -163,70 +167,7 @@ test('a swing pressed with the sword on the back starts that frame and cuts on t
   assert.ok(back.inHand < back.cut, 'before the cut');
 });
 
-// ------------------------------------------------------------------ clear of the flask and of him
-test('clear of the flask and of his body in every pose he takes', { timeout: 300000 }, async () => {
-  const { holdStance } = await import('../src/title-world.js');
-  const { p, tool, tick } = await armed();
-  for (let i = 0; i < 5; i++) tick({});
-  const H = p.humanoid, C = H.chestAnchor, a = p.animator, lib = a.lib, mesh = p.character.mesh;
-  C.updateWorldMatrix(true, false);
-  const F = sheathFrame(), balls = hiltPoints().map(({ x, y, r }) => ({ c: v(x, y, 0).applyQuaternion(F.quaternion).add(F.position), r }));
-  // the flask, its frame and uprights (the wings folded inside it left out): fixed in the chest's frame
-  const toChest = C.matrixWorld.clone().invert();
-  let tankGap = Infinity;
-  tool.tank.group.updateWorldMatrix(true, true);
-  tool.tank.group.traverse((o) => {
-    for (let w = o; w && w !== tool.tank.group; w = w.parent) if (!w.visible || /wing/i.test(w.name)) return;
-    if (!o.isMesh) return;
-    const P = o.geometry.attributes.position, m = o.matrixWorld.clone().premultiply(toChest), q = v();
-    for (let i = 0; i < P.count; i++) { q.fromBufferAttribute(P, i).applyMatrix4(m); for (const b of balls) tankGap = Math.min(tankGap, q.distanceTo(b.c) - b.r); }
-  });
-  assert.ok(tankGap > 0.012, `${(tankGap * 100).toFixed(1)} cm off the flask`);
-  // the poses: the gaits as Player plays them (his relaxed arms), the title's stance, the library's climbing,
-  // riding and air clips, the swim strokes and the glide's spread arms
-  const poses = [];
-  const gait = (label, input, frames, setup) => {
-    poses.push([label, () => { p.pos.set(0, p.physics.groundAt(0, 5, -60), -60); p.vel.set(0, 0, 0); setup?.(); }, null]);
-    for (let i = 0; i < frames; i++) poses.push([label, () => p.update(dt, input, CAM_PLUS_Z), i % 6 === 5]);
-  };
-  const clip = (name, u, after) => () => {
-    const c = lib.all.find((k) => k.name === name);
-    for (const act of Object.values(a.actions)) act.setEffectiveWeight(0);
-    const act = a.mixer.clipAction(c); act.play(); act.enabled = true; act.setEffectiveWeight(1); act.time = u * c.duration;
-    a.mixer.update(0); a.src.updateMatrixWorld(true); a.apply(p.char.root); act.setEffectiveWeight(0);
-    after?.(); p.char.root.updateMatrixWorld(true); H.update();
-  };
-  gait('standing', {}, 180); gait('walking', { y: 0.5 }, 90); gait('jogging', { y: 1 }, 90); gait('running', { y: 1, run: true }, 120);
-  gait('talking', {}, 90, () => { p.talking = true; });
-  for (let i = 0; i < 4; i++) poses.push(['the title stance', clip('Idle_Loop', i / 4, () => holdStance(p.char, i)), true]);
-  for (const [n, k] of [['Climb_Up_Loop', 6], ['Climb_Idle_Loop', 3], ['Climb_Left_Loop', 4], ['Climb_Right_Loop', 4], ['ClimbLedge', 8], ['Driving_Loop', 4], ['Jump_Loop', 3], ['Jump_Start', 3]])
-    for (let i = 0; i < k; i++) poses.push([n, clip(n, i / k), true]);
-  const still = () => { p.char.root.updateMatrixWorld(true); H.update(); };
-  for (let i = 0; i < 8; i++) poses.push(['swimming (crawl)', () => { p.swim = { k: 1, crawl: 1, ph: i / 8, pitch: 1.4, roll: 0, vy: 0, hs: 1 }; p.animate(dt, 0); still(); p.swim = null; }, true]);
-  for (let i = 0; i < 4; i++) poses.push(['swimming (breaststroke)', () => { p.swim = { k: 1, crawl: 0, ph: i / 4, pitch: 1.4, roll: 0, vy: 0, hs: 1 }; p.animate(dt, 0); still(); p.swim = null; }, true]);
-  poses.push(['gliding', () => { p.talking = false; p.gliding = true; p.onGround = false; p.animate(dt, 0); still(); p.wingK = 1; p.spreadArms(); p.gliding = false; p.onGround = true; p.wingK = 0; }, true]);
-  const worst = new Map();
-  const P = mesh.geometry.attributes.position, w = v();
-  for (const [label, pose, look] of poses) {
-    pose();
-    if (!look) continue;
-    p.object.updateMatrixWorld(true); mesh.skeleton.update(); C.updateWorldMatrix(true, false);
-    const M = mesh.matrixWorld.clone().premultiply(C.matrixWorld.clone().invert());
-    let gap = Infinity;
-    for (let i = 0; i < P.count; i++) {
-      w.fromBufferAttribute(P, i); mesh.applyBoneTransform(i, w); w.applyMatrix4(M);
-      if (w.z > 0 || w.x > 0.05 || w.y < 0.4) continue;   // (his back, his right shoulder and arm, his head)
-      for (const b of balls) gap = Math.min(gap, w.distanceTo(b.c) - b.r);
-    }
-    worst.set(label, Math.min(worst.get(label) ?? Infinity, gap));
-  }
-  if (process.env.SAY) console.log([...worst].map(([k, g]) => `${k} ${(g * 100).toFixed(1)} cm`).join(', '));
-  // (1 cm off the mesh: on B3 it is his coat itself over the back and arm, no overshirt stands off it there, as v1's
-  // did 1–1.5 cm over his skin, which wanted 2 cm; measured on B3: ClimbLedge's raised arm 1.5 cm, Jump_Loop 3.6, the gaits 4.0)
-  for (const [label, gap] of worst) assert.ok(gap > 0.01, `${label}: the hilt ${(gap * 100).toFixed(1)} cm off him`);
-  assert.equal(worst.size, 17, 'every pose looked at');
-  tool.dispose();
-});
+// (clear of his body and seated on his back in every pose, on B3, v2 and every outfit: tests/sword-sheath-seat.test.js)
 
 test('selected blade formation follows the real draw edge, never held guard or repeated swings', async () => {
   const { tool, tick } = await armed(); let forms=0;

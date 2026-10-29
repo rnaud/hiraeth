@@ -104,18 +104,24 @@ is worn on his back but the sword's frog. The look and its reasons: `lore/charac
   wake). How it looks and trails: `docs/systems/foes.md`, "The look".
 
 - **On his back** (October 2026, the author: "hide the sword at rest, like move it back to your back?";
-  `src/sword-sheath.js`): out of a fight the hilt, its blade withdrawn, sits in a leather **frog** behind his
-  right shoulder: `SHEATH.at` (-0.205, 0.72, -0.215) in the chest anchor's
-  frame, leaning `SHEATH.tilt` (0.2 rad) with the pommel out over the shoulder (its top 8–9 cm
-  over the collar, seen from the front) and the cup down on the shoulder blade, its flat to his back. The
-  frog (`buildFrog`: a dark strip between the grip and his back, two loops round the grip, brass rivets, three
-  draw calls) is carried by the chest anchor and stays there when the sword is drawn, empty. The hands are
-  free at rest (`player.swordGrip` 0). The place was measured against the round backpack (2 cm clear; since #728 nothing else is on his back) and his body
-  (3.3 cm clear of the skin at the least, the overshirt about 1.5 cm of that) in every pose he takes:
-  standing, walking, jogging, running, talking, the title's stance, climbing, the ledge, riding, in the air,
-  swimming and gliding (`tests/sword-sheath.test.js`); lower, the jog's arm and the flask's upright bracket
-  reached it, higher it stood off the shoulder like a stick. The title screen and the studio show it there too
-  (studio: "Draw from the back" scrubs the draw).
+  `src/sword-sheath.js`; reseated by issue #763): out of a fight the hilt, its blade withdrawn, sits in a leather
+  **frog** on his right shoulder blade, slung diagonally: `SHEATH.at` (-0.12, 0.68, -0.161) in the chest anchor's
+  frame, leaning `SHEATH.tilt` (0.45 rad) with the pommel up by his right shoulder and the cup down toward his
+  spine, and `SHEATH.lean` (0.25 rad) with his back as it slopes from the shoulders (the cup further back), its
+  flat to his back. The frog (`buildFrog`: a dark strip between the grip and his back, two loops round the grip,
+  brass rivets, three draw calls) is carried by the chest anchor and stays there when the sword is drawn, empty.
+  The hands are free at rest (`player.swordGrip` 0). Until #763 the hilt stood where the round backpack's flask
+  had held it (-0.205, 0.72, -0.215): once the backpack went (#728) it hung 6 cm off his back with nothing under it.
+  The place is measured on B3 and on v2 (`tests/sword-sheath-seat.test.js`, the battery-hip test's 22 poses:
+  standing, the gaits, the sprint, talking, the title's stance, climbing, the ledge, riding, the jump, the bench,
+  swimming, gliding, the roll): the frog's strip 0.7 cm off his back on B3 and 0.8 cm on v2 in every pose (his back
+  where the spine carries it moves with the chest anchor), none of him nearer. Each Wardrobe outfit is checked in
+  eight of the poses; one with something on its back stands the frog off it along its flat (`SHEATH_OUT`, the
+  outfit worn read by `fluid-blade.js` each frame): the gravity ranger's pack 3.3 cm, the salt pilgrim's hood 2.2,
+  the storm courier's folded hood 1.5, the festival vest 0.5. The salt pilgrim's robe, a loose skinned skirt, swings
+  up behind the cup when he sits or springs (into it by up to 2 cm, as it goes through his tunic). No strap holds
+  the frog: a strap over the shoulder would want its own fit to every outfit. The title screen and the studio show
+  it there too (studio: "Draw from the back" scrubs the draw).
 - **The draw and the sheathe** (`SheathState`, `DRAW`, `SHEATHE`; the moment is the blade's own: `bladeDrawn`
   in `docs/systems/foes.md`): drawn, the right hand reaches back over the shoulder (`Humanoid.reachBack`:
   the arm solved to the hilt, the elbow up and out, the fist's grip point onto the grip, blended over the

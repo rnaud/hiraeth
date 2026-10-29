@@ -5,8 +5,9 @@ import { HILT } from './fluid-sword.js';
 
 // The fluid sword on the traveller's back (src/fluid-blade.js carries it; the author: "hide the sword at
 // rest, like move it back to your back?"). Out of a fight the hilt (its blade withdrawn, as always at rest)
-// sits in a leather frog behind his right shoulder, beside the flask's right upright, the pommel up over the
-// shoulder and the cup down toward the shoulder blade, tilted a little out; the hands stay free. When a
+// sits in a leather frog on his right shoulder blade, slung diagonally against his back, the pommel up by the
+// shoulder and the cup down toward his spine (issue #763: it stood where the round backpack's flask held it, and
+// once the backpack went it hung in the air off his back); the hands stay free. When a
 // fight starts (the blade's own "drawn" moment: a swing, the guard, an evade, the lock-on, a blow taken) the
 // right hand reaches back over the shoulder, takes it and brings it forward (DRAW, 0.34 s); when the fight
 // is over (the same moment it used to be put away into the glove) it goes back (SHEATHE). A swing pressed
@@ -20,7 +21,8 @@ import { HILT } from './fluid-sword.js';
 //                        forward, the wearer's right at -x; fluid-tool.js TANK's frame)
 //   sheathFrame()        { position, quaternion } of the hilt's frame on the back (src/fluid-sword.js: +y up
 //                        the blade, here down toward the shoulder blade; the flat faces his back)
-//   hiltPoints()         the hilt as balls along its axis (its frame): what may not touch the body or the flask
+//   hiltPoints()         the hilt as balls along its axis (its frame): what may not touch his body
+//   SHEATH_OUT           the outfits with something on the back: the frog stood off it (sheathFrame(S, outfit))
 //   SheathState          back → drawing → hand → sheathing → back (and 'away': flown back with no reach, when
 //                        the arms are busy): held (0 on the back .. 1 in the fist), reach (the arm to the back)
 //   buildFrog()          the leather frog that holds it (the hilt's frame on the back): a strip against his
@@ -28,8 +30,16 @@ import { HILT } from './fluid-sword.js';
 
 /** Where the hilt sits on his back (chest anchor frame, m) and how it leans (rad off upright, the pommel out to his right). */
 export const SHEATH = {
-  at: [-0.205, 0.72, -0.215],   // the grip's middle: beside the flask's right upright, behind the shoulder blade
-  tilt: 0.2,               // the pommel out over the right shoulder, the cup in toward the spine
+  at: [-0.12, 0.68, -0.161],   // the grip's middle: on his right shoulder blade, the frog's strip against his back
+  tilt: 0.45,              // the pommel out over the right shoulder, the cup in toward the spine
+  lean: 0.25,              // the cup further back than the pommel, with his back as it slopes from the shoulders
+};
+/** The v2 outfits (src/wardrobe.js OUTFITS) with something on the back: how far the frog stands off it (m, along its flat). */
+export const SHEATH_OUT = {
+  'gravity-ranger': 0.033,      // its pack
+  'salt-pilgrim': 0.022,        // the hood down his back
+  'storm-courier': 0.015,       // the folded hood
+  'festival-traveller': 0.005,  // the patchwork vest
 };
 
 /** The draw and the sheathe (s), and when in them the arm is at the back and the hilt changes hands (shares of the time). */
@@ -52,12 +62,18 @@ const smooth = (x, a, b) => (b <= a ? (x >= b ? 1 : 0) : THREE.MathUtils.smooths
 const reachCurve = (u, [a, b, c, d]) => smooth(u, a, b) * (1 - smooth(u, c, d));
 
 /** The hilt's frame on the back: { position, quaternion } in the chest anchor's frame. */
-export function sheathFrame(S = SHEATH) {
+export function sheathFrame(S = SHEATH, outfit = null) {   // (outfit: the v2 Wardrobe's worn id)
   // +y down the hilt toward the cup (in toward the spine as it goes down), z the flat (toward his back), x the edge (out to his right)
   const y = new THREE.Vector3(Math.sin(S.tilt), -Math.cos(S.tilt), 0);
   const z = new THREE.Vector3(0, 0, 1).applyAxisAngle(y, S.roll ?? 0);
   const x = new THREE.Vector3().crossVectors(y, z).normalize();
-  return { position: new THREE.Vector3(...S.at), quaternion: new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z)) };
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+  // (leaned with his back: the cup further back than the pommel, as his back slopes from the shoulders down)
+  if (S.lean) q.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), S.lean));
+  // (an outfit with something on its back: the frog stood off it, along its flat)
+  const position = new THREE.Vector3(...S.at), out = SHEATH_OUT[outfit] ?? 0;
+  if (out) position.addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(q), -out);
+  return { position, quaternion: q };
 }
 
 /**

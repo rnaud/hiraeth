@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.36 — 2026-10-29
 
+- The sword on your back sits against you again, slung across your right shoulder blade, instead of hanging in the air where the old backpack was. Outfits with a pack or a hood carry it over them.
 - Saves already part-way through the Desert carry on from the next thing still to do there, keeping everything you found.
 - The giant’s skull is a little temple with monsters: two grunts and two prowlers guard its dry pool, a Givers’ lamp lights for each one you cut down, and when the last falls the shrine opens on the lift valve. Its mouth lets you down once you carry the blade.
 - The spark-stone alone lights Qanat’s tree: set it in the roots and the living water rises to meet it.
