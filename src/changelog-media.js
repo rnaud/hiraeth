@@ -1410,8 +1410,30 @@ const FROM758 = 'Hand-made frames of the web game (no `view`): a script of mine 
 const UNITY758 = 'Issue #758: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level arena -fight warnings, an APFS clone of the main checkout’s Library, deleted after), the follow camera and HUD at 1280 × 720, each moment waited for in the game (the rock and the fuse past 80 % of the wind-up, the wave past 5.4 m), 28 October 2026. After only: the same JS drawn through the mirror (instanced meshes and their colours), no shader of its own.';
 const FROM758HH = 'Hand-made frame of this change in the web game, Handheld preset, 1280 × 720, muted headless Chrome, the same script and moments as the Arena pairs (the foe added by hand in front of the traveller where the world loads him), 28 October 2026. After only: an older build has the flat marks the Arena pairs show.';
 
+/** (v2.35, issue #731: the Moon Foundry closed in) */
+const FOUNDRY731 = { commit: '25222a2c3', before: 'a9bc2585e' };
+const FROM731 = 'scripts/changelog-shots.mjs at this change (25222a2c3) and its parent (a9bc2585e), muted headless Chrome (--mute-audio, hiraeth.muted), High, 1280 × 720, 10:30, clear, the camera pinned, 29 October 2026';
+const UNITY731 = 'Issue #731: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level moonfoundry -views, six fixed views, -fresh -no-hud), an APFS clone of the main checkout’s Library deleted after, 1280 × 720, 10:30, 28 October 2026; the same views as the web’s pictures';
+const MF731 = (eye, target, player) => ({ level: 'moonfoundry', hour: 10.5, fov: 60, eye, target, player });
+
 export const CHANGELOG_MEDIA = {
   '2.35': [
+  { match: 'The Moon Foundry is closed in', shots: [
+    { name: 'foundry731-landing', title: 'Off the ramp', caption: 'Out of the ship toward the hall: before, the open apron under the sky, the hangar open on every side; after, the landing dock, its walls and the great gate into the dim hall, the hung moon through it', from: FROM731, ...FOUNDRY731, view: MF731([3, 4.2, 104], [-4, 6, 40], [0, 0, 94]) },
+    { name: 'foundry731-dock', title: 'The landing dock', caption: 'The dock from beside the founders’ yard: before, the open apron and the plain behind the ship; after, the walled, roofed dock, its hatch open over the ship', from: FROM731, ...FOUNDRY731, view: MF731([-60, 8, 70], [10, 22, 140], [-50, 0, 76]) },
+    { name: 'foundry731-arrival', only: 'after', title: 'Coming down the hatch', caption: 'The first landing: the ship come straight down through the dock’s hatch, settling into the patch of daylight under it, the dock’s walls round it (the cinematics QC’s frame of the arrival 13 s in, 960 × 540)', from: 'Issue #731: scripts/cinematics-qc.mjs --only arrival.moonfoundry --quality high, muted headless Chrome, this change, 28 October 2026' },
+    { name: 'foundry731-unity-landing', only: 'after', title: 'Unity', caption: 'The same view off the ramp in the Unity version (the game’s own code through the bridge): the dock, the gate, the hall beyond as on the web', from: UNITY731 },
+  ], see: 'Land in the Moon Foundry: the ship comes down through the hatch of its landing dock; walk through the great gate into the hall.' },
+  { match: 'Inside, the Moon Foundry is dim', shots: [
+    { name: 'foundry731-hall', title: 'The hall', caption: 'Up the aisle under the hung moons: before, the open sides and the pale sky; after, the walls all round, dim, the lamps’ pools on the floor, chains between the moons', from: FROM731, ...FOUNDRY731, view: MF731([6, 3.2, -2], [-30, 20, -60], [4, 0, -6]) },
+    { name: 'foundry731-furnace', title: 'A wall furnace', caption: 'The west wall: before, the open edge of the hangar onto the plain; after, the west furnace in the wall, its mouth glowing behind its fire bars, its pool of light, its smoke', from: FROM731, ...FOUNDRY731, view: MF731([-140, 5, -30], [-171, 4, -50], [-145, 0, -34]) },
+    { name: 'foundry731-temple', title: 'The Casting-House', caption: 'The Casting-House’s door: before, under the open casting bay, the pillars and the far moons against the sky; after, closed in, the hall’s walls behind it, dim, steam off a valve', from: FROM731, ...FOUNDRY731, view: MF731([96, 5, -128], [126, 9, -164], [100, 0, -132]) },
+    { name: 'foundry731-unity-hall', only: 'after', title: 'Unity', caption: 'The hall from the same spot in the Unity version: the same dim light, pools and chains', from: UNITY731 },
+  ] },
+  { match: 'Steam and smoke drift through the Moon Foundry', shots: [
+    { name: 'foundry731-steam', title: 'The last furnace', caption: 'The last furnace and its mould: before, in daylight, no steam; after, dim, steam off the mould and smoke from the furnace’s mouth, the ladle’s pour glowing', from: FROM731, ...FOUNDRY731, view: MF731([40, 4, 4], [66, 5, -16], [44, 0, 0]) },
+  ], see: 'Walk along any wall of the Moon Foundry: the vents at its foot breathe, and every few seconds a valve hisses out a puff; columns rise from the grates in the floor.' },
+  { match: 'In the Moon Foundry, the droids’ patrol', see: 'With the sword, walk into the Moon Foundry’s east bay south of the east furnace: the droids walk their beat there; the prowlers sleep in the north-west corner under the second hung moon.' },
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
     { name: 'grip746-whirl', size: [1280, 720], caption: 'The warlord’s last stand at the end of its wind-up, from behind: before, its left hand had let go (out of reach); after, both fists on the shaft behind it', from: GRIP746, view: 'warlord@desert from behind (yaw 3.14, pitch 0.12, zoom 0.5), 1.25 s into the last stand’s 1.3 s wind-up' },
     { name: 'grip746-charge', size: [1280, 720], caption: 'The warlord’s charge, running: before, its left hand back by the right at its hip; after, forward on the shaft like a lance', from: GRIP746, view: 'warlord@desert from its front left (yaw −1.2, pitch 0.12, zoom 0.6), 0.5 s into the charge’s run' },
