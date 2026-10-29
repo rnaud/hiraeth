@@ -7,7 +7,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 const list = JSON.parse(readFileSync(new URL('./hook-deferred.json', import.meta.url), 'utf8'));
 const timings = JSON.parse(readFileSync(new URL('./shard-timings.json', import.meta.url), 'utf8'));
-const DEFER_OVER = 100;   // runner seconds: only files this long may wait for the push
+const DEFER_OVER = 60;   // runner seconds: only files this long may wait for the push
 const here = readdirSync(new URL('./', import.meta.url));
 
 test('only long, existing top-level test files are deferred, each once', () => {

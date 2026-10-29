@@ -1,5 +1,5 @@
 {
-  "why": "The longest end-to-end files: the pre-commit hook leaves them to GitHub (every push runs every selected file before any deploy) and to the daily full suite. Each is over 100 s on a runner (tests/shard-timings.json) and plays or sweeps whole houses, worlds or the engines' game; tests/hook-deferred.test.js holds the list to that. docs/systems/testing.md, 'Long end-to-end files on push'.",
+  "why": "The longest end-to-end files: the pre-commit hook leaves them to GitHub (every push runs every selected file before any deploy) and to the daily full suite. Each is over 60 s on a runner (tests/shard-timings.json): whole houses, worlds or the engines' game played or swept, and the longest single checks (motion-qc, desert-spark, the reach sweeps); tests/hook-deferred.test.js holds the list to that. docs/systems/testing.md, 'Long end-to-end files on push'.",
   "files": [
     "tests/door-bypass-1.test.js",
     "tests/door-bypass-2.test.js",
@@ -18,6 +18,26 @@
     "tests/camera-qc-guardians.test.js",
     "tests/contact-audit.test.js",
     "tests/ball-room.test.js",
-    "tests/zfight.test.js"
+    "tests/zfight.test.js",
+    "tests/motion-qc.test.js",
+    "tests/desert-spark.test.js",
+    "tests/engine-trials.test.js",
+    "tests/temples.test.js",
+    "tests/guardian-reach.test.js",
+    "tests/boots-reach.test.js",
+    "tests/wings-reach-3.test.js",
+    "tests/takeoff-nan.test.js",
+    "tests/key-chests.test.js",
+    "tests/playthrough-saves.test.js",
+    "tests/traveller-b3.test.js",
+    "tests/sequences-play-outdoors.test.js",
+    "tests/temple-climb.test.js",
+    "tests/plant-ground.test.js",
+    "tests/engine-ship.test.js",
+    "tests/engine-sound.test.js",
+    "tests/arrival-view.test.js",
+    "tests/map-chest-saves.test.js",
+    "tests/engine-combat.test.js",
+    "tests/serendipity-map.test.js"
   ]
 }

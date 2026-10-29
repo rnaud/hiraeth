@@ -52,8 +52,20 @@ purpose: `motion-qc` (the traveller's own check, not a world sweep) and `desert-
 `tests/hook-deferred.test.js` holds the list to that bar and checks that the CI plan, the shard runner
 and the workflows never read it; `tests/pre-commit.test.js` runs the real hook in a fixture repository.
 The risk taken: a commit that breaks one of these is caught on its push (before it can deploy), not
-at the commit. Lowering the bar would cut more (deferring every file over 60 s: 38 files, the median
-gameplay commit 3,773 runner seconds instead of 5,169); that is the author's call.
+at the commit.
+
+**The bar lowered to 60 s (round 2, item 4: a commit of its own, for the author to keep or drop).**
+The list now holds every file over 60 runner seconds, 38 files: the 18 above, and motion-qc,
+desert-spark, engine-trials, temples, guardian-reach, boots-reach, wings-reach-3, takeoff-nan,
+key-chests, playthrough-saves, traveller-b3, sequences-play-outdoors, temple-climb, plant-ground,
+engine-ship, engine-sound, arrival-view, map-chest-saves, engine-combat and serendipity-map. Those are
+also the files a gameplay commit selects most (the engines' game for 92 of the last 100 commits on
+main), so the hook stops checking the engines' whole game at the commit: a break there is caught on
+the push, before any deploy, or by the daily suite. Measured over the same 30 commits as below, the
+hook runs 453 / 516 / 940 files a commit (mean / median / max) instead of 467 / 534 / 960, and
+3,371 / 4,131 / 5,049 runner seconds instead of 4,492 / 5,527 / 6,661 (see "Measured, round 2"). The
+hook's own comment still says 100 s: an edit to `.githooks/` selects the whole suite.
+Dropping the commit puts the bar back at 100 s.
 
 ### The selector's syntax cache
 
