@@ -39,6 +39,7 @@ export const CHANGELOG = [
       'A stomp’s shockwave is now a knee-high curl of sand with a red-orange crest rolling out over the ground, easy to see and to jump, and it leaves a scored ring in the dust where it dies out. The temple guardians’ shockwaves and thrown marks look the same.',
       // the traveller's blade
       { text: 'He never jumps by himself in a fight any more: striking at a hulk or a warlord no longer leaps him up at its chest (his three blows land on it from the ground), and backing or rolling into a wall while you fight no longer starts him climbing it. Jump at a wall to climb it.', see: 'In the Arena, fight a hulk and press attack three times: he stays on his feet for all three blows. Lock on and walk backwards into the wall: he stops against it instead of climbing.' },
+      { text: 'You can no longer pass through an enemy: rolling, dashing, the dash cut, the running cut and the hops all stop at its body and slide round it, big ones like the hulk and the warlord hold you further off, and standing next to a grunt your bodies no longer overlap. Pinned against a wall, the enemy is the one pushed back.', see: 'In the Arena, roll or dash straight at a grunt or a hulk: you stop against it and slide round its side instead of coming out behind it.' },
     ],
   },
   {

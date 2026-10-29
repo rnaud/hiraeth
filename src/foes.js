@@ -327,12 +327,42 @@ export const shellBites = (info = {}, src = info.source) => src === 'bomb' || (i
  * You can't walk through a foe (v1.41, the author: "the player can't walk through enemies"; Foes.keepOff): within `k` ×
  * its radius + `player` m of its middle (flat), and overlapping it in height, you are pushed out to that ring and your
  * speed into it taken away. A light foe (a skitter, a moth) gives way, taking `light` of the push; an ordinary one
- * `share`; a heavy, rooted one or a guardian none. Not during an evade, a dash cut or a hop (you slip past), riding, or
- * from a foe going down, buried, a shadow, riding another or out of the world.
+ * `share`; a heavy, rooted one or a guardian none. Not riding, or from a foe going down, buried, a shadow, riding another
+ * or out of the world.
+ * v2.35, issue #751 (the author: "I shouldn't be able to clip through enemies"): the ring is the foe's whole radius (`k`
+ * 1, was 0.8: a grunt's body and his overlapped by 9 cm), and it holds through an evade, a roll, a dash cut, the running
+ * cut and a locked-on hop too (they slip round it instead of through: `swept`, his way since the last frame is tested
+ * against the ring, so a fast one can't step across it in a frame). On the ground he is over a foe only `over` m above
+ * its top (on a slope a blot's top is under his feet one step uphill); in the air its top as before. A wall at his back
+ * (`wall`: the foes' own way test, env.canStep) takes the push from him and gives it to the foe, which steps back only
+ * where it may walk, so neither goes through a wall.
  */
-export const BODY_BLOCK = { k: 0.8, player: 0.4, share: 0.25, light: 0.85, head: 1.7 };
+export const BODY_BLOCK = { k: 1, player: 0.4, share: 0.25, light: 0.85, head: 1.7, over: 0.3, swept: 3, wall: 0.45 };
 /** The push (m, flat) that keeps you at `want` from a body `d` m off: 0 outside it. */
 export const blockPush = (d, want) => (d < want ? want - d : 0);
+/**
+ * His way this frame (flat, `from` → `pos`) against a ring of `want` m round `c` (BODY_BLOCK, #751): begun outside it and
+ * crossing into it or through it, he is put where he met it, with what was left of the step slid along it. `pos` changed
+ * in place; true if it was.
+ */
+export function blockSweep(from, pos, c, want) {
+  const ax = from.x - c.x, az = from.z - c.z;
+  if (ax * ax + az * az < want * want) return false;   // (begun inside: the push sorts it)
+  const sx = pos.x - from.x, sz = pos.z - from.z, ss = sx * sx + sz * sz;
+  if (ss < 1e-10) return false;
+  // |a + t s| = want: t² ss + 2 t (a·s) + |a|² - want² = 0, the first root in [0, 1]
+  const b = ax * sx + az * sz, cc = ax * ax + az * az - want * want, disc = b * b - ss * cc;
+  if (b >= 0 || disc < 0) return false;
+  const t = (-b - Math.sqrt(disc)) / ss;
+  if (t < 0 || t > 1) return false;
+  const ex = ax + sx * t, ez = az + sz * t, nl = Math.hypot(ex, ez) || 1, nx = ex / nl, nz = ez / nl;
+  // (the rest of the step, its part into the ring taken away: a slide round it)
+  let rx = sx * (1 - t), rz = sz * (1 - t);
+  const into = rx * nx + rz * nz;
+  if (into < 0) { rx -= into * nx; rz -= into * nz; }
+  pos.x = c.x + ex + rx; pos.z = c.z + ez + rz;
+  return true;
+}
 /** A hovering foe (`hover`) the blade cuts is knocked low this long (s), within the blade's reach. */
 export const KNOCKED_LOW = 2.6;
 /**
@@ -3739,22 +3769,27 @@ export class Foes {
   /** You don't walk through a foe (BODY_BLOCK): pushed out of its body, your speed into it taken away; a light one gives way. */
   keepOff() {
     const P = this.player, B = BODY_BLOCK;
-    if (!P?.pos || P.ride || P.dead || P.climbing || P.down) return;
-    const M = P.combatMotion;
-    if (M?.evade || M?.dash || P.hopping || P._hop) return;
+    if (!P?.pos || P.ride || P.dead || P.climbing || P.down) { this._offFrom = null; return; }
+    // (his way since the last frame, flat: a roll or a dash cut 0.3 m a frame never steps across a ring, #751)
+    const A = this._offFrom, sweep = A && Math.hypot(P.pos.x - A.x, P.pos.z - A.z) < B.swept ? A : null;
     for (const f of this.list) {
       if (!f.alive || f.dead !== undefined || f.state === 'dead' || f.dying || f.buried || f.phased || f.riding || f.lost || f.def.noBlock) continue;
       const lo = f.pos.y + (f.alt ?? 0), hi = lo + (f.def.height ?? 1);
-      if (P.pos.y > hi - 0.1 || P.pos.y + B.head < lo) continue;
+      if (P.pos.y > hi - (P.onGround ? -B.over : 0.1) || P.pos.y + B.head < lo) continue;
+      const want = f.def.radius * B.k + B.player;
+      const met = !!sweep && blockSweep(sweep, P.pos, f.pos, want);
       const dx = P.pos.x - f.pos.x, dz = P.pos.z - f.pos.z, d = Math.hypot(dx, dz);
-      const push = blockPush(d, f.def.radius * B.k + B.player);
-      if (!push) continue;
+      const push = blockPush(d, want);
+      if (!push && !met) continue;
       const nx = d > 1e-4 ? dx / d : Math.sin(P.heading ?? 0), nz = d > 1e-4 ? dz / d : Math.cos(P.heading ?? 0);
-      const share = f.def.light ? B.light : f.def.heavy || f.def.rooted || f.guardian ? 0 : B.share;
+      let share = f.def.light ? B.light : f.def.heavy || f.def.rooted || f.guardian ? 0 : B.share;
+      // (a wall at his back: the foe takes the push, stepping back only where it may walk; #751)
+      if (push > 0 && share < 1 && this.env.canStep && !this.env.canStep(P.pos, P.pos.x + nx * push * (1 - share), P.pos.z + nz * push * (1 - share), B.wall, 0.6)) share = f.def.rooted || f.guardian ? share : 1;
       P.pos.x += nx * push * (1 - share); P.pos.z += nz * push * (1 - share);
       if (share > 0) f.step(-nx * push * share, -nz * push * share, this.env);
       if (P.vel) { const vn = P.vel.x * nx + P.vel.z * nz; if (vn < 0) { P.vel.x -= vn * nx; P.vel.z -= vn * nz; } }
     }
+    (this._offFrom ??= new THREE.Vector3()).copy(P.pos);
   }
 
   /**

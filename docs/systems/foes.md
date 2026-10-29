@@ -1448,6 +1448,23 @@ Never during an evade, a dash cut (which goes past the foe on purpose) or a lock
 a foe going down, buried, a running shadow, riding another or out of the world. The cut's pull (`MAGNET.ideal` 1.05 m off
 the body's reach) stops outside the ring, so a swing never pushes into it. Tests: `tests/body-block.test.js`.
 
+**No way through, at any speed** (v2.35, issue #751, the author: "I shouldn't be able to clip through enemies"). Measured
+before: an evade, the fight temples' roll, the dash cut, the running cut and a locked-on hop were all let through (the
+dash cut was even aimed 1.1 m past a foe's middle, inside a hulk's), and the ring was 0.8 × the radius + 0.4 m, so his
+body and a grunt's overlapped by 9 cm standing still. Now:
+- the ring is the whole radius + 0.4 m (`BODY_BLOCK.k` 1): a grunt holds him 0.85 m off its middle, a hulk 1.4 m, a
+  warlord 1.25 m;
+- it holds through every move: rolled, dashed or hopped into a foe he slips round it. His way since the last frame
+  (`blockSweep`, flat) is tested against the ring, so a dash cut at 16 m/s (27 cm a frame, more on a slow frame) can't
+  step across one in a frame: begun outside, he is put where he met it and the rest of the step slides on along it;
+- on a slope: on the ground he is over a foe only `over` (0.3 m) above its top, so one step uphill of a blot (its top
+  under his feet) still holds; in the air its top, as before (a jump still clears a low foe);
+- walls: a wall at his back (`env.canStep`, the foes' own way test, from 0.6 m up with `wall` 0.45 m of clearance) gives
+  the push to the foe instead (a hulk too: it is that or stand inside it), and the foe steps back only where it may walk
+  (`Foe.step`), so neither goes through a wall.
+`tests/body-block.test.js` runs a roll, a dash cut and a hop at 16 m/s into a grunt, a hulk, a warlord, a crab and a blot
+(never inside the ring), the sweep, a slope and a wall.
+
 ## The stutter when a new foe comes in (v1.41: measured; `Foes.rosterKinds`, `Foes.warmModels`)
 
 The author: "investigate stutters when new enemies appear". Measured in the Arena (Mac, headless Chrome on the GPU,
