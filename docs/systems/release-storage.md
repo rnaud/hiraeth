@@ -21,7 +21,11 @@ This hosting change does not alter Unity or the native launcher.
 3. The Actions deployment token needs **Workers R2 Storage Bucket Item Read**
    and **Write**, restricted to `hiraeth-assets`, in addition to its existing
    Worker permissions. Bucket creation is a separate account setup action.
-   Store credentials only in Actions secrets, never the repository.
+   Keep the token value in the existing `CLOUDFLARE_API_TOKEN` Actions secret.
+   Set the non-secret token ID as the `CLOUDFLARE_API_TOKEN_ID` Actions variable.
+   The uploader uses S3 and derives its secret in memory from the token value;
+   bucket-only permissions do not work with Wrangler's REST object commands.
+   See [R2 authentication](https://developers.cloudflare.com/r2/api/tokens/).
 4. Dispatch **Deploy to Cloudflare Workers** with `migrate_deck_runtime=true`.
    This migration-only job can run on the migration branch before it reaches main.
    It runs `node scripts/r2-deck.mjs --migrate` on GitHub's runner, downloads the

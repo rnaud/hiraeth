@@ -1,11 +1,9 @@
 // Manual publication or one-time migration only. Web deployments never call this script.
 import { createHash } from 'node:crypto';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readFile } from 'node:fs/promises';
+import { AwsClient } from 'aws4fetch';
 import { join, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { liveRuntime, partName } from './deck-runtime.mjs';
 import { SITE } from './content-policy.mjs';
 
@@ -51,59 +49,62 @@ export async function publishRuntime({ manifest, parts }, store) {
   if (!(await store.get(manifestKey))?.equals(bytes)) throw Error('R2 manifest verification failed');
 }
 
-// Wrangler uses the existing Cloudflare login or Actions token; no S3 credentials needed.
-export async function wranglerStore(directory) {
-  const run = promisify(execFile);
-  const cli = fileURLToPath(new URL('../node_modules/wrangler/bin/wrangler.js', import.meta.url));
-  let sequence = 0;
-  const command = async args => {
+// Bucket-only permissions are supported by S3, not Cloudflare's REST object API.
+// Derive the S3 secret in memory from the existing Actions token; never log credentials.
+export function s3Store({ accountId = process.env.CLOUDFLARE_ACCOUNT_ID,
+  tokenId = process.env.CLOUDFLARE_API_TOKEN_ID, token = process.env.CLOUDFLARE_API_TOKEN,
+  fetcher = fetch, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+} = {}) {
+  if (!/^[a-f0-9]{32}$/.test(accountId ?? '') || !/^[a-f0-9]{32}$/.test(tokenId ?? '') || !token) {
+    throw Error('Set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN_ID and CLOUDFLARE_API_TOKEN for R2 publication');
+  }
+  const client = new AwsClient({ accessKeyId: tokenId, secretAccessKey: hash(token), service: 's3', region: 'auto' });
+  const command = async (method, key, data, type) => {
+    const url = `https://${accountId}.r2.cloudflarestorage.com/${BUCKET}/${key.split('/').map(encodeURIComponent).join('/')}`;
     for (let attempt = 1; ; attempt++) {
-      try { return await run(process.execPath, [cli, 'r2', 'object', ...args, '--remote'], { timeout: 180_000 }); }
-      catch (error) {
-        if (/The specified key does not exist/.test(error.stderr + error.stdout)) return null;
-        if (attempt >= 3) throw Error(`R2 command failed: ${error.stderr || error.message}`);
-        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+      let status;
+      try {
+        const request = await client.sign(url, { method, body: data,
+          headers: type ? { 'Content-Type': type, 'X-Amz-Content-Sha256': hash(data) } : {},
+          signal: AbortSignal.timeout(180_000), redirect: 'error' });
+        const response = await fetcher(request);
+        status = response.status;
+        if (response.ok) return Buffer.from(await response.arrayBuffer());
+        await response.body?.cancel();
+        if (method === 'GET' && status === 404) return null;
+      } catch { /* Retry interrupted transfers without logging signed requests or secrets. */ }
+      if (attempt >= 3 || (status && status !== 429 && status < 500)) {
+        throw Error(`R2 ${method} failed for ${key}: ${status ?? 'transfer interrupted'}`);
       }
+      await sleep(attempt * 1000);
     }
   };
   return {
-    async get(key) {
-      const file = join(directory, `get-${sequence++}`);
-      try {
-        const result = await command(['get', `${BUCKET}/${key}`, '--file', file]);
-        return result ? await readFile(file) : null;
-      } finally { await rm(file, { force: true }); }
-    },
+    get: key => command('GET', key),
     async put(key, data, type) {
-      const file = join(directory, `put-${sequence++}`);
-      try {
-        await writeFile(file, data);
-        await command(['put', `${BUCKET}/${key}`, '--file', file, '--content-type', type]);
-      } finally { await rm(file, { force: true }); }
+      await command('PUT', key, data, type);
       console.log(`Stored ${key} (${data.length} bytes)`);
     },
   };
 }
 
 async function main(args) {
-  const temporary = await mkdtemp(join(tmpdir(), 'hiraeth-r2-'));
-  try {
-    let runtime;
-    if (args.includes('--migrate')) {
-      runtime = await liveRuntime(SITE, '', { reuseOnly: true });
-      if (!runtime) throw Error('Could not verify the published runtime; R2 was not changed');
-    } else {
-      const at = args.indexOf('--from');
-      if (at < 0 || !args[at + 1]) throw Error('Use --migrate or --from <dist/updates>');
-      const directory = resolve(args[at + 1]);
-      const manifest = JSON.parse(await readFile(join(directory, 'steam-deck.json'), 'utf8'));
-      if (!Number.isSafeInteger(manifest.build) || !Array.isArray(manifest.parts)) throw Error('Invalid runtime manifest');
-      const parts = await Promise.all(manifest.parts.map((_, i) => readFile(join(directory, partName(manifest.build, i)))));
-      runtime = { manifest, parts };
-    }
-    await publishRuntime(runtime, await wranglerStore(temporary));
-    console.log(`Verified runtime ${runtime.manifest.build} in ${BUCKET}; the existing download URLs are unchanged.`);
-  } finally { await rm(temporary, { recursive: true, force: true }); }
+  const store = s3Store();
+  let runtime;
+  if (args.includes('--migrate')) {
+    runtime = await liveRuntime(SITE, '', { reuseOnly: true });
+    if (!runtime) throw Error('Could not verify the published runtime; R2 was not changed');
+  } else {
+    const at = args.indexOf('--from');
+    if (at < 0 || !args[at + 1]) throw Error('Use --migrate or --from <dist/updates>');
+    const directory = resolve(args[at + 1]);
+    const manifest = JSON.parse(await readFile(join(directory, 'steam-deck.json'), 'utf8'));
+    if (!Number.isSafeInteger(manifest.build) || !Array.isArray(manifest.parts)) throw Error('Invalid runtime manifest');
+    const parts = await Promise.all(manifest.parts.map((_, i) => readFile(join(directory, partName(manifest.build, i)))));
+    runtime = { manifest, parts };
+  }
+  await publishRuntime(runtime, store);
+  console.log(`Verified runtime ${runtime.manifest.build} in ${BUCKET}; the existing download URLs are unchanged.`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

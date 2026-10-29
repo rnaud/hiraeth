@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../worker/update-download.js';
 import { runtimeJson, split } from '../scripts/deck-runtime.mjs';
-import { publishRuntime } from '../scripts/r2-deck.mjs';
+import { publishRuntime, s3Store } from '../scripts/r2-deck.mjs';
 import { readFileSync } from 'node:fs';
 
 const origin = 'https://hiraeth.alexandria-rnaud.workers.dev';
@@ -76,6 +76,34 @@ function memoryStore() {
     put: async (key, bytes) => { writes.push(key); objects.set(key, bytes); } };
 }
 const runtime = (build = 123) => ({ manifest: runtimeJson({ build, version: '2.36', data, key: 'key', size: 8 }), parts: split(data, 8) });
+
+test('S3 uses scoped credentials, retries interrupted reads and never treats denial as a missing object', async () => {
+  const requests = [], waits = [];
+  const responses = [new Response(null, { status: 503 }), new Response(data),
+    new Response(null, { status: 404 }), new Response(null, { status: 403 }),
+    new Response(null, { status: 200 })];
+  const store = s3Store({ accountId: 'a'.repeat(32), tokenId: 'b'.repeat(32), token: 'test-token',
+    fetcher: async req => { requests.push(req); return responses.shift(); }, sleep: async ms => waits.push(ms) });
+  assert.deepEqual(await store.get('updates/steam-deck.json'), data);
+  assert.deepEqual(waits, [1000]);
+  assert.equal(await store.get('updates/missing'), null);
+  await assert.rejects(store.get('updates/denied'), /403/);
+  assert.equal(requests.length, 4, 'access denial must not retry or become a missing object');
+  await store.put('updates/test part', data, 'application/octet-stream');
+  const uploaded = requests.at(-1);
+  assert.equal(uploaded.url, `https://${'a'.repeat(32)}.r2.cloudflarestorage.com/hiraeth-assets/updates/test%20part`);
+  assert.match(uploaded.headers.get('Authorization'), /Credential=b{32}\/\d+\/auto\/s3\/aws4_request/);
+  assert.equal(uploaded.redirect, 'error');
+  assert.equal(uploaded.headers.get('Content-Type'), 'application/octet-stream');
+  assert.deepEqual(Buffer.from(await uploaded.arrayBuffer()), data);
+  assert.doesNotMatch([...uploaded.headers].flat().join(' '), /test-token/);
+  let attempts = 0;
+  const interrupted = s3Store({ accountId: 'a'.repeat(32), tokenId: 'b'.repeat(32), token: 'test-token',
+    fetcher: async () => { attempts++; throw Error('secret must not appear in error'); }, sleep: async () => {} });
+  await assert.rejects(interrupted.get('updates/part'), /^Error: R2 GET failed for updates\/part: transfer interrupted$/);
+  assert.equal(attempts, 3);
+  assert.throws(() => s3Store({ accountId: '', tokenId: '', token: '' }), /Set CLOUDFLARE/);
+});
 
 test('migration verifies bytes and keeps the manifest unpublished until every R2 part is readable', async () => {
   const store = memoryStore(), input = runtime();

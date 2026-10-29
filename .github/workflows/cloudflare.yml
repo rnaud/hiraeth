@@ -85,6 +85,7 @@ jobs:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN_ID: ${{ vars.CLOUDFLARE_API_TOKEN_ID }}
           WRANGLER_SEND_METRICS: 'false'
         run: |
           # Ordinary web deploys never fetch or upload the native runtime.
@@ -188,5 +189,6 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN_ID: ${{ vars.CLOUDFLARE_API_TOKEN_ID }}
           WRANGLER_SEND_METRICS: 'false'
         run: node scripts/r2-deck.mjs --migrate
