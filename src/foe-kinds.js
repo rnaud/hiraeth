@@ -24,6 +24,9 @@
 //             comes up at the area / steps through the shadow to it
 //   onParry   'chip' (a perfect parry breaks a piece off), 'cut' (the line is cut), 'flip' (on its back),
 //             'reflect' (a perfect parry sends the bolt back)
+//   shot      a shot fired from afar that is not a lob (the worm's spit stones): with the lobs, the fireball, the
+//             reflected bolts and a bow's arrows, a plain guard stops it and a perfect parry sends it back (harm and a
+//             flinch, never a stun: src/shot-return.js, issue #766)
 //   the archetypes' (src/enemies/archetypes.js): skins, below, rear / back, flank, far, shove
 //
 // A kind may say: takes { shoot, fire, push, bloom } (what each glob does: damage, or 'hold'), weak { source: × },

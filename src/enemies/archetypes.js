@@ -364,7 +364,7 @@ export const ARCHETYPES = {
       attacks: [
         { id: 'erupt', name: 'erupt', shape: 'ring', at: 'target', track: 0.6, radius: 1.8, damage: 0.75, wind: 1.3, knock: 5, surface: true, instant: true, max: 9, weight: 2,
           tell: 'its mound circles you, stops and trembles, and the fin sinks', counter: 'move off the spot: up, it stays up a while, open' },
-        { id: 'spit', name: 'spit stones', shape: 'cone', range: 6.5, angle: 0.45, damage: 0.5, wind: 1.0, strike: 0.35, contact: 0.4, min: 3.2, max: 7, up: true, weight: 1.5,
+        { id: 'spit', name: 'spit stones', shape: 'cone', range: 6.5, angle: 0.45, damage: 0.5, wind: 1.0, strike: 0.35, contact: 0.4, min: 3.2, max: 7, up: true, shot: true, weight: 1.5,
           tell: 'it rears back and swells, its rings bunching', counter: 'guard' },
         { id: 'dive', name: 'dive', shape: 'ring', at: 'self', radius: 2.3, damage: 0.25, knock: 4, wind: 0.95, strike: 0.3, contact: 0.5, max: 2.4, up: true, dives: true,
           tell: 'it leans over toward you and the teeth round its mouth spin', counter: 'step back' },

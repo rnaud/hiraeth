@@ -1,6 +1,6 @@
 // Issue #398: the ember wisp's exchange in the engines (Unity, Godot): engine/game.js in a bare V8 context (the bundle the
 // engines run). Locked on, the wisp winds up and throws its fireball; the blade (F) pressed as the ball comes in sends it
-// back, and the wisp, hit by its own fire, is stunned and drops low.
+// back, and the wisp, hit by its own fire, is hurt and flinches; never stunned (issue #766).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
@@ -15,7 +15,7 @@ const quietly = (fn) => { const w = console.warn, i = console.info, l = console.
 const run = (g, frames, keys = {}, each = null) => quietly(() => { for (let i = 0; i < frames; i++) { for (const [k, v] of Object.entries(keys)) g.key(k, v); g.frame(1 / 30); if (each?.() === true) return i; } return null; });
 const tap = (g, code) => { run(g, 1, { [code]: true }); run(g, 1, { [code]: false }); };
 
-test('the engine plays an exchange with the ember wisp: thrown, cut back, stunned low (issue #398)', async () => {
+test('the engine plays an exchange with the ember wisp: thrown, cut back, hurt, not stunned (issues #398, #766)', async () => {
   const file = tempPath(join(tmpdir(), `hiraeth-engine-fireball-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const B = loadBundle(file);
@@ -40,7 +40,5 @@ test('the engine plays an exchange with the ember wisp: thrown, cut back, stunne
   assert.equal(b.state === 'gone' ? b.why : b.state, b.state === 'gone' ? 'struck' : 'back', `sent back (${b.state} ${b.why ?? ''})`);
   run(g, 60, {}, () => b.state === 'gone');
   assert.equal(b.why, 'struck', 'into the wisp');
-  assert.ok(f.hp < hp && f.stunned > 2, `hurt and stunned (hp ${f.hp}, ${f.stunned.toFixed(1)} s)`);
-  run(g, 30);
-  assert.ok(f.chest.y - g.player.pos.y < 2, `down within reach (${(f.chest.y - g.player.pos.y).toFixed(2)} m)`);
+  assert.ok(f.hp < hp && !(f.stunned > 0), `hurt, not stunned (hp ${f.hp}, stunned ${f.stunned})`);
 });

@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.36 — 2026-10-29
 
+- Sending a shot back no longer stuns whoever fired it. A plain guard just stops an arrow, a rock, a glob or a bolt; a perfect parry sends it back to hurt its shooter and make it flinch, the same for every kind of shot, the ember wisp’s fireball too.
 - The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena and the creatures gallery for now.
 - Enemies wear their own world’s colours again, and the stronger ones further along are darker and banded once more.
 - Each world has its own enemies again: the mummers’ camp in the Desert, toads by Lorn’s swamp, horn lizards in the City-Shaft, coin lizards in the Signal Market. Lorn’s wood cutter and the Garden’s glass puppet are back.

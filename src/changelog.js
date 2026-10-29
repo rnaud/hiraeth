@@ -41,6 +41,8 @@ export const CHANGELOG = [
       'Each world has its own enemies again: the mummers’ camp in the Desert, toads by Lorn’s swamp, horn lizards in the City-Shaft, coin lizards in the Signal Market. Lorn’s wood cutter and the Garden’s glass puppet are back.',
       'Enemies wear their own world’s colours again, and the stronger ones further along are darker and banded once more.',
       'The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena and the creatures gallery for now.',
+      // the fight (#766, #774, #770)
+      { text: 'Sending a shot back no longer stuns whoever fired it. A plain guard just stops an arrow, a rock, a glob or a bolt; a perfect parry sends it back to hurt its shooter and make it flinch, the same for every kind of shot, the ember wisp’s fireball too.', see: 'In the Arena, let a grunt with a bow, a lamp tripod or an oracle fire at you and raise the guard just as the shot lands: a bright ring flies back, the shooter flinches and keeps fighting, never stunned. A guard raised early only stops the shot.' },
     ],
   },
   {

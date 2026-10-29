@@ -1,12 +1,13 @@
 // Issue #398: the ember wisp and its fireball (src/fireballs.js, src/foes.js Foes.throwBall …, src/enemies/archetypes.js
 // `wisp`): it floats out of reach and keeps its distance, winds up about a second, throws a slow ball that homes gently;
-// a cut timed as the ball arrives (the window) sends it back along the line, faster; hit by its own fire it is stunned
-// and drops low enough to cut; a missed ball burns you for an ordinary blow; a perfect parry returns it too, a guard
-// puts it out, an evade lets it pass.
+// a cut timed as the ball arrives (the window) sends it back along the line, faster; hit by its own fire it is hurt and
+// flinches, never stunned (issue #766: a shot sent back, src/shot-return.js); a missed ball burns you for an ordinary
+// blow; a perfect parry returns it too, a guard puts it out, an evade lets it pass.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Fireball, FIREBALL, catchable, aimAt } from '../src/fireballs.js';
+import { RETURN } from '../src/shot-return.js';
 import { Foes, FOES, attackOf } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { worldArchetypes } from '../src/foe-worlds.js';
@@ -113,7 +114,7 @@ test('a fight: it rises out of reach, winds up about a second, throws; a missed 
   foes.dispose(); clearTargets();
 });
 
-test('a cut as it arrives sends it back: the wisp is stunned, drops low enough to cut, and a cut on it lands double; three returns bring it down', () => {
+test('a cut as it arrives sends it back: the wisp is hurt and flinches, never stunned (#766); three returns bring it down', () => {
   const { P, foes, f, blade } = fight();
   const hp = f.hp;
   run(foes, 4, () => foes.balls.length > 0);
@@ -129,13 +130,12 @@ test('a cut as it arrives sends it back: the wisp is stunned, drops low enough t
   assert.equal(b.why, 'struck', 'into the wisp');
   assert.equal(P.hurts.length, 0, 'no harm to you');
   assert.ok(Math.abs(f.hp - (hp - FIREBALL.returned)) < 1e-9, `hurt by its own fire (${f.hp})`);
-  assert.ok(f.stunned > FIREBALL.stun - 0.1, 'stunned');
+  assert.equal(FIREBALL.returned, RETURN.damage, 'the harm every shot sent back does');
+  assert.ok(!(f.stunned > 0) && !(f.downT > 0), `never stunned, never down (stunned ${f.stunned}, down ${f.downT})`);
+  assert.equal(f.reel, 'flinched', 'a flinch');
+  assert.ok(f.state === 'recover' && f.timer <= f.def.hit + 1e-9, `a short reel (${f.state} ${f.timer?.toFixed(2)} s)`);
   run(foes, 1);
-  assert.ok(f.chest.y - P.pos.y < 1.6, `down within the blade's reach (${(f.chest.y - P.pos.y).toFixed(2)} m)`);
-  // a cut on it, stunned: double
-  const was = f.hp;
-  foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.ok(Math.abs(was - f.hp - 2) < 1e-9, 'a cut lands double');
+  assert.ok(f.chest.y - P.pos.y > 2.5, `it stays up out of reach (${(f.chest.y - P.pos.y).toFixed(2)} m)`);
   assert.ok(f.alive);
   // three returns, from fresh, bring one down
   foes.dispose(); clearTargets();

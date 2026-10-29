@@ -10,6 +10,7 @@ import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
 import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
+import { RETURN } from '../src/shot-return.js';
 import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile, isArea } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
@@ -343,7 +344,8 @@ test('the lamp tripod: its searchlight follows you then locks; cover breaks the 
   const t = foes.add('tripod', v(0, 0, 8));
   const hp = t.hp;
   foes.strike(t, attackOf('tripod', 'beam'));
-  assert.equal(t.hp, hp - 2, 'the bolt back into its lamp');
+  assert.equal(t.hp, hp - RETURN.damage, 'the bolt back into its lamp');
+  assert.ok(!(t.stunned > 0) && t.reel === 'flinched', 'a flinch, never a stun (a shot sent back, #766)');
   assert.ok(FOES.tripod.metal && FOES.tripod.heavy && FOES.tripod.keep > 5, 'metal (the magnet glove), heavy, it keeps its distance');
   foes.dispose(); clearTargets();
 });

@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { RETURN } from './shot-return.js';
 
 // The ember wisp's fireball (issue #398; docs/systems/foes.md, "The ember wisp's fireball"): a slow ball of fire
 // thrown from out of reach that homes gently at the traveller, and that a cut timed as it arrives sends back along
-// the line to its thrower, faster; hit by its own fire, the wisp is stunned and drops low enough to cut. Pure logic
+// the line to its thrower, faster; hit by its own fire, the wisp is hurt and flinches (never stunned: a shot sent
+// back, src/shot-return.js, issue #766). Pure logic
 // over plain vectors (tested in node: tests/fireball.test.js); src/foes.js Foes throws, draws and answers them.
 //
 //   speed  m/s it flies out (slow: it can be read and met); gentle: × gentle
@@ -15,10 +17,10 @@ import * as THREE from 'three';
 //   front  cos of the half-angle in front of you it must be in for a cut to meet it (75°)
 //   back   m/s it flies back at its thrower, straight (no dodging its own fire)
 //   life   s it flies before it burns out (a missed ball flies on past you and fizzles)
-//   damage hearts it burns you for (an ordinary blow); returned: the harm it does its thrower; stun: s its thrower is
-//          stunned (down low, a cut lands double: src/foes.js Foe.hit)
+//   damage hearts it burns you for (an ordinary blow); returned: the harm it does its thrower (RETURN.damage, as every
+//          shot sent back: a flinch, no stun)
 //   chest  m over your feet it aims at
-export const FIREBALL = { speed: 6.5, turn: 1.1, near: 2.6, hit: 0.75, reach: 2.4, front: 0.26, back: 15, life: 6, damage: 0.5, returned: 1.5, stun: 3.2, chest: 1.1, gentle: 0.8 };
+export const FIREBALL = { speed: 6.5, turn: 1.1, near: 2.6, hit: 0.75, reach: 2.4, front: 0.26, back: 15, life: 6, damage: 0.5, returned: RETURN.damage, chest: 1.1, gentle: 0.8 };
 
 const _d = new THREE.Vector3(), _c = new THREE.Vector3();
 

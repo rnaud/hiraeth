@@ -1278,9 +1278,10 @@ Stunned low, its middle is held 0.9 m over the ground (`EMBER.sit`) and its drip
   Normal speed (0.32 s on Gentle, which flies it at 0.8×), with the cut's own active frames on top. Sent back
   (`Fireball.deflect`), it flies straight at its thrower at 15 m/s. The "tink", a spark and a ring mark it, with a
   hit-stop of 0.05 s and a hint the first time.
-- **Hit by its own fire** (`ballStrikes`): 1.5 harm and a 3.2 s stun (`hurt(f, 'world', …, { stun })`). Stunned, a
-  flyer drops out of the air (Foe.fly) to 0.3 m over the sand, where every cut lands double. The first cut wakes it,
-  and it then stays low for `KNOCKED_LOW`. It has 4 hp: three returns bring it down, or one return and a couple of cuts.
+- **Hit by its own fire** (`ballStrikes`): a shot sent back (v2.36, issue #766, "Shots sent back" below): 1.5 harm
+  (`RETURN.damage`) and a flinch that loses its wind-up, never a stun. (Until v2.36 a 3.2 s stun dropped it to 0.3 m over
+  the sand to be cut: the author, "deflecting projectiles shouldn't stun the enemy".) It stays up: it has 4 hp, so three
+  returns bring it down, or the hook, a jump and the air combo, or the gun.
 - **Missed:** half a heart (an ordinary blow), with a flinch and a small shove. A **perfect parry** sends the ball back
   as a cut does (the guard is the existing one, `P.guard`). A plain guard puts it out with no harm. An evade's
   i-frames let it fly past (`pass`). A **shot** douses it in the air.
@@ -1294,9 +1295,28 @@ Stunned low, its middle is held 0.9 m over the ground (`EMBER.sit`) and its drip
 - **Where:** the Moon Foundry, Lorn II and the Eclipse (src/foe-worlds.js; `FROM.wisp` 1: not in a visit's first pack),
   the Pour Floor's waves (src/fight-temples/moonfoundry.js), and the Arena's cycle and FOES list (it is a built archetype).
 
-Tests: `tests/fireball.test.js` (the flight, the window, the throw and a missed ball's harm, the return path, the stun and
-the doubled cut, three returns, parry, guard, evade, the hook, the douse) and `tests/engine-fireball.test.js` (an exchange in
+Tests: `tests/fireball.test.js` (the flight, the window, the throw and a missed ball's harm, the return path, the flinch
+without a stun, three returns, parry, guard, evade, the hook, the douse) and `tests/engine-fireball.test.js` (an exchange in
 the engines' bundle, the blade pressed on the keys).
+
+### Shots sent back (v2.36, issue #766, `src/shot-return.js`)
+
+The author: "Me deflecting projectiles shouldn't stun the enemy". Until v2.36 a shot guarded went through the same answer as
+a blow guarded at arm's length (`Foes.strike`: `Foe.staggered`), so a mummer's arrow blocked 16 m away shoved the archer
+back and wore its poise, and a perfect parry of it stunned the archer for 2 s (`PARRY_STUN`) and broke its poise (down,
+cuts double); the tripod's bolt did the same plus 2 harm; the wisp's own fire stunned it 3.2 s. Now one rule for every
+shot (`isShot`: a lob, the fireball, a reflected bolt, a bow's arrow, `attack.shot`: the worm's spit stones):
+
+- **A plain guard** stops it at the shield: nothing happens to the shooter.
+- **A perfect parry** (and for the fireball a cut timed as it arrives) sends it back (`Foes.returnShot`, `ballStrikes`):
+  a small bright ring flies from the shield to the shooter, sparks where it lands, `RETURN.damage` 1.5 as 'world' harm
+  (`returnedBlow`: no poise worn, `info.flinch`: never the heavy recoil) and a flinch (its `def.hit` s, the wind-up it
+  was in lost). Never a stun, a knock-down or a broken poise. A hint the first time.
+- **Not shots:** blows struck at arm's length (a guarded one still throws its striker off balance, a perfect parry still
+  stuns it and opens the riposte) and a harpoon's or a root's line (`onParry: 'cut'`: the line cut, the drone dazed).
+
+Tests: `tests/shot-return.test.js` (every shooter's shots, plain and perfect, and a blow at arm's length unchanged),
+`tests/fireball.test.js`, `tests/archetypes.test.js` (the tripod's bolt).
 
 ## Placed encounters
 

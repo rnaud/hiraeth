@@ -49,6 +49,7 @@ import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
 import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
 import { STANCE, guardBreaker, guardCovers, guardTurns, wantsGuard, guardUp } from './foe-guard.js';
+import { isShot, returnedBlow } from './shot-return.js';
 import { fightOf, tierScale, tierHp, poiseWear, quickWind, POISE, LAUNCH, RAGE, FOLLOW, RUN, EVADE as HOP_BACK, ALERT, MOURN, WAIT, REACH, TIER,
   ARMOUR as PLATES_OF, BARE, PLATE, WEAK, HEAD, TIERS, TIER_FROM, TIER_SHARE, TIER_UP, plateBlow, rayNear, tierDef } from './enemies/fight.js';
 
@@ -2154,7 +2155,7 @@ export class Foe {
     if (dir && this.hop && mode !== 'world') this.knockOutOfHop();
     if (this.flight && mode !== 'world') this.knockOutOfFlight();
     this.flash = 1;
-    this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
+    this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2 && !info.flinch;   // (a returned shot: a flinch at most, src/shot-return.js)
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
     if (mode === 'blade' || mode === 'fire' || mode === 'world') this.letGo = true;   // (a hold, a line, is broken)
     // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up; the charged cut (info.breaks) anyone.
@@ -3883,6 +3884,9 @@ export class Foes {
     if (bashed && !this.game.flag('foes.bashed') && hintsFor('tip')) { this.game.set('foes.bashed', true); this.notice?.('A shield bash knocks a raised guard aside: parry it as it lands, or hop away.'); }
     if (guarded && !bashed) {
       const perfect = guarded === 'perfect';
+      // a shot (an arrow, a rock, a glob, a bolt: src/shot-return.js, issue #766): stopped at the shield, its shooter metres
+      // off is not staggered or stunned; a perfect parry sends it back, harm and a flinch
+      if (isShot(a)) { if (perfect && f.alive) this.returnShot(f); return false; }
       // (a plain guard took it: a duelist may swing again at once rather than stumble: fight.follow 'block', #722)
       if (!perfect && f.tryFollow?.('block', a, P)) { this.react(f, 'guard', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { reel: 'flinch', flash: false }); this.warnSound(f); return false; }
       f.brokeNow = false;
@@ -3901,8 +3905,7 @@ export class Foes {
       else if (a.onParry === 'cut') { f.stunned = Math.max(f.stunned, perfect ? PARRY_STUN : 1); this.sparks(f, P.chest ?? P.pos); }
       // a roller guarded: it bounces off, stunned (longer on a perfect guard), rolled up and open to the charged cut after
       else if (a.onParry === 'bounce') { f.stunned = Math.max(f.stunned, perfect ? BOUNCE.perfect : BOUNCE.guard); f.reel = 'bounced'; f.vel.multiplyScalar(1.4); this.sparks(f, f.chest); }
-      // a perfect parry sends a tripod's bolt back down its beam, into its lamp
-      else if (a.onParry === 'reflect' && perfect && f.alive) { this.hurt(f, 'world', null, { damage: 2, source: 'parry' }); this.sparks(f, f.chest); }
+      // (a tripod's bolt sent back down its beam: a shot, returnShot above)
       // a heron's bill knocked aside: its head open a while (longer on a perfect parry), within reach
       else if (a.onParry === 'open') { f.open = perfect ? OPEN.perfect : OPEN.guard; f.stunned = Math.max(f.stunned, f.open); }
       // a sky ray's skim parried: it ploughs into the ground and lies there, open
@@ -4027,24 +4030,38 @@ export class Foes {
     b.out.visible = false; b.back.visible = true;
     b.how = how;
     hitStop(0.05);
-    if (!this.game.flag('foes.returned') && hintsFor('tip')) { this.game.set('foes.returned', true); this.notice?.('Sent back, its own fire stuns it: cut it while it is down.'); }
+    if (!this.game.flag('foes.returned') && hintsFor('tip')) { this.game.set('foes.returned', true); this.notice?.('Sent back, its own fire burns it. Three and it is out.'); }
     return true;
   }
 
-  /** Its own fire comes back to it: hurt, stunned, it drops out of the air low enough to cut (Foe.update's HOVER). */
+  /**
+   * Its own fire comes back to it (a shot returned, src/shot-return.js, issue #766): hurt, and a flinch that loses the
+   * wind-up it was in; never stunned (it stays up: three returns, the air combo or the gun bring it down).
+   */
   ballStrikes(b) {
     const f = b.owner;
     this.popBall(b, 'struck');
     if (!f?.alive || f.dead !== undefined) return;
-    const B = b.B;
     _v.copy(b.vel).setY(0);
     const dir = _v.lengthSq() > 1e-6 ? _v.normalize().clone() : null;
     f.calm();
-    this.hurt(f, 'world', dir, { damage: B.returned, stun: B.stun, source: 'ball' }, b.pos.clone());
-    if (f.alive) f.stunned = Math.max(f.stunned, B.stun);
+    this.hurt(f, 'world', dir, { ...returnedBlow(), damage: b.B.returned }, b.pos.clone());
     this.sound?.fireball?.('back', f.chest);
-    if (f.alive) this.sound?.fireball?.('stun', f.chest);
     this.animKit(f, 0, {}).spray(f.chest, [b.core, b.tone, '#ffffff'], 16, 4, 2);
+  }
+
+  /**
+   * A shot of f's (an arrow, a rock, a glob, a bolt: src/shot-return.js) sent back by a perfect parry: a streak of light
+   * from the shield back to it, sparks where it lands, its harm (RETURN) and a flinch; never a stun (issue #766).
+   */
+  returnShot(f) {
+    const P = this.player, from = P?.shieldFace?.(f.pos) ?? (P ? _w.copy(P.pos).setY(P.pos.y + 1.2) : f.chest);
+    const to = f.chest.clone(), dir = _v.subVectors(to, from).setY(0);
+    const flat = dir.lengthSq() > 1e-6 ? dir.normalize().clone() : null;
+    this.tool?.rings?.add({ from: from.clone(), dir: _w.subVectors(to, from).normalize().clone(), reach: Math.min(from.distanceTo(to), 24), r0: 0.08, r1: 0.18, life: 0.22, color: '#fff6dc', thick: 1 });
+    this.sparks(f, to);
+    this.hurt(f, 'world', flat, returnedBlow(), to);
+    if (!this.game.flag('foes.shotBack') && hintsFor('tip')) { this.game.set('foes.shotBack', true); this.notice?.('A perfect parry sends a shot back at whoever fired it.'); }
   }
 
   /** A ball gone: burnt out, put out (a guard, a shot, a wall), burst on you or on its thrower. */
