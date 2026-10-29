@@ -1,6 +1,6 @@
 {
   "recorded": "2026-10-29",
-  "sha": "a9bc2585e",
+  "sha": "b6c443f3d",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -4954,7 +4954,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1529,
+            "ink": 1530,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,

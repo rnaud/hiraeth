@@ -141,7 +141,7 @@ const AUDIT = 'the contact audit (samples where the drawn shape and the solid on
 const desertAt = (eye, target, o = {}) => ({ level: 'desert', player: o.player ?? [eye[0], 2, eye[2]], eye, target, fov: o.fov ?? 55, ...o });
 // (issues #729, #730: the Rose House inside, its Hall of the Flame's bowl lit and the font risen; the Dry Channel's bridge
 // up; the skull's cave with the blade carried, then its monsters down and the shrine open)
-const C729 = 'ed874c7e', B729 = 'a9bc2585';   // (the change in two commits: its first's parent the before)
+const C729 = 'd6e8af7f', B729 = '465b1457';   // (the change in two commits: its first's parent the before)
 const SAVE729_HOUSE = { flags: { 'prologue.done': true, 'save.migrated': 31, 'item.backpack': true, 'items.v': 2, 'tool.empty': false, 'desert.quest.v': 8, 'quest.desert.power': 'gun', 'desert.battery.charged': true, 'desert.pool.tinted': true, 'temple.desert.entered': true, 'temple.desert.layout': 7, 'temple.desert.lit.b0': true, 'temple.desert.drum.ball1': 1, 'temple.desert.open.d1': true, 'temple.desert.found.font': true }, keepsakes: [] };
 const SAVE729_BRIDGE = { flags: { ...SAVE729_HOUSE.flags, 'item.gun': true, 'box.desert.gun': true, 'quest.desert.power': 'blade', 'temple.desert.drum.ballP': 1, 'temple.desert.open.brC': true, 'temple.desert.open.dc': true }, keepsakes: [] };
 const SAVE729_SKULL = { flags: { 'prologue.done': true, 'save.migrated': 31, 'item.backpack': true, 'item.gun': true, 'item.sword': true, 'item.shield': true, 'items.v': 2, 'tool.empty': false, 'desert.quest.v': 8, 'quest.desert.power': 'skull', 'desert.battery.charged': true, 'desert.tree.lit': true, 'desert.channel.open': true, 'desert.stone.taken': true, 'desert.cave.seen': true }, keepsakes: [] };
@@ -1441,8 +1441,6 @@ export const CHANGELOG_MEDIA = {
     { name: 'foundry731-steam', title: 'The last furnace', caption: 'The last furnace and its mould: before, in daylight, no steam; after, dim, steam off the mould and smoke from the furnace’s mouth, the ladle’s pour glowing', from: FROM731, ...FOUNDRY731, view: MF731([40, 4, 4], [66, 5, -16], [44, 0, 0]) },
   ], see: 'Walk along any wall of the Moon Foundry: the vents at its foot breathe, and every few seconds a valve hisses out a puff; columns rise from the grates in the floor.' },
   { match: 'In the Moon Foundry, the droids’ patrol', see: 'With the sword, walk into the Moon Foundry’s east bay south of the east furnace: the droids walk their beat there; the prowlers sleep in the north-west corner under the second hung moon.' },
-  ],
-  '2.35': [
   // (issues #729, #730: the Rose House's new rooms and the skull cave, at the change's commit and its parent, the same view and
   // save for both; the skull's monsters out as the game puts them there with the blade carried)
   { match: 'The Rose House is now the Desert’s great temple', shots: [
@@ -1461,6 +1459,8 @@ export const CHANGELOG_MEDIA = {
     { name: 'skull730-open', only: 'after', caption: 'After: the monsters down, the shrine’s lens lit and its door sunk, the lift valve’s chest inside', commit: C729, before: B729,
       view: { level: 'desert', save: SAVE729_OPEN, hour: 12, fov: 70, wait: 5000, player: [-1263, 1000.1, 1249], eye: [-1260.5, 1002.6, 1249.3], target: [-1270.9, 1001, 1248.4] } },
   ], see: 'With the Givers’ blade, go down through the giant’s mouth past Qanat’s back gate and fight the grunts and prowlers round the pool.' },
+  ],
+  '2.35': [
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
     { name: 'grip746-whirl', size: [1280, 720], caption: 'The warlord’s last stand at the end of its wind-up, from behind: before, its left hand had let go (out of reach); after, both fists on the shaft behind it', from: GRIP746, view: 'warlord@desert from behind (yaw 3.14, pitch 0.12, zoom 0.5), 1.25 s into the last stand’s 1.3 s wind-up' },
     { name: 'grip746-charge', size: [1280, 720], caption: 'The warlord’s charge, running: before, its left hand back by the right at its hip; after, forward on the shaft like a lance', from: GRIP746, view: 'warlord@desert from its front left (yaw −1.2, pitch 0.12, zoom 0.6), 0.5 s into the charge’s run' },
