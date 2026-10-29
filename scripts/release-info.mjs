@@ -102,7 +102,7 @@ export function unityJson({ build, version, zip, file, minUnity = unityMinApi(),
  * carries; every push to main adds commits, so it only grows. It needs the whole history
  * (actions/checkout with fetch-depth: 0): a shallow clone would count 1.
  */
-export function gameBuild({ cwd = REPO, run = (...a) => execFileSync('git', a, { cwd, encoding: 'utf8' }).trim() } = {}) {
+export function gameBuild({ cwd = REPO, run = (...a) => execFileSync('git', a, { cwd, encoding: 'utf8', maxBuffer: GIT_BUFFER }).trim() } = {}) {
   if (run('rev-parse', '--is-shallow-repository') !== 'false') throw new Error('a shallow clone can\'t number the build: check out with fetch-depth: 0');
   const n = +run('rev-list', '--count', 'HEAD');
   if (!Number.isSafeInteger(n) || n <= LAST_RUN_NUMBER_BUILD) throw new Error(`build ${n} is not above the last run-numbered build ${LAST_RUN_NUMBER_BUILD}`);
@@ -134,6 +134,8 @@ export function webJson({ build, version, zip, file, native = webMinNative(), de
 const readRelease = (file) => (file ? JSON.parse(readFileSync(file, 'utf8')) : {});
 
 /** Read the built commit, never fall back to the current checkout's version. */
+/** Room for `git show <sha>:src/changelog.js` (over 1 MiB, execFileSync's default buffer, since v2.35: ENOBUFS). */
+export const GIT_BUFFER = 64 * 1024 * 1024;
 export function versionAt(sha, git) {
   const version = /export const CHANGELOG\s*=\s*\[\s*\{\s*v:\s*['"](\d+(?:\.\d+)+)['"]/.exec(git('show', `${sha}:src/changelog.js`))?.[1];
   if (!version) throw new Error(`no release version in commit ${sha}`);
@@ -149,7 +151,7 @@ export function unityBuildOf(sha, git) {
 function main(what = 'version', ...args) {
   const [latest] = CHANGELOG;
   if (what === 'version') console.log(latest.v);
-  else if (what === 'version-at') console.log(versionAt(args[0], (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' })));
+  else if (what === 'version-at') console.log(versionAt(args[0], (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8', maxBuffer: GIT_BUFFER })));
   else if (what === 'build') console.log(gameBuild());
   else if (what === 'native') console.log(nativeApi());
   else if (what === 'web-min-native') console.log(webMinNative());
@@ -168,7 +170,7 @@ function main(what = 'version', ...args) {
     process.stdout.write(withUnitySection(r.body ?? '', r.assets, process.env.GITHUB_REPOSITORY || undefined));
   }
   else if (what === 'unity-notes') {
-    const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }).trim();
+    const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8', maxBuffer: GIT_BUFFER }).trim();
     const sha = args[1] || git('rev-parse', 'HEAD');
     // (the version and build of the commit built, which need not be the checkout's)
     const at = unityBuildOf(sha, git);

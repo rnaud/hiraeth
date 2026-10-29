@@ -1408,6 +1408,14 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
   (1 m)+ over the chest within `RISE.flat` (4.5 m) sets `player.riseKick`: Player leaps up to its height (at most
   `RISE.max` 2.8 m, with its own `GRAVITY`) and in, and the cut is the leap's cone (no swept test: the captured arms
   swing level). Then the foe is low and the next swings are on the ground.
+  **Never at a foe, never in a fight** (v2.35, issue #747, the author: "Never auto jump when fighting enemies";
+  `mayRise`, `FIGHT_KINDS`): the rising cut is only for a thing hung over you (a bell, a lamp, a rope) with no fight on
+  (`FluidBlade.inFight`: locked on, a foe engaged within `FIGHT.near`, or `FIGHT.after` s since). A press at a hulk (its
+  chest 2.3 m up) or a warlord (3 m) leapt every time, and the combo broke in the air after the first cut. A flyer is met
+  with a jump of your own and the air combo. Nor does he climb a wall of his own in a fight (`Player.inFight`, set by the
+  blade each frame): walked, backed or rolled into one from the ground, or out of a locked-on hop, he stays on his feet;
+  jump at it to climb. Walking off a ledge is a fall as ever. Tests: `tests/fight-no-autojump.test.js`,
+  `tests/combat-feel.test.js`.
 - `tests/combat-feel.test.js` checks each of these, the turns off the screen, the lock, slow motion, the pull and the buffer.
 
 ## Strafing, locked on (`src/player.js` `LOCK_MOVE`)

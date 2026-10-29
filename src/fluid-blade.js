@@ -44,6 +44,15 @@ export const MAGNET = { max: 2.2, ideal: 1.05, arrive: 0.3 };
  * captured arms swing level). `gravity` is the traveller's (player.js GRAVITY).
  */
 export const RISE = { min: 1.0, flat: 4.5, max: 2.8, gravity: 32 };
+/**
+ * Never a leap of its own in a fight (issue #747, the author: "Never auto jump when fighting enemies"): the rising cut is
+ * for a thing hung over you (a bell, a lamp, a rope), never a foe, a guardian or a weak point, nor while a fight is on. A
+ * hulk's chest 2.3 m up, a warlord's 3 m, turned every press at them into a leap; a flyer is met in the air by a jump of your
+ * own and the air combo.
+ */
+export const FIGHT_KINDS = new Set(['foe', 'foe-weak', 'guardian', 'sentinel', 'sentry']);
+/** May a swing at `target` rise to it (RISE)? Not at anything you fight, nor in a fight (`fighting`). */
+export const mayRise = (target, fighting = false) => !!target && !fighting && !target.foe && !FIGHT_KINDS.has(target.kind);
 /** The leap for a foe `dy` m over the chest and `d` m off (flat) through a wind-up and cut of `time` s: { up, speed } m/s, or null (not one to rise to). */
 export function riseTo(dy, d, time, R = RISE) {
   if (!(dy >= R.min) || !(d <= R.flat) || !(time > 0)) return null;
@@ -664,6 +673,8 @@ export class FluidBlade {
   }
 
   get swinging() { return this.n >= 0; }
+  /** A fight on (FIGHT): locked on, a foe engaged near, or one of those within FIGHT.after s. */
+  inFight(p = this.tool.player) { return !!p?.lockOn || foeEngaged(p?.pos ?? _o) || (this.fightSince ?? Infinity) < FIGHT.after; }
 
   clearDefensiveInput() { this.rollWant = 0; }
 
@@ -728,7 +739,7 @@ export class FluidBlade {
     this.parry = Math.max(0, this.parry - dt);
     if (!ok || !p) {
       // (climbing, swimming, gliding, on the jets, aiming, riding, knocked down, a scene: the blade put away at once, the shield folds)
-      this.stop(); this.evadeT = 0; this.guardK = 0; this.guardWant = false; this.since = Infinity; this.fightSince = Infinity;
+      this.stop(); this.evadeT = 0; this.guardK = 0; this.guardWant = false; this.since = Infinity; this.fightSince = Infinity; if (p) p.inFight = false;
       this.sheath.update(dt, false, { ok: false });   // (flown back to the frog, no reach: the arms are busy)
       this.placeShield(dt); return this.fade(dt);
     }
@@ -861,6 +872,7 @@ export class FluidBlade {
     // (a fight: a foe engaged near or locked on, FIGHT; it lasts FIGHT.after s past the last of them, so it never flickers between cuts)
     this.fightSince = (p.lockOn || foeEngaged(p.pos)) ? 0 : (this.fightSince ?? Infinity) + dt;
     const fighting = this.fightSince < FIGHT.after;
+    p.inFight = fighting;   // (Player: no climb of its own in a fight, issue #747)
     const litWant = bladeLitWant({ swinging: this.swinging, fighting, inHand: this.sheath.held >= 1 });
     this.lit += (litWant - this.lit) * (1 - Math.exp(-(litWant > this.lit ? 30 : 9) * dt));
     if (this.charging) this.lit = 0.8 + 0.2 * Math.sin(this.charging.t * (this.charging.full ? 26 : 12));   // (gathering: the blade pulses, faster once full)
@@ -946,7 +958,7 @@ export class FluidBlade {
     // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself); one hovering
     // over you: a rising cut, up to it
     const flat = this.dir.length(), time = this.sample.wind + this.sample.active, pullT = closeInTime(this.sample);
-    const rise = foe && this.special !== LUNGE && !force && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
+    const rise = foe && this.special !== LUNGE && !force && p.onGround && mayRise(foe, this.inFight(p)) ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
     this.rising = !!rise;
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
     this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && this.special !== RUN_CUT && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js; the generous cut: only to bring it under the crescent)

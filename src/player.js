@@ -1973,7 +1973,10 @@ export class Player {
       if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
       // pushing into a steep wall: start climbing (immediately in the air)
       const wall = Math.abs(n.dot(U)) < 0.35 && move.dot(n) < -0.6;
-      if (this.opts.climb && wall && this._climbCooldown === 0 && !this.carrying && !this.doorWalk && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
+      // (in a fight, never a climb of its own off the ground or out of a locked-on hop: backed or rolled into a wall while
+      // fighting he stays on his feet; jump at it to climb. Issue #747, "Never auto jump when fighting enemies")
+      const fightHold = !!this.inFight && (this.onGround || !!this._hop);
+      if (this.opts.climb && wall && !fightHold && this._climbCooldown === 0 && !this.carrying && !this.doorWalk && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
         this._press += dt;
         if (!this.onGround || this._press > 0.25) this.startClimb(n);
       } else this._press = 0;

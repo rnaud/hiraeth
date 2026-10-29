@@ -15,7 +15,7 @@ import {
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const read = (p) => readFileSync(join(root, p), 'utf8');
-const VERSION_TAG = 'v' + versionAt('HEAD', (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' }));
+const VERSION_TAG = 'v' + versionAt('HEAD', (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const SHA = '0123456789abcdef0123456789abcdef01234567';
 
 test('the newest version is the highest vX.Y, number by number, among the releases', () => {

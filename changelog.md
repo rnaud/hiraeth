@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.35 — 2026-10-28
 
+- He never jumps by himself in a fight any more: striking at a hulk or a warlord no longer leaps him up at its chest (his three blows land on it from the ground), and backing or rolling into a wall while you fight no longer starts him climbing it. Jump at a wall to climb it.
 - A stomp’s shockwave is now a knee-high curl of sand with a red-orange crest rolling out over the ground, easy to see and to jump, and it leaves a scored ring in the dust where it dies out. The temple guardians’ shockwaves and thrown marks look the same.
 - A crawler about to blow itself up now marks how far its blast reaches: a dashed ink ring on the ground fills with hatching from the edge in and turns warm orange just before it goes off, and the blast flowers out to exactly that ring.
 - Where a thrown rock or a spat glob will land, the ground now shows its shadow, small and soft at first, then darker and sharper as it falls, inside a thin red-orange ring that tightens onto exactly where it hits; it lands in a burst of grit inside that ring.

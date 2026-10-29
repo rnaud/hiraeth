@@ -99,11 +99,21 @@ test('bodyHits: a blade swept through a foe\'s drawn body hits it there; through
   foes.dispose(); clearTargets();
 });
 
-test('the miss table\'s first row: every archetype is hit by a plain first swing from in front at 1.5 m, by the drawn blade on its drawn body', async () => {
+test('the miss table\'s first row: every archetype on the ground is hit by a plain first swing from in front at 1.5 m, by the drawn blade on its drawn body', async () => {
   clearTargets();
   const rig = await reachRig();
   const misses = [];
   for (const [id, A] of BUILT) {
+    // (one hovering over you is met with a jump of your own: the swing never leaps at a foe, issue #747)
+    if (A.def?.hover) {
+      const y0 = rig.p.pos.y; let top = 0;
+      const tick = rig.tick; rig.tick = (i) => { tick(i); top = Math.max(top, rig.p.pos.y - y0); };
+      const r = await swingAt(rig, A.kind, { gap: 1.5, angle: 0, swing: 0 });
+      rig.tick = tick;
+      assert.ok(top < 0.05, `${id}: no leap at a hovering foe (${top.toFixed(2)} m)`);
+      if (A.def.hover <= 1.6 && !r.hit) misses.push(`${id} (hovering at head height, its body ${r.span.lo.toFixed(2)}–${r.span.hi.toFixed(2)})`);   // (a moth: in reach from the ground; a drone bobbing at 1.7 m is not always)
+      continue;
+    }
     const r = await swingAt(rig, A.kind, { gap: 1.5, angle: 0, swing: 0 });
     if (!r.hit) misses.push(`${id} (blade's lowest over it ${r.low?.toFixed(2) ?? 'never over it'}, its body ${r.span.lo.toFixed(2)}–${r.span.hi.toFixed(2)})`);
   }

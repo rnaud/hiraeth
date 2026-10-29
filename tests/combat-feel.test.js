@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foe, Foes, FOES, PRESSURE, BURROW, FLICK, KNOCKED_LOW } from '../src/foes.js';
-import { closeInSpeed, MAGNET, BLADE, RISE, riseTo } from '../src/fluid-blade.js';
+import { closeInSpeed, MAGNET, BLADE, RISE, riseTo, mayRise } from '../src/fluid-blade.js';
 import { GRAVITY } from '../src/player.js';
 import { feelDt, slowMo, hitStop, resetFeel } from '../src/feel.js';
 import { reticleLook, RETICLE } from '../src/lock-reticle.js';
@@ -231,7 +231,7 @@ test('a hovering foe the blade cuts drops within reach a while', () => {
   assert.ok(f.alt > 2, 'then up again');
 });
 
-test('the rising cut: a swing from the ground at a foe hovering over you leaps up to it and cuts it', async () => {
+test('the rising cut: a swing from the ground at a thing hung over you leaps up to it and cuts it; never at a foe (#747)', async () => {
   assert.equal(RISE.gravity, GRAVITY, 'the leap uses the traveller\'s gravity');
   assert.equal(riseTo(0.4, 2, 0.4), null, 'level: no leap');
   assert.equal(riseTo(2, RISE.flat + 1, 0.4), null, 'too far off');
@@ -245,15 +245,30 @@ test('the rising cut: a swing from the ground at a foe hovering over you leaps u
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const tick = (input = {}) => { p.update(DT, input, CAM_PLUS_Z); tool.update(DT, input); };
   for (let i = 0; i < 10; i++) tick({});
-  const at = p.pos.clone().add(v(0, 4.1, 2.6));   // (a winged blot's chest, hovering)
+  const at = p.pos.clone().add(v(0, 4.1, 2.6));   // (a bell hung over him)
   let hits = 0;
-  registerTarget({ kind: 'foe', lock: true, radius: 0.75, accepts: ['blade'], position: () => at, onHit: () => hits++ });
+  const off = registerTarget({ kind: 'bell', lock: true, radius: 0.75, accepts: ['blade'], position: () => at, onHit: () => hits++ });
   const y0 = p.pos.y;
   tick({ KeyF: true });
   let top = 0;
   for (let i = 0; i < 60; i++) { tick({}); top = Math.max(top, p.pos.y - y0); }
   assert.ok(top > 1.5, `it leapt (${top.toFixed(2)} m)`);
   assert.equal(hits, 1, 'and the cut found it');
+  off?.();
+  // never at a foe (a winged blot hovering, a hulk's chest 2.3 m up), nor at anything while a fight is on: his feet stay down
+  assert.equal(mayRise({ kind: 'foe', foe: {} }), false);
+  assert.equal(mayRise({ kind: 'guardian' }), false);
+  assert.equal(mayRise({ kind: 'foe-weak', foe: {} }), false);
+  assert.equal(mayRise({ kind: 'bell' }, true), false, 'in a fight');
+  assert.equal(mayRise({ kind: 'bell' }), true);
+  for (let i = 0; i < 90; i++) tick({});
+  clearTargets();
+  registerTarget({ kind: 'foe', foe: { state: 'idle' }, lock: true, radius: 0.75, accepts: ['blade'], position: () => at, enabled: () => true });
+  const y1 = p.pos.y;
+  tick({ KeyF: true });
+  top = 0;
+  for (let i = 0; i < 60; i++) { tick({}); top = Math.max(top, p.pos.y - y1); }
+  assert.ok(top < 0.05, `no leap at a foe (${top.toFixed(2)} m)`);
   tool.dispose(); clearTargets();
 });
 
