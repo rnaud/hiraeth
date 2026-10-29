@@ -614,6 +614,62 @@ Tests (`tests/foe-voices.test.js`, the last six): the fall with distance and the
 camera, behind duller and out of view louder but never under the floor, rendered left/right channels, the pan following
 a foe that walks round, the effects volume still ruling it, and the foes passing the chest.
 
+### Calls, cries, blows, steps and deaths (v2.37, issue #771)
+
+Until v2.37 a foe was heard only when cut (its hurt), coming apart (its burst) and in the one generic rising whine of a
+wind-up. Now `src/foe-sounds.js` gives each its body's voice and movement, all synthesised (no recorded takes yet) and
+placed at the foe (`Sound.foeSay` → `foeVoice` → `foeSpot`):
+
+| when | what | from |
+|---|---|---|
+| it spots you (`Foes.gesture` 'alert'), a packmate falls ('mourn', lower), it breaks and runs ('flee', higher) | its **call** | `FOE_CALLS[kind ?? family].alert` |
+| its wind-up begins (the 'warn' event) | its **cry**, over the shared rising telegraph (`foeWarn`, kept) | `.cry` |
+| enraged ('rage') | its cry, louder | `.cry` |
+| its strike begins (wind → strike; an instant move as it lands) | its **effort** and the **blow**'s own sound | `.bark` and `FOE_BLOWS[attackSort(a)]` |
+| now and then, calm (7-14 s) or chasing (4-8 s), within 22 m | an **idle** (a snuffle, a chitter, a beep) | `.idle` |
+| moving, the three nearest within 14 m | a **step**, a wingbeat, a whir | `FOE_MOVES[plan].step` by stride or period |
+| struck down (it starts to fall) | a **death cry**: its call falling | `dying(.alert)` |
+| it comes apart (as before, now placed where it fell) | its burst | `FOE_VOICES[kind].burst` |
+
+- **The voice** is the archetype's sound family (`shell`, `chitin`, `bellows`, `scale`, `flesh`, `steam`, `ink`…; the
+  roller and the sky ray have their own), pitched for the body: `sqrt(ref / height)`, so a hulk is a grunt an octave-ish
+  down and a skitter a chitter up; a small body is quieter, a big one a little louder (`FOE_SOUND.loud`). Creatures'
+  voices use a new layer, `G` (`growl` in `src/audio.js`): a buzz through a vowel's two formants, roughened by a tremolo
+  (a snarl, a croak's pulses) with breath.
+- **The blow** is chosen by what the attack is (`attackSort`: its keys and shape, never the roster): a swing (a machine's
+  rings), a bite, a slam (its weight lands at the strike's contact), a charge, a blast all round it, a spit or a bolt
+  (a machine's), a bow's twang, a lob, a cast's shimmer; a horn or a roar is the call, louder; the wisp's fireball keeps
+  its own. A move changed or given to another foe sounds as what it now is.
+- **The mix** (`FOE_SOUND`): targets against the music (the sound QC's measure, within 6 m) under the traveller's (his
+  cut about +1 dB, his hurt +1.5, his footstep -14): call -7, cry -8, effort -10, blow -7, death -6, idle -15, step -21.
+  `src/foe-sound-trims.js` holds the dB each voice needs, written by `node scripts/sound-qc/foe-levels.mjs` (renders
+  every voice on the game's Sound in memory, corrects twice for the master compressor). Rerun it after changing a voice.
+- **Never machine-gunning**: every take ±8 % in pitch and ±18 % in level; a foe's call at most every 4 s, its cry every
+  0.8 s; one kind's same call once in 0.5 s (a pack spotting you: one call); at most 3 foe voices at once (calls and
+  idles only while fewer than 2 sound), 3 blows at once, steps from the 3 nearest movers and at most 8 a second.
+- Its clock is the frames' dt and its own randomness (never the fight's rng), so it runs the same with a stand-in or
+  muted Sound, in the engines and in tests. The Unity bridge plays it through the same shim (the tremolo is an
+  oscillator into a gain's AudioParam, which the recorded ops carry).
+- Hooks in `src/foes.js`: `this.voices.event(f, ev)` per foe, `this.voices.frame(dt, P, this.list)` once a frame,
+  `this.voices.call(f, kind)` in `gesture` (replacing the generic `foeWarn` it played for an alert, a rage or a flight).
+- Tests: `tests/foe-sounds.test.js` (every archetype a full set and its trims, lengths, the blows by keys, the size,
+  caps and gaps, steps, idles, the death cry once, the foes' wiring, a growl rendered, the trimmed voices sitting
+  together, the Unity replay the same). The sound QC lists twelve foe actions (`foe-alert` … `foe-burst`). The music page (and the Sound effects page) lists each
+  voice's five events, the steps by body plan and the blows by sort, and the `growl` building block.
+- **The sound QC** (29 October 2026, `--only "the foes"`; dB against the desert's recording, -25.7 dBFS; all 18 OK,
+  web and engines alike, as they are all synths; foes in play since #762/#769, src/foe-worlds.js): a hound's call -8.8,
+  a skitter's -9.6, a tripod's -7.8, a hound's cry -9.1 (over the telegraph's -0.1), a mummer's club with its effort
+  -5.4, a furnace brute's slam -4.5, a tripod's bolt -5.5, a crab's snap -7.4, a root knot's spore pod -5.6, a toad's
+  croak (idle) -16.8, a hound's step -20.0, its death cry -7.8, its burst +0.4. Every take 1.4-3.4 dB / 1.8-22 % apart
+  (none machine-guns). For reference the traveller's first cut +0.4, his hurt +0.8, his footstep -13.3.
+  **Driven in the engines' build** (scripts/sound-qc/scenarios.mjs `foe-fight`, `foe-down`: engine/game.js in V8 on
+  engine/webaudio.js, what Unity runs): a mummer spotted the traveller at 2.6 s and called, stepped up (five steps),
+  cried as it raised its club, its effort and the swing as it struck; a blot cut down cried out on the frame it fell
+  and burst later.
+- **Recorded takes**: none yet. No creature takes exist in references/audio/ and no sound generator key is on this machine
+  (29 October 2026); a take needs the author's pick first. The voices are written so a selected take can replace a
+  family's event later, through the same pipeline as #613 (no procedural substitute once a take is assigned).
+
 ## The people's voices (issue #323, October 2026)
 
 Everyone speaks their world's tongue (the translator gives you the words: `docs/systems/dialogue.md`, "Alien

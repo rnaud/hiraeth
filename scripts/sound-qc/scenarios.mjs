@@ -22,4 +22,7 @@ export const SCENARIOS = {
   potion: { setup: (g) => { g.player.hearts = 1; }, steps: [[70, {}]], each: (g, f) => { if (f === 0) g.combat?.drink?.(); } },
   low: { setup: (g) => { g.player.hearts = 0.75; }, steps: [[90, {}]] },
   scout: { steps: [[2, { KeyQ: true }], [30, { KeyQ: false }]] },
+  // (the foes' own voices, issue #771: a mummer comes in, spots you, steps up, winds up and swings; the blot that just came in, cut down: its cry, then its burst)
+  'foe-fight': { setup: (g) => { g.foes.spawnKind('mummer', { n: 1, dist: 7 }); }, steps: [[180, {}]] },
+  'foe-down': { setup: foeAhead(3), steps: [[150, {}]], each: (g, f) => { if (f === 20) { const b = g.foes.list.at(-1); if (b?.alive) g.foes.defeat(b); } } },
 };

@@ -27,6 +27,7 @@ import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
 import { TITLES } from './levels/names.js';
 import { rumblePlay } from './rumble.js';
+import { FoeSounds } from './foe-sounds.js';
 import { Rig, planLeg } from './motion-kit/rig.js';
 import { PLANS } from './motion-kit/plans.js';
 import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, parseKind, skinned } from './enemies/archetypes.js';
@@ -2438,6 +2439,7 @@ export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
     Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.balls = []; this.group = new THREE.Group(); this.group.name = 'Foes';
+    this.voices = new FoeSounds(() => this.sound);   // (their calls, cries, blows and steps: src/foe-sounds.js, issue #771; its own randomness, never the fight's rng)
     // (what is drawn into the ground: a lob's landing mark, a blast's reach, a shockwave: src/ground-warnings.js, #758)
     this.gw = new GroundWarnings(this.group, { groundAt: (x, y, z, d) => this.physics?.groundAt?.(x, y, z, d), drops: () => this.tool?.drops });
     this.racks = [];   // (a camp's weapon racks: RACK, src/encounters/index.js)
@@ -3586,7 +3588,7 @@ export class Foes {
 
   /** Done: a blot bursts back into ink, a machine comes apart; the magic bar gets a unit back. */
   burst(f) {
-    this.sound?.foeBurst?.(f.kind, f.def.sound);
+    this.sound?.foeBurst?.(f.kind, f.def.sound, () => f.chest);   // (where it comes apart)
     // the blow that ends one lands harder (a longer freeze, a bigger kick); the last of a fight, a moment of
     // slow motion to mark it done (src/feel.js): felt at the blow already when it went down first (defeat)
     if (!f.dying) {
@@ -3707,6 +3709,7 @@ export class Foes {
       // (a spell's slow tide round it: its own time runs slower, src/spells/caster.js; the look with it)
       const fk = this.slowAt?.(f.pos) ?? 1, fdt = dt * fk;
       const ev = inTemple ? f.update(fdt, P, this.env) : [];
+      this.voices.event(f, ev);   // (its cry as it winds up, an instant move's blow: src/foe-sounds.js)
       for (const e of ev) {
         if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, (f.windFor?.(f.atk ?? f.def.attack) ?? 0.8) * this.env.slow() / fk, () => f.chest, (f.atk ?? f.def.attack).cue);   // (rising over its whole wind-up, slowed or not; its cue over it)
         if (e === 'warn' && f.atk?.pile) this.pile(f);   // (its flock climbs onto it)
@@ -3735,6 +3738,7 @@ export class Foes {
       if (f.rage && f.alive && !f.dying && (f.steamT = (f.steamT ?? 0) - dt) <= 0) { f.steamT = RAGE.steam; this.animKit(f, 0, {}).spray(f.chest, RAGE_STEAM, 3, 1.2, -1.5); }
       this.arrival(f, dt);
     }
+    this.voices.frame(dt, P, this.list);   // (blows begun, the fallen's cries, steps, idles: src/foe-sounds.js)
     this.updateBalls(dt);
     this.updateHold(dt);
     this.corral();
@@ -4504,16 +4508,16 @@ export class Foes {
     const size = Math.max(f.def.radius, f.def.height * 0.5) / 0.6;
     if (kind === 'alert' || kind === 'mourn' || kind === 'taunt') {
       if (R) { installFlash(f.model, R); R.hit(away, 'rear', { size, hold: kind === 'taunt' ? 0.5 : 0.4, flash: kind === 'alert' }); }   // (the alert's ink flashes: the plan's "rear, yell, flash")
-      if (kind !== 'taunt') this.sound?.foeWarn?.(f.def.sound ?? f.kind, kind === 'alert' ? 0.35 : 0.3, () => f.chest);
+      if (kind !== 'taunt') this.voices.call(f, kind);   // (its own call: src/foe-sounds.js, issue #771)
     } else if (kind === 'feint') { if (R) R.hit(away.negate(), 'lean', { size, hold: 0.25, flash: false }); }
     else if (kind === 'rage') {
       if (R) { installFlash(f.model, R); R.hit(away, 'rear', { size, hold: 0.5, flash: true }); }
-      this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.5, () => f.chest);
+      this.voices.call(f, 'rage');
       this.animKit(f, 0, {}).spray(f.chest, RAGE_STEAM, 18, 3, -1);
       f.steamT = 0;
     } else if (kind === 'flee' || kind === 'cower') {
       if (R) R.hit(away, 'cower', { size, hold: 0.6, flash: false });
-      this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.3, () => f.chest);
+      this.voices.call(f, kind);
     } else if (kind === 'hop') this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5);
   }
   /**

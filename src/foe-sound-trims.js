@@ -1,0 +1,37 @@
+// Written by scripts/sound-qc/foe-levels.mjs (issue #771): the dB each foe voice, movement and blow of src/foe-sounds.js
+// needs to land at its target against the music (FOE_SOUND.target), measured silently on the in-memory Web Audio.
+// Rerun it after changing a voice there; tests/foe-sounds.test.js checks that every voice has its trims.
+export const FOE_TRIM = {
+  calls: {
+    shell: { alert: 1.7, cry: 4, bark: 7.8, idle: -2.5, death: 2.7 },
+    roller: { alert: -8.3, cry: -9, bark: -4.1, idle: -10.7, death: -7.7 },
+    chitin: { alert: 14.1, cry: 6.2, bark: 9.1, idle: 13.5, death: 17.1 },
+    bellows: { alert: -16, cry: -21.6, bark: -17.8, idle: -18, death: -16.4 },
+    scale: { alert: -10.9, cry: -10.3, bark: -11.9, idle: -5.6, death: -10.5 },
+    clay: { alert: -20.3, cry: -21.7, bark: -20.2, idle: -25.5, death: -25 },
+    roots: { alert: -3.3, cry: -10.8, bark: 3.6, idle: -6.7, death: -2.6 },
+    glass: { alert: -7, cry: -7.7, bark: -9.2, idle: -10.5, death: -7 },
+    paper: { alert: -0.4, cry: -4.5, bark: 1.3, idle: 5.3, death: 0.7 },
+    ray: { alert: -6.6, cry: -7, bark: 0.7, idle: -7.9, death: -5.8 },
+    earth: { alert: -12.2, cry: -11.5, bark: -14.7, idle: -12.9, death: -10 },
+    steam: { alert: -9, cry: -10.4, bark: -11.8, idle: -9.3, death: -8.5 },
+    slag: { alert: -9.7, cry: -2.9, bark: -10.2, idle: -6.5, death: -9.2 },
+    brass: { alert: -7.4, cry: -8.2, bark: -6.4, idle: -7.1, death: -6.8 },
+    tin: { alert: -0.6, cry: -1.1, bark: -1.8, idle: -1.7, death: -0.7 },
+    iron: { alert: -5.6, cry: -3, bark: -5.6, idle: -9.9, death: -4.7 },
+    steel: { alert: -2.5, cry: -1.5, bark: 1, idle: 2.7, death: -2.1 },
+    ceramic: { alert: -2.4, cry: -6.7, bark: -4.4, idle: -7, death: -2.1 },
+    servo: { alert: -2.1, cry: -1.9, bark: -5.7, idle: 13, death: -1.6 },
+    machine: { alert: -5.3, cry: -2.6, bark: -6.5, idle: -7.7, death: -4.7 },
+    ink: { alert: -7.6, cry: -10.5, bark: -6.3, idle: -9.1, death: -3.4 },
+    cloth: { alert: 1.3, cry: 1.4, bark: -3.7, idle: 1.5, death: 1.9 },
+    smoke: { alert: -16.8, cry: -14.3, bark: -16.4, idle: -12.2, death: -14.4 },
+    strings: { alert: 2, cry: 0.5, bark: 14.4, idle: 0, death: 2.7 },
+    ember: { alert: 0.6, cry: 3, bark: 0.2, idle: 2.5, death: 1.2 },
+    junk: { alert: -25.2, cry: -16.7, bark: -20.9, idle: -21.8, death: -14.1 },
+    flesh: { alert: -19.4, cry: -17.9, bark: -16.9, idle: -15.7, death: -15.5 },
+    hide: { alert: -17.1, cry: -15.2, bark: -16.3, idle: -15.7, death: -13.2 },
+  },
+  moves: { walker: 5.8, skitterers: 8.7, centipede: 5.8, hopper: -15.9, quadruped: 1, stilt: 1.8, roller: -5.8, tentacled: -6.3, floater: -13.7, flyer: -4.6, glider: -9.8, burrower: -14, tracked: -1.1, siege: -10.9, hover: -5.5, brute: -15.8, fencer: 0.6, blob: -4, humanoid: -6.6, strings: 7.9, ember: 6.4, mummer: -0.5, mummerking: -12.5, monster: -0.8, machine: -8.7, sentinel: -5.4, oracle: -7.3, crawler: 5.9 },
+  blows: { swing: 5.6, 'swing-metal': 4.6, bite: -1.1, slam: -11.2, charge: 4.7, spit: -3.5, bolt: -6.4, bow: -6.1, blast: 2.2, lob: -2.7, cast: -2.6 },
+};

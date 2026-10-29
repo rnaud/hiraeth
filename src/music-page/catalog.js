@@ -9,7 +9,8 @@
 import { SCORES, SCORE_OF, MODES } from '../score.js';
 import { SOUNDTRACKS, TITLE_THEME, SCENE_THEMES, CUES, loadCue } from '../soundtracks.js';
 import { SFX } from '../sfx.js';
-import { FOE_VOICES, CUES as FOE_CUES, GLASS } from '../foe-voices.js';
+import { FOE_VOICES, CUES as FOE_CUES, GLASS, VOWELS } from '../foe-voices.js';
+import { FOE_CALLS, FOE_MOVES, FOE_BLOWS, blowLayers, dying, trimOf } from '../foe-sounds.js';
 import { KINDS, hit, playColour } from '../score-voices.js';
 import { OWN_KINDS } from '../audio.js';
 import { LANGUAGES, CALL_VOICES, planLine, voiceOf } from '../story/voice.js';
@@ -232,6 +233,13 @@ add('Foes and guardians', 'foeGlance', 'A blow that does nothing', one((s) => s.
 add('Foes and guardians', 'foeArmour', 'A cut that doesn\'t stop it', one((s) => s.foeArmour()));
 add('Foes and guardians', 'foeKill', 'A foe felled in a fight temple: the ink\'s wet thump', [pick('small', (s) => s.foeKill(0.7)), pick('big', (s) => s.foeKill(1))], 'issue #442: src/fight-temples/kill-fx.js');
 add('Foes and guardians', 'fireball', 'The ember wisp\'s fireball', ['throw', 'hum', 'tink', 'back', 'stun', 'burst', 'douse'].map((k) => pick(k, (s, e) => s.fireball(k, e.at))), 'issue #398: thrown, in the air, cut back, back on the wisp, the wisp stunned, burst, doused');
+// their calls, cries, efforts, idles and death cries, steps and blows (issue #771, src/foe-sounds.js: in the game each
+// is pitched for the body and a little apart every time)
+for (const [key, V] of Object.entries(FOE_CALLS)) add('Foes and guardians', `foecall:${key}`, `${key}: its voice`, [
+  ...['alert', 'cry', 'bark', 'idle'].map((ev) => pick({ alert: 'spots you', cry: 'winds up', bark: 'its effort', idle: 'now and then' }[ev], (s, e) => s.foeSay(V[ev], e.at, { k: trimOf('calls', key, ev) }))),
+  pick('goes down', (s, e) => s.foeSay(dying(V.alert), e.at, { k: trimOf('calls', key, 'death') }))], 'src/foe-sounds.js FOE_CALLS');
+add('Foes and guardians', 'foemove', 'Foes moving: a step, a wingbeat, a whir', Object.entries(FOE_MOVES).map(([k, M]) => pick(k, (s, e) => s.foeSay(M.step, e.at, { k: trimOf('moves', k) }))), 'src/foe-sounds.js FOE_MOVES, by body plan');
+add('Foes and guardians', 'foeblow', 'A foe\'s blow', Object.keys(FOE_BLOWS).filter((k) => !['call', 'none', 'impact'].includes(k)).map((k) => pick(k, (s, e) => s.foeSay(blowLayers(k, { strike: 0.3, contact: 0.6 }), e.at, { k: trimOf('blows', k) }))), 'src/foe-sounds.js attackSort: by what the attack is');
 for (const [kind, v] of Object.entries(FOE_VOICES)) add('Foes and guardians', `foe:${kind}`, `${kind} (${v.family ?? 'its own'})`, [pick('hurt', (s, e) => s.foeHurt(kind, null, e.at)), pick('done', (s) => s.foeBurst(kind))], 'src/foe-voices.js');
 // creatures
 const CRITTERS = ['squeak', 'inflate', 'boing', 'portal', 'chime', 'bloom', 'jet', 'whirr', 'clank', 'clack', 'blip', 'splash', 'skip', 'plop', 'poof', 'puff', 'spores', 'flutter', 'scribble', 'creak', 'daze', 'flash'];
@@ -314,6 +322,7 @@ add('Voices', 'blip', 'The old soft blips (alien voices off)', [pick('low', (s) 
 add('Voices', 'syllable', 'A conversation page, said as it comes up (its first syllable starts the voice)', one((s) => { const plan = planLine('Ah, there you are.', { lang: 'desert' }); for (const x of plan.syllables) s.syllable(x, { plan }); }));
 // the building blocks (what the sounds above are made of)
 add('Building blocks', 'burst', 'Filtered noise', [pick('low', (s) => s.burst(s.ctx.currentTime, { dur: 0.3, freq: 400 })), pick('bright', (s) => s.burst(s.ctx.currentTime, { dur: 0.3, type: 'highpass', freq: 3000 }))]);
+add('Building blocks', 'growl', 'A creature\'s voice: a buzz through a vowel', ['a', 'o', 'u'].map((v) => pick(v, (s) => s.growl(s.ctx.currentTime, { f: 160, f1: 260, dur: 0.5, vol: 0.12, formants: VOWELS[v], am: 30, depth: 0.5, breath: 1100 }))));
 add('Building blocks', 'noiseGlide', 'Noise with a moving filter', one((s) => s.noiseGlide(s.ctx.currentTime, { type: 'bandpass', f: 400, f1: 2400, q: 2, dur: 0.6, vol: 0.2 })));
 add('Building blocks', 'noiseHit', 'A noise hit', one((s) => s.noiseHit(s.ctx.currentTime, 0.1, 'bandpass', 1500, 0.2, s.fx)));
 add('Building blocks', 'sweep', 'A gliding tone', [pick('up', (s) => s.sweep(s.ctx.currentTime, 400, 1600, 0.3, 0.06)), pick('down', (s) => s.sweep(s.ctx.currentTime, 1600, 400, 0.3, 0.06))]);

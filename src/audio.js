@@ -2700,7 +2700,7 @@ export class Sound {
    */
   foeHurt(kind = 'blot', sound = null, pos = null) {
     if (!this.ctx) return;
-    const v = voiceOf(kind, sound).hurt;
+    const v = pitched(voiceOf(kind, sound).hurt, this.vary(0.04));   // (no two cuts' cries alike: issue #771)
     this.foeVoice(v, this.ctx.currentTime, this.foeSpot(pos, { until: voiceLength(v) + 0.3 }));
   }
 
@@ -2735,11 +2735,54 @@ export class Sound {
       if (L.p === 'noise') this.noiseGlide(t, L, out);
       else if (L.p === 'tone') this.sweep(t, L.f, L.f1 ?? L.f, L.dur, L.vol, L.wave, out);
       else if (L.p === 'ring') this.struck(t, L.f, L.partials, L.dur, L.vol, out);
+      else if (L.p === 'growl') this.growl(t, L, out);
       else if (L.p === 'clicks') for (let i = 0; i < L.n; i++) {
         const k = L.n > 1 ? i / (L.n - 1) : 0, f = L.f1 ? L.f * (L.f1 / L.f) ** k : L.f;
         this.burst(t + i * L.every, { dur: L.dur, type: 'bandpass', freq: f, q: L.q ?? 4, vol: L.vol, rate: L.rate ?? 1, out });
       }
     }
+  }
+
+  /**
+   * A creature's voice (src/foe-voices.js G, issue #771): a buzz gliding f → f1 through its vowel's formants, a tremolo
+   * roughening it (am Hz, depth: a snarl, a croak's pulses), breath under it; swelling in, held, dying away.
+   */
+  growl(t, { f, f1 = f, dur = 0.3, vol = 0.2, wave = 'sawtooth', formants, am = 0, depth = 0.5, breath = 0, bvol = 0.4 }, out = this.fx) {
+    const ctx = this.ctx, env = ctx.createGain();
+    env.gain.value = 0;
+    env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(vol, t + Math.min(0.03, dur * 0.2));
+    env.gain.setValueAtTime(vol, t + dur * 0.6); env.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    env.connect(out);
+    const o = ctx.createOscillator(); o.type = wave;
+    o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    let src = o, lfo = null;
+    if (am > 0) {
+      const rough = ctx.createGain(); rough.gain.value = 1 - depth;
+      lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = am;
+      const lg = ctx.createGain(); lg.gain.value = depth;
+      lfo.connect(lg).connect(rough.gain);
+      o.connect(rough); src = rough;
+    }
+    for (const [ff, q, g] of formants ?? [[700, 5, 1]]) {
+      const b = ctx.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = ff; b.Q.value = q;
+      const bg = ctx.createGain(); bg.gain.value = g * 4;   // (a narrow band passes little of the buzz: brought back up)
+      src.connect(b).connect(bg).connect(env);
+    }
+    o.start(t); o.stop(t + dur + 0.03);
+    if (lfo) { lfo.start(t); lfo.stop(t + dur + 0.03); }
+    if (breath > 0) this.burst(t, { dur, type: 'bandpass', freq: breath, q: 0.9, vol: bvol, rate: 0.9, out: env });
+  }
+
+  /**
+   * A foe's call, cry, effort, step or blow (src/foe-sounds.js FoeSounds, issue #771): its layers (already pitched for
+   * its body and the take) x `k`, synthesised at `pos` and following it (foeSpot). The seconds it sounds (0: nothing).
+   */
+  foeSay(layers, pos = null, { k = 1, warn = false } = {}) {
+    if (!this.ctx || !layers?.length) return 0;
+    const L = k === 1 ? layers : layers.map((x) => ({ ...x, vol: x.vol * k }));
+    const len = voiceLength(L);
+    this.foeVoice(L, this.ctx.currentTime, this.foeSpot(pos, { warn, until: len + 0.3 }));
+    return len;
   }
 
   /** Filtered noise whose filter glides from f to f1 over dur (a wheeze, a whoosh, steam): burst() with a moving filter. */
@@ -2777,9 +2820,10 @@ export class Sound {
   }
 
   /** A foe is done: its archetype's own (src/foe-voices.js: the crab's dome cracking, the bell cracked, the strings snapping…). */
-  foeBurst(kind = 'blot', sound = null) {
+  foeBurst(kind = 'blot', sound = null, pos = null) {
     if (!this.ctx) return;
-    this.foeVoice(voiceOf(kind, sound).burst);
+    const g = this.vary(0.15), v = pitched(voiceOf(kind, sound).burst, this.vary(0.08)).map((L) => ({ ...L, vol: L.vol * g }));   // (where it fell, a little apart each time: issue #771)
+    this.foeVoice(v, this.ctx.currentTime, this.foeSpot(pos, { until: voiceLength(v) + 0.3 }));
   }
 
   /**
