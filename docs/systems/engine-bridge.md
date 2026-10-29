@@ -567,7 +567,10 @@ as main.js's `open` (Quit leaves you where the run did); a game's Play (`onGame`
 starts the engine again on the game's page: `createGame({ game, from })` builds its level as main.js does
 (kit/world.js `levelMetaFor`: its arena under its host's id, or the world it is played in), makes its runner at once, writes
 no place to the save, and its Quit (`onLeave`, `?level=<from>`) starts the engine again on that world at the place saved
-as you left it. The frame follows main.js's: the runner's `filterInput` before the traveller and the gadget in hand read
+as you left it. The Rose House Keeper's game is the exception (issue #789): the story's playGame tries `trials.here`
+first (src/minigames/kit/here.js, the same as main.js), which builds the cistern court into the world's scene and runs it
+there, so neither `onGame` nor `onLeave` is called and no loading screen shows either way (tests/helper-here.test.js
+plays it won and quit through this bundle). The frame follows main.js's: the runner's `filterInput` before the traveller and the gadget in hand read
 the controls (the Sunken Hall takes Space and the pad's jump: B / ○ rolls, no jump, 535f87f9a), a game that drives moves
 the traveller and the camera instead of the usual play, a game on foot is updated after the rig (it may take the camera:
 the Sunken Hall's isometric one), the gadgets held but in a trial, the runner's pad actions first (Menu pauses a run;

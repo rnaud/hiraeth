@@ -141,6 +141,8 @@ export function helperInvitation(rt, { game, player, moments, from, playGame, li
   const cancel = () => { disposed = true; pending = false; if (film && !film.done && moments?.current === film) film.finish(true); };
   return {
     dispose: cancel,
+    /** Back from a game played in this page without the win (kit/here.js): it may be asked for again. */
+    rearm() { if (!disposed) { pending = false; launched = false; } },
     start({ returnPose = null, completionPose = null, entrance = false, onLaunch = null } = {}) {
       if (!live() || pending || launched || rt.logic.resolved || !player?.pos || !playGame) return false;
       const originSlot = String(slot()), origin = returnPose ?? { pos: player.pos.toArray(), up: player.frame.up.toArray(), fwd: player.frame.dir(player.heading, V()).toArray() };

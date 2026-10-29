@@ -639,7 +639,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   if (people && humans && lib) {
     try {
       if (!playPrologue) gameState.data.flags['prologue.done'] = true;
-      story = quiet(() => createStory({ playGame: (href) => onGame?.(href), levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: storyPage ?? { complete() {}, start() {}, done: false, waitFor: null },
+      story = quiet(() => createStory({ playGame: (href) => { if (!trials?.here?.play(href)) onGame?.(href); },   // (a helping game played here first: engine/trials.js here, issue #789)
+      levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: storyPage ?? { complete() {}, start() {}, done: false, waitFor: null },
         capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool, isNight: () => { try { return sky.hour < 6.4 || sky.hour > 19.3; } catch { return false; } }, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
@@ -1595,7 +1596,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
     save() {
       // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
-      if (!saves || flags || pinned || player.dead || player.god || (shipOn && ship.playing) || gameDef) return;   // (god mode: never saved, you would load in the air)   // (a game's page keeps the place you left the world at)
+      if (!saves || flags || pinned || player.dead || player.god || (shipOn && ship.playing) || gameDef || trials?.here?.running) return;   // (god mode: never saved, you would load in the air)   // (a game's page keeps the place you left the world at)
       SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(), shipModel: caravan ? 'caravan' : 'original', aboardShip: !!ship.inside });
     },
     /**

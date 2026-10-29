@@ -63,12 +63,19 @@ export function helperRun(game, gameId, token, { slot = () => slots.active } = {
   };
 }
 
+// A helping game played in the world's own page (src/minigames/kit/here.js, issue #789): while it runs, the world's
+// temple does not take the receipt back (its result is set before the run is left; the way back is the run's end).
+const held = new WeakMap();
+export function holdHelperReturn(game, on) { if (on) held.set(game, true); else held.delete(game); }
+export const helperReturnHeld = (game) => held.has(game);
+
 /**
  * The first live frame restores the explicit success pose or original quit pose.
  * If the page closed after a genuine win, that win is still consumable. Resolve
  * before clearing: a crash between them cannot lose the win or pay it twice.
  */
 export function consumeHelperReturn(game, temple, world, { restore, resolve, slot = slots.active } = {}) {
+  if (held.has(game)) return null;
   const r = pending(game);
   if (!r || r.slot !== String(slot) || r.temple !== temple || r.from !== world || (!r.returning && !r.success)) return null;
   restore?.(pose(r.success ? r.completionPose : null) ?? pose(r.returnPose));

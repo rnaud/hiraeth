@@ -1,11 +1,14 @@
 // Cistern channels (docs/design/helper-guardians.md, issue #339): helping the Keeper of the cistern instead of fighting
 // it. Under the Rose House the Givers' great cistern court is a floor of channel stones, eight by six; the old spout in
 // its north wall still holds water. Walk the stones and turn them (A / × a quarter clockwise, X / □ back) so the water
-// runs from the spout to every trough. Story/Easy waits for a deliberate valve press and previews the current
-// route, with a same-board drain/retry when water spills. Arcade Hard retains the timed challenge. Three floods,
-// each a new solvable board: two troughs, three, four. RT / R2 held hurries water (double points per filled stone).
-// The Keeper waits off the board while planning, then drinks from the filled troughs. The rules are channels.js;
-// this is the court, the camera high over it, the stones, the water and the Keeper drawn.
+// runs from the spout to every trough. Story/Easy waits for a deliberate valve press (RT / R2 or Shift; never L3's
+// run, issue #788) and previews the current route, with a same-board drain/retry when water spills. Arcade Hard
+// starts the water by itself. Three floods, each a new solvable board: two troughs, three, four, all against one
+// clock (TIME: out of time, the run is lost and Retry plays the same boards again). RT / R2 held hurries water (double
+// points per filled stone). The Keeper waits off the board while planning, then drinks from the filled troughs. The
+// rules are channels.js; this is the court, the camera high over it, the stones, the water and the Keeper drawn.
+// In the story it is played in the desert's own page (kit/here.js, issue #789): the court built far over the world at
+// `level.at`, everything here drawn in the court's group and the traveller and the camera put over it.
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -171,6 +174,13 @@ export function courtSounds(sound) {
 }
 
 // ------------------------------------------------------------------ the game
+/**
+ * The clock (issue #788: "timed so it's a bit harder"): the three floods in 5 minutes, both difficulties. A bot that
+ * knows the way and never stops walks the story's boards in 1:50–2:15 hurrying the water (2:25–2:55 not); with two
+ * seconds' thought at each turn of a stone, 3:15–4:10 (tests/cistern-timer.test.js). Out of time: the run is lost,
+ * Retry plays the same boards. `warn`: the seconds left that are called out.
+ */
+export const TIME = { limit: 300, warn: [60, 30, 10] };
 const PLAYER = { walk: 6.2, accel: 14, reach: 0.6 };
 const KEEPER = { scale: 0.55, speed: 1.3, body: 2.6, drink: 4.5 };
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _cw = new THREE.Vector3(), _cl = new THREE.Vector3(), _UP = new THREE.Vector3(0, 1, 0);
@@ -178,6 +188,9 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _cw = new THREE.Vector
 function start(ctx) {
   const { player, camera, level, sfx, scene } = ctx;
   const L = level.cistern;
+  // (where the court stands in the world: its own page's arena at the origin, or over the desert, kit/here.js)
+  const O = level.at ? new THREE.Vector3().copy(level.at) : new THREE.Vector3();
+  const atWorld = (v) => v.add(O);
   const snd = courtSounds(ctx.sound);
   const words = new WorldLabels(camera);
   const lvl = ctx.option('level') ?? 'easy';
@@ -232,14 +245,14 @@ function start(ctx) {
   placeKeeper(1 / 60, 0);
 
   // the feet stand on the stones' tops (y 0), drawn flat
-  const feet = { heightAbove: (p) => p.y, groundNormal: (x, y, z, out = new THREE.Vector3()) => out.set(0, 1, 0), groundAt: () => 0 };
+  const feet = { heightAbove: (p) => p.y - O.y, groundNormal: (x, y, z, out = new THREE.Vector3()) => out.set(0, 1, 0), groundAt: () => O.y };
   const feet0 = player._feetGround;
   player._feetGround = feet;
   const me = { pos: new THREE.Vector3(0, 0, HH + COURT.rim / 2), vel: new THREE.Vector3(), heading: Math.PI };
 
   const total = { points: 0, floods: [] };
   let flood = -1, B = null, F = null, stones = [], wet = new Map(), puddles = [], between = 0, t = 0, lastWarnAt = -9, ended = false;
-  let preview = null, awaitingRetry = false, valveHeld = false;
+  let preview = null, awaitingRetry = false, valveHeld = false, played = 0, warned = 0;
   const cam = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 
   function clearWater() {
@@ -377,13 +390,13 @@ function start(ctx) {
       if (e.kind === 'start') { L.stream.visible = true; L.basinWater.visible = true; snd.spout(); ctx.flash('The spout opens!', 'good', 1.4); }
       else if (e.kind === 'fill') {
         snd.fill(F.filled);
-        words.pop(stoneAt(e.x, e.y, _v).setY(1.2), e.hurried ? '+20' : '+10', e.hurried ? 'gold' : '', 0.8);
-      } else if (e.kind === 'cross') { sfx.checkpoint(); words.pop(stoneAt(e.x, e.y, _v).setY(1.6), '+100 · both ways', 'combo', 1.2); }
+        words.pop(atWorld(stoneAt(e.x, e.y, _v).setY(1.2)), e.hurried ? '+20' : '+10', e.hurried ? 'gold' : '', 0.8);
+      } else if (e.kind === 'cross') { sfx.checkpoint(); words.pop(atWorld(stoneAt(e.x, e.y, _v).setY(1.6)), '+100 · both ways', 'combo', 1.2); }
       else if (e.kind === 'trough') {
         snd.trough();
         const T = B.troughs[e.i], g = L.troughs[e.i];
         g.userData.water.visible = true; g.userData.fill = 0; g.userData.water.scale.set(0.05, 1, 1);
-        words.pop(troughAt(T, _v).setY(2), '+250', 'gold', 1.4);
+        words.pop(atWorld(troughAt(T, _v).setY(2)), '+250', 'gold', 1.4);
         ctx.flash(F.troughs === B.troughs.length ? 'Every trough runs!' : 'The Keeper drinks!', 'good', 1.4);
         const lit = L.braziers.filter((b) => b.userData.flame.visible).length;
         if (lit < L.braziers.length) L.braziers[lit].userData.flame.visible = true;
@@ -401,10 +414,34 @@ function start(ctx) {
         puddles.push(p);
         level.noShadow.push(p);
         for (let k = 0; k < 26; k++) splash.add({ pos: _v.set(at.x, 0.3, at.z), vel: _w.set((Math.random() - 0.5) * 6, 3 + Math.random() * 4, (Math.random() - 0.5) * 6), size: 0.08 + Math.random() * 0.08, life: 0.9, color: Math.random() < 0.5 ? WATER : '#ffffff' });
-        words.pop(at.clone().setY(1.6), 'spilled', 'bad', 1.2);
+        words.pop(atWorld(at.clone().setY(1.6)), 'spilled', 'bad', 1.2);
         ctx.flash('Spilled!', 'bad', 1.1);
       } else if (e.kind === 'done') floodDone();
     }
+  }
+
+  /** The seconds left (the runner's own clock where there is one: the HUD's countdown, kit/runner.js hud.countdown). */
+  const timeLeft = () => TIME.limit - (Number.isFinite(ctx.time) ? ctx.time : played);
+  function clockStep() {
+    const left = timeLeft();
+    if (left <= 0) { outOfTime(); return; }
+    let w = -1;
+    TIME.warn.forEach((s, i) => { if (left <= s) w = i; });
+    if (w >= warned) {
+      warned = w + 1;
+      ctx.flash(TIME.warn[w] >= 60 ? 'One minute left!' : `${TIME.warn[w]} seconds left!`, 'bad', 1.6);
+      sfx.tick?.(1);
+    }
+  }
+  /** Out of time: the run is lost (its points kept as a score, never the goal); Retry plays the same boards again. */
+  function outOfTime() {
+    ended = true;
+    const running = F && !F.done && !awaitingRetry && F.troughs > 0, done = total.floods.filter((f) => f.troughs === f.of).length;
+    ctx.finish({ score: total.points, failed: true, goal: { game: 'cistern', complete: false }, title: 'Out of time', lines: [
+      done ? `${done} of ${ROUNDS.length} floods reached every trough` : 'No flood reached every trough',
+      ...(running ? [`Flood ${flood + 1}: troughs ${F.troughs}/${B.troughs.length} when the time ran out`] : []),
+      ...(ctx.helper ? ['Retry: the same channels, from the first flood'] : []),
+    ] });
   }
 
   function floodDone() {
@@ -458,11 +495,11 @@ function start(ctx) {
   }
 
   function pose(dt, sp) {
-    player.pos.copy(me.pos);
+    player.pos.copy(me.pos).add(O);
     player.vel.copy(me.vel);
     player.heading = me.heading;
     player.onGround = true;
-    player._groundH = 0;
+    player._groundH = O.y;
     player._moveDir = (player._moveDir ?? new THREE.Vector3()).set(sp > 0.3 ? me.vel.x / sp : 0, 0, sp > 0.3 ? me.vel.z / sp : 0);
     player._wantSpeed = sp;
     player.gliding = false; player.jetFlight = null;
@@ -516,9 +553,9 @@ function start(ctx) {
     _cw.copy(_cl).add(_v.set(0, 52, 32));
     const e = snap ? 1 : 1 - Math.exp(-2.5 * dt);
     cam.pos.lerp(_cw, e); cam.look.lerp(_cl, e);
-    camera.position.copy(cam.pos);
+    camera.position.copy(cam.pos).add(O);
     camera.up.set(0, 1, 0);
-    camera.lookAt(cam.look);
+    camera.lookAt(_cl.copy(cam.look).add(O));
     ctx.setFov(44);
   }
 
@@ -529,7 +566,7 @@ function start(ctx) {
     if (!why) { snd.grind(); const g = stones[s.y * B.w + s.x]; g.userData.angle -= dir * Math.PI / 2; refreshPreview(); return; }
     snd.thunk();
     const msg = { broken: 'That one’s broken.', set: 'The water’s in it.', blocked: 'It’s lying on that one.' }[why];
-    if (msg) words.pop(stoneAt(s.x, s.y, _v).setY(1.8), msg, 'bad', 1.1);
+    if (msg) words.pop(atWorld(stoneAt(s.x, s.y, _v).setY(1.8)), msg, 'bad', 1.1);
   }
 
   begin(0);
@@ -547,8 +584,9 @@ function start(ctx) {
       if (live && globalThis.window?.__cisternBot) {
         const s = stoneUnder(me.pos.x, me.pos.z) ?? { x: -1, y: -1 };
         const m = botMove(B, F, s.x, s.y);
-        ii = { x: 0, y: 0, jumpPressed: false, actionPressed: false, tuck: 0 };
-        if (awaitingRetry || (F.planning && preview?.complete)) ii.tuck = valveHeld ? 0 : 1;
+        ii = { x: 0, y: 0, jumpPressed: false, actionPressed: false, trigger: 0 };
+        if (awaitingRetry || (F.planning && preview?.complete)) ii.trigger = valveHeld ? 0 : 1;
+        else if (!F.planning) ii.trigger = 1;   // (and it hurries the water: the clock is short)
         if (m.to) {
           const p = stoneAt(m.to[0], m.to[1], _cw);
           const dx = p.x - me.pos.x, dz = p.z - me.pos.z, d = Math.hypot(dx, dz);
@@ -556,8 +594,11 @@ function start(ctx) {
           else { ii.x = dx / Math.max(d, 1); ii.y = -dz / Math.max(d, 1); }
         }
       }
-      const valveDown = (ii.tuck ?? 0) > 0.3, valvePressed = valveDown && !valveHeld;
+      // (the valve: RT / R2, or the keyboard's Shift; never the pad's L3, which runs: issue #788, "Pressing L3 shouldn't
+      // start the game")
+      const valveDown = Math.max(ii.trigger ?? 0, ii.shiftKey ? 1 : 0) > 0.3, valvePressed = valveDown && !valveHeld;
       valveHeld = valveDown; // Sample even while paused/counting down: holding cannot open the next flood.
+      if (live && !ended) { played += dt; clockStep(); }
       const moving = live && !ended;
       const sp = moving ? walk(dt, ii) : walk(dt, { x: 0, y: 0 });
       if (moving && between <= 0) {
@@ -611,8 +652,8 @@ function start(ctx) {
 export default {
   id: 'cistern', order: 13,
   name: 'Cistern channels',
-  blurb: 'Plan a path through the Givers’ channel stones, then open the valve and bring water to the Keeper.',
-  rules: 'Walk onto a stone to turn it. Teal channels show the water’s current route; red arrows show spills. Take your time, then open the valve. If a trough stays dry, drain and adjust the same board. Hard starts the water automatically. Three floods: two troughs, three, four.',
+  blurb: 'Plan a path through the Givers’ channel stones, then open the valve and bring water to the Keeper before time runs out.',
+  rules: 'Walk onto a stone to turn it. Teal channels show the water’s current route; red arrows show spills. Open the valve when the route is ready, and hold it to hurry the water. If a trough stays dry, drain and adjust the same board. Three floods (two troughs, three, four) in 5 minutes: out of time, try again. Hard starts the water automatically.',
   controls: {
     pad: [['Left stick', 'walk the stones'], ['A / ×', 'turn the stone clockwise'], ['X / □', 'turn it back'], ['RT / R2', 'open valve / drain and retry; hold to hurry'], ['Menu', 'pause']],
     keys: [['W A S D', 'walk the stones'], ['Space', 'turn the stone clockwise'], ['E', 'turn it back'], ['Shift', 'open valve / drain and retry; hold to hurry'], ['Esc', 'pause']],
@@ -623,8 +664,13 @@ export default {
   bestBy: 'level',
   // (its sign in the desert: beside the Rose House's door, the side away from the path; its host Omar)
   markers: [{ level: 'desert', at: [479.9, null, 390.3], heading: 2.895 }],
+  // (the Keeper's own run, from the Rose House: played in the desert's page, the court built here for it, far over the
+  // world and clear of its rooms and halls (the house's at y 2400, the hall at 1000, the high box at 3000): kit/here.js,
+  // issue #789, no loading screen either way)
+  here: { desert: [-400, 2000, -900] },
   score: { kind: 'points', unit: 'pts' },
-  hud: { timer: false, score: true, multiline: true },
+  // (the clock counts down the run's 5 minutes: TIME, issue #788)
+  hud: { timer: true, countdown: TIME.limit, score: true, multiline: true },
   color: '#62c3c9',
   build: buildCourt,
   start,

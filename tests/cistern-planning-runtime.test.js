@@ -48,7 +48,7 @@ for (const fps of [30, 60]) test(`Cistern: walk from the south rim and solve all
     let frames = 0, turns = 0, valve = false, turnCooldown = 0;
     for (; frames < fps * 1200 && !c.results.length; frames++) {
       const { B, F, me, preview, awaitingRetry } = c.session.state;
-      const input = { x: 0, y: 0, tuck: 0 };
+      const input = { x: 0, y: 0, trigger: 0 };
       turnCooldown = Math.max(0, turnCooldown - 1 / fps);
       if (F.planning) {
         assert.equal(F.t, 0, 'walking time cannot consume the plan');
@@ -60,11 +60,11 @@ for (const fps of [30, 60]) test(`Cistern: walk from the south rim and solve all
             if (!turnCooldown) { input.jumpPressed = true; turns++; turnCooldown = .25; }
           }
           else { input.x = dx / Math.max(d, 1); input.y = -dz / Math.max(d, 1); }
-        } else { assert.equal(preview.complete, true); input.tuck = valve ? 0 : 1; }
-      } else input.tuck = 1;
+        } else { assert.equal(preview.complete, true); input.trigger = valve ? 0 : 1; }
+      } else input.trigger = 1;
       assert.equal(awaitingRetry, false, 'physically walked planned route reaches every trough');
       if (preview?.complete || frames % 300 === 0) checkPreviewRendering();
-      valve = input.tuck > .3; c.tick(input, 1 / fps);
+      valve = input.trigger > .3; c.tick(input, 1 / fps);
     }
     assert.equal(c.results.length, 1); assert.ok(turns > 10);
     assert.equal(c.results[0].failed, false);
@@ -78,19 +78,19 @@ test('Cistern: a failed release retries the same rotations without points and ne
   const c = court(9);
   try {
     // A valve held through pause does not activate when play resumes.
-    c.tick({ tuck: 1 }, 1 / 30, false); c.tick({ tuck: 1 });
+    c.tick({ trigger: 1 }, 1 / 30, false); c.tick({ trigger: 1 });
     assert.equal(c.session.state.F.planning, true);
-    c.tick({ tuck: 0 }); c.tick({ tuck: 1 });
-    for (let i = 0; i < 18000 && !c.session.state.awaitingRetry; i++) c.tick({ tuck: 1 });
+    c.tick({ trigger: 0 }); c.tick({ trigger: 1 });
+    for (let i = 0; i < 18000 && !c.session.state.awaitingRetry; i++) c.tick({ trigger: 1 });
     assert.equal(c.session.state.awaitingRetry, true);
     assert.deepEqual(c.scores, []); assert.equal(c.session.state.total.points, 0);
     const B = c.session.state.B, turns = B.cells.map(x => x.r);
-    c.tick({ tuck: 1 }); assert.equal(c.session.state.awaitingRetry, true, 'held button does not retry');
-    c.tick({ tuck: 0 }); c.tick({ tuck: 1 });
+    c.tick({ trigger: 1 }); assert.equal(c.session.state.awaitingRetry, true, 'held button does not retry');
+    c.tick({ trigger: 0 }); c.tick({ trigger: 1 });
     assert.equal(c.session.state.B, B); assert.deepEqual(B.cells.map(x => x.r), turns);
     assert.equal(c.session.state.F.planning, true);
-    c.tick({ tuck: 1 }); assert.equal(c.session.state.F.planning, true, 'retry press cannot also open valve');
-    c.tick({ tuck: 0 }); c.tick({ tuck: 1 }); assert.equal(c.session.state.F.started, true);
+    c.tick({ trigger: 1 }); assert.equal(c.session.state.F.planning, true, 'retry press cannot also open valve');
+    c.tick({ trigger: 0 }); c.tick({ trigger: 1 }); assert.equal(c.session.state.F.started, true);
   } finally { c.session.end(); }
 });
 

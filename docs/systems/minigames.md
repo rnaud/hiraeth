@@ -574,6 +574,25 @@ board in view, easing a little after you.
   about the water, a stone at a time, rests, and goes to drink at each trough that fills; its glyphs brighten.
 - Easy and Hard keep their own bests (`bestBy: 'level'`). `botMove` (the tests', `window.__cisternBot = true` for the
   pictures) turns the way's stones in the order the water reaches them.
+- **The clock** (`TIME`, issue #788): the three floods in 5 minutes, both difficulties, counted down in the HUD's timer
+  box (`hud.countdown`: the web's `.mg-timer` and BridgeHud's alike), "One minute left!", "30 seconds left!",
+  "10 seconds left!" called on the way. Out of time the run is lost ("Out of time", never the helper's goal); Retry
+  plays the same boards again (the encounter's seed). Tuned with `tests/cistern-timer.test.js`: knowing the way,
+  1:50–2:15 with the water hurried; two seconds' thought at each turn, 3:15–4:10; four seconds a turn without hurrying
+  runs out.
+- **The valve** is RT / R2 or the keyboard's Shift (`trigger`, `shiftKey` of kit/input.js), never a pad's L3: L3 runs,
+  and the run sets Shift (src/controller.js marks it `PadRun`), which opened the water by itself before (#788).
+- **Played in the desert's page** (`here: { desert: [-400, 2000, -900] }`, `src/minigames/kit/here.js`, issue #789): the
+  Keeper's run from the Rose House has no page of its own, so no loading screen either way. The story's `playGame`
+  (main.js, engine/game.js) asks `helperHere` first: the court is built in one go into a group of the world's scene, far
+  over the world and clear of its high rooms (the Rose House's at y 2400, a hall at 1000, a box at 3000), the session
+  drawing in it (`ctx.scene`) and putting the traveller and the camera over it (`level.at`). The runner is the host's,
+  as a trial's (engine/trials.js the same), with the receipt's links; the house's opening film cuts to the court
+  (the ship's camera blend back to play let go: no glide across the 800 m between them). While it runs the temple does not take the receipt
+  back (`holdHelperReturn`) and nothing is saved (the place in the house is kept); Quit and the win end the run, the
+  court is let go, and the next frame the temple restores the pose (quit) or the completion pose and plays the ending
+  (the win). Back without the win, the doorway asks again (`rearm`). The world's hour and light are the court's. The
+  Arcade's sign by the steps (Omar) and every other game keep their own pages; temples keep their loading screens.
 
 ## Fight temples (`fight-<world>.js`, `src/fight-temples/`)
 
@@ -1254,7 +1273,7 @@ is cleared after persisted completion, so closing/reloading across the return do
 not lose a win or award it twice. An interrupted boss-only flag resumes the remaining
 world resolution. `startHelper` and the existing `onFinale` are the cinematic boundaries.
 
-Cistern's story and Easy sessions begin with untimed planning. Teal channels and
+Cistern's story and Easy sessions begin with planning (against the run's clock since #788, above). Teal channels and
 spill arrows are a simulation of the player's current rotations, not the hidden
 construction solution. RT / R2 (Shift, or touch ✺) releases the valve. A failed flood
 can be drained back to the same plan, retaining rotations without banking points.

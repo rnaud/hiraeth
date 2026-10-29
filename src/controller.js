@@ -175,6 +175,7 @@ export class Controller {
         else if (press(L3)) this.running = true;
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
+        h.PadRun = this.running;   // (the same Shift, said to be L3's run: a game's Shift-as-a-button ignores it, kit/input.js shiftKey, issue #788)
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's; held in the air it fires the jets, as SPACE does)
         h.KeyE = down(WEST); h.PadE = h.KeyE;   // X / □ interacts (it never whistles: that's D-pad ↓, 'call')
         // the gadget in hand (src/gadgets/; the fluid gun is one, src/fluid-tool.js): LT aims it, RT uses it (shoots,

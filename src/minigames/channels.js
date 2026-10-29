@@ -188,7 +188,7 @@ export function newFlow(B, o = {}) {
   return { K, planning: !!K.planning, wait: K.wait, fronts: [], started: false, done: false, pace: K.pace, filled: 0, hurried: 0, troughs: 0, crosses: 0, spills: 0, t: 0 };
 }
 
-/** Planning has no deadline. Releasing the valve is a fresh action, separate from hurrying a live flow. */
+/** Planning has no deadline of its own (the run's clock is cistern.js TIME). Releasing the valve is a fresh action, separate from hurrying a live flow. */
 export function releaseFlow(F) {
   if (!F.planning || F.started || F.done) return false;
   F.planning = false; F.wait = 0;

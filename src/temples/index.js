@@ -228,10 +228,13 @@ function setupOneTemple(ctx, rt) {
       }
       // inside it, the temple is what you are doing
       if (byTheWay && game.flag(`temple.${id}.entered`)) { const qd = quests.def?.(Q.id); if (qd) qd.arrival = false; byTheWay = false; }
-      if (rt.guardian?.def.helper) consumeHelperReturn(game, rt.id, ctx.levelId, {
+      const back = rt.guardian?.def.helper ? consumeHelperReturn(game, rt.id, ctx.levelId, {
         restore: p => player?.teleport(new THREE.Vector3(...p.pos), new THREE.Vector3(...p.up), new THREE.Vector3(...p.fwd)),
         resolve: () => { if (rt.guardian.state === 'resolved') rt.onBossResolved(); else rt.guardian.resolve(); },
-      });
+      }) : null;
+      // (back without the win from a game played in this page, kit/here.js: the doorway may ask again; a page of its
+      // own reloads the world, which arms them afresh)
+      if (back && !back.success) { invitation?.rearm(); threshold?.rearm(); }
       rt.update(dt, t);
       threshold?.update();
       if (trial) trial.update(dt);

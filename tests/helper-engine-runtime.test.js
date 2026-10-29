@@ -29,7 +29,7 @@ for (const [temple, id, world] of [['desert','cistern','desert'], ['arzach','eld
   assert.match(r.outList().find(b=>b.act==='quit').label,/Return to/);
   r.begin(); await frames(100); assert.equal(r.phase,'play');
   assert.equal(g.screen().state.minigame.guidance,true,'native HUD reserves pause space for multiline helper guidance');
-  if(id==='cistern')assert.equal(r.session.state.F.planning,true,'story game remains untimed');
+  if(id==='cistern')assert.equal(r.session.state.F.planning,true,'story game opens on its plan (the clock is the whole run: cistern.js TIME)');
   r.ctx.finish({score:999,failed:false}); await frames(60);
   assert.equal(saved().success,false,'score-only result never completes a helper');
   r.retry(); await frames(100); assert.equal(r.phase,'play');

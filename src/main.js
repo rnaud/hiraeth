@@ -148,6 +148,7 @@ import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
 import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
+import { helperHere } from './minigames/kit/here.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
 import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireFight, wireAmbush, toolGauge, wireJumpShade } from './host/game-host.js';
@@ -778,7 +779,8 @@ const showToast = (text, o) => { if (!text || (typeof text === 'string' && !keyT
 let balloonAt = -1e9;   // (when a balloon last showed: a lesson on the cue waits for it, issue #79)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
-const storyRt = createStory({ playGame: (href) => { location.href = href; }, levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
+// (a helping game the world plays here, kit/here.js, issue #789: no page and no loading screen between; any other, its page)
+const storyRt = createStory({ playGame: (href) => { if (!helperHereRt?.play(href)) location.href = href; }, levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout?.out ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
@@ -1142,6 +1144,7 @@ fight = wireFight({ scene, level, levelId, content, physics, player, tool, sound
   toast: (t) => showToast(t), teach: (t) => showToast(t, TEACH) });
 const { foes, chimes, potionDrops, lowHealth } = fight;
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
+let helperHereRt = null;   // a helping game played in this page (src/minigames/kit/here.js), made with the trials (below)
 const chemistry = wireChemistry({ flammables, wildlife, tool, game, player });   // fire spreads on the wind, creatures flee it, foes catch it (src/host/game-host.js, the engines' too)
 const flurryFx = new FlurryFx();   // (the perfect dodge's slow time drawn round the screen's edge: src/flurry.js)
 { // (any look counts as the camera learnt: the first steps' line never said then)
@@ -1195,7 +1198,8 @@ if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.p
   if (spot) { player.respawn(spot.pos); player.heading = spot.heading; rig.yaw = spot.heading + Math.PI; }
 }
 let resetting = false;   // (a save being started over: nothing more is written to it)
-const writeSave = () => !resetting && !minigameDef && !player.god && SaveGame.write({   // (a game's page keeps the place you left the world at; god mode never: you would load in the air)
+const writeSave = () => !resetting && !minigameDef && !helperHereRt?.running && !player.god && SaveGame.write({   // (nor in a helping game played here: the place in the house is kept, kit/here.js)
+    // (a game's page keeps the place you left the world at; god mode never: you would load in the air)
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
   up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
   shipModel: caravan ? 'caravan' : 'original', aboardShip: !!ship.inside,
@@ -2791,6 +2795,19 @@ trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, leve
     return true;
   } });
 window.trials = trialsRt;
+// the Keeper's helping game played in this page (issue #789): its court built far over the world for the run, the runner
+// made as a trial's, and the way back the receipt's (src/minigames/kit/here.js)
+helperHereRt = minigameDef ? null : helperHere({ levelId, scene, level, game, open: (def, extra) => {
+  if (minigame) return null;
+  ship.cam = null; ship.blend = null;   // (a cut from the house's opening film to the court, not a 1.2 s glide between them)
+  minigame = new MinigameRunner(def, { scene, camera, player, physics, level, sound, wind, ship: null, state: game, kick, tool, foes, rig, settings,
+    capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },
+    othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open,
+    ...extra, navigate: (href) => { minigame = null; window.minigame = null; extra.navigate(href); } });
+  window.minigame = minigame;
+  return minigame;
+} });
+window.helperHere = helperHereRt;
 // the hosts of this world's games, trials and makers' runs (issue #248): each sign's person, or its post, offers it
 for (const spot of takeHosts()) if (!minigameDef) { try { storyRt.host(spot); } catch (e) { console.warn(e); } }
 // What was built after the warm-ups above (this world's trials and makers' runs, the arcade's signs, the hosts'

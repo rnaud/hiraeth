@@ -1441,8 +1441,14 @@ const DEATHS765 = 'Hand-made strips of the web game (no `view`): a script of min
 /** (v2.37, issue #777: the walkthrough page) */
 const FROM777 = 'Hand-made (no `view`): walkthrough.html on this branch’s own Vite dev server (port 5461, revision 677d67ee8 plus the change), headless Chrome (muted, no GPU) at a 1280 × 720 viewport, the second picture opened at its link to the Rose House, 29 October 2026; its status file, put there for the picture only, is the walkthrough-status.json this branch’s full local play-through wrote (17 of 17 tests passed, all 447 steps marked), the file the daily run writes and the deploy puts on the site, so “Last daily run” here is that local run';
 
+/** (v2.37, issue #788: the Keeper's game against the clock) */
+const FROM788 = 'Hand-made (no `view`): muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, the HUD shown, 29 October 2026; the game’s own bot turning the stones (window.__cisternBot) and the picture 24 s after GO, the hour set to 14.2 (the game page’s own). Before: origin/main at 040d584c8 on its own Vite (port 5464), the Cistern’s page (?game=cistern&from=desert, Easy, planning untimed, no clock); after: this branch on its own Vite (port 5400), the Keeper’s run played in the desert’s page (a helper encounter begun and kit/here.js’s play, as the Rose House’s door does), the clock counting down. The boards differ (the before’s seed is random, the after’s the encounter’s); cwebp -q 72';
+
 export const CHANGELOG_MEDIA = {
   '2.37': [
+  { match: 'The Keeper’s channel game under the Rose House is now against the clock', shots: [
+    { name: 'keeper788-timer', caption: 'The Keeper’s channel court 24 s into a run: before, no clock, only the score’s box; after, the time left counting down from 5:00 in its own box at the top right, over the plan’s box', from: FROM788 },
+  ] },
   // (issue #776: the caravan's three holes, at the change's commit and its parent, the camera pinned on the parked ship in Vael)
   { match: 'Your ship is no longer see-through', tags: ['ship'], shots: [
     { name: 'shell776-back', title: 'The back', caption: 'The ship from behind, between its four engines: before, the hull’s open end, a look down inside it to the hold’s tiled back wall; after, closed by a cap in the hull’s paint', from: FROM776, ...SHELL776, view: SHIP776([-252.11, 64.74, -1161.9], [-268.34, 65.74, -1125.34], 50) },

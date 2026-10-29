@@ -23,6 +23,7 @@ import { placeGameMarker } from '../src/minigames/kit/marker.js';
 import { queueHost, takeHosts } from '../src/minigames/kit/hosts.js';
 import { MinigameRunner } from '../src/minigames/kit/runner.js';
 import { gameLinks } from '../src/minigames/kit/arcade.js';
+import { helperHere } from '../src/minigames/kit/here.js';
 import { partsOf, shiftAt } from '../src/levels/names.js';
 import { inputKind } from '../src/prompt-keys.js';
 import * as THREE from 'three';
@@ -70,8 +71,18 @@ export function makeTrials({ levelId, scene, physics, level, player, camera, rig
     // their hosts (issue #248): each sign's person, or its post, offers it
     for (const spot of takeHosts()) { try { story?.host?.(spot); } catch (e) { log(`the host of ${spot.id}: ${e?.message ?? e}`); } }
   }
+  // a helping game played in this world (src/minigames/kit/here.js, issue #789: the Keeper's, no game page between): the
+  // story's playGame tries it first (engine/game.js); its runner is this one, as a trial's
+  const here = def ? null : helperHere({ levelId, scene, level, game, log: (e) => log(`a game played here: ${e?.message ?? e}`), open: (d, extra) => {
+    if (runner) return null;
+    if (ship) { ship.cam = null; ship.blend = null; }   // (a cut from the house's opening film to the court, as main.js)
+    runner = new MinigameRunner(d, host({ ship: null, ...extra, navigate: (href) => { runner = null; extra.navigate(href); } }));
+    return runner;
+  } });
   const T = {
     challenges,
+    /** A helping game played here (kit/here.js), or null on a game's page. */
+    here,
     /** The run under way (a MinigameRunner), or null. */
     get runner() { return runner; },
     get running() { return !!runner; },

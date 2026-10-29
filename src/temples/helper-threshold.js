@@ -38,6 +38,8 @@ export function helperThreshold(rt, { game, player, invitation, moments, live = 
   };
   return {
     dispose() { disposed = true; },
+    /** Back from a game played in this page without the win (kit/here.js): the doorway asks again next time it is crossed. */
+    rearm() { launched = false; crossed = false; previous = null; initialized = false; },
     legacyAvailable: () => eligible() && legacy && !launched,
     continueLegacy() {
       if (!eligible() || !legacy) return false;

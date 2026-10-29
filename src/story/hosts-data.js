@@ -76,7 +76,7 @@ export const HOSTS = {
   cistern: P({
     id: 'host.cistern', name: 'Omar', title: 'who digs the Givers’ channels', color: '#62c3c9', kind: 'm',
     palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#e8d9b8', legs: '#4a3a2a', hat: '#c47b6b', hair: '#2b211f' }, head: 'wrap', look: { prop: 'staff' },
-    say: ['~tired~ I dig the sand out of the Givers’ channels every spring. Not one drop has come down them.', '~neutral~ Under the house the stones turn. Turn them ahead of the water, to every trough. The Keeper’s thirsty.'],
+    say: ['~tired~ I dig the sand out of the Givers’ channels every spring. Not one drop has come down them.', '~neutral~ Under the house the stones turn. Turn them to every trough, and be quick. The Keeper’s thirsty.'],
     lines: ['~tired~ Dig, sweep, wait. Dig again.'],
   }),
   elderflight: P({
