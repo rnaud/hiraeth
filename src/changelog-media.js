@@ -1425,6 +1425,11 @@ const KIT763 = 'the Desert by the ship, the traveller standing (an idle frame, t
 const UNITY731 = 'Issue #731: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level moonfoundry -views, six fixed views, -fresh -no-hud), an APFS clone of the main checkout’s Library deleted after, 1280 × 720, 10:30, 28 October 2026; the same views as the web’s pictures';
 const MF731 = (eye, target, player) => ({ level: 'moonfoundry', hour: 10.5, fov: 60, eye, target, player });
 
+/** (v2.36, issue #762: each world's own foes and their looks again; the same spots as the v2.35 camp pictures) */
+const C762 = { commit: '68f1c3302', before: '1598bafc4' };
+const UNITY762 = 'Issue #762: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -level desert -fight site:mummer-camp,site:skull-hall, an APFS clone of the main checkout’s Library, deleted after), its follow camera and HUD at 1280 × 720, the traveller set down 16 m in front of each site by the script, 3 s after; 29 October 2026. After only; the same JS through engine/; cwebp -q 72';
+const FROM762 = 'scripts/changelog-shots.mjs at this change (68f1c3302) and its parent (1598bafc4), muted headless Chrome (--mute-audio, hiraeth.muted), High, 1280 × 720, 10:00, clear, a save holding the sword and the shield (so the sites’ foes come out), the camera pinned where the v2.35 camp pictures stood, 8 s after the world came up; 29 October 2026. The foes sit, sleep or stand as the site keeps them; a frame now and then catches one turning';
+
 export const CHANGELOG_MEDIA = {
   '2.36': [
   { match: 'The Moon Foundry is closed in', shots: [
@@ -1469,6 +1474,26 @@ export const CHANGELOG_MEDIA = {
     { name: 'sheath763-outfit-pack', size: [1280, 720], title: 'Gravity ranger', caption: 'In the gravity ranger’s outfit (?outfit=gravity-ranger): before, the hilt in the air behind its pack; after, laid on the pack’s shoulder pad, stood off it 3.3 cm', from: FROM763, view: `${KIT763}, the outfit worn; two panels at yaw 2.45 and π/2, 1.5 m off` },
     { name: 'sheath763-unity', only: 'after', title: 'Unity', caption: 'The Unity version from his side (the same code through the bridge): the hilt against his back as on the web', from: 'Issue #763: Unity 6000.6.4f1 editor batch run of this change (BridgeBatch.Run -mute -views, -traveller v2, -set-flags item.sword,item.shield,item.backpack, -no-hud), an APFS clone of the main checkout’s Library deleted after, 1280 × 720, the Desert by the ship at 10:00, 29 October 2026; the camera from his side 1.7 m off (the view is not the web’s exactly)' },
   ], see: 'Stand still and turn the camera round behind your right shoulder: the hilt lies on your shoulder blade.' },
+  { match: 'Each world has its own enemies again', shots: [
+    { name: 'camp762-desert', title: 'The Desert', caption: 'The Desert’s camp: before, two grunts and the hulk round the fire, a grunt on lookout and their rack; after, the mummers and their king again', ...C762, from: FROM762,
+      view: { level: 'desert', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [354.41, 21.7, 214.35], target: [361, 16.6, 202], player: [346.88, 15.9, 228.47] } },
+    { name: 'camp762-lorn', title: 'Lorn', caption: 'Lorn’s camp by the swamp: before, the grunts and their hulk; after, two bellows toads and a root knot round the fire, a heron on lookout', ...C762, from: FROM762,
+      view: { level: 'perdide', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [-140.92, 7.6, 182.46], target: [-133, 2.5, 194], player: [-149.98, 1.8, 169.27] } },
+    { name: 'camp762-shaft', title: 'The City-Shaft', caption: 'The City-Shaft’s camp: before, three grunts and the hulk; after, horn lizards and a toad, a lamp tripod on lookout', ...C762, from: FROM762,
+      view: { level: 'incal', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [250.44, 206, 181.1], target: [262, 200.9, 189], player: [237.23, 200.2, 172.08] } },
+    { name: 'camp762-market', title: 'The Signal Market', caption: 'The Signal Market’s camp: before, the grunts and hulk; after, coin lizards and a crab, a bell walker on lookout', ...C762, from: FROM762,
+      view: { level: 'bazaar', save: SAVE726, hour: 10, fov: 60, wait: 8000, eye: [-80.0, 6, -0.27], target: [-94, 0.9, 0], player: [-64.01, 0.2, -0.58] } },
+    { name: 'skull762-hall', title: 'The giant’s skull', caption: 'The cave in the giant’s chest, the blade carried: before, grunts and prowlers on guard round the dry pool; after, the mummers on guard, their king at the back by the far lamp', ...C762, from: FROM762,
+      view: { level: 'desert', save: SAVE729_SKULL, hour: 12, fov: 72, wait: 7000, player: [-1250, 1000.1, 1273], eye: [-1250, 1008, 1278.5], target: [-1250, 1000.5, 1249] } },
+    { name: 'camp762-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'Unity: the Desert’s camp from the traveller’s follow camera, the mummers and their king round the fire again', from: UNITY762, view: 'The Desert, 16 m in front of the mummer camp (361, 202), the follow camera.' },
+    { name: 'skull762-unity', title: 'Unity, the skull', only: 'after', size: [1280, 720], caption: 'Unity: the cave in the giant’s chest, the mummer king on guard across the pool and a mummer by the rocks on the left', from: UNITY762, view: 'The skull hall, 16 m from its middle, the follow camera.' },
+  ], see: 'Visit the Desert’s camp east of the salt pan, or Lorn’s by the swamp: their own creatures sit round the fire again.' },
+  { match: 'Enemies wear their own world’s colours again', tags: ['combat'], shots: [
+    { name: 'gallery762', title: 'The gallery', size: [1278, 640], caption: 'Six foes from the creatures gallery, in rows: a grunt, a hulk and a sentinel in their stronger tier; a sky ray met in the Glass Dunes, a ring drone met in the Floating City, the Desert’s lamp tripod. Before: each in one look; after: the tier banded and darker, the sentinel scorched with a red eye, the glass manta, the airlock drone, the cistern pump',
+      from: 'Issue #762: the creatures gallery (enemies.html, the game’s own body through Foes.look, inked by the post pass) via scripts/changelog-shots.mjs foe views at this change (68f1c3302) and its parent (1598bafc4), muted headless Chrome, three-quarter (yaw 0.75, pitch 0.12, the ray from above at 0.75, zoom 0.8), standing, 640 × 480 each; the six of each side laid three by two with ffmpeg (hstack/vstack) and cwebp -q 72; 29 October 2026',
+      view: 'grunt@desert*, hulk@desert*, sentinel@desert*; ray@glassdunes, drone@spacecity, tripod@desert (top row then bottom row)' },
+  ] },
+  { match: 'The grunts, hulks, prowlers, warlords and the makers’ droids stay in the Arena', see: 'In the Arena, the run and the creatures gallery (debug menu) still bring the grunt, hulk, prowler, warlord, sentinel, oracle and crawler.' },
   ],
   '2.35': [
   { match: 'Two-handed enemies keep both hands on their weapon', shots: [
