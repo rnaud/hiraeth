@@ -499,7 +499,7 @@ function layout(rt) {
   // the spout over it: a channel from the bowl's hood along the floor to the font's lip
   K.add(M.dark, box(fx - FONT.r - XW - 1.3, 0.04, 0.7, (XW + 1.3 + fx - FONT.r) / 2, 0.02, fz));
   const fontMat = magicMaterial(5), fontWater = magicPool(FONT.r - 0.2, fontMat);
-  fontWater.position.copy(K.world(fx, 0.45, fz)); fontWater.visible = false; rt.root.add(fontWater);
+  fontWater.position.copy(K.world(fx, 0.45, fz)); fontWater.scale.set(FONT.r - 0.2, 1e-3, FONT.r - 0.2); fontWater.visible = false; rt.root.add(fontWater);   // (a unit pool laid flat at the basin's radius)
   rt.font = { water: fontWater, mat: fontMat, at: K.world(fx, 0, fz), rest: 0.45, top: 0.85, k: rt.logic.isLit('b0') ? 1 : 0 };
   // a mural on the west wall: the giants carrying water, in glyph rows, and carrying fire
   for (let i = 0; i < 4; i++) K.glyph([XW - 17.95, 3.6 + (i % 2) * 1.8, 22 + i * 8], 1.5, Math.PI / 2);
@@ -666,7 +666,7 @@ function layout(rt) {
   // A renewable tank source before the guardian and another beside the last push.
   for (const [x, z] of [[-3.4, GH.z1 + 12], [-7, sparkZ + 2]]) {
     K.both(M.trim, T(lathe([[1.3, 0], [1.4, 0.6], [1.1, 0.8]]), [x, 0, z]));
-    const water = magicPool(1.05, poolMat); water.position.copy(K.world(x, 0.68, z)); rt.root.add(water);
+    const water = magicPool(1.05, poolMat); water.position.copy(K.world(x, 0.68, z)); water.scale.set(1.05, 1e-3, 1.05); rt.root.add(water);   // (flat: a unit cone stood up out of the basin before #729)
   }
   add(Mark, { room: 'spring', at: [-7, 0, S0 + 2], yaw: 0 });
   // the Machines' Hall checkpoint remains available before the guardian.
