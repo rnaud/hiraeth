@@ -34,7 +34,7 @@ export const LOB = { wide: 0.45, tight: 0.9, ring: 36, dashUntil: 0.3, ticksFrom
 /** The area's mark: segments, hatch lines, leaning blades, when the hatching grows and the orange comes, the flower. */
 export const AREA = { ring: 48, hatch: 48, lean: 24, fill: [0.35, 0.75], warm: 0.72, flower: 0.45, petals: 12 };
 /** The wave's curl: height (m, knee-high), segment length (m), at least / at most, speed lines, the step it skips. */
-export const SHOCK = { height: 0.55, seg: 0.45, min: 24, max: 96, lines: 24, grow: 0.15, fade: 0.2, scar: 1.1 };
+export const SHOCK = { height: 0.55, seg: 0.45, min: 24, max: 96, lines: 24, grow: 0.15, fade: 0.2, scar: 1.1, grit: 60 };
 /** A wave is not drawn where the ground is this far up or down from where it started (it does not hit there). */
 export const SHOCK_STEP = 1.2;
 /** How far over the ground the strokes sit (m), by layer. */
@@ -107,7 +107,7 @@ export class GroundWarnings {
     this.free = [];            // pooled warnings
     this.bursts = []; this.freeBursts = [];
     this.cells = new Map();
-    this.frame = 0; this.idle = 0;
+    this.frame = 0; this.idle = 0; this.dt = 0;
     this.stats = { warnings: 0, bursts: 0, strokes: 0, discs: 0, curls: 0, rays: 0, made: 0 };
   }
 
@@ -118,7 +118,7 @@ export class GroundWarnings {
     let w = byKey[sub];
     if (!w || w.kind !== kind) {
       w = byKey[sub] = this.free.pop() ?? (this.stats.made++, { at: new THREE.Vector3() });
-      w.kind = kind; w.k = 0; w.r = 0; w.r0 = 0; w.R = 1; w.width = 0.5; w.reach = 1; w.tone = null; w.peak = 0;
+      w.kind = kind; w.k = 0; w.r = 0; w.r0 = 0; w.R = 1; w.width = 0.5; w.reach = 1; w.tone = null; w.peak = 0; w.grit = 0;
     }
     w.seen = this.frame;
     return w;
@@ -295,11 +295,12 @@ export class GroundWarnings {
       const a = (i + 0.37 * (i % 3)) / SHOCK.lines * Math.PI * 2, back = r - width - 0.1;
       this.radial(at.x, at.z, y, a, back, back - L * (i % 2 ? 0.6 : 1), 0.02, ink, LIFT.hatch);
     }
-    // grit thrown off its crest, a little each frame
+    // grit thrown off its crest, SHOCK.grit a second (by the game's time: the same at any frame rate)
     const D = typeof this.drops === 'function' ? this.drops() : this.drops;
-    if (D?.add && h > 0.15) for (let i = 0; i < 2; i++) {
+    w.grit = Math.min(4, w.grit + this.dt * SHOCK.grit);
+    if (D?.add && h > 0.15) for (let i = 0; w.grit >= 1; i++, w.grit--) {
       const a = Math.random() * 6.283, s = Math.sin(a), c = Math.cos(a);
-      D.add({ pos: _x.set(at.x + s * r, y + h * 0.9, at.z + c * r), vel: _z.set(s * 2.5, 1.5 + Math.random() * 1.5, c * 2.5), drag: 2.5, grav: 8, size: 0.04 + Math.random() * 0.04, life: 0.45, color: i || Math.random() < 0.6 ? '#cdb89a' : GW_TONE.ink });
+      D.add({ pos: _x.set(at.x + s * r, y + h * 0.9, at.z + c * r), vel: _z.set(s * 2.5, 1.5 + Math.random() * 1.5, c * 2.5), drag: 2.5, grav: 8, size: 0.04 + Math.random() * 0.04, life: 0.45, color: i % 3 || Math.random() < 0.6 ? '#cdb89a' : GW_TONE.ink });
     }
   }
 
@@ -343,6 +344,7 @@ export class GroundWarnings {
 
   /** Once a frame, after everything has touched its warnings: draw them, let go of the untouched, age the bursts. */
   update(dt) {
+    this.dt = dt;
     for (const P of [this.strokes, this.discs, this.curls, this.crests]) P.n = 0;
     let warnings = 0;
     for (const [key, list] of this.live) {

@@ -890,10 +890,13 @@ function makePlan(args) {
     // (the landing mark at the traveller's feet, its shadow crisp and its ring tight), a crawler 3.5 m ahead lights its
     // fuse (its blast's reach hatched in and turning orange), a hulk 6 m ahead stomps (the shockwave rolling out to him))
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-warnings-${name}.png` }] : []);
-    const one = (what, dist, move, secs) => [{ kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'face' }, { kind: 'foe', what, dist, hp: 99 }, { kind: 'wait', frames: 30, secs: 0.5 },
-      { kind: 'foe', what: 'warn-move', move }, { kind: 'wait', frames: Math.round(secs * 60), secs }];
-    steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...one('grunt@desert', 7, 'rock', 0.7), ...shot('lob'), ...one('crawler@desert', 3.5, 'blast', 1.45), ...shot('area'),
-      ...one('hulk@desert', 6, 'stomp', 1.55), ...shot('wave'));
+    // (each pictured at a moment of its move, as the web's pictures are: the rock and the fuse at 80 % of the wind-up, the
+    // wave 5.4 m out)
+    const winding = (kind, k) => (G) => G.foes.list.some((f) => f.alive && f.kind === kind && f.state === 'wind' && f.k > k);
+    const one = (what, dist, move, until) => [{ kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'face' }, { kind: 'foe', what, dist, hp: 99 }, { kind: 'wait', frames: 30, secs: 0.5 },
+      { kind: 'foe', what: 'warn-move', move }, { kind: 'wait', until, cap: 6 }, { kind: 'wait', frames: 2 }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...one('grunt@desert', 7, 'rock', winding('grunt', 0.8)), ...shot('lob'), ...one('crawler@desert', 3.5, 'blast', winding('crawler', 0.86)), ...shot('area'),
+      ...one('hulk@desert', 6, 'stomp', (G) => G.foes.shocks?.some((s) => s.r > 5.4)), ...shot('wave'));
   }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
@@ -1622,7 +1625,8 @@ function playFrame(dt) {
     game.pin({ eye: [p.x + 2.6, p.y + 1.9, p.z + 2.6], target: [p.x, p.y + 0.9, p.z], fov: 50, hidePlayer: false });
     next();
   }
-  else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
+  // (a wait may hold until the game shows something, `until(game)`, at most `cap` s: a moment of a move, not a clock's guess)
+  else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (step.until ? step.until(game) || P.t >= (step.cap ?? 10) : ++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
     if (!P.samples && step.talk) talkClock(game, P);
     if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); host.RenderStats?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
