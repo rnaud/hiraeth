@@ -23,7 +23,7 @@ import { bestScore, formatScore } from './minigames/kit/scores.js';
 import { scoreDef } from './minigames/kit/flow.js';
 import { InputMode } from './input-mode.js';
 import { glyph } from './pad-glyphs.js';
-import { VERSION } from './changelog.js';
+import { VERSION } from './version.js';
 
 /** The game's other pages (they leave the game), in the Pages section in this order. */
 export const PAGES = [

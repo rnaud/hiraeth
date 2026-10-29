@@ -66,7 +66,8 @@ comparisons use genuine older and newer views, with framing/time differences sta
 ## Where a line's media lives
 
 `src/changelog.js` stays the source of the lines: the game's panel, `changelog.md`
-(`scripts/changelog-md.mjs`) and the release notes use their words only. A line is a string, or
+(`scripts/changelog-md.mjs`, which also writes the newest version alone into `src/version.js`, so the game shows it
+without importing the changelog) and the release notes use their words only. A line is a string, or
 `{ text, shots, numbers, see, tags }` with its media written beside it. Additional pictures and numbers for lines (strings or objects) are in **`src/changelog-media.js`**, by version, each entry
 naming its line by its opening words (`match`, which must match exactly one line: tests check it). The
 game never imports that file; only the page does.

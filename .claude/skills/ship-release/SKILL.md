@@ -44,7 +44,7 @@ pair, 60 MB for the folder.
 
 Then:
 ```sh
-node scripts/changelog-md.mjs
+node scripts/changelog-md.mjs   # writes changelog.md and src/version.js
 node --test tests/changelog.test.js tests/changelog-media.test.js
 ```
 

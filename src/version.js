@@ -1,6 +1,5 @@
-// The game's version (the newest entry of src/changelog.js), without loading the changelog: the built game has this
-// module replaced by the version alone (vite.config.js versionModule, read off changelog.js when the build starts),
-// so the title screen and the settings show it without the 430 kB of every version's lines (issue #110). The dev
-// server, the tests and the engine bundles read the changelog itself, so a version added while the dev server
-// runs shows at once.
-export { VERSION } from './changelog.js';
+// The game's version: the newest entry of src/changelog.js, written here by `node scripts/changelog-md.mjs` (with
+// changelog.md), so the title screen, the settings and the engines show it without the 1 MB of every version's lines
+// (issue #110), and so editing a changelog line doesn't reach every module that only shows the version.
+// tests/changelog.test.js fails if this differs from the changelog.
+export const VERSION = '2.37';

@@ -39,8 +39,8 @@ export function gitBuildInfo(run = (...a) => execFileSync('git', a, { encoding: 
 }
 /**
  * The game's version written into the build (src/version.js): the newest entry's `v` in src/changelog.js, so the
- * title and the settings needn't load the whole changelog for it. The dev server leaves version.js as it is (it
- * reads the changelog there, and a version added while it runs shows at once).
+ * title and the settings needn't load the whole changelog for it. version.js holds the same literal, written by
+ * `node scripts/changelog-md.mjs` (tests/changelog.test.js checks it); the build takes it from the changelog itself.
  */
 export const changelogVersion = (text = readFileSync(new URL('./src/changelog.js', import.meta.url), 'utf8')) => /\{\s*v:\s*'([^']+)'/.exec(text)?.[1] ?? null;
 const versionModule = () => {

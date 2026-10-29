@@ -3,7 +3,7 @@ import { packager } from '../desktop/node_modules/@electron/packager/dist/index.
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { VERSION } from '../src/changelog.js';
+import { VERSION } from '../src/version.js';
 import { desktopApi, gameBuild } from './release-info.mjs';
 import { relative, sep } from 'node:path';
 import { leftOff } from './site-only.mjs';

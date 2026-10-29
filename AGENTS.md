@@ -15,8 +15,8 @@ These are the canonical project rules for Codex and other coding agents. Read th
   newest entry of `src/changelog.js`. That file is the source: the game shows it
   (press N), and the Android release notes are built from its newest entry.
   Write it for players: plain words about what changed for them, no file names.
-- **Then regenerate `changelog.md`** with `node scripts/changelog-md.mjs`, and
-  commit both files together. `tests/changelog.test.js` fails if they differ.
+- **Then regenerate `changelog.md`** (and `src/version.js`) with `node scripts/changelog-md.mjs`, and
+  commit them together. `tests/changelog.test.js` fails if they differ.
 - **Visual changes need actual pictures.** For a change to a model, outfit, room, world,
   lighting, camera framing or screen layout, attach reviewed screenshots from the running
   game to its changelog line. A “how to see it” note alone does not satisfy this requirement.

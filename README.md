@@ -60,7 +60,7 @@ Chrome always with `--mute-audio`). Measuring scripts live in `scripts/bench/`,
 `scripts/handheld-perf/`, `scripts/lab-perf/` and `scripts/transition-perf/`.
 
 Every player-visible change adds a line to the newest entry of `src/changelog.js`; then
-`node scripts/changelog-md.mjs` regenerates [changelog.md](changelog.md) (see `CLAUDE.md`).
+`node scripts/changelog-md.mjs` regenerates [changelog.md](changelog.md) and `src/version.js` (see `CLAUDE.md`).
 
 ## How it ships
 

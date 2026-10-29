@@ -105,9 +105,9 @@ test('the first paint imports nothing heavy, and the page paints it before anyth
 
 test('the version written into the build is the changelog\'s newest', () => {
   assert.equal(changelogVersion(), CHANGELOG[0].v);
-  assert.equal(VERSION, CHANGELOG[0].v, 'read from the changelog under node and the dev server');
+  assert.equal(VERSION, CHANGELOG[0].v, 'written by node scripts/changelog-md.mjs, as under node and the dev server');
   assert.match(readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8'), /transform\(code, id\) \{ return build && [^?]*version[^?]*\? `export const VERSION = \$\{JSON\.stringify\(changelogVersion\(\)\)\};`/);
-  assert.match(src('version.js'), /^export \{ VERSION \} from '\.\/changelog\.js';$/m, 'no top-level await: the engines\' bundles take it as it is');
+  assert.match(src('version.js'), /^export const VERSION = '[0-9.]+';$/m, 'a literal, no top-level await: the engines\' bundles take it as it is');
 });
 
 test('every shot has its drawing: an SVG of flat colour and ink, small', () => {

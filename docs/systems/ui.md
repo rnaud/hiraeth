@@ -247,7 +247,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   before anything else; it imports only the shots, the lettering, the layout and the slots); the cover's paper shows
   until the drawing is in, the print's grain is multiplied over it, and the singing light crosses its sky now and
   then (CSS, `#title .light`, still with reduced motion). The menu joins the same screen when `src/title.js` has
-  loaded (it no longer waits for the 430 kB changelog: the version comes from `src/version.js`, written into the
+  loaded (it no longer waits for the 430 kB changelog: the version comes from `src/version.js`, a literal written by `scripts/changelog-md.mjs` and into the
   build by `vite.config.js`; nor for three.js: `src/feel.js` has none). Without the drawing: the drawn land
   (`BACKDROP`).
   Once the menu answers, the **game loads behind it** (`src/title-hold.js`): the save Continue plays (a new
