@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Shared local/CI selection. Unknown dependencies fail closed; nightly runs are not an excuse to omit them.
 // --base SHA --head SHA --json, --staged --json, --all --json; legacy positional paths print ALL/list.
-import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, lstatSync, mkdirSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, normalize, relative, resolve, posix } from 'node:path';
@@ -393,9 +393,16 @@ if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url))
     } else {
       // The working tree's inventory, as the hook's index snapshot has: without it every executable glob
       // (the minigame catalogue, the game loader's inputs) is unresolved and selects its consumers.
-      let files=null;
-      try{files=git(ROOT,['ls-files','-z','--cached','--others','--exclude-standard']).split('\0').filter(f=>f&&existsSync(join(ROOT,f)));}catch{files=null;}
-      result=affectedTests(args.map(f=>relative(ROOT,resolve(f))),{files,syntax});process.stdout.write(result==='ALL'?'ALL\n':result.map(t=>t+'\n').join(''));
+      let files=null,modifiedRegularOnly=false;
+      const paths=args.map(f=>relative(ROOT,resolve(f)));
+      try{
+        files=git(ROOT,['ls-files','-z','--cached','--others','--exclude-standard']).split('\0').filter(f=>f&&existsSync(join(ROOT,f)));
+        // An edit, as the hook sees one: every path tracked as a regular file whose executable bit is unchanged on disk.
+        // Otherwise (new, deleted, a symlink, chmod) existence queries stay in, as for an addition.
+        const index=new Map(git(ROOT,['ls-files','-s','-z','--',...paths]).split('\0').filter(Boolean).map(l=>{const m=/^(\d+) [0-9a-f]+ 0\t(.*)$/s.exec(l);return m?[m[2],m[1]]:[l,null];}));
+        modifiedRegularOnly=paths.length>0&&paths.every(p=>{const mode=index.get(p);if(!/^100(?:644|755)$/.test(mode??''))return false;const s=lstatSync(join(ROOT,p),{throwIfNoEntry:false});return !!s?.isFile()&&((s.mode&0o100)!==0)===(mode==='100755');});
+      }catch{files=null;modifiedRegularOnly=false;}
+      result=affectedTests(paths,{files,syntax,modifiedRegularOnly});process.stdout.write(result==='ALL'?'ALL\n':result.map(t=>t+'\n').join(''));
     }
   }catch(e){console.error('Test selection failed closed: '+e.message);process.exitCode=1;}
   try{syntax?.save();}catch{/* a cache that cannot be written is only a slower next run */}
