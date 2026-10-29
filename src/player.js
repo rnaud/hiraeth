@@ -1924,7 +1924,9 @@ export class Player {
       // flying on the jets: the heading is the nose's (flyJets steers it)
     } else if (this.lockOn && !this.gliding && !this.climbing && !this.ride && !this.swim) {
       // locked on: face the foe square, whichever way you move (strafing, backing off): no lead into the step
-      const d = Math.atan2(Math.sin(this.frame.headingOf(this.lockOn.dir) - this.heading), Math.cos(this.frame.headingOf(this.lockOn.dir) - this.heading));
+      // (turned by the swing's `face`: the heavy third held turned into the foe through its coil, src/fluid-blade.js, #759)
+      const want = this.frame.headingOf(this.lockOn.dir) + (this.aim?.face || 0);
+      const d = Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading));
       this.heading += d * (1 - Math.exp(-LOCK_MOVE.turn * dt));
     } else if (this.aim && (!this.gliding || this.hovering)) this.faceAim(dt, tvel, hs);
     else if (hs > 0.5 && !this.gliding) {

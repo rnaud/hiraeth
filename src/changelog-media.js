@@ -1496,6 +1496,11 @@ export const CHANGELOG_MEDIA = {
       { where: 'knocked back by the third swing', before: 1.41, after: 0.21 },
     ], note: 'The crawler, the lamp tripod and the skitter walk on the procedural kit and already held their feet (0.01 or less).' },
   ] },
+  { match: 'The third, heavy blow of your combo now lands', shots: [
+    { name: 'third-blow', size: [1280, 304], caption: 'The third blow at a prowler the second cut shoved back, every 0.05 s from its wind-up: before, he turned away into the wind-up and cleaved the air 2.9 m short of it; after, he keeps turned to it, steps in after it and the blow lands',
+      from: 'Issue #759: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; Medium, 960 × 640, the Arena, ?level=arena) on this branch’s own Vite (port 5491), the clock stepped by hand at 60 frames a second, the blade and the guard pressed from the game’s own input; the combo pressed at a prowler set 1.3 m off with its own mind (its blows and its dodges out of the combo switched off, so the picture shows the shove alone), the camera following side on; before: main at 35d2c0e2c, after: this branch with this change; 28 October; cwebp -q 72',
+      view: 'The third swing only, ten frames, cropped round the two of them.' },
+  ] },
   { match: 'You can raise your shield at any moment now', shots: [
     { name: 'guard-anytime', size: [1280, 364], caption: 'The guard pressed in the third blow’s wind-up (the third picture), every 0.05 s: before, the swing went on to its end with no shield; after, the swing stops and the shield is up within a tenth of a second',
       from: 'Issue #757: the web game in muted headless Chrome (hiraeth.muted and the volumes at 0 set before load, --mute-audio; Medium, 960 × 640, the Arena, ?level=arena) on this branch’s own Vite (port 5491), the clock stepped by hand at 60 frames a second, the blade and the guard pressed from the game’s own input; the combo pressed and the guard (Z) pressed and held 72 frames in, a grunt set 1.4 m off and held still, the camera pinned in front of him at three-quarters; before: main at 35d2c0e2c, after: this branch with this change; 28 October; cwebp -q 72',

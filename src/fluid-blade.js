@@ -111,8 +111,32 @@ export const SWINGS = [
   // (`roll`: the clip is the two-handed great sword's, its right fist turned so the blade would cut 34-80° off its edge,
   // flat on: the blade turned this much (rad) about its own line in the fist through the swing, so it cuts edge first:
   // FluidBlade.place, mountGrip; tests/blade-grip.test.js)
-  { clip: 'mixamo_gs_slash_3', from: 0.1, to: 1.15, hit: 0.86, activeFrom: 0.76, activeTo: 0.95, wind: 0.42, active: 0.15, recover: 0.36, heavy: true, roll: -0.95 },
+  // (`face`, v2.35, issue #759: "my third blow never connects with enemies. Like he is attacking up and backward": through its
+  // wind-up the clip coils his hips 72° away from the foe, the sword dropped behind his head, for 0.3 s; he is turned back
+  // into it by this share of the coil, so he stays turned at the foe and cocked, not away from it: TRACK)
+  { clip: 'mixamo_gs_slash_3', from: 0.1, to: 1.15, hit: 0.86, activeFrom: 0.76, activeTo: 0.95, wind: 0.42, active: 0.15, recover: 0.36, heavy: true, roll: -0.95, face: 0.6 },
 ];
+/**
+ * A grounded swing keeps to its foe until its blade arrives (v2.35, issue #759): through the wind-up and the cut's pull
+ * (`closeInTime`) the swing's way follows the foe where it is now, and the pull is taken again from there, so a foe the
+ * blow before shoved 1–2 m back (a grunt slides 1.9 m from the second cut) or one that stepped aside is still met. Measured
+ * before (scripts/combat-reach.mjs's rig with the foes' own minds and shoves): the third cut at a grunt 1.2 m off missed
+ * with it 2.95 m off as the blade came through. Not a foe hopping back out of the swing on purpose (fight.evade, the
+ * prowler's flip: `hopBack`), which still gets away; not the specials, which carry themselves.
+ */
+export const TRACK = { from: ['wind', 'strike'] };
+/** The yaw (rad, in the frame's own heading) of the pelvis off the body's heading: how far a clip has turned his hips. */
+export function hipYaw(p, out = _hy) {
+  const pel = p?.humanoid?.b?.pelvis;
+  if (!pel || !p.frame?.headingOf) return 0;
+  pel.getWorldQuaternion(_hq);
+  out.set(0, 0, 1).applyQuaternion(_hq);
+  out.addScaledVector(p.frame.up, -out.dot(p.frame.up));
+  if (out.lengthSq() < 1e-8) return 0;
+  const d = p.frame.headingOf(out) - p.heading;
+  return Math.atan2(Math.sin(d), Math.cos(d));
+}
+const _hy = new THREE.Vector3(), _hq = new THREE.Quaternion();
 /** The blade's turn about its own line (rad) while a swing's clip is on his body: its `roll` (SWINGS), else 0. */
 export const edgeRollOf = (clip) => SWINGS.find((S) => S.clip === clip)?.roll ?? 0;
 export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored phase timing.
@@ -692,7 +716,7 @@ export class FluidBlade {
    */
   update(dt, press, ok, held = false, evade = false, bladeHeld = false) {
     const T = this.tool, p = T.player;
-    this.cutNow = false; this.pose.dir = this.dir; this.pose.lead = true; this.pose.tilt = 0;
+    this.cutNow = false; this.pose.dir = this.dir; this.pose.lead = true; this.pose.tilt = 0; this.pose.face = 0;
     if (p) p.chargeHold = null;
     // (how long the blade button has been down since its press: CHARGE.after)
     this.holdT = bladeHeld ? (press ? 0 : (this.holdT ?? -Infinity) + dt) : -Infinity;
@@ -845,6 +869,13 @@ export class FluidBlade {
       m.w = this.charging ? 1 : THREE.MathUtils.clamp(Math.min(S === CHARGE ? 1 : u * this.dur / 0.07, (1 - u) * this.dur / 0.12), 0, 1);
       // (the riposte: turned into its chop, which comes down to his right)
       this.pose.dir = this.special === RIPOSTE ? (this._turned ??= new THREE.Vector3()).copy(this.dir).applyAxisAngle(p.frame.up, RIPOSTE.turn) : this.dir;
+      // (the heavy third: turned back into its foe by `face` of the clip's coil through the wind-up, eased out over the cut: #759)
+      if (S.face && p.onGround && this.phase !== 'recover') {
+        const k = S.face * (this.phase === 'wind' ? 1 : 1 - THREE.MathUtils.clamp((this.t * this.dur - this.sample.wind) / this.sample.active, 0, 1));
+        const hy = hipYaw(p);
+        this.pose.face = -k * hy;   // (locked on, the lock's facing turned by as much: Player's facing)
+        this.pose.dir = p.frame.dir(p.frame.headingOf(this.dir) + this.pose.face, this._turned ??= new THREE.Vector3());
+      }
       this.pose.lead = this.special !== RIPOSTE;
       this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.pose.dir, 3);
       this.pose.k = 1; this.pose.noArm = true;
@@ -900,6 +931,7 @@ export class FluidBlade {
     } else if (this.charging && p.onGround) {
       p.combatMotion = { dir: this.dir, speed: 0, scale: CHARGE.move };   // (gathering: a slow step at most)
     } else if (this.swinging && p.onGround) {
+      this.follow(p);
       const active = this.phase === 'strike';
       // (closing in on a foe just out of reach: MAGNET, through the wind-up and the cut)
       const pull = this.phase !== 'recover' && this.closeLeft > 0 ? this.closeIn : 0;
@@ -979,6 +1011,10 @@ export class FluidBlade {
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
     this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && this.special !== RUN_CUT && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js; the generous cut: only to bring it under the crescent)
     this.closeLeft = this.closeIn * pullT;
+    // (kept to its foe through the wind-up and the pull, TRACK: the plain swings, the whirl, the riposte; not rising, in the air or the carried specials)
+    this.trackHop = !!foe?.foe?.hopBack;
+    this.track = foe && !rise && p.onGround && !air && ![LUNGE, DASH, RUN_CUT, AIR].includes(this.special) ? foe : null;
+    this.trackSpec = force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET;
     this.aimAt(foe, flat - this.closeLeft, !rise && p.onGround && this.special !== AIR);   // (aimed from where the pull will have him)
     if (this.special === RUN_CUT) { (this.runDir ??= new THREE.Vector3()).copy(this.dir); if (this.runDir.lengthSq() > 1e-8) this.runDir.normalize(); else p.frame.dir(p.heading, this.runDir); }
     if (force === DASH) {
@@ -1016,6 +1052,24 @@ export class FluidBlade {
     if (this.dir.lengthSq() < 1e-6) p.frame.dir(p.heading, this.dir);
     this.dir.normalize();
     T.used('blade', p.pos);
+  }
+
+  /**
+   * TRACK: through the wind-up and the cut's pull, the swing's way turned to where its foe is now and the pull taken again
+   * from there (not a foe hopping back out of it on purpose: it keeps the pull it had).
+   */
+  follow(p) {
+    const T = this.track;
+    if (!T || !TRACK.from.includes(this.phase) || this.charging) return;
+    const pullT = closeInTime(this.sample), el = this.t * this.dur, left = pullT - el;
+    if (left <= 1e-3 || !(T.enabled?.() ?? true)) { if (left <= 1e-3) this.track = null; return; }
+    const U = p.frame.up;
+    _a.subVectors(T.position(), p.pos); _a.addScaledVector(U, -_a.dot(U));
+    const flat = _a.length();
+    if (flat > 1e-3) this.dir.copy(_a).divideScalar(flat);
+    if (T.foe?.hopBack || this.trackHop) { this.trackHop = true; return; }   // (hopped back out of it on purpose: let it go)
+    this.closeIn = closeInSpeed(flat, T.reach ?? T.radius ?? 0.6, left, this.trackSpec ?? MAGNET);
+    this.closeLeft = this.closeIn * left;
   }
 
   /** The charge let go (CHARGE): the clip's own swing from the cocked pose, full or not. */
@@ -1241,7 +1295,7 @@ export class FluidBlade {
     }
   }
 
-  stop() { this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
+  stop() { this.track = null; this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
 
   fade(dt) { this.lit += (0 - this.lit) * (1 - Math.exp(-12 * dt)); this.place(dt); }
 

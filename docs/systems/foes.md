@@ -31,6 +31,24 @@ The first things in the game that fight back, and the tool's answer to them.
   and the point over 2 m); before it, attack 1 (`ss_attack_1`), a leaping overhead that took both feet 1.4 m off the
   ground (the author: "I don't want the third attack to be a jump"; slash 3's feet stay down). `scripts/combat-reach.mjs
   --swings=3`: 0 misses of 92 before and after.
+  **The third that lands** (v2.35, issue #759, the author: "my third blow never connects with enemies. Like he is
+  attacking up and backward vs towards the enemy?"). The reach table stands its foes still and lets no blow shove them;
+  measured instead with the foes' own minds and the first two blows' shoves (the reach rig, eight kinds from 1.2 to 2.5 m,
+  locked on and not, 64 combos): the third missed 26. A hulk's or a warlord's chest leapt him off the ground at the first
+  press (#747); a grunt or a prowler (mass 0.8) slid 1.5 m back from the second cut through the third's 0.42 s wind-up and
+  stood 2.4–2.9 m off as the blade came through, while the pull had been worked out once, at the press, from where it
+  stood then; and through that wind-up the clip turns his hips 73° away from the foe, the sword dropped behind his head,
+  which reads as a blow up and backward. Now:
+  - **kept to its foe** (`TRACK`, `FluidBlade.follow`): through the wind-up and the cut's pull (`closeInTime`) a grounded
+    swing (the combo's, the whirl, the riposte; not the carried specials) turns its way to where its foe is now and takes
+    the pull again from there (up to `MAGNET.max`), so a foe shoved back or stepping aside is met. One that hops back out
+    of the swing on purpose (`fight.evade`, the prowler's flip after two cuts: `hopBack`) is let go, as designed;
+  - **turned into it through the coil** (`SWINGS[2].face` 0.6, `hipYaw`): the body is turned back toward the foe by 0.6 of
+    the clip's own hip turn through the wind-up, eased out over the cut (locked on too: the lock's facing takes
+    `aim.face`), so his hips are at most 45° off the foe (73° before) and the raised sword is cocked at it.
+  After: 0 of 64 missed but those hopping back on purpose (the prowler's flip, the grunt's dodge: 10, by their design);
+  with their dodges off, 0. `tests/combo-third.test.js` (a blot, a grunt and a hulk from 1.2 to 2.5 m, locked on and not,
+  minds and shoves on: all three blows land; the hips within 55° of the foe in the wind-up).
   Grounded swings use the legs and hips. `Animator.playCombat` blends clip changes (and the way back to
   locomotion) over 90 ms from the displayed pose, including motion matching when enabled (v1.3: it had
   blended nothing, `isBone` finding none of the library's plain-node joints; a swing into the next jumped up to
