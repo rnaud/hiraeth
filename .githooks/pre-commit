@@ -37,6 +37,9 @@ console.log(`pre-commit: ${tests.length} affected test files; concurrency ${n}`)
 // Git exports its repository/index context to hooks. Tests create disposable repositories;
 // preserve the context above for staged selection, then isolate all test subprocesses.
 const testEnv=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));
+// Node's on-disk compile cache for the test processes (git-ignored .cache/): V8 checks each entry against its source,
+// so a changed module compiles afresh; every test file is a process of its own importing much the same modules.
+testEnv.NODE_COMPILE_CACHE??=process.cwd()+'/.cache/node-compile';
 const r=spawnSync(process.execPath,['--test',`--test-concurrency=${n}`,...tests],{stdio:'inherit',env:testEnv});
 if(r.error)throw r.error;
 process.exit(r.status??1);

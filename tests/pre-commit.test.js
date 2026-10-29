@@ -19,6 +19,7 @@ test('the pre-commit hook runs the reached tests, all of them when asked, and is
   assert.match(hook, /FULL_TESTS/);
   assert.match(hook, /--staged --all --json/);
   assert.match(hook, /git diff --quiet --ignore-submodules --/);
+  assert.match(hook, /testEnv\.NODE_COMPILE_CACHE\?\?=process\.cwd\(\)\+'\/\.cache\/node-compile'/, 'the test processes share Node\'s compile cache, unless one is set');
   assert.ok(statSync(new URL('../.githooks/pre-commit', import.meta.url)).mode & 0o111, 'the hook is executable');
   const pkg = JSON.parse(read('package.json'));
   assert.match(pkg.scripts.prepare, /core\.hooksPath \.githooks/);
