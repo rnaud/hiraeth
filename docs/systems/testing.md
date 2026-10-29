@@ -91,7 +91,8 @@ existence queries, reporting e.g. 466 tests for `src/changelog-media.js` where t
 ### Round 2: the compiled game kept, Node's compile cache, catalogues, workflows
 
 - **The compiled game between processes.** Each whole-game test file (43 files, 51 compile calls)
-  compiled `engine/game.js` with rolldown again: ~3.1 s a call here. `engine/game-test-runtime.mjs` keeps
+  compiled `engine/game.js` with rolldown again: ~3.1 s a call here (0.54 s when measured again
+  for item 2 below). `engine/game-test-runtime.mjs` keeps
   the bundle in `.cache/game-bundles/` (git-ignored) and uses it only while everything its compile read
   is as it was: the compiler and `package-lock.json` (the key), every module rolldown put in the
   bundle byte for byte (from the build's own module list), the names of every file under `src/` and
@@ -125,11 +126,34 @@ existence queries, reporting e.g. 466 tests for `src/changelog-media.js` where t
   shard runner or the hook); otherwise its readers are selected, and an unread or unreadable one still
   selects everything. Today android, deploy, steam-deck, unity-android and unity-xbox are deploy-only;
   tests, nightly-tests, xbox (calls Tests) and cloudflare (runs `node --test`) are not.
-- **Not done:** the remaining always-run files spawn processes, compile bundles, use vm or
-  `new Function`, or read files named in data tables; the release tool scripts most of them import are
-  opaque too. The longest files the hook runs (desert-spark, engine-trials, temples, the reach
-  sweeps) spend their time building worlds and simulating, which no cache here can keep; making them
-  faster means changing what they check or the world builders, not done.
+- **Not done:** the remaining always-run files (95 for a doc edit) spawn processes, compile bundles,
+  use vm or `new Function`, or read through the release and packaging scripts (`release-info`,
+  `traveller-v2-ship`, `engine-bundle-core`, `web-update`: 19, 17, 14 and 9 files behind each), which
+  read files named by their callers or by JSON; a few read manifest-named files from `data/` (the
+  traveller-v2 GLB readers). Narrowing those needs bounded contracts like the game loader's, not done.
+
+### The slowest files the hook still runs most (round 2, item 2)
+
+Ranked by runner seconds times how often the last 100 commits on main selected them: the engines'
+whole-game files lead (engine-trials, takeoff-nan, sequences-play-outdoors, engine-ship, engine-sound,
+engine-combat: 92 of 100 commits each, `engine/game.js` reaching every module), then the web sweeps
+(desert-spark, temples, guardian-reach, boots-reach, wings-reach-3: about 64 of 100). Timed here on
+2026-10-29 (two at a time, load 7 to 8), the top 25 took 871 s against 1,749 in the table: on the Mac the
+whole-game files take 0.3 to 0.5 of their runner seconds, sequences-play-outdoors, route-spawn and
+sequences-fights about 1.0 (key-chests' 77 s in the table is 8 s now: the table is stale for some files).
+
+Where their time goes (CPU profiles of engine-ship, takeoff-nan, sequences-play-outdoors and
+route-spawn): the traveller's cloth (`simulate`, `src/characters/tripo-cloth-sim.js`) is the largest
+single cost, 26 % of engine-ship, 13 % of sequences-play-outdoors, 9 % of a take-off; then the physics
+bake (three-mesh-bvh's tree, 0.7 s a world), the world builders (the desert 3.4 s, spread over its
+relief, drifts, city and temple layouts) and the frame's matrices and raycasts. None of it is the
+tests' own waste: they build the worlds and play the frames they check. Not changed: a faster cloth
+means changing the game's own solver (its results, and the Unity build that runs the same code);
+sharing a built world between files is not possible across processes; and `runSequence`'s 5 ms yields
+(about 5 % of a sequence file) keep the VM's timers landing as the recorded web streams expect.
+Measured too: the kept game bundle saves less than its commit said here (rolldown compiled
+`engine/game.js` in 0.54 s cold and 0.11 s kept, against ~3.1 s then); ten whole-game files took 98 and
+104 s with both caches off, 106 and 107 s on, within the noise of a shared machine.
 
 ### What was not narrowed, and why
 
@@ -137,9 +161,9 @@ The hubs (`src/enemies/archetypes.js` 596 files, `src/player.js` 581, `src/foes.
 tests genuinely: every world spawns foes, `src/npc.js` builds its people with the traveller's
 `buildCharacter`, the story imports `CAPSULE`, and every whole-game test compiles `engine/game.js`.
 Every selected file over 15 runner seconds was checked by its shortest chain; none was incidental. The
-cheap files that ran for every change (144 after round 1, 113 after round 2) are opaque: they spawn
-processes, compile bundles, or read what a data table names; round 2's catalogues took the
-directory-listing ones out.
+cheap files that ran for every change (144 after round 1, 95 after round 2) are opaque: they spawn
+processes, compile bundles, or read through the release scripts; round 2's catalogues and literal
+calls took the directory-listing and data-named ones out.
 
 ### Measured, before and after
 
@@ -173,6 +197,36 @@ One changed file each, hook-mode selection (positional mode now gives the same n
 | src/changelog-media.js | 145 / 254 | 144 / 238 | 144 / 238 |
 
 The earlier positional counts (602, 588, 550, 480, 469, 466) were inflated by that mode, not the hook's.
+
+### Measured, round 2
+
+The same method and the same 30 commits (up to 01d743e06), against three fixed trees: before both
+rounds (01d743e06), after round 1 (677d67ee8, main when round 2 was rebased) and after round 2 (this
+branch's 80bb80232), all with today's `tests/shard-timings.json` (files it lacks count as its mean, so
+these differ from the table above). Each tree was extracted whole and its own `affectedTests` called
+with its inventory and the commit's paths, as the hook calls it.
+
+| per commit (30 commits) | files: mean / median / max | runner s: mean / median / max | run by the hook: files | run by the hook: runner s |
+|---|---|---|---|---|
+| before both rounds | 497 / 563 / 972 | 6,382 / 8,027 / 9,129 | 497 / 563 / 972 | 6,382 / 8,027 / 9,129 |
+| after round 1 | 496 / 562 / 977 | 6,393 / 8,057 / 9,176 | 483 / 544 / 959 | 4,514 / 5,533 / 6,651 |
+| after round 2 | 480 / 552 / 978 | 6,371 / 8,052 / 9,185 | 467 / 534 / 960 | 4,492 / 5,527 / 6,661 |
+
+A gameplay commit still selects 500-odd files: round 2 changes the count of the cheap commits, not
+the hubs'. The hook's set for one unrelated edit, before both rounds / after round 1 / after round 2:
+
+| edited | files |
+|---|---|
+| docs/README.md | 144 / 143 / 95 |
+| src/changelog-media.js | 145 / 144 / 113 |
+| scripts/playthrough-browser.mjs | 151 / 150 / 102 |
+| src/hud.js | 149 / 148 / 118 |
+| public/manifest.webmanifest | 196 / 192 / 144 |
+
+Wall time here, two at a time, for a doc edit's set (load 6 to 14, so ±15 s): round 1's 143 files
+without the caches 71 and 83 s; round 2's 95 files with them 58 and 71 s (84 s without them).
+`tests/sword-sheath-seat.test.js` (untouched here) failed in two of those four runs, once each way:
+"salt-pilgrim: the dodge roll: -2.6 cm (into him)", a flaky check under load.
 
 ## Automatic web, separately built installers
 
