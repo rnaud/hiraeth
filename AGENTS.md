@@ -110,6 +110,9 @@ These are the canonical project rules for Codex and other coding agents. Read th
 - Keep test concurrency at 2 while sharing this machine and wait when load exceeds 25.
   Serialize Unity builds using the handoff’s build lock. Clean up only your own preview
   servers, temporary browser profiles and intermediate files.
+- Once a branch's work is on main, delete its worktree (`git worktree remove`, after checking it
+  has no uncommitted or unpushed work and no process still has files open in it). Keep the branch;
+  move anything git-ignored but unique (downloaded sources, keys) somewhere safe first.
 - Before committing, run `node scripts/bridge-gaps.mjs` and
   `node --test tests/reference-paths.test.js` as well as the normal hook and build.
 - Do not disable hooks or bypass failed tests to ship. Do not type or print secrets from `.env`.

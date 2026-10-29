@@ -88,6 +88,10 @@ If the push is refused, fetch, merge and test again. Never force-push `main`.
 release and the Steam Deck release started for the commit. Don't poll: report that they started, and
 check later only if asked. The APK's size is on the release: `gh release view v<version>`.
 
+**Then delete the shipped worktrees** (AGENTS.md, "Coordination and handoff"): for every worktree whose
+work is now on main, check `git status` is clean and `git cherry origin/main <branch>` shows nothing
+unshipped, then `git worktree remove <path>`. Keep the branches. Leave a worktree a process still uses.
+
 ## 6. Tell the user
 
 - the commit or commits, and what they hold;
