@@ -2,9 +2,9 @@
 // shops after hours, crates stacked in them, the signs on their walls dark. The bell walker tolls in the market above,
 // and the signs answer (hazards.js 'toll'): a sign flickers on, then a ring of sound spreads from it across the room;
 // its edge passing him flinches him (a little harm) unless he rolls through it, and every foe it passes is stunned and
-// cut, so a crowd caught by the ring is a crowd to cut down. Its foes are the market's own (src/foe-worlds.js: horn
-// lizards in pairs, antler hounds, signal moths, marionettes on their strings), light, many; the last wave brings the
-// bell walker itself and a whole marionette. The reward: Signal neon (src/kit-colours.js).
+// cut, so a crowd caught by the ring is a crowd to cut down. Its foes are the market's own (src/foe-worlds.js: alley
+// hounds in pairs, stall crabs, signal moths; its coin lizards and parcel puppets went in issues #769 and #772), light,
+// many; the last wave brings the bell walker itself and a whole crab. The reward: Signal neon (src/kit-colours.js).
 //
 // Its rooms: the shuttered row (no signs lit yet), the sign-painter's (two signs), the stockroom (a maze of crates,
 // two signs), the counting house (four signs round its altar, two rings at a time).
@@ -23,24 +23,24 @@ export const BAZAAR_FIGHT = {
   sky: { script: { day: ['#8fb0d8', '#f2dcc8', '#8a86c0', '#fff4e8', '#fff0dc'], dusk: ['#6a6ab0', '#f4a0a8', '#7a5aa8', '#ffd0d8', '#ffc8b0'], night: ['#141838', '#3a3070', '#3a2a70', '#ff9ad0', '#f2f0e6'] } },
   spawn: [0, 0, 3.5],
   par: 250,
-  lightHarm: 1,   // (its light foes strike as hard as their kind: session.js; its lizards' nips and the
-  // marionettes' strings are the route's lightest blows, and the last temple should be its hardest: issue #532)
+  lightHarm: 1,   // (its light foes strike as hard as their kind: session.js; light blows are the route's
+  // lightest, and the last temple should be its hardest: issue #532)
   rooms: [
     { id: 'row', name: 'The shuttered row', x: [-8, 8], z: [-6, 6],
       springs: [[-5, -3.5], [5, -3.5], [-5, 3], [5, 3]], pillars: [],
-      waves: [[['lizard', 4], ['moth', 3]], [['hound', 2], ['lizard', 4], ['moth', 3]]] },
+      waves: [[['hound', 4], ['moth', 3]], [['hound', 4], ['crab', 2], ['moth', 3]]] },
     { id: 'painter', name: 'The sign-painter’s', x: [-10, 10], z: [-26, -8],
       springs: [[-7, -11], [7, -11], [-7, -23], [7, -23]], pillars: [[-4.5, -14], [4.5, -14], [-4.5, -20], [4.5, -20]],
       hazard: { kind: 'toll', every: 6.5, n: 1, signs: [[0, -26], [-10, -12]] },
-      waves: [[['lizard', 8], ['hound', 2]], [['marionette', 2], ['lizard', 6], ['hound', 1, { gorged: true }]], [['lizard', 10], ['moth', 6], ['lizard', 1, { gorged: true }]]] },
+      waves: [[['hound', 6], ['moth', 4]], [['crab', 2], ['hound', 4], ['moth', 2], ['hound', 1, { gorged: true }]], [['hound', 6], ['moth', 6], ['crab', 4], ['crab', 1, { gorged: true }]]] },
     { id: 'stock', name: 'The stockroom', x: [-32, -12], z: [-24, -10],
       springs: [[-30, -12], [-14, -22], [-30, -22], [-22, -12]], pillars: [[-27, -15], [-22, -20], [-17, -15]],
       hazard: { kind: 'toll', every: 5.5, n: 1, signs: [[-28, -24], [-32, -17]] },
-      waves: [[['hound', 4], ['lizard', 6], ['moth', 3]], [['lizard', 10], ['marionette', 2], ['moth', 3], ['hound', 1, { gorged: true }]]] },
+      waves: [[['hound', 6], ['moth', 3], ['crab', 4]], [['hound', 6], ['crab', 6], ['moth', 3], ['hound', 1, { gorged: true }]]] },
     { id: 'counting', name: 'The counting house', x: [-36, -12], z: [-50, -26],
       springs: [[-24, -28], [-34, -38], [-14, -38], [-24, -48]], pillars: [[-30, -32], [-18, -32], [-30, -44], [-18, -44]], altar: [-24, -38],
       hazard: { kind: 'toll', every: 5, n: 2, signs: [[-24, -50], [-36, -32], [-36, -44], [-18, -50]] },
-      waves: [[['hound', 2], ['lizard', 8], ['marionette', 2], ['moth', 3], ['hound', 1, { gorged: true }]], [['bell', 1, { tough: true }], ['marionette', 1, { tough: true }], ['lizard', 12], ['hound', 4], ['moth', 6], ['lizard', 1, { gorged: true }], ['hound', 1, { gorged: true }]]] },
+      waves: [[['hound', 8], ['crab', 4], ['moth', 3], ['hound', 1, { gorged: true }]], [['bell', 1, { tough: true }], ['crab', 1, { tough: true }], ['hound', 10], ['crab', 4], ['moth', 8], ['crab', 1, { gorged: true }], ['hound', 1, { gorged: true }]]] },
   ],
   doors: [
     { from: 0, to: 1, side: 'n', at: 0, w: 4 },

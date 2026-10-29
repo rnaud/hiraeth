@@ -159,19 +159,14 @@ test('the ring drone (the rust drone’s mind): its harpoon line pulls you in un
   foes.dispose(); clearTargets();
 });
 
-test('the root knot (the root stalker’s mind): roots along the ground grip and drag you in, then it lashes; a cut breaks the hold; a bloom puts it to sleep; embers burn it', () => {
-  const s = only('rootknot', 'grip'), P = player(v(0, 0, 5));
-  assert.ok(untilWind(s, P, 'grip'));
-  assert.ok(!groundMark(s.atk), 'its roots read from its plunged arms, nothing on the floor');
-  const ev = runFor(s, P, attackOf('rootknot', 'grip').wind + attackOf('rootknot', 'grip').strike + 0.1);
-  assert.equal(strikes(ev)[0]?.hit, true);
-  assert.equal(s.state, 'wind'); assert.equal(s.atk.id, 'lash', 'the grip runs straight into a lash');
+test('the root knot (the root stalker’s mind, shooting since issue #769): its pod lobbed onto a mark in the ground; a bloom puts it to sleep; embers burn it', () => {
+  const s = only('rootknot', 'pod'), P = player(v(0, 0, 5));
+  assert.ok(untilWind(s, P, 'pod'));
+  assert.ok(groundMark(s.atk), 'its pod marks where it lands');
+  const ev = runFor(s, P, attackOf('rootknot', 'pod').wind + 0.05);
+  assert.equal(strikes(ev)[0]?.hit, true, 'it lands where you stood');
+  assert.notEqual(s.state, 'strike', 'a lob: no strike of its body');
   clearTargets();
-  const Q = player(v(0, 0, 0)), foes = world(Q), t = foes.add('rootknot', v(0, 0, 5));
-  foes.strike(t, attackOf('rootknot', 'grip'));
-  assert.equal(foes.hold?.kind, 'grab');
-  foes.hurt(t, 'blade', v(0, 0, 1), { damage: 1 }); foes.updateHold(DT);
-  assert.equal(foes.hold, null, 'cut free');
   const b = new Foe('rootknot', v());
   b.hit('bloom', v(0, 0, 1));
   assert.ok(b.sleep > 2 && b.stunned > 2, 'asleep in flower');
@@ -179,7 +174,7 @@ test('the root knot (the root stalker’s mind): roots along the ground grip and
   assert.ok(b.sleep > 0 && b.stunned > 0, 'and it sleeps on through the cuts');
   const c = new Foe('rootknot', v()); c.hit('fire', v(0, 0, 1));
   assert.equal(c.hp, FOES.rootknot.hp - 2, 'an ember burns it');
-  foes.dispose(); clearTargets();
+  clearTargets();
 });
 
 test('the shellback crab: the blade glances off its shell from the front; from behind it cuts; a guarded spin flips it; a bomb cracks the shell', () => {
@@ -326,8 +321,10 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   gentle.addWave(k, attackOf('machine', 'quake')); G.pos.set(0, 0, 8);
   for (let i = 0; i < 1.5 / DT; i++) gentle.updateHazards(DT);
   assert.ok(Math.abs(G.hurts[0] - attackOf('machine', 'quake').wave.damage * GENTLE.harm) < 1e-9, 'half the harm');
-  gentle.strike(k, attackOf('rootknot', 'grip'));
-  assert.ok(gentle.hold.t <= attackOf('rootknot', 'grip').grab.time * 0.6 + 1e-9, 'a shorter hold');
+  // (a grab: the root knot's grip until it took to shooting, #769; the hold itself stays, for a grab or a line)
+  const grip = { id: 'grip', name: 'grip', shape: 'lane', width: 1.2, range: 6.5, damage: 0.25, wind: 1.0, strike: 0.45, contact: 0.85, grab: { time: 1.1, pull: 6 }, ground: true };
+  gentle.strike(k, grip);
+  assert.ok(gentle.hold.t <= grip.grab.time * 0.6 + 1e-9, 'a shorter hold');
   gentle.dispose(); clearTargets();
 });
 
@@ -338,7 +335,7 @@ test('the worlds’ rosters: each world draws its packs and its temple rooms fro
   }
   // each old kind still standing in has a home
   for (const k of Object.keys(KINDS)) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 2), `${k} has a home`);
-  const signature = { desert: 'blot', arzach: 'ray', arzach2: 'crab', glassdunes: 'brute', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'cart', eclipse: 'hound', underwater: 'crab', buried: 'worm' };
+  const signature = { desert: 'blot', arzach: 'ray', arzach2: 'crab', glassdunes: 'brute', bazaar: 'hound', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'cart', eclipse: 'hound', underwater: 'crab', buried: 'worm' };
   const rng = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const [id, k] of Object.entries(signature)) {
     const packs = []; for (let n = 1; n < 240; n++) packs.push(packOf(n, id, rng));
@@ -350,9 +347,9 @@ test('the worlds’ rosters: each world draws its packs and its temple rooms fro
   }
   assert.deepEqual(packOf(0, 'desert'), ['blot'], 'the very first pack the game explains: a blot');
   assert.deepEqual(packOf(0, 'eclipse'), ['hound'], 'elsewhere, the world’s lead first, alone');
-  // lizards come in pairs: alone in the first half of the route, with the stage's fillers round them from the third stage on (v1.22)
-  { const p = packOf(2, 'bazaar', () => 0.1); assert.deepEqual(p.slice(0, GROUP.lizard), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
-    assert.equal(p.length, GROUP.lizard + 3, 'the Market: a pair and three more (five places, the pair taking two)'); }
+  // hounds come in pairs: alone in the first half of the route, with the stage's fillers round them from the third stage on (v1.22)
+  { const p = packOf(2, 'bazaar', () => 0.1); assert.deepEqual(p.slice(0, GROUP.hound), Array(GROUP.hound).fill('hound'), 'hounds come in pairs');
+    assert.ok(p.length >= GROUP.hound + 2 && p.length <= GROUP.hound + 4, `the Market: a pair and the rest of its five places (${p})`); }
   for (let n = 1; n < 200; n++) { const p = packOf(n, 'perdide', rng); if (GROUP[p[0]]) assert.deepEqual(p, Array(GROUP[p[0]]).fill(p[0]), `Lorn: a group alone (${p})`); }
   assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('worm'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);

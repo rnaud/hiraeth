@@ -390,6 +390,11 @@ Object.assign(SURFACES, {
       },
       root: { grain: { color: 'root2', spacing: 0.045, ink: 0.35, warp: 0.5, amount: 0.5 }, ...SPECKS('dark', 0.3, 0.05) },
       tendril: { fade: { color: 'tendril*0.7', axis: 1, from: -0.1, to: -0.5 } },
+      // (the spore pod it throws, issue #769: a soft ball of spores freckled in its gills' colour)
+      pod: {
+        spots: { color: 'gill', scale: 0.12, share: 0.45, size: 0.45, soft: 0.05 },
+        mottle: { color: 'spore*0.85', scale: 0.3, amount: 0.4, soft: 0.2, strength: 0.5 },
+      },
     },
     perdide2: {
       // (sheet-2: the turquoise gills glow softly under the deep teal cap)

@@ -25,29 +25,34 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 export const WORLDS = {
   // the route
   // (issue #724: the mummers keep camp in the dunes, a pair of them now and then out walking; the blot still leads)
-  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, heron: 2, skitter: 2, mummer: 1.5 }, placed: ['tripod'], sites: ['mummerking'] },
-  arzach: { stage: 0, lead: 'ray', roster: { ray: 4, heron: 2, blot: 3 } },
+  // (issues #769, #772: the stilt heron, the horn lizard and the marionette out of the worlds, OUT_OF_PLAY below; each
+  // world's other own foes fill their places)
+  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, skitter: 3, mummer: 2 }, placed: ['tripod'], sites: ['mummerking'] },
+  // (Vael's plain: the cliff crab of its sky stones in the heron's place, #769)
+  arzach: { stage: 0, lead: 'ray', roster: { ray: 4, blot: 3, crab: 2 } },
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
-  perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
-  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5 }, placed: ['brute'] },
+  perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, skitter: 3, blot: 1.5 } },
+  // (the root knots shoot since #769: root-edged blots come in round them, so a root knot's pack is not a lone mortar)
+  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5, blot: 2 }, placed: ['brute'] },
   edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
   // (v1.40: the Underwater City between Viridel and the City-Shaft: crabs and jellies in the halls, a lamp tripod or two)
   underwater: { stage: 2, budget: [3, 4], lead: 'crab', roster: { crab: 4, ray: 2.5, jelly: 3, tripod: 2 } },
-  incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 1, lizard: 3.5, toad: 2.5, shade: 2.5 }, temple: ['machine', 'drone'] },
+  incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 2.5, toad: 3.5, shade: 2.5, blot: 1.5 }, temple: ['machine', 'drone'] },
   // (the Sealed Hangar, dismissed in October 2026: its table kept with its skins, src/levels/dismissed/)
   garage: { stage: 2, budget: [4, 5], lead: 'drone', roster: { drone: 4, cart: 3.5, crab: 2.5, roller: 2, ray: 1, shade: 2.5 }, temple: ['machine', 'drone'] },
   // (the Glass Dunes in the Hangar's slot since October 2026: its own glass crabs, mantas and worms, its furnace walkers
   // and nomads, and the Clock-House's drones, which came with the house; its rooms the makers' machines and drones)
   glassdunes: { stage: 2, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
-  buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
+  buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, centipede: 3, skitter: 3.5, blot: 1 }, temple: ['machine', 'drone'] },
   // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
   // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
-  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2, wisp: 2.5, fencer: 1.5 }, temple: ['machine', 'drone'] },
-  spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
+  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3.5, brute: 2.5, wisp: 3, fencer: 1.5, blot: 1 }, temple: ['machine', 'drone'] },
+  spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound'] },
   // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
   spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3, fencer: 2 }, temple: ['machine', 'drone'] },
-  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5, fencer: 1.5 }, late: ['marionette', 'fencer'] },
-  // the side worlds (all discarded, names.js DISCARDED: their tables stay as they are)
+  // (the alley hounds lead the Market since #769: its coin lizards and parcel puppets are gone)
+  bazaar: { stage: 4, lead: 'hound', roster: { hound: 5, crab: 3, moth: 2, bell: 2.5, fencer: 2 }, late: ['fencer'] },
+  // the side worlds (all discarded, names.js DISCARDED: their tables stay as they are, OUT_OF_PLAY's foes in them too)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   waterfall: { stage: 2, lead: 'toad', roster: { toad: 4, centipede: 2, brute: 2, rootknot: 2 } },
   saltharbour: { stage: 2, lead: 'crab', roster: { crab: 4, roller: 3, bell: 2, marionette: 1 } },
@@ -61,16 +66,23 @@ export const WORLDS = {
  * The encounters placed by hand (WORLDS[w].placed: one met where it stands, not in a pack): where each stands (x, z: its
  * ground found under it) and which way it faces (rad); met calm, as its archetype keeps to itself (src/foes.js
  * Foes.updatePosts); once cut down, gone for good (a flag per save). Lorn II's wood cutter stands rusted mid-task on the
- * dry bank of the lit path, between the root arches past the glass dome; the Garden of Spheres' glass puppet hangs at the
- * white archway in the android wood (src/levels/spheres.js), just clear of its arch, swaying like a coat on a hook. The
- * Desert's cistern pump, a makers' lamp tripod, keeps the one deep water the dunes hold: the mineral basin under the
- * lavender cliffs (src/desert-vistas.js BASIN), on its far shore from the fishing sign, its lamp turned out over the water.
+ * dry bank of the lit path, between the root arches past the glass dome. The Desert's cistern pump, a makers' lamp
+ * tripod, keeps the one deep water the dunes hold: the mineral basin under the lavender cliffs (src/desert-vistas.js
+ * BASIN), on its far shore from the fishing sign, its lamp turned out over the water. (The Garden of Spheres' glass
+ * puppet, which hung at the white archway in the android wood, went with the marionettes: #772.)
  */
 export const PLACED = {
   desert: [{ archetype: 'tripod', at: [-489.0, -187.0], heading: Math.PI / 2 }],
   perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }],
-  spheres: [{ archetype: 'marionette', at: [-108.0, -411.7], heading: 1.4 }],
 };
+
+/**
+ * The archetypes out of play (the author, 2026-10-29: "Remove the crocodile and the tall bird as enemies", issue #769;
+ * "Remove the puppet enemy", #772): the horn lizard, the stilt heron and the marionette. No route world's packs, sites,
+ * placed foes or fight temple field them, nor Ink tide's waves. They stay built, with their skins, for the Arena and the
+ * gallery (developers' pages); the discarded side worlds' tables (never on the way) keep them as they were.
+ */
+export const OUT_OF_PLAY = ['lizard', 'heron', 'marionette'];
 
 /** Worlds with no table of their own (a minigame's field, a test's): ink blots. */
 export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', temple: ['machine'], shade: 0, stage: 1 };

@@ -3,7 +3,7 @@
 // from the start (hazards.js 'pour': a channel's rim glows, then the slag runs down it and lies there a while): in it
 // you burn, half a heart a tick, unless you are out of it or roll across; every foe in it burns too. The floor is read
 // before the fight: where the channels run, and where to stand. Its foes are the Foundry's own (src/foe-worlds.js:
-// crucible carts, skitters in the rails, horn lizards; cinder wisps over the heat since issue #398), light, many; the last wave brings a furnace brute and two
+// crucible carts, skitters in the rails, ember-edged blots where the horn lizards were until #769; cinder wisps over the heat since issue #398), light, many; the last wave brings a furnace brute and two
 // whole carts. The reward: Moon slag (src/kit-colours.js).
 //
 // Its rooms: the tapping bay (no pour yet), the casting bays (three channels down it, columns of iron between), the
@@ -35,19 +35,19 @@ export const MOONFOUNDRY_FIGHT = {
   rooms: [
     { id: 'tapping', name: 'The tapping bay', x: [-7, 7], z: [-7, 7],
       springs: [[-4.5, -4.5], [4.5, -4.5], [-4.5, 2.5], [4.5, 2.5]], pillars: [],
-      waves: [[['skitter', 10], ['lizard', 2]], [['cart', 1], ['skitter', 10], ['lizard', 1]]] },
+      waves: [[['skitter', 10], ['blot', 2]], [['cart', 1], ['skitter', 10], ['blot', 1]]] },
     { id: 'bays', name: 'The casting bays', x: [-12, 12], z: [-29, -9],
       springs: [[-10, -11.5], [10, -11.5], [-10, -26.5], [10, -26.5]], pillars: [[-4, -14], [4, -14], [-4, -24], [4, -24]],
       hazard: { kind: 'pour', every: 6.5, n: 1, lanes: [C('z', -8, 1), C('z', 0, 1), C('z', 8, 1)] },
-      waves: [[['lizard', 4], ['skitter', 10]], [['cart', 2], ['skitter', 8], ['lizard', 1, { gorged: true }]], [['skitter', 16], ['lizard', 3], ['cart', 1, { gorged: true }]]] },
+      waves: [[['blot', 4], ['skitter', 10]], [['cart', 2], ['skitter', 8], ['blot', 1, { gorged: true }]], [['skitter', 16], ['blot', 3], ['cart', 1, { gorged: true }]]] },
     { id: 'moulds', name: 'The mould floor', x: [-34, -14], z: [-26, -12],
       springs: [[-32, -19], [-16, -19], [-24, -19]], pillars: [],
       hazard: { kind: 'pour', every: 5.5, n: 1, lanes: [C('x', -15.5, -1), C('x', -22.5, 1)] },
-      waves: [[['lizard', 3], ['skitter', 12], ['cart', 1]], [['skitter', 14], ['lizard', 3], ['wisp', 1], ['skitter', 1, { gorged: true }]]] },
+      waves: [[['blot', 3], ['skitter', 12], ['cart', 1]], [['skitter', 14], ['blot', 3], ['wisp', 1], ['skitter', 1, { gorged: true }]]] },
     { id: 'crucible', name: 'The great crucible', x: [-38, -14], z: [-52, -28],
       springs: [[-36, -30], [-16, -30], [-36, -50], [-16, -50], [-26, -50]], pillars: [[-30, -36], [-22, -36], [-30, -44], [-22, -44]], altar: [-26, -40],
       hazard: { kind: 'pour', every: 5, n: 2, lanes: [C('z', -33, 1), C('z', -19, 1), C('x', -32.5, -1), C('x', -47.5, 1)] },
-      waves: [[['cart', 2], ['lizard', 4], ['skitter', 12], ['wisp', 2], ['lizard', 1, { gorged: true }]], [['brute', 1, { tough: true }], ['cart', 2, { tough: true }], ['skitter', 16], ['lizard', 4], ['cart', 1, { gorged: true }], ['skitter', 1, { gorged: true }]]] },
+      waves: [[['cart', 2], ['blot', 4], ['skitter', 12], ['wisp', 2], ['blot', 1, { gorged: true }]], [['brute', 1, { tough: true }], ['cart', 2, { tough: true }], ['skitter', 16], ['blot', 4], ['cart', 1, { gorged: true }], ['skitter', 1, { gorged: true }]]] },
   ],
   doors: [
     { from: 0, to: 1, side: 'n', at: 0, w: 4 },

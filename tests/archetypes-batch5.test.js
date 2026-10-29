@@ -59,11 +59,12 @@ test('every world runs on the new roster: its packs and placed ones are built ar
     // its own waves in the Arena: each archetype alone in the world's skin
     for (const wave of worldWaves(w)) for (const k of wave) assert.ok(FOES[parseKind(k).kind], `${w}: wave ${k}`);
   }
-  // the shades walk their worlds (later packs, rarely in Lorn II); the roller leads the Garden; the marionette is late there
+  // the shades walk their worlds (later packs, rarely in Lorn II); the roller leads the Garden; the marionette out of the
+  // worlds on the route since issue #772 (src/foe-worlds.js OUT_OF_PLAY), the Garden's glass puppet with it
   assert.ok(ROSTERS.perdide2.wild.shade > 0 && ROSTERS.eclipse.wild.shade > 0);
   assert.equal(ROSTERS.spheres.first, 'roller');
-  assert.ok(ROSTERS.spheres.late.marionette && ROSTERS.bazaar.late.marionette, 'the marionette comes late');
-  assert.deepEqual(PLACED.spheres.map((p) => p.archetype), ['marionette'], 'the Garden’s glass puppet is placed by hand');
+  assert.ok(!ROSTERS.spheres.late.marionette && !ROSTERS.bazaar.late.marionette && !ROSTERS.bazaar.wild.marionette, 'no marionette in the last worlds');
+  assert.equal(PLACED.spheres, undefined, 'the Garden’s glass puppet is gone');
   // every world's `placed` is placed: the Desert's cistern pump on the basin's far shore (v1.26)
   for (const [w, W] of Object.entries(WORLDS)) for (const a of W.placed ?? []) assert.ok(PLACED[w]?.some((p) => p.archetype === a), `${w}: its ${a} placed`);
   const { BASIN } = await import('../src/desert-vistas.js');

@@ -1326,10 +1326,10 @@ Tests: `tests/shot-return.test.js` (every shooter's shots, plain and perfect, an
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
   `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
-  arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.18) hangs by the white archway in the
-  android wood, just clear of its arch; the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
+  arches past the glass dome; the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
   mineral basin under the lavender cliffs (src/desert-vistas.js `BASIN`, opposite the fishing sign), its lamp turned
-  out over the water: the one deep water the dunes hold.
+  out over the water: the one deep water the dunes hold. (The Garden of Spheres' glass puppet, a marionette that hung by
+  the white archway in the android wood from v1.18, went with the marionettes in v2.36: issue #772.)
 
 - **The Givers' watcher** (v1.65, issue #245; `src/temples/pieces.js` `Sentry`, `SENTRY`): a temple foe, not one of
   the roster's archetypes (no hearts, no lock-on, never spawned by `Foes`). A squat bronze bell on a rose-stone foot,
@@ -1352,6 +1352,8 @@ with nothing round it.
 Each world keeps its own foes in its own skins (issue #762, the author, 2026-10-29: "I liked the enemies per world
 actually"): v2.35's same foes in every world (#726 step 4) and one look per kind (#748) were reverted. Roster v4's seven
 stay in the Arena, the gallery and Unity's `-fight`; the camps' racks and the warlord's hold are staged (`?staged=roster4`).
+The horn lizard, the stilt heron and the marionette are out of play since v2.36 (#769, #772): the sites they kept hold
+the world's other foes ("Each world's foes", "The rosters now").
 
 - **The kinds** (`layoutSite` lays each out round its centre, `heading` its front, the side you come from):
   - **camp**: a fire of stones and logs, the foes sat round it facing the flames, a lookout standing off the front by
@@ -2299,7 +2301,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   strikes at a time) with `pile` (n of its flock near it, `Foe.mates`, climb onto it as it winds up, `Foes.pile`,
   `Foe.ride`; it topples, throwing them; the push on any of the heap scatters it) and `calm.linger` (a flock fights only
   if you stay within `provoke` m that long; run at it and it scatters, `scatter`; an ember into it sends the rest
-  running); `rooted` (nothing knocks it back), `ground` (only on your feet: a jump clears the root knot's grip), `blur`
+  running); `rooted` (nothing knocks it back), `ground` (only on your feet: a jump clears the hulk's stomp; the root knot's grip until v2.36), `blur`
   (spores over your sight whichever way you look, no harm); the calm modes `sit` (the toad), `wade` (the heron, slow and
   wide; `shy`, it walks off; `flee`, run at it and it flies off: `Foe.takeOff` picks a landing `far` m away from you, or
   a little to one side, where there is ground and no hazard, and `Foe.flyOff` carries it there over a crouch and an arc
@@ -2311,7 +2313,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | bellows toad (`toad`) | a 2.2 m pear sitting up, a throat sac in folds, heavy lids; hops | spore lob (1.2 s; the sac swells see-through, it rears; a landing mark, spores), volley (1.45 s; the City-Shaft, the Waterfall), belly flop (0.95 s; a deep shaking crouch, a leap and a ring of shock) | a shot in the swollen throat (it chokes), walk out of the mark, jump the ring, the air cut in its leap (on its back, double), close in | sits by the water; fights within 4 m |
   | stilt heron (`heron`) | nearly 5 m: a jug or a feathered egg on two stilts, an S-neck, a spear bill | spear (0.9 s; the neck drawn back into an S, 5 m), sweep (1.0 s; a foot lifted high, then a stamp), wing buffet (0.8 s; Vael) | evade aside, a guard leaves its head open, the dash cut inside its reach, a charged cut at a leg topples it | wades and fishes; walks off as you come near; fights cornered (2.8 m) |
   | skitter swarm (`skitter`) | eight knee-high domes on high-kneed legs; a speckle of humps | ripple rush (0.6 s; it rears and clicks, one at a time), pile (1.2 s; a heap grows, then topples) | any blow, a shot or the push ends one; the push scatters the heap; an ember scatters the flock | grazes in a flock; scatters if you run at it; fights if you linger in it |
-  | root knot (`rootknot`) | a 3.2 m mushroom on five jointed root-arms | grip (1.0 s; two arms plunged in, the cap tipped; the soil heaves toward you, then lash), lash (0.75 s; two arms coiled back), spore puff (1.0 s; Lorn II) | jump or sidestep the heave; a cut or stilling frees you; a parry chips the lash; a bloom glob (asleep, cuts double); embers ×2 | stands rooted, its cap following you; fights at 3.6 m |
+  | root knot (`rootknot`) | a 3.2 m mushroom on five jointed root-arms | since v2.36 (#769) it shoots: spore pod (1.4 s; the cap tips back, the gills swell, a pod fattens under the rim, then it is flung onto its mark and bursts into slowing spores), seed volley (1.6 s; up on its arms, the cap shuddering; three seeds onto a row of marks), spore puff (1.0 s; Lorn II). Its grip and lash are gone | walk out of the marks; close in (rooted, it can't follow); a bloom glob (asleep, cuts double); embers ×2 | stands rooted, its cap following you; fights at 3.6 m |
 
 - **Batch 4's fields** (v1.16): `stout` (light cuts never stagger it, even early in a wind-up: only a charged cut, a
   riposte, a parry; the brute, the bell); a wave's `count` and `every` (`Foes.addWave` queues the rest: the bell's toll
@@ -2573,6 +2575,36 @@ and temple rooms draw from its roster.
 - **Hitboxes:** `Foes.hitShapes(out)` (registered from main.js with `registerHitboxes`) adds the shockwaves' fronts, the slag, a hold's line, a volley's rings and words over a buried ray or a running hound; `foeHitboxes` draws the attack the foe is on (`f.atk`). A charge (`sweep`: the ray's glide, the crab's spin) hits whatever its body runs into within `sweepRadius` (half its lane's width), so the lane drawn while it winds up is the ground it covers; through the strike the live shape is that circle round the body (telegraph-coloured until its `contact`), the lane kept faint from where it set off (`foe.charge.path`). `tests/hitboxes.test.js` plays every attack of the worlds' kinds with the traveller stepping round its area and checks each landed exactly when he stood inside the shape drawn.
 - **Placed foes:** temple rooms (`f.placed`) still only stir while you are in the temple; a broken golem's
   splinters share its `placed`.
+
+## The rosters now (v2.36, issues #762, #769, #772)
+
+Each world's own foes in its own skins (#762), less the three the author took out of play on 2026-10-29: the horn lizard
+("the crocodile"), the stilt heron ("the tall bird", #769) and the marionette ("the puppet", #772). `OUT_OF_PLAY` in
+`src/foe-worlds.js` names them; no route world's packs, sites, placed foes or fight temple field them, nor Ink tide's
+waves (`tests/archetypes.test.js` "out of play"). They stay built, with their skins, for the Arena, the gallery and the
+FOES list (developers' pages); the discarded side worlds' tables keep them as they were. Each world's other own foes
+took their places. The root knot shoots since #769 (its spore pod and seed volley, lobbed onto marks in the ground), so
+a root knot's pack in Lorn II has root-edged blots round it rather than standing alone.
+
+| World (part) | Stage | Lead | Packs (weights) | Sites (what changed) | Placed | Fight temple (light kinds) |
+|---|---|---|---|---|---|---|
+| Desert | 0 | blot | blot 4, worm 3, skitter 3, mummer 2 | the heron's hoard: a mummer and two blots (`mummer-hoard`) | lamp tripod (the cistern pump) | blots, skitters, worms; last wave a tripod and two mummers |
+| Vael (the plain) | 0 | ray | ray 4, blot 3, crab 2 (the sky stones' cliff crab: `skinFor` takes a part's sibling skin) | `plain-fire`: two blots and a crab, a storm ray on watch | | blots, rays, crabs; last wave a crab and two rays |
+| Vael II (the sky stones) | 1 | crab | crab 4, ray 3, jelly 2, blot 2 | unchanged | | (Vael's) |
+| Lorn | 1 | toad | toad 3.5, rootknot 3, skitter 3, blot 1.5 | `toad-fire`: a blot on watch | | toads, root knots, skitters, blots |
+| Lorn II (the Deep Wood) | 1 | rootknot | rootknot 4, moth 3, jelly 2, blot 2, wisp 1.5, shade 1 | unchanged | furnace brute (the wood cutter) | (Lorn's) |
+| Viridel | 2 | moth | moth 4, rootknot 2, brute 1.5, blot 1 | unchanged | | unchanged |
+| Underwater City | 2 | crab | crab 4, jelly 3, ray 2.5, tripod 2 | unchanged | | unchanged |
+| City-Shaft | 2 | tripod | tripod 4, toad 3.5, drone 2.5, shade 2.5, blot 1.5 | the lizards' fire: two blots and a toad (`blot-fire`) | | blots, drones, toads, tripods |
+| Glass Dunes | 2 | brute | brute 4, crab 3, ray 2, worm 2, drone 2, shade 1 | unchanged | | unchanged |
+| Buried Machine | 3 | worm | worm 3.5, skitter 3.5, tripod 3, centipede 3, cart 2, blot 1 | `centipede-fire`: two centipedes and a blot; `cart-beat`: a cart and a mining tripod | | skitters, worms, blots, carts |
+| Moon Foundry | 3 | cart | cart 4, skitter 3.5, wisp 3, brute 2.5, fencer 1.5, blot 1 | `fencer-fire`: two blots and a fencer | | skitters, blots, carts, wisps |
+| Garden of Spheres | 3 | roller | roller 4, centipede 4, hound 4 (late), shade 3.5, drone 1, jelly 1 | `hound-shadow`: a halo shade and two hounds | (the glass puppet gone) | last wave a pearl centipede and two hounds |
+| City Floating in Space | 3 | drone | drone 4, moth 3, roller 3, fencer 2 | unchanged | | unchanged |
+| Signal Market | 4 | hound | hound 5, crab 3, bell 2.5, moth 2, fencer 2 (late) | `hound-fire`, `crab-nest`, `moth-shadow` (three moths and a hound) | | hounds, crabs, moths; last wave the bell walker and a crab |
+
+A renamed site (`mummer-hoard`, `blot-fire`, `centipede-fire`, `hound-shadow`, `hound-fire`, `crab-nest`,
+`moth-shadow`) is a new place to a save: one cleared before is there to clear again, its coffer with it.
 
 ## Tests
 

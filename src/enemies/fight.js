@@ -40,7 +40,7 @@ export const FIGHT = {
   lizard: { mass: 0.9, poise: 3, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'bite', on: ['whiff', 'block'], chance: 0.5 }, evade: { chance: 0.35, hop: 2.2 }, backstep: 'bite' },
   heron: { mass: 0.8, poise: 3, down: 'topple', low: { kind: 'flee', below: 0.4 }, alone: 'flee', follow: { id: 'spear', on: ['whiff'], chance: 0.4 }, evade: { chance: 0.3, hop: 2.4 }, backstep: 'spear' },
   roller: { mass: 1.8, poise: 4, low: { kind: 'last', below: 0.34, attack: 'last', cling: true }, alone: 'rage' },
-  rootknot: { mass: 4, poise: 5, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'lash', on: ['whiff'], chance: 0.5 } },
+  rootknot: { mass: 4, poise: 5, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'pod', on: ['whiff'], chance: 0.35 } },   // (its pod again, quicker: #769)
   jelly: { mass: 0.7, poise: 2, low: { kind: 'flee', below: 0.5 }, alone: 'flee' },
   moth: { mass: 0.3, poise: 1, fodder: true, alone: 'flee' },
   ray: { mass: 1, poise: 3, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'skim', on: ['whiff'], chance: 0.35 } },

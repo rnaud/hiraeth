@@ -172,10 +172,12 @@ export const SITES = {
       staged: { roster4: { foes: ['grunt', 'hulk', 'grunt', 'grunt'], rack: true, unarmed: 2 } } },
     { id: 'twitching-sand', kind: 'ambush', at: [515, 37.4, 288], heading: -0.51, foes: ['worm', 'worm'], sign: 'sand' },
     { id: 'skitter-nest', kind: 'nest', at: [263, 1.2, 309], heading: -1.18, foes: ['skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
-    { id: 'heron-hoard', kind: 'hoard', at: [354, 0.5, 456], heading: -3, foes: ['blot', 'heron', 'blot'] },
+    // (issue #769: a mummer of the troupe keeps this stash, where a stilt heron stood)
+    { id: 'mummer-hoard', kind: 'hoard', at: [354, 0.5, 456], heading: -3, foes: ['blot', 'mummer', 'blot'] },
   ],
   arzach: [
-    { id: 'plain-fire', kind: 'camp', at: [-68, 52, -1457], heading: 0.37, foes: ['blot', 'blot', 'heron'], lookout: 'heron' },
+    // (issue #769: a cliff crab by the fire, a storm ray circling on watch, where the herons were)
+    { id: 'plain-fire', kind: 'camp', at: [-68, 52, -1457], heading: 0.37, foes: ['blot', 'blot', 'crab'], lookout: 'ray' },
     { id: 'ray-shadow', kind: 'ambush', at: [-460, 62.5, -1100], heading: 1.52, foes: ['ray', 'ray'], sign: 'shadow' },
     { id: 'crab-nest', kind: 'nest', at: [51, 40.5, -43], heading: -2.73, foes: ['crab', 'crab', 'crab'] },
     { id: 'stone-hoard', kind: 'hoard', at: [-278, 76.2, -162], heading: 2.34, foes: ['crab', 'jelly', 'crab'],
@@ -183,7 +185,7 @@ export const SITES = {
       staged: { roster4: { kind: 'warlord-hold', foes: ['warlord', 'grunt', 'grunt', 'grunt'] } } },
   ],
   perdide: [
-    { id: 'toad-fire', kind: 'camp', at: [-133, 1.6, 194], heading: -2.54, foes: ['toad', 'toad', 'rootknot'], lookout: 'heron' },
+    { id: 'toad-fire', kind: 'camp', at: [-133, 1.6, 194], heading: -2.54, foes: ['toad', 'toad', 'rootknot'], lookout: 'blot' },
     { id: 'skitter-nest', kind: 'nest', at: [-231, 1.6, 166], heading: 2.15, foes: ['skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
     { id: 'shade-beat', kind: 'patrol', at: [-77, 0.4, -646], heading: 1.29, foes: ['shade', 'shade'] },
     { id: 'moth-shadow', kind: 'ambush', at: [-77, 0.4, -891], heading: 0.99, foes: ['moth', 'moth', 'moth'], sign: 'shadow' },
@@ -202,7 +204,8 @@ export const SITES = {
     { id: 'ray-shadow', kind: 'ambush', at: [91, -0.5, 135], heading: -2.08, foes: ['ray', 'ray', 'jelly'], sign: 'shadow' },
   ],
   incal: [
-    { id: 'lizard-fire', kind: 'camp', at: [262, 200, 189], heading: -2.17, foes: ['lizard', 'lizard', 'toad'], lookout: 'tripod' },
+    // (issue #769: blots and a toad round the fire the pipe lizards kept)
+    { id: 'blot-fire', kind: 'camp', at: [262, 200, 189], heading: -2.17, foes: ['blot', 'blot', 'toad'], lookout: 'tripod' },
     { id: 'shade-beat', kind: 'patrol', at: [276, 200, -119], heading: 0.26, foes: ['shade', 'shade'] },
     { id: 'tripod-hoard', kind: 'hoard', at: [402, 200, 35], heading: -1.47, foes: ['tripod', 'drone'] },
     { id: 'toad-nest', kind: 'nest', at: [360, 200, -105], heading: -0.85, foes: ['toad', 'toad', 'toad'] },
@@ -214,13 +217,14 @@ export const SITES = {
     { id: 'crab-nest', kind: 'nest', at: [35, 1.2, 293], heading: -2.99, foes: ['crab', 'crab', 'crab', 'crab'] },
   ],
   buried: [
-    { id: 'lizard-fire', kind: 'camp', at: [156, 13.5, -180], heading: -1.26, foes: ['lizard', 'lizard', 'centipede'], lookout: 'tripod' },
+    // (issue #769: the ash lizards' fire kept by two drill-head centipedes and a blot; a mining tripod walks the carts' beat)
+    { id: 'centipede-fire', kind: 'camp', at: [156, 13.5, -180], heading: -1.26, foes: ['centipede', 'centipede', 'blot'], lookout: 'tripod' },
     { id: 'twitching-sand', kind: 'ambush', at: [-117, 10.7, 9], heading: 0.87, foes: ['worm', 'worm'], sign: 'sand' },
     { id: 'skitter-nest', kind: 'nest', at: [135, 3.9, -96], heading: -2.06, foes: ['centipede', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
-    { id: 'cart-beat', kind: 'patrol', at: [-166, 7.9, 100], heading: 1.2, foes: ['cart', 'lizard'] },
+    { id: 'cart-beat', kind: 'patrol', at: [-166, 7.9, 100], heading: 1.2, foes: ['cart', 'tripod'] },
   ],
   moonfoundry: [
-    { id: 'fencer-fire', kind: 'camp', at: [-145, 0, -86], heading: 1.09, foes: ['lizard', 'lizard', 'fencer'], lookout: 'wisp' },
+    { id: 'fencer-fire', kind: 'camp', at: [-145, 0, -86], heading: 1.09, foes: ['blot', 'blot', 'fencer'], lookout: 'wisp' },
     { id: 'brute-hoard', kind: 'hoard', at: [-131, 0, -2], heading: 2.11, foes: ['brute', 'cart'] },
     // (issue #731: the foundry closed in; the beat and the nest, out on the plain before, brought in under the roof: the beat in
     //  the east bay by the east furnace, the nest in the north-west corner under the second hung moon)
@@ -232,7 +236,8 @@ export const SITES = {
     { id: 'roller-fire', kind: 'camp', at: [-170, 0.7, 260], heading: -2.28, foes: ['roller', 'roller', 'centipede'], lookout: 'drone' },
     { id: 'centipede-hoard', kind: 'hoard', at: [-198, -0.3, 15], heading: 3.11, foes: ['centipede', 'jelly', 'roller'] },
     { id: 'shade-beat', kind: 'patrol', at: [40, 0.1, -146], heading: -1.63, foes: ['shade', 'shade'] },
-    { id: 'puppet-shadow', kind: 'ambush', at: [-65, 1.7, -440], heading: 1.61, foes: ['marionette', 'hound', 'hound'], sign: 'shadow' },
+    // (issue #772: a halo shade comes up out of the shadow with the hounds, where the glass puppet hung)
+    { id: 'hound-shadow', kind: 'ambush', at: [-65, 1.7, -440], heading: 1.61, foes: ['shade', 'hound', 'hound'], sign: 'shadow' },
   ],
   spacecity: [
     { id: 'fencer-hoard', kind: 'hoard', at: [78, 24.4, -182], heading: 1.01, foes: ['fencer', 'roller'] },
@@ -240,11 +245,12 @@ export const SITES = {
     { id: 'roller-nest', kind: 'nest', at: [-69, 0.3, 37], heading: 1.06, foes: ['roller', 'roller', 'roller'] },
   ],
   bazaar: [
-    { id: 'lizard-fire', kind: 'camp', at: [-94, 0, 0], heading: 1.59, foes: ['lizard', 'lizard', 'crab'], lookout: 'bell' },
+    // (issues #769, #772: the Market's coin lizards and parcel puppets gone, its hounds, crabs and moths in their places)
+    { id: 'hound-fire', kind: 'camp', at: [-94, 0, 0], heading: 1.59, foes: ['hound', 'hound', 'crab'], lookout: 'bell' },
     { id: 'bell-hoard', kind: 'hoard', at: [-73, 0, -294], heading: 1.12, foes: ['bell', 'crab'] },
-    { id: 'lizard-nest', kind: 'nest', at: [88, 0, -168], heading: -0.25, foes: ['lizard', 'lizard', 'lizard', 'lizard'] },
+    { id: 'crab-nest', kind: 'nest', at: [88, 0, -168], heading: -0.25, foes: ['crab', 'crab', 'crab', 'crab'] },
     { id: 'fencer-beat', kind: 'patrol', at: [116, 0, 70], heading: -2.73, foes: ['fencer', 'fencer'] },
-    { id: 'puppet-shadow', kind: 'ambush', at: [158, 0, -84], heading: -1.36, foes: ['marionette', 'lizard', 'lizard'], sign: 'shadow' },
+    { id: 'moth-shadow', kind: 'ambush', at: [158, 0, -84], heading: -1.36, foes: ['moth', 'moth', 'moth', 'hound'], sign: 'shadow' },
   ],
 };
 

@@ -1,4 +1,5 @@
 import { ARCHETYPES } from './archetypes.js';
+import { PARTS } from '../levels/names.js';
 
 // Each archetype in each world's skin (docs/design/enemy-roster.md, every archetype's "Worlds and skins"): a skin
 // only recolours and dresses the archetype's body (src/enemies/plans/), and may add a skin-only move.
@@ -295,11 +296,16 @@ export const HOME_SKIN = Object.fromEntries(Object.entries(SKINS).map(([a, s]) =
 /** The skin worlds of an archetype (in order: its own first). */
 export const skinWorlds = (a) => Object.keys(SKINS[a] ?? {});
 
-/** Which skin an archetype wears in a world: that world's own, else its home skin (the Arena, a world it isn't in). */
+/**
+ * Which skin an archetype wears in a world: that world's own; else, in a part of a merged world (src/levels/names.js
+ * PARTS), the skin of its other part (Vael's plain fields its sky stones' cliff crab since the herons went, issue #769);
+ * else its home skin (the Arena, a world it isn't in).
+ */
 export function skinFor(a, world) {
   const S = SKINS[a];
   if (!S) return null;
-  return S[world] ? world : HOME_SKIN[a];
+  if (S[world]) return world;
+  return Object.values(PARTS).find((p) => p.includes(world))?.find((p) => S[p]) ?? HOME_SKIN[a];
 }
 
 /**

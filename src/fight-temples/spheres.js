@@ -4,7 +4,7 @@
 // the band crosses the room): in the shade the hounds bite, a little harm a tick, and a foe in it can't be aimed at;
 // in the light they can. So the fight keeps to the light, ahead of the shade or behind it. Its foes are the Garden's own
 // (src/foe-worlds.js: pearl rollers, centipedes made light, antler hounds in pairs, shades), light, many; the last wave
-// brings the glass marionette and two whole hounds. The reward: Orchard dusk (src/kit-colours.js).
+// brings a whole pearl centipede (the glass marionette until issue #772) and two whole hounds. The reward: Orchard dusk (src/kit-colours.js).
 //
 // Its rooms: the gatehouse (no shade yet), the orchard (trees in rows), the lawn (open, the shade across it short and
 // often), the round garden (four trees round its altar, the shade both ways).
@@ -39,7 +39,7 @@ export const SPHERES_FIGHT = {
     { id: 'round', name: 'The round garden', x: [-37, -13], z: [-51, -27],
       springs: [[-25, -29], [-35, -39], [-15, -39], [-25, -49]], pillars: [[-30, -34], [-20, -34], [-30, -44], [-20, -44]], altar: [-25, -39],
       hazard: { kind: 'shade', every: 5.5, n: 1, lanes: [{ along: 'x', dir: 1 }, { along: 'x', dir: -1 }, { along: 'z', dir: 1 }, { along: 'z', dir: -1 }] },
-      waves: [[['hound', 8], ['roller', 4], ['centipede', 3], ['hound', 1, { gorged: true }]], [['marionette', 1, { tough: true }], ['hound', 2, { tough: true }], ['hound', 16], ['roller', 4], ['shade', 2], ['roller', 1, { gorged: true }], ['centipede', 1, { gorged: true }]]] },
+      waves: [[['hound', 8], ['roller', 4], ['centipede', 3], ['hound', 1, { gorged: true }]], [['centipede', 1, { tough: true }], ['hound', 2, { tough: true }], ['hound', 16], ['roller', 4], ['shade', 2], ['roller', 1, { gorged: true }], ['centipede', 1, { gorged: true }]]] },
   ],
   doors: [
     { from: 0, to: 1, side: 'n', at: 0, w: 4 },

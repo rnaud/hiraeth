@@ -39,7 +39,7 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the wind-ups each sheet draws (attack ids), and the yaw of each view (0: from the front; π/2: side, facing left)
 const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'],
-  toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['grip'], brute: ['slam'], drone: ['harpoon'], cart: ['pour'], bell: ['toll'],
+  toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['pod'], brute: ['slam'], drone: ['harpoon'], cart: ['pour'], bell: ['toll'],
   shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'], mummer: ['whack'], mummerking: ['throw'], grunt: ['club', 'lunge'], hulk: ['smash', 'stomp'],
   sentinel: ['cut'], oracle: ['volley'], crawler: ['call'], prowler: ['dart', 'tail'], warlord: ['sweep', 'charge'] };
 // (the flyers are shown flying: 'walk' in the gallery is the creature moving)

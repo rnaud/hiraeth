@@ -215,6 +215,10 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
 
 ### 5. Horn lizard: flanker (pairs)
 
+> **Out of play since 2026-10-29** (issue #769, the author: "Remove the crocodile and the tall bird as enemies"): no
+> world on the route fields it; built still, for the Arena and the gallery. Its worlds' other foes took its places
+> (docs/systems/foes.md, "The rosters now").
+
 - **Silhouette:** long and low; a curled tail, a long neck, and a **brass trumpet** where its snout should be (it
   grows one). From far off, a curl with a horn.
 - **Body plan and movement:** quadruped beast: a walking trot, and a gallop at speed with the spine flexing; the
@@ -242,6 +246,9 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
 - **Tier 2.** New.
 
 ### 6. Stilt heron: reach / spear
+
+> **Out of play since 2026-10-29** (issue #769, "the tall bird"): no world on the route fields it; built still, for the
+> Arena and the gallery.
 
 - **Silhouette:** a tall, thin vertical: two stilt legs 2.5 m high, a slim body, an S-neck and a long bill. In the
   Desert skin the body is a jug. Nothing else in the game is this tall and thin.
@@ -295,7 +302,20 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   - the White Mangrove: a salt mollusk, chalk-white.
 - **Tier 2.** New.
 
-### 8. Root knot: grappler
+### 8. Root knot: grappler, a mortar since 2026-10-29
+
+> **It shoots since 2026-10-29** (issue #769, the author: "make the big mushroom send projectiles not melee
+> attacks"). Its grip and lash are gone; its role is the **mortar**: rooted, it lobs from afar.
+> - *Spore pod.* Its cap tips back, the gills swell and a pod fattens under the rim (1.4 s); over the last third the
+>   cap snaps forward and flings it high onto where you stood. The landing mark is drawn into the ground (#758: the
+>   projectile's shadow and a tightening ring); it bursts into spores that slow you. From 1.5 m out to 11 m.
+> - *Seed volley.* It rises up on its arms, the cap shuddering, seeds rattling under the rim (1.6 s); three seeds onto a
+>   row of marks across where you stood. From 4 m.
+> - *Spore puff* (Lorn II), as before; its stronger tier's new move elsewhere.
+> - **Best answers now:** walk out of the marks; close in (rooted, it can't follow you or back away); the bloom glob;
+>   ember ×2. A miss may bring a second pod at once (its follow-up).
+>
+> What follows is the original design, kept as history.
 
 - **Silhouette:** a mushroom or stump, a broad cap over a bulb body, standing on a skirt of roots and tendrils.
   From far off, a tree that shouldn't be there.
@@ -678,6 +698,9 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
 
 ### 21. Marionette: puppeteer
 
+> **Out of play since 2026-10-29** (issue #772, the author: "Remove the puppet enemy"): no world on the route fields it,
+> the Garden's glass puppet and the Market's parcel puppets gone; built still, for the Arena and the gallery.
+
 - **Silhouette:** a thin figure hanging limp in the air from long strings that rise up into a knot of black smoke
   overhead; its feet don't touch the ground. Nothing else hangs from above.
 - **The manifestation:** **the puppeteer.** The spirit is the hand you never see: the strings go up into smoke,
@@ -724,6 +747,18 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
 ---
 
 ## World table
+
+> **The rosters as they are now** (v2.36, after issues #762, #769 and #772) are in docs/systems/foes.md, "The rosters
+> now", and in `src/foe-worlds.js`: the route has changed since this table (the Glass Dunes in the Hangar's slot, the
+> Underwater City, the Moon Foundry and the Floating City on it), and the horn lizard, the stilt heron and the marionette
+> are out of play. In short, by route order: the Desert blot, worm, skitter, mummer (the tripod placed); Vael ray, blot,
+> cliff crab, and its sky stones crab, ray, jelly, blot; Lorn toad, root knot, skitter, blot, and its Deep Wood root knot,
+> moth, jelly, blot, wisp, shade (the wood cutter placed); Viridel moth, root knot, brute, blot; the Underwater City crab,
+> jelly, ray, tripod; the City-Shaft tripod, toad, drone, shade, blot; the Glass Dunes brute, crab, ray, worm, drone,
+> shade; the Buried Machine worm, skitter, tripod, centipede, cart, blot; the Moon Foundry cart, skitter, wisp, brute,
+> fencer, blot; the Garden of Spheres roller, centipede, hound, shade, drone, jelly; the Floating City drone, moth,
+> roller, fencer; the Signal Market hound (lead), crab, bell walker, moth, fencer. The table below is the plan of
+> 2026-10-09, kept as history.
 
 Route worlds first, in route order. Lead = the pack lead, the most common archetype there. Ranged or area roles are
 marked (R).
@@ -841,6 +876,7 @@ small creatures rhyme with its keeper.
 | salt crab, sign moth | 4.3, 4.5 | Kept: the shellback crab and the signal moth (new skins, a third move each). |
 | rust drone, root stalker, slag walker, shadow hound | 4.0, 4.0, 3.8, 3.3 | Kept in mind, rebuilt in body: the ring drone, the root knot, the crucible cart, the antler hound. |
 | ink blot, shade | 3.5, 3.0 | Kept: the blot as the teacher; the shade reworked (two new attacks, a non-blade answer). |
+| horn lizard, stilt heron, marionette (2026-10-29) | | Out of play (issues #769, #772: the author's "crocodile", "tall bird" and "puppet"): no route world fields them; built still, for the Arena and the gallery (`src/foe-worlds.js` `OUT_OF_PLAY`). |
 
 ## Build plan
 

@@ -71,7 +71,8 @@ import { fromPattern } from './attacks.js';
 //   flock           { ring, one }: it rings you at `ring` m between darts and only one of its kind strikes at a
 //                   time (the skitters); attack.pile: n of its flock climb onto it into a heap that topples onto
 //                   you (the push scatters it: Foes.pile); calm.linger: s you must stay within `provoke` m
-//   rooted          it can't be knocked back (the root knot); attack.ground: only on your feet (a jump clears it);
+//   rooted          it can't be knocked back (the root knot); attack.ground: only on your feet (a jump clears it: the
+//                   hulk's stomp; the root knot's grip until #769);
 //                   attack.blur: s your sight is blurred by spores, whichever way you look
 // batch 4 (v1.16), the machines:
 //   stout           light cuts never stagger it, even early in a wind-up (the furnace brute, the bell walker: heavy breakers)
@@ -267,27 +268,31 @@ export const ARCHETYPES = {
     note: 'A pearl roller: guard its roll to stun it, or sidestep it into a wall.',
   },
   rootknot: {
-    name: 'root knot', family: 'creature', plan: 'tentacled', planNo: 12, role: 'grappler', tier: 2, ranged: false,
+    name: 'root knot', family: 'creature', plan: 'tentacled', planNo: 12, role: 'mortar', tier: 2, ranged: true,
     status: 'built', kind: 'rootknot', was: ['root stalker'], sound: 'roots', drop: 5, art: { main: 'perdide', alt: 'perdide2' },
-    moves: ['grip', 'lash', 'spore puff'], answers: ['bloom glob (asleep, cuts double)', 'ember ×2', 'parry on the lash', 'jump the roots'],
+    moves: ['spore pod', 'seed volley', 'spore puff'], answers: ['close in: rooted, it can’t follow you or back away', 'bloom glob (asleep, cuts double)', 'ember ×2', 'walk out of the mark'],
     idle: 'stands rooted among the mushrooms and stumps; its cap turns to follow you',
     def: S({
-      name: 'root knot', hp: 5, hook: 'heavy', radius: 0.95, height: 1.5, speed: 1.6, sight: 16, giveUp: 30, reach: 6.5, heavy: true, rooted: true, breaks: true,
+      name: 'root knot', hp: 5, hook: 'heavy', radius: 0.95, height: 1.5, speed: 1.6, sight: 16, giveUp: 30, reach: 11, heavy: true, rooted: true, breaks: true,
       tone: '#9fd86a', takes: { shoot: 1, fire: 2, push: 0, bloom: 'hold' },
       calm: { mode: 'root', wild: true, provoke: 3.6, alarm: 8 },
+      // (issue #769, the author: "make the big mushroom send projectiles not melee attacks": its grip along the ground and
+      // its lash went for two lobs; each keeps its landing mark in the ground through its wind-up, src/ground-warnings.js #758)
       attacks: [
-        // two arms plunged into the soil, the cap tipped at you; then the soil heaves along the ground (a root running
-        // under it, its body) and bursts up under you: caught, you are dragged in to the lash
-        { id: 'grip', name: 'grip', shape: 'lane', width: 1.2, range: 6.5, damage: 0.25, wind: 1.0, strike: 0.45, contact: 0.85, grab: { time: 1.1, pull: 6 }, ground: true, then: 'lash', track: 0.3, min: 2.4, max: 6.5, weight: 2, onParry: 'cut',
-          tell: 'it sinks two arms into the soil in front of it, its cap tipping toward you', counter: 'jump or evade sideways as the soil heaves at you; caught, a cut or stilling frees you' },
-        { id: 'lash', name: 'lash', shape: 'cone', range: 2.9, angle: 1.0, damage: 0.5, wind: 0.75, strike: 0.26, contact: 0.5, max: 2.8, weight: 1.5, onParry: 'chip',
-          tell: 'two arms coil back high', counter: 'guard; a parry cuts the arm' },
+        // the spore pod: its cap tips back and its gills swell, a pod fattening under the rim; then the cap snaps forward
+        // and flings the pod high onto where you stood, where it bursts into spores that slow you a while
+        { id: 'pod', name: 'spore pod', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.8, damage: 0.5, wind: 1.4, track: 0.5, leave: 'spores', min: 1.5, max: 11, weight: 2,
+          tell: 'its cap tips back and its gills swell, a pod of spores fattening under the rim', counter: 'walk out of the mark before the pod comes down; close in: rooted, it can’t follow' },
+        // the seed volley: up on its arms, its cap shuddering, seeds rattling under the rim; then three hard seeds flung in
+        // a row across where you stood
+        { id: 'seeds', name: 'seed volley', shape: 'ring', at: 'target', instant: true, lob: true, spread: [-2.6, 0, 2.6], radius: 1.1, damage: 0.5, wind: 1.6, track: 0.4, min: 4, max: 11, weight: 1.5,
+          tell: 'it rises up on its arms and its cap shudders, seeds rattling under the rim', counter: 'step out of the row of marks' },
         { id: 'puff', name: 'spore puff', shape: 'ring', at: 'self', radius: 3.4, damage: 0, blur: 2, instant: true, wind: 1.0, max: 3.2, weight: 1, skins: ['perdide2'],
           tell: 'it squats and its cap shudders, the gills swelling', counter: 'step back out of the cloud' },
       ],
       recover: 1.5, cool: [1.6, 2.6], hit: 0.5,
     }),
-    note: 'A root knot: when its arms dig in, jump or step aside. Embers burn it.',
+    note: 'A root knot lobs from afar: walk out of its mark, or close in.',
   },
   jelly: {
     name: 'lantern jelly', family: 'creature', plan: 'floater', planNo: 11, role: 'support', tier: 2, ranged: true,

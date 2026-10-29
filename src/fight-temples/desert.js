@@ -1,7 +1,7 @@
 // The desert's fight temple, the Sunken Hall (issue #341; docs/design/fight-temples.md): a makers' hall the dunes
 // swallowed, roofless now, four rooms down under the sand by the pilgrims' camps, where the ink pools and the blots
-// breed. Its foes are the desert's own (src/foe-worlds.js: blots, skitters, mound worms, stilt herons), light, many;
-// its last wave brings a lamp tripod and two whole herons. The reward: the Ember colours (src/kit-colours.js).
+// breed. Its foes are the desert's own (src/foe-worlds.js: blots, skitters, mound worms), light, many;
+// its last wave brings a lamp tripod and two whole mummers (two herons until issue #769). The reward: the Ember colours (src/kit-colours.js).
 //
 // A temple is this table: rooms (rectangles on whole metres, 2 m apart: the wall between), the doors between them,
 // each room's ink springs (where its foes come up), its pillars, its waves ([kind, how many, { tough, gorged }]) and its
@@ -26,15 +26,15 @@ export const DESERT_FIGHT = {
     { id: 'hall', name: 'The pillared hall', x: [-9, 9], z: [-30, -9],
       springs: [[-6, -12], [6, -12], [-6, -27], [6, -27], [0, -19.5]], pillars: [[-4.5, -13.5], [4.5, -13.5], [-4.5, -19.5], [4.5, -19.5], [-4.5, -25.5], [4.5, -25.5]],
       geysers: { every: 7, n: 1 },
-      waves: [[['blot', 10]], [['blot', 8], ['heron', 2], ['blot', 1, { gorged: true }]], [['skitter', 16], ['blot', 6]]] },
+      waves: [[['blot', 10]], [['blot', 8], ['worm', 2], ['blot', 1, { gorged: true }]], [['skitter', 16], ['blot', 6]]] },
     { id: 'cistern', name: 'The ink cistern', x: [-29, -11], z: [-28, -12],
       springs: [[-26, -15], [-14, -15], [-26, -25], [-14, -25]], pillars: [[-23, -17], [-17, -17], [-23, -23], [-17, -23]], basin: [-20, -20, 2.4],
       geysers: { every: 5.5, n: 2 },
-      waves: [[['worm', 3], ['blot', 8]], [['heron', 3], ['skitter', 8], ['blot', 8], ['heron', 1, { gorged: true }]]] },
+      waves: [[['worm', 3], ['blot', 8]], [['worm', 3], ['skitter', 8], ['blot', 8], ['worm', 1, { gorged: true }]]] },
     { id: 'sanctum', name: 'The sanctum', x: [-31, -11], z: [-54, -30],
       springs: [[-28, -33], [-14, -33], [-28, -51], [-14, -51], [-21, -51]], pillars: [[-26, -37], [-16, -37], [-26, -47], [-16, -47]], altar: [-21, -42],
       geysers: { every: 5, n: 3 },
-      waves: [[['blot', 12], ['skitter', 8], ['worm', 2], ['worm', 1, { gorged: true }]], [['tripod', 1, { tough: true }], ['heron', 2, { tough: true }], ['blot', 18], ['skitter', 10], ['blot', 2, { gorged: true }]]] },
+      waves: [[['blot', 12], ['skitter', 8], ['worm', 2], ['worm', 1, { gorged: true }]], [['tripod', 1, { tough: true }], ['mummer', 2, { tough: true }], ['blot', 18], ['skitter', 10], ['blot', 2, { gorged: true }]]] },
   ],
   // (side: of the room it opens from; the gap is cut through the whole wall between the two)
   doors: [

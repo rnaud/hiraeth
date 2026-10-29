@@ -7,14 +7,16 @@ import * as THREE from 'three';
 import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spawnKindOf, archetypeOfKind, parseKind, skinned } from '../src/enemies/archetypes.js';
 import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
-import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf } from '../src/foe-worlds.js';
+import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes, costOf, OUT_OF_PLAY, PLACED } from '../src/foe-worlds.js';
+import { SITES } from '../src/encounters/sites.js';
+import { FIRST as TIDE_FIRST } from '../src/minigames/waves.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { RETURN } from '../src/shot-return.js';
 import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile, isArea } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
-import { ORDER, SIDE, TITLES, ROUTE_PARTS } from '../src/levels/names.js';
+import { ORDER, SIDE, TITLES, ROUTE_PARTS, PARTS } from '../src/levels/names.js';
 import { VerletChain } from '../src/motion-kit/chain.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -37,9 +39,14 @@ const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn
 const ROLLING_OUT = new Set(['mummer', 'mummerking']);
 // (issue #726: roster v4's monsters, one skin in every world; staged at a site behind a flag until the rosters take them)
 const STAGED_V4 = new Set(['grunt', 'hulk', 'prowler', 'warlord']);
-const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'the quick one', 'the elite', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
+const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'the quick one', 'the elite', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'mortar', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror']);
 // (issue #726: roster v4's droids are met in the Arena alone until the world rosters take them, a later batch)
 const ARENA_ONLY = new Set(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].roster === 'v4'));
+// (issues #769, #772: the horn lizard, the stilt heron and the marionette out of the worlds on the route, src/foe-worlds.js)
+const OUT = new Set(OUT_OF_PLAY);
+// (a merged world's parts, src/levels/names.js PARTS: Vael's plain and its sky stones, Lorn's swamp and its Deep Wood)
+const kin = (w) => Object.values(PARTS).find((p) => p.includes(w)) ?? [w];
+const worldOf = (w) => kin(w)[0];
 
 // ------------------------------------------------------------------------------------------- the tables
 test('the roster: 32 archetypes, 12 creatures, 9 machines, 7 spirits and 4 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
@@ -87,11 +94,13 @@ test('skins: each archetype in each of its worlds, its own first; palettes whole
     for (const [w, s] of Object.entries(S)) {
       assert.ok(TITLES[w], `${a}: ${w} is a world`);
       assert.ok(s.name && s.palette, `${a}@${w}: named and coloured`);
-      if (!s.arena && a !== 'blot') assert.ok(worldArchetypes(w).includes(a), `${a}@${w}: the world table fields it there`);
+      if (!s.arena && a !== 'blot' && !OUT.has(a)) assert.ok(worldArchetypes(w).includes(a), `${a}@${w}: the world table fields it there`);
     }
   }
   // every world's archetypes have a skin there
-  for (const w of Object.keys(WORLDS)) for (const a of worldArchetypes(w)) assert.ok(SKINS[a][w] || a === 'blot', `${a} has a skin in ${w}`);
+  // (or in the other part of its world: Vael's plain wears its sky stones' cliff crab, #769)
+  for (const w of Object.keys(WORLDS)) for (const a of worldArchetypes(w)) assert.ok(kin(w).some((p) => SKINS[a][p]) || a === 'blot', `${a} has a skin in ${w}`);
+  assert.equal(skinFor('crab', 'arzach'), 'arzach2', 'Vael\'s plain: the sky stones\' cliff crab');
   assert.equal(skinFor('crab', 'arena'), 'arzach2', 'where it has none, its own');
   assert.equal(skinOf('crab', 'saltharbour').name, 'anchor crab');
   assert.deepEqual(skinOf('crab', 'saltharbour').moves, ['burrow']);
@@ -119,9 +128,9 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
   for (let i = 1; i < ORDER.length; i++) assert.notEqual(WORLDS[ORDER[i]].lead, WORLDS[ORDER[i - 1]].lead, `${ORDER[i - 1]} → ${ORDER[i]}: leads differ`);
   for (const w of SIDE.filter((x) => x !== 'overnighttrain')) assert.ok(WORLDS[w], `${w}: a side world with a table`);
   assert.ok(!WORLDS.home && !WORLDS.atelier && !WORLDS.overnighttrain, 'the peaceful worlds field none');
-  // each archetype in 3–7 worlds, 1–4 of them on the route (the blot: every world)
-  for (const a of ARCHETYPE_IDS.filter((x) => x !== 'blot' && !ARENA_ONLY.has(x))) {
-    const all = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes(a)), route = all.filter((w) => ROUTE_PARTS.includes(w));
+  // each archetype in 3–7 worlds (a merged world's parts one world), 1–4 of them on the route (the blot: every world)
+  for (const a of ARCHETYPE_IDS.filter((x) => x !== 'blot' && !ARENA_ONLY.has(x) && !OUT.has(x))) {
+    const all = [...new Set(Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes(a)).map(worldOf))], route = all.filter((w) => ROUTE_PARTS.includes(w));
     assert.ok(all.length >= (STAGED_V4.has(a) ? 0 : ROLLING_OUT.has(a) ? 1 : 3) && all.length <= 7, `${a}: in ${all.length} worlds`);
     assert.ok(route.length >= (STAGED_V4.has(a) ? 0 : 1) && route.length <= 4, `${a}: on the route in ${route.length}`);
   }
@@ -133,7 +142,8 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
 
 test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the last; pack budgets by stage', () => {
   const tiers = (w) => worldArchetypes(w).map((a) => ARCHETYPES[a].tier);
-  for (const w of ['desert', 'arzach']) assert.ok(Object.keys(WORLDS[w].roster).every((a) => ARCHETYPES[a].tier === 1), `${w}: tier 1 alone`);
+  // (Vael's plain: one tier-2 kind since the herons went, #769: its own sky stones' cliff crab, never its lead)
+  for (const w of ['desert', 'arzach']) assert.ok(Object.keys(WORLDS[w].roster).every((a) => ARCHETYPES[a].tier === 1 || (w === 'arzach' && a === 'crab' && WORLDS[w].roster[a] < WORLDS[w].roster[WORLDS[w].lead])), `${w}: tier 1 alone`);
   for (const w of ORDER.slice(0, -3)) assert.ok(tiers(w).every((t) => t < 4), `${w}: no tier 4 before the last three`);
   for (const w of ['spheres', 'bazaar']) assert.ok(tiers(w).includes(4), `${w}: tier 4`);
   // (v1.22, the roster's step 8: the third stage up to five places, the last three four to five, the Market a summit of its own)
@@ -143,7 +153,8 @@ test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the
     const stage = WORLDS[w].stage, [, hi] = WORLDS[w].budget ?? BUDGET[stage];
     for (let n = 1; n < 60; n++) {
       const p = packOf(n, w, rng);
-      if (!GROUP[p[0]] && p[0] !== 'shade') assert.ok(p.length - 1 + (COSTS[p[0]] ?? 1) <= hi + 1e-9, `${w} pack ${n}: ${p} in ${hi} places`);
+      // (packOf: the last filler may run half a place over, a pair after a crab's one and a half)
+      if (!GROUP[p[0]] && p[0] !== 'shade') assert.ok(p.length - 1 + (COSTS[p[0]] ?? 1) <= hi + 0.5 + 1e-9, `${w} pack ${n}: ${p} in ${hi} places`);
       if (GROUP[p[0]]) assert.ok(stage < 2 ? p.length === GROUP[p[0]] : p.length - GROUP[p[0]] + GROUP_COST[p[0]] <= hi, `${w} pack ${n}: a group (${p}), alone early, filled later`);
       if (stage <= 1 && !GROUP[p[0]]) assert.ok(p.filter(rangedKind).length <= 1, `${w} pack ${n}: at most one ranged early (${p})`);
     }
@@ -163,8 +174,8 @@ test('the route\'s difficulty rises to the Market: stages never fall, packs grow
   // a bell or a pair in a Market pack is fewer bodies than a drone's pack of four in the Floating City, and more weight)
   const weight = (w) => { let n = 0; for (let i = 1; i <= 600; i++) { const p = packOf(i, w, rng); n += [...new Set(p)].reduce((a, k) => a + (GROUP[k] ? GROUP_COST[k] * Math.round(p.filter((x) => x === k).length / GROUP[k]) : costOf(k) * p.filter((x) => x === k).length), 0); } return n / 600; };
   assert.ok(ORDER.every((w) => w === 'bazaar' || weight(w) < weight('bazaar')), 'the Market\'s packs are the heaviest on the route');
-  // the hounds and the marionettes lead in the last two (from the third pack on in the Garden)
-  for (const [w, kinds] of [['spheres', ['hound']], ['bazaar', ['hound', 'marionette']]]) {
+  // the hounds lead in the last two (from the third pack on in the Garden)
+  for (const [w, kinds] of [['spheres', ['hound']], ['bazaar', ['hound']]]) {
     let n = 0; for (let i = 3; i < 603; i++) if (kinds.includes(packOf(i, w, rng)[0])) n++;
     assert.ok(n / 600 > 0.15, `${w}: ${kinds} lead ${Math.round((n / 600) * 100)} % of the later packs`);
   }
@@ -201,13 +212,14 @@ test('spawning by world: the wilds draw each world’s archetypes (or the old ki
     for (const a of worldArchetypes(w)) if (ARCHETYPES[a].status === 'planned') assert.ok(!kinds.has(a), `${w}: ${a} waits until built`);
     assert.equal(R.first, spawnKindOf(WORLDS[w].lead) ?? R.first, `${w}: its first pack is its lead`);
   }
-  // a pack in the Signal Market: coin lizards, in pairs, in their skin
+  // a pack in the Signal Market: alley hounds, in pairs, in their skin (the coin lizards until #769)
   clearTargets();
   const P = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'bazaar', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: () => 0.05 });
   foes.packs = 2; foes.spawnPack();
   assert.ok(foes.list.length >= 1);
-  // (a share of them in their stronger tier, issue #722: 'banded coin lizard')
-  for (const f of foes.list) if (f.kind === 'lizard') { assert.equal(f.skin, 'bazaar'); assert.equal(f.model.group.name, f.tierN ? 'banded coin lizard' : 'coin lizard'); }
+  // (a share of them in their stronger tier, issue #722: 'banded alley hound')
+  assert.ok(foes.list.some((f) => f.kind === 'hound'), 'the hounds lead');
+  for (const f of foes.list) if (f.kind === 'hound') { assert.equal(f.skin, 'bazaar'); assert.equal(f.model.group.name, f.tierN ? 'banded alley hound' : 'alley hound'); }
   assert.ok(foes.list.every((f) => !f.provoked || !f.def.calm), 'out in the wilds they keep to their calm');
   foes.dispose(); clearTargets();
 });
@@ -785,25 +797,60 @@ test('the skitter swarm: a flock of eight rings you and darts in one at a time; 
   assert.ok(run(j, Y, 2).includes('notice'), 'stay in the middle of the flock and it fights');
 });
 
-test('the root knot: it can’t be knocked back; its grip runs along the ground (a jump clears it); the spore puff only in Lorn II, a blur and no harm; calm, it stands rooted', () => {
+test('the root knot: it can’t be knocked back; it shoots (issue #769): a spore pod and a seed volley lobbed onto their marks, nothing in melee; the spore puff only in Lorn II, a blur and no harm; calm, it stands rooted', () => {
   const r = new Foe('rootknot', v(), { rng: () => 0.5 });
   r.hit('blade', v(0, 0, 1), { damage: 1, combo: 2 }); r.hit('push', v(0, 0, 1), { shove: 3 });
   assert.equal(r.vel.length(), 0, 'rooted: neither the third swing nor the push moves it');
   r.staggered(true);
   assert.equal(r.vel.length(), 0, 'nor a parry');
+  // every move that harms is a lob onto a mark: no grip, no lash
+  assert.ok(ARCHETYPES.rootknot.ranged);
+  for (const a of FOES.rootknot.attacks.filter((x) => x.damage > 0)) assert.ok(a.lob && a.at === 'target' && groundMark(a), `${a.id}: lobbed onto its mark`);
+  assert.deepEqual(FOES.rootknot.attacks.map((x) => x.id), ['pod', 'seeds', 'puff']);
+  assert.ok(new Foe('rootknot', v()).attacksAt(1.6).some((a) => a.id === 'pod'), 'close in, it still lobs its pod (straight up and down)');
+  assert.ok(new Foe('rootknot', v()).attacksAt(9).some((a) => a.id === 'seeds'), 'far off, its seeds too');
   clearTargets();
-  const J = player(v(0, 0, 0), { onGround: false }), F = world(J), g = F.add('rootknot', v(0, 0, 5));
-  assert.equal(F.strike(g, attackOf('rootknot', 'grip')), false, 'in the air: the roots pass under you');
-  assert.equal(F.hold ?? null, null);
-  J.onGround = true;
-  F.strike(g, attackOf('rootknot', 'grip'));
-  assert.equal(F.hold?.kind, 'grab', 'on your feet: caught');
+  // the pod: it lands where you stood as its wind-up ends and leaves spores there
+  const P = player(v(0, 0, 6)), F = world(P), g = F.add('rootknot', v(0, 0, 0));
+  g.attacksAt = () => [attackOf('rootknot', 'pod')];
+  let wound = false;
+  for (let i = 0; i < 4 / DT && !wound; i++) { F.update(DT); P.health = 1; wound = g.state === 'wind' && g.atk?.id === 'pod'; }
+  assert.ok(wound, 'it winds up its pod');
+  F.update(DT);
+  assert.ok(F.gw.has(g), 'its landing mark in the ground');
+  for (let i = 0; i < 3 / DT && g.state === 'wind'; i++) F.update(DT);
+  const at = g.attackAt.clone();
+  assert.ok(at.distanceTo(P.pos) < 1.8, 'the mark on you');
+  assert.ok(P.hurts.length >= 1, 'stood in the mark: hit');
+  assert.ok((F.patches ?? []).some((p) => Math.hypot(p.pos.x - at.x, p.pos.z - at.z) < 0.5), 'its spores where it burst');
   F.dispose(); clearTargets();
+  // walk out of the mark once its aim holds and it misses
+  const Q = player(v(0, 0, 6)), G2 = world(Q), h = G2.add('rootknot', v(0, 0, 0));
+  h.attacksAt = () => [attackOf('rootknot', 'pod')];
+  for (let i = 0; i < 4 / DT && !(h.state === 'wind' && h.k > attackOf('rootknot', 'pod').track + 0.05); i++) { G2.update(DT); Q.health = 1; }
+  Q.pos.set(4, 0, 6); Q.hurts.length = 0;
+  // (until this pod lands: a miss may bring its follow-up pod at once, fight.follow, aimed at you where you are now)
+  for (let i = 0; i < 3 / DT && h.state === 'wind'; i++) { const k0 = h.k; G2.update(DT); if (h.k < k0) break; }
+  assert.equal(Q.hurts.length, 0, 'walked out of the mark once its aim held: missed');
+  G2.dispose(); clearTargets();
+  // the volley: three marks in a row across where you stood
+  const S2 = new Foe('rootknot', v(0, 0, 0), { rng: () => 0.5 });
+  S2.beginWind(attackOf('rootknot', 'seeds'), player(v(0, 0, 8)));
+  assert.equal(S2.attackPts.length, 3, 'three seeds');
+  assert.ok(Math.abs(S2.attackPts[0].x - S2.attackPts[2].x) > 4, 'across where you stood');
+  clearTargets();
+  // its seeds drawn in the air and the knot then taken away (a fight temple's end): nothing throws (#769, its globs whole)
+  const Q3 = player(v(0, 0, 8)), G3 = world(Q3), sk = G3.add('rootknot@perdide2', v(0, 0, 0));
+  sk.attacksAt = () => [attackOf('rootknot', 'seeds')];
+  for (let i = 0; i < 5 / DT && !(sk.state === 'wind' && sk.k > 0.8); i++) { G3.update(DT); Q3.health = 1; }
+  assert.ok(sk.globs?.length >= 2 && sk.globs.every(Boolean), 'its seeds in the air, the pod’s glob first');
+  assert.doesNotThrow(() => G3.remove(sk));
+  G3.dispose(); clearTargets();
   assert.ok(!new Foe('rootknot@perdide', v()).attacksAt(2).some((a) => a.id === 'puff'), 'the reed knot never puffs');
   assert.ok(new Foe('rootknot@perdide2', v()).attacksAt(2).some((a) => a.id === 'puff'), 'the root crawler does');
-  const Q = player(v(0, 0, 0)), G = world(Q), p = G.add('rootknot@perdide2', v(0, 0, 2));
+  const Q2 = player(v(0, 0, 0)), G = world(Q2), p = G.add('rootknot@perdide2', v(0, 0, 2));
   G.strike(p, attackOf('rootknot', 'puff'));
-  assert.ok(G.blinded > 1.5 && Q.hurts.length === 0, 'a blur of spores, no harm');
+  assert.ok(G.blinded > 1.5 && Q2.hurts.length === 0, 'a blur of spores, no harm');
   G.dispose(); clearTargets();
   // calm: rooted where it stands
   const c = new Foe('rootknot', v(0, 0, 0), { rng: () => 0.5, calm: true });
@@ -812,12 +859,27 @@ test('the root knot: it can’t be knocked back; its grip runs along the ground 
   assert.ok(run(c, player(v(0, 0, 3)), 0.1).includes('notice'), 'pass close and it takes you');
 });
 
-test('batch 3: drops; each new move winds up at least its minimum, only the toad’s lobs mark the ground', () => {
+test('out of play (issues #769, #772): no world on the route fields the horn lizard, the stilt heron or the marionette, in its packs, its sites or its placed foes; nor do Ink tide’s waves; they stay built for the Arena', () => {
+  assert.deepEqual(OUT_OF_PLAY.slice().sort(), ['heron', 'lizard', 'marionette']);
+  for (const w of ROUTE_PARTS) {
+    for (const a of OUT) {
+      assert.ok(!worldArchetypes(w).includes(a), `${w}: no ${a} on its table`);
+      for (const s of SITES[w] ?? []) assert.ok(![...s.foes, s.lookout].includes(a), `${w}.${s.id}: no ${a}`);
+      assert.ok(!(PLACED[w] ?? []).some((p) => p.archetype === a), `${w}: none placed`);
+    }
+    const R = ROSTERS[w];
+    for (const k of [...Object.keys(R.wild), ...Object.keys(R.fill), ...Object.keys(R.late ?? {}), R.first]) assert.ok(!OUT.has(archetypeOfKind(k)), `${w}: ${k} in its packs`);
+  }
+  for (const a of OUT) assert.equal(TIDE_FIRST[a], undefined, `Ink tide: no ${a}`);
+  for (const a of OUT) assert.ok(BUILT.includes(a) && FOES[a], `${a}: still built`);
+});
+
+test('batch 3: drops; each new move winds up at least its minimum, only the toad’s and the root knot’s lobs mark the ground', () => {
   for (const a of BATCH3) {
     assert.equal(DROP_OF[a], ARCHETYPES[a].drop);
     for (const x of FOES[a].attacks) {
       assert.ok(x.wind >= windMin(x) - 1e-9, `${a}.${x.id}`);
-      assert.equal(groundMark(x), a === 'toad' && (x.id === 'lob' || x.id === 'volley'), `${a}.${x.id}: a mark only for a lob`);
+      assert.equal(groundMark(x), (a === 'toad' && (x.id === 'lob' || x.id === 'volley')) || (a === 'rootknot' && (x.id === 'pod' || x.id === 'seeds')), `${a}.${x.id}: a mark only for a lob`);
     }
   }
 });

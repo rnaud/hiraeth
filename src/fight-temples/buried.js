@@ -3,7 +3,7 @@
 // The ore carts still run them (hazards.js 'cart'): the lamp at a rail's head blinks, then a cart runs the rail's
 // length, a heart and thrown aside unless he steps off the rail or rolls, three cuts to every foe on it. The rails are
 // there from the start: the floor is read before the fight. Its foes are the Buried Machine's own (src/foe-worlds.js:
-// mound worms, skitters in swarms, horn lizards, crucible carts), light, many; the last wave brings three centipedes
+// mound worms, skitters in swarms, ash-edged blots where the horn lizards were until #769, crucible carts), light, many; the last wave brings three centipedes
 // whole. The reward: Brass tooth (src/kit-colours.js).
 //
 // Its rooms: the tooth gate (no carts yet), the gear pit (two rails across it), the rail yard (four short rails across
@@ -28,19 +28,19 @@ export const BURIED_FIGHT = {
   rooms: [
     { id: 'gate', name: 'The tooth gate', x: [-6, 6], z: [-7, 7],
       springs: [[-3.5, -4.5], [3.5, -4.5], [-3.5, 2.5], [3.5, 2.5]], pillars: [],
-      waves: [[['skitter', 10], ['worm', 1]], [['lizard', 4], ['skitter', 8]]] },
+      waves: [[['skitter', 10], ['worm', 1]], [['blot', 4], ['skitter', 8]]] },
     { id: 'gearpit', name: 'The gear pit', x: [-11, 11], z: [-27, -9],
       springs: [[-8, -18], [8, -18], [0, -15.5], [0, -20.5]], pillars: [[-4, -18], [4, -18]],
       hazard: { kind: 'cart', every: 6.5, n: 1, lanes: [R('x', -12.5, 1), R('x', -23.5, -1)] },
-      waves: [[['skitter', 12], ['lizard', 2]], [['worm', 2], ['skitter', 8], ['cart', 1], ['lizard', 1, { gorged: true }]], [['skitter', 14], ['lizard', 4], ['worm', 1, { gorged: true }]]] },
+      waves: [[['skitter', 12], ['blot', 2]], [['worm', 2], ['skitter', 8], ['cart', 1], ['centipede', 1, { gorged: true }]], [['skitter', 14], ['blot', 4], ['worm', 1, { gorged: true }]]] },
     { id: 'railyard', name: 'The rail yard', x: [-35, -13], z: [-25, -11],
       springs: [[-33.5, -18], [-28.5, -13.5], [-23.5, -22.5], [-18.5, -13.5]], pillars: [],
       hazard: { kind: 'cart', every: 5, n: 2, lanes: [R('z', -31, 1), R('z', -26, -1), R('z', -21, 1), R('z', -16, -1)] },
-      waves: [[['lizard', 4], ['skitter', 12], ['worm', 2]], [['skitter', 14], ['cart', 1], ['lizard', 2], ['skitter', 1, { gorged: true }]]] },
+      waves: [[['blot', 4], ['skitter', 12], ['worm', 2]], [['skitter', 14], ['cart', 1], ['blot', 2], ['skitter', 1, { gorged: true }]]] },
     { id: 'toothhall', name: 'The tooth hall', x: [-37, -13], z: [-51, -27],
       springs: [[-25, -29], [-35, -39], [-15, -39], [-25, -49]], pillars: [[-29, -35], [-21, -35], [-29, -43], [-21, -43]], altar: [-25, -39],
       hazard: { kind: 'cart', every: 5, n: 2, lanes: [R('x', -31, 1), R('x', -47, -1), R('z', -33, 1), R('z', -17, -1)] },
-      waves: [[['cart', 2], ['lizard', 4], ['skitter', 12], ['worm', 1, { gorged: true }]], [['centipede', 3, { tough: true }], ['skitter', 16], ['lizard', 4], ['worm', 2], ['cart', 1, { gorged: true }], ['lizard', 1, { gorged: true }]]] },
+      waves: [[['cart', 2], ['blot', 4], ['skitter', 12], ['worm', 1, { gorged: true }]], [['centipede', 3, { tough: true }], ['skitter', 16], ['blot', 4], ['worm', 2], ['cart', 1, { gorged: true }], ['centipede', 1, { gorged: true }]]] },
   ],
   doors: [
     { from: 0, to: 1, side: 'n', at: 0, w: 4 },

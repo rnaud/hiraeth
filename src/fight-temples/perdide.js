@@ -3,7 +3,7 @@
 // its floors the millstones come rolling (hazards.js 'stone': the lane's edges show in rust and the stone rises at its
 // head, then it rolls the length of the room): it crushes you for a heart unless you roll through it or step aside, and
 // everything it rolls over. Its foes are Lorn's own (src/foe-worlds.js: bellows toads lobbing from afar, root knots,
-// skitters in swarms, a stilt heron or two), light, many; the last wave brings a shade out of the Deep Wood and a whole
+// skitters in swarms, a moss-edged blot or two since the herons went, issue #769), light, many; the last wave brings a shade out of the Deep Wood and a whole
 // root knot. The reward: Reed and rust (src/kit-colours.js).
 //
 // Its rooms: the mill race (long and narrow, no stones yet), the wheel pit (the stones across it east and west), the
@@ -35,15 +35,15 @@ export const PERDIDE_FIGHT = {
     { id: 'wheelpit', name: 'The wheel pit', x: [-10, 10], z: [-26, -10],
       springs: [[-7, -12.5], [7, -12.5], [-7, -23.5], [7, -23.5]], pillars: [[-5, -18], [5, -18]],
       hazard: { kind: 'stone', every: 7, n: 1, lanes: [L('x', -14.5, 1), L('x', -21.5, -1)] },
-      waves: [[['skitter', 12], ['toad', 2]], [['rootknot', 3], ['skitter', 6], ['heron', 1], ['toad', 1, { gorged: true }]], [['toad', 3], ['skitter', 14], ['rootknot', 1, { gorged: true }]]] },
+      waves: [[['skitter', 12], ['toad', 2]], [['rootknot', 3], ['skitter', 6], ['blot', 1], ['toad', 1, { gorged: true }]], [['toad', 3], ['skitter', 14], ['rootknot', 1, { gorged: true }]]] },
     { id: 'grinding', name: 'The grinding floor', x: [-18, 6], z: [-46, -28],
       springs: [[-16, -30.5], [4, -30.5], [-16, -43.5], [4, -43.5], [-6, -43.5]], pillars: [[-9, -33], [-1, -41]],
       hazard: { kind: 'stone', every: 6, n: 2, lanes: [L('z', -13, 1), L('z', -5, 1), L('z', 3, 1)] },
-      waves: [[['heron', 2], ['toad', 3], ['skitter', 10]], [['rootknot', 3], ['skitter', 12], ['toad', 2], ['heron', 1, { gorged: true }]]] },
+      waves: [[['blot', 2], ['toad', 3], ['skitter', 10]], [['rootknot', 3], ['skitter', 12], ['toad', 2], ['rootknot', 1, { gorged: true }]]] },
     { id: 'hall', name: 'The miller’s hall', x: [-42, -20], z: [-48, -26],
       springs: [[-40, -34], [-22, -34], [-40, -40], [-22, -40], [-31, -46]], pillars: [[-35, -33], [-27, -33], [-35, -41], [-27, -41]], altar: [-31, -37],
       hazard: { kind: 'stone', every: 5.5, n: 2, lanes: [L('x', -29, 1), L('x', -45, -1), L('z', -38.5, 1), L('z', -23.5, 1)] },
-      waves: [[['toad', 4], ['skitter', 12], ['rootknot', 2], ['toad', 1, { gorged: true }]], [['shade', 1, { tough: true }], ['rootknot', 1, { tough: true }], ['skitter', 16], ['toad', 4], ['heron', 2], ['rootknot', 1, { gorged: true }], ['toad', 1, { gorged: true }]]] },
+      waves: [[['toad', 4], ['skitter', 12], ['rootknot', 2], ['toad', 1, { gorged: true }]], [['shade', 1, { tough: true }], ['rootknot', 1, { tough: true }], ['skitter', 16], ['toad', 4], ['blot', 2], ['rootknot', 1, { gorged: true }], ['toad', 1, { gorged: true }]]] },
   ],
   doors: [
     { from: 0, to: 1, side: 'n', at: 0, w: 4 },

@@ -79,7 +79,7 @@ test('the FOES list: the roster first, a section per world (its archetypes in it
   // a world filter
   assert.deepEqual(filterSections(s, { world: 'bazaar' }).map((x) => x.id), ['bazaar']);
   assert.deepEqual(filterSections(s, { world: 'guardians' }).map((x) => x.id), ['guardians']);
-  assert.ok(filterSections(s, { world: 'bazaar', q: 'coin lizard' })[0].items.some((i) => i.kind === 'lizard@bazaar'));
+  assert.ok(filterSections(s, { world: 'bazaar', q: 'alley hound' })[0].items.some((i) => i.kind === 'hound@bazaar'));
 });
 
 test('the list chooses: an archetype in a skin practised alone, a world’s waves, the field cleared; LB / RB turn the world filter', () => {

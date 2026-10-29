@@ -201,8 +201,9 @@ test('the waves: many light foes of the desert’s kinds, felled in a cut or two
   const last = roomWaves(D.rooms.at(-1), { hpOf }).at(-1);
   assert.ok(last.some((q) => q.tough), 'the last wave brings the tough ones');
   assert.ok(tough >= 2);
-  // the desert's own kinds (src/foe-worlds.js: blots, worms, herons, skitters; the placed tripod)
-  for (const q of D.rooms.flatMap((r) => roomWaves(r, { hpOf }).flat())) assert.ok(['blot', 'skitter', 'worm', 'heron', 'tripod'].includes(q.kind), q.kind);
+  // the desert's own kinds (src/foe-worlds.js: blots, worms, skitters, the troupe's mummers; the placed tripod; the herons
+  // until issue #769)
+  for (const q of D.rooms.flatMap((r) => roomWaves(r, { hpOf }).flat())) assert.ok(['blot', 'skitter', 'worm', 'mummer', 'tripod'].includes(q.kind), q.kind);
   assert.ok(totalFoes(D) > 100 && totalFoes(D, { gentle: true }) < totalFoes(D));
   // the crowd's cap: never more heads standing than it, a few at a time
   const q = Array.from({ length: 60 }, (_, i) => ({ kind: i % 3 ? 'blot' : 'skitter' }));

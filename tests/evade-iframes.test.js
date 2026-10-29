@@ -79,8 +79,8 @@ test('a foe\'s strike inside the window misses, outside it lands; the first swal
   clearTargets();
 });
 
-test('every kind of blow: a lunge, a lob, a volley, a charge, a flash, a harpoon, roots, a shockwave and slag', () => {
-  const ids = ['slam', 'lob', 'volley', 'skim', 'flash', 'harpoon', 'grip'];   // (the roots' grip: the root knot's)
+test('every kind of blow: a lunge, a lob, a volley, a charge, a flash, a harpoon, a spore pod, a shockwave and slag', () => {
+  const ids = ['slam', 'lob', 'volley', 'skim', 'flash', 'harpoon', 'pod'];   // (the root knot's spore pod since #769; its roots' grip went)
   for (const id of ids) for (const inside of [true, false]) {
     const { P, foes, B, evadeFor } = setup();
     const { kind, a } = attack(id);
