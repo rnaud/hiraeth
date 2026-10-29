@@ -1,0 +1,23 @@
+{
+  "why": "The longest end-to-end files: the pre-commit hook leaves them to GitHub (every push runs every selected file before any deploy) and to the daily full suite. Each is over 100 s on a runner (tests/shard-timings.json) and plays or sweeps whole houses, worlds or the engines' game; tests/hook-deferred.test.js holds the list to that. docs/systems/testing.md, 'Long end-to-end files on push'.",
+  "files": [
+    "tests/door-bypass-1.test.js",
+    "tests/door-bypass-2.test.js",
+    "tests/wings-reach-1.test.js",
+    "tests/wings-reach-2.test.js",
+    "tests/sequences-opening.test.js",
+    "tests/sequences-moments.test.js",
+    "tests/sequences-play.test.js",
+    "tests/engine-finishable.test.js",
+    "tests/playthrough.test.js",
+    "tests/temple-playthrough.test.js",
+    "tests/temple-trial-flow.test.js",
+    "tests/temple-finale.test.js",
+    "tests/guardian-twists.test.js",
+    "tests/guardian-completable.test.js",
+    "tests/camera-qc-guardians.test.js",
+    "tests/contact-audit.test.js",
+    "tests/ball-room.test.js",
+    "tests/zfight.test.js"
+  ]
+}

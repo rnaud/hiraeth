@@ -22,7 +22,15 @@ const all=readdirSync('tests').filter(f=>f.endsWith('.test.js')).sort().map(f=>'
 let tests;try{tests=JSON.parse(readFileSync(process.argv[2],'utf8'));}catch{}
 if(!Array.isArray(tests)||tests.some(f=>typeof f!=='string'||!all.includes(f)))tests=all;
 tests=[...new Set(tests)];
-if(!tests.length){console.log('pre-commit: verified empty affected test set');process.exit(0);}
+// The longest end-to-end files (tests/hook-deferred.json, each over 100 s on a runner) are left to GitHub, which runs
+// every selected file for each push before any deploy, and to the daily full suite. FULL_TESTS=1 or RUN_DEFERRED=1
+// runs them here too. A missing or malformed list defers nothing.
+let deferred=[];
+if(!process.env.FULL_TESTS&&!process.env.RUN_DEFERRED){try{deferred=JSON.parse(readFileSync('tests/hook-deferred.json','utf8')).files;}catch{}
+  if(!Array.isArray(deferred)||deferred.some(f=>typeof f!=='string'))deferred=[];}
+const later=tests.filter(f=>deferred.includes(f));tests=tests.filter(f=>!deferred.includes(f));
+if(later.length)console.log(`pre-commit: ${later.length} long end-to-end files left to GitHub's push run and the daily suite (RUN_DEFERRED=1 runs them here): ${later.join(' ')}`);
+if(!tests.length){console.log(later.length?'pre-commit: no affected file left to run here':'pre-commit: verified empty affected test set');process.exit(0);}
 const n=process.env.TEST_CONCURRENCY??'2';
 if(!/^[1-9][0-9]*$/.test(n))throw Error('Invalid TEST_CONCURRENCY');
 console.log(`pre-commit: ${tests.length} affected test files; concurrency ${n}`);

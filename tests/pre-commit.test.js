@@ -3,10 +3,10 @@ import { tempDir, removeTemp } from '../scripts/temp-dirs.mjs';
 // affected suite runs on GitHub per change, with a separate daily full suite and exact-commit deploy gates.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, statSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { affectedTests, refsOf, repositorySyntax } from '../scripts/affected-tests.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -163,7 +163,7 @@ test('the real repository: a change to dev-gate.js reaches the first-run test, a
 
 test('a real commit keeps Git context for staged selection but isolates fixture repositories in tests', () => {
   const root = tempDir('hiraeth-hook-isolation-');
-  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && key !== 'NODE_TEST_CONTEXT'));   // (else the hook's node --test skips its files)
   const git = (...args) => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   try {
     git('init', '-q');
@@ -211,5 +211,50 @@ test('a real commit keeps Git context for staged selection but isolates fixture 
     assert.equal(git('rev-parse', '--is-bare-repository'), 'false');
     assert.equal(git('config', 'core.hooksPath'), '.githooks');
     assert.equal(git('rev-list', '--count', 'HEAD'), '1', 'the real normal-hook commit succeeded');
+  } finally { removeTemp(root); }
+});
+
+test('the hook leaves the listed long end-to-end files to GitHub, runs the rest, and runs them all when asked', () => {
+  const root = tempDir('hiraeth-hook-deferred-');
+  // (no Git context, and not this test runner's: the hook's own node --test must run its files)
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && key !== 'NODE_TEST_CONTEXT'));
+  const git = (...args) => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  const commit = (message, extra = {}) => {
+    // (git hands the hook's output to stderr)
+    const r = spawnSync('git', ['commit', '-qm', message], { cwd: root, encoding: 'utf8', env: { ...env, TEST_CONCURRENCY: '1', ...extra } });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    return r.stdout + r.stderr;
+  };
+  const ran = (name) => { try { readFileSync(join(root, `ran-${name}`)); return true; } catch { return false; } };
+  try {
+    git('init', '-q');
+    git('config', 'user.name', 'Hook deferral fixture');
+    git('config', 'user.email', 'fixture@example.invalid');
+    git('config', 'core.hooksPath', '.githooks');
+    for (const dir of ['.githooks', 'scripts', 'tests']) mkdirSync(join(root, dir));
+    writeFileSync(join(root, '.githooks/pre-commit'), read('.githooks/pre-commit'), { mode: 0o755 });
+    // the selector says both are affected; the list defers one
+    writeFileSync(join(root, 'scripts/affected-tests.mjs'), "console.log(JSON.stringify(['tests/kept.test.js', 'tests/long.test.js']));");
+    writeFileSync(join(root, 'tests/hook-deferred.json'), JSON.stringify({ files: ['tests/long.test.js'] }));
+    for (const name of ['kept', 'long']) writeFileSync(join(root, `tests/${name}.test.js`),
+      `require('node:test')('${name}', () => require('node:fs').writeFileSync(${JSON.stringify(join(root, `ran-${name}`))}, ''));`);
+    writeFileSync(join(root, '.gitignore'), 'ran-*\n');
+    git('add', '.');
+    const out = commit('the hook defers the long file');
+    assert.equal(ran('kept'), true, 'the affected file runs in the hook: ' + out);
+    assert.equal(ran('long'), false, 'the long end-to-end file waits for the push');
+    assert.match(out, /1 long end-to-end files left to GitHub's push run and the daily suite/);
+    for (const name of ['kept', 'long']) rmSync(join(root, `ran-${name}`), { force: true });
+    writeFileSync(join(root, 'tests/kept.test.js'), readFileSync(join(root, 'tests/kept.test.js'), 'utf8') + '\n');
+    git('add', '.');
+    commit('asked for everything selected', { RUN_DEFERRED: '1' });
+    assert.equal(ran('kept'), true);
+    assert.equal(ran('long'), true, 'RUN_DEFERRED=1 runs it in the hook');
+    // a malformed list defers nothing
+    for (const name of ['kept', 'long']) rmSync(join(root, `ran-${name}`), { force: true });
+    writeFileSync(join(root, 'tests/hook-deferred.json'), '{ not json');
+    git('add', '.');
+    commit('a malformed list');
+    assert.equal(ran('long'), true, 'a malformed list defers nothing');
   } finally { removeTemp(root); }
 });

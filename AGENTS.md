@@ -47,7 +47,9 @@ These are the canonical project rules for Codex and other coding agents. Read th
   repository or integrating. Do not substitute another image generator unless explicitly requested.
 - Before every commit that touches code, `.githooks/pre-commit` runs the unit tests
   the change reaches (`scripts/affected-tests.mjs`; `FULL_TESTS=1` runs them all;
-  enabled by `npm install`, or `git config core.hooksPath .githooks`). GitHub uses
+  enabled by `npm install`, or `git config core.hooksPath .githooks`), except the few long
+  end-to-end files in `tests/hook-deferred.json`, which it leaves to GitHub (`RUN_DEFERRED=1`
+  runs them locally). GitHub runs every selected file, those included, using
   the same dependency selector on the complete unverified change range; unknown dependencies
   fail closed. The full gameplay and tool suites run daily and can be run manually.
   Automatic web deploys wait for the exact commit’s selected test gate; never bypass a failure. Run `npx vite build` too before committing;
