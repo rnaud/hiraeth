@@ -11,6 +11,10 @@ const draw = (status) => {
   $('#walkthrough').innerHTML = main;
 };
 draw(null);
+// (a link to a part or a temple lands below the sticky header, however many lines it wraps to; on a phone it is not sticky)
+const pad = () => { const h = $('body > header'); document.documentElement.style.scrollPaddingTop = getComputedStyle(h).position === 'sticky' ? `${h.offsetHeight + 8}px` : '0px'; };
+pad();
+addEventListener('resize', pad);
 if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 // (the daily run's marks, when this copy of the site has them: a bundled copy or a dev server has none)
 fetch('./walkthrough/status.json', { cache: 'no-cache' })
