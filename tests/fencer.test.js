@@ -170,7 +170,8 @@ test('played with its answers it falls: the charged cut into its shield, a parry
 
 test('spamming the combo at its front is turned away and punished, but never stalls: the blows get in between its own', () => {
   const r = fight(() => 'light');
-  assert.ok(r.turned >= 3, `${r.turned} cuts rang off the shield`);
+  // (#774: a cut into the guard rebounds the traveller and the fencer answers at once, so a spammer gets 2–3 cuts onto it, not 3+)
+  assert.ok(r.turned >= 2, `${r.turned} cuts rang off the shield`);
   // (#722: the cuts that get in wear its poise down, so the spam ends sooner than it did: at least its bash still lands)
   assert.ok(r.hurts >= 1, `${r.hurts} blows taken for it (the bash, its sword)`);
   assert.ok(r.told >= 1, `${r.told} cuts told: no unexplained invulnerability`);
