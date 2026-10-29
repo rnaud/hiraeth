@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,existsSync} from 'node:fs';
 import {tempDir,removeTemp} from '../scripts/temp-dirs.mjs';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {dependenciesOf,affectedTests,gitSelection,parseNameStatus} from '../scripts/affected-tests.mjs';
+import {dependenciesOf,affectedTests,gitSelection,parseNameStatus,syntaxStore,analyzerFingerprint} from '../scripts/affected-tests.mjs';
 const NO_GIT_ENV=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));
 const fixture=files=>({files:Object.keys(files),tests:Object.keys(files).filter(f=>f.endsWith('.test.js')),read:f=>{if(!(f in files))throw Error(f);return files[f];},exists:f=>f in files});
 test('imports execute transitively but reading source text is a leaf; comments and string examples are not imports',()=>{
@@ -498,4 +498,40 @@ test('large multi-commit Git ranges retain changed and deleted dependencies with
   const head=r.commit();
   assert.deepEqual(gitSelection({root:r.root,base,head}),['tests/batch.test.js']);
  }finally{r.close();}
+});
+
+test('the persistent syntax cache reuses only exact bytes under one analyzer and never changes a selection',()=>{
+ const dir=tempDir('hiraeth-syntax-cache-');
+ try{
+  const files={'tests/a.test.js':"import '../src/a.js';",'tests/leaf.test.js':"import '../src/leaf.js';",'tests/vm.test.js':"import vm from 'node:vm'; vm.runInNewContext(x);",'src/a.js':"import './leaf.js';",'src/b.js':'export const b=1;','src/leaf.js':'export const x=1;'};
+  const plain=affectedTests(['src/leaf.js'],fixture(files));
+  assert.deepEqual(plain,['tests/a.test.js','tests/leaf.test.js','tests/vm.test.js']);
+  const first=syntaxStore({dir,fingerprint:'a'.repeat(64)});
+  assert.deepEqual(affectedTests(['src/leaf.js'],{...fixture(files),syntax:first}),plain);first.save();
+  // A warm store answers from disk, with the same selection.
+  const warm=syntaxStore({dir,fingerprint:'a'.repeat(64)}),key=warm.key('src/a.js',files['src/a.js'],false);
+  assert.deepEqual(warm.get(key),dependenciesOf('src/a.js',files['src/a.js']));
+  assert.deepEqual(affectedTests(['src/leaf.js'],{...fixture(files),syntax:warm}),plain);
+  // Changed bytes, another path or another mode are other keys: an edit dropping the import is analysed afresh.
+  assert.notEqual(warm.key('src/a.js',files['src/a.js']+' ',false),key);
+  assert.notEqual(warm.key('src/b.js',files['src/a.js'],false),key);
+  assert.notEqual(warm.key('src/a.js',files['src/a.js'],true),key);
+  assert.deepEqual(affectedTests(['src/leaf.js'],{...fixture({...files,'src/a.js':'export const a=1;'}),syntax:warm}),['tests/leaf.test.js','tests/vm.test.js']);
+  // A poisoned or malformed entry is a miss, not an answer; a corrupt file is a cold start.
+  writeFileSync(first.file,JSON.stringify({fingerprint:'a'.repeat(64),entries:{[key]:{imports:'src/b.js'}}}));
+  assert.equal(syntaxStore({dir,fingerprint:'a'.repeat(64)}).get(key),undefined);
+  writeFileSync(first.file,'{not json');
+  assert.deepEqual(affectedTests(['src/leaf.js'],{...fixture(files),syntax:syntaxStore({dir,fingerprint:'a'.repeat(64)})}),plain);
+  // Another analyzer neither reads the old file nor keeps it.
+  const other=syntaxStore({dir,fingerprint:'b'.repeat(64)});assert.notEqual(other.file,first.file);assert.equal(other.get(key),undefined);
+  affectedTests(['src/leaf.js'],{...fixture(files),syntax:other});other.save();
+  assert.equal(existsSync(first.file),false);assert.equal(existsSync(other.file),true);
+  // The analyzer's fingerprint follows its own bytes, the bindings, the parser and Node's version.
+  const parser='/p/rolldown/dist/parse.mjs',read=f=>'bytes of '+f.split('/').pop();
+  const base=analyzerFingerprint({read,parser,version:'v24'});
+  assert.equal(analyzerFingerprint({read,parser,version:'v24'}),base);
+  for(const edited of ['affected-tests.mjs','test-dependency-bindings.mjs','parse.mjs'])
+   assert.notEqual(analyzerFingerprint({read:f=>f.endsWith(edited)?'edited':read(f),parser,version:'v24'}),base,edited);
+  assert.notEqual(analyzerFingerprint({read,parser,version:'v25'}),base);
+ }finally{removeTemp(dir);}
 });

@@ -1,7 +1,18 @@
 // Lexical identities for the affected-test analyzer. Unknown values stay unknown;
 // sharing a spelling in unrelated callbacks must not conflate two bindings.
 const functions = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
-const children = n => Object.entries(n).filter(([k]) => !['start','end','loc'].includes(k)).flatMap(([,v]) => Array.isArray(v) ? v : v && typeof v === 'object' ? [v] : []).filter(v => v?.type);
+// Own enumerable keys in insertion order (as Object.entries), one array level, typed nodes only.
+// A plain loop: this runs for every node of every file and dominated the selector's time.
+const children = n => {
+  const out = [];
+  for (const k of Object.keys(n)) {
+    if (k === 'start' || k === 'end' || k === 'loc') continue;
+    const v = n[k];
+    if (Array.isArray(v)) { for (const x of v) if (x?.type) out.push(x); }
+    else if (v && typeof v === 'object' && v.type) out.push(v);
+  }
+  return out;
+};
 const patternIds = p => !p ? [] : p.type === 'Identifier' ? [p] : p.type === 'RestElement' ? patternIds(p.argument) : p.type === 'AssignmentPattern' ? patternIds(p.left) : p.type === 'ArrayPattern' ? p.elements.flatMap(patternIds) : p.type === 'ObjectPattern' ? p.properties.flatMap(x => patternIds(x.type === 'RestElement' ? x.argument : x.value)) : [];
 
 export function lexicalBindings(ast) {

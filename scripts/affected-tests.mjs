@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Shared local/CI selection. Unknown dependencies fail closed; nightly runs are not an excuse to omit them.
 // --base SHA --head SHA --json, --staged --json, --all --json; legacy positional paths print ALL/list.
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, normalize, relative, resolve, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -192,10 +193,49 @@ export function dependenciesOf(file, text, {explain=false}={}) {
   if(explain)for(const n of nodes)if(n.type==='ImportDeclaration'&&n.specifiers.some(x=>opaqueBindings.has(x.local.name)))markUnknown('opaque-loader-import',n);
   return {imports:[...imports],resources:[...resources],patterns,unknownExistence,unknown:unknown||opaqueBindings.size>0,...(explain?{opaqueReasons,opaqueReasonsTruncated:reasonKeys.size>64}: {})};
 }
+/**
+ * A persistent syntax cache for the command line (the hook, CI, replays). An entry is the pure output of
+ * dependenciesOf for one exact path, mode and source bytes (its key hashes all three), stored under one exact
+ * analyzer: the file's name and contents carry a hash of this file's and the bindings' bytes, the parser's entry
+ * and package, and Node's version. Only syntax is reused: contracts, ownership and the closure are recalculated
+ * from each snapshot every run; a missing, corrupt or foreign file is a cold start. AFFECTED_TESTS_CACHE=0 is off.
+ */
+export function analyzerFingerprint({read=f=>readFileSync(f),parser=fileURLToPath(import.meta.resolve('rolldown/parseAst')),version=process.version}={}) {
+  const h=createHash('sha256');
+  let pkg=dirname(parser);
+  while(!existsSync(join(pkg,'package.json'))&&dirname(pkg)!==pkg)pkg=dirname(pkg);
+  const sources=[fileURLToPath(import.meta.url),fileURLToPath(new URL('./test-dependency-bindings.mjs',import.meta.url)),parser,join(pkg,'package.json')];
+  for(const f of sources)h.update(read(f)).update('\0');
+  return h.update(version).digest('hex');
+}
+const SYNTAX_ENTRIES=12000; // most recently used first: a few snapshots' worth of every source file
+const validDependency=d=>!!d&&typeof d==='object'&&['imports','resources','patterns'].every(k=>Array.isArray(d[k]))&&typeof d.unknown==='boolean';
+export function syntaxStore({dir=join(ROOT,'.cache','affected-tests'),fingerprint=analyzerFingerprint()}={}) {
+  const file=join(dir,'syntax-'+fingerprint.slice(0,32)+'.json');
+  let entries={};
+  try{const j=JSON.parse(readFileSync(file,'utf8'));if(j?.fingerprint===fingerprint&&j.entries&&typeof j.entries==='object')entries=j.entries;}catch{}
+  const used=new Map();let added=0;
+  return {
+    file,
+    key:(path,text,explain)=>createHash('sha256').update(path).update('\0').update(explain?'1':'0').update('\0').update(text).digest('hex'),
+    get(k){const v=Object.hasOwn(entries,k)?entries[k]:undefined;if(!validDependency(v))return undefined;used.set(k,v);return v;},
+    set(k,v){used.set(k,v);added++;},
+    save(){
+      if(!added)return;
+      const out={};let n=0;
+      for(const [k,v] of used)if(n++<SYNTAX_ENTRIES)out[k]=v;
+      for(const k of Object.keys(entries))if(!used.has(k)&&n++<SYNTAX_ENTRIES)out[k]=entries[k];
+      mkdirSync(dir,{recursive:true});
+      for(const f of readdirSync(dir))if(/^syntax-[0-9a-f]+\.json$/.test(f)&&join(dir,f)!==file)try{unlinkSync(join(dir,f));}catch{}
+      const tmp=file+'.'+process.pid+'.tmp';
+      writeFileSync(tmp,JSON.stringify({fingerprint,entries:out}));renameSync(tmp,file);
+    },
+  };
+}
 export function refsOf(file,text) {const d=dependenciesOf(file,text);return [...new Set([...d.imports,...d.resources])];}
 
 /** Unknown/unowned changes select all. An opaque consumer selects that consumer's tests, not unrelated tests. */
-export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,f),'utf8'),exists=f=>existsSync(join(root,f)),tests=null,files=null,modifiedRegularOnly=false,diagnostics=null,ownership=null,deferUnowned=false,analysisCache=new Map()}={}) {
+export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,f),'utf8'),exists=f=>existsSync(join(root,f)),tests=null,files=null,modifiedRegularOnly=false,diagnostics=null,ownership=null,deferUnowned=false,analysisCache=new Map(),syntax=null}={}) {
   const touched=[...new Set(changed.map(clean))];
   if(diagnostics)Object.assign(diagnostics,{changed:touched,tests:{},fallbacks:[],unmatched:[]});
   if(!touched.length)return [];
@@ -207,7 +247,9 @@ export function affectedTests(changed,{root=ROOT,read=f=>readFileSync(join(root,
     // Reuse syntax only for identical bytes. Contract validity and closure are
     // recalculated from each snapshot, even when the adapter itself is unchanged.
     if(previous?.text===text)return previous.dependency;
-    const dependency=dependenciesOf(f,text,{explain});
+    const id=syntax?.key(f,text,explain);
+    let dependency=id?syntax.get(id):undefined;
+    if(!dependency){dependency=dependenciesOf(f,text,{explain});if(id)syntax.set(id,dependency);}
     analysisCache.set(key,{text,dependency});return dependency;
   };
   const dependency=f=>{
@@ -287,7 +329,7 @@ export function parseNameStatus(raw) {
     const n=/^[RC]/.test(status)?2:1;for(let j=0;j<n;j++){const f=parts[i++];if(!f)throw Error('Missing git path');out.push(f);}}
   return [...new Set(out)];
 }
-export function gitSelection({root=ROOT,base,head,staged=false,all=false,diagnostics=null}) {
+export function gitSelection({root=ROOT,base,head,staged=false,all=false,diagnostics=null,syntax=null}) {
   const check=ref=>git(root,['rev-parse','--verify',ref+'^{commit}']).trim();
   const before=check(staged?'HEAD':base??'HEAD');const after=staged?null:check(head??'HEAD');
   const snapshot=ref=>{
@@ -326,7 +368,7 @@ export function gitSelection({root=ROOT,base,head,staged=false,all=false,diagnos
   for(let i=0;i<fields.length;){const m=/^:(\d+) (\d+) [0-9a-f]+ [0-9a-f]+ ([A-Z][0-9]*)$/.exec(fields[i++]);if(!m){modifiedRegularOnly=false;break;}i+=/^[RC]/.test(m[3])?2:1;if(m[3]!=='M'||m[1]!==m[2]||!/^100(?:644|755)$/.test(m[1]))modifiedRegularOnly=false;}
   if(diagnostics)Object.assign(diagnostics,{before,after:after??'index',old:{},current:{}});
   const ownership=new Set(),analysisCache=new Map();
-  const old=affectedTests(changed,{root,...a,modifiedRegularOnly,diagnostics:diagnostics?.old,ownership,deferUnowned:true,analysisCache}),now=affectedTests(changed,{root,...b,modifiedRegularOnly,diagnostics:diagnostics?.current,ownership,deferUnowned:true,analysisCache});
+  const old=affectedTests(changed,{root,...a,modifiedRegularOnly,diagnostics:diagnostics?.old,ownership,deferUnowned:true,analysisCache,syntax}),now=affectedTests(changed,{root,...b,modifiedRegularOnly,diagnostics:diagnostics?.current,ownership,deferUnowned:true,analysisCache,syntax});
   const unmatched=changed.filter(f=>!ownership.has(f));
   if(diagnostics)diagnostics.unmatched=unmatched;
   if(old==='ALL'||now==='ALL'||unmatched.length)return b.tests.sort();
@@ -334,13 +376,22 @@ export function gitSelection({root=ROOT,base,head,staged=false,all=false,diagnos
 }
 
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
+  let syntax=null;
   try {
+    if(process.env.AFFECTED_TESTS_CACHE!=='0')try{syntax=syntaxStore();}catch{syntax=null;}
     const args=process.argv.slice(2);let result;
     if(args.some(x=>x.startsWith('--'))){const opts={};let json=false,explain=false;
       for(let i=0;i<args.length;i++){const x=args[i];if(x==='--json')json=true;else if(x==='--explain')explain=true;else if(x==='--all')opts.all=true;else if(x==='--staged')opts.staged=true;else if(x==='--base'||x==='--head'){if(!args[i+1]||args[i+1].startsWith('--'))throw Error('Missing ref');opts[x.slice(2)]=args[++i];}else throw Error('Unknown option '+x);}
       if(opts.staged&&(opts.base||opts.head))throw Error('Staged cannot mix with commit range');
       if(!opts.staged&&!opts.all&&(!opts.base||!opts.head))throw Error('Both base and head required');
-      const diagnostics=explain?{}:null;result=gitSelection({...opts,diagnostics});process.stdout.write(explain?JSON.stringify({tests:result,diagnostics})+'\n':json?JSON.stringify(result)+'\n':result.map(t=>t+'\n').join(''));
-    } else {result=affectedTests(args.map(f=>relative(ROOT,resolve(f))));process.stdout.write(result==='ALL'?'ALL\n':result.map(t=>t+'\n').join(''));}
+      const diagnostics=explain?{}:null;result=gitSelection({...opts,diagnostics,syntax});process.stdout.write(explain?JSON.stringify({tests:result,diagnostics})+'\n':json?JSON.stringify(result)+'\n':result.map(t=>t+'\n').join(''));
+    } else {
+      // The working tree's inventory, as the hook's index snapshot has: without it every executable glob
+      // (the minigame catalogue, the game loader's inputs) is unresolved and selects its consumers.
+      let files=null;
+      try{files=git(ROOT,['ls-files','-z','--cached','--others','--exclude-standard']).split('\0').filter(f=>f&&existsSync(join(ROOT,f)));}catch{files=null;}
+      result=affectedTests(args.map(f=>relative(ROOT,resolve(f))),{files,syntax});process.stdout.write(result==='ALL'?'ALL\n':result.map(t=>t+'\n').join(''));
+    }
   }catch(e){console.error('Test selection failed closed: '+e.message);process.exitCode=1;}
+  try{syntax?.save();}catch{/* a cache that cannot be written is only a slower next run */}
 }
