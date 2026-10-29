@@ -72,3 +72,45 @@ test('cheap: 48 pieces flying 2 s, then asleep (no ground reads)', () => {
   const before = reads; for (const P of pieces) stepPiece(P, 1 / 60, G);
   assert.equal(reads, before, 'asleep: no reads');
 });
+
+// Only machines and stone bodies break into pieces (issue #773): every archetype is classified by what it is made of,
+// and a defeated foe of flesh, a plant or a spirit lies whole, then goes up in its puff.
+test('every archetype is classified by its matter, and only machines and stone break apart', async () => {
+  const { ARCHETYPES } = await import('../src/enemies/archetypes.js');
+  const { MATTER, BREAKS, breaksApart } = await import('../src/enemies/debris.js');
+  const kinds = ['machine', 'stone', 'flesh', 'plant', 'spirit'];
+  for (const id of Object.keys(ARCHETYPES)) assert.ok(kinds.includes(MATTER[id]), `${id} is classified (${MATTER[id]})`);
+  for (const id of Object.keys(MATTER)) assert.ok(ARCHETYPES[id], `${id} is an archetype`);
+  for (const [id, A] of Object.entries(ARCHETYPES)) {
+    // (the roster's own family agrees: a machine is a machine; a creature, a monster or a spirit never is)
+    assert.equal(MATTER[id] === 'machine', A.family === 'machine', `${id}: ${A.family} is ${MATTER[id]}`);
+    assert.equal(breaksApart({ archetype: id, def: A.def ?? {} }), BREAKS.has(MATTER[id]), `${id} breaks apart: ${BREAKS.has(MATTER[id])}`);
+  }
+  // (an old kind with no archetype keeps its own `breaks`; blown up, anything breaks)
+  assert.equal(breaksApart({ archetype: undefined, def: { breaks: true } }), true);
+  assert.equal(breaksApart({ archetype: 'grunt', def: {}, blast: true }), true);
+});
+
+test('a defeated crab, centipede, moth and root knot lie whole; a tripod and a crawler break into pieces', async () => {
+  const { Foes } = await import('../src/foes.js');
+  const { GameState } = await import('../src/game-state.js');
+  const { clearTargets } = await import('../src/targets.js');
+  const { resetFeel } = await import('../src/feel.js');
+  clearTargets(); resetFeel();
+  const P = { pos: v(0, 0, -30), vel: v(), heading: 0, onGround: true, health: 1, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(5), tool: { drops: { add() {} } } });
+  foes.setPractice('');
+  for (const [kind, breaks] of [['crab', false], ['centipede', false], ['moth', false], ['rootknot', false], ['tripod', true], ['crawler', true]]) {
+    const f = foes.add(kind, v(0, 0, 0));
+    for (let i = 0; i < 10; i++) foes.update(1 / 60);
+    f.hp = 0.1; f.state = 'recover'; f.timer = 0.5;
+    foes.hurt(f, 'blade', v(0, 0, 1), { damage: 9, combo: 2 }, f.chest.clone());
+    for (let t = 0; t < 2.2 && f.dead === undefined; t += 1 / 60) foes.update(1 / 60);
+    assert.ok(f.dead !== undefined, `${kind} is done`);
+    const pieces = (foes.debris ?? []).filter((d) => d.owner === f && !d.held).length;
+    if (breaks) assert.ok(pieces > 2, `${kind} breaks into pieces (${pieces})`);
+    else assert.equal(pieces, 0, `${kind} lies whole`);
+    foes.remove(f);
+  }
+  foes.dispose(); clearTargets();
+});

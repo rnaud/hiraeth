@@ -244,6 +244,9 @@ export class Rig {
     if (this.drawn) { b = this.bodyFeet.update(this.tier === 'far' ? this.farDt : dt, this.planner, p, f.heading, this.vel, this.slope); this.farDt = 0; }
     const o = this.out;
     o.y = b.y + pose.y; o.x = b.x; o.z = pose.z; o.pitch = b.pitch + pose.pitch; o.roll = b.roll + pose.roll; o.yaw = pose.yaw;
+    // (struck down, its legs limp: the body comes level across as it slumps, over a quarter of a second; its feet, planted
+    // where they were as the blow shoved it aside, tipped a skitter 28° onto its side, issue #767)
+    if (this.limp) { this.limpT = (this.limpT ?? 0) + dt; o.roll *= Math.max(0, 1 - this.limpT * 4); }
     // on a slope (its root turned onto the ground's plane: src/enemies/slope.js), a tall body stands back up toward
     // upright by `upright` of it, on its legs (the IK reaches them down to the hillside)
     if (this.slope && this.upright) {
@@ -274,7 +277,7 @@ export class Rig {
 
   /** Its legs let go (a defeat, issue #750): each foot from where it is now, at `vel` (world m/s). */
   goLimp(vel) {
-    this.limp = new LimpLegs(this.planner.feet.map((x) => x.pos), vel);
+    this.limp = new LimpLegs(this.planner.feet.map((x) => x.pos), vel); this.limpT = 0;
     this.drawn = true;
     return this.limp;
   }

@@ -41,7 +41,7 @@ import { keyText } from './prompt-keys.js';
 import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
-import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS } from './enemies/debris.js';
+import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS, breaksApart } from './enemies/debris.js';
 import { RAGDOLL, startFoeRagdoll, stepFoeRagdoll, groundPhysics, anchorRagdoll } from './enemies/foe-ragdoll.js';
 import { Veils, LightShaft } from './veil.js';
 import { bodyReach } from './foe-body.js';
@@ -3473,7 +3473,7 @@ export class Foes {
     if (last) slowMo(0.45, 0.35);
     f.state = 'dead'; f.k = 0; f.letGo = true;
     this.packFell(f);
-    f.dying = startDefeat(f, R);
+    f.dying = startDefeat(f, R, { dir: blow.dir && Math.hypot(blow.dir.x, blow.dir.z) > 1e-4 ? blow.dir : f.recoilDir });   // (a humanoid past the ragdolls' cap falls the way it was struck: #767)
     this.letGo(f, R, blow);
     if (!f.def.burrow) groundStart(f.dying, f.model.group, this.physics, f.pos, f.def.radius);   // (the ground under it, as it stood: issue #304)
     if (this.hold?.f === f) this.hold = null;
@@ -3603,7 +3603,7 @@ export class Foes {
       const tank = T.tank?.group ? T.tank.group.localToWorld(_w.set(0, 0.3, 0)) : null;
       if (tank) for (let i = 0; i < HIT_SPLASH.toTank; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
-    if (f.def.breaks || f.blast) this.breakApart(f, { blast: !!f.blast });   // (a machine, glass, a shell, a drone, a crawler blown up: its pieces fly)
+    if (breaksApart(f)) this.breakApart(f, { blast: !!f.blast });   // (a machine, a crawler blown up: its pieces fly; nothing of flesh, issue #773)
     else this.stain(f);
     // a glass golem breaks into its splinters, and they come on
     if (f.def.splits) for (let i = 0; i < f.def.splits.n; i++) {

@@ -200,8 +200,9 @@ test('a defeat\'s pose: each move over its own window, eased; a flyer comes down
   const D = startDefeat({ alt: 1.6, over: 0.4, heading: 0 }, DEFEATS.moth);
   const P0 = defeatPose(D, 0), P1 = defeatPose(D, 1);
   assert.ok(Math.abs(P0.alt - 1.6) < 1e-9 && Math.abs(P1.alt) < 1e-9, 'the moth: from its height to the ground');
-  const C = startDefeat({ alt: 0, heading: 0 }, DEFEATS.crab);
-  assert.ok(Math.abs(defeatPose(C, 1).flip - Math.PI) < 1e-9 && defeatPose(C, 1).curl > 1.5, 'the crab: on its back, legs curled');
+  // (issue #767: the crab slumps onto its belly, its legs folding, never onto its back)
+  const C = startDefeat({ alt: 0, heading: 0 }, DEFEATS.crab), CP = defeatPose(C, 1);
+  assert.ok(CP.flip === 0 && CP.roll === 0 && CP.body.y < -0.3 && CP.curl > 1, 'the crab: down on its belly, legs drawn in');
 });
 
 test('many going down at once stay cheap', async () => {

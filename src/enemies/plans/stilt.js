@@ -159,7 +159,8 @@ export function heronModel(skin) {
       // (the legs trail straight out behind it in the air; the jug's kicked back and folded a little more)
       if (fly > 0.01) for (const L of legs) L.air.set(0, (jug ? 2.0 : 2.3) * fly, -(jug ? 1.9 : 2.5) * fly);
       // toppled: down on its side, legs out, its head on the ground
-      topple = ease(topple, f.toppled > 0 ? 1 : 0, f.toppled > 0 ? 5 : 3, dt);
+      // (going down it comes back level onto its belly, its stilts folding under it: issue #767, never left on its side)
+      topple = ease(topple, f.toppled > 0 && !f.dying ? 1 : 0, f.toppled > 0 && !f.dying ? 5 : 3, dt);
       const open = f.open > 0 ? 1 : 0;
       const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery: c.recovery, air: Math.max(topple > 0.2 ? 1 : 0, fly > 0.02 ? fly : 0) });
       // the high body's sway: lags a change of pace forward and back, swings out on a turn

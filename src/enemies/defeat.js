@@ -3,11 +3,20 @@ import * as THREE from 'three';
 // The defeats (docs/systems/foes.md, "Hit and defeat", v1.35): each body plan goes down its own way over ~0.8-1.5 s, and
 // then bursts as before (src/foes.js Foes.burst: the ink, the tank's charge, the chimes, the pieces). The killing blow
 // starts it (Foes.defeat): the mind is done (state 'dead': no target, no blows, nothing blocks you, the lock moves on), and
-// the look runs the model's own pose with the recipe's moves on top (Foes.look):
+// the look runs the model's own pose with the recipe's moves on top (Foes.look).
 //
-//   flip    onto its back (a hop up, half a turn about its length) and its legs curled (the crab, the skitters)
-//   roll    over onto a side, `angle` rad about its length (side ±1), legs curling (the lizard, the centipede)
-//   topple  over forward about its feet, `angle` rad (the heron off its stilts, the brute onto its face)
+// Nothing ends on its side (issue #767, the author: "No enemy should fall on their side when they die. Die animation
+// should make sense for the character"). A death for each body (DEATHS below names it):
+//   a beast on legs (the crab, the skitters, the lizard, the hound, the toad, the heron) folds its legs and slumps onto
+//     its belly, its head down; a long body (the centipede) sinks flat plate by plate from the head; a plant (the root
+//     knot) wilts forward and draws back into the ground; a shelled thing (the roller) settles where it stopped; a
+//     burrower (the worm) goes back under; a flyer (the moth, the ray, the jelly, the drone, the wisp, the oracle) drops
+//     to the ground spiralling, its wings folding, and lands flat; a machine (the tripod, the cart, the bell walker, the
+//     brute, the crawler) powers down: its light goes out, it sags on its legs and settles upright or tips forward; a
+//     humanoid falls with the blow (its ragdoll: src/enemies/foe-ragdoll.js; past the cap, `topple` along the blow); a
+//     spirit (the blot, the shade, the mummers) slumps and empties.
+//
+//   topple  over about its feet, `angle` rad: forward (+) or back (-); `blow`: whichever way the killing blow pushed it
 //   sag     its body sinks `y` m onto its legs (the kit re-solves them: knees buckle; a tripod's, a bell walker's)
 //   squash  flattened to `sy` of its height, `sxz` wider (the blot into a puddle, the shade's cloak falling empty)
 //   sink    into the ground `y` m (the worm back under the sand, the root knot)
@@ -15,50 +24,64 @@ import * as THREE from 'three';
 //   spin    turns about itself, rad/s (falling off to nothing: a spiral)
 //   curl    [from, to, k]: its legs drawn up under the body over that share of the time (the rig's `air` above 1)
 //   slack   the plan's own: its parts let go (the marionette's strings, the moth's wings folding: model.defeat)
-//   ripple  the plan's own, in its pose (f.dying): the centipede's plates sink and roll over one after another
+//   ripple  the plan's own, in its pose (f.dying): the centipede's plates sink flat one after another
 //   puff    what comes off it as it goes: 'dust' as it lands, 'vent' (a machine's steam), 'ink' (a spirit's drips)
+//   (flip, onto its back, and roll, over onto a side, are still read but no recipe uses them since #767)
 // Each move has `at: [from, to]`, the share of the time it runs over (eased). Everything is the foe's own transform and a
 // few numbers: no new meshes, no draws (cheap with many at once). The eyes go out over the first half.
 // A foe that went out of the world (fell, swept away) or an old kind without a recipe bursts at once, as before.
 
 export const DEFEATS = {
-  crab: { time: 1.25, flip: { hop: 0.5, at: [0, 0.45] }, curl: [0.4, 1, 0.9], puff: 'dust' },
-  skitter: { time: 0.8, flip: { hop: 0.3, at: [0, 0.4] }, curl: [0.25, 0.9, 1], puff: 'dust' },
-  centipede: { time: 1.3, ripple: true, puff: 'dust' },   // (its own: a ripple from head to tail, each plate sinking and rolling over: centipede.js)
-  toad: { time: 1.1, squash: { sy: 0.6, sxz: 1.22, at: [0, 0.3] }, roll: { side: -1, angle: 1.25, at: [0.25, 0.8] }, curl: [0.3, 0.8, 0.5], puff: 'dust' },
-  lizard: { time: 1.0, roll: { side: -1, angle: 1.5, at: [0.05, 0.5] }, curl: [0.3, 0.9, 0.8], puff: 'dust' },
-  heron: { time: 1.45, sag: { y: -1.9, at: [0.05, 0.55] }, curl: [0.05, 0.5, 1], topple: { angle: 1.25, at: [0.4, 0.92] }, puff: 'dust' },
-  roller: { time: 1.0, roll: { side: 1, angle: 1.45, at: [0.05, 0.55] }, sag: { y: -0.15, at: [0, 0.4] }, puff: 'dust' },
-  rootknot: { time: 1.3, sag: { y: -0.5, at: [0, 0.5] }, topple: { angle: 0.5, at: [0.1, 0.6] }, sink: { y: 0.7, at: [0.45, 1] }, curl: [0.1, 0.6, 0.6], puff: 'dust' },
+  // beasts on legs: the legs fold (the kit's go limp and splay, src/motion-kit/limp.js), the belly comes down on the
+  // ground (the drawn hull stops it there), the head drops
+  crab: { time: 1.25, sag: { y: -0.5, at: [0.05, 0.55] }, curl: [0.2, 0.7, 0.35], topple: { angle: 0.1, at: [0.3, 0.8] }, puff: 'dust' },   // (its claws fold in over its face: plans/walker.js)
+  skitter: { time: 0.8, sag: { y: -0.2, at: [0, 0.45] }, curl: [0.25, 0.9, 0.9], puff: 'dust' },   // (its legs curl in under it)
+  centipede: { time: 1.3, ripple: true, puff: 'dust' },   // (its own: a ripple from head to tail, each plate sinking flat onto its legs: centipede.js)
+  toad: { time: 1.1, squash: { sy: 0.6, sxz: 1.22, at: [0, 0.35] }, sag: { y: -0.25, at: [0.2, 0.7] }, topple: { angle: 0.15, at: [0.3, 0.8] }, puff: 'dust' },   // (its bellows empty, it flattens and its chin goes down)
+  lizard: { time: 1.0, sag: { y: -0.45, at: [0.05, 0.5] }, topple: { angle: 0.12, at: [0.3, 0.8] }, puff: 'dust' },
+  heron: { time: 1.45, sag: { y: -1.9, at: [0.05, 0.55] }, curl: [0.05, 0.5, 1], topple: { angle: 0.35, at: [0.45, 0.92] }, puff: 'dust' },   // (its stilts fold under it, its neck goes down)
+  roller: { time: 1.0, sag: { y: -0.2, at: [0, 0.45] }, squash: { sy: 0.88, sxz: 1.06, at: [0.1, 0.6] }, puff: 'dust' },   // (it stops and settles on its shell)
+  rootknot: { time: 1.3, sag: { y: -0.5, at: [0, 0.5] }, topple: { angle: 0.5, at: [0.1, 0.6] }, sink: { y: 0.7, at: [0.45, 1] }, curl: [0.1, 0.6, 0.6], puff: 'dust' },   // (it wilts forward and draws back in)
+  worm: { time: 1.1, sink: { y: 2.4, at: [0.1, 1] }, puff: 'dust' },
+  hound: { time: 1.2, sag: { y: -0.6, at: [0, 0.45] }, topple: { angle: 0.12, at: [0.3, 0.8] }, puff: 'ink' },
+  // flyers: they drop, spiralling, their wings folding, and land flat
   jelly: { time: 1.5, land: { at: [0, 1] }, squash: { sy: 0.45, sxz: 1.35, at: [0.05, 0.8] }, spin: 0.8, puff: null },
-  moth: { time: 1.3, land: { at: [0, 0.95] }, spin: 7, roll: { side: 1, angle: 0.8, at: [0, 0.4] }, slack: true, puff: 'dust' },
-  ray: { time: 1.4, land: { at: [0, 0.95] }, spin: 2.6, roll: { side: -1, angle: 0.5, at: [0, 0.5] }, puff: 'dust' },
-  worm: { time: 1.1, sink: { y: 2.4, at: [0.1, 1] }, roll: { side: 1, angle: 0.35, at: [0, 0.4] }, puff: 'dust' },
+  moth: { time: 1.3, land: { at: [0, 0.95] }, spin: 7, slack: true, puff: 'dust' },
+  ray: { time: 1.4, land: { at: [0, 0.95] }, spin: 2.6, puff: 'dust' },
+  drone: { time: 1.1, land: { at: [0, 0.85] }, spin: 9, puff: 'vent' },
+  wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, puff: 'ink' },
+  // machines: their light goes out and they power down, sagging on their legs, upright or over forward
   tripod: { time: 1.3, sag: { y: -0.95, at: [0.05, 0.6] }, topple: { angle: 0.45, at: [0.3, 0.9] }, puff: 'vent' },
-  cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, roll: { side: 1, angle: 0.35, at: [0.2, 0.7] }, puff: 'vent' },
+  cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, topple: { angle: 0.15, at: [0.2, 0.7] }, puff: 'vent' },   // (it settles on its tracks, its crucible tipping forward)
   bell: { time: 1.5, sag: { y: -1.3, at: [0.05, 0.6] }, topple: { angle: 0.4, at: [0.35, 0.95] }, puff: 'vent' },
-  drone: { time: 1.1, land: { at: [0, 0.85] }, spin: 9, roll: { side: 1, angle: 0.9, at: [0.1, 0.6] }, puff: 'vent' },
   brute: { time: 1.5, sag: { y: -0.75, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
-  fencer: { time: 1.2, sag: { y: -0.5, at: [0, 0.45] }, topple: { angle: 1.35, at: [0.3, 0.9] }, puff: 'vent' },   // (onto its knees, then forward onto its shield)
+  crawler: { time: 0.9, sag: { y: -0.3, at: [0, 0.4] }, puff: 'vent' },   // (its legs go limp and splay, its dome comes down flat)
+  oracle: { time: 1.2, land: { at: [0, 0.6] }, sag: { y: -0.2, at: [0.5, 0.85] }, topple: { angle: 0.3, at: [0.55, 0.95] }, puff: 'vent' },   // (its light gone, it drops and settles on its shell, tipping forward)
+  // spirits: they slump and empty
   blot: { time: 0.9, squash: { sy: 0.12, sxz: 1.75, at: [0, 0.75] }, puff: 'ink' },
   shade: { time: 1.2, sag: { y: -0.55, at: [0.1, 0.7] }, squash: { sy: 0.4, sxz: 1.45, at: [0.15, 0.85] }, puff: 'ink', ragdoll: false },   // (its cloak falls empty: no body to ragdoll, issue #750)
-  hound: { time: 1.2, sag: { y: -0.3, at: [0, 0.35] }, roll: { side: 1, angle: 1.4, at: [0.25, 0.7] }, curl: [0.4, 0.9, 0.6], puff: 'ink' },
   marionette: { time: 1.3, land: { at: [0.15, 0.45], to: 0 }, slack: true, puff: 'ink' },
-  wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, roll: { side: 1, angle: 0.7, at: [0.1, 0.6] }, puff: 'ink' },
-  // (issue #724: a mummer's sack slumps to the sand and empties; the king sags onto its knees and topples back, its junk let go)
+  // (issue #724: a mummer's sack slumps to the sand and empties)
   mummer: { time: 0.9, sag: { y: -0.3, at: [0, 0.4] }, squash: { sy: 0.35, sxz: 1.5, at: [0.3, 0.9] }, puff: 'ink' },
-  mummerking: { time: 1.4, sag: { y: -0.6, at: [0, 0.45] }, topple: { angle: -1.0, at: [0.35, 0.95] }, puff: 'ink' },
-  // (issue #726: a grunt sits down hard and keels over; the hulk sinks to its knees and falls on its face)
-  grunt: { time: 1.0, sag: { y: -0.35, at: [0, 0.4] }, topple: { angle: -1.2, at: [0.3, 0.9] }, puff: 'dust' },
-  hulk: { time: 1.5, sag: { y: -0.7, at: [0, 0.45] }, topple: { angle: 1.3, at: [0.4, 0.95] }, puff: 'dust' },
-  // (issue #726, the droids: the sentinel onto its knees and forward onto its shield; the oracle's light gone, it drops and
-  // tips over on its shell; the crawler's legs fold and the dome rolls onto its side)
-  sentinel: { time: 1.2, sag: { y: -0.55, at: [0, 0.45] }, topple: { angle: 1.3, at: [0.3, 0.9] }, puff: 'vent' },
-  oracle: { time: 1.2, land: { at: [0, 0.6] }, roll: { side: 1, angle: 1.2, at: [0.35, 0.9] }, puff: 'vent' },
-  crawler: { time: 0.9, sag: { y: -0.25, at: [0, 0.4] }, roll: { side: 1, angle: 1.0, at: [0.2, 0.8] }, puff: 'vent' },
-  // (the prowler crumples and keels over on its side; the warlord sinks to one knee, then falls forward)
-  prowler: { time: 1.0, sag: { y: -0.45, at: [0, 0.45] }, topple: { angle: -1.3, at: [0.3, 0.9] }, puff: 'dust' },
-  warlord: { time: 1.5, sag: { y: -0.6, at: [0, 0.5] }, topple: { angle: 1.25, at: [0.45, 0.95] }, puff: 'dust' },
+  // humanoids on the rig ragdoll (issue #750); these are their falls past RAGDOLL.most: onto their knees, then over the way
+  // the blow pushed them (forward when struck from behind, back when struck from the front)
+  mummerking: { time: 1.4, sag: { y: -0.6, at: [0, 0.45] }, topple: { angle: 1.0, blow: true, at: [0.35, 0.95] }, puff: 'ink' },
+  grunt: { time: 1.0, sag: { y: -0.35, at: [0, 0.4] }, topple: { angle: 1.2, blow: true, at: [0.3, 0.9] }, puff: 'dust' },
+  hulk: { time: 1.5, sag: { y: -0.7, at: [0, 0.45] }, topple: { angle: 1.3, blow: true, at: [0.4, 0.95] }, puff: 'dust' },
+  prowler: { time: 1.0, sag: { y: -0.45, at: [0, 0.45] }, topple: { angle: 1.3, blow: true, at: [0.3, 0.9] }, puff: 'dust' },
+  warlord: { time: 1.5, sag: { y: -0.6, at: [0, 0.5] }, topple: { angle: 1.25, blow: true, at: [0.45, 0.95] }, puff: 'dust' },
+  sentinel: { time: 1.2, sag: { y: -0.55, at: [0, 0.45] }, topple: { angle: 1.3, blow: true, at: [0.3, 0.9] }, puff: 'vent' },
+  fencer: { time: 1.2, sag: { y: -0.5, at: [0, 0.45] }, topple: { angle: 1.35, blow: true, at: [0.3, 0.9] }, puff: 'vent' },
+};
+
+/** Which death each archetype dies (issue #767: one for each body; tests/foe-deaths.test.js covers every archetype). */
+export const DEATHS = {
+  crab: 'beast', skitter: 'beast', toad: 'beast', lizard: 'beast', heron: 'beast', hound: 'beast',
+  centipede: 'long', rootknot: 'plant', roller: 'shell', worm: 'burrower',
+  jelly: 'flyer', moth: 'flyer', ray: 'flyer', drone: 'flyer', wisp: 'flyer', oracle: 'flyer',
+  tripod: 'machine', cart: 'machine', bell: 'machine', brute: 'machine', crawler: 'machine',
+  blot: 'spirit', shade: 'spirit', marionette: 'spirit', mummer: 'spirit',
+  grunt: 'humanoid', hulk: 'humanoid', prowler: 'humanoid', warlord: 'humanoid', sentinel: 'humanoid', fencer: 'humanoid', mummerking: 'humanoid',
 };
 
 /** A move's eased progress at u (0..1 over the defeat) for its `at` window. */
@@ -69,9 +92,13 @@ export const stage = (m, u) => {
   return x * x * (3 - 2 * x);
 };
 
-/** A defeat under way for foe f (recipe R): its clock and what it started from. */
-export function startDefeat(f, R) {
-  return { R, t: 0, u: 0, alt: f.alt ?? 0, over: f.over ?? 0, heading: f.heading, puffed: 0 };
+/**
+ * A defeat under way for foe f (recipe R): its clock and what it started from. `blow` the killing blow ({ dir }: the way
+ * it pushed, level): `fall` +1 when it pushed the foe from behind (it goes over forward), -1 from in front (back).
+ */
+export function startDefeat(f, R, blow = null) {
+  const d = blow?.dir, along = d ? d.x * Math.sin(f.heading) + d.z * Math.cos(f.heading) : 0;
+  return { R, t: 0, u: 0, alt: f.alt ?? 0, over: f.over ?? 0, heading: f.heading, puffed: 0, fall: along < -1e-3 ? -1 : 1 };
 }
 
 /**
@@ -90,7 +117,7 @@ export function defeatPose(D, u, out = {}) {
   out.roll = R.roll ? R.roll.side * R.roll.angle * stage(R.roll, u) : 0;
   // (a flyer's bank comes out as it touches down: it lands flat on the ground, not on a wing's tip; issue #304)
   if (R.land && out.roll) { const e = R.land.at?.[1] ?? 1; out.roll *= 1 - stage({ at: [e - 0.3, e] }, u); }
-  out.pitch = R.topple ? R.topple.angle * stage(R.topple, u) : 0;
+  out.pitch = R.topple ? R.topple.angle * (R.topple.blow ? D.fall ?? 1 : 1) * stage(R.topple, u) : 0;
   out.sink = R.sink ? R.sink.y * stage(R.sink, u) : 0;
   // the legs curled up under it
   if (R.curl) { const [a, b, k] = R.curl, x = THREE.MathUtils.clamp((u - a) / Math.max(1e-6, b - a), 0, 1); out.curl = 1 + k * x * x * (3 - 2 * x); } else out.curl = 0;

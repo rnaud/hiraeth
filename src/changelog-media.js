@@ -1448,6 +1448,14 @@ export const CHANGELOG_MEDIA = {
       { where: 'fastest any part of it moved (m/s)', before: 80, after: 18 },
     ] },
   ], see: 'In the Arena, cut a grunt or a warlord down with the third swing, on the flat and on the slope by the wall: it lies where it falls and goes up in smoke there.' },
+  { match: 'No enemy ends up lying on its side any more', shots: [
+    { name: 'deaths-crab767', size: [1280, 520], caption: 'A shellback crab struck down: before, it flipped over onto its back through its side and broke into pieces; after, its legs fold, it slumps onto its belly with its claws laid on the sand before it, and lies whole', from: DEATHS765 },
+    { name: 'deaths-lizard767', size: [1280, 520], caption: 'A horn lizard struck down: before, it rolled over onto its side and back, its pale belly up; after, its legs splay and it sinks flat onto its belly, its chin down', from: DEATHS765 },
+  ], see: 'In the Arena, defeat a crab, a horn lizard, a moth and a crawler: each ends on its belly or flat on the ground, none on its side.' },
+  { match: 'Only machines break into pieces when you defeat them now', shots: [
+    { name: 'deaths-centipede773', size: [1280, 520], caption: 'A ring centipede struck down: before, its plates rolled over onto their sides and it burst into pieces, its head rolling away; after, its plates sink flat one after another from the head and it lies whole until its smoke', from: DEATHS765 },
+    { name: 'deaths-crawler773', size: [1280, 520], caption: 'A crawler struck down: before, its dome rolled onto its side and it lay whole; after, its legs go limp, its dome comes down flat and it comes apart in pieces like the other droids', from: DEATHS765 },
+  ], see: 'In the Arena, defeat a crab or a centipede (they lie whole), then a crawler or a tripod (they break apart).' },
   ],
   '2.36': [
   { match: 'The Moon Foundry is closed in', shots: [

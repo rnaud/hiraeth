@@ -1096,16 +1096,26 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
 - **The defeats** (`DEFEATS`, `Foes.defeat`): the killing blow's feel at once (the freeze, the kick, the last foe's slow
   motion), its mind done (state `dead`: no target, no lock, no blow, `keepApart` passes it by), then its body plan goes
   down its own way over 0.8–1.5 s, the model's own pose with the recipe's moves on top (`defeatPose`, `Foes.falling`),
-  and the burst as before at the end (the ink, the tank's charge, the chimes, a machine's pieces). The crab flips onto
-  its back and curls its legs; the skitters too, quickly; the centipede's plates sink and roll over one after another
-  from the head (its own, in its pose); the toad slumps flat and rolls; the lizard rolls onto its side, legs drawn up; the
-  heron folds off its stilts and tips onto its chest; the roller tips onto its side; the root knot wilts and sinks; the
-  jelly deflates and drifts down; the moth folds its wings and spirals to the ground; the ray glides down banking; the
-  worm sinks back under the sand; the tripod and the bell walker buckle on their legs (the kit re-solves them under the
-  sinking body) and tip, venting; the cart grinds down and lists; the drone spins down; the brute drops to its knees and
-  falls on its face; the blot spreads into a puddle; the shade's cloak falls into an empty heap on its boots; the hound
-  drops and rolls over; the marionette's strings snap, its knot of smoke thins away and the puppet folds up where it
-  lands. Its eyes go out over the first half; dust where it lands, a machine's steam, a spirit's ink. **Then the smoke** (v1.39,
+  and the burst as before at the end (the ink, the tank's charge, the chimes, a machine's pieces). **Nothing ends on its
+  side** (v2.37, issue #767, the author: "No enemy should fall on their side when they die. Die animation should make
+  sense for the character"): one death a body (`DEATHS`), no recipe flips or rolls. Beasts on legs fold them and slump onto
+  their bellies, the head down: the crab (its claws laid forward on the sand, `plans/walker.js`; the killing blow's own
+  flip, `fight.down`, not played: one already on its back stays there), the skitters (legs curled under), the lizard and
+  the hound (legs splayed), the toad (its bellows empty, flat), the heron (off its stilts onto its belly, its neck down;
+  a toppled one comes back level, `plans/stilt.js`). The centipede's plates sink flat one after another from the head
+  (its own, in its pose). The roller settles on its shell; the root knot wilts forward and sinks; the worm goes back under
+  the sand. Flyers drop spiralling and land flat (the jelly deflates, the moth folds its wings, the ray, the drone, the
+  wisp, the oracle settling on its shell and tipping forward). Machines power down: the tripod and the bell walker buckle
+  on their legs (the kit re-solves them under the sinking body) and tip forward, venting; the cart settles on its tracks,
+  its crucible forward; the brute drops to its knees and falls on its face; the crawler's legs go limp and its dome comes
+  down flat. Spirits slump and empty: the blot into a puddle, the shade's cloak into a heap on its boots, the mummer's sack,
+  the marionette's strings snapping and the puppet folding where it lands. Humanoids ragdoll (below); past the cap they
+  sink to their knees and go over the way the blow pushed them (`topple.blow`: back when struck from in front, forward from
+  behind; `startDefeat`'s `fall`). A kit walker's body comes level across as its legs go limp (`Rig.update`, over 0.25 s:
+  its planted feet, left behind as the blow shoved it, tipped a skitter 28°). `tests/foe-deaths.test.js`: every archetype
+  has its death; no root tipped more than 25° onto a side going down, nor its body once the blow's own flinch is past; a
+  humanoid past the cap falls the way it was struck; a ragdoll lies within 50° of its front or its back.
+  Its eyes go out over the first half; dust where it lands, a machine's steam, a spirit's ink. **Then the smoke** (v1.39,
   `src/smoke-puff.js`): it lies `SMOKE.linger` (1 s) after its defeat, then shrinks away over `fade` (0.35 s) inside a small
   puff of ink-outlined pastel blobs (cream, lavender, a pale teal, a blush, and a pale tone of its own) that swell, rise and
   thin out, and it is removed (its model out of the scene). One instanced mesh for every puff (`SMOKE.max` 96 blobs, the
@@ -1181,7 +1191,7 @@ cm (20 at worst), shrinking where it lies (0.26 m at most, its pelvis's own drop
   its neck, a cheek to the ground), its hands at the wrist, its fingers and what hangs off it (a hem, a horn strapped to
   its back) each tried in a few turns against the ground's plane under its pelvis (three reads a frame), the first that
   keeps its drawn box out of the ground kept. A shield on its arm is let go with its weapon (`Foes.looseGrips`).
-- **On its back or its front** (`ROLL`, `rollFlat`): down on its side (its hips' line tipped over 22°), it turns
+- **On its back or its front** (`ROLL`, `rollFlat`, issue #767): down on its side (its hips' line tipped over 22°), it turns
   about its spine at up to 1 rad/s toward level, its upper hip and shoulder pushed over, for at most 0.9 s; 40 blows on the
   flat end within 22° but one (40°).
 - **Shrinks where it lies** (`anchorRagdoll`, at its puff): the model's origin moved to the ground under its pelvis, every
@@ -1193,8 +1203,8 @@ cm (20 at worst), shrinking where it lies (0.26 m at most, its pelvis's own drop
   `sleepAfter` s or after `maxSecs` 3.2 s; it keeps settling through the second it lies before its puff (`SMOKE.linger`).
 - **Cap**: at most `RAGDOLL.most` (4) stepping at once; any more, a spirit (the shade, `ragdoll: false`: its cloak falls empty), a
   floater (the oracle) or a burrower go down the old way.
-- **The kit's walkers** (the crawler, the lamp tripod, the skitter and the rest): their recipe still tips, rolls or flips the
-  body and their legs go limp (`Rig.goLimp`, src/motion-kit/limp.js: each foot a point under gravity, sliding to a stop on
+- **The kit's walkers** (the crawler, the lamp tripod, the skitter and the rest): their recipe sags or tips the body
+  (since #767 none rolls or flips it) and their legs go limp (`Rig.goLimp`, src/motion-kit/limp.js: each foot a point under gravity, sliding to a stop on
   the ground, held within its leg's reach of its hip; the IK bends the leg between), the recipe's curl left out.
 - Cost (node, this Mac at load ~25): a ragdoll's step 0.03-0.05 ms, laying it on the rig 0.01-0.08 ms, the hull's ground
   check while it moves 0.6-0.8 ms (held once it lies); four ragdolls and three recipes going down 2.4-2.9 ms a frame.
@@ -1214,8 +1224,14 @@ ground (restitution `bounce` 0.38 above `soft` 1.2 m/s, Coulomb friction μ 0.55
 face), a rocking slide and spin that die at `rest` 2.5/s, asleep once still 0.25 s. It holds on a 20° slope and slides down a
 40° one (tests/foe-debris.test.js, deterministic: the throw is the caller's, `throwFrom` with the foes' rng).
 
-- **A body broken** (`Foes.breakApart`: a machine's parts, glass, a shell, a drone; and since now a crawler's self-destruct,
-  `f.blast`): each part thrown out from its chest (`BREAK.fall` 2.6 m/s ± a third, 2.6 up, 1.6 along the killing blow, a
+- **Only machines and stone break** (v2.37, issue #773, the author: "Only mechanical and rock enemies should split into
+  chunks when dying. Not organic enemies"): what each archetype is made of is `MATTER` (debris.js: machine, stone, flesh,
+  plant, spirit; it agrees with the roster's `family`), and `breaksApart(f)` breaks only a machine or a stone body (none of
+  the archetypes is stone yet), or anything blown up (`f.blast`); an old kind or a guardian with no archetype keeps its
+  own `breaks`. The crab, the centipede, the moth and the root knot (their `def.breaks` now unread) lie whole and go up in
+  their puff; the crawler and the oracle now come apart like the other droids. tests/foe-debris.test.js: every archetype
+  classified; flesh lies whole, machines break.
+- **A body broken** (`Foes.breakApart`: a machine's parts; and a crawler's self-destruct, `f.blast`): each part thrown out from its chest (`BREAK.fall` 2.6 m/s ± a third, 2.6 up, 1.6 along the killing blow, a
   spin to 7 rad/s; the blast 7 m/s, 4.5 up, 14 rad/s), lying `BREAK.lie` 1.4 s once asleep (at most `life` 3.4 s), then
   shrinking away over `fade` 0.5 s. A skinned body's joints carry its skin (kept with them till the last piece goes). A
   clatter as a piece lands hard (two a frame at most). At most `DEBRIS.max` 48 flying: the oldest put to rest.

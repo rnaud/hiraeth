@@ -26,6 +26,27 @@ export const DEBRIS = {
   max: 48,            // pieces flying at once (the oldest put to sleep where it is past this)
 };
 
+// What each archetype's body is made of (issue #773, the author: "Only mechanical and rock enemies should split into
+// chunks when dying. Not organic enemies"): a machine's or a stone body's parts fly apart when it is done (Foes.burst,
+// breakApart); a body of flesh, a plant, a shell grown on a creature or a spirit never breaks apart: it goes down its own
+// way (src/enemies/defeat.js DEFEATS) and lies, then goes up in its puff. Every archetype is here
+// (tests/foe-debris.test.js). An old kind or a guardian with no archetype keeps its own `breaks` (src/foes.js FOES).
+export const MATTER = {
+  // machines: the makers' droids and engines
+  tripod: 'machine', cart: 'machine', bell: 'machine', drone: 'machine', brute: 'machine', fencer: 'machine',
+  sentinel: 'machine', oracle: 'machine', crawler: 'machine',
+  // creatures: flesh, chitin, shell and hide
+  crab: 'flesh', skitter: 'flesh', centipede: 'flesh', toad: 'flesh', lizard: 'flesh', heron: 'flesh', roller: 'flesh',
+  jelly: 'flesh', moth: 'flesh', ray: 'flesh', worm: 'flesh', grunt: 'flesh', hulk: 'flesh', prowler: 'flesh', warlord: 'flesh',
+  rootknot: 'plant',
+  // spirits: ink, smoke, cloth and ember, and the junk the mummers wear
+  blot: 'spirit', shade: 'spirit', hound: 'spirit', marionette: 'spirit', wisp: 'spirit', mummer: 'spirit', mummerking: 'spirit',
+};
+/** The kinds of matter that break into pieces (a stone body: none of the archetypes yet). */
+export const BREAKS = new Set(['machine', 'stone']);
+/** Whether a foe breaks into pieces when it is done: by its archetype's matter, else its own `breaks`; blown up, always. */
+export const breaksApart = (f) => !!f.blast || (MATTER[f.archetype] ? BREAKS.has(MATTER[f.archetype]) : !!f.def?.breaks);
+
 const _v = new THREE.Vector3(), _r = new THREE.Vector3(), _n = new THREE.Vector3(), _t = new THREE.Vector3(), _c = new THREE.Vector3();
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _m3 = new THREE.Matrix3(), _q = new THREE.Quaternion(), _w = new THREE.Vector3();
 const _box = new THREE.Box3(), _bb = new THREE.Box3(), _mw = new THREE.Matrix4(), _mm = new THREE.Matrix4(), _td = new THREE.Vector3();
