@@ -331,13 +331,20 @@ export const LAYOUTS = {
   // ball dropped, the key taken and turned in its door. A save that entered the house: taken to its last mark
   // v1.92 (#603): the gun antechamber and spring enlarged; the cistern moved back.
   // Existing visitors return to their named checkpoint with every earned item retained.
+  // v2.36 (issues #729, #730): the battery charged at the Givers' font in the Hall of the Flame, the gun on the Dry
+  // Channel's near ledge (the antechamber's before), its weight pushed onto the plate raising a bridge over the sand (the
+  // double jump and the carried weight before), the Hall of Channels' eye shot. Past the Hall of the Flame (its bowl lit):
+  // the font found. Past the Dry Channel (its door opened once, or anything after): the weight on its plate, the bridge up.
+  // A save that entered the house: taken to its last mark
   desert: {
-    v: 6,
+    v: 7,
     steps: [
       { if: ['lit.arM', 'open.dm', 'encounter=done', 'lit.bw0', 'drum.ball3', 'lit.b3', 'open.br1', 'found.guard', 'lit.sentry', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'drum.ballK': 1, 'found.kS': true, 'unlocked.dE': 1 } },
       { if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } },
       { if: ['open.dc', 'gadget', 'checkpoint=chest', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'boss', 'done'], set: { 'weight.wP': 'pp' } },
       { if: ['encounter=done', 'lit.bw0', 'drum.ball3', 'lit.b3', 'open.br1', 'found.guard', 'lit.sentry', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'boss', 'done'], set: { 'lit.arM': true, 'open.dm': true } },
+      { if: ['lit.b0', 'open.d1'], set: { 'found.font': true } },
+      { if: ['open.dc', 'weight.wP', 'gadget', 'checkpoint=chest', 'checkpoint=balcony', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'boss', 'done'], set: { 'drum.ballP': 1, 'open.brC': true, 'open.dc': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

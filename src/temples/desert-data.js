@@ -48,10 +48,9 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' }, { text: '~solemn~ A lamp. I’ll take a light in.', end: true }],
         },
         go: {
-          say: ["~happy~ Go *east of Qanat into the high dunes*. Look for the rose-stone drum. *Its door faces the city.*", "~whisper~ Bring fluid. Look for the Givers’ fire inside; the Keeper may need light as well as water.",
-            "~curious~ Grandmother swore the Givers left *their blade and their guard* in there. Past the watcher in its great hall, a chest holds their push gun.",
-            { if: { flag: 'tool.empty' }, text: "~curious~ Your battery’s empty. Find the water through the giant’s mouth beyond Qanat’s back gate first. You’ll need fluid inside the house." },
-            { if: { not: { flag: 'item.doublejump' } }, text: "~neutral~ They say the house’s old channel is a long jump wide. Longer than one jump, anyway." }],
+          say: ["~happy~ Go *east of Qanat into the high dunes*. Look for the rose-stone drum. *Its door faces the city.*", "~whisper~ Look for the Givers’ fire inside; the Keeper may need light as well as water.",
+            "~curious~ Grandmother swore the Givers left *their gun, their blade and their guard* in there.",
+            { if: { flag: 'tool.empty' }, text: "~curious~ Your battery’s empty? The Givers kept a font by their fire in there. Light it, and it fills." }],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {

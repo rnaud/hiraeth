@@ -124,7 +124,8 @@ const SAVES = [
     },
     journal: { stories: {}, seen: { desert: 1 } },
     known: ['desert', 'arzach', 'perdide'],
-    play: { world: 'desert', quests: ['desert.power'], stage: 'rise' },
+    // (v8, issues #729, #730: the roots' step is gone: on to the Rose House, its battery charged already)
+    play: { world: 'desert', quests: ['desert.power'], stage: 'rose' },
   },
   {
     // (its water had risen: the tree saw it burn then, so the spark-stone's errand is skipped)
@@ -132,7 +133,8 @@ const SAVES = [
     data: { flags: { 'prologue.done': true, 'quest.desert.power': 'fill', 'desert.jar.given': true, 'desert.speaker.heard': true, 'desert.cave.seen': true, 'desert.channel.open': true, 'item.jar': 1, 'quest.tracked': 'desert.power' }, keepsakes: [] },
     journal: { stories: {}, seen: { desert: 1 } },
     known: ['desert', 'arzach', 'perdide'],
-    play: { world: 'desert', quests: ['desert.power'], stage: 'fill' },
+    // (v8: the pool's step is gone; the tree burns, so on to the first of the Rose House's finds still missing, the gun)
+    play: { world: 'desert', quests: ['desert.power'], stage: 'gun' },
     after: (issue) => {
       if (!game.flag('desert.tree.lit')) issue('the tree it saw burn is cold');
       // hearth.seen now marks the shared Rose interior; visiting it for missing equipment is valid.
@@ -148,7 +150,7 @@ const SAVES = [
     play: { world: 'desert', quests: ['desert.power'], stage: 'elder' },
     after: (issue) => {
       if (!items.has('backpack')) issue('a save from before the items lost the backpack');
-      if (!items.has('doublejump')) issue('the old save skipped the valve needed to cross the Rose House');
+      if (!items.has('doublejump')) issue('the old save skipped the giant’s skull and its lift valve');
       if (!game.flag('temple.desert.done')) issue('the old save took the spring stone without reaching the Keeper');
       if (game.flag('tool.empty')) issue('its tank was emptied');
     },

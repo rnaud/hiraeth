@@ -512,6 +512,11 @@ carries on from there; the world is still done, and its keepsake given, when the
 
 ## The desert reworked: an empty battery, a cold tree, the spark-stone
 
+(v2.36, issues #729 and #730: the current chain is docs/design/desert-red-temple.md's. The battery fills at the Rose
+House's font, the gun, blade and guard come in that order in the house, the stone alone lights the tree, and the skull's
+cave is a little temple with monsters that keeps the lift valve. What follows is the history of the steps before.)
+
+
 (v1.38, the progression rewrite: docs/systems/progression.md. He comes with the sword alone; the chest's battery is dry
 with no makers' dregs; beside the pool a chest holds the lift valve, the double jump, stage `valve`; in the Hearth's
 hall a chest holds the fluid gun, stage `gun`, whose push rolls the stone ball. `filledText` names the gun's buttons

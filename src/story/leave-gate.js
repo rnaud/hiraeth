@@ -3,10 +3,10 @@
 // to leave without a sword and shield right now").
 //
 // Two worlds have them:
-//  - the desert: the backpack, the lift valve and the fluid gun (its main quest's three finds: the ship has no power
-//    before them, so they only ever gate a save brought in another way), and the Givers' blade and guard from the Rose
-//    House, off the main quest's line: without them no foe comes for him anywhere (src/foes.js armed()) and every
-//    temple's switches want the blade;
+//  - the desert: the battery, and since issues #729 and #730 everything else on its main quest's line: the fluid gun,
+//    the Givers' blade and guard from the Rose House (without them no foe comes for him anywhere, src/foes.js armed(),
+//    and every temple's switches want the blade), and the lift valve from the giant's skull, whose monsters want the
+//    blade (its step on the way back to the tree, before Qanat's gift: `quest`, so the gift waits for it too);
 //  - Vael: the fluid wings from the Aerie: Vael's tower, the City-Shaft's air pillars, the trials that are flown.
 // Every other world's temple gadget is the key to that temple's own rooms, and its gifts in the open are extras: none
 // of them is wanted past its world, so they leave whenever the traveller likes (docs/systems/progression.md, "Core
@@ -28,10 +28,10 @@ import { spoken } from './tone.js';
 export const CORE = {
   desert: [
     { item: 'backpack', name: 'the makers’ battery', where: 'Qanat' },
-    { item: 'doublejump', name: 'the lift valve', where: 'the giant’s cave' },
+    { item: 'gun', name: 'the fluid gun', where: 'the Rose House', quest: 'temple.desert' },
     { item: 'sword', name: 'the Givers’ blade', where: 'the Rose House', quest: 'temple.desert' },
     { item: 'shield', name: 'the Givers’ guard', where: 'the Rose House', quest: 'temple.desert' },
-    { item: 'gun', name: 'the fluid gun', where: 'the Rose House', quest: 'temple.desert' },
+    { item: 'doublejump', name: 'the lift valve', where: 'the giant’s skull', quest: 'desert.power' },
   ],
   arzach: [
     { item: 'glider', name: 'the fluid wings', where: 'the Aerie', plural: true, quest: 'temple.arzach' },

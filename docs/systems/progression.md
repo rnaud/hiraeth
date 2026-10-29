@@ -1,6 +1,33 @@
 # Progression: the route, the sword and the battery's strengths, the cab pass, Vael's bird
 
-## First planet: one House, after the race (v1.92, #603)
+## First planet: the red temple first, then the skull (v2.36, issues #729, #730)
+
+The current route (docs/design/desert-red-temple.md has the rooms and the lock-and-key chain): the chest under Qanat's
+tree gives the battery, **empty**; Nour names the spark-stone and the Rose House. The house is walked into with
+nothing else (no race, no double jump: `carriedInto('desert')` is the backpack alone, src/temple-maps/makers.js). Its
+Hall of the Flame's bowl, lit by a ball leaned through the pilot flame, wakes the **Givers' font**, which charges the
+battery (`desert.battery.charged`, the giant's colour the first time); then the **gun** on the Dry Channel's ledge
+(its chest shut until the battery is full: src/boxes/placements.js `desert.gun`), whose push rolls the Givers' weight
+onto its plate there and raises the bridge over the sand; the **blade** on the balcony; the **guard** over the fire
+bridge; the watcher, the Keeper, and the spark-stone in the spring room's cage. On the way back the **giant's skull**, a little
+temple with monsters (its makers' shrine opens when its two grunts and two prowlers are down: src/encounters/ kind
+`hall`), holds the **lift valve**; the skull's mouth lets you down only with the blade, and its keepers' stair comes up by
+the tree. The stone alone lights the tree (it calls the water up with it). The ship won't leave without the lift valve (src/story/leave-gate.js, its `quest`
+the main quest's, so Qanat's gift waits for it too). The hoverbike's race is Marrow's side errand (`needs: ['gun']`).
+
+| what | where now | before |
+|---|---|---|
+| the battery's charge | the Givers' font, the Rose House's Hall of the Flame | the giant's pool |
+| the fluid gun | the Rose House's Dry Channel, first | the Rose House's antechamber, after the guard |
+| the blade, the guard | the Rose House, after the gun | the same rooms, first |
+| the spark-stone | the Rose House's spring room | the same |
+| the lift valve | the giant's skull, its monsters down, after the Rose House | the same shrine, a full battery, before the Rose House |
+
+Saves: `desert.quest.v` 8 (src/story/desert.js `migrateRedTemple`): a gone stage goes to `rose`, a blade or guard step
+without the gun to `gun`, a battery filled before is charged; the Rose House's layout 7 (src/temples/migrate.js) marks
+the font found past its bowl and the weight on its plate, the bridge up, past the Dry Channel.
+
+## First planet: one House, after the race (v1.92, #603; superseded by v2.36 above)
 
 The fresh main route fills the battery at Qanat, earns the lift valve, then wins
 Kamal's hoverbike at the red-rag hollow before entering the Rose House. The same

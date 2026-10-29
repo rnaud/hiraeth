@@ -6,7 +6,7 @@ import { DESERT_TEMPLE, LOGIC } from '../src/temples/desert.js';
 import { migrateTemples } from '../src/temples/migrate.js';
 import { Physics } from '../src/physics.js';
 import { TempleRuntime } from '../src/temples/runtime.js';
-import { roseReady, migrateRoseRoute } from '../src/story/desert-rose.js';
+import { migrateRoseRoute } from '../src/story/desert-rose.js';
 import { QUESTS } from '../src/story/desert-data.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
 import { setupRoseSpark } from '../src/story/desert-spark.js';
@@ -23,29 +23,35 @@ function house(flags = {}) {
   return { game, rt, scene };
 }
 
-test('fresh Rose route earns blade, guard and gun in order, then opens the spark cage without an imported weapon', () => {
+test('fresh Rose route (issue #729): the font charges the battery, then the gun, the blade and the guard in order, then the spark cage, with nothing but the empty battery carried in', () => {
   for (const reverse of [false, true]) {
-    const r = solve(LOGIC, { items: ['backpack', 'doublejump'], reverse });
+    const r = solve(LOGIC, { items: ['backpack'], reverse });
     assert.equal(r.done, true, r.stuck?.join(','));
-    const steps = ['take chest (sword)', 'find guard (shield)', 'find gun (gun)', 'resolve keeper', 'roll sparkBall onto sparkPlate'];
+    const steps = ['brazier b0', 'find font', 'find gun (gun)', 'roll ballP onto pp', 'take chest (sword)', 'find guard (shield)', 'switch sentry', 'resolve keeper', 'roll sparkBall onto sparkPlate'];
     const indices = steps.map(s => r.log.indexOf(s));
     assert.ok(indices.every((v, i) => v >= 0 && (!i || v > indices[i - 1])), r.log.join('\n'));
     assert.equal(r.logic.isOpen('sparkGate'), true);
   }
-  for (const missing of ['sword', 'shield', 'gun']) {
-    const r = solve(LOGIC, { items: ['backpack', 'doublejump'], withhold: [missing] });
-    assert.equal(r.logic.isOpen('sparkGate'), false, `${missing} cannot be skipped`);
+  // each new thing is used in the next room: the gun on the Dry Channel's weight before the blade; the blade on the
+  // balcony's ball before the key; the guard on the watcher before the cistern
+  const r = solve(LOGIC, { items: ['backpack'] });
+  assert.equal(r.log.indexOf('roll ballP onto pp'), r.log.indexOf('find gun (gun)') + 1, 'the gun pushes the weight at once');
+  assert.ok(r.log.indexOf('roll ballK onto pK') > r.log.indexOf('take chest (sword)'));
+  for (const missing of ['gun', 'sword', 'shield']) {
+    const w = solve(LOGIC, { items: ['backpack'], withhold: [missing] });
+    assert.equal(w.logic.isOpen('sparkGate'), false, `${missing} cannot be skipped`);
   }
+  // nothing in the house wants the double jump any more (it comes after, from the giant's skull: issue #730)
+  assert.ok(!LOGIC.links.some((l) => (l.needs ?? []).includes('doublejump')) && !Object.values(LOGIC.elements).some((e) => (e.needs ?? []).includes('doublejump')));
+  // the gun's chest waits for the font
+  const L = solve(LOGIC, { items: ['backpack'], forbid: ['font'] });
+  assert.equal(L.logic.isFound('gun'), false, 'no gun before the battery is full');
 });
 
-test('race entry and old-save migration preserve earned equipment without awarding a fresh bike', () => {
-  const fresh = state({ 'quest.desert.power': 'spark' });
-  migrateRoseRoute(fresh, 6); assert.equal(roseReady(fresh), false);
-  assert.equal(fresh.flag('desert.bike.found'), undefined);
-  for (const earned of ['desert.bike.found', 'desert.bike.race.won']) assert.equal(roseReady(state({ [earned]: true })), true);
+test('old-save migration of the Rose route keeps earned equipment without awarding a fresh bike', () => {
   for (const earned of ['item.sword', 'item.shield', 'item.gun', 'temple.desert.entered', 'desert.stone.taken', 'ship.powered']) {
     const old = state({ [earned]: true, 'quest.desert.power': 'gear' });
-    assert.equal(migrateRoseRoute(old, 6), 'blade'); assert.equal(roseReady(old), true);
+    assert.equal(migrateRoseRoute(old, 6), 'blade');
     assert.equal(old.flag(earned), true); assert.equal(old.flag('desert.bike.found'), undefined);
   }
   const old = state({ 'quest.desert.power': 'hearth', 'item.gun': true, 'desert.hearth.open': true });
@@ -55,14 +61,31 @@ test('race entry and old-save migration preserve earned equipment without awardi
 
 test('quest and chest placements point inside one House and retain all saved box identifiers', () => {
   const stages = QUESTS.find(q => q.id === 'desert.power').stages.map(s => s.id);
-  assert.deepEqual(stages.slice(stages.indexOf('bike'), stages.indexOf('light')), ['bike', 'rose', 'blade', 'guard', 'gun', 'stone']);
-  assert.ok(!stages.includes('hearth'));
+  assert.deepEqual(stages.slice(stages.indexOf('rose'), stages.indexOf('light')), ['rose', 'charge', 'gun', 'blade', 'guard', 'stone', 'skull']);
+  assert.ok(!stages.includes('hearth') && !stages.includes('bike'));
   const { rt } = house();
   const gun = PLACEMENTS.desert.find(p => p.id === 'desert.gun');
   assert.equal(gun.temple, 'desert'); assert.deepEqual(gun.site({ temple: rt }).at, rt.findSites.gun.at);
-  assert.equal(gun.ready(state()), false); assert.equal(gun.ready(state({ 'item.shield': true })), true);
+  assert.equal(gun.ready(state()), false); assert.equal(gun.ready(state({ 'desert.battery.charged': true })), true);
+  assert.equal(gun.ready(state({ 'temple.desert.found.font': true })), true);
   assert.ok(rt.roseSpark.refills.every(p => rt.inside(p)), 'both renewable basins belong to the House');
-  assert.ok(rt.roseSpark.refills[0].distanceTo(new THREE.Vector3(...rt.findSites.gun.at)) < 8, 'refill before guardian at the gun');
+  assert.ok(rt.inside(new THREE.Vector3(...rt.findSites.gun.at)) && rt.inside(rt.font.at), 'the gun and the font inside');
+  // the gun's chest on the Dry Channel's near ledge, a few steps from the weight it pushes
+  const ball = rt.byId.get('ballP');
+  assert.ok(ball.center.distanceTo(new THREE.Vector3(...rt.findSites.gun.at)) < 22);
+  rt.dispose();
+});
+
+test('the Dry Channel (issue #729): the Givers’ weight rolls only to the gun’s push, onto its plate, and the bridge over the sand rises', () => {
+  const { rt, game } = house({ 'item.backpack': true });
+  const ball = rt.byId.get('ballP');
+  ball.hit('push', ball.dir); ball.hit('blade', ball.dir);
+  for (let i = 0; i < 60; i++) ball.update(1 / 60, i / 60);
+  assert.equal(ball.t, 0, 'no gun, no roll');
+  game.set('item.gun', true);
+  for (let i = 0; i < 900 && !rt.logic.isOpen('brC'); i++) { if (i === 0) ball.hit('push', ball.dir, { strength: 0.8 }); ball.update(1 / 60, i / 60); rt.logic.update(); }
+  assert.equal(rt.logic.isOpen('brC'), true, `the bridge is up (the weight at ${ball.t.toFixed(2)})`);
+  assert.equal(rt.logic.isOpen('dc'), true, 'and the gallery’s door open');
   rt.dispose();
 });
 
@@ -115,7 +138,7 @@ test('new gun aisle and spark room have continuous walking floors and clear head
 test('a pre-consolidation visitor is relocated once and keeps the gun chest already earned outside', () => {
   const old = state({ 'temple.desert.layout': 5, 'temple.desert.entered': true, 'temple.desert.checkpoint': 'cistern', 'temple.desert.relaid': null, 'item.gun': 1, 'desert.stone.taken': true });
   migrateTemples(old);
-  assert.equal(old.flag('temple.desert.layout'), 6);
+  assert.equal(old.flag('temple.desert.layout'), 7);
   assert.equal(old.flag('temple.desert.relaid'), true);
   assert.equal(old.flag('temple.desert.checkpoint'), 'cistern');
   assert.equal(old.flag('box.desert.gun'), true);
@@ -126,4 +149,24 @@ test('a pre-consolidation visitor is relocated once and keeps the gun chest alre
   const fresh = state(); migrateTemples(fresh);
   assert.equal(fresh.flag('temple.desert.relaid'), undefined);
   assert.equal(fresh.flag('box.desert.gun'), undefined);
+});
+
+test('a save inside the Rose House before issue #729 keeps its way: past the bowl the font is found, past the Dry Channel the weight is on its plate and the bridge up', () => {
+  const past = state({ 'temple.desert.layout': 6, 'temple.desert.entered': true, 'temple.desert.lit.b0': true, 'temple.desert.open.d1': true, 'temple.desert.open.dc': true, 'temple.desert.weight.wP': 'pp', 'temple.desert.gadget': true });
+  migrateTemples(past);
+  assert.equal(past.flag('temple.desert.layout'), 7);
+  assert.equal(past.flag('temple.desert.found.font'), true);
+  assert.equal(past.flag('temple.desert.drum.ballP'), 1);
+  assert.equal(past.flag('temple.desert.open.brC'), true);
+  const { rt } = house(past.data);
+  assert.ok(rt.logic.isOpen('brC') && rt.logic.isOpen('dc') && rt.logic.drumOn('ballP', 'pp'), 'the bridge up, the door open, the weight on its plate');
+  rt.dispose();
+  // only at the bowl: the font found, the Dry Channel as it is
+  const half = state({ 'temple.desert.layout': 6, 'temple.desert.entered': true, 'temple.desert.lit.b0': true });
+  migrateTemples(half);
+  assert.equal(half.flag('temple.desert.found.font'), true);
+  assert.equal(half.flag('temple.desert.drum.ballP'), undefined);
+  // never inside: nothing set
+  const fresh = state({ 'temple.desert.layout': 6 }); migrateTemples(fresh);
+  assert.equal(fresh.flag('temple.desert.found.font'), undefined);
 });

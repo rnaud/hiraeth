@@ -4,7 +4,7 @@
 // in the real level geometry, pushing, riding, climbing, lighting, calming.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PIER, ROOMS, FIRES, WING, XW, XE, XC, DROP } from '../src/temples/desert.js';
+import { ROOMS, FIRES, WING, XW, XE, XC, DROP, WEIGHT } from '../src/temples/desert.js';
 import { CARRY } from '../src/carry.js';
 import { keyText } from '../src/prompt-keys.js';
 import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them, src/finds/courts.js)
@@ -1245,9 +1245,9 @@ test('a temple door is solid until it opens, and the doorway is free after', () 
 });
 
 // ------------------------------------------------------------------ on foot: the desert temple, room by room
-test('the Rose House on foot, with nothing in hand (issue #406: round its Great Hall): the east door locked, the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, up onto the balcony, the blade, the ball cut into the hole onto the plate below and the small key’s cage sunk, the drop to the floor, the key in the east door, the Machines’ Hall’s doors held while its machines stand, the thorns cut, the ball too slow by hand and in time when cut, the guard, the eye struck and the relay, the keepers’ door, back to the hall: the watcher’s bolt sent back and the cistern’s door, the Keeper helped through the Cistern game, its return and the spring’s cage, out', () => {
+test('the Rose House on foot, with nothing but the empty battery (issues #406, #729: round its Great Hall): the east door locked, the ball leaned on through the pilot flame into the hooded bowl and the Givers’ font risen, the gun on the Dry Channel’s ledge and its push rolling the weight onto its plate, the bridge over the sand, up onto the balcony, the blade, the ball cut into the hole onto the plate below and the small key’s cage sunk, the drop to the floor, the key in the east door, the Machines’ Hall’s doors held while its machines stand, the thorns cut, the ball too slow by hand and in time when cut, the guard, the eye shot and the relay, the keepers’ door, back to the hall: the watcher’s bolt sent back and the cistern’s door, the Keeper helped through the Cistern game, its return and the spring’s cage, out', () => {
   game.reset();
-  own('backpack', 'doublejump');
+  own('backpack');
   const { level, physics, rt } = world('desert');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
   const notes = [];
@@ -1321,69 +1321,42 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true, 'and the door opens');
 
-  // ---- the Dry Channel: the pier in the sand, a double jump either side; one jump falls short, into the sand
+  // ---- the Givers' font (issue #729): the bowl lit, living water rises beside it; the battery fills there (its prompt is
+  // the story's: tests/desert-story.test.js)
+  wait(3.5);
+  assert.ok(rt.font.water.visible && rt.font.k > 0.9, 'living water stands in the font');
+  assert.equal(rt.logic.next(), 'font', 'the font is next');
+  assert.ok(nextSpot(rt).distanceTo(rt.font.at) < 0.5, 'the marker on it');
+  assert.equal(rt.logic.find('font'), true);
+  game.set('desert.battery.charged', true);
+
+  // ---- the Dry Channel (issue #729): the Givers' gun on the near ledge; the Givers' weight rolls only to its push, onto its
+  // plate, and the bridge rises over the sand (the double jump and the carried weight before); one step off falls in
   const CH = ROOMS.channel;
   assert.equal(walk(L(XW + 3, 0, 53)), true, `to the door (${where()})`);
   assert.equal(walk(L(XW + 2, 0, 57)), true, `through the door (${where()})`);
   assert.equal(walk(L(XW - 6.5, 0, 57.8)), true, `by the channel's mark (${where()})`);
   wait(0.3);
   assert.equal(rt.checkpoint?.room, 'channel', 'the mark takes you');
-  assert.equal(walk(L(XW + 1.5, 0, 59)), true, `to the ledge's lip (${where()})`);
-  items.revoke('doublejump');
-  leap([XW + 1.5, 0, PIER.z], { edge: CH.ledge });
-  assert.ok(said(/climb back out of the sand/) && Math.abs(lz(P.pos) - 58.5) < 2, `one jump falls short, into the pit, and you are back at the mark (${where()})`);
-  items.grant('doublejump');
-  assert.equal(rt.logic.isOpen('dc'), false, 'the chamber’s door at the top of the gallery is shut');
-  assert.equal(walk(L(XW + 1.5, 0, 59.5)), true, `back to the ledge (${where()})`);
-  leap([XW + 1.5, 0, PIER.z], { edge: CH.ledge });
-  assert.ok(P.onGround && Math.abs(lz(P.pos) - PIER.z) < 2 && rt.kit.local(P.pos).y > -0.2, `the double jump lands on the pier (${where()})`);
-  walk(L(XW + 1.5, 0, PIER.z), { tol: 0.3, max: 3 });
-  wait(0.5);
-  assert.equal(rt.logic.isOpen('dc'), true, 'stood on, the plate on the pier’s head opens the chamber’s door at the top of the gallery');
-  // ---- the Givers' weight (issue #337): off the plate the door shuts again; the weight carried onto it holds it open
-  const wP = rt.piece('wP');
-  walk(L(PIER.weight + 1.25, 0, PIER.z), { tol: 0.25, max: 4, run: false });
-  wait(1.2);
-  assert.equal(rt.logic.isOpen('dc'), false, 'stepped off, the door shuts again');
-  assert.ok(said(/Something heavier must hold it down/), 'and the house says it wants a weight');
-  assert.equal(rt.logic.next(), 'wP', 'the next thing: the weight');
-  assert.ok(nextSpot(rt).distanceTo(wP.prop.pos) < 1e-6, 'the marker points at it');
-  const pick = bestInteractable(P);
-  assert.equal(pick?.entry.id, 'carry.temple.desert.wP', `beside the Givers' weight, the use button picks it up (${pick?.entry.id})`);
-  assert.match(pick.entry.prompt(), /^pick up the Givers’ weight$/);
-  pick.entry.use(P);
-  wait(0.5);
-  assert.equal(P.carrying?.thing, wP.prop, 'in both hands');
-  assert.equal(wP.prop.held?.carry, true, 'held by them: it weighs nothing on a plate meanwhile');
-  // carried: a slower walk, and a hop for a jump (no double jump)
-  const x0 = P.pos.clone();
-  for (let i = 0; i < 0.8 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, toward(L(XW + 4, 0, PIER.z)));
-  const sp = Math.hypot(P.pos.x - x0.x, P.pos.z - x0.z) / 0.8;
-  assert.ok(sp < 3.8 * CARRY.speed + 0.2, `a slower walk, no sprint (${sp.toFixed(2)} m/s)`);
-  const y0 = P.pos.y;
-  let top = y0;
-  frame({ Space: true });
-  for (let i = 0; i < 0.25 / DT; i++) { frame(); top = Math.max(top, P.pos.y); }
-  frame({ Space: true });
-  for (let i = 0; i < 1 / DT; i++) { frame(); top = Math.max(top, P.pos.y); }
-  assert.ok(top - y0 > 0.2 && top - y0 < 1.0, `a hop, and no double jump (${(top - y0).toFixed(2)} m up)`);
-  assert.equal(P.carrying?.thing, wP.prop, 'still carried');
-  walk(L(XW + 1.5 - (CARRY.put + wP.size / 2 + 0.05), 0, PIER.z), { tol: 0.2, max: 6, run: false });
-  wait(0.3);
-  const put = bestInteractable(P);
-  assert.equal(put?.entry.id, 'carry.put', 'carrying, the use button puts it down');
-  assert.match(put.entry.prompt(), /set it on the plate/, 'by the plate: on it');
-  put.entry.use(P);
-  wait(1.2);
-  assert.equal(P.carrying, null, 'put down');
-  assert.equal(rt.logic.weightOn('wP'), 'pp', `on the plate (${rt.kit.local(wP.prop.pos).toArray().map((v) => v.toFixed(2))})`);
-  assert.equal(rt.logic.isOpen('dc'), true, 'the weight holds the door open');
-  assert.equal(game.flag('temple.desert.weight.wP'), 'pp', 'and the save keeps it there');
-  walk(L(XW + 0.2, 0, PIER.z - 1.35), { tol: 0.4, max: 3 });
-  walk(L(XW + 1.5, 0, PIER.z - 1.45), { tol: 0.4, max: 3 });
-  assert.equal(rt.logic.isOpen('dc'), true, 'still open with him off it');
-  leap([XW + 1.5, 0, CH.landing + 3], { edge: PIER.z + PIER.d / 2 + 0.15 });
-  assert.ok(P.onGround && lz(P.pos) > CH.landing && rt.kit.local(P.pos).y > -0.2, `and again onto the far landing (${where()})`);
+  assert.equal(rt.logic.next(), 'gun', 'the gun’s chest is next');
+  assert.equal(walk(L(WEIGHT.gun[0] - 2.4, 0, WEIGHT.gun[1]), { tol: 0.6 }), true, `before the gun’s chest (${where()})`);
+  items.grant('gun'); game.set('box.desert.gun', true); game.emit('box:opened', { id: 'desert.gun', item: 'gun' });
+  assert.equal(rt.logic.isFound('gun'), true);
+  assert.equal(rt.logic.next(), 'ballP', 'then the Givers’ weight');
+  assert.equal(rt.logic.isOpen('brC'), false, 'the bridge down in the sand');
+  const ballP = rt.piece('ballP');
+  assert.equal(walk(L(WEIGHT.x0 - 2.4, 0, WEIGHT.z - 0.4), { tol: 0.5 }), true, `behind the weight (${where()})`);
+  ballP.hit('blade', ballP.dir.clone());
+  wait(0.6);
+  assert.equal(ballP.t, 0, 'no cut moves it');
+  ballP.hit('push', ballP.dir.clone(), { strength: 0.7 });
+  for (let i = 0; i < 8 / DT && !rt.logic.isOpen('brC'); i++) frame();
+  assert.equal(rt.logic.drumOn('ballP', 'pp'), true, `pushed by the gun, it rolls onto its plate (t ${ballP.t.toFixed(2)})`);
+  assert.ok(rt.logic.isOpen('brC') && rt.logic.isOpen('dc'), 'the bridge rises and the gallery’s door opens');
+  wait(3);
+  assert.equal(walk(L(WEIGHT.bridge, 0, CH.ledge - 1.2), { max: 12 }), true, `to the bridge’s foot (${where()})`);
+  assert.equal(walk(L(WEIGHT.bridge, 0, CH.landing + 2), { max: 12 }), true, `over the bridge (${where()})`);
+  assert.ok(P.onGround && rt.kit.local(P.pos).y > -0.2, `on the far landing, not in the sand (${where()})`);
   let climbed = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(XW, 7, 96))); if (P.onGround && rt.kit.local(P.pos).y > 6.5) { climbed = true; break; } }
   assert.ok(climbed, `up the gallery's wall (${where()})`);
@@ -1487,11 +1460,9 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   assert.ok(said(/fire waits under a stone lid/), 'gone out with the relay shut, it says where the fire is (issue #311)');
   for (let i = 0; i < 25 / DT && !ball4.rest; i++) frame();
   const e10 = rt.piece('e10');
+  assert.ok(rt.kit.local(e10.center).y > 6, 'the eye high on the obelisk, out of the blade’s reach');
   e10.hit('shoot');
-  assert.equal(rt.logic.isLit('e10'), false, 'the eye wants striking, not wetting');
-  assert.ok(said(/it wants striking/));
-  e10.hit('blade');
-  assert.equal(rt.logic.isLit('e10'), true, 'struck, it wakes');
+  assert.equal(rt.logic.isLit('e10'), true, 'a shot of the gun’s water from the floor wakes it (issue #729: struck from a double jump before)');
   wait(2.5);
   assert.equal(rt.logic.isOpen('sc'), true, 'the keepers’ door opens: the way back to the Hall of Fires');
   // (cut again from where it came to rest, cold, part-way back up the hall: no putting it back by hand, issue #311)
@@ -1540,9 +1511,7 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   wait(0.3);
   assert.equal(rt.checkpoint?.room, 'ante', 'the antechamber’s mark: the guardian’s checkpoint, a few steps from its door');
 
-  assert.equal(walk(L(1.6, 0, ROOMS.hall.z1 + 12), { run: false }), true, 'walk to the gun mound');
-  items.grant('gun'); game.set('box.desert.gun', true); game.emit('box:opened', { id: 'desert.gun', item: 'gun' });
-  assert.ok(items.has('gun'), 'the third weapon is earned before the Keeper');
+  assert.ok(items.has('gun') && items.has('sword') && items.has('shield'), 'all three earned before the Keeper');
 
   // ---- the Cistern: cross its actual doorway on foot, finish its opening, then return an explicit
   // completed-game result through the shared host contract. Actual game inputs and
@@ -1871,18 +1840,17 @@ test('a save from the Footprint before issues #336 and #401: its state as it was
   own();
 });
 
-test('the Rose House is solved with the backpack and the double jump, blade, guard and gun found inside in order; the spring needs the earned gun', () => {
+test('the Rose House is solved with the empty battery alone (issue #729): the font, then the gun, the blade and the guard found inside in order; the spring needs the earned gun', () => {
   const L = TEMPLES.desert.def.logic;
-  const r = solve(L, { items: ['backpack', 'doublejump'] });
+  const r = solve(L, { items: ['backpack'] });
   assert.equal(r.done, true, r.log.join(' / '));
-  assert.ok(r.log.indexOf('take chest (sword)') > 1 && r.log.indexOf('find guard (shield)') > r.log.indexOf('take chest (sword)'), 'the blade half-way, the guard after it');
-  assert.equal(solve(L, { items: ['backpack'] }).done, false, 'the pier wants the double jump');
-  assert.ok(!solve(L, { items: ['backpack', 'doublejump'], withhold: ['shield'] }).stuck.includes('ante'), 'the watcher before the cistern’s door wants the guard');
-  assert.equal(L.elements.keeper.needs.includes('shield') && L.elements.keeper.needs.includes('sword'), true, 'the Keeper asks for both');
-  assert.ok(r.log.indexOf('find gun (gun)') > r.log.indexOf('find guard (shield)'), 'the gun follows the guard');
-  assert.ok(L.elements.sparkBall.needs.includes('gun'), 'the spring teaches its push');
-  assert.equal(solve(L, { items: ['backpack', 'doublejump'], withhold: ['gun'] }).logic.isOpen('sparkGate'), false);
-  for (const [id, e] of Object.entries(L.elements)) assert.ok(!(e.needs ?? []).some((n) => ['fire', 'stun', 'bloom'].includes(n)), `${id}: no later-world gun mode`);
+  const at = (s) => r.log.indexOf(s);
+  assert.ok(at('find font') > 0 && at('find gun (gun)') > at('find font') && at('take chest (sword)') > at('find gun (gun)') && at('find guard (shield)') > at('take chest (sword)'), 'the font, the gun, the blade, the guard');
+  assert.ok(!solve(L, { items: ['backpack'], withhold: ['shield'] }).stuck.includes('ante'), 'the watcher before the cistern’s door wants the guard');
+  assert.equal(L.elements.keeper.needs.includes('shield') && L.elements.keeper.needs.includes('sword') && L.elements.keeper.needs.includes('gun'), true, 'the Keeper asks for all three');
+  assert.ok(L.elements.sparkBall.needs.includes('gun') && L.elements.ballP.needs.includes('gun') && L.elements.e10.needs.includes('gun'), 'the gun taught on the weight, tested on the eye, twisted in the spring');
+  assert.equal(solve(L, { items: ['backpack'], withhold: ['gun'] }).logic.isOpen('sparkGate'), false);
+  for (const [id, e] of Object.entries(L.elements)) assert.ok(!(e.needs ?? []).some((n) => ['fire', 'stun', 'bloom', 'doublejump'].includes(n)), `${id}: no later-world gun mode, no double jump`);
 });
 
 // (the Warden's Well on foot, round its Well and its breath since issue #413: tests/wardens-well.test.js)

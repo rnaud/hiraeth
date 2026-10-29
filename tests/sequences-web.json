@@ -1,6 +1,6 @@
 {
-  "recorded": "2026-10-27",
-  "sha": "124ef48f5",
+  "recorded": "2026-10-29",
+  "sha": "a9bc2585e",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -4737,7 +4737,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1543,
+            "ink": 1558,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4768,7 +4768,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1549,
+            "ink": 1572,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4797,7 +4797,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1476,
+            "ink": 1480,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4858,7 +4858,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1561,
+            "ink": 1547,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4890,7 +4890,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1539,
+            "ink": 1525,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4899,7 +4899,7 @@
             "mote": 2
           },
           "cam": [
-            150.6,
+            150.5,
             2401.9,
             -248.4,
             55
@@ -4922,7 +4922,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1558,
+            "ink": 1541,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4954,7 +4954,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1530,
+            "ink": 1529,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -4963,13 +4963,13 @@
           "cam": [
             108.1,
             2401.9,
-            -192.4,
+            -188.1,
             55
           ],
           "player": [
             108.8,
             2400,
-            -189.8
+            -185.5
           ],
           "late": false
         }

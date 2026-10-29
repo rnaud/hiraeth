@@ -63,14 +63,16 @@ export const PLACEMENTS = {
     // it; issue #68: shut and silent until the pool has filled your tank, `ready`; issue #156: in the makers' shrine, a mini
     // temple west of the pool, behind a door the full tank opens, so no shut chest stands in sight)
     { id: 'desert.lift', item: 'doublejump', site: (level) => level.qanat?.cave?.chest && { at: level.qanat.cave.chest.at.toArray(), face: level.qanat.cave.chest.face }, story: true,
-      // (behind the makers' shrine's door, which a full tank opens: issue #156; it waits shut until the door is open)
+      // (behind the makers' shrine's door, which opens once the cave's monsters are down (issue #730; a full tank before,
+      // issue #156); it waits shut until the door is open)
       ready: (g, it) => it.has('backpack') && !!g.flag('desert.door.open'),
       sealed: 'The makers’ chest sits shut and silent on its dais.',
-      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), in the makers’ shrine west of the pool, on a dais in a shaft of light. A full battery opens the shrine’s door.' },
-    // The same saved gun chest now follows the shield watcher inside the Rose House.
+      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), in the makers’ shrine west of the pool, on a dais in a shaft of light. The shrine’s door opens once the monsters in the cave are down.' },
+    // (issue #729: the Givers' gun on the Dry Channel's near ledge in the Rose House, its chest shut until the battery is
+    // full at the font beside the Hall of the Flame's bowl; its push rolls the weight there at once)
     { id: 'desert.gun', item: 'gun', temple: 'desert', site: findSite('desert', 'gun'),
-      ready: g => !!g.flag('item.shield'), sealed: 'The chest waits for the Givers’ guard.',
-      note: 'Inside the Rose House, beyond the watcher’s shield gate, before the cistern. Its push releases the spark-stone in the spring room.' },
+      ready: g => !!g.flag('desert.battery.charged') || !!g.flag('temple.desert.found.font'), sealed: 'The chest waits for a full battery: fill it at the font by the Givers’ bowl.',
+      note: 'Inside the Rose House, on the Dry Channel’s near ledge past the Hall of the Flame. Its push rolls the Givers’ weight onto its plate there.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     // (issue #518: two cold braziers beside it, lit with the fluid gun's ember, which comes with the gun in the Rose House)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330], lock: { tool: 'ember' },
@@ -80,7 +82,7 @@ export const PLACEMENTS = {
     // blade, the key to the rest (the thorns, the balls a cut sends far, the eye, the Keeper's spokes); on the Hall of
     // Fires' far landing their guard, for their watcher's bolt (issue #245) and the Keeper's charge. (Ember mode was here before: it comes with the gun now.)
     { id: 'desert.temple.sword', item: 'sword', temple: 'desert', site: templeSite('desert'),
-      note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
+      note: 'Inside the rose-stone house in the eastern dunes, on the Great Hall’s balcony past the Dry Channel’s bridge.' },
     { id: 'desert.temple.shield', item: 'shield', temple: 'desert', site: findSite('desert', 'guard'),
       ready: g => !!g.flag('item.sword'), sealed: 'Find the Givers’ blade on the Great Hall’s balcony first.',
       note: 'Inside the rose-stone house in the eastern dunes, in the Watcher’s Hall over the Hall of Fires’ bridge.' },

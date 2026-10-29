@@ -92,7 +92,7 @@ test('Vael: the critical path passes over the wings’ last step once the route 
     const roots = path.findIndex(s => s.label === 'The tree’s roots');
     assert.ok(house >= 0 && roots > house, 'Rose entry remains on the outdoor route before lighting');
     const stages = D.quests.def('desert.power').stages;
-    assert.deepEqual(stages.slice(stages.findIndex(s => s.id === 'blade'), stages.findIndex(s => s.id === 'light')).map(s => s.id), ['blade', 'guard', 'gun', 'stone']);
+    assert.deepEqual(stages.slice(stages.findIndex(s => s.id === 'gun'), stages.findIndex(s => s.id === 'light')).map(s => s.id), ['gun', 'blade', 'guard', 'stone', 'skull']);   // (issues #729, #730)
     for (const id of ['blade', 'guard', 'gun']) {
       const step = stages.find(s => s.id === id);
       assert.equal(step.at, 'temple.desert.next', `${id} follows reachable House work`);

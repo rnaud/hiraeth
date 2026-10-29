@@ -64,7 +64,7 @@ test('calm eyes: on the speaker whenever they are in reach; otherwise fewer, sma
 
 // (cut down after the author's playthrough, October 2026: issue #62, short; #61, every answer follows from what was
 //  just said, nobody asks "who are the Givers?" before she names them; #63, she points you at the skull herself)
-test('Nour, the chest open: short, each answer follows from her words, and she points you at the skull', () => {
+test('Nour, the chest open: short, each answer follows from her words, and she names the Rose House (issue #729)', () => {
   const game = new GameState(memory()), quests = new Quests({ game });
   game.set('item.backpack', 1); game.set('tool.empty', true);
   const r = new DialogueRunner(PEOPLE.nour, { game, quests });
@@ -76,18 +76,19 @@ test('Nour, the chest open: short, each answer follows from her words, and she p
   r.choose(r.choices().find((c) => /no power/.test(c.text)).index);
   assert.equal(r.nodeId, 'power');
   while (!r.lastPage) r.advance();
-  assert.match(r.pages.join(' '), /Stand in the water/);
-  assert.match(r.pages.join(' '), /marked skull, past the back gate/);
+  assert.match(r.pages.join(' '), /spark-stone/);
+  assert.match(r.pages.join(' '), /Rose House, east of Qanat/);
+  assert.match(r.pages.join(' '), /font/, 'where the battery fills');
   assert.equal(game.flag('desert.elder.heard'), true);
-  // each answer takes up her words: the skull, the giant
-  assert.deepEqual(r.choices().map((c) => c.text), ['The skull past the back gate. Thank you, Nour.', 'Inside the giant?']);
-  // short: the whole talk from the chest to the skull is a few pages, no page over 45 words
+  // each answer takes up her words: the Rose House
+  assert.deepEqual(r.choices().map((c) => c.text), ['The Rose House, east. Thank you, Nour.', 'The Rose House?']);
+  // short: the whole talk from the chest to the Rose House is a few pages, no page over 45 words
   const N = PEOPLE.nour.talk.nodes, pages = ['opened', 'givers', 'power'].flatMap((id) => [].concat(N[id].say));
   for (const p of pages) assert.ok(stripTone(p.text ?? p).split(/\s+/).length <= 45, stripTone(p.text ?? p));
-  assert.ok(pages.length <= 6, `${pages.length} pages from the chest to the skull`);
+  assert.ok(pages.length <= 6, `${pages.length} pages from the chest to the Rose House`);
   // nobody else to see first: no Ama, no Speaker, no jar in what she says
   for (const p of pages) assert.doesNotMatch(stripTone(p.text ?? p), /Ama|Speaker|jar from/);
-  for (const id of ['opened', 'givers', 'power', 'giant', 'cold', 'marrow', 'bring']) for (const s of [].concat(N[id].say, (N[id].choices ?? []).map((c) => c.text))) assert.notEqual(stripTone(s.text ?? s), s.text ?? s, `${id}: a tone`);
+  for (const id of ['opened', 'givers', 'power', 'rose', 'again', 'stone', 'drinking']) for (const s of [].concat(N[id].say, (N[id].choices ?? []).map((c) => c.text))) assert.notEqual(stripTone(s.text ?? s), s.text ?? s, `${id}: a tone`);
 });
 
 test('no reply in the desert opens by repeating the question it answers', () => {

@@ -87,12 +87,14 @@ const hasAll = (game) => (id) => !!game.flag(`item.${id}`);
 test('the desert teaches each core weapon before the spark and cannot pass an unearned one', () => {
   const { game, q, d } = mainQuest(DESERT_QUESTS, 'desert.power');
   const ids = d.stages.map(s => s.id);
-  assert.deepEqual(ids.slice(-6), ['blade', 'guard', 'gun', 'stone', 'light', 'ship']);
+  // (issues #729, #730: the font, then the gun, the blade and the guard in the Rose House; the stone; the skull's lift
+  // valve on the way back; the tree; the gift)
+  assert.deepEqual(ids.slice(-8), ['charge', 'gun', 'blade', 'guard', 'stone', 'skull', 'light', 'ship']);
   game.set('item.backpack', 1); game.set('item.doublejump', 1);
   game.set('desert.ship.fed', true);
-  q.start('desert.power', 'blade'); q.update(null);
-  assert.equal(q.stage('desert.power'), 'blade');
-  for (const [item, next] of [['sword', 'guard'], ['shield', 'gun'], ['gun', 'stone']]) {
+  q.start('desert.power', 'gun'); q.update(null);
+  assert.equal(q.stage('desert.power'), 'gun');
+  for (const [item, next] of [['gun', 'blade'], ['sword', 'guard'], ['shield', 'stone']]) {
     assert.ok(leaveRefusal('desert', 'arzach', hasAll(game)));
     game.set(`item.${item}`, 1); q.update(null); assert.equal(q.stage('desert.power'), next);
   }

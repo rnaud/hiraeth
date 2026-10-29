@@ -83,10 +83,13 @@ test('the red rag’s mast: by the hollow, in sight from the drinking roots thro
   } finally { W.dispose(); }
 });
 
-test('the level design audit sees the main route into the rival hollow guided by a landmark by it (issue #561)', async () => {
+test('the level design audit sees the main route guided: into the Rose House along the Givers’ dry channel, and on to the giant’s skull by a landmark (issues #561, #729, #730)', async () => {
   const {measureWorlds} = await import('../scripts/level-design/measure.mjs');
   const {report:rep}=await measureWorlds({worlds:['desert']});
-  const leg = rep.worlds[0].metrics.guidance.legs.find((l) => l.to === 'The race in the red-rag hollow');
-  assert.ok(leg && ['Nour, the eldest', 'The roots, drinking'].includes(leg.from), 'the incoming leg starts at the actual main-route sending point');
-  assert.ok(leg && leg.seen && leg.how !== 'blind', `the leg is guided (${leg?.how})`);
+  const legs = rep.worlds[0].metrics.guidance.legs;
+  const rose = legs.find((l) => l.to === 'The Rose House');
+  assert.ok(rose && rose.seen && /dry channel/.test(rose.how), `the leg to the Rose House follows the channel (${rose?.how})`);
+  const skull = legs.find((l) => l.from === 'The Rose House');
+  assert.ok(skull && skull.to === 'giant’s mouth' && skull.seen, `on the way back, the skull is seen (${skull?.how})`);
+  assert.ok(!legs.some((l) => /race|red-rag/.test(l.to)), 'the race is no step of the main route');
 });

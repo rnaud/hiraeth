@@ -1,4 +1,4 @@
-import { roseReady, migrateRoseRoute } from './desert-rose.js';
+import { migrateRoseRoute } from './desert-rose.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -8,7 +8,7 @@ import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, GIFT_AFTER_GEAR, DESERT_QUEST_V, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS, REPAY, REPAY_CALL } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, GIFT_AFTER_GEAR, DESERT_QUEST_V, SPARK_STAGES, DESERT_STAGES_GONE, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS, REPAY, REPAY_CALL } from './desert-data.js';
 import { setupDesertMoments } from './desert-moments.js';
 import { verbKey, inputKind } from '../prompt-keys.js';
 import { items } from '../items.js';
@@ -86,7 +86,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
-const CATCH_UP = ['elder', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
+const CATCH_UP = [];   // (the stages that led to the channel: none since issue #730, the stone alone lights the tree)
 
 
 /**
@@ -111,16 +111,34 @@ export function migrateDesertQuest(game) {
   if (v >= DESERT_QUEST_V) return null;
   const s = game.flag('quest.desert.power');
   // (a brand-new save has nothing to carry over)
-  if (s === undefined && !game.flag('ship.powered')) { migrateRoseRoute(game, v); game.set('desert.quest.v', DESERT_QUEST_V); return null; }
+  if (s === undefined && !game.flag('ship.powered')) { migrateRoseRoute(game, v); if (v < 8) migrateRedTemple(game); game.set('desert.quest.v', DESERT_QUEST_V); return null; }
   let to = null;
   if (v < 2) { to = STAGE_MIGRATION[s] ?? null; if (to) game.set('quest.desert.power', to); }
   if (v < 3 && (game.flag('desert.channel.open') || game.flag('desert.ship.fed') || game.flag('ship.powered') || s === 'done')) game.set('desert.tree.lit', true);
   const now = game.flag('quest.desert.power');
   if (STAGE_MERGE[now]) { to = STAGE_MERGE[now]; game.set('quest.desert.power', to); }
-  const gearMissing = missingCore('desert', (id) => !!game.flag(`item.${id}`)).some((c) => c.quest);
+  const gearMissing = ['sword', 'shield', 'gun'].some((id) => !game.flag(`item.${id}`));   // (the Rose House's finds: the lift valve has its own step since #730)
   if (v < 6 && game.flag('quest.desert.power') === GIFT_AFTER_GEAR.from && !game.flag('desert.ship.fed') && gearMissing) { to = GIFT_AFTER_GEAR.to; game.set('quest.desert.power', to); }
   to = migrateRoseRoute(game, v) ?? to;
+  if (v < 8) to = migrateRedTemple(game) ?? to;
   game.set('desert.quest.v', DESERT_QUEST_V);
+  return to;
+}
+
+/**
+ * v < 8 (issues #729, #730): the red temple's path. A battery filled before (at the giant's pool: a full tank, or its
+ * colour) is charged; a stage that is gone (the skull, the drain, the pool, the makers' door, the valve, the stair, the
+ * roots, Nour's spark, the race) goes on to the Rose House's step (DESERT_STAGES_GONE), where the steps already done pass
+ * over at once; a save at the blade or the guard without the gun goes back to the gun's step, before them now. Returns the
+ * new stage, or null.
+ */
+export function migrateRedTemple(game) {
+  if (game.flag('quest.desert.power') !== undefined) game.set('desert.redtemple.migrated', true);   // (an old save's route: tests/playthrough-worlds.js)
+  if (game.flag('item.backpack') && (game.flag('desert.pool.tinted') || game.flag('tool.empty') === false || game.flag('desert.channel.open') || game.flag('item.gun')) && !game.flag('desert.battery.charged')) game.set('desert.battery.charged', true);
+  const s = game.flag('quest.desert.power');
+  let to = DESERT_STAGES_GONE[s] ?? null;
+  if (!to && (s === 'blade' || s === 'guard') && !game.flag('item.gun')) to = 'gun';
+  if (to) game.set('quest.desert.power', to);
   return to;
 }
 
@@ -168,7 +186,10 @@ export function setupDesert(ctx) {
   if (!Q) return null;
   const city = Q.city, camps = Q.camps, cave = Q.cave;
   migrateDesertQuest(game);
-  for (const portal of level.temple?.portals ?? []) if (!portal.toUp) { portal.when = () => roseReady(game); portal.refuse = 'Win the hoverbike in the red-rag hollow before taking the Rose House’s road.'; }
+  // (a battery that was never emptied: an old save's, or one brought in another way, full from the start: charged. A new
+  // game's chest sets tool.empty the moment it opens, so only a save from before can carry the battery without it)
+  if (items.has('backpack') && game.flag('tool.empty') !== true && !game.flag('desert.battery.charged')) game.set('desert.battery.charged', true);
+  // (the Rose House is open to whoever walks there: the hoverbike's race is a side errand since issue #729)
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   // the main quest: power for the ship (unless the ship already has it). It doesn't just appear: Marrow,
@@ -182,14 +203,12 @@ export function setupDesert(ctx) {
   game.on('drone:village', () => { if (opening()) quests.start('desert.power'); });
   // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
   const lit = () => !!game.flag('desert.tree.lit');
-  // (on to the Rose House's step, passed over to the gift if the blade and guard are had: quests.landing; issue #278)
+  // (a burning tree's save: on to the first of the Rose House's finds still missing, else the skull (its lift valve), else
+  // the gift: quests.landing passes over what is had; issues #278, #729)
   const skipSpark = () => {
     if (!lit() || !SPARK_STAGES.includes(quests.stage('desert.power'))) return;
-    const missingWeapon = [['sword', 'blade'], ['shield', 'guard'], ['gun', 'gun']].find(([item]) => !game.flag(`item.${item}`))?.[1];
-    // An old lit-tree save may own the blade/guard but not the valve. The new gun
-    // is inside Rose: its channel crossing still requires the earned double jump.
-    const next = missingWeapon && !items.has('doublejump')
-      ? (game.flag('desert.door.open') ? 'valve' : 'door') : missingWeapon ?? 'ship';
+    const missing = [['gun', 'gun'], ['sword', 'blade'], ['shield', 'guard']].find(([item]) => !game.flag(`item.${item}`))?.[1];
+    const next = missing ?? (items.has('doublejump') ? 'ship' : 'skull');
     if (quests.stage('desert.power') !== next) quests.set('desert.power', next);
   };
   skipSpark();
@@ -361,10 +380,10 @@ export function setupDesert(ctx) {
   //  prompts a step apart in front of the tree, and the look could win the press meant for the stone)
   const stoneHere = () => quests.has('stone') && !lit();
   thing(THINGS.roots, city.rootsLook, { range: 3.6, look: city.roots,
-    prompt: () => (stoneHere() && open() ? 'set the spark-stone in the roots' : 'look at the roots'),
+    prompt: () => (stoneHere() ? 'set the spark-stone in the roots' : 'look at the roots'),
     use: () => {
       if (!stoneHere()) return dialogue.start(THINGS.roots, null, city.rootsLook, city.roots);
-      if (open()) setStone(); else toast('The roots are dry: the stone would only lie in the dust. The water must come up first.');
+      setStone();   // (the stone alone restarts the tree, issue #730: it calls the water up with it)
     } });
   // (and with the stone to set, it is the press at the roots: over Hessa, who sweeps right beside them, the second prompt
   //  there that took the press meant for the stone)
@@ -391,15 +410,11 @@ export function setupDesert(ctx) {
     if (st.clock - dryT < 25) return;
     dryT = st.clock;
     if (game.flag('tool.dregs') > 0) { toast('The last swallow in the battery is too little to push with. It will make one shot, no more.'); return; }   // (the dregs only shoot: src/fluid-tool.js)
-    toast(open() ? 'The battery is empty. Wade into the giant’s pool to fill it.' : 'The battery is empty: dry glass, not a drop.');
+    toast(charged() ? 'The battery is empty. It fills again by itself, or at living water.' : 'The battery is empty: dry glass, not a drop. The Givers’ font in the Rose House fills it.');
   });
 
-  // the Givers' House (src/temples/desert.js, remade in v1.44 for the blade) never asks for the gun, but its Keeper wants
-  // water from your tank: walked in with an empty tank, you are told where to fill it (it once sent you for the gun)
-  game.on('flag:temple.desert.entered', (v) => {
-    if (!v) return;
-    if (dry()) setTimeout(() => toast('Your battery is empty, and the Keeper deep in the Rose House will want water. Fill it at the giant’s pool past Qanat’s back gate.'), 2500);
-  });
+  // the battery charged: the Rose House's font (issue #729), or the giant's pool for a save from before
+  const charged = () => !!game.flag('desert.battery.charged');
 
   // ---------------------------------------------------------------- the drum, and the mask's eyes
   // jammed against a rib by a knuckle of spine; drifted shut with sand (src/story/desert-errands.js)
@@ -481,6 +496,7 @@ export function setupDesert(ctx) {
     game.emit('tool:refill', { addColour });
     if (game.flag('tool.empty')) game.set('tool.empty', false);   // (no tool here, e.g. tests: the flag is the tank)
     if (addColour) game.set('desert.pool.tinted', true);
+    if (items.has('backpack') && !game.flag('desert.battery.charged')) game.set('desert.battery.charged', true);
     return { wasDry, addColour };
   };
   // (the buttons as the player holds them: on a pad X is interact, the gun's modes are on the wheel, D-pad ↑ held: src/bindings.js)
@@ -516,13 +532,19 @@ export function setupDesert(ctx) {
 
   film = setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fillJar, FILLED });
 
-  // ---------------------------------------------------------------- the makers' shrine's door (issue #156)
+  // ---------------------------------------------------------------- the makers' shrine's door (issues #156, #730)
   // A round shrine west of the pool keeps the lift valve's chest (src/desert-city.js SHRINE): its door is a slab of white
-  // stone with a glass lens in it, dull until your tank is full; then it hums with your tank, and with E it drinks of it
-  // and sinks into the floor. Until it is open the chest is out of sight and out of reach (no unopenable chest in view).
+  // stone with a glass lens in it. Since issue #730 the cave is a little temple with monsters: two grunts and two prowlers
+  // in the nave (the level's encounter site 'skull-hall', src/encounters/), a Givers' lamp on the pool's kerb lit for each
+  // one cut down; all four down, the lens lights and the door sinks into the floor (a full battery opened it before).
+  // Until it is open the chest is out of sight and out of reach (no unopenable chest in view).
   const shrine = cave.shrine;
+  const HALL = 'site.desert.skull-hall';
   const doorOpen = () => !!game.flag('desert.door.open');
-  const tankFull = () => items.has('backpack') && !dry() && (!!game.flag('desert.pool.tinted') || open());
+  const hallClear = () => !!game.flag(HALL);
+  const lamps = cave.hall?.lamps ?? [];
+  const hallSt = { down: 0 };
+  const setLamps = () => { const n = hallClear() || doorOpen() ? lamps.length : hallSt.down; lamps.forEach((l, i) => l.set(i < n)); };
   const doorSt = { k: doorOpen() ? 1 : 0, opening: false };
   let doorHandle = null;
   if (shrine && physics?.addCollider) {
@@ -534,24 +556,30 @@ export function setupDesert(ctx) {
     if (!shrine) return;
     shrine.group.position.y = shrine.closedY - shrine.depth * THREE.MathUtils.smootherstep(doorSt.k, 0, 1);
     shrine.group.visible = doorSt.k < 1;
-    const on = tankFull() && doorSt.k < 1;
+    const on = (hallClear() || doorOpen()) && doorSt.k < 1;
     shrine.lit.visible = shrine.lines.visible = on;
     shrine.dull.visible = shrine.dullLines.visible = !on;
   };
-  const openDoor = () => {
+  const openDoor = (said = true) => {
     if (doorOpen()) return;
     game.set('desert.door.open', true);
     doorSt.opening = true;
     if (doorHandle) { physics.removeCollider(doorHandle); doorHandle = null; }
     sound.rumble?.(1.8, 0.3); sound.chime?.();
-    toast('The lens drinks from your battery, its lines light, and the door sinks into the floor.');
+    setLamps();
+    if (said) toast('The last of the Givers’ lamps lights. The shrine’s lens answers, and its door sinks into the floor.');
   };
   game.on('flag:desert.door.open', (v) => { if (v && doorSt.k < 1) { doorSt.opening = true; if (doorHandle) { physics.removeCollider(doorHandle); doorHandle = null; } } });
+  // each monster down, a lamp; the hall cleared, the door (with no foe about: the Enemies setting off, it opens as you come in)
+  game.on('site:fell', ({ id, n } = {}) => { if (id !== 'skull-hall') return; hallSt.down = n; setLamps(); sound.chime?.(); });
+  game.on(`flag:${HALL}`, (v) => { if (v) openDoor(); });
+  if (hallClear() && !doorOpen()) openDoor(false);
+  setLamps();
   if (shrine) {
     registerInteractable({ id: 'shrine.door', priority: PRIORITY.use, range: 3.2, at: () => shrine.box.at.clone().add(V(0, 1.75, 0)), enabled: () => !doorOpen(),
-      prompt: () => (tankFull() ? 'open the makers’ door' : 'look at the makers’ door'),
+      prompt: 'look at the makers’ door',
       distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, shrine.front) : Infinity),
-      use: () => { if (tankFull()) openDoor(); else toast('A makers’ door, a dull glass lens at its heart. It wants a full battery.'); } });
+      use: () => toast(`A makers’ door, its glass lens dark. ${lamps.length - hallSt.down} of the Givers’ lamps round the pool are still unlit.`) });
     layDoor();
   }
   st.door = doorSt;
@@ -857,6 +885,25 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the spark-stone's errand
   // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Rose House waits
   const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry() && items.has('gun')), hasGun: () => items.has('gun'), lit });
+  // the Givers' font in the Rose House's Hall of the Flame (issue #729): the bowl lit, its living water rises, and at it the
+  // battery fills: the charge, the first time with the giant's colour (src/temples/desert.js FONT)
+  const RT = level.temples?.find?.((t) => t.id === 'desert') ?? (level.temple?.id === 'desert' ? level.temple : null);
+  if (RT?.font) {
+    const F = RT.font, at = F.at.clone().setY(F.at.y + 0.9);
+    const fontLit = () => RT.logic.isLit('b0');
+    registerInteractable({ id: 'rose.font', priority: PRIORITY.use + 1, range: 2.9, at: () => at,
+      distance: (p) => (Math.abs(p.pos.y - F.at.y) < 2.5 ? flat(p.pos, F.at) : Infinity),
+      enabled: () => fontLit() && items.has('backpack') && (dry() || !charged() || !RT.logic.isFound('font')),
+      prompt: 'fill your battery at the font',
+      use: () => {
+        const { wasDry, addColour } = fillTank();
+        RT.logic.find('font'); RT.logic.update();
+        game.set('desert.battery.charged', true);
+        sound.chime?.(); sound.waterRise?.();
+        toast(wasDry ? FILLED() : addColour ? 'Living water climbs into your battery. Its glass takes the colours.' : 'The font tops up your battery.');
+      } });
+    quests.locate('roseFont', () => F.at);
+  }
   // the bowl, the camp and the bell on the long ride there (src/story/desert-way.js)
   const way = setupWay(ctx);
   const road = setupRoad(ctx);   // the pilgrims' road home, its lamps lit once the tree burns
@@ -892,8 +939,11 @@ export function setupDesert(ctx) {
   const sparkPath = [city.roots.clone(), bark(6.0, 1.4), bark(5.4, 7), bark(5.1, 15), bark(4.9, 23), bark(4.2, 30), city.crown.clone()];
   const sparkCurve = new THREE.CatmullRomCurve3(sparkPath);
   const setStone = () => {
-    if (lit() || !quests.has('stone') || !open()) return;
+    if (lit() || !quests.has('stone')) return;
     quests.take('stone');
+    // the spark calls the living water up from under the giant (issue #730: the drain is no longer a step): the cave's
+    // debris swept off, its pool risen, the roots wet as the stone goes in
+    if (!open()) { game.set('desert.channel.open', true); rise.done = true; if (!game.flag('desert.well.watched')) game.set('desert.well.watched', true); }
     lighting.t = 0;
     // out of your pack: in your hand, held out over the water (it was never drawn while you carried it)
     const hand = player.humanoid?.b?.hand_r;
@@ -902,7 +952,7 @@ export function setupDesert(ctx) {
     if (level.temple?.roseSpark) level.temple.roseSpark.stone.userData.placing = true;
     game.set('desert.tree.lit', true);
     sound.chime?.();
-    toast('You set the spark-stone in the wet roots. The living water draws it in, glowing…');
+    toast('You set the spark-stone in the roots. Living water rises to meet it, glowing…');
     // filmed, once: from the ground by him out to the whole tree as it catches (issue #239; src/story/desert-moments.js
     // lit). The lighting runs on its own clock either way, so a skip or no film lands the same.
     // (Hessa, sweeping beside the roots, steps back to the far end of her sweep: out of the first shot, not behind him)
@@ -1004,7 +1054,7 @@ export function setupDesert(ctx) {
     city.light2.w = 14 + 44 * st.fire;
     updateLighting(dt);
 
-    // the shrine's door: its lens lit with a full tank; opened, it sinks into the floor
+    // the shrine's door: its lens lit once the hall is cleared; opened, it sinks into the floor
     if (shrine) {
       if (doorSt.opening) { doorSt.k = Math.min(1, doorSt.k + dt / 1.8); if (doorSt.k >= 1) doorSt.opening = false; }
       layDoor();

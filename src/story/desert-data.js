@@ -49,11 +49,15 @@ const TEMPLE = { flag: 'temple.desert.done' }, BACKPACK = { flag: 'item.backpack
 export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord', stone: 'the spark-stone' };
 
 /**
- * The stages of the spark-stone's errand, between the full pool and the ship (the way up the keepers' stair first): a save from before it
- * (desert.quest.v < 3) whose tree was already burning (the channel open, or the ship fed) skips them
- * (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
+ * The stages of the spark-stone's errand, between Nour and the ship: a save from before it (desert.quest.v < 3) whose tree
+ * was already burning skips them (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
  */
-export const SPARK_STAGES = ['door', 'valve', 'up', 'rise', 'spark', 'bike', 'rose', 'blade', 'guard', 'gun', 'stone', 'light'];   // (valve and gun: v1.38's chests, the lift valve and the fluid gun; door: the makers' shrine's, issue #156)
+export const SPARK_STAGES = ['rose', 'charge', 'gun', 'blade', 'guard', 'stone', 'skull', 'light'];
+/**
+ * Saves from before the red temple's path (desert.quest.v < 8, issues #729 and #730): a stage that is gone goes on to the
+ * Rose House's step; the steps already done there (the charge, the gun, the blade and guard, the stone) pass over at once.
+ */
+export const DESERT_STAGES_GONE = { down: 'rose', channel: 'rose', fill: 'rose', door: 'rose', valve: 'rose', up: 'rose', rise: 'rose', spark: 'rose', bike: 'rose' };
 
 /**
  * Saves from before the backpack's box moved into the city (the stages were
@@ -78,7 +82,7 @@ export const STAGE_MERGE = { well: 'down', ama: 'down', speaker: 'down', ask: 'd
  */
 export const GIFT_AFTER_GEAR = { from: 'ship', to: 'gear' };
 /** The desert quest's save version (src/story/desert.js migrateDesertQuest). */
-export const DESERT_QUEST_V = 7;
+export const DESERT_QUEST_V = 8;
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -97,33 +101,25 @@ export const QUESTS = [
       { id: 'box', text: 'Open the humming chest under the tree', label: 'The chest under the tree', flag: 'item.backpack', at: 'box.desert.backpack', gate: true },
       // Qanat gathers; Nour, the eldest, comes over to see who opened it and calls you (src/story/desert.js, the reaction)
       { id: 'elder', text: 'Nour wants a word', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
-      // she points you straight at the marked skull (no more Ama's jar and the Speaker's verse first: the author's
-      // playthrough, October 2026, issue #63)
-      { id: 'down', text: 'Go down through the marked skull’s mouth', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
-      // debris clogs the drain: you look at it and say yes, remove it (src/story/desert.js; issue #158, no lever any more);
-      // a full tank (an older save) can still push it
-      { id: 'channel', text: 'Clear the clogged drain', label: 'The clogged drain', flag: 'desert.channel.open', at: 'rib', gate: true },
-      // the first wade fills the tank (and tints it); Ama's jar, if you took it, fills too
-      { id: 'fill', text: 'Wade in and fill your battery', label: 'The pool', flag: 'desert.pool.tinted', at: 'pool', gate: true },
-      // the makers' shrine by the pool (issue #156): its door hums back at the full tank and opens with it (src/story/desert.js)
-      { id: 'door', text: 'Open the makers’ door with your full battery', label: 'The makers’ door', flag: 'desert.door.open', at: 'shrineDoor', gate: true },
-      // the progression rewrite (v1.38): inside, a makers' chest holds the lift valve (the double jump, the backpack's
-      // first strength: src/boxes/placements.js desert.lift)
-      { id: 'valve', text: 'Open the chest in the makers’ shrine', label: 'The chest in the shrine', flag: 'item.doublejump', at: 'box.desert.lift', ahead: false, gate: true },
-      // up the keepers' stair behind the pool, beside the root the water climbs, to the hatch in the back lane (src/desert-city.js
-      // HATCH; level design audit, third round: the way out was the way down). Out by the skull instead, the roots' drinking skips it
-      { id: 'up', text: 'Follow the water up the keepers’ stair', label: 'The keepers’ stair', goto: 'hatch', radius: 6, vertical: 4 },
-      // back in the city: the water climbs the roots while you watch, and the tree stays cold (the flag is the old well's)
-      { id: 'rise', text: 'Watch the tree drink at its roots', label: 'The roots, drinking', flag: 'desert.well.watched', at: 'roots' },
-      // Nour calls you over (src/story/desert.js nourCall): the spark-stone, and where the bike is
-      { id: 'spark', text: 'Hear Nour out by the cold tree', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
-      { id: 'bike', text: 'Beat the rider to win the hoverbike', label: 'The race in the red-rag hollow', flag: 'desert.bike.found', at: 'bikeHollow', gate: true },
-      { id: 'rose', text: 'Ride east to the Rose House', label: 'The Rose House', flag: 'temple.desert.entered', at: 'temple.desert.door' },
+      // she names the spark-stone and the Rose House herself (issue #729: the red temple, the Desert's one dungeon; the
+      // skull, the drain, the pool, the makers' door, the stair, the roots and the bike race went: src/story/desert.js
+      // migrateDesertQuest, DESERT_STAGES_GONE). Nothing on the way there asks for the bike
+      { id: 'rose', text: 'Walk east to the Rose House', label: 'The Rose House', flag: 'temple.desert.entered', at: 'temple.desert.door', via: 'the Givers’ dry channel' },
+      // the Hall of the Flame: a ball leaned on through the flame into the hooded bowl; lit, the Givers' font rises beside it
+      // and the battery fills there (src/temples/desert.js FONT; a battery filled before at the giant's pool counts)
+      { id: 'charge', text: 'Light the Givers’ bowl and fill your battery', label: 'The Givers’ font', flag: 'desert.battery.charged', at: 'roseFont', gate: true },
+      // then, in order, the Givers' gun (its push rolls the Dry Channel's weight at once), their blade, their guard
+      { id: 'gun', text: 'Take the Givers’ gun by the dry channel', label: 'The Givers’ gun', when: q => q.has('gun'), at: 'temple.desert.next', gate: true },
       { id: 'blade', text: 'Find the blade on the Great Hall’s balcony', label: 'The Givers’ blade', when: q => q.has('sword'), at: 'temple.desert.next', gate: true },
       { id: 'guard', text: 'Cross the fire bridge and take the guard', label: 'The Givers’ guard', when: q => q.has('shield'), at: 'temple.desert.next', gate: true },
-      { id: 'gun', text: 'Turn the watcher’s bolt and find the push gun', label: 'The push gun', when: q => q.has('gun'), at: 'temple.desert.next', gate: true },
-      { id: 'stone', text: 'Push the spring-room weight and take the spark-stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone', gate: true },
-      { id: 'light', text: 'Set the spark-stone in the roots', label: 'The tree’s roots', flag: 'desert.tree.lit', at: 'roots', via: 'the Givers’ dry channel' },
+      { id: 'stone', text: 'Calm the Keeper and take the spark-stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone', gate: true },
+      // the giant's skull, a little temple with monsters now (issue #730), cleared on the way back: its makers' shrine opens
+      // once they are down and keeps the lift valve (the double jump, a core gadget: src/story/leave-gate.js); its keepers'
+      // stair comes up by the tree. A gate: the tree lit first (it needs only the stone), the quest waits here. Had, passed over
+      { id: 'skull', text: 'Clear the giant’s skull and take the lift valve', label: 'The giant’s skull', when: q => q.has('doublejump'), at: 'shrineDoor', gate: true, ahead: false, pass: true },
+      // the stone alone restarts the tree (issue #730): set in the roots, it calls the water up with it (the leg from the
+      // Rose House along the Givers' dry channel, for whoever goes straight there)
+      { id: 'light', text: 'Set the spark-stone in the tree’s roots', label: 'The tree’s roots', flag: 'desert.tree.lit', at: 'roots', via: 'the Givers’ dry channel' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
       // (home by the pilgrims' road, the second way, when you come from the tree: its cairns lit from the gate down to the
       // ship once the tree burns, src/desert-road.js). The quest's last step: reaching the ship ends it
@@ -150,6 +146,7 @@ export const QUESTS = [
   },
   {
     id: 'desert.ilo', title: 'Ilo Wants to See', world: 'desert',
+    needs: ['sword'],   // (its way down is past the skull's monsters since issue #730: Ilo's answer that gives it waits for the blade)
     outro: 'Ilo waits at the mouth, watching for its teeth to move.',
     stages: [
       { id: 'lead', text: 'Take Ilo to the giant’s skull', label: 'The giant’s skull', flag: 'desert.ilo.atSkull', at: 'skull' },
@@ -172,7 +169,7 @@ export const QUESTS = [
     // tank has been filled at the giant's pool. Whoever tells of it says where it is (it was "ask Marrow" first,
     // one person sending you to another: the author's playthrough, issue #63; src/story/desert-bike.js migrates a save there)
     id: 'desert.bike', title: 'Something Faster Than Walking', world: 'desert',
-    needs: ['backpack'],   // (its tank wakes the bike: Marrow's answer that gives it waits for the backpack, issue #328)
+    needs: ['gun'],   // (a full battery wakes the bike, and it fills in the Rose House with the gun beside it: issues #328, #729)
     outro: 'The hoverbike hums under you. Your pack calls it, and it comes.',
     stages: [
       { id: 'find', text: 'Find the tarp in the red-rag hollow', label: 'The tarp in the hollow', flag: 'desert.bike.uncovered', at: 'bike' },
@@ -464,14 +461,14 @@ export const PEOPLE = {
           ],
         },
         way: {
-          say: ["~solemn~ One old verse gives the route: *Where the giant’s eyes are marked, its mouth is a door.* I believe that means exactly what it says.", "~playful~ Find *the marked skull outside the back gate*. Carved stones hold its jaw open. *Go through the mouth* to reach the water below."],
+          say: ["~solemn~ One old verse gives the route: *Where the giant’s eyes are marked, its mouth is a door.* I believe that means exactly what it says.", "~playful~ Find *the marked skull outside the back gate*. Carved stones hold its jaw open. Something growls down there now: *go armed*, or not at all."],
           choices: [{ text: '~neutral~ I’ll go and look.', end: true }],
         },
         well: { say: ["~neutral~ Water rises through the roots. The old keepers maintained its path inside the giant."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~neutral~ I’ll let you walk.', end: true }] },
         swamp: { say: ["~curious~ The songs describe glowing water and singing plants, far beyond this desert."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~curious~ And the water here, is there a way down to it?', goto: 'way' }, { text: '~neutral~ Some other day, then.', end: true }] },
         never: { say: ["~tired~ Then we must learn something new. Walking is a comfort, but the tree cannot drink footsteps."], choices: [{ text: '~curious~ Then how does the water reach it?', goto: 'well' }] },
         again: {
-          say: ["~neutral~ The water is beneath the tree. The underground entrance is the giant’s mouth, beyond the back gate. May the route be easier than the verse."],
+          say: ["~neutral~ The water is beneath the tree, the giant’s mouth beyond the back gate. But water never lit it: its fire wants *the Givers’ spark-stone, in the rose-stone house east*."],
           choices: [
             { text: '~neutral~ Tell me the line about the giant’s mouth again.', goto: 'way' },
             { text: '~curious~ Have you seen an old woman who fell behind?', if: { quest: 'desert.oum', done: false }, goto: 'oum' },
@@ -484,14 +481,14 @@ export const PEOPLE = {
         // the water is up and the tree is cold: the second old line
         cold: {
           say: ["~solemn~ The roots drink but the fire is out. We have an old verse: *The fire must be carried.* You’ll need something to light the tree.",
-            "~neutral~ The fire-bearers went *south-east into the red rocks* and came back with it. Follow the marked stones they left along the way."],
+            "~neutral~ The fire-bearers fetched it from *the rose-stone house east of the city*. The Givers kept their spark there."],
           choices: [{ text: '~neutral~ The drain down there was blocked. I cleared it.', goto: 'rib' }, { text: '~neutral~ I’ll find the fire.', end: true }],
         },
         carried: { say: ["~surprised~ The spark-stone. You found it. *Set it in the tree’s roots*. We’ll keep the procession moving until the tree burns."], choices: [{ text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~neutral~ Keep them walking.', end: true }] },
         // the bell on the fire-bearers' way (THINGS.wayBell)
         bell: { say: ["~surprised~ A bell, out on the fire-bearers’ way? Then the old accounts are right, step for step. One fire-bearer came home with a staff that had lost its bell.", "~solemn~ Leave it there. It marks where somebody walked when walking was the only way."], do: { set: { 'desert.way.told': true } }, choices: [{ text: '~solemn~ I left it where it lay.', end: true }] },
         drinking: {
-          say: ["~happy~ The tree burns! Listen to the drums. Nobody had to tell them when to begin.", "~solemn~ Under the giant, out to the red rocks, and back. The old route still works. I’ll need a new verse for your part."],
+          say: ["~happy~ The tree burns! Listen to the drums. Nobody had to tell them when to begin.", "~solemn~ Out to the rose-stone house, and back with its spark. The old route still works. I’ll need a new verse for your part."],
           choices: [{ text: '~neutral~ It wasn’t the tree. The drain was blocked.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
         },
         rib: { say: ["~solemn~ Blocked. So we walked our circles above a repair nobody made. I will remember that."], choices: [{ text: '~playful~ Put it in the verse.', end: true }] },
@@ -553,8 +550,6 @@ export const PEOPLE = {
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { flag: 'desert.tree.lit' }, node: 'drinking' },
         { if: { has: 'stone' }, node: 'stone' },
-        { if: { flag: 'desert.spark.heard' }, node: 'sparkAgain' },
-        { if: { flag: 'desert.channel.open' }, node: 'cold' },
         { if: { flag: 'desert.elder.heard' }, node: 'again' },
         { if: { flag: 'item.backpack' }, node: 'opened' },
         { node: 'shut' },
@@ -592,50 +587,38 @@ export const PEOPLE = {
           say: ["~solemn~ Whoever made the giants walk. They signed their work with this: {glyph} Giants, stones, chests. Nobody alive has seen one of them."],
           choices: [{ text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }],
         },
-        // the one errand: down through the giant's mouth (it was Ama's jar first, and the Speaker's verse, and the old well)
+        // the one errand (issue #729): the spark-stone in the Rose House, where the Givers' font fills the battery too (it
+        // was the skull and the pool first, then the bike race and the house: the author, 2026-10-28, "We just need the
+        // spark stone to restart the tree")
         power: {
-          say: ["~solemn~ Only our tree ever held that much power, and it went cold when the water stopped rising. The water’s still down there, inside the giant.",
-            "~neutral~ Its mouth is a door: *the marked skull, past the back gate*. Stand in the water down there and that glass at your hip fills. Get our water rising, and Qanat won’t send you off in the dark."],
+          say: ["~sad~ The tree went cold the night the light passed. Its spark went out with it, and only the Givers’ own spark-stone lights it again.",
+            "~neutral~ It waits in *the Rose House, east of Qanat*. Their font is in there too: it fills that glass at your hip. Light our tree, and Qanat won’t send you off in the dark."],
           do: [{ set: { 'desert.elder.heard': true } }, { track: Q }],
           choices: [
-            { text: '~happy~ The skull past the back gate. Thank you, Nour.', end: true },
-            { text: '~curious~ Inside the giant?', goto: 'giant' },
+            { text: '~happy~ The Rose House, east. Thank you, Nour.', end: true },
+            { text: '~curious~ The Rose House?', goto: 'rose' },
           ],
         },
-        giant: { say: ["~playful~ Qanat sits on a giant’s chest, child. Its head is out past the back gate, mouth open. Mind the teeth."], choices: [{ text: '~happy~ I’ll mind them.', end: true }] },
+        rose: { say: ["~playful~ A great drum of rose stone in the eastern dunes, its door toward the city. The Givers kept their water there, and their tools. Mind your fingers."], choices: [{ text: '~happy~ I’ll mind them.', end: true }] },
         again: {
-          say: ["~playful~ Past the back gate, through the giant’s mouth. I’d come along, but I’m eighty, and the giant has teeth."],
+          say: ["~playful~ East, to the Rose House, for the spark-stone. I’d come along, but I’m eighty, and the dunes are high."],
           choices: [
             { text: '~curious~ The Givers, again?', goto: 'givers' },
-            { text: '~playful~ I’ll mind the teeth for both of us.', end: true },
+            { text: '~playful~ I’ll climb them for both of us.', end: true },
           ],
-        },
-        // the water is up, the roots drink, and the tree is cold: the spark-stone (she calls you over for it). She says
-        // where the bike is herself (it was "ask Marrow": issue #63)
-        cold: {
-          say: ["~sad~ You brought the water back. But the tree stays cold: it only burns from the Givers’ own spark.",
-            "~solemn~ The spark-stone waits in the Rose House, east of Qanat. *Win the hoverbike in the red-rag hollow.* The house keeps a blade, a guard and a push gun on the way to its spring."],
-          do: [{ set: { 'desert.spark.heard': true } }, { track: Q }],
-          choices: [
-            { text: '~solemn~ I’ll bring the stone back.', goto: 'bring' },
-            { text: '~curious~ Whose bike is it?', goto: 'marrow' },
-          ],
-        },
-        marrow: { say: ["~playful~ Kamal’s prize. Win the race, and it is yours. The red-rag hollow, with a full battery."], choices: [{ text: '~solemn~ I’ll bring the stone back.', goto: 'bring' }] },
-        bring: { say: ["~solemn~ Set it in the wet roots. And bring all your fingers back. Legends are careless about fingers."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
-        sparkAgain: {
-          say: ["~neutral~ Win the bike in the red-rag hollow, then ride east to the Rose House. Bring its spark-stone to the roots."],
-          choices: [{ text: '~playful~ And all my fingers back.', end: true }],
         },
         stone: {
-          say: ["~surprised~ The spark-stone. Warm. Real. My grandmother would have wanted to hold it.", "~solemn~ Set it in the tree’s roots. Go on. I’ve spent enough of my life keeping things in boxes."],
+          say: ["~surprised~ The spark-stone. Warm. Real. My grandmother would have wanted to hold it.", "~solemn~ Set it in the tree’s roots. Go on. I’ve spent enough of my life keeping things in boxes.",
+            { if: { quest: Q, stage: 'skull' }, text: "~whisper~ And mind the giant’s skull past the back gate: it growls at night. Its keepers’ stair comes up right here by the roots." }],
           choices: [{ text: '~neutral~ (go to the roots)', end: true }],
         },
-        // (the Rose House's step first while its blade and guard are missing: issue #278)
-        drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.",
-          { if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, text: "~solemn~ You gave us back our light, child. Qanat pays its debts: every house is filling a jar for your ship. Fetch *the Givers’ blade and guard from the Rose House*, east in the dunes. We’ll be at your ship." },
-          { if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, text: "~solemn~ You gave us back our light, child, before you saw to your own ship. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
-          choices: [{ text: '~neutral~ The Rose House, then.', if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, end: true }, { text: '~happy~ Then I’ll go and let them.', if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, end: true }] },
+        // (the tree burns: the skull's step while its lift valve is missing, issue #730; the Rose House's while its finds
+        // are, for a save from before, issue #278)
+        drinking: { say: ["~happy~ The chest opened, the tree burns. I stayed alive long enough.",
+          { if: { quest: Q, stage: ['gun', 'blade', 'guard'] }, text: "~solemn~ You gave us back our light, child. Every house is filling a jar for your ship. Fetch *the Givers’ gun, blade and guard from the Rose House* first. We’ll be at your ship." },
+          { if: { quest: Q, stage: 'skull' }, text: "~solemn~ You gave us back our light, child. Every house is filling a jar for your ship. One thing first: something growls in *the giant’s skull past the back gate*, over the Givers’ shrine. Take what they left there." },
+          { if: { not: { quest: Q, stage: ['gun', 'blade', 'guard', 'skull'] } }, text: "~solemn~ You gave us back our light, child. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
+          choices: [{ text: '~neutral~ The Rose House, then.', if: { quest: Q, stage: ['gun', 'blade', 'guard'] }, end: true }, { text: '~neutral~ The skull, then.', if: { quest: Q, stage: 'skull' }, end: true }, { text: '~happy~ Then I’ll go and let them.', if: { not: { quest: Q, stage: ['gun', 'blade', 'guard', 'skull'] } }, end: true }] },
         after: {
           say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],
           choices: [

@@ -15,6 +15,9 @@
 //   ambush   a coffer alone, the bait; a sign before it (the sand twitching, or a shadow on the ground), and the foes come
 //            up round you when you step in to take it.
 //   patrol   a coffer by a cairn; the foes walk a beat before it, end to end, and back.
+//   hall     (issue #730) a level's own makers' hall, not on the world's ground (the skull cave's, far overhead): its foes
+//            on guard where the level says (`spots`), its coffer where it says; a level lists it (level.sites), not SITES.
+//            With the foes not about (the Enemies setting off, or no blade yet) it counts as cleared as you come in.
 //   warlord-hold  a warlord's own place (issue #726, roster v4): it stands guard before its coffer between two banners,
 //            its glaive grounded; its band sits round a fire before it. Its roar (attack.horn) wakes the band. One a world
 //            from the second (Vael) on.
@@ -37,7 +40,7 @@ export const SITE = { near: 70, quiet: 110, build: 160, trigger: 7.5, wake: [0.2
 /** The coffer's purse by the world's stage (chimes): a wandering pack's whole drop is 2–20; a site pays more. */
 export const SITE_PURSE = [20, 25, 30, 40, 50];
 /** The idle each kind of site gives its foes (src/encounters/idle.js), and its lookout's. */
-export const SITE_IDLE = { camp: 'sit', nest: 'sleep', hoard: 'guard', ambush: 'hidden', patrol: 'patrol', 'warlord-hold': 'guard' };
+export const SITE_IDLE = { camp: 'sit', nest: 'sleep', hoard: 'guard', ambush: 'hidden', patrol: 'patrol', 'warlord-hold': 'guard', hall: 'guard' };
 /** A site of this kind pays its coffer's purse this many times over (the warlord's hold: the rare elite's). */
 export const SITE_PAYS = { 'warlord-hold': 2 };
 
@@ -125,6 +128,12 @@ export function layoutSite(s, { hovers = () => false, radius = () => 0.6, racks 
       const ang = Math.PI * (0.15 + (1.3 * (i + 0.5)) / Math.max(1, band.length)), c = [-3.4, 3.6], at = W(c[0] + Math.sin(ang) * R, c[1] + Math.cos(ang) * R);
       foes.push({ archetype: a, at, heading: toward(at, W(...c)), idle: idleOf(a, 'sit'), face: W(...c) });
     });
+  } else if (s.kind === 'hall') {
+    // (issue #730) a makers' hall of the level's own (the skull cave's): its foes on guard at the places it names (world x, z:
+    // `spots`), each facing the hall's middle; its coffer where it says. No props: the hall is the level's
+    coffer = { at: s.coffer ?? W(0, 0), heading: h };
+    const c = [cx, cz];
+    s.foes.forEach((a, i) => { const at = s.spots?.[i] ?? W(Math.sin(i * 1.7) * 6, Math.cos(i * 1.7) * 6); foes.push({ archetype: a, at, heading: toward(at, c), idle: idleOf(a, 'guard') }); });
   } else throw new Error(`a site of no kind: ${s.kind}`);
   return { foes, props, coffer, trigger: s.kind === 'ambush' ? SITE.trigger : null };
 }

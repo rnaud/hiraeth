@@ -14,13 +14,13 @@ test('the gate: the ship is powered only once the tree burns and Qanat has broug
   assert.equal(repayDue({ lit: false, fed: false }), false, 'a cold tree: nothing to give');
   assert.equal(repayDue({ lit: true, fed: false }), true, 'it burns: Qanat comes to the ship');
   assert.equal(repayDue({ lit: true, fed: true }), false, 'given once');
-  // (and not before the Rose House's blade and guard: its step comes before the gift, issue #278)
+  // (and not before the Rose House's finds and the skull's lift valve: their steps come before the gift, issues #278, #730)
   assert.equal(repayDue({ lit: true, fed: false, ready: false }), false, 'the blade and guard still missing: Qanat waits');
   assert.equal(repayDue({ lit: true, fed: false, ready: true }), true);
   assert.equal(main.stages.at(-2).id, 'light');
   const ids = main.stages.map(s => s.id);
-  assert.deepEqual(ids.slice(ids.indexOf('blade')), ['blade', 'guard', 'gun', 'stone', 'light', 'ship'], 'all House equipment and the spark precede lighting and repayment');
-  for (const id of ['blade', 'guard', 'gun', 'stone']) assert.equal(main.stages.find(s => s.id === id).gate, true, `${id} cannot be skipped before repayment`);
+  assert.deepEqual(ids.slice(ids.indexOf('gun')), ['gun', 'blade', 'guard', 'stone', 'skull', 'light', 'ship'], 'all House equipment, the spark and the skull’s lift valve precede lighting and repayment (issues #729, #730)');
+  for (const id of ['charge', 'gun', 'blade', 'guard', 'stone', 'skull']) assert.equal(main.stages.find(s => s.id === id).gate, true, `${id} cannot be skipped before repayment`);
   const last = main.stages.at(-1);
   assert.equal(last.id, 'ship');
   assert.equal(last.flag, 'desert.ship.fed');

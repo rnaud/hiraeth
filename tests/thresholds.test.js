@@ -119,17 +119,19 @@ test('an opening’s sheet: square, arched, round or as measured', () => {
 test('a way that won’t take you yet wears no light; it comes on once it will', () => {
   const W = world('desert'), { T } = lights(W);
   const mouth = W.level.portals.find((p) => p.label === 'giant’s mouth');
-  const had = items.has('backpack');
-  if (had) items.revoke('backpack');
-  if (items.has('backpack')) return;   // (a store that can't take it back: nothing to see here)
+  // (since issue #730 the mouth wants the blade: monsters keep the cave below)
+  const had = ['backpack', 'sword'].filter((i) => items.has(i));
+  for (const i of had) items.revoke(i);
+  if (items.has('sword')) return;   // (a store that can't take it back: nothing to see here)
+  items.grant('backpack');
   const eye = mouth.at.clone().add(new THREE.Vector3(0, 2, 5));
-  assert.equal(passable(mouth), false, 'the skull’s mouth before the backpack');
+  assert.equal(passable(mouth), false, 'the skull’s mouth before the blade');
   for (let i = 0; i < 60; i++) T.update(1 / 30, i / 30, eye);
   assert.ok(mouth._threshold.washes.every((x) => x.userData.off), 'shut: as solid as it is drawn');
-  items.grant('backpack');
+  items.grant('sword');
   for (let i = 0; i < 30; i++) T.update(1 / 30, 2 + i / 30, eye);
   assert.ok(mouth._threshold.k > 0.99 && mouth._threshold.washes.every((x) => !x.userData.off && strength(x) > 0.2), 'open: its light on');
-  if (!had) items.revoke('backpack');
+  for (const i of ['backpack', 'sword']) if (!had.includes(i)) items.revoke(i);
 });
 
 test('the sea locks: no light before the suit, as their story says', () => {

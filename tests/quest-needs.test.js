@@ -51,8 +51,8 @@ test('every quest\'s needs are critical items (or a quest), each with a place to
   }
   const held = ALL.filter((q) => questNeeds(q).length).map((q) => q.id).sort();
   // (the Undertower, the exam of the whole game, issue #418: its Bellows want the wings, so its quest waits for them)
-  assert.deepEqual(held, ['arzach.bird', 'arzach2.bell', 'desert.bike', 'desert.mask', 'incal.light', 'temple.bazaar', 'temple.desert'].sort(), 'the quests held back');
-  assert.deepEqual(templeNeeds(TEMPLES.desert.def.logic, 'desert'), ['doublejump'], 'the Rose House wants the lift valve (over the channel)');
+  assert.deepEqual(held, ['arzach.bird', 'arzach2.bell', 'desert.bike', 'desert.ilo', 'desert.mask', 'incal.light', 'temple.bazaar'].sort(), 'the quests held back');
+  assert.deepEqual(templeNeeds(TEMPLES.desert.def.logic, 'desert'), [], 'the Rose House holds all it asks for (issue #729: the lift valve over the channel before)');
   assert.deepEqual(templeNeeds(TEMPLES.arzach.def.logic, 'arzach'), [], 'the Aerie holds its own wings; the gun is carried past the desert');
 });
 
@@ -64,7 +64,7 @@ const ASKS = [
   { quest: 'arzach.bird', re: /\bride the bird\b/i },
 ];
 // what a quest's own steps find on the way, for the steps after (the desert's main quest: the backpack, the lift valve, the gun)
-const GETS = { 'desert.power': { box: 'backpack', valve: 'doublejump', gun: 'gun' } };
+const GETS = { 'desert.power': { box: 'backpack', gun: 'gun', skull: 'doublejump' } };
 
 test('a step that asks for a critical item belongs to a quest that needs it (or finds it first, or every traveller there has it)', () => {
   for (const q of ALL) {
@@ -193,7 +193,7 @@ test('the City-Shaft\'s main quest waits for the wings: Nima is not marked and g
 });
 
 test('the generic line names the thing and its place, in the giver\'s voice', () => {
-  assert.equal(heldBackLine({}, missingNeed({ needs: ['doublejump'] })), '~neutral~ Not without the lift valve. It is in the giant’s cave.');
+  assert.equal(heldBackLine({}, missingNeed({ needs: ['doublejump'] })), '~neutral~ Not without the lift valve. It is in the giant’s skull.');
   assert.equal(heldBackLine({}, missingNeed({ needs: ['glider'] })), '~neutral~ Not without the fluid wings. They are in the Aerie.');
   assert.equal(missingNeed({ needs: ['glider'] }, { has: (i) => i === 'glider' }), null);
   assert.equal(missingNeed({ needs: [{ quest: 'arzach.bird' }] }, { isDone: (q) => q === 'arzach.bird' }), null);

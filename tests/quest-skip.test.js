@@ -70,33 +70,52 @@ test('a gate holds the quest until its own goal is met; a step that can be done 
   assert.equal(w.quests.stage('q'), 'c', 'but reached, it is done at once');
 });
 
-test('the desert: the water let out and the tank filled before anyone sent you, the quest goes on from there (no Ama, no jar)', () => {
+test('the desert (issues #729, #730): straight to the Rose House with the battery, the quest goes on from there (no Ama, no jar, no skull first)', () => {
   const game = new GameState(memory()), quests = new Quests({ game });
   for (const q of QUESTS) quests.define(q);
   quests.start('desert.power');
   const main = QUESTS.find((q) => q.id === 'desert.power');
   assert.ok(!main.stages.some((s) => s.id === 'ask' || /\bjar\b/i.test(s.text)), 'Ama’s jar is no step of the main quest');
-  assert.equal(main.stages.find((s) => s.id === 'fill').flag, 'desert.pool.tinted', 'the pool step is the tank filled, jar or no jar');
-  // straight to the cave: the rib off, the tank filled
+  assert.equal(main.stages.find((s) => s.id === 'charge').flag, 'desert.battery.charged', 'the font’s step is the battery charged');
+  // straight to the Rose House: the chest opened, the house walked into, the battery filled at its font
   game.set('item.backpack', true);   // (items.grant's flag)
-  game.set('desert.channel.open', true);
-  game.set('desert.pool.tinted', true);
+  game.set('temple.desert.entered', true);
+  game.set('desert.battery.charged', true);
   quests.update(null);
-  assert.equal(quests.stage('desert.power'), 'door', 'the city, the chest, Nour and the way down passed over: the makers’ door by the pool next (issue #156)');
-  // the fire's steps can't carry it past the water: a hoverbike found early is no reason to skip the rest
+  assert.equal(quests.stage('desert.power'), 'gun', 'the city, the chest, Nour and the way there passed over: the gun next');
+  // the water up (the drain cleared on a visit) skips nothing: the stone alone lights the tree
+  game.set('desert.channel.open', true); quests.update(null);
+  assert.equal(quests.stage('desert.power'), 'gun');
+  // a hoverbike found early is no reason to skip the rest; nothing past the font without a charged battery
   const g2 = new GameState(memory()), q2 = new Quests({ game: g2 });
   for (const q of QUESTS) q2.define(q);
   q2.start('desert.power');
-  g2.set('desert.bike.found', true); g2.set('desert.hearth.seen', true); g2.set('item.gun', 1);
-  q2.update(null);
-  assert.equal(q2.stage('desert.power'), 'city', 'the Hearth seen before the water is up: the gate (the channel) holds');
-  // and nothing past the chest without the backpack it holds: straight to the cave with a bare back, the chest first
+  g2.set('item.backpack', true); g2.set('desert.bike.found', true); g2.set('temple.desert.entered', true); g2.set('item.gun', 1);
+  for (let i = 0; i < 3; i++) q2.update(null);
+  assert.equal(q2.stage('desert.power'), 'charge', 'the font’s gate holds');
+  // and nothing past the chest without the backpack it holds
   const g3 = new GameState(memory()), q3 = new Quests({ game: g3 });
   for (const q of QUESTS) q3.define(q);
   q3.start('desert.power');
-  g3.set('desert.city.entered', true); g3.set('desert.cave.seen', true); g3.set('desert.channel.open', true);
+  g3.set('desert.city.entered', true); g3.set('temple.desert.entered', true); g3.set('desert.channel.open', true);
   for (let i = 0; i < 3; i++) q3.update(null);
-  assert.equal(q3.stage('desert.power'), 'box', 'the chest on the tree, for the tank');
+  assert.equal(q3.stage('desert.power'), 'box', 'the chest on the tree, for the battery');
+  // the tree lit and the lift valve had already: the skull passes over to the gift
+  const g4 = new GameState(memory()), q4 = new Quests({ game: g4 });
+  for (const q of QUESTS) q4.define(q);
+  q4.start('desert.power', 'light');
+  for (const i of ['backpack', 'gun', 'sword', 'shield', 'doublejump']) g4.set(`item.${i}`, 1);
+  g4.set('desert.tree.lit', true);
+  for (let i = 0; i < 3; i++) q4.update(null);
+  assert.equal(q4.stage('desert.power'), 'ship');
+  // without it: the skull holds the tree's step and the gift back, the tree lit straight away (the ship won't fly without the lift valve)
+  const g5 = new GameState(memory()), q5 = new Quests({ game: g5 });
+  for (const q of QUESTS) q5.define(q);
+  q5.start('desert.power', 'stone');
+  for (const i of ['backpack', 'gun', 'sword', 'shield']) g5.set(`item.${i}`, 1);
+  g5.set('desert.stone.taken', true); g5.set('desert.tree.lit', true); g5.set('desert.ship.fed', true);
+  for (let i = 0; i < 3; i++) q5.update(null);
+  assert.equal(q5.stage('desert.power'), 'skull');
 });
 
 test('an opening quest whose talk never came starts past what is done (issue #85): its goal reached is its goal reached', async () => {

@@ -99,7 +99,7 @@ test('#158: no lever, no pole, no carved post: the drain asks whether to remove 
   assert.equal(node.choices[1].do, undefined, 'No leaves it');
 });
 
-test('#156: the lift valve\'s chest is in the makers\' shrine, out of sight and reach behind a door a full tank opens', async () => {
+test('#156, #730: the lift valve\'s chest is in the makers\' shrine, out of sight and reach behind a door that opens once the cave\'s monsters are down', async () => {
   const { game } = await import('../src/game-state.js');
   const { items } = await import('../src/items.js');
   const cave = Q.cave, S = cave.shrine, chest = cave.chest.at;
@@ -111,17 +111,17 @@ test('#156: the lift valve\'s chest is in the makers\' shrine, out of sight and 
   const around = [];
   for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) around.push(cave.local(Math.cos(a) * 14, 0, Math.sin(a) * 14));
   for (const p of [...around, S.front]) assert.ok(blocked(eye(p)), `the chest hidden from ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
-  // the door's prompt follows the tank
+  // the door: a full tank no longer opens it (issue #730); its lens says how many of the Givers' lamps are still dark
   const door = INTERACT.allInteractables().find((e) => e.id === 'shrine.door');
   const prompt = () => (typeof door.prompt === 'function' ? door.prompt() : door.prompt);
-  items.grant('backpack'); game.set('tool.empty', true); game.set('desert.pool.tinted', undefined); game.set('desert.channel.open', undefined);
-  assert.equal(prompt(), 'look at the makers’ door', 'an empty tank: it only looks');
+  items.grant('backpack'); game.set('tool.empty', false); game.set('desert.pool.tinted', true); game.set('desert.channel.open', true);
+  assert.equal(prompt(), 'look at the makers’ door', 'a full tank: it only looks');
   door.use();
-  assert.ok(!game.flag('desert.door.open') && /full battery/.test(toasts.at(-1)), 'and says it wants a full tank');
-  game.set('tool.empty', false); game.set('desert.pool.tinted', true); game.set('desert.channel.open', true);
-  assert.equal(prompt(), 'open the makers’ door');
-  door.use();
-  assert.equal(game.flag('desert.door.open'), true, 'the full tank opens it');
+  assert.ok(!game.flag('desert.door.open') && /lamps round the pool are still unlit/.test(toasts.at(-1)), 'and says the lamps are dark');
+  // the cave's monsters down (the hall's encounter site cleared: tests/skull-hall.test.js): it opens by itself
+  game.set('site.desert.skull-hall', true);
+  assert.equal(game.flag('desert.door.open'), true, 'the hall cleared opens it');
+  assert.ok(cave.hall.lamps.every((l) => l.on), 'every lamp lit');
   for (let i = 0; i < 80; i++) rt.update(1 / 30, i / 30, { camera: new THREE.PerspectiveCamera() });
   assert.equal(S.group.visible, false, 'sunk into the floor');
   assert.ok(!blocked(eye(S.front)), 'open: the chest in sight and reach from the doorway');

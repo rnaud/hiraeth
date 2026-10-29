@@ -199,13 +199,14 @@ test('a plate holds its door only while weighed down: stood on, or a weight on i
   assert.ok(r.log.includes('carry w onto p') && r.log.includes('carry w2 onto q') && r.logic.isOpen('e'), r.log.join(' / '));
 });
 
-test('the temples still solve with their weights, and the Rose House\'s old saves find the weight on its plate', () => {
+test('the temples still solve with their weights; the Rose House\'s carried weight gave way to the gun\'s (issue #729), and its old saves find the new weight on its plate', () => {
   for (const id of ['desert', 'spacecity']) {
-    const items0 = id === 'desert' ? ['backpack', 'doublejump'] : ['backpack', 'gun', 'doublejump', 'monocle'];   // (the Mooring-House's great key wants the lens, issue #417)
+    const items0 = id === 'desert' ? ['backpack'] : ['backpack', 'gun', 'doublejump', 'monocle'];   // (the Mooring-House's great key wants the lens, issue #417)
     const r = solve(TEMPLES[id].def.logic, { items: items0 });
     assert.equal(r.done, true, `${id}: ${r.log.join(' / ')}`);
   }
-  assert.ok(solve(TEMPLES.desert.def.logic, { items: ['backpack', 'doublejump'] }).log.includes('carry wP onto pp'), 'the Rose House\'s weight is on the way');
+  assert.ok(solve(TEMPLES.desert.def.logic, { items: ['backpack'] }).log.includes('roll ballP onto pp'), 'the Rose House\'s weight, pushed by the gun, is on the way');
+  assert.ok(!Object.values(TEMPLES.desert.def.logic.elements).some((e) => e.type === 'weight'), 'nothing in the Rose House is carried now');
   assert.ok(solve(TEMPLES.spacecity.def.logic, { items: ['backpack', 'gun', 'doublejump', 'hook', 'monocle'] }).log.includes('open cC'), 'the Mooring-House\'s coffer, with the hook');
   // (a save past the Dry Channel's door, which latched open for good before)
   const g = new GameState(null);
@@ -213,12 +214,12 @@ test('the temples still solve with their weights, and the Rose House\'s old save
   g.set('temple.desert.open.dc', true);
   migrateTempleLayouts(g);
   assert.equal(g.flag('temple.desert.layout'), LAYOUTS.desert.v);
-  assert.equal(g.flag('temple.desert.weight.wP'), 'pp', 'the weight on the plate');
+  assert.equal(g.flag('temple.desert.drum.ballP'), 1, 'the weight on the plate');
   const fresh = new GameState(null);
   fresh.set('temple.desert.layout', 2);
   fresh.set('temple.desert.lit.b0', true);
   migrateTempleLayouts(fresh);
-  assert.equal(fresh.flag('temple.desert.weight.wP'), undefined, 'not yet there: it lies where it was');
+  assert.equal(fresh.flag('temple.desert.drum.ballP'), undefined, 'not yet there: it lies where it was');
 });
 
 test('the Mooring-House: the moorers\' weight pulled off its cleat into his hands by the hook, set on the plate, the coffer\'s cage sinks while it sits there', () => {

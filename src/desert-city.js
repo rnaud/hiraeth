@@ -64,6 +64,15 @@ export const SHRINE = (() => {
   return { x, z, face, in: 3.25, out: 3.75, h: 5.2, door: { w: 2.3, h: 3.3, t: 0.34 }, r: 1.25, foot: 2.85, top: 0.6 };
 })();
 /**
+ * The skull cave's hall (issue #730): cave-local, where its monsters stand on the floor round the pool (x, z: clear of the
+ * shrine, the mural, the keepers' stair and the way in), the coffer they keep, the Givers' four lamps on the pool's kerb.
+ */
+export const SKULL_HALL = {
+  foes: [[12.7, 12.7], [15.6, -9], [-15.6, -9], [-12.7, 12.7]],
+  coffer: [6.5, 0, -16.5],
+  lamps: [[9.76, 9.76], [9.76, -9.76], [-9.76, -9.76], [-9.76, 9.76]],
+};
+/**
  * Build the shrine into a kit (cave-local, the cave's frame: its yaw 0): the round wall with its doorway toward the pool, a
  * bone coping, the makers' mark over the door, the chest's dais; and the door itself, a slab of white stone with a glass
  * lens in it, as a group of its own (it moves: it sinks into the floor when it opens) that draws only: its collision is
@@ -1429,6 +1438,21 @@ export function buildDesertCity(scene, terrain) {
     for (const m of shaftHolder.children) veils.add(m, { color: '#fff1cf', glow: 1, alpha: m.userData.wash, near: 2.5 });
     // the makers' shrine west of the pool, with the lift valve's chest inside (issue #156)
     const shrine = buildShrine(cave, { stone: caveStone, bone: caveBone, glyph: M.glyph });
+    // the Givers' lamps round the pool (issue #730: the skull cave a little temple with monsters): four posts of the
+    // builders' stone on the kerb, each a dark glass lamp on its head that lights as one of the monsters in the nave is cut
+    // down (src/story/desert.js); all four lit, the shrine's door sinks
+    const hallLamps = SKULL_HALL.lamps.map(([x, z]) => {
+      cave.both(caveStone, new THREE.BoxGeometry(0.7, 2.6, 0.7).translate(x, 1.3, z));
+      cave.both(caveBone, new THREE.BoxGeometry(1.0, 0.25, 1.0).translate(x, 2.72, z));
+      cave.add(M.glyph, glyphGeometry(0.32).rotateY(Math.atan2(-x, -z)).translate(x - Math.sin(Math.atan2(x, z)) * 0.36, 1.7, z - Math.cos(Math.atan2(x, z)) * 0.36));
+      const lit = makeMaterial({ color: '#7fe8c8', glow: 1, flat: true }), dark = makeMaterial({ color: '#5b6f6a', flat: true });
+      const orb = new THREE.Mesh(new THREE.OctahedronGeometry(0.34, 1).scale(1, 1.3, 1), dark);
+      orb.position.copy(cave.world(x, 3.25, z)); orb.userData.noCollide = true; orb.userData.dynamic = true;
+      cave.group.add(orb);
+      const p = cave.world(x, 3.3, z), light = new THREE.Vector4(p.x, p.y, p.z, 0);
+      lights.push(light);
+      return { orb, lit, dark, light, on: false, set(on) { if (on === this.on) return; this.on = on; this.orb.material = on ? lit : dark; this.light.w = on ? 9 : 0; } };
+    });
     cave.flush();
     {
       const S = HATCH.stair, n = 8, run = (S.foot - S.ledge) / n, sk = new Kit(late, 'The keepers’ stair', O, 0);
@@ -1481,6 +1505,9 @@ export function buildDesertCity(scene, terrain) {
       // walls not to be climbed (issue #68): the whole room and its passage
       noClimb: (() => { const c = cave.world(0, 8, 0); return { x: c.x, y: c.y, z: c.z, r: 48 }; })(),
       shafts: shaftHolder,
+      // the nave's monsters' places and the Givers' lamps round the pool (issue #730): the level's encounter site
+      // (src/levels/desert.js `sites`, src/encounters/sites.js kind 'hall'), its spots and coffer in world space
+      hall: { at: cave.world(0, 0, 0), spots: SKULL_HALL.foes.map(([x, z]) => { const p = cave.world(x, 0, z); return [p.x, p.z]; }), coffer: (() => { const p = cave.world(...SKULL_HALL.coffer); return [p.x, p.z]; })(), lamps: hallLamps },
       // the keepers' stair: its foot, and the doorway at its top (the way up to the hatch in the back lane)
       stairFoot: cave.world(0, 0, HATCH.stair.foot + 1), stairTop: cave.world(0, HATCH.stair.y, HATCH.stair.door + 0.9),
       // the water (desert.js drives these): dry (the bed) until the channel opens, then up to high
@@ -1500,9 +1527,10 @@ export function buildDesertCity(scene, terrain) {
   // the way down: the skull's mouth ↔ the passage
   const gd = out.giant.door, fwd = V(Math.sin(G.yaw), 0, Math.cos(G.yaw));
   portals.push(
-    // (not before the backpack: the way back up wants the lift valve's double jump, and its chest a full tank: issue #68)
+    // (not before the blade, issue #730: monsters keep the cave now, and the way back up wants the lift valve's double jump
+    // from its shrine, which opens once they are down; issue #68: it was the backpack before)
     { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth', door: { at: out.giant.mouth.clone(), yaw: G.yaw, ...out.giant.mouthSize },
-      when: () => items.has('backpack'), refuse: 'Below the skull’s mouth the dark drops away, deep and sheer. Not with empty hands: nothing down there would bring you back up.' },
+      when: () => items.has('backpack') && items.has('sword'), refuse: 'Something growls in the dark below the skull’s mouth. Not with empty hands.' },
     // (its light over the dark at the shaft's top, the landing's far end: it read as a shut wall, issue #305)
     { at: cv.exit.clone().add(V(0, 0.5, 0)), r: 1.6, to: gd.clone().addScaledVector(fwd, 3.2), heading: G.yaw, label: 'passage up', door: { at: cv.exit.clone().add(V(0, 0, 0.3)), yaw: 0, w: 4.6, h: 4.6 } },
     // the keepers' stair up to the hatch in the back lane, coming out facing the tree (one way: the hatch only lifts from below)

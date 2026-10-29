@@ -34,7 +34,8 @@ export class Encounters {
     this.group = new THREE.Group(); this.group.name = 'Encounter sites'; this.group.userData.noCollide = true;
     scene?.add(this.group);
     const stage = rosterOf(levelId).stage ?? 1;
-    this.sites = sitesOf(levelId).map((s, n) => ({
+    // (the world's sites, and a level's own: the skull cave's hall, issue #730)
+    this.sites = [...sitesOf(levelId), ...(level?.sites ?? [])].map((s, n) => ({
       ...s, n, pos: new THREE.Vector3(...s.at), lay: layoutSite(s, BODIES), out: [], killed: new Set(), props: null, coffer: null,
       sprung: false, purse: SITE_PURSE[Math.max(0, Math.min(SITE_PURSE.length - 1, stage))] * (SITE_PAYS[s.kind] ?? 1),
     }));
@@ -136,7 +137,8 @@ export class Encounters {
     const live = this.live();
     if (quiet) { for (const s of this.sites) if (!s.props && Math.hypot(P.pos.x - s.pos.x, P.pos.z - s.pos.z) < SITE.build) this.build(s); return; }
     for (const s of this.sites) {
-      const d = Math.hypot(P.pos.x - s.pos.x, P.pos.z - s.pos.z);
+      // (a site far overhead, the skull cave's hall: only from inside it, `dy` m of it)
+      const d = s.dy != null && Math.abs(P.pos.y - s.at[1]) > s.dy ? Infinity : Math.hypot(P.pos.x - s.pos.x, P.pos.z - s.pos.z);
       if (d < SITE.build && !s.props) this.build(s);
       if (s.props) {
         const near = d < SITE.build * 0.75;
@@ -146,6 +148,8 @@ export class Encounters {
         s.coffer.update(dt, t);
         this.signs(s, d, dt, t, live);
       }
+      // (a hall with no foe about, the Enemies setting off or no blade yet: cleared as you come in, its door not kept shut)
+      if (!live && s.kind === 'hall' && !this.cleared(s) && d < SITE.near) { this.clear(s, { quiet: true }); continue; }
       if (!live || this.cleared(s)) continue;
       // the foes out: who fell, who was let go (left far behind), who noticed you
       let standing = 0, any = false;
@@ -153,7 +157,7 @@ export class Encounters {
         if (!f) return;
         any = true;
         if (f.sneakHit) { f.sneakHit = false; this.sneaked(); }
-        if (!f.alive) { s.killed.add(i); s.out[i] = null; return; }   // (cut down: its mind is done, state 'dead', whatever its body still does)
+        if (!f.alive) { s.killed.add(i); s.out[i] = null; this.game?.emit?.('site:fell', { world: this.levelId, id: s.id, n: s.killed.size, of: s.lay.foes.length }); return; }   // (cut down: its mind is done, state 'dead', whatever its body still does)
         if (!this.foes.list.includes(f)) { s.out[i] = null; return; }   // (let go with the packs, Foes.update: out again as you come back)
         standing++;
         if (f.wakeIn != null && (f.wakeIn -= dt) <= 0) { f.wakeIn = null; if (!f.provoked) this.wake(f); }
@@ -210,10 +214,12 @@ export class Encounters {
   }
 
   /** Every one cut down: cleared for good, its coffer's lamp lit; a word the first time. */
-  clear(s) {
+  clear(s, { quiet = false } = {}) {
     this.game?.set?.(siteFlag(this.levelId, s.id), true);
     s.out = []; s.killed.clear();
+    if (quiet) return;
     this.sound?.chime?.();
+    if (s.kind === 'hall') return;   // (the hall's own words are the level's: its lamps, its door)
     this.toast?.(s.kind === 'camp' ? 'The camp is quiet. Its coffer is yours.' : s.kind === 'nest' ? 'The nest is empty. Its coffer is yours.' : s.kind === 'warlord-hold' ? 'The warlord has fallen. Its coffer is yours.' : 'They are beaten. Their coffer is yours.');
   }
 

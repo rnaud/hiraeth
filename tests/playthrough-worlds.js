@@ -20,44 +20,42 @@ export const SOLVERS = {}, WAYS = {}, CHECKS = {};
 const bird = (W) => (W.player.mount?.kind === 'bird' ? W.player.mount : null);
 
 // ------------------------------------------------------------------ the desert
+const fresh = () => !game.flag('desert.redtemple.migrated');
 Object.assign(SOLVERS, {
   // through the gate and up the stairs: inside the walls
   'desert.power:city': (W) => { W.at(W.level.qanat.city.plinthStair); W.step(3); },
-  // the chest beside the pool (v1.38): the lift valve, the double jump; until then, one jump
-  'desert.power:valve': (W, { issue }) => {
-    if (A.abilities(W).doublejump) issue('ability', 'the double jump before the chest by the pool');
-    A.openBox(W, 'desert.lift', issue);
-    if (!A.abilities(W).doublejump) issue('ability', 'no double jump out of the chest by the pool');
-  },
-  'desert.power:bike': async (W, { issue }) => {
-    if (!items.has('backpack') || game.flag('tool.empty')) return issue('ability', 'race entry needs the filled backpack');
-    const { winDesertRival } = await import('./helpers/desert-rival-win.js');
-    await winDesertRival(game); W.step(2);
-  },
+  // (issues #729, #730) the Rose House, the Desert's one dungeon: walked into with the empty battery alone (no race, no
+  // double jump); its font charges the battery, then the gun, the blade and the guard in order, then the stone. (`fresh`:
+  // a new game's route, held to that order; an old save's carries what it had: src/story/desert.js migrateRedTemple)
   'desert.power:rose': async (W, { issue }) => {
-    if (!W.quests.isStarted('temple.desert')) ACTIONS.askSabri(W, issue);
+    if (fresh() && A.abilities(W).doublejump) issue('ability', 'the double jump before the Rose House');
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, () => !!game.flag('temple.desert.entered'), issue, { nextSpot, id: 'desert' }); W.step(2);
+  },
+  'desert.power:charge': async (W, { issue }) => {
+    if (fresh() && !game.flag('tool.empty')) issue('ability', 'a full battery before the Givers’ font');
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, () => !!game.flag('desert.battery.charged'), issue, { nextSpot, id: 'desert' }); W.step(2);
+    if (game.flag('tool.empty')) issue('ability', 'the battery still empty past the Givers’ font');
+  },
+  'desert.power:gun': async (W, { issue }) => {
+    if (fresh() && (items.has('gun') || items.has('sword'))) issue('ability', 'the gun or the blade before the Givers’ gun chest');
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, () => items.has('gun'), issue, { nextSpot, id: 'desert' }); W.step(2);
+    if (!A.abilities(W).gun) issue('ability', 'no fluid gun out of the Rose House chest');
+  },
+  'desert.power:blade': async (W, { issue }) => {
+    if (fresh() && (items.has('sword') || items.has('shield'))) issue('ability', 'the blade or the guard before their chests');
     const { nextSpot } = await import('../src/temples/index.js');
     await A.templeTo(W, 'gadget', issue, { nextSpot, id: 'desert' }); W.step(2);
   },
-  'desert.power:blade': async (W, options) => SOLVERS['desert.power:rose'](W, options),
   'desert.power:guard': async (W, { issue }) => {
     const { nextSpot } = await import('../src/temples/index.js');
-    await A.templeTo(W, 'done', issue, { nextSpot, id: 'desert' }); W.step(2);
-  },
-  'desert.power:gun': async (W, { issue }) => {
-    if (items.has('gun')) issue('ability', 'the gun before the Givers’ chest');
-    // Legacy saves can already own blade and guard without solving today's House.
-    // Follow its real puzzle state to the gun rather than teleport past its locked rooms.
-    if (!W.level.temple.logic.resolved) await SOLVERS['desert.power:guard'](W, { issue });
-    if (!items.has('gun')) {
-      W.at(V(...W.level.temple.findSites.gun.at)); W.step(2);
-      A.openBox(W, 'desert.gun', issue);
-    }
-    if (!A.abilities(W).gun) issue('ability', 'no fluid gun out of the Rose House chest');
+    await A.templeTo(W, () => items.has('shield'), issue, { nextSpot, id: 'desert' }); W.step(2);
   },
   'desert.power:stone': async (W, { issue }) => {
     const T = W.level.temple, H = T.roseSpark;
-    if (!T.logic.resolved) await SOLVERS['desert.power:guard'](W, { issue });
+    if (!T.logic.resolved) { const { nextSpot } = await import('../src/temples/index.js'); await A.templeTo(W, 'done', issue, { nextSpot, id: 'desert' }); W.step(2); }
     W.at(H.refills[1]); W.step(2); A.useHere(W, 'rose.spring.refill.1');
     const ball = T.byId.get('sparkBall');
     if (!A.abilities(W).gun) return issue('ability', 'the weight needs the gun and a full tank');
@@ -66,6 +64,20 @@ Object.assign(SOLVERS, {
     ball.hit('push', ball.dir, { strength: 1 }); W.step(30 * 30);
     if (!game.flag('desert.hearth.open')) return issue('soft-lock', 'the pushed weight did not open the spark cage');
     W.at(H.stoneRest); A.useHere(W, 'hearth.stone');
+  },
+  // (issue #730) the giant's skull, a little temple with monsters: down its mouth with the blade, its monsters beaten (the
+  // fight's own tests: tests/skull-hall.test.js), the shrine's door sinks, the lift valve's chest, up the keepers' stair
+  'desert.power:skull': async (W, { issue }) => {
+    const Q = W.level.qanat, mouth = W.level.portals.find((p) => p.label === 'giant’s mouth');
+    if (fresh() && A.abilities(W).doublejump) issue('ability', 'the double jump before the giant’s skull');
+    if (!mouth?.when?.()) return issue('soft-lock', `the skull’s mouth refuses him: ${mouth?.refuse}`);
+    W.at(Q.cave.inside); W.step(3);
+    if (game.flag('desert.door.open')) issue('temple', 'the shrine’s door open before the monsters are down');
+    game.set('site.desert.skull-hall', true); W.step(30 * 3);
+    if (!game.flag('desert.door.open')) return issue('soft-lock', 'the monsters beaten, and the shrine’s door stayed shut');
+    A.openBox(W, 'desert.lift', issue);
+    if (!A.abilities(W).doublejump) issue('ability', 'no double jump out of the chest in the shrine');
+    W.at(Q.cave.stairTop.clone()); W.step(3);
   },
   // back to the ship (its hatch says so: src/ship/ship.js emits ship:enter), where Qanat waits with its gift:
   // one by one they pour what they brought into it (src/story/desert-repay.js), and the ship wakes
@@ -395,7 +407,7 @@ Object.assign(ACTIONS, {
     if (!s) return issue('no-ground', 'nowhere to stand on the broken moon’s crown');
     W.at(s); W.step(2);
   },
-  // (the desert: Sabri in the camps sends you to the Rose House once Qanat has fed your ship)
+  // (the desert: Sabri in the camps points at the Rose House; the main quest leads there itself since issue #729)
   askSabri: meet('sabri', 'temple.desert'),
   meetSel: meet('sel', 'spacecity.notes'),
   meetKip: meet('kip', 'spacecity.lamp'),

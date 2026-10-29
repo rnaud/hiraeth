@@ -211,37 +211,40 @@ written in).
      on the terrace turn and murmur, Hessa calls her grandmother, the tree
      flares. Nour, asked before it opens: it has not opened for anyone in
      living memory; it opens only for "one who fell from the sky".
-  3. `elder`: it opens for the traveller (the battery). Qanat gathers at the
-     tree's foot by the dais (the ones in the avenue come up the stairs),
-     everyone turns, the tree flares high, and Nour gets off her bench ("Hey you!"),
-     comes to you and calls you
-     over ("Psst. Child."), but leaves the talk to you: the old words, the singing light the chest hummed back to, the
-     Givers, the star, the battery ("the same water the giants carried"), and the
-     one power in the desert, the water that has not risen. She sends you on
-     with the Speaker's old verse, the way down: "Where the giant's eyes are
-     marked, its mouth is a door." If you like, she has you listen at the dry
-     well with her first (the water moving far below).
-  4. `ask`: Ama at the fires gives the drinking jar (or already did, if you sat
-     at her fire on the way in). The Speaker, at the procession's head, tells
-     the old words whole for whoever walks with him: the giants, the swamp of
-     lights, the verse.
-  5. `down`: out of the back gate to the fallen giant's skull (318, 530),
-     whose open mouth is a doorway → the cave of shifting water in the giant's
-     chest, where the tree's roots hang into the pool. 6. `channel`: the pool is
-     dry (damp stains, a pale tide line, no water at all) because a giant's bone
-     has fallen across the channel. Pushing it clear (fluid push; without the
-     tool, a heave) lets the water run: the stream comes out of the crack, down
-     the channel, and fills the pool; the tree drinks. 7. `fill` (the jar and the battery at the pool), then the
-     spark-stone's errand lights the tree. 8. `ship`: **Qanat repays him.** Because he gave the city back its
+  3. `elder`: it opens for the traveller (the battery, empty). Qanat gathers at the tree's foot, the tree flares high,
+     and Nour gets off her bench ("Hey you!"), comes to you and calls you over ("Psst. Child."), but leaves the talk to
+     you: the Givers, the battery, and the one thing the tree needs: its spark went out the night the light passed, and
+     only the Givers' own **spark-stone** lights it again. It waits in **the Rose House, east of Qanat**, where the
+     Givers' font fills the battery too (issue #729, the author, 2026-10-28: "Go to the red temple in the desert to
+     recharge the battery by solving a puzzle. Then you continue the temple and get the gun and the sword and shield
+     and then finally the spark stone").
+  4. `rose`: walk east to the Rose House (no race first: the hoverbike is Marrow's side errand once the gun is had).
+  5. `charge`: in its Hall of the Flame a tar ball leaned on through the pilot flame lights the hooded bowl; the bowl
+     wakes the **Givers' font** beside it, and at it the battery fills (with the giant's colour, the first time).
+  6. `gun`, 7. `blade`, 8. `guard`: the Givers' gun on the Dry Channel's ledge (its push rolls their weight onto the
+     plate there and the bridge rises over the sand), their blade on the Great Hall's balcony, their guard over the
+     fire bridge (docs/design/desert-red-temple.md has the rooms).
+  9. `stone`: the Keeper calmed in its cistern, the gun's push opens the spring room's cage: the spark-stone.
+  10. `skull`: on the way back, something growls in the giant's skull past the back gate. Its cave is **a little
+     temple with monsters** now (issue #730): two grunts and two prowlers on guard round the dry pool, four of the
+     Givers' lamps on its kerb that light one by one as they fall, and the makers' shrine that opens when the last does,
+     with **the lift valve** (the double jump) inside; up the keepers' stair to the hatch by the tree. It comes after the
+     Rose House because its monsters want the blade, and before the gift because the ship won't fly without the lift valve.
+  11. `light`: set in the tree's roots the stone calls the living water up from under the giant, and the tree catches,
+     cool and in every colour. **The stone alone restarts the tree** (issue #730, "We just need the spark stone to restart
+     the tree"): the water no longer has to be let out first, and the skull isn't needed for it (set the stone first and
+     the tree burns; the quest still asks for the skull before the gift).
+  12. `ship`: **Qanat repays him.** Because he gave the city back its
      light, the city chooses to help him in return: the ones with something to give go down to his ship and pour
      in what their houses can spare (the camps' share of the Drinking, a street's lamps, the well's first water,
      an oven's fire-water, Marrow's last cell), one by one, Nour last ("You gave us back our light, child. So
      Qanat gives your ship its own."). That powers the ship (`ship.powered`, `world.desert.done`, the keepsake;
      src/story/desert-repay.js), not the tree's fire by itself.
   Saves from before (stages `pack`, `camps`, then ama, speaker, well) move to
-  `city` or to Nour and skip what they already did (src/story/desert.js
-  `migrateDesertQuest`; src/boxes/index.js `migrateSave` marks the shrine's
-  box open for anyone who already carries the battery).
+  `city` or to Nour and skip what they already did; since v8 (issues #729, #730) a save at the skull, the drain, the
+  pool, the makers' door, the valve, the stair, the roots or the race goes on to the Rose House and passes over what it
+  has (src/story/desert.js `migrateDesertQuest`, `migrateRedTemple`; src/boxes/index.js `migrateSave` marks the
+  chest open for anyone who already carries the battery).
 - **Keepsakes**: *knowing*: "What the giants left" (main quest); *song*: "Teo's
   walking rhythm" (his drum, found under the ribcage). Oum's knotted cord is
   an item, not a keepsake: she tells the rumour of the singing light when you

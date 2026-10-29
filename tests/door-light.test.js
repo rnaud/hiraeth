@@ -43,7 +43,8 @@ test('one mesh a door: the opening, the floor before it, its sides back into the
 test('in a world: one wash a way, one program, lit while it takes you, facing the side it is walked into from', () => {
   const savedFlags = { ...A.game.data.flags };
   const W = A.loadWorld('desert');
-  for (const key of ['desert.bike.found', 'desert.bike.race.won', 'desert.rose.legacy']) A.game.data.flags[key] = false;
+  for (const key of ['item.sword']) A.game.data.flags[key] = false;
+  A.game.data.flags['item.backpack'] = true;
   try {
     const veils = new Veils(), before = veils.list.length;
     const T = new Thresholds({ veils, parent: new THREE.Group(), portals: W.level.portals, physics: W.physics });
@@ -56,16 +57,19 @@ test('in a world: one wash a way, one program, lit while it takes you, facing th
     assert.equal(rose.side, 1, 'the Rose House: from its forecourt');
     const out = W.level.portals.find((p) => p.label === 'door' && p.fromSpace)._threshold;
     assert.equal(out.side, -1, 'a room’s way out: from inside the room');
-    const eye = rose.door.at.clone().add(new THREE.Vector3(0, 2, 6));
-    assert.equal(rose.portal.when(), false, 'a fresh traveller must win the bike before entering');
+    // (a way shut to him stays dark: the giant's mouth until the blade is his, issue #730; the Rose House is always open now)
+    const mouth = W.level.portals.find((p) => p.label === 'giant’s mouth')._threshold;
+    const eye = mouth.door.at.clone().addScaledVector(new THREE.Vector3(Math.sin(mouth.portal.door.yaw), 0, Math.cos(mouth.portal.door.yaw)), 6).add(new THREE.Vector3(0, 2, 0));
+    assert.equal(mouth.portal.when(), false, 'no way down with empty hands');
     for (let i = 0; i < 30; i++) T.update(1 / 30, i / 30, eye);
-    assert.equal(rose.on, false, 'the locked Rose doorway does not advertise passage');
-    assert.equal(rose.k, 0, 'the locked doorway stays dark');
-    A.game.set('desert.bike.found', true);
-    assert.equal(rose.portal.when(), true, 'the earned bike opens the Rose road');
+    assert.equal(mouth.on, false, 'the shut way does not advertise passage');
+    assert.equal(mouth.k, 0, 'the shut way stays dark');
+    A.game.set('item.sword', true);
+    assert.equal(mouth.portal.when(), true, 'the blade opens it');
     for (let i = 0; i < 30; i++) T.update(1 / 30, i / 30, eye);
-    const u = rose.washes[0].material.uniforms;
-    assert.ok(u.uDoor.value.x > 0.8 && Math.abs(u.uDoor.value.y - rose.door.at.distanceTo(eye)) < 1e-6, 'on, and it knows how near the eye is');
+    const u = mouth.washes[0].material.uniforms;
+    assert.ok(u.uDoor.value.x > 0.8 && Math.abs(u.uDoor.value.y - mouth.door.at.distanceTo(eye)) < 1e-6, 'on, and it knows how near the eye is');
+    assert.ok(!rose.portal.when || rose.portal.when(), 'the Rose House’s door is open to whoever walks there (issue #729)');
     const shop = W.level.portals.find((p) => p.label === 'shop door');
     assert.equal(approachSide(shop._threshold.door, shop, W.physics), 1, 'a shop: from the street');
     T.dispose();

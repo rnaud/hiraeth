@@ -177,7 +177,7 @@ export function setupHoverbike(ctx) {
   };
   const raceForBike = () => {
     if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your belt is bare.', 'It runs on fluid, and your belt is bare. The city may hold some.')); return; }
-    if (!fuelled()) { toast(quietOr('It runs on fluid, and your battery is empty.', 'Your battery is dry. Fill it at the giant’s pool past Qanat’s back gate.')); return; }
+    if (!fuelled()) { toast(quietOr('It runs on fluid, and your battery is empty.', 'Your battery is dry. The Givers’ font in the Rose House fills it.')); return; }
     if (typeof ctx.playGame !== 'function') { toast('The race is not available here yet.'); return; }
     ctx.dialogue.start(wager, rival);
   };

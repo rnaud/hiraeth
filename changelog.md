@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.36 — 2026-10-29
 
+- Saves already part-way through the Desert carry on from the next thing still to do there, keeping everything you found.
+- The giant’s skull is a little temple with monsters: two grunts and two prowlers guard its dry pool, a Givers’ lamp lights for each one you cut down, and when the last falls the shrine opens on the lift valve. Its mouth lets you down once you carry the blade.
+- The spark-stone alone lights Qanat’s tree: set it in the roots and the living water rises to meet it.
+- Deeper in, the Givers left their gun first. Its push rolls their heavy weight onto its plate and raises a bridge over the Dry Channel’s sand, and its shot from the floor wakes the eye high on the Hall of Channels’ obelisk. Then their blade on the balcony, their guard past the fire bridge, and last of all, past the Keeper, the spark-stone.
+- The Rose House is now the Desert’s great temple, and Nour sends you straight there for the spark-stone: no race to win and no cave to climb out of first. In its Hall of the Flame, roll the burning ball into the Givers’ bowl and their font rises beside it: it fills your empty battery.
 - In the Moon Foundry, the droids’ patrol now walks the east bay by the east furnace, and the prowlers nest in the north-west corner under the second hung moon.
 - Steam and smoke drift through the Moon Foundry: vents hiss at the foot of its walls, columns of steam rise from grates in the floor, smoke rolls off every furnace, and the moulds steam as they cool. Embers float in the air.
 - Inside, the Moon Foundry is dim and lit by its furnaces: eight new furnaces glow at the foot of its walls, each throwing a pool of warm light, chains with hooks hang between the moons, and galleries run along the walls high up.

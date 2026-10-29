@@ -36,7 +36,7 @@ export const BENCH_STYLES = {
 export const BENCHES = {
   desert: [
     { at: [468.39, 36.09, 225.38], face: 5.105, name: 'Qanat and the tree that drinks, from the dunes over it' },
-    { at: [453.5, 37.37, 426.14], face: 5.105, name: 'the dark tree, its light and the town under it' },
+    { at: [451.2, 37.37, 422.9], face: 5.105, name: 'the dark tree, its light and the town under it' },   // (4 m off the way back from the Rose House to the giant's skull, issue #730)
   ],
   arzach: [
     { at: [-232.49, 76.25, -272.09], face: 2.356, name: 'the sky stones over the sea of cloud' },

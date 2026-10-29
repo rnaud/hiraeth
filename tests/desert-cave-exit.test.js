@@ -62,15 +62,18 @@ test('the cave’s walls are not climbed: a no-climb zone round the whole room a
   assert.ok(!P.noClimbNear(Q.giant.skull), 'and the skull outside');
 });
 
-test('the skull’s mouth: not without the backpack (its `refuse` said instead); with it, down onto the landing', () => {
+test('the skull’s mouth (issue #730): not without the blade, monsters keep the cave now (its `refuse` said instead); with it, down onto the landing', () => {
   const mouth = W.level.portals.find((p) => p.label === 'giant’s mouth');
   assert.ok(mouth?.when && mouth.refuse);
-  const had = items.has('backpack');
-  items.revoke?.('backpack');
-  if (!items.has('backpack')) assert.equal(mouth.when(), false, 'no way down with empty hands');
+  assert.match(mouth.refuse, /Not with empty hands/);
+  const had = ['backpack', 'sword'].filter((i) => items.has(i));
+  items.revoke?.('backpack'); items.revoke?.('sword');
+  assert.equal(mouth.when(), false, 'no way down with empty hands');
   items.grant('backpack');
-  assert.equal(mouth.when(), true);
-  if (!had) items.revoke?.('backpack');
+  assert.equal(mouth.when(), false, 'nor with the battery alone');
+  items.grant('sword');
+  assert.equal(mouth.when(), true, 'the blade in hand: down');
+  for (const i of ['backpack', 'sword']) if (!had.includes(i)) items.revoke?.(i);
   assert.ok(mouth.to.distanceTo(cave.inside) < 0.1);
 });
 

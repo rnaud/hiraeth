@@ -73,7 +73,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     use: () => {
       dialogue.start(THINGS.weight, null, H.ball.position.clone());
       if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. The Givers’ chest off this hall holds their gun.'), 0), 600);
-      else if (!hasPush()) setTimeout(() => hint(quietOr('Your battery is empty.', 'Your battery is dry: fill it at the giant’s pool past Qanat’s back gate.'), 0), 600);
+      else if (!hasPush()) setTimeout(() => hint(quietOr('Your battery is empty.', 'Your battery is dry: the Givers’ font in the Rose House fills it.'), 0), 600);
     } });
   registerInteractable({ id: 'hearth.grille', priority: PRIORITY.use, range: 3, at: () => H.stone.position, enabled: () => !opened() && st.roll < 0,
     prompt: 'look at the grille', distance: (p) => (inside() && Math.abs(p.pos.y - H.stone.position.y) < 2.5 ? flat(p.pos, H.stone.position) : Infinity),

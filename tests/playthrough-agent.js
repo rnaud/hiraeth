@@ -609,7 +609,7 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
   }
   W.at(T.arrival.pos.clone()); W.step(3);
   if (!game.flag(`temple.${T.id}.entered`)) issue('temple', `in through the door of ${T.def.name}, but it never counted as entered`);
-  const reached = () => (until === 'gadget' ? L.gadget : L.resolved);
+  const reached = () => (typeof until === 'function' ? until() : until === 'gadget' ? L.gadget : L.resolved);   // (or a test of its own: the Rose House's font, issue #729)
   let n = 0;
   for (; n < 80 && !reached(); n++) {
     let id = L.next();
@@ -619,7 +619,7 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
     // him let in and out by turns from the arena, issue #412)
     const bossId = Object.keys(L.def.elements).find((k) => L.el(k).type === 'boss');
     if (until === 'done' && T.guardian?.awake && !L.resolved && (!id || L.el(id)?.room !== L.el(bossId)?.room)) id = bossId;
-    if (!id) { issue('soft-lock', `${T.def.name}: nothing left to do, and ${until === 'gadget' ? 'the chest' : 'the guardian'} not reached (rooms open: ${[...L.reachable()].join(', ')})`); break; }
+    if (!id) { issue('soft-lock', `${T.def.name}: nothing left to do, and ${until === 'gadget' ? 'the chest' : typeof until === 'function' ? 'its goal' : 'the guardian'} not reached (rooms open: ${[...L.reachable()].join(', ')})`); break; }
     const e = L.el(id), at = nextSpot(T);
     // (by the thing itself, else by its plate: a ball out over the void that only a tether brings home, an eye set high in a
     // mould that wakes when a moon sits in it: you stand where you work it from)
@@ -632,7 +632,16 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       ?? (T.piece(id)?.o?.from && T.kit ? standNear(W, T.kit.world(...T.piece(id).o.from), { radius: 3, up: 3 }) : null);   // (a ring hung high, hooked from where it says: the Warden's Well's crown ring, issue #413)
     if (!s && e.type !== 'boss') issue('no-ground', `${T.def.name}: ${e.type} ${id} (${fmt(at)}) has nowhere to stand by it`);
     if (s) { W.at(s); W.step(2); }
-    if (e.type === 'gadget' || e.type === 'find') {
+    if (e.type === 'find' && !e.box) {
+      // (a find with no chest: the Rose House's font, issue #729: its own prompt where it stands)
+      const by = at ? standNear(W, at, { radius: 2.4, up: 2 }) : null;
+      if (by) { W.at(by); W.step(2); }
+      const b = bestInteractable(W.player)?.entry;
+      if (b?.id?.endsWith(id) && b.enabled?.() !== false) b.use(W.player);
+      else issue('temple', `${T.def.name}: E by the ${id} is ${b?.id ?? 'nothing'}`);
+      if (!L.isFound(id)) { issue('temple', `${T.def.name}: the ${id} was not found by its prompt`); L.find(id); }
+      log.push(`find ${id}`);
+    } else if (e.type === 'gadget' || e.type === 'find') {
       // (the temple's chest, or a second one: a `find`, the Givers' guard)
       const box = W.boxes.list.find((b) => b.place.temple === T.id && b.place.id === (e.type === 'find' ? e.box : T.def.gadgetBox)) ?? (e.type === 'gadget' ? W.boxes.list.find((b) => b.place.temple === T.id) : null);
       if (!box) { issue('no-thing', `${T.def.name}: no chest`); break; }

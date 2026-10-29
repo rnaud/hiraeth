@@ -35,11 +35,12 @@ export const MAKERS = [...ROUTE_TEMPLES, ...Object.keys(TEMPLES).filter((id) => 
 const gadgetsOf = (id) => Object.values(TEMPLES[id]?.def.logic.elements ?? {}).filter((e) => (e.type === 'gadget' || e.type === 'find') && e.item).map((e) => e.item);
 /**
  * What the traveller carries into a temple (as the design audit has it, scripts/temple-design/audit.mjs): the backpack,
- * the double jump, the gun (not into the Rose House: the Hearth's), and every gadget of the temples before it.
+ * the double jump and the gun (into the Rose House only the empty backpack: its font, its gun, and the double jump after
+ * it in the giant's skull, issues #729, #730), and every gadget of the temples before it.
  */
 export function carriedInto(id) {
   const k = ROUTE_TEMPLES.indexOf(id);
-  return ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun']), ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).flatMap(gadgetsOf))];
+  return ['backpack', ...(id === 'desert' ? [] : ['doublejump', 'gun']), ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).flatMap(gadgetsOf))];
 }
 
 // ------------------------------------------------------------------ plain words

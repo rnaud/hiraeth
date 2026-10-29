@@ -30,7 +30,7 @@ export async function measureTemples({ temples = null, log = () => {} } = {}) {
   // Hearth's, and the house never asks for it); the blade and the guard it holds are carried into every temple after it
   const carriedInto = (id) => {
     const k = ROUTE_TEMPLES.indexOf(id);
-    return ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun']), ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).flatMap(gadgetsOf))];
+    return ['backpack', ...(id === 'desert' ? [] : ['doublejump', 'gun']), ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).flatMap(gadgetsOf))];
   };
   const ids = (temples ?? ROUTE_TEMPLES).filter((id) => TEMPLES[id]);
   const report = { date: new Date().toISOString(), temples: [] };

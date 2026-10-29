@@ -1295,6 +1295,12 @@ with nothing round it.
     (7.5 m) and they come up round it, at you (out of a cloud of darkness; a mound worm out of the sand). Left far
     behind before it is cleared, it sets again.
   - **patrol**: a coffer by a cairn, the foes walking a beat (two cairns `beat` m either side) end to end in single file.
+  - **hall** (v2.36, issue #730): a level's own makers' hall, listed by the level (`level.sites`), not in `SITES`: the
+    Desert's skull cave, far overhead (`dy`: it wakes only from within that many metres of its floor). Its foes (two
+    grunts, two prowlers) on guard at the places it names (`spots`), facing its middle; no props. Each one cut down emits
+    `site:fell` (`{ id, n, of }`: the story lights a Givers' lamp for it); cleared, no camp's words (the level says its
+    own: the shrine's door sinks). With no foe about (the Enemies setting off, or no blade yet) it counts as cleared,
+    quietly, as you come in, so the door it keeps is never shut on anyone. tests/skull-hall.test.js.
 - **The idle** (`src/encounters/idle.js`, the foe's `f.idle`; `Foe.update`'s idle case asks it while the foe is calm):
   `sit` (by the fire), `sleep`, `guard`, `lookout`, `patrol`, `orbit` (a flyer circles its post instead of sitting or
   sleeping), `hidden` (an ambush's). Each notices you within its reach (`IDLE`: × its kind's own calm distance, kept

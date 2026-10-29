@@ -445,14 +445,16 @@ test('the makers’ chest is on its dais at the tree’s foot; opening it (its t
   step(18 * 30, 1 / 30, { people: true });
   for (const n of W.villagers) assert.ok(flat(n.pos, homeOf.get(n)) < 8, `${n.id ?? 'a villager'} stays by their door: no crowd walks over`);
   // a real conversation, with choices, and short (the author's playthrough, October 2026, issue #62): the Givers only
-  // asked about once she has named them (#61), and she points you at the skull herself (#63)
+  // asked about once she has named them (#61), and she names the place herself (#63): since issues #729 and #730 the
+  // spark-stone in the Rose House, whose font fills the battery
   const r = talk(PEOPLE.nour, ['The Givers?', 'My ship has no power']);
   assert.equal(game.flag('desert.elder.heard'), true);
-  assert.match(r.pages.join(' '), /marked skull, past the back gate/, 'she points you at the skull');
-  assert.doesNotMatch(r.pages.join(' '), /Ama|Speaker|jar from/, 'and sends you to nobody else');
+  assert.match(r.pages.join(' '), /spark-stone/, 'she names the spark-stone');
+  assert.match(r.pages.join(' '), /Rose House, east of Qanat/, 'and the Rose House');
+  assert.doesNotMatch(r.pages.join(' '), /Ama|Speaker|jar from|skull|hoverbike|race/, 'and sends you to nobody else, and nowhere else');
   assert.equal(r.ended, false, 'a last word before you go');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'down', 'straight on to the way down: no jar to fetch from Ama first');
+  assert.equal(quests.stage('desert.power'), 'rose', 'straight on to the Rose House: no skull, no race first');
   t.mock.timers.tick(3400);
   assert.ok(toasts.some((t) => /dry: not a drop/.test(t)), 'it says the tank is dry');
   assert.ok(!toasts.some((t) => /Try shooting/.test(t)), 'no nudge to try an empty tool');
@@ -468,167 +470,80 @@ const use = (id) => {
 };
 const promptOf = (e) => (typeof e.entry.prompt === 'function' ? e.entry.prompt() : e.entry.prompt);
 
-test('the main quest, end to end: an empty tank, the drain cleared, the tank filled, the well, the race, the Rose House, the stone, the tree lit, the ship', async (t) => {
+test('the main quest, end to end (issues #729, #730): the Rose House, its font, gun, blade and guard, the stone, the tree lit, the skull cleared, the ship', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
-  const W = rt.world, H = level.temple.roseSpark;
-  assert.equal(quests.stage('desert.power'), 'down');
-  assert.equal(quests.objective().label, 'The giant’s skull');
-  // Nour said the old verse herself: the mouth is a door
-  assert.match(PEOPLE.nour.talk.nodes.power.say.map((s) => s.text ?? s).join(' '), /mouth is a door/);
+  const W = rt.world, H = level.temple.roseSpark, RT = level.temple;
+  assert.equal(quests.stage('desert.power'), 'rose');
+  assert.equal(quests.objective().label, 'The Rose House');
   talk(THINGS.roots, [0]);   // (the roots can be looked at: no stage of the quest)
-  // Ama's jar is her own small gift now, no step of the quest (issue #63): taken, it fills at the pool too
+  // Ama's jar is her own small gift now, no step of the quest (issue #63)
   const ama = talk(PEOPLE.ama, ['I’ll bring it back full']);
   assert.ok(quests.has('jar'), 'Ama gives the jar to whoever sits at her fire');
   assert.doesNotMatch(ama.pages.join(' '), /Nour sent/, 'nobody sent you to her');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'down', 'the jar changes nothing');
+  assert.equal(quests.stage('desert.power'), 'rose', 'the jar changes nothing');
   // the Speaker still has the old words whole, for whoever walks with him
   const said = talk(PEOPLE.speaker, ['Until it drinks', 'Is there a way down']);
   assert.match(said.pages.join(' '), /mouth is a door/);
-  assert.equal(game.flag('desert.speaker.heard'), true, 'his old words (the giants, the swamp of lights)');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'down');
-  // the objective is in the cave, so the guide routes through the skull's mouth
-  at(Q.city.rootsLook);
-  assert.match(rt.objective().label, /giant’s mouth/);
-  at(Q.cave.inside); step(2);
-  assert.equal(quests.stage('desert.power'), 'channel');
-
-  // ---- the drain: debris clogs it; the tank is empty, so no push; you look, and say yes, remove it (issue #158)
-  assert.equal(items.has('backpack'), true);
-  assert.equal(game.flag('tool.empty'), true, 'the tank is empty');
-  assert.equal(W.dry(), true);
-  assert.equal(W.toolHasPush(), false, 'an empty tank pushes nothing');
-  const bone = allTargets().find((t) => t.kind === 'bone');
-  assert.ok(quests.objective().position.distanceTo(Q.cave.bone.position) < 0.01, 'the marker is on the drain');
-  assert.equal(quests.objective().label, 'The clogged drain');
-  at(Q.cave.bone.position.clone().setY(Q.cave.origin.y).add(V(-1.5, 0, 1.5))); facing(Q.cave.bone.position);
-  const look = bestInteractable(player);
-  assert.equal(look?.entry.id, 'bone');
-  assert.equal(promptOf(look), 'look at the drain');
-  assert.ok(!INTERACT.allInteractables().some((e) => /^keepers\./.test(e.id)), 'no pole, no carved post');
-  const no = talk(THINGS.bone, ['No']);
-  assert.match(no.pages.join(' '), /Something is clogging the drain\. Remove it\?/);
-  assert.equal(game.flag('desert.channel.open'), undefined, 'No leaves it');
-  talk(THINGS.bone, ['Yes']);
-  assert.equal(game.flag('desert.channel.open'), true, 'Yes: you pull it clear');
-  bone.onHit('push');   // (nothing left to push)
-  // the water runs; the tree drinks, and the tree stays cold
-  step(90, 1 / 10);   // the debris is dragged aside, the pool rises
-  assert.ok(flat(Q.cave.bone.position, Q.cave.boneRest.pos) > 2, 'the debris lies beside the channel');
-  assert.equal(Q.city.lit, 0, 'the water alone lights nothing');
-  assert.equal(quests.stage('desert.power'), 'fill');
-
-  // ---- the pool: the empty tank fills (and takes the giant's colour), and the jar
-  const refills = [];
-  game.on('tool:refill', (e) => refills.push(e));
-  at(Q.cave.poolCenter.clone().setY(Q.cave.origin.y - 1.5)); step(2);
-  assert.ok(quests.has('water') && !quests.has('jar'), 'the jar fills');
-  assert.deepEqual(refills.map((e) => e.addColour), [true], 'wading fills the tool, with a new colour the first time');
-  assert.equal(game.flag('tool.empty'), false, 'the tank is full now, for good');
-  assert.equal(W.dry(), false);
-  assert.ok(toasts.some((t) => /empty battery fills/.test(t)), 'it says so');
-  step(2);
-  // ---- the makers' shrine (issue #156): its door hums back at the full tank, and opens with it
-  assert.equal(quests.stage('desert.power'), 'door');
-  const S = Q.cave.shrine;
-  assert.ok(quests.objective().position.distanceTo(S.front) < 0.01, 'the marker at the shrine\'s door');
-  at(S.front.clone()); facing(S.box.at);
-  const door = bestInteractable(player);
-  assert.equal(door?.entry.id, 'shrine.door');
-  assert.equal(promptOf(door), 'open the makers’ door');
-  door.entry.use(player);
-  assert.equal(game.flag('desert.door.open'), true, 'the full tank opens it');
-  step(70);
-  assert.equal(S.group.visible, false, 'sunk into the floor');
-  // ---- the chest inside (v1.38): the lift valve, the backpack's first strength (the double jump)
-  assert.equal(quests.stage('desert.power'), 'valve');
-  assert.ok(quests.objective().label.includes('chest'), 'the marker leads to the chest in the shrine');
-  items.grant('doublejump');   // (the box: tests/boxes.test.js opens them; tests/playthrough.test.js walks to this one)
-  step(2);
-  assert.equal(quests.stage('desert.power'), 'up');
-
-  // ---- up the keepers' stair behind the pool to the hatch in the back lane (one way: it only lifts from below)
-  const stair = level.portals.find((p) => p.label === 'the keepers’ stair');
-  assert.ok(stair && stair.oneWay && stair.to.distanceTo(Q.hatch.out) < 0.01, 'the stair comes up at the hatch');
-  assert.ok(!level.portals.some((p) => p.at.distanceTo(Q.hatch.out) < 6), 'and nothing goes down it');
-  assert.ok(quests.objective().position.distanceTo(Q.hatch.out) < 0.01, 'the marker at the hatch');
-  at(Q.cave.stairTop.clone()); step(2);
-  at(stair.to.clone()); step(2);
-  assert.ok(toasts.some((t) => /only lifts from below/.test(t)), 'it says the hatch drops shut');
-  assert.equal(quests.stage('desert.power'), 'rise');
-
-  // ---- not yet: the ship won't take still water
-  game.emit('ship:enter');
-  assert.ok(quests.has('water') && !game.flag('desert.ship.fed'), 'the jar’s water is still: it wants the spark too');
-
-  // ---- the roots: you watch the water climb them; the tree stays cold
-  assert.ok(quests.objective().position.distanceTo(Q.city.rootsLook) < 0.01, 'the marker is at the roots');
-  at(Q.city.rootsLook);
-  step(3);
-  assert.ok(W.rise.on, 'the water climbs while you watch');
-  for (let i = 0; i < 40 && !game.flag('desert.well.watched'); i++) step(30, 1 / 10);
-  assert.equal(game.flag('desert.well.watched'), true);
-  assert.equal(Q.city.lit, 0, 'and still the tree is cold');
-  assert.equal(talk(THINGS.roots, []).nodeId, 'full');
-  step(2);
-  assert.equal(quests.stage('desert.power'), 'spark');
-  // Nour tells of the race and the Rose House
-  const cold = new DialogueRunner(PEOPLE.nour, { game, quests });
-  assert.equal(cold.nodeId, 'cold', 'Nour: the tree drank, and stays cold');
-  assert.match(cold.pages.join(' '), /spark-stone/);
-  assert.match(cold.pages.join(' '), /Rose House/);
-  while (!cold.ended && (!cold.lastPage || !cold.choices().length) && cold.advance());
-  assert.deepEqual(cold.choices().map((c) => c.text.replace(/^~\w+~ /, '')), ['I’ll bring the stone back.', 'Whose bike is it?']);
-  // she says where the bike is herself (it was "ask Marrow at the camps": issue #63)
-  assert.match(cold.pages.join(' '), /red-rag hollow/);
-  assert.equal(game.flag('desert.spark.heard'), true);
-  step(2);
-  assert.equal(quests.stage('desert.power'), 'bike');
-  t.mock.timers.tick(2600);
-  assert.equal(quests.stage('desert.bike'), undefined, 'no errand to go and ask Marrow first');
-  assert.ok(quests.objective().position.distanceTo(W.hollow.site.bike) < 0.01, 'the marker is on the hollow');
-  at(W.hollow.site.bike.clone().add(V(1.5, 0, 0)).setY(terrain.heightAt(W.hollow.site.bike.x + 1.5, W.hollow.site.bike.z)));
-  use('bike.tarp');           // the tarp
-  step(30);
-  assert.equal(rt.dialogue.person.id, 'host.canyon', 'uncovering the bike starts its owner’s conversation');
-  assert.ok(rt.dialogue.open);
-  // Leave this conversation before supplying the independently tested race result.
-  // Keeping it open would hold the player’s facing on Kamal through later story interactions.
-  rt.dialogue.close();
-  step(2);
-  // The race's independent integration test proves a real finish; this story test supplies
-  // its result and checks the ownership gate/quest handoff, never the old free-bike interaction.
-  const entry = level.temple.portals.find(p => !p.toUp);
-  assert.equal(entry.when(), false);
-  game.set('desert.bike.race.won', true); game.set('desert.bike.found', true); step(2);
-  assert.equal(entry.when(), true);
   assert.equal(quests.stage('desert.power'), 'rose');
-  assert.ok(!level.portals.some(p => p.label === 'Givers’ Hearth'));
-  at(level.temple.arrival.pos); game.set('temple.desert.entered', true); step(2);
-  assert.equal(quests.stage('desert.power'), 'blade');
+  // the Rose House stands open: no race to win first (issue #729: the bike is a side errand)
+  const entry = RT.portals.find((p) => !p.toUp);
+  assert.ok(!entry.when || entry.when(), 'its door lets you in with only the empty battery');
+  // the skull's mouth wants the blade now: monsters keep the cave (issue #730)
+  const mouth = level.portals.find((p) => p.label === 'giant’s mouth');
+  assert.equal(mouth.when(), false, 'not with empty hands');
+  assert.match(mouth.refuse, /growls/);
+
+  // ---- into the Rose House: the empty battery, the Hall of the Flame's bowl and the Givers' font
+  at(RT.arrival.pos); game.set('temple.desert.entered', true); step(2);
+  assert.equal(quests.stage('desert.power'), 'charge');
+  assert.equal(game.flag('tool.empty'), true, 'the tank is still empty');
+  // inside, the house's own next step leads: the tar ball first (src/temples/logic.js next), then the font once it is lit
+  assert.equal(RT.logic.next(), 'ball1', 'the house leads to the ball by the flame');
+  at(RT.font.at.clone().add(V(1.6, 0, 0))); step(1);
+  assert.notEqual(bestInteractable(player)?.entry.id, 'rose.font', 'a dry font gives nothing before the bowl is lit');
+  // the ball leaned through the flame into the hooded bowl (tests/temples.test.js walks it): lit, the font rises
+  RT.logic.moveDrum('ball1', 1); RT.logic.light('b0'); RT.logic.update(); step(30 * 3);
+  assert.equal(RT.logic.next(), 'font', 'then to the font');
+  assert.ok(quests.objective().position.distanceTo(RT.font.at) < 0.01, 'the marker at the font');
+  assert.ok(RT.font.water.visible && RT.font.k > 0.9, 'living water stands in the font');
+  const refills = [];
+  const offRefill = game.on('tool:refill', (e) => refills.push(e));
+  at(RT.font.at.clone().add(V(1.6, 0, 0))); facing(RT.font.at); step(1);
+  use('rose.font');
+  offRefill?.();
+  assert.deepEqual(refills.map((e) => e.addColour), [true], 'the battery fills, with a new colour the first time');
+  assert.equal(game.flag('tool.empty'), false, 'full now, for good');
+  assert.equal(game.flag('desert.battery.charged'), true);
+  assert.equal(RT.logic.isFound('font'), true);
+  assert.equal(W.dry(), false);
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'gun', 'the gun next');
+  // then, in order, the gun, the blade, the guard (the chests themselves: tests/desert-rose-progression.test.js)
+  items.grant('gun'); step(2); assert.equal(quests.stage('desert.power'), 'blade');
   items.grant('sword'); step(2); assert.equal(quests.stage('desert.power'), 'guard');
-  items.grant('shield'); step(2); assert.equal(quests.stage('desert.power'), 'gun');
-  items.grant('gun'); step(2); assert.equal(quests.stage('desert.power'), 'stone');
+  items.grant('shield'); step(2); assert.equal(quests.stage('desert.power'), 'stone');
   at(H.stoneRest); step(2);
   assert.notEqual(bestInteractable(player)?.entry.id, 'hearth.stone', 'closed cage cannot give the stone');
-  const weight = level.temple.byId.get('sparkBall');
+  const weight = RT.byId.get('sparkBall');
   weight.hit('water', weight.dir); step(40);
   assert.equal(game.flag('desert.hearth.open'), undefined);
   for (let i = 0; i < 30 * 30; i++) {
     if (i === 0 || i === 60) weight.hit('push', weight.dir, { strength: 1 });
-    weight.update(1 / 30, i / 30); level.temple.logic.update(); step(1);
+    weight.update(1 / 30, i / 30); RT.logic.update(); step(1);
   }
   assert.equal(game.flag('desert.hearth.open'), true);
   at(H.stoneRest); use('hearth.stone'); step(2);
   assert.ok(quests.has('stone') && game.flag('desert.stone.taken'));
-  assert.equal(quests.stage('desert.power'), 'light');
+  assert.equal(quests.stage('desert.power'), 'skull', 'the giant’s skull on the way back (issue #730)');
   assert.equal(H.stone.visible, false);
   assert.ok(quests.carried().includes(ITEMS.stone), 'your gear lists it');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'stone');
 
-  // ---- home to the roots: set the stone in them; the spark climbs the trunk and the tree catches
+  // ---- home to the roots: the stone alone restarts the tree (issue #730: no drain, no pool, no water first)
+  assert.equal(game.flag('desert.channel.open'), undefined, 'the water never rose');
   at(Q.city.rootsLook); step(2);
   assert.equal(Q.city.lit, 0);
   const sm = Q.city.smoke, warm = coolness(sm);
@@ -640,7 +555,6 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
     player.pos.copy(Q.city.rootsLook).add(new THREE.Vector3(dx, 0, dz));
     const here = INTERACT.allInteractables().filter((x) => !x.id?.startsWith('talk.') && x.enabled() && x.distance(player) <= x.range);
     assert.deepEqual(here.map((x) => x.id), ['roots'], `one thing to use at the roots (${dx}, ${dz})`);
-    // and Hessa, sweeping right beside them, doesn't take the press meant for the stone
     const hessa = rt.world.people.hessa;
     if (hessa) hessa.pos.copy(player.pos).add(V(0.8, 0, 0.4));
     assert.equal(bestInteractable(player)?.entry.id, 'roots', `the stone’s prompt wins at the roots (${dx}, ${dz})`);
@@ -651,6 +565,7 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   step(8);
   assert.ok(H.stone.visible && H.stone.position.distanceTo(player.pos) < 6, 'out of your pack, from your hand into the roots');
   assert.equal(game.flag('desert.tree.lit'), true);
+  assert.equal(game.flag('desert.channel.open'), true, 'the spark calls the water up with it');
   assert.ok(!quests.has('stone'), 'the stone stays in the roots');
   step(30 * 4);
   assert.ok(Q.city.lit > 0 && Q.city.lit < 1, `it catches, and the fire grows (${Q.city.lit.toFixed(2)})`);
@@ -664,7 +579,40 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.ok(crowd.people.filter((p) => p.spot?.id === 'procession').every((p) => p.lines === LINES.drinking), 'the procession sings');
   assert.equal(talk(PEOPLE.ama, []).nodeId, 'drinking');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'ship', 'all three weapons were earned before the stone');
+  assert.equal(quests.stage('desert.power'), 'skull', 'the tree lit first (it needs only the stone): the quest waits at the skull before the gift');
+  const nourSkull = talk(PEOPLE.nour, []);
+  assert.equal(nourSkull.nodeId, 'drinking');
+  assert.match(nourSkull.pages.join(' '), /giant’s skull past the back gate/);
+
+  // ---- the giant's skull: a little temple with monsters (issue #730). The blade had, its mouth lets you down
+  assert.equal(mouth.when(), true, 'with the blade, down you go');
+  at(Q.cave.inside); step(2);
+  assert.equal(game.flag('desert.cave.seen'), true);
+  const S = Q.cave.shrine;
+  assert.equal(game.flag('desert.door.open'), undefined, 'the shrine is shut while its monsters stand');
+  assert.ok(Q.cave.hall.lamps.length === 4 && Q.cave.hall.lamps.every((l) => !l.on), 'four dark lamps round the pool');
+  at(S.front.clone()); facing(S.box.at); step(1);
+  const look = bestInteractable(player);
+  assert.equal(look?.entry.id, 'shrine.door');
+  look.entry.use(player);
+  assert.ok(toasts.at(-1).match(/4 of the Givers’ lamps/), 'its lens dark, the lamps unlit');
+  // each monster down lights a lamp (the encounter site itself: tests/encounters.test.js, tests/skull-hall.test.js)
+  for (let n = 1; n <= 3; n++) { game.emit('site:fell', { world: 'desert', id: 'skull-hall', n, of: 4 }); assert.equal(Q.cave.hall.lamps.filter((l) => l.on).length, n); }
+  game.set('site.desert.skull-hall', true);
+  assert.equal(game.flag('desert.door.open'), true, 'all down: the door opens');
+  assert.ok(Q.cave.hall.lamps.every((l) => l.on), 'every lamp lit');
+  step(70);
+  assert.equal(S.group.visible, false, 'sunk into the floor');
+  items.grant('doublejump');   // (the box: tests/boxes.test.js opens them; tests/playthrough.test.js walks to this one)
+  step(2);
+  assert.equal(quests.stage('desert.power'), 'ship');
+  // up the keepers' stair behind the pool to the hatch in the back lane (one way: it only lifts from below)
+  const stair = level.portals.find((p) => p.label === 'the keepers’ stair');
+  assert.ok(stair && stair.oneWay && stair.to.distanceTo(Q.hatch.out) < 0.01, 'the stair comes up at the hatch');
+  at(Q.cave.stairTop.clone()); step(2);
+  at(stair.to.clone()); step(2);
+  assert.ok(toasts.some((t) => /only lifts from below/.test(t)), 'it says the hatch drops shut');
+
   const R = rt.world.repay;
   // back to the ship (the ship's own hatch emits ship:enter; walking up works too): Qanat repays you. Its people
   // come down to the ship with what they can spare and pour it in, one by one (src/story/desert-repay.js)
@@ -717,11 +665,16 @@ test('old saves: stages that moved go to Nour, the ones done advance on their fl
   assert.equal(s.run(), 'elder', 'Nour first');
   s.g.set('desert.elder.heard', true);
   s.g.set('desert.asked', true);   // (setupDesert's askedDone: the jar was given)
-  assert.equal(s.run(), 'down', 'the jar and the Speaker were done already');
-  // in the cave already: untouched
-  s = save('channel', { 'item.backpack': true });
-  assert.equal(migrateDesertQuest(s.g), null);
-  assert.equal(s.q.stage('desert.power'), 'channel');
+  assert.equal(s.run(), 'rose', 'the jar and the Speaker were done already: on to the Rose House (issue #729)');
+  // in the cave already (v7: the skull before the Rose House): on to the Rose House, its filled battery charged
+  s = save('channel', { 'item.backpack': true, 'desert.quest.v': 7, 'tool.empty': true });
+  assert.equal(migrateDesertQuest(s.g), 'rose');
+  assert.equal(s.g.flag('desert.battery.charged'), undefined, 'an empty battery is not charged');
+  s = save('valve', { 'item.backpack': true, 'desert.quest.v': 7, 'desert.pool.tinted': true, 'tool.empty': false, 'desert.channel.open': true });
+  assert.equal(migrateDesertQuest(s.g), 'rose');
+  assert.equal(s.g.flag('desert.battery.charged'), true, 'filled at the pool: charged');
+  s.g.set('temple.desert.entered', true);
+  assert.equal(s.run(), 'gun', 'the font passes over: on to the gun');
   // once only, and never for a new save
   assert.equal(migrateDesertQuest(s.g), null);
   const fresh = new GameState(store());
@@ -801,18 +754,17 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   assert.equal(new DialogueRunner(CONTENT.desert.npcs[1], { game, quests }).nodeId, 'washed');
 });
 
-test('the water let out before anyone sent you down: the steps that lead there pass, and Ama still gives the jar', () => {
-  // Ilo, Bako and Hessa all point at the giant's mouth: a player can lever the rib off before Nour, the well, Ama and the Speaker
-  for (const f of ['desert.elder.heard', 'desert.well.seen', 'desert.speaker.heard', 'desert.asked', 'desert.cave.seen', 'desert.jar.given', 'desert.jar.filled', 'desert.pool.tinted', 'desert.well.watched', 'desert.spark.heard', 'desert.hearth.seen', 'desert.stone.taken', 'desert.tree.lit', 'desert.ship.fed']) game.set(f, undefined);
+test('the water let out before anyone sent you down: nothing is passed over any more (the stone alone lights the tree, issue #730), and Ama still gives the jar', () => {
+  for (const f of ['desert.elder.heard', 'desert.well.seen', 'desert.speaker.heard', 'desert.asked', 'desert.cave.seen', 'desert.jar.given', 'desert.jar.filled', 'desert.pool.tinted', 'desert.well.watched', 'desert.spark.heard', 'desert.hearth.seen', 'desert.stone.taken', 'desert.tree.lit', 'desert.ship.fed', 'temple.desert.entered', 'desert.battery.charged']) game.set(f, undefined);
   while (quests.has('water')) quests.take('water');
   game.set('desert.channel.open', true);
   quests.set('desert.power', 'elder');
   step(6);
-  assert.equal(quests.stage('desert.power'), 'fill', 'Nour’s sending and the way down pass over: on to the pool');
+  assert.equal(quests.stage('desert.power'), 'elder', 'Nour still has her word');
   talk(PEOPLE.ama, ['I’ll bring it back full']);
   assert.ok(quests.has('jar'), 'Ama still gives the jar, to fill there if you like');
   step(6);
-  assert.equal(quests.stage('desert.power'), 'fill');
+  assert.equal(quests.stage('desert.power'), 'elder');
   clearInteractables();
 });
 

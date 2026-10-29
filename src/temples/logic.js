@@ -281,7 +281,7 @@ export class TempleLogic {
       if (isGate(e) && e.lock && this.canUnlock(id) && this.lockReachable(id, reach)) return id;
       if (!inReach(e, reach, (it) => this.has(it))) continue;
       if (e.type === 'gadget' && !this.gadget) return id;
-      if (e.type === 'find' && !this.isFound(id)) return id;
+      if (e.type === 'find' && !this.isFound(id) && (!e.when || this.check(e.when))) return id;   // (a find whose `when` fails waits: the Rose House's font, issue #729)
       if (e.type === 'key' && !this.isFound(id) && this.check(e.when)) return id;
       if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!held(e) || this.awaited(id))) return id;
       if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it))) return id;
@@ -465,7 +465,7 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         if (e.item && !withhold.includes(e.item)) owned.add(e.item);
         gadgetAt = log.length; note(`take ${id}${e.item ? ` (${e.item})` : ''}`); did = true; break;
       }
-      if (e.type === 'find' && !L.isFound(id)) {
+      if (e.type === 'find' && !L.isFound(id) && (!e.when || L.check(e.when))) {
         L.find(id);
         if (e.item && !withhold.includes(e.item)) owned.add(e.item);
         note(`find ${id}${e.item ? ` (${e.item})` : ''}`); did = true; break;
