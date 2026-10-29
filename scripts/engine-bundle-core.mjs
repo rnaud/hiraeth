@@ -52,13 +52,15 @@ export async function bundle(name, override = {}) {
     plugins: [noIcu(), noCss(), viteImportGlobPlugin({ root: ROOT })],
     logLevel: 'warn',
   });
-  const out = [];
+  const out = [], modules = new Set();
   for (const file of e.out) {   // (paths from the repository root, or absolute)
     const path = resolve(ROOT, file);
     mkdirSync(dirname(path), { recursive: true });
-    await build.write({ file: path, format: 'cjs', codeSplitting: false, sourcemap: false, comments: { legal: false } });
+    const written = await build.write({ file: path, format: 'cjs', codeSplitting: false, sourcemap: false, comments: { legal: false } });
+    for (const chunk of written.output) for (const id of chunk.moduleIds ?? []) modules.add(id);
     out.push({ file, bytes: statSync(path).size });
   }
   await build.close();
-  return { name, ms: Date.now() - t0, out };
+  // (modules: every module the bundle holds, as rolldown names them: what the whole-game tests' bundle cache checks)
+  return { name, ms: Date.now() - t0, out, modules: [...modules] };
 }
