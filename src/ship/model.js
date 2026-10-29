@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Batch, polar } from './geo.js';
+import { closeCaravanShell } from './caravan-shell.js';
 import { buildHull, doorGeometry, rampGeometry, R, DECK, HATCH, HATCH_A, HINGE_R, HALF_W } from './hull.js';
 import { buildInterior, BLOCK_H, ROOM_KEY, roomLook } from './interior.js';
 import { buildCaravanInterior } from './caravan-interior.js';
@@ -159,6 +160,8 @@ export function buildShipModel(o = {}) {
     applyCamp = bindCaravanMechanisms(authored);
     applyCamp(o.space ? 0 : 1, o.space ? 4 : 0);
     caravanLayout.placeAuthoredRoot(authored); group.add(authored);
+    // its open tail and the porch's forward pocket closed (issue #776: the ship was see-through there)
+    for (const geometry of closeCaravanShell(group, authored)) ownedGeometry.set(geometry, geometry);
   }
   const hull = authored ? { authored: true, feet: [] } : buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
   if (authored) {

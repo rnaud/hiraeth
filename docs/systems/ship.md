@@ -559,3 +559,25 @@ not destination, landing, space, banking or physical-device acceptance. Initial
 private prerequisites and the existing aboard-main start were staged; earning
 those prerequisites or boarding the ship was not part of that review. Published
 pictures retain their older source and staged-camera attribution.
+
+### A closed shell (#776)
+
+"The back of my ship is see through? … when I'm about to enter the ship on the left is can see through as well. Same
+when I'm in the cockpit." Three holes in the playable caravan, each a view into the hull's empty inside:
+
+- **The tail.** The Blender source caps the forecabin's loft but not the middle section's last ring, so the hull ended in
+  an open ellipse (about 4.2 × 3.6 m) between the four boosters: from behind you looked down the hull past the hold's back
+  wall to the bow. `capCaravanTail` (`src/ship/caravan-shell.js`) lays a cap over the ring's own vertices in the hull's
+  paint, under the hull; where a later export closes the tail, a ray down its axis meets the hull and nothing is added.
+- **Forward of the porch.** Nothing closed the 3 m between the skin and the main room's port wall forward of the doorway:
+  from the ramp and the porch you looked left down a tunnel inside the hull to the cockpit and its windshield. A plate
+  (`PORCH_POCKET`, `porch-pocket`) closes it at z −3.65, just forward of where the sliding door parks open (it slides
+  2.47 m toward the bow), so the door still slides into a shallow pocket. Its outline follows the skin, the stairwell's
+  wall and the room's wall, measured by rays in that plane; `tests/ship-shell.test.js` measures it again.
+- **The cockpit.** Its deck was a 4.7 m half-width slab in a nose 7 m wide: a slot each side and round the nose looked down
+  into the hull, a coral band where floor met wall. The deck now follows the forecabin's inner outline at its height
+  (`cockpitArc`, shared with its ceiling), 8 cm in from the shell.
+
+The Blender source is not exported again (no Blender here); the closures are built with the model, so the engines and
+Unity draw them through the bridge. `tests/ship-shell.test.js` casts rays through the built caravan: from behind between
+the boosters, forward from the doorway between skin and wall, and down across the cockpit.

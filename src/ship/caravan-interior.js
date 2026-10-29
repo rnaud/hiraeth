@@ -11,6 +11,21 @@ export const SEATS = { x: 1.3, z: -18.25 };
 const MESSAGE = { x: 3.55, z: 1.1 };
 const BUNK = { x: -2.2, z: 2 };
 const V = (x,y,z) => new THREE.Vector3(x,y,z);
+/**
+ * The forecabin's inner outline at height y (ship frame), 8 cm in from the shell, closed straight across at z1: points
+ * (x, z) for a Shape laid flat (the cockpit's ceiling, and its deck since issue #776).
+ */
+export function cockpitArc(y,z1) {
+  const a=y/CARAVAN_SCALE+AUTHORED_ENTRY.y+.8;
+  const section=Math.pow(1-Math.pow(Math.abs((a-8.3)/5),2.6),1/2.6);
+  const half=(5.5*section-.08)*CARAVAN_SCALE, arc=[];
+  for(let i=0;i<=64;i++) {
+    const t=-Math.PI/2+Math.PI*i/64;
+    arc.push(new THREE.Vector2(-half*Math.sin(t),(-13.8-(6.2*section-.08)*Math.cos(t)-AUTHORED_ENTRY.x)*CARAVAN_SCALE));
+  }
+  arc.push(new THREE.Vector2(-half,z1),new THREE.Vector2(half,z1));
+  return arc;
+}
 export function buildCaravanInterior(batch, group) {
   const deco = new THREE.Group(), props = new THREE.Group();
   deco.name='caravan-room-details'; props.name='caravan-personal-belongings';
@@ -45,18 +60,14 @@ export function buildCaravanInterior(batch, group) {
   // Separate flat decks and an actual stair run: no invisible elevator or camera-only height change.
   for(const [name,r] of Object.entries(ROOMS)) {
     const left=r.left??r.half, right=r.right??r.half, cx=(right-left)/2, width=left+right;
-    box('floor',cx,r.floor-.18,(r.z0+r.z1)/2,width,.18,r.z1-r.z0);
+    if(name==='cockpit') {
+      // The deck runs out to the curved shell (issue #776): a 4.7 m half-width slab left a 2.3 m slot each side and round
+      // the nose down into the hull below, seen through as a band where floor met wall.
+      batch.add('floor',new THREE.ExtrudeGeometry(new THREE.Shape(cockpitArc(r.floor,r.z1)),{depth:.18,bevelEnabled:false}).rotateX(Math.PI/2).translate(0,r.floor,0));
+    } else box('floor',cx,r.floor-.18,(r.z0+r.z1)/2,width,.18,r.z1-r.z0);
     if(name==='cockpit') {
       // A flat rectangle at this height would pierce the curved nose. Follow the actual forecabin section.
-      const y=r.ceiling/CARAVAN_SCALE+AUTHORED_ENTRY.y+.8;
-      const section=Math.pow(1-Math.pow(Math.abs((y-8.3)/5),2.6),1/2.6);
-      const half=(5.5*section-.08)*CARAVAN_SCALE, arc=[];
-      for(let i=0;i<=64;i++) {
-        const a=-Math.PI/2+Math.PI*i/64;
-        arc.push(new THREE.Vector2(-half*Math.sin(a),(-13.8-(6.2*section-.08)*Math.cos(a)-AUTHORED_ENTRY.x)*CARAVAN_SCALE));
-      }
-      arc.push(new THREE.Vector2(-half,r.z1),new THREE.Vector2(half,r.z1));
-      batch.add('ceiling',new THREE.ShapeGeometry(new THREE.Shape(arc)).rotateX(Math.PI/2).translate(0,r.ceiling,0));
+      batch.add('ceiling',new THREE.ShapeGeometry(new THREE.Shape(cockpitArc(r.ceiling,r.z1))).rotateX(Math.PI/2).translate(0,r.ceiling,0));
     } else if(name==='main') {
       // The stairwell opens into the high forecabin rather than through a low ceiling slab.
       box('ceiling',cx,r.ceiling,(STAIRS.z1+r.z1)/2,width,.18,r.z1-STAIRS.z1);
