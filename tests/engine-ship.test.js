@@ -25,7 +25,7 @@ async function makeGame(file, o) {
 }
 function run(g, frames, keys = {}, each = null) {
   const warn = console.warn; console.warn = () => {};
-  try { for (let i = 0; i < frames; i++) { for (const [k, v] of Object.entries(keys)) g.key(k, v); g.frame(1 / 20); each?.(); } } finally { console.warn = warn; }
+  try { for (let i = 0; i < frames; i++) { for (const [k, v] of Object.entries(keys)) g.key(k, v); g.frame(1 / 20); if (each?.() === true) break; } } finally { console.warn = warn; }
 }
 
 test('the engine plays the ship: the opening on a new save, aboard by the ramp, the console and the table, the arrival (issue #264)', async () => {
@@ -81,8 +81,10 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   assert.ok(h.shipScenes && !h.ship.playing);
   const a = h.ship.arrivalSpot();
   h.player.respawn(a.pos.clone()); h.player.heading = a.heading + Math.PI; h.rig.yaw = a.heading;
-  run(h, 4); run(h, 40, { KeyW: true }); run(h, 20 * 8, { KeyW: false });
+  // (up the ramp and in on his own feet, the stick held until he is aboard: issue #775, the ship walks nobody in)
+  run(h, 4); run(h, 20 * 15, { KeyW: true }, () => h.ship.inside); run(h, 20, { KeyW: false });
   assert.ok(h.ship.inside, 'aboard by walking up the ramp');
+  assert.equal(h.ship.auto, null, 'walked in himself');
   // no weather aboard (issue #348: the rain fell in its rooms in Lorn in the Unity preview, the ship never registered
   // as indoors in the engines): a downpour and a sandstorm outside, none of it drawn in here, no wisp of sand in its rooms
   h.weather.mode = 'rain'; run(h, 20 * 3);

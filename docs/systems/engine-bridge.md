@@ -2760,8 +2760,8 @@ not the whole geometry a frame), and draw their colours.
 The ship's interior (#195/#234), the talk gestures (#197) and the opening on a new save were already in the engines
 (above: "The ship and its scenes", "The opening"; characters.md for the gestures); this round checks them picture
 against picture. A sequence `hold` (engine/sequences.js; tests/sequences-ship.test.js): Arzach's debug save (the
-desert's fragments found, so Anselm is met and aboard), walked into the ramp from 4 m out, up it on the ship's autopilot
-and in, before Anselm by the crates, his talk paged to its answers, "Show me what you have", his shop. The probe reads
+desert's fragments found, so Anselm is met and aboard), from 4 m out up the ramp on his own feet
+and in (since #775; the camera then set looking on into the room, as the autopilot left it), before Anselm by the crates, his talk paged to its answers, "Show me what you have", his shop. The probe reads
 an open shop on both sides as a menu (`shopView`: kind 'shop', its id, its wares by name; the page's ShopPanel is now
 on `window` as `shopPanel`). All eight beats match the web's stream in node and in Unity, and the pictures match (SSIM
 0.81–0.96) but at the shop, whose sheet the menus draw (BridgeMenu's, not this round's) over a hold the web's camera

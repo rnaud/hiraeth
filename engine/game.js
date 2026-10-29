@@ -1785,7 +1785,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       }
       folk?.errands.update();
       lap?.('people');
-      // the ship's E aboard and its autopilot (the ramp's walk in and out), as main.js filters the input before the rest
+      // the ship's E aboard and its autopilot (the walk out down the ramp; in, you walk yourself: issue #775), as main.js filters the input before the rest
       const busy0 = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy();
       const ctlS = shipOn && !pinned ? (busy0 ? noInput : ship.input(ctl)) : ctl;
       // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does

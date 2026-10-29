@@ -95,7 +95,7 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   for (const id of ['backpack', 'doublejump', 'gun', 'sword', 'shield']) gs.set(`item.${id}`, true);
   const a = g.ship.arrivalSpot();
   g.player.respawn(a.pos.clone()); g.player.heading = a.heading + Math.PI; g.rig.yaw = a.heading;
-  run(g, 4); run(g, 40, { KeyW: true }); run(g, 20 * 8, { KeyW: false });
+  run(g, 4); run(g, 20 * 15, { KeyW: true }, () => g.ship.inside); run(g, 20, { KeyW: false });   // (his own walk in: issue #775)
   assert.ok(g.ship.inside, 'aboard');
   const worlds = g.menuSources({ travel: true }).worlds();
   assert.ok(!worlds.find((w) => w.id === 'arzach')?.travel, 'the Worlds page: fast travel to worlds visited only, as the web');

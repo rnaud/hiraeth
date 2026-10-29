@@ -291,14 +291,18 @@ export const SEQUENCES = [
   },
   {
     // the ship's hold and Anselm's shop (issue #264, #195/#234: the engines never attached the ship, so the ramp led
-    // nowhere): walked into the ramp from 4 m out, up it on the ship's autopilot and in, then before Anselm by the
+    // nowhere): from 4 m out, the stick held up the ramp and in on his own feet (issue #775: the ship no longer walks
+    // him up it), then before Anselm by the
     // crates, his talk (and its gestures, #197: public/anim/gestures.glb), "Show me what you have", his shop. Arzach's
     // debug save: the desert's fragments found, so he is met and aboard (the desert's has none before it)
     id: 'hold', title: 'The ship\'s hold and Anselm\'s shop', setup: { level: 'arzach', debug: true },
     beats: [
       { name: 'ramp', act: (G) => { const S = G.ship, out = S.rampFoot.clone().sub(S.hinge).setY(0).normalize(); standAt(G, S.rampFoot.clone().addScaledVector(out, 4), S.hinge); }, wait: 1.2 },
-      { name: 'walk-in', hold: { KeyW: true }, until: (G) => !!G.ship.auto, timeout: 8, wait: 0.6 },
-      { name: 'aboard', hold: { KeyW: false }, until: (G) => G.ship.inside && !G.ship.auto, timeout: 20, wait: 1.2 },
+      { name: 'walk-in', hold: { KeyW: true }, until: (G) => G.ship.inside, timeout: 20, wait: 0.6 },
+      // (his own walk ends a little differently on each side; the rooms' camera set looking on into the main room, as the
+      // ship's autopilot used to leave it, so both sides frame the same room)
+      { name: 'aboard', hold: { KeyW: false }, until: (G) => G.ship.inside && !G.ship.auto,
+        act: (G) => { const S = G.ship; standAt(G, G.player.pos.clone(), G.player.pos.clone().add(S.hinge.clone().sub(S.rampFoot).setY(0))); }, timeout: 20, wait: 1.2 },
       { name: 'anselm', act: (G) => {
         const n = G.story.scientist?.aboard;
         if (!n) throw new Error('Anselm is not aboard');

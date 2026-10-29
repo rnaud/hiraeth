@@ -1,5 +1,5 @@
-// The ship's hold and Anselm's shop (issue #264, #195/#234; the talk's gestures, #197): walked into the ramp, up it and
-// in on the ship's autopilot, Anselm's talk and his shop, the engines' bundle held to the web's recorded stream beat by
+// The ship's hold and Anselm's shop (issue #264, #195/#234; the talk's gestures, #197): walked up the ramp and
+// in on his own feet (issue #775), Anselm's talk and his shop, the engines' bundle held to the web's recorded stream beat by
 // beat (tests/sequences-check.js; engine/sequences.js 'hold'). Its own file: tests/sequences-play.test.js is long enough.
 import test from 'node:test';
 import assert from 'node:assert/strict';

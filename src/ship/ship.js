@@ -29,10 +29,7 @@ import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
 import { shakeScale } from '../feel.js';
 import { Prologue, PROLOGUE_STAGES } from './prologue.js';
-import { ReboardGate } from './landing.js';
 import { REVEAL, rigView, anyInput } from './arrival-view.js';
-/** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
-export const RAMP_IN = { near: 2.4, speed: 1.2 };
 /**
  * The authored step-out keeps its original 1.4782 m/s pace (issue #434), below the walk clip's 1.52 m/s top.
  * Invert the shared response: a small physical stick can now creep without slowing this directed walk.
@@ -53,8 +50,8 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 //    parents' message, as a hologram over the dash (src/story/calls.js, src/ship/hologram.js).
 //  - E at the holo table in the middle of the deck: the galactic map (locked until
 //    `ship.powered`). Choosing a world takes off and lands there (?level=<id>&via=ship).
-//  - E at the foot of the ramp walks you aboard; E in the entry hall walks
-//    you out. Anywhere else inside the ship, E does nothing (no whistling
+//  - Walk up the ramp yourself and you are aboard once you are in the rooms (issue #775: the ship
+//    no longer takes over and walks you up it); E in the entry hall walks you out. Anywhere else inside the ship, E does nothing (no whistling
 //    the hoverbike into the cockpit).
 //  - The prologue (src/ship/prologue.js) plays on a new game.
 //
@@ -102,7 +99,6 @@ export class Ship {
     const site = (this.site = findShipSite({ level: siteLevel, physics, levelId, avoid, ...(caravan ? { layout: this.layout } : {}) }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
     this.crashed = !!site.crash && site.landing !== 'controlled' && !game.flag('ship.launched');
     this.inside = false;
-    this.reboard = new ReboardGate();   // (stepped out: the ramp doesn't offer to take you straight back in, src/ship/landing.js)
     this.cam = null;          // a cinematic camera, or null to leave the rig alone
     this.reveal = null;       // the first step out's drift into the rig's framing (revealView), his to cut short
     this.shakeK = 0;
@@ -637,8 +633,8 @@ export class Ship {
     }
     // E belongs to the ship inside it where it has something to use (the console, the holo table, the hatch); elsewhere
     // aboard it is yours, to talk to Anselm in the hold (issue #352: the ship took every E aboard, so his prompt did
-    // nothing). At the ramp you walk in (its "go aboard" button was one press for what your feet already meant, issue
-    // #87: E at the ramp's foot is yours, to talk or pick up)
+    // nothing). At the ramp you walk up it and in on your own feet (its "go aboard" button was one press for what your
+    // feet already meant, issue #87; the walk the ship then took over, issue #775): E at the ramp's foot is yours
     if (this.inside && ctl.KeyE && (this._eShip || this.hasUse())) {
       this._eShip = true;
       if (!this._eHeld) this.use();
@@ -647,27 +643,7 @@ export class Ship {
     }
     this._eHeld = !!ctl.KeyE;
     this._eShip = false;
-    if (!this.inside && this.walksIntoRamp()) { this.walkAboard(); return { ...ctl, KeyW: false, stick: null }; }
     return ctl;
-  }
-
-  /**
-   * Walking into the ramp (issue #87): on foot at its foot (RAMP_IN.near m), heading up it at a walk or more (RAMP_IN.speed
-   * m/s along the way in), and not just stepped out (the reboard gate: walked RAMP_IN's 7 m away once since).
-   */
-  walksIntoRamp() {
-    const P = this.player;
-    if (!P || P.ride || !this.reboard.open || this.auto || (this.cinematic && !this.cinematic.done)) return false;
-    const dx = P.pos.x - this.rampFoot.x, dz = P.pos.z - this.rampFoot.z;
-    if (Math.hypot(dx, dz) > RAMP_IN.near || Math.abs(P.pos.y - this.rampFoot.y) > 3) return false;
-    const ix = this.hinge.x - this.rampFoot.x, iz = this.hinge.z - this.rampFoot.z, il = Math.hypot(ix, iz) || 1;
-    return ((P.vel?.x ?? 0) * ix + (P.vel?.z ?? 0) * iz) / il > RAMP_IN.speed;
-  }
-
-  /** Up the ramp and in, the ship walking you (the ramp has no floor of its own to climb: its collider is the stowed one). */
-  walkAboard() {
-    sfx.hatch(this.sound);
-    this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, this.parked.interior.points.aboard)]);
   }
 
   /** Whether E aboard is the ship's here: by the voicemail button, the holo table or the hatch. */
@@ -757,7 +733,7 @@ export class Ship {
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
     }
-    return null;   // (the ramp: walk up it, no "go aboard": issue #87)
+    return null;   // (the ramp: walk up it yourself, no "go aboard" and no walk taken over: issues #87, #775)
   }
 
   /**
@@ -919,8 +895,6 @@ export class Ship {
       if (inside) { this._climb = P.opts.climb; P.opts.climb = false; }
       else if (this._climb !== undefined) { P.opts.climb = this._climb; this._climb = undefined; }
     }
-    // the ramp's "go aboard": quiet after stepping out, until you have walked away from it once
-    this.reboard.update({ aboard: inside || this.playing || !!this.auto, fromRamp: Math.hypot(P.pos.x - this.rampFoot.x, P.pos.z - this.rampFoot.z) });
     this.cinema.update(dt);   // timed subtitles; everything on screen kept in its own place
     const c = this.cinematic;
     if (c && !c.done) {

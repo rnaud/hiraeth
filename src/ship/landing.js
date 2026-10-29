@@ -3,8 +3,8 @@
 //     controls back (the crash, the landing, the take-off, a recording: main.js);
 //   - whoever waits at the wreck in a new game (Marrow, src/story/desert.js) stands well clear of
 //     where the ship comes down and ploughs in, in front of the hatch and away from its furrow;
-//   - stepping out of the ship doesn't take you straight back in: walking into the ramp takes you aboard
-//     (no button since issue #87) only once you have walked away from it once (ReboardGate, src/ship/ship.js).
+//   - boarding is your own walk: up the ramp and into the rooms on your feet (no button since issue #87, no walk the
+//     ship takes over since issue #775; so nothing to hold back after stepping out either).
 
 /** Balloons and talk prompts may show: not while a ship's scene plays (the player isn't in control). */
 export const talkAllowed = ({ shipPlaying = false } = {}) => !shipPlaying;
@@ -53,25 +53,4 @@ export function bystanderSpot({ out, hull, travel = null, layout }, B = BYSTANDE
     if (s > score) { score = s; best = { x: hull.x + dx, z: hull.z + dz }; }
   }
   return best ?? { x: hull.x + out.x * B.dist, z: hull.z + out.z * B.dist };
-}
-
-/** How far from the ramp's foot (m) you must have walked before walking into it takes you aboard again. */
-export const REBOARD_AWAY = 7;
-
-/**
- * The ramp after stepping out: armed while you are in the ship or it walks you, walking into it does
- * nothing until you have been REBOARD_AWAY from its foot once.
- */
-export class ReboardGate {
-  constructor(away = REBOARD_AWAY) { this.away = away; this.armed = false; }
-  /**
-   * Each frame. `aboard`: inside, or a scene / the autopilot has you; `fromRamp`: metres from the ramp's foot.
-   * Returns whether the ramp may offer to take you aboard.
-   */
-  update({ aboard = false, fromRamp = Infinity } = {}) {
-    if (aboard) this.armed = true;
-    else if (this.armed && fromRamp > this.away) this.armed = false;
-    return !this.armed;
-  }
-  get open() { return !this.armed; }
 }

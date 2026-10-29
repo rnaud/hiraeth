@@ -244,7 +244,7 @@ far from the origin, the bunk's with its alcove, `aboard` at (-4.4, 0.9): `tests
 | `projector`, `voicemail` | on the console's tail, (0.28, 1.02, -1.1) and (0.4, 1.09, -0.8) | the hologram, the blinking button |
 | `seat` | the pilot's seat (the left of the two) | |
 | `table`, `tableFoot` | the holo table at (0.2, -3.1) | the galactic map (`atTable`, `TABLE_R` 1.6 m), the course-set shot |
-| `hatchIn`, `threshold`, `aboard` | 1.4 m in from the hatch's wall (0.9 until issue #234, the camera had no room behind him; you can step out within 1.7 m of it); in the doorway; a few steps in (-1.4, 0.45), out of the voicemail's reach | stepping out (E), the step-out scenes, boarding (walking into the ramp: issue #87) |
+| `hatchIn`, `threshold`, `aboard` | 1.4 m in from the hatch's wall (0.9 until issue #234, the camera had no room behind him; you can step out within 1.7 m of it); in the doorway; a few steps in (-1.4, 0.45), out of the voicemail's reach | stepping out (E), the step-out scenes, boarding (your own walk up the ramp and in: issues #87, #775) |
 | `bunkStand`, `wakeEye`, `wakeLook`, `wakeSit`, `wakeRoom` | a step out from the alcove at the pillow's end, 1.3 m from its front (0.62 until issue #234; out of the table's and the console's reach); on the pillow; up at the arch; sitting up, still in the alcove; across the room to the table and the galley | the prologue's waking |
 
 `tests/ship.test.js` walks to the console and the table and uses them, `tests/ship-deck.test.js` checks
