@@ -12,8 +12,8 @@
     "recover": 1,
     "size": [
      1.16,
-     2.86,
-     0.92
+     1.83,
+     1.35
     ],
     "speed": 3.4,
     "inventory": [
@@ -36,7 +36,7 @@
      {
       "meshes": 3,
       "skinned": 2,
-      "triangles": 15527,
+      "triangles": 15517,
       "materials": 3,
       "textures": 1,
       "textureMB": 5.33

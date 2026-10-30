@@ -41,6 +41,9 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `hound-tripo/skins-shot.mjs` | every world skin of the hound, current beside Tripo: three-quarter, flank and head stills, and the sheet `hound/skins/skins.webp` |
 | `gaze-one.mjs` | the same check for one variant or the row, the traveller to the foe's right front (the wood cutter's gaze pictures) |
 | `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its trial asset: 2.4 m, five flat colours, COLOR_0, 12k LOD, landmarks |
+| `mummer-tripo/generate.mjs`, `prepare.mjs` | the dune mummer's Tripo generation and rig (to `../keep-mummer/tripo/`) and its trial asset: 1.2 m, 12k LOD on Tripo's weights, the mittens widened, eight flat colours by part, COLOR_0, the skeleton (`--no-repaint --no-widen`: phase 2's asset) |
+| `mummer-tripo/model.js`, `node-source.mjs`, `closeups.mjs` | the Tripo mummer on the humanoid clip rig, Tripo's own skeleton posed directly; its source in node; the close rows (body, mask, mittens, the whack, clay) |
+| `mummer-tripo/archetype.js` | the dune mummer keyed as its own enemy, `dunemummer` (`duneMummerEntry()`: id, def, skins, weapons, sounds, places), not yet registered |
 | `woodcutter-tripo/model.js`, `source-node.mjs` | the Tripo wood cutter cut into rigid parts on the brute's rig family (the shared `woodcutterMotion`); its source in node |
 
 ## Shellback (`crab`), phase 2a and its fixes
@@ -340,14 +343,25 @@ On the Tripo body only; the game keeps today's hound (`TRIAL_BUILDERS` empty). N
   muzzle.
 - The shadow form's rising head keeps the direct's smaller horns (`hornGeometries`, 0.85).
 
-## Dune mummer (`mummer`), phase 2
+## Dune mummer (`mummer` on the trial page; its own enemy `dunemummer` later), phase 2 and its fixes
+
+The author picked **Tripo** for the dune mummer (2026-10-30), with its fixes first: the olive shade merged into one
+flat sage, broader mittens ([the fixes](#the-tripo-mummers-fixes)). Then a change of plan: **today's mummer (the
+pot-headed sack) stays in the game as it is, and the dune mummer becomes a new, separate enemy** with its own
+archetype id, `dunemummer`, not the mummer's replacement. It stays on the mummer's humanoid clip rig, and its entry is
+keyed apart from the mummer's already (`mummer-tripo/archetype.js` `duneMummerEntry()`: its own id, a copy of the
+mummer's def with its attacks, windows, mask and disarm, its two skins, its weapons per spawn, its sound keys, no
+places yet), ready to be registered as `ARCHETYPES.dunemummer` / `SKINS.dunemummer` when the author lands it; nothing
+in `src/` names it, no world's roster has it, and the mummer's id, def and skins are untouched (test). On the trial
+page it still stands in for `mummer` (`foe=mummer`, `TRIAL_BUILDERS`, empty in the game). Every Tripo picture and
+number in this section is of the fixed body; phase 2's are in git (`fcdac987d`) and in the before/after pictures.
 
 Reference: `../keep-mummer/ad94a6b0-55ba-461e-9577-d745036565ae-1.png` (approved), measured off the author's T-pose
 picks (`../keep-mummer/tpose/sheet-1.jpg` front and back, `sheet-2.jpg` the side; their narrower hands not taken: the
 approved broad mittens are kept). Home skin desert. All pictures in `mummer/`, captured 2026-10-30 on this branch,
 muted headless Chrome on this Mac (Apple M-series, Metal), High preset, 1280×720, 10:00, clear; looked at one by one.
 The same page, scripts, strips and stills as the shellback (`--variant current|direct|tripo|side --extra`); the
-current strips re-captured beside them.
+current and direct strips are phase 2's (those bodies did not change), the Tripo and side-by-side ones re-shot.
 
 ![stills](mummer/compare-stills.webp)
 
@@ -376,47 +390,87 @@ spawn picks its weapon (club, spear or bow) as the game does, so the single-vari
   sent; H3.1, `texture_version` v3.5 with `delight: true` = Remove Lighting, PBR off, 30k face target; 28,270
   triangles, 2048² JPEG. Rig check (free): riggable, biped. Rig task `34054a6c-90f3-417f-a3f8-d0b2bb7b0d09`: Tripo's
   biped rig, Mixamo names, 23 joints, no fingers. Untouched in `../keep-mummer/tripo/model.glb` and `rigged.glb`, the
-  record in `task.json`.) `mummer-tripo/prepare.mjs`: the game's frame, 1.2 m, a 1024² texture flattened to eight
-  colours, COLOR_0, 12,000 triangles (meshoptimizer; Tripo's joints and weights ride every kept vertex), the joints'
-  bind places (`skeleton.json`). `mummer-tripo/model.js` **poses the Tripo skeleton directly**: the humanoid rig's
+  record in `task.json`.) `mummer-tripo/prepare.mjs`: the game's frame, 1.2 m, 12,000 triangles (meshoptimizer;
+  Tripo's joints and weights ride every kept vertex), the mittens widened, a 1024² texture repainted by part in the
+  reference's eight flat colours, COLOR_0 from it, the joints' bind places and the mittens' centres (`skeleton.json`). `mummer-tripo/model.js` **poses the Tripo skeleton directly**: the humanoid rig's
   joints stood where Tripo's rig put its joints and the mesh skinned to them with Tripo's own weights (23 joints folded
   onto 14 bones: the hips, three spine bones and clavicles onto the torso, the neck and head onto the head's look, the
   toes onto the feet), bound in the T-pose (each limb's −y along Tripo's bone), then let down to the rig's rest. The
   clips pose those very bones: no hidden skeleton copied over (#768's adapter). The mask's triangles are cut out and
-  rebuilt flat cream on their own pivot (it flies off), an ink oval in the hole (the black face), two slit eyes over the
-  painted ones. The mittens are one piece: the haft goes through each mitten's measured centre (Wielder `at`). Other
-  skins: the mesh's colour roles recoloured from the skin's palette.
+  rebuilt flat cream on their own pivot (it flies off), an ink oval in the hole (the black face), two slit eyes filling
+  the recesses Tripo cut for them. The mittens are one piece: the haft goes through each mitten's measured centre
+  (Wielder `at`). Other skins: each part recoloured from the skin's palette (as the direct body's roles).
+
+### The Tripo mummer's fixes
+
+![phase 2 against fixed: front, flank, three-quarter, rear, clay](mummer/tripo-fixes.webp)
+
+1. **The olive shade: one flat sage.** Phase 2 snapped Tripo's texture to its own eight k-means colours: two greens
+   (sage `#728c77` and the olive shade `#5b6855`), a dark brown shade at the borders, a tan shared by the chest patch's
+   rim and the toe caps, a grey-sand rim round the mask. `prepare.mjs` now repaints the texture by part, as the
+   shellback's did: each cluster given its part by name, then by place (the triangle's limb from its weights, the
+   texel's point on the mesh): one flat colour a part, the reference's own (the direct body's home skin: sage
+   `#879d88`, cream mask `#f3e4ad`, salmon patch `#c9806a`, rust gauntlets `#c46c3c` and boots `#bd6438`, sand toe
+   caps `#dfb47c`, the dark wrist bands `#2a2420`, the slits' ink). The olive and the brown fold into the sage and the
+   rust; the patch is split from the toe caps (its middle had been the gauntlets' rust); the thin painted folds at the
+   sleeves' hems and the boots' tops are painted out (the game draws its lines), the wrist bands kept; the mask's rim
+   made cream. The texels between the UV islands are filled from their nearest island (no other colour at the smaller
+   mips). Test: COLOR_0 holds exactly the eight, none of the k-means' shades left. What the gourd still shows of a
+   darker side in the stills is the game's own light and shadow: it is in the clay view, and on the direct body too.
+2. **The mittens: broad.** Tripo read the T-pose sheets' narrower hands: a mitten tapering from 13 × 13 cm at the wrist
+   to a point 15 cm out. Each vertex on a hand is pushed out from the mitten's axis by its hand weight (`WIDEN`: thicker
+   toward the tip, ×1.15 at the wrist to ×1.75 at the end; broader, ×1.12 to ×1.37; 10 % longer), the wrist band,
+   shared with the forearm, moving least; normals under the same stretch; the mittens' centres measured after. The
+   mitten is now 15 × 16 cm across, blunt, about the gauntlet's breadth as drawn. The club stays in it: the haft through
+   the mitten's centre (Wielder `at`) through idle, walk, run, every club attack and the hurt, sampled every 0.1 s, at
+   worst 1.5 cm off the centre of a 9.8 cm mitten (test: under 0.35 of its radius); the spear and bow tests unchanged.
+3. **The slits (from the stills).** Tripo cut each slit as a recess 1.6 cm deep with the ink at its bottom. Phase 2
+   left a few of the recess's triangles on the body and put the slit eyes on the mask's box front, so close up they
+   floated off its curved face beside dark holes (`mummer-close.webp`, the mask). Now every triangle touching a slit is
+   the mask's, and each eye is a plug filling its recess from the bottom out to the surface (4.4 × 2.2 cm).
+4. **Its own enemy, keyed apart** (the author's change of plan): `archetype.js`, above.
+
+Unchanged: the gaze (±0.7 rad on the head bone; ±0.27 when he stands straight ahead of it), the mask knocked flying and
+the black face, the weapons per spawn and the disarm, the clips and holds, the ragdoll, the walk (the motion audit's
+numbers are phase 2's to the third decimal).
+
+![close: front, three-quarter, back, the mask, both mittens, the whack's wind and strike, clay; phase 2 over fixed](mummer/mummer-close.webp)
+
+`mummer-tripo/closeups.mjs` (the close rows), `prepare.mjs --no-repaint --no-widen` (writes phase 2's asset byte for
+byte).
 
 ### Comparison
 
-| Measure | Current | Direct | Tripo |
+| Measure | Current | Direct | Tripo (after its fixes) |
 |---|---|---|---|
-| Fidelity to the reference | coffee-pot mask on an indigo patched sack, stick legs, three-fingered ink hands: not the reference | the reference's parts and colours: gourd, oval mask and slits, patch, sleeves, gauntlets, mittens, boots and toe caps; a smooth lathe, a little narrow at the top, the mask flat | the closest silhouette: the softer gourd, the mask set into it, plumper gauntlets and boots; the mittens Tripo's narrower T-pose hands |
-| At combat distance (14 m, ink) | reads as the pot and the sack | reads: sage gourd, cream mask, rust gloves and boots | reads the same; the mask a little duller (its sand rim) |
-| Baked light (clay, unlit) | – | none (procedural; the gourd's soft mottle is its surface paint) | clean geometry; the flat colours keep an olive band on the gourd's lower side and back (Tripo's shading snapped to one flat shade) |
+| Fidelity to the reference | coffee-pot mask on an indigo patched sack, stick legs, three-fingered ink hands: not the reference | the reference's parts and colours: gourd, oval mask and slits, patch, sleeves, gauntlets, mittens, boots and toe caps; a smooth lathe, a little narrow at the top, the mask flat | the closest silhouette: the softer gourd, the mask set into it, plumper gauntlets and boots, broad blunt mittens; the reference's flat colours, the salmon patch; the mask a little narrow, set deep in the hood |
+| At combat distance (14 m, ink) | reads as the pot and the sack | reads: sage gourd, cream mask, rust gloves and boots | reads the same: sage gourd, cream mask, salmon patch, rust gloves and boots |
+| Baked light (clay, unlit) | – | none (procedural; the gourd's soft mottle is its surface paint) | clean geometry; none in the colours (eight flat ones by part; phase 2's olive band and brown shade gone); the darker side in the stills is the game's light, in the clay view and on the direct body too |
 | The look (head on the traveller) | the pot turns, reach 0.9 rad | the head joint turns (reach 0.7), the mask, slits and the gourd's top with it | the same, on Tripo's neck and head weights (the look node is the head bone) |
-| Drawn meshes · triangles (one body, one pass) | 9 · 9,738 | 3 · 11,672 | 3 · 15,527 (body 12,000; the mask and the weapons) |
+| Drawn meshes · triangles (one body, one pass) | 9 · 9,738 | 3 · 11,672 | 3 · 15,517 (body 12,000; the mask, its slits and the weapons) |
 | Materials · texture memory | 8 · 0 | 3 · 0 | 3 · 5.33 MB (1024² RGBA8 + mips) |
-| Shipped bytes (raw · gzip) | `mummer.js` 36.5 · 11.7 KB | `dune-mummer.js` 22.4 · 8.5 KB (+ mummer.js's weapons and holds) | `tripo-lod.glb` 645 · 352 KB + `model.js` 16.1 · 6.3 KB + skeleton 3.2 KB (source export 1.4 MB) |
-| Draws over the empty Arena, High, 1 · 6 | +27 · +162 | **+9 · +54** | **+9 · +54** |
-| Triangles all passes, High, 1 · 6 | +29.1k · +175.2k | +35.2k · +210.0k | +46.4k · +324.8k |
+| Shipped bytes (raw · gzip) | `mummer.js` 36.5 · 11.7 KB | `dune-mummer.js` 22.4 · 8.5 KB (+ mummer.js's weapons and holds) | `tripo-lod.glb` 637 · 344 KB (its PNG 12 KB) + `model.js` 17.3 · 6.7 KB + skeleton 3.5 KB (source export 1.4 MB) |
+| Draws over the empty Arena, High, 1 · 6 | +27 · +162 | **+9 · +54** | **+9 · +54** (one round-1 single run drew +15, a passing effect; round 2 +9) |
+| Triangles all passes, High, 1 · 6 | +29.2k · +175.2k | +35.7k · +210.2k | +49.5k · +279.3k (round 2's single +46.6k; phase 2's +324.8k for six held one outlier run, its other round +279.2k) |
 | Draws, Handheld, 1 · 6 | +20 · +108 | +6 · +36 | +6 · +36 |
-| Triangles all passes, Handheld, 1 · 6 | +21.6k · +116.7k | +24.1k · +140.0k | +31.3k · +186.7k |
-| CPU ms, High, 1 · 6 | +0.40 · +1.40 | +0.05 · +1.45 | +0.05 · +1.15 |
-| CPU ms, Handheld, 1 · 6 | +0.35 · +1.45 | +0.15 · +0.95 | +0.10 · +0.75 |
-| GPU ms | not separable from the empty Arena at this load (deltas of either sign up to 1.5 ms): no GPU claim | | |
+| Triangles all passes, Handheld, 1 · 6 | +19.6k · +115.0k | +21.7k · +138.4k | +29.5k · +184.8k |
+| CPU ms, High, 1 · 6 | +0.10 · +0.75 | −0.15 · +1.15 | +0.25 · +1.30 |
+| CPU ms, Handheld, 1 · 6 | +0.30 · +1.00 | +0.40 · +0.70 | +0.30 · +0.80 |
+| GPU ms | not separable from the empty Arena at this load (deltas of either sign up to 4.2 ms): no GPU claim | | |
 | Walk audit (foe-slide on the clips): slide m/m · worst m, walk / run / strafe / turn (per rad) / knock | 0·0 / 0·0 / 0.054·0.09 / 0.035·0.16 / 0.063·0.34 | 0·0 / 0·0 / 0.040·0.07 / 0.041·0.12 / 0.076·0.41 | 0.002·0.003 / 0.002·0.006 / 0.047·0.11 / 0.032·0.10 / 0.017·0.06 |
 | Gait, full · half pace: steps/s; lift (share of the leg) | 3.0 · 1.75; 0.42 · 0.56 | 3.25 · 2.25; 0.53 · 0.55 | 3.25 · 2.0; 0.53 · 0.56 |
 | Deformation | rigid parts | rigid parts; the gourd's top twists with the look over 0.76–0.86 m | weights normalised (test); the mittens hang at rest; a knee bent alone moves only its leg (Tripo's crotch blend carries a few vertices across the middle, under 5 mm) |
-| Whack (wind, strike, recover) | both arms up, the club behind the pot, down | the same clip; the club in the closed mitten throughout | the same clip; the club through the mitten's centre throughout (no fingers to close) |
+| Whack (wind, strike, recover) | both arms up, the club behind the pot, down | the same clip; the club in the closed mitten throughout | the same clip; the club through the broad mitten's centre throughout, at worst 1.5 cm off it (test; no fingers to close) |
 | Hurt, death, lying body | flinch; ragdoll, then the puff | the same (the ragdoll on the rig's joints) | the same |
 | Kept (both) | id `mummer`, skins, def and attacks (whack, jab, volley, rock), windows, weapons per spawn and the disarm, the mask (knocked off: it runs, swings blind), sounds (`junk` / `mummer`), size ×1.5 (#741), ragdoll | ✓ | ✓ |
-| Time (agent) | – | about 1.2 h (model 50 min; fixes 20 min: the gourd's winding, the eyes) | about 1.5 h (generation and rig 4 min wall; prepare 20 min; the skin on the rig 40 min; mask and slits 20 min) |
-| Tripo credits | – | – | **55** (generation 30, rig check 0, rig 25; balance 1,710 → 1,655) |
+| Time (agent) | – | about 1.2 h (model 50 min; fixes 20 min: the gourd's winding, the eyes) | about 1.5 h (generation and rig 4 min wall; prepare 20 min; the skin on the rig 40 min; mask and slits 20 min), then the fixes about 1.3 h (the repaint and the mittens 30 min, the slits 20 min, re-shoot and review 30 min) |
+| Tripo credits | – | – | **55** (generation 30, rig check 0, rig 25; balance 1,710 → 1,655); the fixes no new generation, 0 credits |
 
-(Bench: 28 runs, two rounds reversed, load 17.8–40.2 (other agents' runs; the bench waits only for under 25 before
-each run), `mummer/bench.jsonl`; walk: `motion-audit.mjs mummer@desert`, which runs `mummer-tripo/motion.mjs`: the
-humanoid foes' foot-slide measure (#749) with the clip library loaded. All three walk in the clip's crouched scuttle;
+(Bench, re-run after the fixes, all three variants: 28 runs, two rounds reversed, load 13.1–35.2 (other agents' runs;
+the bench waits only for under 25 before each run), `mummer/bench.jsonl`; the CPU deltas are within the run-to-run
+noise at this load (phase 2's runs gave other numbers of the same size). Walk: `motion-audit.mjs mummer@desert`,
+which runs `mummer-tripo/motion.mjs`: the humanoid foes' foot-slide measure (#749) with the clip library loaded; re-run
+after the fixes, the same numbers. All three walk in the clip's crouched scuttle;
 the gourds keep 55 % of the clip's spine lean off in their loops, `GOURD_UP`.)
 
 ### Recommendation
@@ -432,7 +486,16 @@ My recommendation: **take the Tripo mummer**, with two cleanups: snap the olive 
 the game shades it) and widen the mittens toward the approved broad ones (scale the hand-weighted vertices). If the
 author would rather not carry a texture for a foe this common, the direct one lands as it is. Both are web only.
 
+**The author's call (2026-10-30): Tripo, with those fixes (done, above), as a new enemy `dunemummer` beside today's
+mummer.** Landing it means registering `duneMummerEntry()` as its own archetype and skins, its body from the trial
+folder into `src/`, then its places in the worlds; the mummer stays as it is.
+
 ### Not done (mummer)
+
+- Registering `dunemummer` (its archetype, skins, the asset moved into the game, a place in a world's roster), and its
+  own changelog line with before/after pictures when it lands: the author's next step.
+- The mask sits a little narrow and deep in Tripo's hood next to the drawing's broad flat oval (Tripo's reading of the
+  sheets); the eye plugs are the eye material's dark slate, as on the direct body, rather than pure black.
 
 - The combat review's `defend.mjs` / `dodge.mjs` and the sound QC renders on the new bodies (the attacks, windows and
   sound keys are the mummer's own, unchanged; the poses that carry the contact were checked in the strips and tests).

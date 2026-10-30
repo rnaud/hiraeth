@@ -5,7 +5,6 @@ import { humanoidSkeleton, HumanoidDriver } from '../../../../src/enemies/humano
 import { Wielder } from '../../../../src/enemies/wield.js';
 import { MUMMER_MOVES, MUMMER_HOLD } from '../../../../src/enemies/plans/mummer.js';
 import { mummerLife, mummerProps, skinWith, GOURD_UP, UPRIGHT } from '../../../../src/enemies/plans/dune-mummer.js';
-import { surfaceColor } from '../../../../src/enemies/surfaces.js';
 
 // The dune mummer from Tripo (issue #800 phase 2; a trial body, web only, behind the trial page): Tripo multiview task
 // 126e68e7-… from the author's T-pose picks, rigged by Tripo (task 34054a6c-…, biped, Mixamo names, 23 joints, no
@@ -20,16 +19,20 @@ import { surfaceColor } from '../../../../src/enemies/surfaces.js';
 // rig's joints turned to the T-pose of the mesh (each limb's −y along Tripo's bone), then let down to the rig's rest.
 //
 // The mask is cut out of the mesh (its cream triangles high on the front) and rebuilt flat cream on its own pivot, so it
-// can be knocked flying; under it the hole shows the black face (an ink oval). Two slit eyes over the painted ones (they
+// can be knocked flying; under it the hole shows the black face (an ink oval). Two slit eyes fill Tripo's recesses (they
 // take the wind-up's colour). The mittens are one piece (no finger bones): the haft goes through the mitten's measured
 // centre (Wielder `at`), the club, spear and bow the mummer's own (mummerProps). The rest is the mummer's life
 // (dune-mummer.js mummerLife): the same clips, holds, mask, disarm, lob and eyes as the direct body.
 
-/** The roles of the flat texture's colours (prepare.mjs's k-means, skeleton.json palette), for another skin's recolour. */
-const ROLES = { ink: '#20170e', shade: '#6d4324', body2: '#5b6855', body: '#728c77', sand: '#948e6d', glove: '#c27a3e', patch: '#bd8552', mask: '#efd58c' };
+/**
+ * The flat texture's parts (prepare.mjs PALETTE, skeleton.json palette: one flat colour a part, the reference's own, the
+ * direct body's home skin's), for another skin's recolour.
+ */
+const ROLES = { body: '#879d88', mask: '#f3e4ad', patch: '#c9806a', glove: '#c46c3c', boot: '#bd6438', toe: '#dfb47c', band: '#2a2420', ink: '#17131f' };
 /** The home skin's other colours (the direct body's: dune-mummer.js OWN.desert). */
-const OWN = { desert: { mask: '#f3e4ad', eye: '#1b1a1f', bare: '#fbf6e8', ink: '#17131f' } };
-const roles = (P) => ({ body: P.sack, body2: surfaceColor('sack*0.86', P), mask: P.wood, patch: P.patch, glove: P.patch2, shade: surfaceColor('patch2*0.6', P), sand: P.rag, ink: P.ink, eye: P.ink, bare: P.eye ?? '#fbf6e8' });
+const OWN = { desert: { ...ROLES, eye: '#1b1a1f', bare: '#fbf6e8' } };
+/** A skin without its own colours: each part from its palette (as dune-mummer.js roles: the bleached mummer's cream, sky, saffron). */
+const roles = (P) => ({ body: P.sack, mask: P.wood, patch: P.patch, glove: P.patch2, boot: P.rope, toe: P.rag, band: P.ink, ink: P.ink, eye: P.ink, bare: P.eye ?? '#fbf6e8' });
 
 /** The trial's source, loaded once (browser): { geometry, map, skeleton }. base: this folder's URL. */
 export async function loadTripoMummer(base) {
@@ -71,7 +74,7 @@ function pointAlong(j, dir) {
 /** The trial body (the model contract of plans/index.js), from the loaded source (loadTripoMummer). */
 export function tripoMummerModel(skin, src) {
   const home = skin.id === 'desert';
-  const P = { ...skin.palette, ...roles(skin.palette), ...(home ? { ...OWN.desert, body: ROLES.body } : {}) }, M = materials('mummer', skin);
+  const P = { ...skin.palette, ...roles(skin.palette), ...(home ? OWN.desert : {}) }, M = materials('mummer', skin);
   const g = new THREE.Group(); g.name = `${skin.name} · dune mummer (Tripo)`;
   const rig = pivot(g, 0, 0, 0, 'rig');
   const { D, at } = tripoBody(src.skeleton);
@@ -121,11 +124,13 @@ export function tripoMummerModel(skin, src) {
   // (COLOR_0 holds the texture's own bytes: matched against the roles' hex as they are, not turned linear)
   const keys = Object.keys(ROLES), ref = keys.map((k) => { const h = parseInt(ROLES[k].slice(1), 16); return { r: (h >> 16) / 255, g: ((h >> 8) & 255) / 255, b: (h & 255) / 255 }; }), role = new Uint8Array(n);
   for (let v = 0; v < n; v++) { let best = 0, dd = Infinity; ref.forEach((c, k) => { const e = (c.r - col.getX(v)) ** 2 + (c.g - col.getY(v)) ** 2 + (c.b - col.getZ(v)) ** 2; if (e < dd) { dd = e; best = k; } }); role[v] = best; }
-  // (the mask: its cream, its shaded rim (sand) and the painted slits (ink, a few dark browns among them), high on the front)
+  // (the mask: its cream and the painted slits (ink), high on the front; prepare.mjs painted its rim cream. A triangle
+  //  with a slit's vertex is the mask's too: Tripo cut each slit as a recess 1.6 cm deep, a few sage vertices at its
+  //  bottom, and those left on the body showed through the mask as dark holes under the eyes)
   const inFace = (v) => pos.getY(v) > at.Neck.y && pos.getZ(v) > 0.12 && Math.abs(pos.getX(v)) < 0.125;
-  const isMask = (v) => inFace(v) && ['mask', 'ink', 'sand', 'shade', 'patch'].includes(keys[role[v]]);
+  const isMask = (v) => inFace(v) && ['mask', 'ink'].includes(keys[role[v]]), isSlit = (v) => inFace(v) && keys[role[v]] === 'ink';
   const idx = src0.index.array, bodyTris = [], maskTris = [];
-  for (let t = 0; t < idx.length; t += 3) (isMask(idx[t]) && isMask(idx[t + 1]) && isMask(idx[t + 2]) ? maskTris : bodyTris).push(idx[t], idx[t + 1], idx[t + 2]);
+  for (let t = 0; t < idx.length; t += 3) { const tri = [idx[t], idx[t + 1], idx[t + 2]]; (tri.every(isMask) || (tri.some(isSlit) && tri.every(inFace)) ? maskTris : bodyTris).push(...tri); }
   const geo = new THREE.BufferGeometry();
   for (const k of ['position', 'normal', 'uv']) geo.setAttribute(k, src0.attributes[k]);
   if (!home) { const out = new Float32Array(n * 3), want = keys.map((k) => new THREE.Color(P[k] ?? ROLES[k])); for (let v = 0; v < n; v++) { const c = want[role[v]]; out[v * 3] = c.r; out[v * 3 + 1] = c.g; out[v * 3 + 2] = c.b; } geo.setAttribute('color', new THREE.BufferAttribute(out, 3)); }
@@ -150,14 +155,21 @@ export function tripoMummerModel(skin, src) {
   add(face, new THREE.SphereGeometry(1, 16, 10).scale(ms.x * 0.48, ms.y * 0.48, 0.03), tint(0, P.ink), 0, 0, -ms.z * 0.5 + 0.005);
   const flown = pivot(g, 0, 0, 0, 'dropped mask');
   add(flown, maskGeo(), tint(0, P.mask));
-  // the painted slits: the dark vertices on the mask, each side's centre and spread
-  const slit = [1, -1].map((s) => { const a = new THREE.Vector3(), lo = new THREE.Vector3(Infinity, Infinity, Infinity), hi = new THREE.Vector3(-Infinity, -Infinity, -Infinity); let k = 0;
-    for (let v = 0; v < n; v++) { if (!inFace(v) || keys[role[v]] !== 'ink' || pos.getX(v) * s <= 0.005) continue; const q = new THREE.Vector3().fromBufferAttribute(pos, v); a.add(q); lo.min(q); hi.max(q); k++; }
-    return k ? { at: a.divideScalar(k).sub(mc), w: Math.max(0.03, hi.x - lo.x), h: Math.max(0.008, hi.y - lo.y), n: k } : { at: new THREE.Vector3(s * 0.045, 0.02, ms.z * 0.5), w: 0.04, h: 0.012, n: 0 }; });
+  // the slits: Tripo cut each as a recess about 1.6 cm deep, the ink painted at its bottom. Each side's recess is every
+  // vertex of a mask triangle that touches the ink; its box (centre, breadth, height, bottom) and the mask's own surface
+  // round it (its front: the highest z of the mask's vertices just about it)
+  const slit = [1, -1].map((s) => { const lo = new THREE.Vector3(Infinity, Infinity, Infinity), hi = new THREE.Vector3(-Infinity, -Infinity, -Infinity), seen = new Set();
+    for (let t = 0; t < maskTris.length; t += 3) { const tri = maskTris.slice(t, t + 3); if (!tri.some(isSlit) || tri.some((v) => pos.getX(v) * s <= 0.005)) continue;
+      for (const v of tri) { seen.add(v); const q = new THREE.Vector3().fromBufferAttribute(pos, v).sub(mc); lo.min(q); hi.max(q); } }
+    if (!seen.size) return { at: new THREE.Vector3(s * 0.045, 0.02, ms.z * 0.5), w: 0.04, h: 0.012, surf: ms.z * 0.5, n: 0 };
+    const c = lo.clone().add(hi).multiplyScalar(0.5); let surf = lo.z;
+    for (const v of maskTris) { const x = pos.getX(v) - mc.x, y = pos.getY(v) - mc.y; if (Math.abs(x - c.x) < (hi.x - lo.x) / 2 + 0.01 && Math.abs(y - c.y) < (hi.y - lo.y) / 2 + 0.01) surf = Math.max(surf, pos.getZ(v) - mc.z); }
+    return { at: new THREE.Vector3(c.x, c.y, lo.z), w: Math.max(0.03, hi.x - lo.x), h: Math.max(0.008, hi.y - lo.y), surf, n: seen.size }; });
   const eyeM = M.own('eye', P.eye, { glow: 0.9 });
-  const front = ms.z * 0.5 + 0.004;
+  // (each slit a black plug filling its recess, from the bottom out to the mask's surface: the wind-up's colour in it)
   const eyes = pivot(face, 0, 0, 0, 'eyes');
-  add(eyes, merged(slit.map((e) => new THREE.CapsuleGeometry(Math.min(0.009, e.h * 0.6), e.w * 0.85, 3, 8).rotateZ(Math.PI / 2).scale(1, 1, 0.5).translate(e.at.x, e.at.y, Math.max(e.at.z, front - 0.004) + 0.003))), eyeM);
+  add(eyes, merged(slit.map((e) => { const r = e.h / 2, depth = e.surf - e.at.z + 0.003;
+    return new THREE.CapsuleGeometry(r, Math.max(0.001, e.w - 2 * r), 3, 8).rotateZ(Math.PI / 2).scale(1, 1, depth / (2 * r)).translate(e.at.x, e.at.y, (e.surf + e.at.z) / 2); })), eyeM);
   // ---------------------------------------------------------------- the weapons: through the mittens' centres
   const gripAt = [0, 1].map((i) => J.hands[i].worldToLocal(v3(hc[side(i)].centre)));
   const grip = pivot(J.hands[0], gripAt[0].x, gripAt[0].y, gripAt[0].z, 'grip'), gripL = pivot(J.hands[1], gripAt[1].x, gripAt[1].y, gripAt[1].z, 'grip l');
@@ -176,7 +188,7 @@ export function tripoMummerModel(skin, src) {
   const anim = mummerLife({ J, driver, wield, fists: [null, null], held, lying, mask, flown, eyes, eyeM, P, skin, g, cord, eyeBack: ms.z * 0.6, gripAt: () => gripAt[0] });
   return {
     group: g, gaze, body: rig, rig: null, upright: true, ownRest: true, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.mask, P.glove],
-    driver, joints: J, wield, fists: [null, null], trial: 'tripo', tripo: { slits: slit.map((e) => e.n), maskTris: maskTris.length / 3, bones: bones.length },
+    driver, joints: J, wield, fists: [null, null], trial: 'tripo', tripo: { slits: slit.map((e) => ({ n: e.n, w: +e.w.toFixed(3), h: +e.h.toFixed(3), surf: +e.surf.toFixed(3), at: e.at.toArray().map((x) => +x.toFixed(3)) })), maskTris: maskTris.length / 3, bones: bones.length },
     tell: (id) => (id === 'volley' ? gripL : id === 'rock' ? J.hands[0] : grip),
     anim,
     dispose: M.dispose,
