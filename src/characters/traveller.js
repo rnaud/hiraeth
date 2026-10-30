@@ -5,6 +5,11 @@ import {cleanExpression} from '../expression.js';
 import {TRAVELLER} from '../traveller.js';
 import {travellerSetting,loadTravellerV2,dressTravellerV2} from './traveller-v2.js';
 
+/** Where the makers' battery hangs on B3 (the hip anchor's frame; issue #745): as low as fluid-tool.js TANK.at, 40°
+ *  round from his left side toward his back (B3's sprinting arm swings wider than v2's), 2.2 cm off his trousers.
+ *  v2 wears it at TANK.at. */
+export const TANK_AT_B3=[0.1854,0.025,-0.1556];
+
 // Canonical playable traveller: game, title, studio and cinematics share one. He is built on B3 (its skeleton, hands,
 // head, glove and fits); dressed as v2 (the Blender rebuild, issue #493: characters/traveller-v2.js) when the switch
 // says so (travellerSetting: ?traveller=v2 / b3, the dev menu) and its models came in, B3 otherwise.
@@ -34,7 +39,9 @@ export function* createTravellerSteps(char,assets,options={}){
  model.updateHands=()=>{}; // shared Hands already uses this body's calibrated poses
  h.restExpression=cleanExpression(TRAVELLER.rest);h.setExpression(h.restExpression);
  h.wearGlove(model.mesh);
- // (the makers' battery sits at TANK.at on his hip anchor: fluid-tool.js, measured on this body)
+ // (the makers' battery hangs at his left side on his hip anchor: B3's own place, closer than v2's, whose shirt stands
+ // off his hip (fluid-tool.js TANK.at); measured on both, tests/battery-hip.test.js)
+ h.tankAt=TANK_AT_B3;
  if(assets.v2){yield;dressTravellerV2(model,assets.v2)}
  return model;
 }

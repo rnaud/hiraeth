@@ -183,14 +183,15 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         // A: out over the water, looking back at him standing in the glowing pool
         { dur: FILL.A, from: { pos: P.clone().addScaledVector(n, 5.2).addScaledVector(r, 1.5).addScaledVector(UP, 2.0), look: P.clone().addScaledVector(UP, 0.95), fov: 42 },
           to: { pos: P.clone().addScaledVector(n, 4.2).addScaledVector(r, 1.1).addScaledVector(UP, 1.7), look: P.clone().addScaledVector(UP, 1.05), fov: 40 } },
-        // B: over his right shoulder, close on the glass as the water climbs into it
+        // B: behind his left hip, close on the glass as the water climbs into it (the battery hangs at his left side, a
+        //    little behind it: issue #745)
         { dur: FILL.B, clear: false,
           from: (t) => {
             const k = smooth(t / FILL.B), f = facing(_f), tk = tankAt(_h);
             const side = rightOf(f);
-            return { pos: tk.clone().addScaledVector(f, -(1.05 - 0.2 * k)).addScaledVector(side, 0.5 - 0.08 * k).addScaledVector(UP, 0.28), look: tk.clone().addScaledVector(UP, 0.02), fov: 40 };
+            return { pos: tk.clone().addScaledVector(f, -(0.8 - 0.15 * k)).addScaledVector(side, -(0.75 - 0.08 * k)).addScaledVector(UP, 0.32), look: tk.clone().addScaledVector(UP, 0.02), fov: 40 };
           } },
-        // C: over his shoulder (the lit tank on his back at the frame's side) toward what hums back beside the pool,
+        // C: over his shoulder (the lit battery at his hip at the frame's side) toward what hums back beside the pool,
         //    as he turns to it: the chest beyond him
         { dur: FILL.C, clear: false,
           from: (t) => {
@@ -272,15 +273,15 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         // B: low at the kerb on his right, across the rising fluid: it climbs round his boots, its light coming up on him
         { dur: T0.B, from: { pos: P.clone().addScaledVector(r, 4.6).addScaledVector(n, 1.6).addScaledVector(UP, 0.55), look: P.clone().addScaledVector(UP, 0.55), fov: 44 },
           to: { pos: P.clone().addScaledVector(r, 3.8).addScaledVector(n, 1.3).addScaledVector(UP, 0.65), look: P.clone().addScaledVector(UP, 0.75), fov: 42 } },
-        // C: close behind his hip on the battery as the fluid climbs into the glass; then up past it to the makers' mark on
-        //    the far wall as it lights
+        // C: close behind his left hip on the battery as the fluid climbs into the glass (it hangs at his left side, a
+        //    little behind it: issue #745); then up past it to the makers' mark on the far wall as it lights
         { dur: T0.C, clear: false, ease: 'linear',
           from: (t) => {
             const tk = tankAt(_h), k = smooth((t - T0.tiltAt) / (T0.C - T0.tiltAt));
             const want = tk.clone().lerp(mark, 0.85 * k);
             if (tilt.t < 0) tilt.look.copy(want); else tilt.look.lerp(want, 1 - Math.exp(-7 * Math.max(0, t - tilt.t)));
             tilt.t = t;
-            return { pos: tk.clone().addScaledVector(n, -(1.15 - 0.15 * smooth(t / T0.C))).addScaledVector(r, 0.85).addScaledVector(UP, 0.12 - 0.2 * k), look: tilt.look.clone(), fov: 40 + 8 * k };
+            return { pos: tk.clone().addScaledVector(n, -(0.9 - 0.12 * smooth(t / T0.C))).addScaledVector(r, -0.8).addScaledVector(UP, 0.22 - 0.2 * k), look: tilt.look.clone(), fov: 40 + 8 * k };
           } },
         // D: his face, lit from the pool below, turned up to the lit mark
         { dur: T0.D, clear: false, from: closeUp({ angle: -0.95, dur: T0.D, drop: 0.1 }) },

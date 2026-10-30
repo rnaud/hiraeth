@@ -12,6 +12,7 @@ import { FluidBlade, HIT_FX } from './fluid-blade.js';
 import { HitBursts } from './hit-burst.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
 import { boostVelocity, DOUBLE_JUMP } from './jump.js';
+import { BatteryHang, tuckedPose } from './battery-hang.js';
 
 // The makers' battery (issue #728; the magic-fluid backpack until v2.34): the traveller's signature tool. A
 // turquoise glass cylinder of lavender fluid rides on his belt at the left hip (no hose, no cord: the hose was cut in
@@ -163,7 +164,7 @@ export class Reserve {
   fill() { this.level = this.max; this.since = Infinity; }
 }
 
-const _d = new THREE.Vector3(), _rp = new THREE.Vector3();
+const _d = new THREE.Vector3(), _rp = new THREE.Vector3(), _wq = new THREE.Quaternion();
 
 /**
  * The first world surface along a ray: the collision meshes (physics.rayHit)
@@ -510,7 +511,7 @@ class Rings {
 
 // The makers' battery (issue #728, references/Core Objects/Makers Battery/selected-2026-10-28/, the author's pick: a
 // hip lantern, no tether): in its own frame (y up the glass from the bottom endcap's foot, +z toward the wearer, his
-// right at -x), worn at his left hip, a little behind it, on a rigid belt clip (Humanoid.hipAnchor: the chest anchor's
+// right at -x), hanging at his left side from a belt clip (issue #745: TANK.at; Humanoid.hipAnchor: the chest anchor's
 // frame, y 0 at 0.7 m over his feet, +z forward, his left +x, carried by the pelvis so it goes with his hips, not his
 // chest). A broad turquoise glass cylinder with lavender fluid standing in it to the magic bar's level, rounded cream
 // ceramic endcaps (a flat face, a ring sunk in it, three screws), a brass rim where glass meets ceramic, two brass
@@ -522,10 +523,16 @@ class Rings {
 const GLASS_R = 0.05, CAP_R = 0.059, CAP_H = 0.05, GLASS_H = 0.13;
 const GLASS_Y0 = CAP_H, GLASS_Y1 = CAP_H + GLASS_H, TOP_Y = GLASS_Y1 + CAP_H;
 export const TANK = {
-  // where it sits (hip frame): at his left hip, 60° round from his side toward his back, centred on the belt line,
-  // its clip 1.5 cm off his trousers (measured on B3 in every pose he takes: tests/battery-hip.test.js)
-  at: [0.108, 0.165, -0.186],
-  yaw: -Math.PI / 6,        // turned so its clip faces his hip (+z of its frame toward his middle)
+  // where it sits (hip frame): at his left side, 30° round from it toward his back, hanging from his belt down his
+  // outer hip, its top a hand under the belt line, just behind his hanging hand (issue #745, the author: at the side of
+  // the hip, as Link wears the Sheikah Slate; until v2.38 it rode on the belt line 60° round toward his back, the only
+  // place there clear of him in every pose). Hung this low, his hand and his forearm pass beside it standing and in
+  // every gait; what else comes to it (the sprint's arm, a jump, a cut) swings it out on its clip, and his climbing,
+  // swimming, sitting and rolling tuck it away (battery-hang.js; measured in tests/battery-hip.test.js). This is v2's
+  // place, the game's traveller in his own clothes (his shirt stands off his hip); B3 wears it closer
+  // (characters/traveller.js TANK_AT_B3).
+  at: [0.2477, 0.025, -0.143],
+  yaw: -Math.PI / 3,        // turned so its clip faces his hip (+z of its frame toward his middle)
   scale: 1,                 // 12 cm across the caps, 23 cm tall
   height: TOP_Y,            // endcap to endcap
   full: GLASS_Y0 + GLASS_H * 0.74,   // the fluid's height with the bar full: a band of turquoise glass stays over it, as the reference draws it
@@ -552,6 +559,17 @@ export function tankRadiusAt(y) {
   for (let i = 1; i < P.length; i++) if (h <= P[i][1]) { const [r0, y0] = P[i - 1], [r1, y1] = P[i]; return r0 + (r1 - r0) * (h - y0) / (y1 - y0); }
   return CAP_R;
 }
+const RAIL_X = CAP_R + 0.009, RAIL_R = 0.0042;
+/** How far a point of its frame is outside the battery: its glass and caps (a body of revolution) and its rails (m;
+ *  negative inside). What it must keep clear of him (battery-hang.js, tests/battery-hip.test.js). */
+export function tankGap(p) {
+  const y = Math.min(Math.max(p.y, 0), TOP_Y), r = Math.hypot(p.x, p.z), R = tankRadiusAt(y);
+  let d = p.y >= 0 && p.y <= TOP_Y ? r - R : Math.hypot(Math.max(0, r - R), p.y - y);
+  for (let sx = -1; sx <= 1; sx += 2) d = Math.min(d, Math.hypot(p.x - sx * RAIL_X, p.z, Math.max(0, Math.abs(p.y - TOP_Y / 2) - TOP_Y / 2 + 0.03)) - RAIL_R);
+  return d;
+}
+/** The hinge of its clip (its frame): at its top, at the clip, where it swings out from (battery-hang.js). */
+export const TANK_PIVOT = [0, TOP_Y - 0.01, GLASS_R + 0.026];
 /** How far a point (its frame) is from the glass: under 1 inside the glass cylinder, over 1 outside. */
 export function tankGlassMeasure(p) {
   if (p.y < GLASS_Y0 || p.y > GLASS_Y1) return Infinity;
@@ -646,6 +664,9 @@ export function setStage(flask, stage = 0) {
 
 /** The battery's turn on the hip (about up, its clip toward him). */
 const WORN_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), TANK.yaw);
+/** Its turn at a place on the hip (`at`, the hip frame): its clip toward his middle (TANK.at's is WORN_Q). */
+export function wornQuat(at, out = new THREE.Quaternion()) { return out.setFromAxisAngle(_yAxis, Math.atan2(-at[0], -at[2])); }
+const _yAxis = new THREE.Vector3(0, 1, 0);
 function buildTank(stage = 0) {
   const { group: g, glass, lights, stages } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: TANK.glow[1], fluidBox: [TANK.glass.y0, TANK.full, TANK.radius, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }), { stage });
   g.name = 'Fluid tank';
@@ -767,6 +788,8 @@ export class FluidTool {
     this.hip = H.hipAnchor ?? H.chestAnchor;
     tank.group.position.set(...this.tankAt);
     this.hip.add(tank.group);
+    // (out of his arm's and his thigh's way: swung out on its clip or tucked, battery-hang.js)
+    this.hang = new BatteryHang({ gap: tankGap, pivot: TANK_PIVOT });
     this.glove = gloveOf(H);
     const copies = new Map(), glassMat = tank.glass.material;
     markHero(tank.group, copies);
@@ -1066,13 +1089,14 @@ export class FluidTool {
     // the hip's pose and the socket's, in world space
     const back = this._back ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
     hip.updateWorldMatrix(true, false);
-    hip.localToWorld(back.p.set(...this.tankAt)); hip.getWorldQuaternion(back.q).multiply(WORN_Q); hip.getWorldScale(back.s).multiplyScalar(TANK.scale);
+    hip.localToWorld(back.p.set(...this.tankAt)); hip.getWorldQuaternion(back.q).multiply(wornQuat(this.tankAt, _wq)); hip.getWorldScale(back.s).multiplyScalar(TANK.scale);
     if (where === 'back') {
       if (g.parent !== hip) hip.add(g);
-      g.position.set(...this.tankAt); g.quaternion.copy(WORN_Q); g.scale.setScalar(TANK.scale);
+      this.hangOnHip(dt);
       if (was === 'flight') this.onDocked(null, false);
       return where;
     }
+    if (this.hang) { this.hang.tuck = 0; this.hang.swing = 0; }
     const sock = v.socket;
     sock.updateWorldMatrix(true, false);
     const ss = sock.getWorldScale(_t3);
@@ -1092,6 +1116,21 @@ export class FluidTool {
     if (host === this.scene) { g.position.copy(out.p); g.quaternion.copy(out.q); g.scale.copy(out.s); }
     if (was === 'socket') this.onDocked(v, false);
     return where;
+  }
+
+  /**
+   * The battery on his hip this frame (issue #745): at its place (tankAt), swung out on its clip by as little as
+   * keeps his thigh and his arm out of it, or tucked into its clip while he climbs, swims, sits or rolls, or while
+   * nothing else clears it (battery-hang.js). dt 0: settled at once (a still, a test). this.hang.tuck 1: hidden.
+   */
+  hangOnHip(dt) {
+    const g = this.tank?.group, hip = this.hip, p = this.player;
+    if (!g || !hip) return;
+    g.position.set(...this.tankAt); wornQuat(this.tankAt, g.quaternion); g.scale.setScalar(TANK.scale);
+    if (!this.hang || !p?.object || p.object.visible === false) return;
+    g.updateMatrix();
+    const M = this.hang.update(dt, { home: g.matrix, parent: hip, root: p.object, tucked: tuckedPose(p) });
+    M.decompose(g.position, g.quaternion, g.scale);
   }
 
   /** The click of the battery going into a socket (on) or leaving it. */
@@ -1178,7 +1217,7 @@ export class FluidTool {
     }
     const owned = this.owned, visible = owned && p.object?.visible !== false;
     const where = owned ? this.updateDock(dt) : 'back';
-    this.tank.group.visible = visible;
+    this.tank.group.visible = visible && !(where === 'back' && (this.hang?.tuck ?? 0) >= 0.999);
     // (the old body's rucksack keeps its outer pocket: the battery is at his hip, nothing sits in it since #728)
     // the glove is the fluid gun (src/gadgets/gun.js): worn once it is found, with the tank (it drinks from it);
     // the hand is bare without it (the sword's hilt is held bare-handed)
@@ -1188,7 +1227,7 @@ export class FluidTool {
     if (this.glove) this.glove.visible = gloved;
     if (owned && this.appear < 1 && where === 'back') {
       const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
-      this.tank.group.scale.setScalar(sc * TANK.scale);
+      this.tank.group.scale.multiplyScalar(sc);
       this.flash = Math.max(this.flash, 1 - e);
     }
     this.updateJets(dt);

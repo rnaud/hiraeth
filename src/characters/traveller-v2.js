@@ -292,6 +292,7 @@ export function dressTravellerV2(model, sources, { cloth = typeof window !== 'un
     put(outfit.id, outfit.manifest, parts);
   }
   wardrobe.wear(outfit?.gltf ? outfit.id : 'default');
+  model.humanoid.tankAt = null;   // (the makers' battery at v2's own place: fluid-tool.js TANK.at, off his shirt)
   model.v2 = {
     wardrobe, list, put,
     async wear(next) { await load(next); return wardrobe.wear(next); },

@@ -2,7 +2,7 @@
 
 The traveller wears clothes built on the people's own body (`src/traveller.js`
 `travellerKit`, skinned to its bones; the game's traveller is B3, `src/characters/traveller.js`). The fluid's
-source is **the makers' battery** (`src/fluid-tool.js`, issue #728), worn at his left hip on a belt clip. Nothing
+source is **the makers' battery** (`src/fluid-tool.js`, issues #728, #745), hanging at his left side from a belt clip. Nothing
 is worn on his back but the sword's frog. The look and its reasons: `lore/characters/traveller-design.md`.
 
 - **The chest frame** (`Humanoid.chestAnchor`, on `spine_03`): y 0.74 at the collar, +z forward, his left +x. The
@@ -10,8 +10,7 @@ is worn on his back but the sword's frog. The look and its reasons: `lore/charac
   (`TRAVELLER_STAR`) are placed in it.
 - **The hip frame** (`Humanoid.hipAnchor`, issue #728): the same frame at rest, carried by the **pelvis**, so what
   hangs on his belt goes with his hips (a run's twist of the chest leaves it be). The battery (`TANK.at`) and the
-  lantern charm (`src/boxes/effects.js LANTERN_AT`, on his belt at the small of his back, beside the battery) hang
-  from it. On B3 its y = 0 is 0.7 m over his feet; his belt is at about 0.28.
+  lantern charm (`src/boxes/effects.js LANTERN_AT`, on his belt at the small of his back) hang from it. On B3 its y = 0 is 0.7 m over his feet; his belt is at about 0.28.
 - **The old body's rucksack** is rigid on `spine_03`: body, lid, lid straps and buckles, side pocket, bedroll and an
   outer pocket (`Humanoid.packPocket`). Since #728 nothing sits in it: the pocket always shows.
 - **The makers' battery** (`buildFlask`; `references/Core Objects/Makers Battery/selected-2026-10-28/`, the author's
@@ -25,14 +24,36 @@ is worn on his back but the sword's frog. The look and its reasons: `lore/charac
   reads as fed by it through its own vial. The item's picture is the same battery without its clip (`worn: false`,
   tipped as the reference lies: `src/boxes/model.js tankModel`). It replaced the round backpack (v1.38–2.33: a glass
   dome on the back, its straps over the shoulders; `references/Core Objects/Round Backpack/`).
-- **Where it sits** (`TANK.at` (0.108, 0.165, -0.186) in the hip frame, turned `TANK.yaw` -30° so its clip faces him):
-  at his left hip, 60° round from his side toward his back, centred on the belt line. The place was measured on B3
-  (`tests/battery-hip.test.js`): his hanging left arm passes his side at 25 cm out and swings back over the hip, so a
-  battery at his side, or less than about 58° round, is in the arm's way (the sprint's swing came 1.5–6 cm into it);
-  lower, the thigh's lift (climbing, the jump's tuck) reaches it. Where it is, none of him comes into its glass,
-  caps or rails in any pose he takes (standing, the gaits, talking, the title's stance, climbing, the ledge, riding,
-  sitting on a bench, the jump, swimming, gliding, the dodge roll): 2.2 cm at rest (his belt, behind the clip), 0.6
-  cm at the closest (the roll's tuck). `Humanoid.tankAt` can still override `TANK.at` for another body.
+- **Where it sits** (issue #745, the author: at the side of the hip, as Link wears the Sheikah Slate; `TANK.at`
+  (0.248, 0.025, -0.143) in the hip frame, its clip turned toward his middle, `wornQuat`): hanging from his belt down
+  his left hip, 30° round from his side toward his back, its top a hand under the belt line, just behind his hanging
+  hand. That is v2's place (the game's traveller; his open shirt stands off his hip); B3 wears it 40° round and a
+  little closer (`characters/traveller.js TANK_AT_B3`, through `Humanoid.tankAt`; v2's dressing clears it). Until
+  v2.38 it rode on the belt line 60° round toward his back (0.108, 0.165, -0.186), the only place at that height clear
+  of him in every pose: his hanging hand and forearm pass his side at 25-29 cm out, right where a battery at his side
+  on the belt would be, and his thigh comes up in front of it. Hung lower and a little back, the hand and the forearm
+  pass beside it standing and in every gait (swept round his hip on v2 before any swing: the sprint's arm within
+  1.3 cm of it, the title's stance 0.9 cm into it, which the swing takes).
+- **Out of his way** (`src/battery-hang.js BatteryHang`, `FluidTool.hangOnHip`): every frame a sample of his own skin
+  and clothes (his waist's left side, both arms and hands, both legs and feet: the outermost vertex of each 2.4 cm
+  cell, about 4,200 points, in 10 cm pieces by the bone that carries them, a piece far from the battery passed over
+  whole) is skinned into the battery's frame and its clearance measured against its glass, caps and rails
+  (`tankGap`). When anything of him would come within `HANG.margin` (0.8 cm), it swings on its clip, hinged at its
+  top (`TANK_PIVOT`), by as little as clears him: out from his hip first, then out and along his side, then along it
+  (an arm passing behind and outside it), up to `HANG.swingMax` (43°); at once, and back on a spring (`swingBack`).
+  When no swing clears him, and while he climbs, is on the ledge, swims, sits or kneels (an overlay), rolls, is on a
+  ladder or is knocked down (`tuckedPose`), it **tucks away**: hidden at once, grown back over 0.3 s once he has been
+  clear of it 0.25 s. Standing, walking, talking, aiming the gun and gliding it hangs still; a run, the sprint and a
+  jump swing it as the arm or the thigh passes (v2: the sprint up to 42°, a jump 15°); many cuts of the blade swing it
+  or tuck it for a moment. On the Mac in node it costs 0.16 ms a frame. Its place's box parts are fitted to
+  (`beats.js FIT_HIP`), and the two films that look at it close (src/story/desert-moments.js: the first fill's close
+  shot, the Font Room's) look from behind his left hip.
+- **Measured** (`tests/battery-hip.test.js`, on v2 in his own clothes and on B3): where it hangs and that it is seen
+  from a front three-quarter view, his side, a back three-quarter view and the follow camera, and the least of him
+  outside it in every pose he takes (standing, the gaits, the sprint, talking, the title's stance, jumping from a
+  stand and from a run, aiming the gun standing and walking, the evade, every cut of the blade on its captured clip,
+  climbing, the ledge, riding, sitting on a bench, swimming, gliding, the dodge roll): on v2 2.2 cm at rest, 0.4 cm at
+  the closest (the sprint's arm as it swings it); B3 0.2 cm (the third cut). Hidden in every pose that tucks it.
 - **Its stages** (`flask.stages`, `setStage`; src/items.js `BACKPACK_STAGES`, `backpackStage`): each strength found
   adds a little brass. 1, the lift valve (the double jump): a valve wheel on the top endcap. 2, the wings: a brass
   band round the glass's middle. 3, the Warden's bellows (the debug jets count too): a second valve beside the first,
@@ -134,8 +155,8 @@ is worn on his back but the sword's frog. The look and its reasons: `lore/charac
   cut opens (the riposte's wind-up 0.12 s, a first swing's 0.22); the blade lights only once the hilt is
   in the fist. Before, the hilt grew out of the glove's cuff into the fist.
 
-Tests: `tests/battery-hip.test.js` (the battery at his hip, carried by the pelvis, clear of him in every pose; nothing
-on his back), `tests/flask.test.js` (its shape, colours, clip, stages, the item's picture), `tests/sword-sheath.test.js`
+Tests: `tests/battery-hip.test.js` (the battery at his side, carried by the pelvis, seen, clear of him in every pose,
+swung or tucked out of his way; nothing on his back), `tests/flask.test.js` (its shape, colours, clip, stages, the item's picture), `tests/sword-sheath.test.js`
 (where it sits on the back, clear of the battery and of him in every pose, the
 draw and the sheathe and their timing, a swing pressed with it on the back cutting on the same frame as one
 already drawn), `tests/glove.test.js` (worn with the battery only, the skin under it, the mouth at the knuckles

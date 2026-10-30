@@ -30,6 +30,8 @@ export const CHANGELOG = [
       // the lock-on camera close in (#795)
       { text: 'Locked on a step or two from a tall enemy, the camera now keeps all of it in view: a furnace brute’s raised arms, a bell walker’s top, a stilt heron’s head and a warlord’s glaive held over its head no longer go off the top of the screen. The camera starts to step back as soon as an enemy winds up a blow, widening a little while it does. In a small room it stays close behind you but looks up, so a tall enemy’s head stays in view wherever the ceiling allows.',
         see: 'In the Arena, pick a furnace brute or a warlord from the foe list, lock on (R3, Tab) one or two steps away and let it swing: its arms or its glaive stay inside the picture.' },
+      // the battery at your side (#745)
+      'The makers’ battery now hangs at your side, from your belt down your left hip just behind your hand, instead of riding at the back of your hip. When your arm or your knee comes to it, as you run, jump or swing the sword, it swings or slides aside on its clip; while you climb, swim, sit or roll it tucks away and comes back once you are clear, so it never goes through you.',
       // the loading screen (#791)
       'Loading screens are quieter: the screen is black, and only a small turning circle, the word “Loading” and a thin bar that fills as the world is built sit in the bottom-right corner, arriving by ship too. The lines naming each step are gone. If something fails to load, its message still shows there in full. With reduced motion on, the circle gently pulses instead of turning.',
       // the landing (#781)

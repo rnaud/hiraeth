@@ -37,7 +37,7 @@ import { screen, page } from '../platform.js';
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
 
-export const LANTERN_AT = new THREE.Vector3(-0.035, 0.215, -0.205);   // the lantern on his belt at the small of his back, beside the makers' battery (the hip anchor's frame, issue #728)
+export const LANTERN_AT = new THREE.Vector3(-0.035, 0.215, -0.205);   // the lantern on his belt at the small of his back (the hip anchor's frame, issue #728; the makers' battery hangs at his left side, #745)
 /** The makers' star pinned to the coral lapel (chest-anchor frame). */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
 /** The same on the game's traveller (TravellerV1: no outfit flag; its chest anchor sits lower): measured on its overshirt's left lapel. */

@@ -24,8 +24,9 @@
 // z = STAND_AT facing -z, where the box was). `Z` below is STAND_AT.
 
 /** Where a part for the makers' battery (the lift valve, the wings, the bellows, a chamber, the coil) is fitted: the
- *  battery at his left hip, a little behind it (issue #728; fluid-tool.js TANK.at), not his back. */
-export const FIT_HIP = [-0.11, 0.97, 0.19];
+ *  battery hanging at his left side, a little behind it, its middle a hand under his belt (issues #728, #745;
+ *  fluid-tool.js TANK.at), not his back. */
+export const FIT_HIP = [-0.25, 0.84, 0.14];
 /** Where a beat's item ends up for this item (`def` its items.js entry). */
 export const stowFor = (beat, def) => (beat === 'fit' && def?.kind !== 'weapon' ? FIT_HIP : BEATS[beat]?.stow);
 
