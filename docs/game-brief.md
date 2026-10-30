@@ -7,6 +7,17 @@ The world should feel organic, connected, and aware of the player. Plants react 
 
 The visual direction is inspired by Moebius: vast landscapes, unusual silhouettes, flat colours, delicate ink lines, and expressive characters.
 
+### Enemy art direction — approved exploration baseline, 2026-10-30
+
+Use **Scavengers Reign** as a baseline for future enemy concepts, within Hiraeth's Moebius-inspired world. The author approved this direction and especially the simple eyes in the latest explorations. This records an art direction; individual reference selections and implementation remain separate decisions.
+
+- **Simple eyes:** small dark dots, ovals or short slits, with minimal surrounding detail. Convey expression through their spacing, a simple lid or brow, head angle and body pose; avoid intricate irises, reflections and elaborate facial mechanisms.
+- **Readable forms:** a few broad masses, clean silhouettes, restrained flat colours and sparse contour lines. Use Breath of the Wild's clarity at gameplay distance as a practical reference.
+- **Believable inhabitants:** give each creature a habitat, an ordinary survival behavior and one unusual anatomical feature that serves it. Creature-plus-concept combinations such as the cloud jelly are encouraged. Bilal and Jodorowsky remain supporting references for strange societies and inhabitants.
+- **Practical motion:** thick limbs, broad hands and large feet or paws; clear joints and free shoulders and hips. Avoid thin supporting legs, capes, bulky back attachments and bodies that appear rooted to the ground when they need to move.
+- **Three families:** fantastical animals; robots with three or four legs, some bipeds and some floating bodies; monsters, mostly bipeds with some floating bodies. No bird enemy concepts. The liked boar is reserved for a separate future creature, not the grunt.
+- **Review workflow:** continue concept exploration in visible Midjourney and let the author heart options before saving reference assets or integrating them. Broad enthusiasm for a direction does not select every image in a batch.
+
 ## Story
 
 ### Premise

@@ -2,6 +2,52 @@
 
 Developer levels and checks: the Debug menu, the dev menu, the Lab, the worlds list's debug save, the clipping audit.
 
+## Enemy art-direction review (local authoring tool)
+
+Open `/tools/enemy-review.html` on the Vite development server. It lists all 32 built
+enemy archetypes and 137 authored world appearances from `ARCHETYPES` and `SKINS`,
+including retired enemies and gallery-only appearances. Temple guardians and the
+archived 100-enemy concept atlas are separate from this ordinary-enemy catalogue.
+Filter by family, world, name or decision; inspect a model to rotate it and play
+its existing movement and attack poses. The review grid uses the existing enemy
+gallery's renderer, with one paused iframe rendering thumbnails sequentially.
+No audio system is constructed; saved gameplay audio preferences are not read.
+
+Keep/rework/dismiss decisions and notes are saved per appearance in browser storage
+under `hiraeth-enemy-review-v1`. Export JSON to share or back up; import validates
+the whole file before merging matching IDs. Birds start dismissed per the current
+art direction, but feedback never changes the playable roster. The **Current game
+enemies** view retains those decisions. **Reference decisions** compares the current
+main-appearance model with chosen concept art side by side, and shows the original
+model feedback, reference-selection status and next build step. **New enemies to
+build** shows separate concepts with an explicit “No game model yet” panel.
+
+`tools/enemy-review-references.js` records the author's Midjourney choices (job and
+zero-based image index), alternate liked references, role mappings and direction
+notes. Keep/reference/refine feedback uses separate `concept:` IDs in the same
+version-1 export, so old model-only exports and existing browser notes remain valid.
+Exports also include a reference manifest; imports accept feedback only, never
+overwrite the curated source manifest. The reference sheet is curated from hearts,
+not a live Midjourney sync. Grunt candidates remain a shortlist; the boar is reserved
+as a separate enemy. New robot concepts do not replace retained robots implicitly.
+The 30 October rebuild is authorized in [issue #800](https://github.com/rnaud/hiraeth/issues/800);
+all reference builds remain unimplemented until verified. See the
+[handoff](../handoffs/enemy-rebuild-2026-10-30.md) and its importable feedback snapshot. Unselected explorations have source links but no saved reference image.
+Selected 640px previews load from Midjourney's CDN; failed images retain source
+links. No reference image is bundled into the game by this tool.
+When a selected concept is being redone, `STYLE_PASSES` marks it `revising`:
+the earlier image stays labelled as an earlier selection, the new batch is linked
+for review, and the next step is to choose the new reference rather than build it.
+After confirmation, the chosen style pass becomes the primary reference;
+`previousSelections` preserves superseded source links in the page and exports.
+The Kept enemy explorations view uses `comparisonOnly` concepts mapped to existing
+types. Their feedback starts undecided; they never change the current model’s Keep
+decision or imply approval to replace it. Unselected options remain Midjourney links.
+
+Pictures are individually framed rather than shown at a common scale. The page is
+a web-only local authoring tool; it is not
+included in production build inputs and requires no Unity gameplay changes.
+
 ## The Debug menu (v1.11, `src/world-picker.js`, `src/world-picker.css`)
 
 The title's **Debug** (shown in dev mode: L3 + R3 on the title turns it on, `src/dev-gate.js`; and the Start menu's, and L in play) opens the Debug menu: alone at `?worlds=1` (the

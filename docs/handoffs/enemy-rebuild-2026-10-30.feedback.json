@@ -1,0 +1,719 @@
+{
+  "version": 1,
+  "exportedAt": "2026-10-30T15:47:21.678Z",
+  "source": "Visible enemy review cards: all 137 world appearances and 41 concept directions, 2026-10-30",
+  "decisions": {
+    "concept:bellows-toad": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:blob": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:boar": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:centipede": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:cistern-forager": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:cistern-ram": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:cloud-jelly": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:compass-warden": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:dew-gatherer": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:dune-worm": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:fencer": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:hound": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:hulk": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-bell": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-brute": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-cart": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-crawler": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-drone": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-mummer": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-mummerking": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-oracle": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-roller": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-shade": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-skitter": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-tripod": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:keep-wisp": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:kiln-beetle": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:lamp-moth": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:pebble-hare": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:plumb-walker": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:prowler": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:puff-keeper": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:reed-knot": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:salt-drifter": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:seed-splitter": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:sentinel": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:shellback": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:shovel-mole": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:storm-ray": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:tripod-surveyor": {
+      "note": "",
+      "status": "keep"
+    },
+    "concept:warlord": {
+      "note": "",
+      "status": "keep"
+    },
+    "bell@bazaar": {
+      "note": "",
+      "status": "keep"
+    },
+    "bell@saltharbour": {
+      "note": "",
+      "status": "undecided"
+    },
+    "bell@underside": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@antennas": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@arzach": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@arzach2": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@buried": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@desert": {
+      "note": "rework to be bigger and more interesting shape",
+      "status": "rework"
+    },
+    "blot@eclipse": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@edena": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@fallenring": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@garage": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@incal": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@mangrove": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@moonfoundry": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@perdide": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@perdide2": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@saltharbour": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@spacecity": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@underside": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@underwater": {
+      "note": "",
+      "status": "undecided"
+    },
+    "blot@waterfall": {
+      "note": "",
+      "status": "undecided"
+    },
+    "brute@edena": {
+      "note": "",
+      "status": "undecided"
+    },
+    "brute@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "brute@moonfoundry": {
+      "note": "",
+      "status": "undecided"
+    },
+    "brute@perdide2": {
+      "note": "",
+      "status": "keep"
+    },
+    "brute@waterfall": {
+      "note": "",
+      "status": "undecided"
+    },
+    "cart@buried": {
+      "note": "",
+      "status": "undecided"
+    },
+    "cart@garage": {
+      "note": "",
+      "status": "keep"
+    },
+    "cart@moonfoundry": {
+      "note": "",
+      "status": "undecided"
+    },
+    "cart@overnighttrain": {
+      "note": "",
+      "status": "undecided"
+    },
+    "centipede@antennas": {
+      "note": "",
+      "status": "undecided"
+    },
+    "centipede@buried": {
+      "note": "Rework with more dramatic shapes and simpler colors",
+      "status": "rework"
+    },
+    "centipede@eclipse": {
+      "note": "",
+      "status": "undecided"
+    },
+    "centipede@fallenring": {
+      "note": "",
+      "status": "undecided"
+    },
+    "centipede@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "centipede@waterfall": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crab@antennas": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crab@arzach2": {
+      "note": "We are already reworking it in Midjourney to have more dramatic shapes",
+      "status": "rework"
+    },
+    "crab@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crab@garage": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crab@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crab@saltharbour": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crab@underwater": {
+      "note": "",
+      "status": "undecided"
+    },
+    "crawler@desert": {
+      "note": "",
+      "status": "keep"
+    },
+    "drone@antennas": {
+      "note": "",
+      "status": "undecided"
+    },
+    "drone@fallenring": {
+      "note": "",
+      "status": "undecided"
+    },
+    "drone@garage": {
+      "note": "",
+      "status": "undecided"
+    },
+    "drone@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "drone@incal": {
+      "note": "",
+      "status": "keep"
+    },
+    "drone@spacecity": {
+      "note": "",
+      "status": "undecided"
+    },
+    "drone@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "fencer@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "fencer@moonfoundry": {
+      "note": "rework with a more interesting design",
+      "status": "rework"
+    },
+    "fencer@spacecity": {
+      "note": "",
+      "status": "undecided"
+    },
+    "grunt@desert": {
+      "note": "rework with more dramatic shapes and a different color",
+      "status": "rework"
+    },
+    "heron@arzach": {
+      "note": "No birds — excluded from the new direction.",
+      "status": "dismiss"
+    },
+    "heron@desert": {
+      "note": "No birds — excluded from the new direction.",
+      "status": "dismiss"
+    },
+    "heron@mangrove": {
+      "note": "No birds — excluded from the new direction.",
+      "status": "dismiss"
+    },
+    "heron@perdide": {
+      "note": "No birds — excluded from the new direction.",
+      "status": "dismiss"
+    },
+    "hound@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "hound@eclipse": {
+      "note": "",
+      "status": "rework"
+    },
+    "hound@mangrove": {
+      "note": "",
+      "status": "undecided"
+    },
+    "hound@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "hulk@desert": {
+      "note": "rework with more dramatic shapes ",
+      "status": "rework"
+    },
+    "jelly@arzach2": {
+      "note": "rework with more dramatic shapes, less very thin lines as well, that doesn't work well with the game design ",
+      "status": "rework"
+    },
+    "jelly@fallenring": {
+      "note": "",
+      "status": "undecided"
+    },
+    "jelly@perdide2": {
+      "note": "",
+      "status": "undecided"
+    },
+    "jelly@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "jelly@underwater": {
+      "note": "",
+      "status": "undecided"
+    },
+    "lizard@atelier": {
+      "note": "",
+      "status": "undecided"
+    },
+    "lizard@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "lizard@buried": {
+      "note": "",
+      "status": "undecided"
+    },
+    "lizard@eclipse": {
+      "note": "",
+      "status": "undecided"
+    },
+    "lizard@incal": {
+      "note": "",
+      "status": "dismiss"
+    },
+    "lizard@moonfoundry": {
+      "note": "",
+      "status": "undecided"
+    },
+    "marionette@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "marionette@saltharbour": {
+      "note": "",
+      "status": "undecided"
+    },
+    "marionette@spheres": {
+      "note": "",
+      "status": "dismiss"
+    },
+    "marionette@underside": {
+      "note": "",
+      "status": "undecided"
+    },
+    "moth@antennas": {
+      "note": "",
+      "status": "undecided"
+    },
+    "moth@bazaar": {
+      "note": "",
+      "status": "undecided"
+    },
+    "moth@edena": {
+      "note": "",
+      "status": "undecided"
+    },
+    "moth@perdide2": {
+      "note": "Rework with more dramatic shape and less angular shapes ",
+      "status": "rework"
+    },
+    "moth@spacecity": {
+      "note": "",
+      "status": "undecided"
+    },
+    "mummer@desert": {
+      "note": "",
+      "status": "keep"
+    },
+    "mummer@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "mummerking@desert": {
+      "note": "",
+      "status": "keep"
+    },
+    "oracle@desert": {
+      "note": "",
+      "status": "keep"
+    },
+    "prowler@desert": {
+      "note": "rework with more dramatic shapes",
+      "status": "rework"
+    },
+    "ray@arzach": {
+      "note": "Rework with a less flat design ",
+      "status": "rework"
+    },
+    "ray@arzach2": {
+      "note": "",
+      "status": "undecided"
+    },
+    "ray@garage": {
+      "note": "",
+      "status": "undecided"
+    },
+    "ray@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "ray@underside": {
+      "note": "",
+      "status": "undecided"
+    },
+    "ray@underwater": {
+      "note": "",
+      "status": "undecided"
+    },
+    "roller@garage": {
+      "note": "",
+      "status": "keep"
+    },
+    "roller@mangrove": {
+      "note": "",
+      "status": "undecided"
+    },
+    "roller@saltharbour": {
+      "note": "",
+      "status": "undecided"
+    },
+    "roller@spacecity": {
+      "note": "",
+      "status": "undecided"
+    },
+    "roller@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "rootknot@edena": {
+      "note": "",
+      "status": "undecided"
+    },
+    "rootknot@mangrove": {
+      "note": "",
+      "status": "undecided"
+    },
+    "rootknot@perdide": {
+      "note": "rework with more dramatic shapes",
+      "status": "rework"
+    },
+    "rootknot@perdide2": {
+      "note": "",
+      "status": "undecided"
+    },
+    "rootknot@waterfall": {
+      "note": "",
+      "status": "undecided"
+    },
+    "sentinel@desert": {
+      "note": "rework with more dramatic shapes",
+      "status": "undecided"
+    },
+    "shade@eclipse": {
+      "note": "",
+      "status": "undecided"
+    },
+    "shade@garage": {
+      "note": "",
+      "status": "undecided"
+    },
+    "shade@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    },
+    "shade@incal": {
+      "note": "",
+      "status": "undecided"
+    },
+    "shade@perdide2": {
+      "note": "",
+      "status": "keep"
+    },
+    "shade@spheres": {
+      "note": "",
+      "status": "undecided"
+    },
+    "skitter@buried": {
+      "note": "",
+      "status": "undecided"
+    },
+    "skitter@desert": {
+      "note": "",
+      "status": "keep"
+    },
+    "skitter@moonfoundry": {
+      "note": "",
+      "status": "undecided"
+    },
+    "skitter@perdide": {
+      "note": "",
+      "status": "undecided"
+    },
+    "skitter@underside": {
+      "note": "",
+      "status": "undecided"
+    },
+    "toad@home": {
+      "note": "",
+      "status": "undecided"
+    },
+    "toad@incal": {
+      "note": "",
+      "status": "undecided"
+    },
+    "toad@perdide": {
+      "note": "Rework with more dramatic shapes",
+      "status": "rework"
+    },
+    "toad@waterfall": {
+      "note": "",
+      "status": "undecided"
+    },
+    "tripod@buried": {
+      "note": "",
+      "status": "undecided"
+    },
+    "tripod@desert": {
+      "note": "",
+      "status": "undecided"
+    },
+    "tripod@fallenring": {
+      "note": "",
+      "status": "undecided"
+    },
+    "tripod@incal": {
+      "note": "",
+      "status": "keep"
+    },
+    "tripod@underwater": {
+      "note": "",
+      "status": "undecided"
+    },
+    "warlord@desert": {
+      "note": "rework with more dramatic shapes and a different color",
+      "status": "rework"
+    },
+    "wisp@eclipse": {
+      "note": "",
+      "status": "undecided"
+    },
+    "wisp@moonfoundry": {
+      "note": "",
+      "status": "keep"
+    },
+    "wisp@perdide2": {
+      "note": "",
+      "status": "undecided"
+    },
+    "worm@buried": {
+      "note": "",
+      "status": "undecided"
+    },
+    "worm@desert": {
+      "note": "rework with a bit rounder shapes",
+      "status": "rework"
+    },
+    "worm@glassdunes": {
+      "note": "",
+      "status": "undecided"
+    }
+  }
+}

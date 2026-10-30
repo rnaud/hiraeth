@@ -14,6 +14,10 @@ was split into the files below without rewording (the old README is in git histo
 `29db3c7:README.md`). Inside a file the sections still follow the order they were written in.
 References to other sections read `docs/systems/<file>.md, "Section"`.
 
+## Current handoffs
+
+- [Enemy reference rebuild, 30 October 2026](handoffs/enemy-rebuild-2026-10-30.md): approved art and portable feedback, four direct-versus-Tripo trials, full gameplay/audio integration; issue #800.
+
 ## Design
 
 | File | What |

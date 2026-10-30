@@ -144,11 +144,12 @@ $('stage').onpointermove = (e) => { if (drag) { dragOrbit(viewer.orbit, e.client
 $('stage').onpointerup = () => drag = null;
 $('stage').addEventListener('wheel', (e) => { e.preventDefault(); zoomOrbit(viewer.orbit, Math.exp(e.deltaY * 0.001)); }, { passive: false });
 choose(chosen, world);
-let last = performance.now();
-function frame(now) { viewer.time += Math.min(0.05, (now - last) / 1000); last = now; viewer.setSize($('stage').clientWidth, $('stage').clientHeight); viewer.render(chosen); requestAnimationFrame(frame); }
+let last = performance.now(), paused = false;
+function frame(now) { if (!paused) { viewer.time += Math.min(0.05, (now - last) / 1000); viewer.setSize($('stage').clientWidth, $('stage').clientHeight); viewer.render(chosen); } last = now; requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 window.enemyViewer = {
   viewer, choose, roster: ALL, skins: SKINS, clips,
+  setPaused(value) { paused = !!value; },
   capture(id, { state = 'idle', k = 0, attack = 0, yaw = 0.45 } = {}) {
     choose(id); viewer.mode = ['wind', 'strike', 'recover'].includes(state) ? 'attack' + attack : state; viewer.fixed = { state, k }; viewer.orbit.yaw = yaw; viewer.time = 1; viewer.setSize(900, 800); viewer.render(id);
     return viewer.renderer.domElement.toDataURL('image/png');
