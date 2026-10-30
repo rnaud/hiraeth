@@ -55,6 +55,7 @@ const readers = {
   'unity/pan.js': () => readFileSync(new URL('../../engine/unity/pan.js', import.meta.url), 'utf8'),
   'unity/port-format.js': () => readFileSync(new URL('../../engine/unity/port-format.js', import.meta.url), 'utf8'),
   'unity/updates.js': () => readFileSync(new URL('../../engine/unity/updates.js', import.meta.url), 'utf8'),
+  'view-save.js': () => readFileSync(new URL('../../engine/view-save.js', import.meta.url), 'utf8'),
   'vm-run.mjs': () => readFileSync(new URL('../../engine/vm-run.mjs', import.meta.url), 'utf8'),
   'water-bed.js': () => readFileSync(new URL('../../engine/water-bed.js', import.meta.url), 'utf8'),
   'webaudio.js': () => readFileSync(new URL('../../engine/webaudio.js', import.meta.url), 'utf8'),

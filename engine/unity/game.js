@@ -36,6 +36,7 @@ import { slots, slotStorage, DEBUG_SLOT, formatPlaytime } from '../../src/save-s
 import { setRumbleSettings, rumblePlay } from '../../src/rumble.js';
 import { game as gameState } from '../../src/game-state.js';
 import { seedDebugSave } from '../../src/debug-save.js';
+import { viewSave, seedViewSave } from '../view-save.js';
 import { levelById } from '../../src/levels/index.js';
 import { TITLES } from '../../src/levels/names.js';
 import { chooseShot } from '../../src/title-shots.js';
@@ -236,7 +237,9 @@ function titleGo() {
     if (T.shotAt == null && T.t >= T.at && now() - T.t0 > 2500) { shot('title'); T.shotAt = T.t; }
     if (T.shotAt == null || T.t < T.shotAt + 10) return;
     T.went = T.t;
-    S.menus.begin({ debug: 'desert', slot: DEBUG_SLOT });
+    // (-title-slot n: that save continued, as the title's Continue does, where it was left: issue #793)
+    const slot = S.args.titleSlot == null ? null : /^\d+$/.test(String(S.args.titleSlot)) ? Number(S.args.titleSlot) : String(S.args.titleSlot);
+    S.menus.begin(slot != null ? { slot } : { debug: 'desert', slot: DEBUG_SLOT });
     return;
   }
   const since = T.t - T.went;
@@ -245,7 +248,15 @@ function titleGo() {
   const after = T.t - T.ready;
   if (after === 1) shot('ready-1');
   if (after === 20) shot('ready-20');
-  if (after >= 90) { shot('world'); S.titleGo = null; host.Exit(0); }
+  if (after >= 90) {
+    shot('world');
+    // (the makers' houses as the save left them: what each has lit, open and found, against the web's)
+    for (const rt of S.game?.level?.temples ?? []) {
+      const L = rt.logic, els = Object.entries(L.def.elements);
+      console.log(`[unity] title-go: ${rt.id} lit ${els.filter(([id]) => L.isLit(id)).map(([id]) => id).join(',') || '-'}; open ${els.filter(([id, e]) => (e.type === 'door' || e.type === 'bridge') && L.isOpen(id)).map(([id]) => id).join(',') || '-'}`);
+    }
+    S.titleGo = null; host.Exit(0);
+  }
 }
 
 /** -title-shots: each size a while (the title's picture streamed in, the layout sent again), photographed, then the next. */
@@ -530,6 +541,16 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
     Object.assign(gameState.data.flags, BENCH_FLAGS);
   }
+  // (-views whose view carries a `save`, the web's pictures' (scripts/changelog-shots.mjs): the debug save made that save
+  // before the world is built, as the page's storage holds it, and not the bench's; issue #793: the Rose House's bowl lit
+  // and its bridge up were drawn reset)
+  const vs = args.views?.length ? viewSave(args.views) : { save: null, mixed: [] };
+  if (vs.save) {
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
+    seedViewSave(gameState, vs.save);
+    console.log(`[unity] the views' save: ${Object.keys(vs.save.flags).length} flags${vs.mixed.length ? `; another save in ${vs.mixed.join(', ')}: a run of their own` : ''}`);
+  }
   // (-set-flags a,b,k=v: on the debug save, those flags set first: the hoverbike found, the bird's promise, a kit's colour
   // chosen (kit.colour.sword=ember), for a world's picture)
   if (args.setFlags) {
@@ -577,7 +598,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   game = game ? gameId : null;
   const gq = readHref(`?${gameQ ?? ''}`), stage = gq.stage;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, encounter: gq.encounter ?? null, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects, adopt: S.carried?.ctx ?? null, fadeIn: 1.5 } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, encounter: gq.encounter ?? null, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects, adopt: S.carried?.ctx ?? null, fadeIn: 1.5 } : null, flags: !ending && ((args.views?.length && !vs.save) || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null, sprint: off.has('kevinSprint') ? 'ual' : String(args.on ?? '').split(',').includes('kevinSprint') ? 'kevin' : null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe && !args.menuPointer, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)

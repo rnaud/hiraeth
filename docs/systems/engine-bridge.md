@@ -654,6 +654,17 @@ yet had (`travel:refused`) starts the quest that leads to it. The bridge's `-set
 before the world is built (`-level edena -set-flags desert.bike.found -walk 1.5 -out …`: the bike by the ramp, as on
 the web). Test: tests/engine-finishable.test.js.
 
+**A view's own save** (issue #793). A view that carries a `save` (`{ flags, keepsakes }`, the web's pictures' form:
+scripts/changelog-shots.mjs loads it into the page's storage before it boots) is built on that save in a `-views` run
+too: the debug save is made it before the world is built, migrated as the page migrates a save it reads
+(engine/view-save.js `viewSave`, `seedViewSave`), instead of the bench's (the backpack and nothing else). Before, every
+view was built on the bench's save, so the Rose House's lit bowl and risen bridge, saved in the view, were drawn reset
+in Unity and not on the web. One world is built a run: the first view's save is the run's, and views with another are
+named in the log (`[unity] the views' save: …; another save in …`), for a run of their own. `-set-flags` still adds
+flags over it. A player's own save was never affected: `-title-go frames -title-slot 2` continues save 2 from the title
+as its Continue does, where it was left, and logs what each house has lit and open (`[unity] title-go: desert lit b0;
+open d1,brC,dc,d4` for a save in the Hall of the Flame with the bridge up). Test: tests/engine-view-save.test.js.
+
 **The games' own panels** (issue #264). Five games draw part of their picture on a canvas or a panel of their own
 on the page; each publishes it as a screen part (src/platform.js) that BridgeHud.Games.cs draws with a few uGUI boxes
 and one Sketch mesh, laid out as the page's CSS and canvas calls are, never a full-screen raster:
