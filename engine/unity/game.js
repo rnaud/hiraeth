@@ -45,6 +45,9 @@ import { devMode } from '../../src/dev-gate.js';
 import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
 import { keyRouter } from '../../src/remap.js';
 import { hudShows } from '../../src/hud-shows.js';
+import { lyingBody, nearestOnBody } from '../../src/enemies/defeat.js';
+import { J as RAG_J } from '../../src/ragdoll.js';
+import { BODY_BLOCK } from '../../src/foes.js';
 import { parsePresses } from '../../src/hud-buttons.js';
 import { parseMenuPointer } from '../menus.js';
 import { uiPose, UI_KEYS } from '../ui-poses.js';
@@ -1012,6 +1015,18 @@ function makePlan(args) {
       { kind: 'foe', what: 'ragset', kind_: 'grunt', at: [0, -8], heading: Math.PI, from: [3.5, -4] }, { kind: 'wait', frames: 12, secs: 0.2 },
       { kind: 'foe', what: 'ragkill', dir: [1, 0] }, { kind: 'wait', frames: 100, secs: 1.7 }, { kind: 'foe', what: 'raglog' }, ...shot('lying'));
   }
+  if (fights.includes('bodies')) {
+    // (-fight bodies, issue #797, in the Arena (-level arena): a grunt struck down on the open sand, lying; the traveller
+    // walked into it from 3 m (W held 1.6 s): how near its body he got, against the ring that holds him off it; a crab too)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-bodies-${name}.png` }] : []);
+    for (const [kind_, n] of [['grunt', 'grunt'], ['crab', 'crab']]) {
+      steps.push({ kind: 'wait', frames: 30, secs: 1 }, { kind: 'foe', what: 'clear' },
+        { kind: 'foe', what: 'ragset', kind_, at: [0, -8], heading: Math.PI, from: [0, -4.5] }, { kind: 'wait', frames: 12, secs: 0.2 },
+        { kind: 'foe', what: 'ragkill', dir: [1, 0] }, { kind: 'wait', frames: 40, secs: 0.7 }, { kind: 'foe', what: 'bodyface' },
+        { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 96, secs: 1.6 }, { kind: 'key', code: 'KeyW', down: false },
+        { kind: 'foe', what: 'bodylog' }, ...shot(n));
+    }
+  }
   if (fights.includes('duelists')) {
     // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
     // shade 4 m ahead, standing; their rig said; then each winds up its first blow, pictured at three quarters of it; then
@@ -1677,6 +1692,18 @@ function playFrame(dt) {
       for (const f of F.list.filter((x) => x.dying?.rag)) {
         const R = f.dying.rag, x = R.rag.x, out = Math.max(...x.map((q, i) => Math.hypot(q.x, q.z) + (R.rag.rw?.[i] ?? R.rag.r[i])));
         console.log(`[unity] ${f.kind} ragdoll ${R.asleep ? 'still' : 'moving'}: pelvis ${R.rag.pelvis.toArray().map((q) => q.toFixed(2)).join(' ')}, its particles out to r ${out.toFixed(2)} (the wall at 40), walls ${R.rag.walls?.n ?? 0}, lift ${((f.dying.held ?? 0) * 100).toFixed(1)} cm, deepest drawn ${R.deep == null ? '-' : (R.deep * 100).toFixed(1) + ' cm'}`);
+      }
+    } else if (step.what === 'bodyface' || step.what === 'bodylog') {
+      // (-fight bodies, #797: the traveller turned to the body lying there; then how near he came to it, against its ring)
+      const f = F.list.find((x) => x.dying), p = game.player;
+      const L = f && lyingBody(f, RAG_J), at = { x: 0, z: 0 };
+      if (!L) console.log(`[unity] no body lying${f ? ` (${f.kind})` : ''}`);
+      else if (step.what === 'bodyface') {
+        nearestOnBody(L, p.pos.x, p.pos.z, at);
+        p.heading = Math.atan2(at.x - p.pos.x, at.z - p.pos.z); if (game.rig) game.rig.yaw = p.heading + Math.PI;
+      } else {
+        const d = nearestOnBody(L, p.pos.x, p.pos.z, at), ring = L.r + BODY_BLOCK.player;
+        console.log(`[unity] ${f.kind} body (${f.dying.rag ? 'ragdoll' : 'recipe'}) ${(L.hi - L.lo).toFixed(2)} m high: the traveller ${d.toFixed(2)} m from it, its ring ${ring.toFixed(2)} m: ${d >= ring - 0.02 ? 'held off' : 'INSIDE'}`);
       }
     } else if (step.what === 'clear') {
       for (const f of F.list.slice()) F.remove(f);

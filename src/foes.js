@@ -34,14 +34,15 @@ import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, p
 import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
 import { archetypeModel } from './enemies/plans/index.js';
 import { setFoeClips } from './enemies/humanoid-rig.js';
-import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
-import { partsOf, shiftAt } from './levels/names.js';
+import { WORLDS, PLACED, OUT_OF_PLAY, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
+import { partsOf, shiftAt, ORDER, PARTS } from './levels/names.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { keyText } from './prompt-keys.js';
 import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
-import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
+import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat, lyingBody, nearestOnBody } from './enemies/defeat.js';
+import { J as RAG_J } from './ragdoll.js';
 import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS, breaksApart } from './enemies/debris.js';
 import { RAGDOLL, FIT, startFoeRagdoll, stepFoeRagdoll, groundPhysics, anchorRagdoll } from './enemies/foe-ragdoll.js';
 import { Veils, LightShaft } from './veil.js';
@@ -2257,25 +2258,53 @@ export const arenaWaveOf = (world) => WORLD_START[world] ?? -1;
  * after one falls the next comes in (s); how many skitters make one (a flock's foe is the swarm: a lone skitter never
  * climbs into its heap, attack.pile, which needs two flock-mates, and falls to any cut: three, its smallest heap).
  */
-export const ARENA_RUN = { rest: 2, flock: 3 };
+export const ARENA_RUN = { rest: 2, flock: 3, ahead: 0.8 };
 /** One enemy of the run in skin w: one body (a flock its smallest heap), a support or a puppeteer with its escort. */
 export function oneFoe(k, w = null) {
   const D = FOES[k];
   return [...Array(D?.flock ? ARENA_RUN.flock : 1).fill(skinned(k, w)), ...(D?.escort ? [skinned(D.escort, w)] : [])];
 }
 /**
- * Every enemy in the game, once each: each built archetype in each of its skins (src/enemies/skins.js), then any kind
- * that is no archetype's skin (the makers' machine); a bare archetype kind is its home skin, already there.
+ * The run's kinds (issue #797, the author: "we should alternate (random) between different enemies, not all enemies
+ * skins"): each kind of foe once, the main game's (every kind a route world fields, src/foe-worlds.js WORLDS: its packs,
+ * its placed foes, its sites, its temples' rooms; not the discarded side worlds' tables, nor OUT_OF_PLAY's three), and the
+ * Arena's own (a built archetype no world fields yet: the v4 family, met only here). Each with the skins it wears on the
+ * route (its home skin for the Arena's own): `{ kind, skins }`, a skin drawn for each time it comes (arenaOrder).
+ * Until #797 the run was every archetype in each of its skins, 138, the blot alone 22 of them: most arrivals were one
+ * of a few foes again in another colour.
  */
-export const ARENA_FOES = (() => {
-  const out = BUILT.flatMap((a) => skinWorlds(a).map((w) => oneFoe(ARCHETYPES[a].kind, w)));
-  const seen = new Set(out.map((x) => x[0]));
-  for (const k of new Set([...WAVES.flat(), ...Object.keys(FOES).filter((x) => !FOES[x].noWild)])) {
-    const a = archetypeOfKind(k), id = a && BUILT.includes(a) ? skinned(k, skinFor(a, null)) : k;
-    if (!seen.has(id)) { seen.add(id); out.push(oneFoe(k)); }
+export const ARENA_KINDS = (() => {
+  const route = ORDER.flatMap((w) => PARTS[w] ?? [w]).filter((w) => WORLDS[w]);
+  const fielded = new Map();   // (archetype: the route worlds that field it)
+  const temple = new Set();
+  for (const w of route) {
+    for (const a of worldArchetypes(w)) if (!OUT_OF_PLAY.includes(a)) fielded.set(a, [...(fielded.get(a) ?? []), w]);
+    for (const k of WORLDS[w].temple ?? []) temple.add(k);
   }
+  const anywhere = new Set(Object.values(WORLDS).flatMap((T) => [...Object.keys(T.roster), ...(T.placed ?? []), ...(T.sites ?? [])]));
+  const out = [];
+  for (const a of BUILT) {
+    const kind = ARCHETYPES[a].kind;
+    if (!FOES[kind] || FOES[kind].noWild || OUT_OF_PLAY.includes(a)) continue;
+    const worlds = fielded.get(a);
+    if (worlds) out.push({ kind, skins: [...new Set(worlds.map((w) => skinFor(a, w)).filter(Boolean))] });
+    else if (!anywhere.has(a)) out.push({ kind, skins: [skinFor(a, null)].filter(Boolean) });   // (the Arena's own)
+  }
+  // (a temple's kind that is no archetype's: the makers' machine)
+  for (const k of temple) if (FOES[k] && !archetypeOfKind(k) && !out.some((e) => e.kind === k)) out.push({ kind: k, skins: [] });
   return out;
 })();
+/** Each of the run's kinds as one enemy in its first skin (the list's length and makeup: tests, the notice's count). */
+export const ARENA_FOES = ARENA_KINDS.map((e) => oneFoe(e.kind, e.skins[0] ?? null));
+/**
+ * A round of the run (#797): every kind once in a shuffled order (rng 0..1), each in one of its skins drawn on the same
+ * rng; never the same kind twice running across two rounds (`last`: the kind the round before ended on).
+ */
+export function arenaOrder(rng = Math.random, last = null) {
+  const order = shuffled(ARENA_KINDS, rng);
+  if (last && order.length > 1 && order[0].kind === last) [order[0], order[1]] = [order[1], order[0]];
+  return order.map((e) => oneFoe(e.kind, e.skins.length ? e.skins[Math.min(e.skins.length - 1, Math.floor(rng() * e.skins.length))] : null));
+}
 /** A list in a new order (Fisher–Yates on rng 0..1); the list itself untouched. */
 export function shuffled(list, rng = Math.random) {
   const a = list.slice();
@@ -2445,7 +2474,7 @@ export class Foes {
     this.racks = [];   // (a camp's weapon racks: RACK, src/encounters/index.js)
     setFoeClips(lib);   // (the humanoid foes' clips: src/enemies/humanoid-rig.js)
     this.shapes = new Map();   // (kind@skin → the geometries its foes share: src/foe-shapes.js)
-    this.spares = new Map();   // (kind@skin → a body built for the load's warm, kept for the first foe of it: warmModels)
+    this.spares = new Map();   // (kind@skin → the bodies built ahead, each kept for a foe of it: the load's warmModels, the Arena's buildAhead)
     this.group.userData.noCollide = true;
     scene?.add(this.group);
     this.peaceful = PEACEFUL.has(levelId) || !!level?.peaceful;   // (a minigame's arena: no foes, src/minigames/kit/world.js)
@@ -2762,8 +2791,9 @@ export class Foes {
     // (tougher further along the route: src/enemies/fight.js TIER; not a house's own boss (its def), not a game's own foes)
     if (!o.def && !this.own) f.toughen(this.stageHere, this.gentle);
     // (the body built for the load's warm and kept, if there is one of its kind and skin: keepWarm; else built now)
-    const key = shapeKey(f.kind, f.tierN ? `${skin}*` : skin), spare = this.spares.get(key);
-    if (spare) { this.spares.delete(key); f.model = spare.model; f.batches = spare.batches; }
+    const key = shapeKey(f.kind, f.tierN ? `${skin}*` : skin), kept = this.spares.get(key), spare = kept?.pop();
+    if (kept && !kept.length) this.spares.delete(key);
+    if (spare) { f.model = spare.model; f.batches = spare.batches; }
     else {
       f.model = archetypeModel(f.kind, skin, f.tierN) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
       // (its shapes the first of its kind and skin's: sent to the GPU, or made into Unity's meshes, once: src/foe-shapes.js)
@@ -2812,6 +2842,9 @@ export class Foes {
    */
   rosterKinds({ all = this.levelId === 'arena' } = {}) {
     const R = rosterOf(this.worldHere), kinds = new Set(all ? Object.keys(FOES) : [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])]);
+    // (the Arena's run, every kind in each skin it may come in (#797): a skin's props and surface may need programs of
+    // their own, compiled mid-fight at its first arrival, 60-360 ms frames, when only the home skins were warmed)
+    if (all) for (const e of ARENA_KINDS) for (const s of e.skins) kinds.add(skinned(e.kind, s));
     // (from TIER_FROM's stage on, the stronger tiers too: their own bodies, #722)
     if (!all && this.stageHere >= TIER_FROM) for (const k of [...kinds]) { const a = archetypeOfKind(parseKind(k).kind); if (TIERS[a] && FOES[parseKind(k).kind] && !fightOf(a, FOES[parseKind(k).kind]).fodder) kinds.add(`${k}*`); }
     return [...kinds].filter((k) => k && FOES[parseKind(k).kind]);
@@ -2827,17 +2860,22 @@ export class Foes {
   warmModels(kinds = this.rosterKinds()) {
     const group = new THREE.Group();
     group.name = 'Foes to warm';
-    const made = [], models = [];
+    const made = [], models = [], plain = [], broken = new Set();
     for (const kind of kinds) {
-      const p = parseKind(kind), a = archetypeOfKind(p.kind);
-      if (!FOES[p.kind]) continue;
-      const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
-      const model = archetypeModel(p.kind, skin, p.tier) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
-      const key = shapeKey(p.kind, p.tier ? `${skin}*` : skin);
-      shareShapes(this.shapes, key, model.group);   // (its shapes the ones the kind's foes will draw)
-      models.push({ key, model, batches: batchParts(model.group) });
-      group.add(model.group);
+      const m = this.buildBody(kind);
+      if (!m) continue;
+      models.push(m);
+      group.add(m.model.group);
       made.push(kind);
+      // (a machine comes apart when it is cut down, Foes.breakApart: its parts then fly as meshes of their own, out of
+      // their batches, which draw them with the programs' plain variants, not the instanced ones the batches use: one
+      // body of each such kind unbatched in the warm too, or they compiled at the blow, 40-70 ms frames; issue #797)
+      const k = parseKind(kind).kind, a = archetypeOfKind(k);
+      if (!broken.has(k) && breaksApart({ archetype: a, def: FOES[k] })) {
+        broken.add(k);
+        const b = this.buildBody(kind, { batch: false });
+        if (b) { plain.push(b); group.add(b.model.group); }
+      }
     }
     // (the ground warnings' materials, drawn once in the pass that compiles the rest: src/ground-warnings.js)
     const gw = new GroundWarnings(group); gw.prewarm();
@@ -2849,7 +2887,8 @@ export class Foes {
     // (keep: each body kept for the first foe of its kind and skin, Foes.add, instead of let go: the engines', where
     // building it is the spawn's script frame, issue #468)
     return { group, kinds: made, dispose: ({ keep = false } = {}) => {
-      if (keep) for (const m of models) { m.model.group.removeFromParent(); if (!this.spares.has(m.key)) this.spares.set(m.key, m); else disposeOwnShapes(m.model.group); }
+      if (keep) for (const m of models) { m.model.group.removeFromParent(); if (!this.spares.has(m.key)) this.spares.set(m.key, [m]); else disposeOwnShapes(m.model.group); }
+      for (const m of plain) m.model.dispose?.();
       gw.dispose(); pools.dispose(); group.removeFromParent(); disposeOwnShapes(group);
     } };
   }
@@ -3057,6 +3096,7 @@ export class Foes {
     // (enemies.html's links: ?enemy= one archetype in a skin again and again, ?enemyWorld= that world's waves round)
     const world = WORLDS[this.level?.foes?.world] ? this.level.foes.world : null, single = this.level?.foes?.kind && FOES[parseKind(this.level.foes.kind).kind] ? this.level.foes.kind : null;
     const run = !world && !single && !this.cycle;
+    if (run) this.buildAhead(dt);
     if (this.list.some((f) => f.alive)) { this.waveRest = run ? ARENA_RUN.rest : WAVE.rest; return; }
     const R = this.run;
     if (run && R && R.n >= R.order.length && !R.done) {   // (the last one down: said at once, a longer breath before the next order)
@@ -3075,15 +3115,55 @@ export class Foes {
     const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
     this.notice?.(`Wave ${this.wave}${from ? ` · ${from}` : ''}: ${waveText(kinds)}.`);
   }
-  /** The run's next foe (a new shuffle of ARENA_FOES on the Foes' rng at the start and after the last): "Foe 3 of 138 · Desert: dune grunt." */
+  /** The run's next foe (a new round of ARENA_KINDS on the Foes' rng at the start and after the last, arenaOrder): "Foe 3 of 27 · The Desert: dune worm." */
   nextFoe() {
-    if (!this.run || this.run.n >= this.run.order.length) this.run = { order: shuffled(ARENA_FOES, this.rng), n: 0, done: false };
+    if (!this.run || this.run.n >= this.run.order.length) this.run = { order: this.run?.after ?? arenaOrder(this.rng, this.run ? parseKind(this.run.order.at(-1)[0]).kind : null), n: 0, done: false };
     const R = this.run, kinds = R.order[R.n++];
+    // (the last of a round: the next round drawn now, so its first can be built ahead too)
+    if (R.n >= R.order.length) R.after ??= arenaOrder(this.rng, parseKind(kinds[0]).kind);
     for (const f of this.bringIn(kinds)) f.ofRun = true;
     this.waveRest = ARENA_RUN.rest;
+    this.ahead = { kinds: R.n < R.order.length ? R.order[R.n] : R.after[0], t: ARENA_RUN.ahead };   // (the next one's body: buildAhead)
     const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
     this.notice?.(`Foe ${R.n} of ${R.order.length}${from ? ` · ${from}` : ''}: ${waveText(kinds).replace(/(^|, | and )1 /g, '$1')}.`, { news: true });
     return kinds;
+  }
+  /**
+   * The next foe's body built while this one is fought (issue #797: each arrival in the Arena built its body, 2-30 ms of
+   * JS, in the frame it came in; docs/systems/foes.md "The stutter when a new foe comes in"). `ARENA_RUN.ahead` s after a
+   * foe comes in, one body a frame of the next one's, kept for add (spare). Only when the load's warm kept none for it
+   * (main.js keeps every kind in every skin of the run: the first time each comes it builds nothing here either).
+   */
+  buildAhead(dt) {
+    const A = this.ahead;
+    if (!A || (A.t -= dt) > 0) return;
+    // (as many of each as come: a swarm's three skitters)
+    const kind = A.kinds.find((k, i) => (this.spares.get(this.spareKey(k))?.length ?? 0) < A.kinds.slice(0, i + 1).filter((x) => x === k).length);
+    const m = kind && this.spare(kind);
+    if (!m) this.ahead = null;
+  }
+  /** The spares' key of a kind as add() would build it here ('crab@underwater'; its tier's own: 'bell@bazaar*'). */
+  spareKey(kind) {
+    const p = parseKind(kind), a = archetypeOfKind(p.kind);
+    const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
+    return shapeKey(p.kind, p.tier ? `${skin}*` : skin);
+  }
+  /** A body of `kind` built as add() builds one (its parts batched, its shapes shared) and kept for a foe of it: { key, model, batches }. */
+  spare(kind) {
+    const m = this.buildBody(kind);
+    if (!m) return null;
+    if (this.spares.has(m.key)) this.spares.get(m.key).push(m); else this.spares.set(m.key, [m]);
+    return m;
+  }
+  /** A body of `kind` (skinned for here unless it says), built as add() does: { key, model, batches }; null for no such kind. */
+  buildBody(kind, { batch = true } = {}) {
+    const p = parseKind(kind), a = archetypeOfKind(p.kind);
+    if (!FOES[p.kind]) return null;
+    const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
+    const model = archetypeModel(p.kind, skin, p.tier) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
+    const key = shapeKey(p.kind, p.tier ? `${skin}*` : skin);
+    shareShapes(this.shapes, key, model.group);   // (its shapes the ones the kind's foes will draw)
+    return { key, model, batches: batch ? batchParts(model.group) : [] };
   }
   /** A wave comes in round you, WAVE.near..far m out, with its entrance. */
   bringIn(kinds) {
@@ -3819,7 +3899,34 @@ export class Foes {
       if (share > 0) f.step(-nx * push * share, -nz * push * share, this.env);
       if (P.vel) { const vn = P.vel.x * nx + P.vel.z * nz; if (vn < 0) { P.vel.x -= vn * nx; P.vel.z -= vn * nz; } }
     }
+    this.keepOffBodies(sweep);
     (this._offFrom ??= new THREE.Vector3()).copy(P.pos);
+  }
+  /**
+   * Nor through one struck down, while its body lies there (issue #797; src/enemies/defeat.js lyingBody): pushed out of
+   * its footprint, all of the push his (a body doesn't give way), the same sweep as a live one's. Over it in a jump, as
+   * over a live one; a body never pins him against a wall (there it lets him by).
+   */
+  keepOffBodies(sweep) {
+    const P = this.player, B = BODY_BLOCK, at = (this._bodyAt ??= { x: 0, z: 0 });
+    const out = (this._lying ??= { pts: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], n: 0, r: 0, lo: 0, hi: 0 });
+    for (const f of this.list) {
+      if (!f.dying) continue;
+      const L = lyingBody(f, RAG_J, out);
+      if (!L) continue;
+      if (P.pos.y > L.hi - (P.onGround ? -B.over : 0.1) || P.pos.y + B.head < L.lo) continue;
+      const want = L.r + B.player;
+      // (his way since the last frame against the body's nearest point to where he began it: a roll can't cross it)
+      let met = false;
+      if (sweep) { nearestOnBody(L, sweep.x, sweep.z, at); met = blockSweep(sweep, P.pos, _v.set(at.x, 0, at.z), want); }
+      const d = nearestOnBody(L, P.pos.x, P.pos.z, at), push = blockPush(d, want);
+      if (!push && !met) continue;
+      const dx = P.pos.x - at.x, dz = P.pos.z - at.z;
+      const nx = d > 1e-4 ? dx / d : Math.sin(P.heading ?? 0), nz = d > 1e-4 ? dz / d : Math.cos(P.heading ?? 0);
+      if (push > 0 && this.env.canStep && !this.env.canStep(P.pos, P.pos.x + nx * push, P.pos.z + nz * push, B.wall, 0.6)) continue;
+      P.pos.x += nx * push; P.pos.z += nz * push;
+      if (P.vel) { const vn = P.vel.x * nx + P.vel.z * nz; if (vn < 0) { P.vel.x -= vn * nx; P.vel.z -= vn * nz; } }
+    }
   }
 
   /**
@@ -4877,5 +4984,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { for (const d of this.fallen ?? []) { d.o.removeFromParent(); d.o.geometry.dispose(); } this.fallen = null; this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.gw.dispose(); this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
+  dispose() { for (const d of this.fallen ?? []) { d.o.removeFromParent(); d.o.geometry.dispose(); } this.fallen = null; this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.trails?.dispose(); this.trails = null; this.clouds?.dispose(); this.clouds = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.gw.dispose(); this.hold = null; for (const L of this.spares.values()) for (const m of L) { m.model.dispose?.(); disposeOwnShapes(m.model.group); for (const b of m.batches ?? []) b.dispose(); } this.spares.clear(); disposeShapes(this.shapes); }
 }

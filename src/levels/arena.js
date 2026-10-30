@@ -20,8 +20,8 @@ import { placeHitboxBoard } from './arena-hitbox-board.js';
 // three tiers of stone seats behind, two gates (north and south) under lintels, braziers burning at the gates and
 // banners on poles along the top tier. Nothing grows or stands on the floor (level.keepClear: no responsive flowers,
 // flora or wildlife inside the stands); the open desert beyond. All of it is a handful of merged meshes and no light.
-// Every enemy in the game comes in round you, one at a time in a shuffled order, whatever the Enemies setting, the battle
-// music held between them (level.foes.waves: src/foes.js ARENA_FOES, issue #743).
+// Every kind of enemy in the game comes in round you, one at a time in a shuffled order, whatever the Enemies setting, the battle
+// music held between them (level.foes.waves: src/foes.js ARENA_KINDS, issues #743, #797).
 // ---------------------------------------------------------------------------
 
 /**

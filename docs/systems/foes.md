@@ -1672,6 +1672,19 @@ body and a grunt's overlapped by 9 cm standing still. Now:
 `tests/body-block.test.js` runs a roll, a dash cut and a hop at 16 m/s into a grunt, a hulk, a warlord, a crab and a blot
 (never inside the ring), the sweep, a slope and a wall.
 
+**A body lying there blocks too** (issue #797, the author: "after an enemy gets defeated I can clip through him? that's
+not good"; `src/enemies/defeat.js` `lyingBody`, `Foes.keepOffBodies`). From the killing blow to its puff of smoke a
+struck-down foe's body is a flat chain round which he is held as round a live one (the same `BODY_BLOCK.player` margin,
+height test, sweep and taken-away speed), all of the push his: a body never gives way. A ragdoll's chain runs from its
+head through its pelvis to between its feet, its trunk's radius round it, as high as its particles lie; any other's from
+its feet along the way it toppled (`LYING.reach` × its height × the topple's sine), its whole radius round it (`LYING.k`, as a live one's), as
+high as its recipe leaves it (at least `LYING.min`, 35 cm: a flyer landed flat). None for a spirit slumped empty (the
+blot's puddle, the shade's cloak, the mummer's sack), a burrower gone under, a light one or a flock's (a skitter, a
+moth), and none once its puff begins. Jumped over, it lets him by, and it never pins him against a wall (there it gives
+up its push). Its target is off from the blow (state 'dead'), so the blade, the shots and the lock-on pass over it, and
+the camera never meets it (it is no physics). `tests/body-lying.test.js`: a grunt's ragdoll, a crab and a brute walked
+into and rolled into at 16 m/s, never inside; jumped over; in its puff; a blot's puddle walked over.
+
 ## The stutter when a new foe comes in (v1.41: measured; `Foes.rosterKinds`, `Foes.warmModels`)
 
 The author: "investigate stutters when new enemies appear". Measured in the Arena (Mac, headless Chrome on the GPU,
@@ -1711,6 +1724,38 @@ Every spike over 33 ms in the before runs was a frame that compiled 1-5 programs
 first stain); none was a collection alone (the heap's drops came with compiles), the particles, the floor or the reticle.
 The Arena's load grows by about 0.4 s on the Mac (every kind's programs, behind the loading screen); a world's own roster
 is a handful of kinds. Tests: `tests/foe-warm.test.js` (the wiring's order in main.js, the pools warmed and let go).
+
+**Again in v2.38** (issue #797, the author: "there is still a stutter every time a new enemy arrives"). Measured round each
+arrival of the Arena's run (muted headless Chrome on the M4 Pro's GPU, Metal, 1280 × 720, the run's own foes, each cut
+down 2.6 s after it came in; the worst frame from its arrival to 2.5 s after; `requestAnimationFrame` intervals, Long
+Animation Frames for the script, `renderer.info` for the programs, geometries and textures made): two causes.
+1. **Programs compiled at arrival** (the big ones, 75-827 ms on High, 236-277 ms on Handheld): the load warmed every kind
+   in its *home* skin only (`rosterKinds` gave the bare kinds), and a skin's props and surface may need programs of their
+   own (the Salt Harbour's bell walker compiled 4 at its arrival, 827 ms). And a machine cut down (`breakApart`) draws its
+   parts as meshes of their own, out of their batches, which needs the programs' plain variants (40-73 ms at the blow).
+   Now the Arena warms every kind in every skin its run may bring (`ARENA_KINDS`), and every world's warm holds one
+   unbatched body of each kind that comes apart.
+2. **The body built in the arrival's frame** (`add`: 2-16 ms of JS, its shapes made again before they are shared, its
+   parts batched), a missed refresh or two at every arrival. Now the load's warm keeps its bodies in the Arena
+   (`dispose({ keep: true })`, as the engines always did): the first time a kind comes in a skin it wears one, and
+   `Foes.buildAhead` builds the next foe's body `ARENA_RUN.ahead` (0.8 s) after one comes in, only when none was kept
+   (`spares`, a list a kind and skin: a swarm's three skitters). `add` is now 0.1-0.6 ms.
+Drawing the next body ahead into the warm passes' 4 × 4 targets (`WarmDraw`) was tried and dropped: its first draws stalled
+the GPU process 146-358 ms mid-fight (the pipelines it built were not the real passes'); the shapes' upload at the real
+first draw costs 1-2 ms.
+
+| the Arena's run, Mac M4 Pro | High before | High after | Handheld before | Handheld after |
+|---|---|---|---|---|
+| arrivals measured | 28 | 16 | 14 | 16 |
+| worst frame round an arrival, median (ms) | 26.0 | 20.3 | 28.4 | 19.7 |
+| worst frame round an arrival, worst (ms) | 826.5 | 33.2 | 276.9 | 35.3 |
+| arrivals with a frame over 50 ms | 4 | 0 | 3 | 0 |
+| programs compiled round arrivals | 11 | 1 (a lamp tripod's light) | 3 | 1 (the same) |
+| the Arena's load (s, after module load) | 2.2 | 3.5 | 2.8 | 3.6–4.5 |
+
+The load grows by 1–1.7 s: 109 bodies warmed instead of 33 (every skin of the run), behind the loading screen. Tests:
+`tests/foe-warm.test.js` (every skin warmed in the Arena, a machine unbatched), `tests/arena-run.test.js` (nothing built as
+a foe comes in: the body built ahead or kept).
 
 ## The back flip, the side hop and the flurry (v1.39: `src/jump.js` `HOP`, `src/flurry.js`, `src/feel.js` `flurry`)
 
@@ -2570,15 +2615,21 @@ light, no flowers inside). The desert's golden sand stays the
 ground under it (flat out to 150 m) under an open sky. `level.foes.waves` makes
 `Foes` send the Arena's foes round you, whatever the setting.
 
-**The run** (issue #743, the default): every enemy in the game, **one at a time**, in a shuffled order
-(`ARENA_FOES`, `shuffled` on the Foes' rng: `Math.random` in the game, a new order each visit; tests inject a seed).
-The list is each built archetype in each of its skins (`skinWorlds`), then any kind that is no archetype's skin (the
-makers' machine; a bare archetype kind is its home skin, already there): 138 now. One enemy is one body (`oneFoe`), a
+**The run** (issue #743, the default): every kind of foe, **one at a time**, in a shuffled order (`arenaOrder` on the
+Foes' rng: `Math.random` in the game, a new order each visit; tests inject a seed). Since issue #797 (the author: "we
+should alternate (random) between different enemies, not all enemies skins") the list is **each kind once**
+(`ARENA_KINDS`, 30 now): every kind a route world fields (its packs, placed foes, sites and temple rooms, Vael's and
+Lorn's parts included; not the discarded side worlds' tables, nor `OUT_OF_PLAY`'s heron, lizard and marionette), the
+Arena's own (a built archetype no world fields yet: the grunt, the hulk, the prowler, the warlord, the sentinel, the
+oracle, the crawler) and the makers' machine. Each time a kind comes it wears one of the skins the route gives it, drawn
+on the same rng (the crab Vael's sky stones', the Underwater City's, the Glass Dunes' or the Market's), and a new round
+never starts with the kind the last ended on. Before, it was each built archetype in each of its skins, 138, the blot
+alone 22 of them: most arrivals were a few foes again in another colour. One enemy is one body (`oneFoe`), a
 pair or a trio kind alone too; the skitters come as three (`ARENA_RUN.flock`: a swarm is the foe, a lone skitter never
 makes its heap, which needs two flock-mates, and falls to any cut), the jelly and the marionette with their escort
 (`def.escort`: a support needs someone to ward, a puppeteer something to drive). The next comes in `ARENA_RUN.rest`
-(2 s) after the last falls, with a notice ("Foe 3 of 138 · The Signal Market: coin lizard."; said as news, not paced
-as a hint); after the last, "All 138 foes beaten. Again, in a new order." and a fresh shuffle. The FOES list's
+(2 s) after the last falls, with a notice ("Foe 3 of 30 · The Glass Dunes: glass crab."; said as news, not paced
+as a hint); after the last, "All 30 foes beaten. Again, in a new order." and a fresh shuffle. The FOES list's
 choices clear the field: the run's foe taken away unbeaten comes again with "Waves again". **The battle music is
 held** from the first foe in: while the Arena's waves run (not a practice of one kind, not Ink tide's own waves)
 `Foes.update`'s `fighting` stays on between foes, so the battle recording never releases and starts again (paused,

@@ -2707,15 +2707,16 @@ if (statics?.shadow) await warmShaders(statics.shadow, cascades.near.cam, cascad
 // asked for each one's uniforms at once, and the page froze till it was (the Xbox: 1-4 s a program)
 setStep('first use');
 await firstUse(renderer, slice);
-foeWarm?.dispose();   // (out of the scene before the passage's draws and the first frame)
+// (out of the scene before the passage's draws and the first frame; the Arena's waves keep each body for the first foe of
+// its kind and skin, as the engines do: an arrival then builds nothing, issue #797)
+foeWarm?.dispose({ keep: !!level.foes?.waves });
 if (foeWarm) console.info(`foes warmed: ${foeWarm.kinds.length} kinds`);
 // The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
 // leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
 // pipelines built before the first frame (they used to arrive with the first sight of them); and
 // what the first frame will see, so its uploads are spread over the load, a slice at a time,
 // instead of all landing in the first frame.
-const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });
-{
+const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });{
   const t0 = performance.now();
   setStep('passage');
   scene.updateMatrixWorld();

@@ -325,3 +325,59 @@ export function dimEyes(model, u) {
   if (U.uGlow) U.uGlow.value *= 1 - k;
 }
 const _dull = new THREE.Color('#3a332e');
+
+// ------------------------------------------------------------------ the body, lying (issue #797)
+/**
+ * A struck-down foe's body stands in the traveller's way while it lies there, as a live one does (issue #797, the author:
+ * "after an enemy gets defeated I can clip through him? that's not good"; src/foes.js Foes.keepOff). Its footprint is a
+ * flat chain of segments with a radius and a height over the ground: a ragdoll's from its head through its pelvis to
+ * between its feet (its trunk's thickness), any other's from its feet along the way it toppled (`reach` × its height ×
+ * the sine of the topple), `k` × its radius round them (1: a live one's ring). None for what leaves no body in the way: a spirit slumped
+ * empty (a blot's puddle, a shade's cloak, a mummer's sack), a burrower gone under, a light one or a flock's (a skitter,
+ * a moth: it gave way alive too), one that asks for none (def.noBlock); and none once it goes up in its puff of smoke.
+ * `min` m: the least a body stands over the ground (a flyer landed flat).
+ */
+export const LYING = { k: 1, reach: 0.85, min: 0.35, none: ['spirit', 'burrower'] };
+/** Does this archetype leave a body in the way when it is struck down (LYING)? */
+export const leavesBody = (archetype, def = {}) => !!archetype && !!DEATHS[archetype] && !LYING.none.includes(DEATHS[archetype]) && !def.light && !def.flock && !def.noBlock && !def.burrow;
+/**
+ * The lying body of foe f (f.dying: its defeat under way or done, f.dead counting down to its puff): { pts (points along
+ * the body, their x and z read; `n` of them), n, r, lo, hi } into `out`, or null when it leaves none (LYING). A ragdoll's
+ * (f.dying.rag.rag: src/ragdoll.js, its particles in the world, x[] and r[]) read through `J`, the ragdoll's joints' order.
+ */
+export function lyingBody(f, J, out = { pts: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], n: 0, r: 0, lo: 0, hi: 0 }) {
+  const D = f.dying;
+  if (!D || f.puffed || f.lost || !leavesBody(f.archetype, f.def)) return null;
+  const R = D.rag?.rag, size = f.model?.size ?? 1;
+  if (R && J) {
+    const x = R.x, rr = R.r;
+    out.pts[0].copy(x[J.head]); out.pts[1].copy(x[J.pelvis]); out.pts[2].addVectors(x[J.footL], x[J.footR]).multiplyScalar(0.5);
+    out.n = 3;
+    out.r = Math.max(rr[J.pelvis], rr[J.chest], 0.12);
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < x.length; i++) { lo = Math.min(lo, x[i].y - rr[i]); hi = Math.max(hi, x[i].y + rr[i]); }
+    out.lo = lo; out.hi = Math.max(hi, lo + LYING.min);
+    return out;
+  }
+  const h = (f.def.height ?? 1) * size, P = D.pose, tilt = Math.min(Math.PI / 2, Math.abs(P?.pitch ?? 0)), head = D.heading ?? f.heading ?? 0;
+  const along = h * LYING.reach * Math.sin(tilt) * Math.sign(P?.pitch ?? 0);
+  out.pts[0].set(f.pos.x, f.pos.y, f.pos.z);
+  out.pts[1].set(f.pos.x + Math.sin(head) * along, f.pos.y, f.pos.z + Math.cos(head) * along);
+  out.n = 2;
+  out.r = Math.max(0.15, (f.def.radius ?? 0.5) * LYING.k * size);
+  out.lo = f.pos.y + (P?.alt ?? D.alt ?? 0) - (P?.sink ?? 0) * size;   // (a flyer coming down from its height)
+  out.hi = out.lo + Math.max(LYING.min, Math.max(0, h + (P?.body?.y ?? 0) * size) * (P?.body?.sy ?? 1) * Math.cos(tilt) + out.r * Math.sin(tilt));
+  return out;
+}
+/** The nearest point to (x, z) on a body's flat chain (lyingBody): into `out` (its x and z), its distance returned. */
+export function nearestOnBody(B, x, z, out) {
+  let best = Infinity;
+  out.x = B.pts[0].x; out.z = B.pts[0].z;
+  for (let i = 0; i + 1 < B.n; i++) {
+    const a = B.pts[i], b = B.pts[i + 1], ex = b.x - a.x, ez = b.z - a.z, L = ex * ex + ez * ez;
+    const t = L > 1e-9 ? Math.min(1, Math.max(0, ((x - a.x) * ex + (z - a.z) * ez) / L)) : 0;
+    const px = a.x + ex * t, pz = a.z + ez * t, d = Math.hypot(x - px, z - pz);
+    if (d < best) { best = d; out.x = px; out.z = pz; }
+  }
+  return B.n > 1 ? best : Math.hypot(x - out.x, z - out.z);
+}

@@ -39,6 +39,8 @@ export const CHANGELOG = [
         see: 'Start a new game and play or skip the opening: as you stand on the sand outside the ship, Plumb comes to your side and talks to you; answer with A / × and the quest begins.' },
       // enemy deaths (#794)
       'An enemy you strike down now lies on the ground with every limb: its arms, legs and head rest on it instead of hovering a few centimetres over it, and knocked against a wall it stops at the wall and slumps down it instead of falling through the stone.',
+      { text: 'You can no longer walk through an enemy you have struck down. While its body lies there it stands in your way like a living one, and you are pushed round it, even in a roll or a dash. You can still jump over it, your sword and your aim pass over it, and once it goes up in its puff of smoke it is gone. A blot’s puddle, an empty cloak or sack, and a worm gone back under the sand never get in your way.',
+        see: 'In the Arena, strike down a grunt or a crab, then walk or roll straight into the body as it lies on the sand: you stop at it and slide round it instead of passing through. Jump at it and you go over it.' },
       // the late worlds harder (#796)
       { text: 'Enemies from the Glass Dunes on are tougher again: each world’s foes now fight as hard as the next world’s used to. In the Glass Dunes they take more cuts to bring down, three of them may strike at once instead of two, their heavy blows take a full heart and some come in their stronger, banded look; in the City Floating in Space they hit as hard as in the Signal Market. The first six worlds are unchanged. Measured over 36 scripted fights with each world’s packs: a player who just keeps slashing now loses about 5¾ hearts a pack in the Glass Dunes (was 3¾) and 4½ in the Floating City (was 3), one who blocks every blow about 3¼ (was 1¾) and 2½ (was 1½); no single blow takes more than a heart and a half.',
         see: 'Land in the Glass Dunes and fight a pack of furnace brutes and glass crabs: they last longer under your combo, three can come at you together, and a heavy blow takes a whole heart. In the City Floating in Space, an ordinary blow takes three quarters of a heart, as in the Signal Market.' },
@@ -47,6 +49,20 @@ export const CHANGELOG = [
         see: 'Go into the Rose House and walk slowly down the Great Hall turning the camera: the side walls and the far wall stay still instead of shimmering, and the circuits light up only on the walls right beside you.' },
       // no tiny foes (#741)
       'No foe is tiny any more. The Desert’s mummers and the grunts of the Arena now stand as tall as you, and the skitters and the Arena’s crawlers come up to your hip, so your blade finds them easily. Everything about them grew with them: where your blows land, how close they get to you and the lock-on round them. Their voices and the way they fight are as before.',
+      // the Arena (#797)
+      { text: 'The Arena now sends a different kind of enemy each time, picked at random: each of the game’s 30 kinds of foe comes once before any comes again, never the same kind twice in a row, each in the look of one of the worlds on your way where you meet it. Before, it went through every look of every enemy, 138 in all, so the same few foes kept coming back in other colours. The foes of the abandoned side worlds no longer come, nor the three taken out of the worlds.',
+        see: 'Open the Arena and fight a few foes: the notice at the top now counts “Foe 3 of 30”, and each foe is a different kind from the last (a crab, then a drone, then a grunt…), in the colours of a world you visit, such as the Glass Dunes or the Signal Market.' },
+      { text: 'In the Arena, the game no longer stutters each time a new enemy comes in. Every look an enemy can arrive in is prepared while the Arena loads, and each new enemy’s body is ready before it steps out of its cloud. Cutting down a machine (a furnace brute, a crucible cart, a bell walker) no longer catches the game either, in any world. The Arena takes about a second longer to load.',
+        numbers: [{ title: 'Worst frame round each enemy’s arrival in the Arena', unit: 'ms', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720 at 60 Hz; each foe cut down 2.6 s after it came in; 14–28 arrivals each', rows: [
+          { where: 'High, the typical arrival (median)', before: 26.0, after: 20.3 },
+          { where: 'High, the worst arrival', before: 826.5, after: 33.2 },
+          { where: 'Handheld, the typical arrival (median)', before: 28.4, after: 19.7 },
+          { where: 'Handheld, the worst arrival', before: 276.9, after: 35.3 },
+        ], source: 'requestAnimationFrame intervals from 30 ms before each arrival to 2.5 s after, in the game’s own Arena run; 4 of 28 arrivals on High and 3 of 14 on Handheld had a frame over 50 ms before, none after' },
+        { title: 'The Arena’s load', unit: 's', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720', rows: [
+          { where: 'High', before: 2.2, after: 3.5 },
+          { where: 'Handheld', before: 2.8, after: '3.6–4.5' },
+        ], source: 'the game’s own “load: total” after the modules load; 109 enemy bodies prepared instead of 33' }] },
     ],
   },
   {

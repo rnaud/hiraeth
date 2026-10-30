@@ -9,7 +9,7 @@ import { TITLES } from './levels/names.js';
 // archetypes, src/enemies/archetypes.js, and the old kinds standing in; each world's archetypes in its skin,
 // src/foe-worlds.js and src/enemies/skins.js; the temple guardians, src/arena-guardians.js), with a search and a
 // world filter. Choose a foe and the waves stop: it comes in ahead of you, and again each time it falls (practice);
-// "Waves again" the run of every foe one at a time (foes.js ARENA_FOES). A world's "waves from here" runs the Arena's
+// "Waves again" the run of every kind of foe one at a time (foes.js ARENA_KINDS, arenaOrder). A world's "waves from here" runs the Arena's
 // old cycle (foes.js ARENA_WAVES) from that world's first enemy; a guardian is called into a ring on the sand. Paper and ink, as the Arcade's board.
 //
 //   open / close   the FOES tab on the left edge (it says how) · D-pad ↓ (the mount's call: there is none here)
