@@ -75,8 +75,8 @@ test('the forgiving rule: one blow never takes you from more than a heart to not
   assert.equal(heartsOf({ health: 0.5 }), 1.5, 'a stand-in with only a share counts as three hearts');
 });
 
-test('potions: a count, three to start and five at most since the first shop; two hearts each; the dev menu can make them infinite', () => {
-  assert.equal(POTION.heal, 2);
+test('potions: a count, three to start and five at most since the first shop; three hearts each (#787); the dev menu can make them infinite', () => {
+  assert.equal(POTION.heal, 3);
   assert.ok(POTION.at < POTION.time && POTION.time <= 1.2, 'a short drink');
   assert.equal(POTION.start, 3); assert.equal(POTION.cap, 5);
   const g = new GameState(null), R = new Resources(g, itemSet());

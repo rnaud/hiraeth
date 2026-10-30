@@ -146,3 +146,27 @@ test('the beat plays after the card, about its length, acts once, stows the item
   const c = mk(); c.start(); playTo(c, 'card');
   assert.equal(c.dismiss(), false, 'the card waits its minimum');
 });
+
+// "When I get the fluid gun no need to show me an animation of it firing" (issue #786): the gun was a gadget, and a gadget's
+// closing beat is `try` (held out, fired once). The gun has no beat now: after its card, straight back to play, the gun
+// his (taken in hand by itself, docs/systems/gadgets.md); never a shot, never its sound.
+test('the fluid gun’s chest: no firing beat after the card, no shot heard; back to play at once (#786)', () => {
+  assert.equal(beatFor('gun', ITEMS.gun), 'none', 'the gun: no beat');
+  assert.equal(ITEMS.gun.kind, 'gadget', '(still a gadget: the rule is the gun’s own)');
+  assert.equal(beatFor('hook', ITEMS.hook), 'try', 'the other gadgets still try theirs');
+  const calls = [];
+  const sound = new Proxy({}, { get: (_, k) => (...a) => calls.push(k) });
+  const cam = { shot() {}, release() {}, hud() {}, bars() {} };
+  let granted = 0, ended = 0;
+  const sc = new BoxScene({ box: { id: 'desert.gun', pos: V(), yaw: 0, parts: { mats: {} }, scene: null }, def: ITEMS.gun, item: 'gun', player: { pos: V(), vel: V(), heading: 0, object: null }, cam, sound,
+    onGrant: () => granted++, onEnd: () => ended++ });
+  sc.start();
+  assert.equal(playTo(sc, 'card'), 'card');
+  for (let i = 0; i < 20; i++) sc.update(1 / 30);
+  assert.equal(sc.dismiss(), true);
+  assert.equal(sc.phase, 'out', 'from the card straight to the hand-back: no beat');
+  assert.equal(granted, 1, 'the gun is his');
+  playTo(sc, 'done-never', 90);
+  assert.ok(sc.done && ended === 1);
+  assert.ok(!calls.includes('fluidShoot'), `never fired: ${[...new Set(calls)].join(', ')}`);
+});

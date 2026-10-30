@@ -845,11 +845,12 @@ test('after a beat, a hand-back to a play lens close by and turned little blends
     c.lookAt(c.position.clone().add(f.applyAxisAngle(V(0, 1, 0), turn)));
     return c;
   };
+  // (a gadget's beat, the hook's: the gun's chest has no beat since issue #786)
   for (const plan of ['shoulder', 'side', 'high']) {
-    assert.ok(playInRoom(ph, plan, 'gun', player(V()), lens(0.7)).release > 0, `${plan}: 0.7 m back, the same way: a blend`);
-    assert.equal(playInRoom(ph, plan, 'gun', player(V()), lens(3)).release, 0, `${plan}: 3 m away: a cut`);
-    assert.equal(playInRoom(ph, plan, 'gun', player(V()), lens(0.7, 1.2)).release, 0, `${plan}: turned 70°: a cut`);
-    assert.equal(playInRoom(ph, plan, 'gun', player(V())).release, 0, `${plan}: no play lens known: a cut, as before`);
+    assert.ok(playInRoom(ph, plan, 'hook', player(V()), lens(0.7)).release > 0, `${plan}: 0.7 m back, the same way: a blend`);
+    assert.equal(playInRoom(ph, plan, 'hook', player(V()), lens(3)).release, 0, `${plan}: 3 m away: a cut`);
+    assert.equal(playInRoom(ph, plan, 'hook', player(V()), lens(0.7, 1.2)).release, 0, `${plan}: turned 70°: a cut`);
+    assert.equal(playInRoom(ph, plan, 'hook', player(V())).release, 0, `${plan}: no play lens known: a cut, as before`);
   }
 });
 

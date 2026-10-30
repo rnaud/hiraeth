@@ -56,6 +56,14 @@ hinges, the temple's petals fall open and its heart rises), motes of jade light 
 the sheets' column of light) and the item grows out of the light at its centre; from 55 % it comes apart from the top
 down in the dissolve, the motes thinning through the reveal and gone during the card.
 
+**Planted from the first frame** (issue #785, the author: "When I open a chest with a cinematic my characters feet move.
+They should be well planted before the cinematic starts"). `start` sets him down square in front of the chest, turned to
+it, and stands him still there at once (`Player.standStill`): no captured stop or turn left to play, no gait in the
+clips' blend, no lean or turn from before the cut, no stair lag, the relaxed stance already in and the feet set down
+afresh under it. Opened from a walk, he had carried on: one or two settling steps under the scene's camera, 0.2-0.8 m
+of foot travel in its first 0.3-0.6 s. `tests/chest-feet.test.js` opens one from a walk, a run, standing and turned
+round: no foot point moves 3 mm in a frame, under 3 cm in the first second (the idle's breathing).
+
 **Since issue #223** (the author: "the chests should not float up, they should open where they are, and light should come
 out from within them. Then the character should hold the item in their hand (it should float right above his open
 hand). Also the sound of the chest opening is wrong, sounds like creaking"), the paragraph above is history:
@@ -196,8 +204,8 @@ to the plan (`closingShot`: mirrored for **left**, swung toward his side for **s
 
 | Beat | Items | What happens |
 |---|---|---|
-| `try` | gadgets, gun modes (only what shoots) | held out in his right hand, it fires once: a spray of light ahead, a kick back, its sound (the mode's own shot) |
-| `none` | the battery | no beat: he wears it from the card on |
+| `try` | gadgets, gun modes (only what shoots), not the fluid gun | held out in his right hand, it fires once: a spray of light ahead, a kick back, its sound (the mode's own shot) |
+| `none` | the battery, the fluid gun | no beat: he wears the battery from the card on; the gun is in his hand once play is back (issue #786: no firing to watch) |
 | `wear` | cosmetics (the pale star) | pinned on; a close look at it worn on his lapel |
 | `keep` | charms | turned over in his fingers, then pocketed with a soft chime |
 | `fit` | battery upgrades (coil, chamber), the battery's parts (the lift valve, the jets, the wings, the bellows), the Givers' blade and guard | the battery's to the battery at his left hip (`FIT_HIP`, `stowFor`; issue #728), the blade and the guard over his shoulder onto his back, a click; shot from behind him |

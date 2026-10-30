@@ -328,6 +328,14 @@ export const CAPSULES = [
 ];
 /** The colliders the cloth goes over, not under (cape.js collide: out on the far side from the body): the arms and hands. */
 export const CAPE_OVER = /^(lowerarm|hand)_[lr]$/;
+/**
+ * An arm held out in front (a conversation's gesture, a staff held up before her) comes out through a cloak's open front:
+ * a forearm or hand reaching further ahead of the chest than `ahead` (m, at the body's size) is not one the cloth goes out
+ * over (CAPE_OVER, cape.js OVER) but one it goes round, as round any limb. Out over the arms, the cloak's sides were thrown
+ * forward with every gesture and hung in front of whoever wore it as they talked to you: Nour, issue #782 (the cloth 0.6-0.8
+ * m ahead of her middle under a talking or a yelling gesture, 0.37 at rest).
+ */
+export const CAPE_FRONT = { ahead: 0.15 };
 
 /**
  * A robe's colliders (Humanoid.robeCones): each leg's cone, from the belt (this radius round the hip's
@@ -408,6 +416,7 @@ export const WRIST_SHARE = 0.5;
 const IDENTITY_Q = new THREE.Quaternion();   // (read only)
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _w1 = new THREE.Vector3(), _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3();
+const _capChest = new THREE.Vector3(), _capFwd = new THREE.Vector3(), _capAt = new THREE.Vector3();
 const _wq1 = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wq3 = new THREE.Quaternion(), _wq4 = new THREE.Quaternion(), _wq5 = new THREE.Quaternion();
 const _k1 = new THREE.Vector3(), _k2 = new THREE.Vector3(), _k3 = new THREE.Vector3(), _k4 = new THREE.Vector3(), _k5 = new THREE.Vector3(), _k6 = new THREE.Vector3();
 const _kq = new THREE.Quaternion(), _kq2 = new THREE.Quaternion(), _kq3 = new THREE.Quaternion(), _km = new THREE.Matrix4();
@@ -1728,6 +1737,15 @@ export class Humanoid {
     }
     // (the bones as the pose left them: Humanoid.update, then the feet's and hands' own updates)
     spec.forEach(([a, b], i) => { worldPos(B[a], this._caps[i].a); worldPos(B[b], this._caps[i].b); });
+    // (an arm out in front of the chest: the cloth goes round it, not out over it, CAPE_FRONT)
+    if (B.spine_03) {
+      const chest = worldPos(B.spine_03, _capChest), f = _capFwd.set(0, 0, 1).transformDirection(this.char.root.matrixWorld), most = CAPE_FRONT.ahead * s;
+      for (let i = 0; i < spec.length; i++) {
+        const k = this._caps[i];
+        if (!(k.arm ??= CAPE_OVER.test(spec[i][0]))) continue;
+        k.over = Math.max(_capAt.subVectors(k.a, chest).dot(f), _capAt.subVectors(k.b, chest).dot(f)) < most;
+      }
+    }
     const caps = this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r ? this.robeCones() : this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
     // (a bulky held prop pushes the cloth aside too, and a bag worn over the cloak holds it under: bulkCapsules)
     const prop = this._propBulk && !this.stowed ? this.propCapsules() : null, worn = this._bodyBulk ? this.bodyCapsules() : null;

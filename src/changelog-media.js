@@ -1446,7 +1446,27 @@ const FROM777 = 'Hand-made (no `view`): walkthrough.html on this branch’s own 
 /** (v2.37, issue #788: the Keeper's game against the clock) */
 const FROM788 = 'Hand-made (no `view`): muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, the HUD shown, 29 October 2026; the game’s own bot turning the stones (window.__cisternBot) and the picture 24 s after GO, the hour set to 14.2 (the game page’s own). Before: origin/main at 040d584c8 on its own Vite (port 5464), the Cistern’s page (?game=cistern&from=desert, Easy, planning untimed, no clock); after: this branch on its own Vite (port 5400), the Keeper’s run played in the desert’s page (a helper encounter begun and kit/here.js’s play, as the Rose House’s door does), the clock counting down. The boards differ (the before’s seed is random, the after’s the encounter’s); cwebp -q 72';
 
+/** (v2.38, issue #785: planted before a chest's scene) */
+const FROM785 = 'Hand-made strip (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller set 3.2 m in front of Qanat’s backpack chest, W held 0.9 s (the game’s own input, a walk at 3.8 m/s), the chest opened as E does (boxes.open) while he walked; the camera pinned 1.7 m off his left side at knee height from the scene’s first frame, four frames 0, 0.25, 0.5 and 0.8 s into it (480 × 560 of each), cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The scene’s own camera sees him from further off: the pin is for the feet';
+
+/** (v2.38, issue #782: Nour's cloak in a conversation) */
+const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
+
 export const CHANGELOG_MEDIA = {
+  '2.38': [
+  { match: 'When Nour talks to you, her cloak now stays behind her', shots: [
+    { name: 'nour-cape782', size: [1278, 720], caption: 'Nour talking with her hands, from in front, three-quarters and her side: before, the cloak thrown forward over her forearms, her right arm and hand under it and, from the side, the whole of her front behind it; after, both hands and the staff out in front of it, the cloak falling behind her arm', from: FROM782 },
+  ], see: 'In Qanat, open the chest by the great tree; Nour comes over. Talk to her and walk round her as she speaks: her hands move in front of her cloak, which stays at her back and sides.' },
+  { match: 'Opening a chest, you now stand still with both feet planted', shots: [
+    { name: 'chest-feet785', size: [1280, 374], caption: 'His feet in the first 0.8 s of a chest’s scene opened from a walk, four frames: before, caught mid-stride, he takes a step and shuffles the other foot round to stand; after, both feet down and still from the first frame', from: FROM785 },
+  ], numbers: [
+    { title: 'His feet over the first 2.5 s of a chest’s scene opened from a walk (both balls and both heels)', unit: '', better: 'lower', device: 'the Mac, muted headless Chrome, High, 1280 × 720, the game’s own frames', source: 'Issue #785: the strip’s own run, the feet’s bones read every frame; before at origin/main 41d6c0347', rows: [
+      { where: 'foot travel in all (cm)', before: 215, after: 5 },
+      { where: 'most any foot point moved in a frame (mm)', before: 174, after: 0.6 },
+      { where: 'last foot movement over 2 mm a frame (s into the scene)', before: 0.78, after: 0 },
+    ] },
+  ], see: 'Walk or run up to a chest you have not opened and press A / × as you arrive: the camera comes in on you already standing, both feet still.' },
+  ],
   '2.37': [
   // (issue #783: the Rose House where two of its glyph stones stood, at the change's commit and its parent, the camera pinned)
   { match: 'The little glyph-stone checkpoints are gone from every temple', tags: ['temples'], shots: [

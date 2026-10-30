@@ -1032,6 +1032,14 @@ collar inside the arms stayed under them, and the hands had no colliders at all.
   forearms that hold her staff, and lifting the back's cloth out over them kept it lying in front of her, a sheet
   held out at you (October 2026, issues #59 and #64). The engines' cloth does the same (`engine/cape-job.js`,
   `BridgeCape.cs`: the description's last `cols` numbers).
+- **Not an arm held out in front** (`CAPE_FRONT`, issue #782: "When Nour talks to me her cape is in front of her").
+  A forearm or hand reaching more than `CAPE_FRONT.ahead` (15 cm, at the body's size) ahead of the chest comes out
+  through the cloak's open front: the cloth goes round it as round any limb (`Humanoid.capsules` clears its `over`
+  that frame). Talking, the speaker's gestures (`src/talk-gesture.js`) bring the arms up in front, and the arms' rule
+  carried the cloak's sides forward over them: it hung in front of her as she talked, up to 0.56 m ahead of her chest
+  under a talking gesture, 0.48 on average over six of them against 0.38 at rest; now 0.41 against 0.35
+  (`tests/cape-talk.test.js`). Seated, nothing changes: the arms' rule is off there already. The flag goes
+  to the engines' cloth in its packet (`engine/cape-job.js`), so Unity's does the same.
 - **The ambient wind never blows a cape out in front of its wearer** (`behindWind`): the part of it toward the way
   they face is turned to blow behind, so whoever stands with the wind at their back has it streaming behind or
   beside them. Their own motion still swings it. `tests/cape-behind.test.js`.

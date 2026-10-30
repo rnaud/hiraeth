@@ -98,7 +98,7 @@ test('hearts: three to start, hurts counted in quarters, and they never come bac
   assert.equal(p.hearts, 3, 'the share sets the hearts (the old callers: a game\'s retry)');
 });
 
-test('a healing potion: two hearts back half-way through a short drink; not at full hearts, not while down', () => {
+test('a healing potion: three hearts back half-way through a short drink; not at full hearts, not while down', () => {
   const drunk = [];
   const p = new Player(flat, { onDrink: (h) => drunk.push(h) });
   run(p, 0.1);
@@ -111,12 +111,15 @@ test('a healing potion: two hearts back half-way through a short drink; not at f
   run(p, POTION.at - 0.1);
   assert.equal(p.hearts, 0.5, 'the flask still on its way up');
   run(p, 0.2);
-  assert.equal(p.hearts, 0.5 + POTION.heal, `${POTION.heal} hearts back`);
-  assert.deepEqual(drunk, [POTION.heal]);
+  assert.equal(p.hearts, 3, 'half a heart of three, then a potion: full, never past the containers (#787: no overfill)');
+  assert.deepEqual(drunk, [2.5], 'only what was missing is counted as healed');
   run(p, POTION.time);
   assert.equal(p.drinking, null, 'done');
+  p.setMaxHearts(6); p.hurt(5);
   p.drinkPotion(); run(p, POTION.time + 0.1);
-  assert.equal(p.hearts, 3, 'never past the containers');
+  assert.equal(p.hearts, 1 + POTION.heal, `one heart of six, then a potion: ${POTION.heal} hearts back`);
+  assert.equal(POTION.heal, 3, '#787: a potion gives three hearts back');
+  assert.deepEqual(drunk, [2.5, 3]);
   p.hurt(p.hearts); run(p, 0.1);
   assert.equal(p.cantDrink(), 'down', 'knocked out: no drinking');
   p.restart();

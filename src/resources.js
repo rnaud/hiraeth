@@ -70,7 +70,7 @@ export const CHIMES = { cap: 9999 };
  * The potion: hearts back, and the drink (s: the flask to the lips and down; the hearts come at `at`); `start` in a
  * new game's pack, at most `cap` carried (the shops, src/shop.js, sell more).
  */
-export const POTION = { heal: 2, time: 0.9, at: 0.45, start: 3, cap: 5 };
+export const POTION = { heal: 3, time: 0.9, at: 0.45, start: 3, cap: 5 };
 
 /**
  * The damage table, in hearts (docs/systems/foes.md, "What they do to you"). The foes' and guardians' own

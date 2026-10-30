@@ -14,6 +14,12 @@ export const CHANGELOG = [
       // going between worlds (#790)
       { text: 'Going to another world no longer reloads the game. Fly your ship, ride on to the next stop or pick a world in the Debug menu, and the next world is built in place: the music keeps playing over the loading page and fades into the new world’s, and in a browser the new world is heard straight away instead of staying silent until you press a button.',
         see: 'With the sound on, fly from one world to another: the music carries on through the take-off and the loading page and crossfades into the new world’s music as you arrive, with no press needed to hear it. The same when you open a world from Debug → Worlds.' },
+      // small fixes (#782, #785, #786, #787)
+      'A healing potion now gives you three hearts back instead of two, never more than your hearts can hold.',
+      'When Nour talks to you, her cloak now stays behind her: as she talks with her hands they come out in front of it, instead of the cloak being thrown forward over her arms and hanging in front of her. The same goes for everyone else in a cloak.',
+      'Opening a chest, you now stand still with both feet planted from the first moment of its scene: you no longer shuffle a step or slide your feet as the camera comes in, however you walked or ran up to it.',
+      { text: 'Finding the fluid gun no longer plays a moment of you firing it: after its card, you are straight back in the game with the gun in your hand.',
+        see: 'In the Rose House, open the chest in the Givers’ room off the hall: the chest opens, the gun rises and its card shows; press A / × and you are back in control at once, the gun in your hand, with no shot fired.' },
     ],
   },
   {

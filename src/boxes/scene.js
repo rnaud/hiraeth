@@ -160,6 +160,9 @@ export class BoxScene {
         P.object.position.copy(P.pos);
         P.frame?.quaternion?.(P.heading, P.object.quaternion);
       }
+      // (and standing still there from the first frame, his feet planted under him: no stop, turn or settling step
+      //  left to play out under the scene's camera, issue #785)
+      P.standStill?.();
     }
     this.ground = stand.y;
     this.H = b.parts?.size?.h ?? BOX.h + BOX.lid;   // the chest's height (unscaled: its kind's)

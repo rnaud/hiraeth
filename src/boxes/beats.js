@@ -4,7 +4,9 @@
 //   try    a gadget, a gun mode: he tries it once (held out in his right hand, it fires a spray of light ahead of
 //          him, a kick back, its sound). Only what shoots: the backpack and its parts came before the gun, and him
 //          firing them read as shooting with nothing to shoot (the author's playthrough, issues #58 and #70)
-//   none   the makers' battery: none (he wears it the moment the card goes: at his hip, as it is)
+//   none   the makers' battery: none (he wears it the moment the card goes: at his hip, as it is); and the fluid gun
+//          (issue #786, the author: "When I get the fluid gun no need to show me an animation of it firing": it is
+//          taken in hand by itself once the scene hands back, docs/systems/gadgets.md)
 //   wear   a cosmetic (the pale star): he pins it on, and a close look at it worn
 //   keep   a charm or a token: he turns it over in his hand, then pockets it (the act: the pocket)
 //   fit    an upgrade or a part for the battery (the lift valve, the jets, the wings, the bellows: to the battery at
@@ -48,8 +50,8 @@ export const BEATS = {
 
 /** The beat for each kind of item (src/items.js ITEMS[id].kind). */
 export const KIND_BEATS = { core: 'none', weapon: 'fit', movement: 'fit', mode: 'try', gadget: 'try', cosmetic: 'wear', charm: 'keep', pass: 'keep', upgrade: 'fit' };
-/** Items whose use is not their kind's: the finders point, the things that sound play. */
-export const ITEM_BEATS = { lens: 'point', shell: 'point', bell: 'play', echo: 'play' };
+/** Items whose use is not their kind's: the finders point, the things that sound play, the fluid gun has none (#786). */
+export const ITEM_BEATS = { lens: 'point', shell: 'point', bell: 'play', echo: 'play', gun: 'none' };
 
 /** The closing beat for an item: its own if it has one, else its kind's, else 'keep'. */
 export function beatFor(id, def = null) {

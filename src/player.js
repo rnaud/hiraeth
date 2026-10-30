@@ -1272,6 +1272,27 @@ export class Player {
     return true;
   }
 
+  /**
+   * Stand still where he now is, at once (a cut has set him down: a chest's opening squares him up in front of it,
+   * src/boxes/scene.js start; issue #785). Nothing is left to play out: no stop or turn of the captured moves, no gait in
+   * the clips' blend, no lean or turn from before the cut (Locomotion), no stair lag, the relaxed stance (idleLayer)
+   * already in, and the feet set down afresh under that pose. Before, the body carried on from the walk it was in: a stop
+   * still to play, the stance easing in over half a second, the turn read as a pivot, and the feet held where they had
+   * been: one or two settling steps under the scene's camera, 0.2-0.8 m of foot travel in its first 0.3-0.6 s.
+   */
+  standStill() {
+    this.vel.set(0, 0, 0); this._lastVel?.set(0, 0, 0);
+    this._moveDir?.set(0, 0, 0); this._wantSpeed = 0;
+    this._stopFrom = null; this._stopAs = null; this._startSteer = false;
+    if (this.moves) { this.moves.cur = null; this.moves.prev = null; }
+    const A = this.animator;
+    if (A) { for (const k in A.w) A.w[k] = k === 'idle' ? 1 : 0; A.landT = undefined; A.gaitW = 0; }
+    this.loco?.reset(this.heading);
+    this._stepLag?.reset();
+    this._still = 1;
+    this.humanoid?.resetFeet();
+  }
+
   /** Jump to another place, e.g. through a portal, with a new "up" (speed: carry on walking along fwd). */
   teleport(pos, up, fwd, { speed = 0 } = {}) {
     this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity;

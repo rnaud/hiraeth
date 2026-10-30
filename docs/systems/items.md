@@ -78,7 +78,7 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
   current hearts are the player's (`player.hearts`, `player.maxHearts`; `player.health` the share 0..1);
   the containers are the save's (`resources.maxHearts`, main.js keeps the player to it). They never come back
   by themselves. What takes them: the damage table in docs/systems/foes.md.
-- **The healing potion** (`POTION`: two hearts, a 0.9 s drink, the hearts at 0.45 s): **C** on the keyboard
+- **The healing potion** (`POTION`: three hearts, a 0.9 s drink, the hearts at 0.45 s): **C** on the keyboard
   (`KEYS.potion`, movable on the Controls page), **D-pad ←** on a controller (one press, v1.11; View +
   D-pad ↓ before; `PAD.potion`, movable on the Controls page), the **flask beside the hearts** on a touch screen. `player.drinkPotion()` starts the drink
   (not at full hearts, knocked down, riding, swimming or drinking already: `cantDrink()` says which; full,
@@ -296,7 +296,7 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
 
   | Ware | Effect | Price | Stock |
   |---|---|---|---|
-  | healing potion | one more potion (two hearts back when drunk) | 10 chimes | the shelf holds 3, one comes back every 3 minutes (`SHELF`); you carry at most 5 |
+  | healing potion | one more potion (three hearts back when drunk) | 10 chimes | the shelf holds 3, one comes back every 3 minutes (`SHELF`); you carry at most 5 |
   | heart container | +1 heart for good, and the hearts filled | 50, then 80, 110, 140… (+30 each) | 1 or 2 a shop, 15 in all (below) |
   | magic expansion | +1 unit on the magic bar for good | 40, then 70, 100, 130… (+30 each) | in five shops, 6 in all (below) |
 
@@ -304,7 +304,7 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   `shop.bought.magic`; `stepPrice`), so batch 4's shops in the later worlds go on up the same curve, and buying
   them in any order costs the same in the end. The caps still hold (20 hearts, a bar of 9).
 - **Why these prices** (against the drop table above): a desert fight is three or four foes, two ink blots, a
-  spitter and a dune ray, about **11 chimes** (±25 %). A **potion** at 10 is about one fight: it heals two hearts,
+  spitter and a dune ray, about **11 chimes** (±25 %). A **potion** at 10 is about one fight: it heals three hearts,
   and a fight that goes badly costs one or two, so buying potions with what the fights drop is break-even, never
   a farm. The **first heart container** at 50 is four or five fights (or one guardian's purse of 40 and a makers'
   run's 15): a few fights, not a grind, and the first one the player will want as soon as the shop is found.
