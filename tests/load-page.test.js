@@ -122,5 +122,7 @@ test('the title\'s waiting mark: "Loading" through the load, a failure\'s line a
   assert.equal(loadWords('The ship could not be loaded. Reload to try again.'), 'The ship could not be loaded. Reload to try again.');
   const title = read('src/title.js'), css = read('src/menus.css');
   assert.match(title, /what\.textContent = loadWords\(hold\.stage\)/);
-  assert.match(css, /#title \.starting \{ position: absolute; right: [^;]+; bottom: [^;]+;/);
+  assert.match(css, /#title \.starting \{ position: absolute; z-index: 5; right: [^;]+; bottom: [^;]+;/);
+  // the title goes black while it waits, as the loading screen (the author, 2026-10-30), the mark over it
+  assert.match(css, /#title\.waiting::after \{ content: ''; position: absolute; inset: 0; z-index: 4; background: #000; \}/);
 });

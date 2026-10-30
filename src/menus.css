@@ -48,10 +48,12 @@
   52% { transform: translate(82vw, 6vh) scale(0.9); opacity: 0; }
   100% { transform: translate(82vw, 6vh) scale(0.9); opacity: 0; }
 }
-/* the game behind the title still loading when its save is chosen: the menu gives way to a quiet mark, as the loading
-   screen's (index.html #loading, issue #791): bottom right, a small turning circle and "Loading" (src/title.js) */
-#title .starting { position: absolute; right: calc(28px + var(--safe-right, env(safe-area-inset-right, 0px))); bottom: calc(36px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); margin: 0; display: flex; align-items: center; gap: 10px;
-  padding: 7px 12px; font-size: calc(clamp(11px, 1.7vh, 14px) * var(--ts, 1)); letter-spacing: 0.14em; text-transform: uppercase; color: #e9e4d8; background: rgba(0, 0, 0, 0.72); border-radius: 3px; }
+/* the game behind the title still loading when its save is chosen: the title goes black, as the loading screen
+   (index.html #loading, issue #791), and the same quiet mark sits bottom right: a small turning circle and "Loading"
+   (src/title.js moves it to the title's root, over the black) */
+#title.waiting::after { content: ''; position: absolute; inset: 0; z-index: 4; background: #000; }
+#title .starting { position: absolute; z-index: 5; right: calc(28px + var(--safe-right, env(safe-area-inset-right, 0px))); bottom: calc(24px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); margin: 0; display: flex; align-items: center; gap: 10px;
+  font-size: calc(clamp(11px, 1.7vh, 14px) * var(--ts, 1)); letter-spacing: 0.14em; text-transform: uppercase; color: #e9e4d8; opacity: 0.78; }
 #title .starting[hidden] { display: none; }
 #title .starting .pen { flex: none; width: 12px; height: 12px; box-sizing: border-box; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: title-pen 1s linear infinite; }
 @media (prefers-reduced-motion: reduce) { #title .starting .pen { animation: title-pen-pulse 1.6s ease-in-out infinite alternate; border-right-color: currentColor; } }

@@ -335,7 +335,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         const mark = root.querySelector('.starting'), what = mark.querySelector('.what');
         const tick = () => { what.textContent = loadWords(hold.stage); };   // ("Loading", or a failure's line: issue #791)
         let timer = 0;
-        if (!hold.isArrived) { root.classList.add('waiting'); mark.hidden = false; tick(); timer = setInterval(tick, 250); }
+        if (!hold.isArrived) { root.append(mark); root.classList.add('waiting'); mark.hidden = false; tick(); timer = setInterval(tick, 250); }   // (over the black, as the loading screen)
         hold.onFail(() => { clearInterval(timer); fade(freshPage); });
         hold.release();
         hold.playing.then(() => { clearInterval(timer); fade(() => { root.remove(); resolve({ slot: n, fresh, behind: true }); }); });

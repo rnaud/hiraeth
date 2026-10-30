@@ -225,7 +225,7 @@ test('starting waits only for the load: the title lets the game go and fades ove
   assert.ok(t.indexOf('behind.hold.start();') < t.indexOf('behind.load()'), 'the input held before the game adds a listener');
   // chosen: its writes kept, released, and the title gone on the game's first frame; a mark until then
   assert.match(t, /if \(ours\) \{[\s\S]*?store\.commitWrites\(\);[\s\S]*?hold\.release\(\);\s*hold\.playing\.then\(/);
-  assert.match(t, /if \(!hold\.isArrived\) \{ root\.classList\.add\('waiting'\); mark\.hidden = false;/);
+  assert.match(t, /if \(!hold\.isArrived\) \{ root\.append\(mark\); root\.classList\.add\('waiting'\); mark\.hidden = false;/);
   // the same save, the same settings, not deleted: anything else is a fresh page
   assert.match(t, /const gameFits = \(n\) => !!game && game\.slot === n && !game\.spoilt && !behind\.hold\.failed && settingsNow\(\) === game\.settings;/);
   assert.match(t, /if \(game\?\.slot === n\) game\.spoilt = true;/);
