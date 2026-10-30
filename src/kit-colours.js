@@ -167,6 +167,7 @@ export function paintWater(mat, water) {
 export function applyKitColours(tool, state) {
   const pal = (piece) => colourById(chosenColour(state, piece));
   paintPack(tool?.tank?.group, pal('backpack'));
+  paintPack(tool?.bracer, pal('backpack'));   // (the bracer's brass brackets and buckles: issue #799)
   paintWater(swordMaterial(), pal('sword').water);
   paintWater(shieldMaterial(), pal('shield').water);
 }

@@ -12,12 +12,13 @@ import { FluidBlade, HIT_FX } from './fluid-blade.js';
 import { HitBursts } from './hit-burst.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
 import { boostVelocity, DOUBLE_JUMP } from './jump.js';
-import { BatteryHang, tuckedPose } from './battery-hang.js';
+import { BRACER, buildBracer, cellFrame, fitBracer, forearmMeshes } from './battery-bracer.js';
 
 // The makers' battery (issue #728; the magic-fluid backpack until v2.34): the traveller's signature tool. A
-// turquoise glass cylinder of lavender fluid rides on his belt at the left hip (no hose, no cord: the hose was cut in
-// October 2026, accurate but stiff in play; the battery has none) and, once the fluid gun is found, feeds the glove on the right hand (its lit vial on the cuff shows
-// the same fluid): the glove is what shoots, the fluid leaving from just in front of its knuckles. The
+// slim turquoise glass cell of lavender fluid rides in a leather bracer along the back of his right forearm (issue #799; no
+// hose, no cord: the hose was cut in October 2026, accurate but stiff in play; the battery has none) and, once the fluid
+// gun is found, feeds the glove on the same hand, just below it (the vial that stood on its cuff went with #799):
+// the glove is what shoots, the fluid leaving from just in front of its knuckles. The
 // progression rewrite (v1.38, docs/systems/progression.md): he starts with the fluid sword alone (the blade
 // below works without any item); the battery is the desert's first find, empty; its strengths come later
 // (the lift valve's double jump, the wings, the jets: items.js BACKPACK_STAGES); the gun is a gadget
@@ -48,7 +49,7 @@ import { BatteryHang, tuckedPose } from './battery-hang.js';
 //   stun / fire / bloom   gun modes (each a slot on the gadget wheel, hold D-pad ↑ or B; X and the touch ◐ button the next): the glob
 //            stills (onHit 'stun'), burns ('fire') or grows ('bloom') instead of splashing; all
 //            modes share the bar (targets.js: who accepts which mode)
-// Vehicles run on it too: boarding a powered vehicle, he takes the battery off his hip and clicks it into
+// Vehicles run on it too: boarding a powered vehicle, he slides the battery out of its bracer and clicks it into
 // its socket (the player's boarding / unboarding timers, HANDOFF), and clips it back on when he
 // steps off. While it is in a socket the tool is unavailable.
 // The battery shows the bar's level in its glass (the lavender's height) (the HUD's magic bar, src/hud.js, says it on the screen);
@@ -164,7 +165,7 @@ export class Reserve {
   fill() { this.level = this.max; this.since = Infinity; }
 }
 
-const _d = new THREE.Vector3(), _rp = new THREE.Vector3(), _wq = new THREE.Quaternion();
+const _d = new THREE.Vector3(), _rp = new THREE.Vector3();
 
 /**
  * The first world surface along a ray: the collision meshes (physics.rayHit)
@@ -509,49 +510,41 @@ class Rings {
   }
 }
 
-// The makers' battery (issue #728, references/Core Objects/Makers Battery/selected-2026-10-28/, the author's pick: a
-// hip lantern, no tether): in its own frame (y up the glass from the bottom endcap's foot, +z toward the wearer, his
-// right at -x), hanging at his left side from a belt clip (issue #745: TANK.at; Humanoid.hipAnchor: the chest anchor's
-// frame, y 0 at 0.7 m over his feet, +z forward, his left +x, carried by the pelvis so it goes with his hips, not his
-// chest). A broad turquoise glass cylinder with lavender fluid standing in it to the magic bar's level, rounded cream
-// ceramic endcaps (a flat face, a ring sunk in it, three screws), a brass rim where glass meets ceramic, two brass
-// rails along its sides looping over the caps, a binding on each, and the clip on its back: a pair of brass bars and
-// an olive plate with a hook over his belt. No hose, no cord, nothing on his back. Its stages (items.js
-// BACKPACK_STAGES): 1 the lift valve (a small brass valve wheel on the top endcap), 2 the wings (a brass band round the
-// glass's middle), 3 the Warden's bellows (a second valve, the glass brighter, the fluid quicker). The same model is
-// the item's picture (src/boxes/model.js, `worn: false`: no clip).
-const GLASS_R = 0.05, CAP_R = 0.059, CAP_H = 0.05, GLASS_H = 0.13;
+// The makers' battery (issue #728; since issue #799 references/characters/battery/bracer/, the author's pick: "I like
+// the battery embedded into the glove, that makes sense and it's easy to do"): a slim glass cell in its own frame (y up
+// the glass from its foot, +z into the wearer's arm, its rails across it at ±x), set lengthwise along the back of his
+// right forearm in a leather bracer (src/battery-bracer.js: the bracer, its brackets and where the cell lies, rigid on
+// the forearm's bone), its foot toward the wrist. A turquoise glass tube with lavender fluid standing in it to the magic
+// bar's level, rounded brass end caps (a domed end, a knob on it, a dark ring where it meets the glass), two brass rails
+// along its sides looping over the caps into their ends, a dark binding on each. No hose, no cord: the glove beside it on
+// the same hand drinks from it. Its stages (items.js BACKPACK_STAGES): 1 the lift valve (a small brass valve wheel on the
+// top cap's outer face), 2 the wings (a brass band round the glass's middle), 3 the Warden's bellows (a second valve, on
+// the foot's cap, the glass brighter, the fluid quicker). The same model is the item's picture (src/boxes/model.js).
+// (It hung from his belt at his left hip until v2.38, issues #728 and #745: 23 cm tall and 12 cm across.)
+const GLASS_R = 0.0095, CAP_R = 0.0118, CAP_H = 0.014, GLASS_H = 0.06;
 const GLASS_Y0 = CAP_H, GLASS_Y1 = CAP_H + GLASS_H, TOP_Y = GLASS_Y1 + CAP_H;
+const RAIL_X = CAP_R + 0.003, RAIL_R = 0.0017;
 export const TANK = {
-  // where it sits (hip frame): at his left side, 30° round from it toward his back, hanging from his belt down his
-  // outer hip, its top a hand under the belt line, just behind his hanging hand (issue #745, the author: at the side of
-  // the hip, as Link wears the Sheikah Slate; until v2.38 it rode on the belt line 60° round toward his back, the only
-  // place there clear of him in every pose). Hung this low, his hand and his forearm pass beside it standing and in
-  // every gait; what else comes to it (the sprint's arm, a jump, a cut) swings it out on its clip, and his climbing,
-  // swimming, sitting and rolling tuck it away (battery-hang.js; measured in tests/battery-hip.test.js). This is v2's
-  // place, the game's traveller in his own clothes (his shirt stands off his hip); B3 wears it closer
-  // (characters/traveller.js TANK_AT_B3).
-  at: [0.2477, 0.025, -0.143],
-  yaw: -Math.PI / 3,        // turned so its clip faces his hip (+z of its frame toward his middle)
-  scale: 1,                 // 12 cm across the caps, 23 cm tall
-  height: TOP_Y,            // endcap to endcap
-  full: GLASS_Y0 + GLASS_H * 0.74,   // the fluid's height with the bar full: a band of turquoise glass stays over it, as the reference draws it
-  radius: GLASS_R, center: (GLASS_Y0 + GLASS_Y1) / 2, capR: CAP_R,
+  scale: 1,                 // 3 cm across the rails, 8.8 cm end to end
+  height: TOP_Y,            // end cap to end cap
+  full: GLASS_Y0 + GLASS_H * 0.86,   // the fluid's height with the bar full: a band of turquoise glass stays over it
+  radius: GLASS_R, center: (GLASS_Y0 + GLASS_Y1) / 2, capR: CAP_R, railX: RAIL_X,
   glass: { y0: GLASS_Y0, y1: GLASS_Y1, r: GLASS_R },
-  // the endcaps' outline (radius at height, the bottom one; the top mirrors it), for tankRadiusAt
-  profile: [[0.036, 0], [0.047, 0.004], [0.054, 0.011], [0.058, 0.022], [CAP_R, 0.034], [CAP_R, CAP_H]],
-  highlight: -2.15,         // the window's streak on the glass: its angle round it (rad, atan(z, x)), facing out from him
+  // where the bracer's brass brackets hold it (its frame: over the glass's two ends)
+  brackets: [GLASS_Y0 + 0.006, GLASS_Y1 - 0.006],
+  // the end caps' outline (radius at height, the foot's; the top mirrors it), for tankRadiusAt: domed brass
+  profile: [[0.003, 0], [0.006, 0.001], [0.0085, 0.003], [0.0104, 0.0058], [CAP_R, 0.009], [CAP_R, CAP_H]],
+  highlight: -1.75,         // the window's streak on the glass: its angle round it (rad, atan(z, x)), facing out from his arm
   inked: true,              // (kept out of the player's soft-ink mask: the glass draws its own outline-only ink)
   base: '#9468cc',          // the lavender fluid (a gun mode leans it toward its first tone: MODE_TINT)
   tint: '#5fc6b8',          // the turquoise glass over the fluid
-  glow: [0.32, 0.62],       // the glass's glow: empty .. full (the magic bar); the bellows' stage adds STAGE_GLOW
-  clip: { z: GLASS_R + 0.026, w: 0.034, h: 0.1, d: 0.01 },   // the olive plate behind it (+z), toward his hip
+  glow: [0.36, 0.7],        // the glass's glow: empty .. full (the magic bar); the bellows' stage adds STAGE_GLOW
 };
 /** How far a gun mode's first tone leans the lavender (0: lavender always, 1: the mode's tone). */
 export const MODE_TINT = 0.35;
 /** How much brighter the glass is at the bellows' stage (3), and how much quicker its fluid. */
 export const STAGE_GLOW = 0.18, STAGE_RATE = 1.3;
-/** The battery's radius at height y (its frame): the endcaps' rounded outline, the glass between them. */
+/** The battery's radius at height y (its frame): the end caps' rounded outline, the glass between them. */
 export function tankRadiusAt(y) {
   const P = TANK.profile, h = Math.min(y, TOP_Y - y);
   if (y >= GLASS_Y0 && y <= GLASS_Y1) return GLASS_R;
@@ -559,17 +552,14 @@ export function tankRadiusAt(y) {
   for (let i = 1; i < P.length; i++) if (h <= P[i][1]) { const [r0, y0] = P[i - 1], [r1, y1] = P[i]; return r0 + (r1 - r0) * (h - y0) / (y1 - y0); }
   return CAP_R;
 }
-const RAIL_X = CAP_R + 0.009, RAIL_R = 0.0042;
 /** How far a point of its frame is outside the battery: its glass and caps (a body of revolution) and its rails (m;
- *  negative inside). What it must keep clear of him (battery-hang.js, tests/battery-hip.test.js). */
+ *  negative inside). What the traveller's hand and body keep clear of (tests/battery-bracer.test.js). */
 export function tankGap(p) {
   const y = Math.min(Math.max(p.y, 0), TOP_Y), r = Math.hypot(p.x, p.z), R = tankRadiusAt(y);
   let d = p.y >= 0 && p.y <= TOP_Y ? r - R : Math.hypot(Math.max(0, r - R), p.y - y);
-  for (let sx = -1; sx <= 1; sx += 2) d = Math.min(d, Math.hypot(p.x - sx * RAIL_X, p.z, Math.max(0, Math.abs(p.y - TOP_Y / 2) - TOP_Y / 2 + 0.03)) - RAIL_R);
+  for (let sx = -1; sx <= 1; sx += 2) d = Math.min(d, Math.hypot(p.x - sx * RAIL_X, p.z, Math.max(0, Math.abs(p.y - TOP_Y / 2) - TOP_Y / 2 + 0.012)) - RAIL_R);
   return d;
 }
-/** The hinge of its clip (its frame): at its top, at the clip, where it swings out from (battery-hang.js). */
-export const TANK_PIVOT = [0, TOP_Y - 0.01, GLASS_R + 0.026];
 /** How far a point (its frame) is from the glass: under 1 inside the glass cylinder, over 1 outside. */
 export function tankGlassMeasure(p) {
   if (p.y < GLASS_Y0 || p.y > GLASS_Y1) return Infinity;
@@ -577,73 +567,62 @@ export function tankGlassMeasure(p) {
 }
 
 // (src/kit-colours.js PACK_BASE: the same colours, which a fight temple's palette paints over)
-const CERAMIC = '#e4dbbb', CERAMIC_DARK = '#cdbf94', BATTERY_BRASS = '#c8903f', BATTERY_BRASS_DARK = '#7d5a2e', PLATE = '#6f7550', HOOK = '#5a4030';
-const BATTERY_METAL = { [BATTERY_BRASS]: 'brass', [BATTERY_BRASS_DARK]: 'brass', [PLATE]: 'painted', [HOOK]: 'iron' };
+const BATTERY_BRASS = '#c8903f', BATTERY_BRASS_DARK = '#7d5a2e';
+const BATTERY_METAL = { [BATTERY_BRASS]: 'brass', [BATTERY_BRASS_DARK]: 'brass' };
 const batteryMat = (color, o = {}) => makeMaterial({ color, flat: true, ...(BATTERY_METAL[color] && !o.glow ? { metal: BATTERY_METAL[color] } : {}), ...o });
-/** A tube along points (a rail, a bar), its ends left open (they sink into the ceramic). */
+/** A tube along points (a rail, a bar), its ends left open (they sink into the caps). */
 const tube = (pts, r, segs = 24) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y, z)), false, 'catmullrom', 0.2), segs, r, 6, false);
 
 /**
- * The makers' battery itself (the worn one's and the item's picture, src/boxes/model.js): the glass cylinder in its
- * fluid material (`glassMat`: set to the battery's look here, uFluidDomeK -1), the endcaps, the brass rims and rails,
- * and, worn (`worn`), the clip. In its frame. Returns { group, glass, lights, stages }: `lights` none (the fluid's level
- * is the bar), `stages` [null, s1, s2, s3] the parts each stage adds (shown by setStage), kept apart from the merged rest.
+ * The makers' battery itself (the worn one's and the item's picture, src/boxes/model.js): the glass in its fluid
+ * material (`glassMat`: set to the battery's look here, uFluidDomeK -1), the brass end caps, rims and rails. In its
+ * frame. (`worn`: kept for its callers; the bracer holds the worn one, src/battery-bracer.js.) Returns { group, glass,
+ * lights, stages }: `lights` none (the fluid's level is the bar), `stages` [null, s1, s2, s3] the parts each stage adds
+ * (shown by setStage), kept apart from the merged rest.
  */
-export function buildFlask(glassMat, { worn = true, mat = batteryMat, stage = 3 } = {}) {
+export function buildFlask(glassMat, { mat = batteryMat, stage = 3 } = {}) {
   const g = new THREE.Group();
   g.name = 'Makers battery';
   const add = (geo, m, x = 0, y = 0, z = 0, to = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); to.add(o); return o; };
   // the glass (open at its ends: the caps close it), its vertices in the battery's frame: the shader reads the fill
   // height and the angle round it off them
-  const glass = add(new THREE.CylinderGeometry(GLASS_R, GLASS_R, GLASS_H, 40, 1, true).translate(0, GLASS_Y0 + GLASS_H / 2, 0), glassMat);
+  const glass = add(new THREE.CylinderGeometry(GLASS_R, GLASS_R, GLASS_H, 32, 1, true).translate(0, GLASS_Y0 + GLASS_H / 2, 0), glassMat);
   glass.name = 'Fluid glass';
   glassMat.uniforms?.uFluidDome?.value.set(0, TANK.center, 0, GLASS_R);
   if (glassMat.uniforms?.uFluidDomeK) glassMat.uniforms.uFluidDomeK.value = -1;   // (the battery's branch: materials.js fluidAlbedo)
   glassMat.uniforms?.uFluidBox?.value.set(GLASS_Y0, TANK.full, GLASS_R, TANK.highlight);
-  const ceramic = mat(CERAMIC), ceramicDark = mat(CERAMIC_DARK), brass = mat(BATTERY_BRASS), dark = mat(BATTERY_BRASS_DARK);
-  // the endcaps: rounded cream ceramic, a flat face with a ring sunk in it and three screws, a dark lug at each side
-  const capGeo = new THREE.LatheGeometry([...TANK.profile, [GLASS_R - 0.004, CAP_H]].map(([r, y]) => new THREE.Vector2(r, y)), 32);
-  const face = new THREE.CircleGeometry(TANK.profile[0][0], 24).rotateX(Math.PI / 2);
+  const brass = mat(BATTERY_BRASS), dark = mat(BATTERY_BRASS_DARK);
+  // the end caps: domed brass, a knob on the end, a dark ring where each meets the glass
+  const capGeo = new THREE.LatheGeometry([...TANK.profile, [GLASS_R - 0.001, CAP_H]].map(([r, y]) => new THREE.Vector2(r, y)), 24);
+  const face = new THREE.CircleGeometry(TANK.profile[0][0], 12).rotateX(Math.PI / 2);
   for (const top of [false, true]) {
     const cap = capGeo.clone(), f = face.clone();
     if (top) { cap.scale(1, -1, 1).translate(0, TOP_Y, 0); cap.index && cap.setIndex([...cap.index.array].reverse()); }   // (turned over: its faces' winding put back)
     if (top) f.rotateX(Math.PI);
-    add(cap, ceramic);
-    add(f, ceramic, 0, top ? TOP_Y : 0, 0);
-    add(new THREE.TorusGeometry(0.026, 0.0028, 4, 24).rotateX(Math.PI / 2), ceramicDark, 0, top ? TOP_Y - 0.0005 : 0.0005, 0);
-    for (let i = 0; i < 3; i++) { const a = i * 2.094 + 0.5; add(new THREE.SphereGeometry(0.0032, 6, 4), dark, Math.cos(a) * 0.034, top ? TOP_Y - 0.001 : 0.001, Math.sin(a) * 0.034); }
-    for (const sx of [-1, 1]) add(new THREE.CylinderGeometry(0.009, 0.009, 0.012, 10).rotateZ(Math.PI / 2), dark, sx * (CAP_R + 0.003), top ? TOP_Y - CAP_H * 0.45 : CAP_H * 0.45, 0);
-    // the brass rim where glass meets ceramic
-    add(new THREE.TorusGeometry(GLASS_R + 0.004, 0.0045, 5, 36).rotateX(Math.PI / 2), brass, 0, top ? GLASS_Y1 : GLASS_Y0, 0);
+    add(cap, brass);
+    add(f, brass, 0, top ? TOP_Y : 0, 0);
+    add(new THREE.SphereGeometry(0.0032, 8, 5), brass, 0, top ? TOP_Y + 0.0006 : -0.0006, 0);
+    add(new THREE.TorusGeometry(GLASS_R + 0.0012, 0.0016, 5, 28).rotateX(Math.PI / 2), dark, 0, top ? GLASS_Y1 : GLASS_Y0, 0);
+    add(new THREE.TorusGeometry(CAP_R + 0.0002, 0.001, 4, 28).rotateX(Math.PI / 2), dark, 0, top ? TOP_Y - CAP_H * 0.55 : CAP_H * 0.55, 0);
   }
-  // the two brass rails along its sides (±x), standing off the glass, looping over the caps' shoulders into their faces,
-  // a binding round each at the middle
-  const RX = CAP_R + 0.009;
+  // the two brass rails along its sides (±x), standing off the glass, looping over the caps' shoulders into their ends,
+  // a dark binding round each at the middle
   for (const sx of [-1, 1]) {
-    add(tube([[sx * 0.03, -0.004, 0], [sx * (RX - 0.006), 0.006, 0], [sx * RX, 0.03, 0], [sx * RX, TOP_Y / 2, 0], [sx * RX, TOP_Y - 0.03, 0], [sx * (RX - 0.006), TOP_Y - 0.006, 0], [sx * 0.03, TOP_Y + 0.004, 0]], 0.0042, 40), brass);
-    add(new THREE.CylinderGeometry(0.0075, 0.0075, 0.022, 10), dark, sx * RX, TOP_Y / 2, 0);
+    add(tube([[sx * 0.008, -0.0015, 0], [sx * (RAIL_X - 0.003), 0.0025, 0], [sx * RAIL_X, 0.012, 0], [sx * RAIL_X, TOP_Y / 2, 0], [sx * RAIL_X, TOP_Y - 0.012, 0], [sx * (RAIL_X - 0.003), TOP_Y - 0.0025, 0], [sx * 0.008, TOP_Y + 0.0015, 0]], RAIL_R, 32), brass);
+    add(new THREE.CylinderGeometry(0.0034, 0.0034, 0.008, 8), dark, sx * RAIL_X, TOP_Y / 2, 0);
   }
-  if (worn) {
-    // the clip behind it (+z, toward his hip): two short brass bars out of the rims and an olive plate across them, its
-    // round brass stud, and the hook over his belt off the plate's top
-    const C = TANK.clip;
-    for (const sx of [-1, 1]) add(tube([[sx * 0.022, GLASS_Y0, GLASS_R], [sx * 0.022, GLASS_Y0, C.z], [sx * 0.022, GLASS_Y1, C.z], [sx * 0.022, GLASS_Y1, GLASS_R]], 0.0038, 24), brass);
-    add(new THREE.BoxGeometry(C.w, C.h, C.d), mat(PLATE), 0, TANK.center, C.z + C.d / 2);
-    add(new THREE.CylinderGeometry(0.008, 0.008, 0.006, 12).rotateX(Math.PI / 2), brass, 0, TANK.center, C.z - 0.002);
-    add(new THREE.BoxGeometry(C.w * 0.8, 0.008, 0.026), mat(HOOK), 0, TANK.center + C.h / 2 - 0.004, C.z + C.d + 0.012);
-    add(new THREE.BoxGeometry(C.w * 0.8, 0.045, 0.006), mat(HOOK), 0, TANK.center + C.h / 2 - 0.026, C.z + C.d + 0.024);
-  }
-  // the stages' parts (setStage shows them): 1 the lift valve, 2 the wings' band, 3 the bellows' valve
+  // the stages' parts (setStage shows them): 1 the lift valve, 2 the wings' band, 3 the bellows' valve (the valves on
+  // the caps' outer faces, -z: out from his arm)
   const stages = [null, new THREE.Group(), new THREE.Group(), new THREE.Group()];
   stages.forEach((s, i) => { if (s) { s.name = `Battery stage ${i}`; g.add(s); } });
-  const valve = (s, x, z) => {
-    add(new THREE.CylinderGeometry(0.006, 0.006, 0.02, 8), dark, x, TOP_Y + 0.01, z, s);
-    add(new THREE.TorusGeometry(0.016, 0.003, 4, 16).rotateX(Math.PI / 2), brass, x, TOP_Y + 0.02, z, s);
-    for (let i = 0; i < 2; i++) add(new THREE.BoxGeometry(0.032, 0.003, 0.003).rotateY((i * Math.PI) / 2), brass, x, TOP_Y + 0.02, z, s);
+  const valve = (s, y) => {
+    add(new THREE.CylinderGeometry(0.0022, 0.0022, 0.006, 8).rotateX(Math.PI / 2), dark, 0, y, -CAP_R - 0.002, s);
+    add(new THREE.TorusGeometry(0.0055, 0.0012, 4, 14), brass, 0, y, -CAP_R - 0.005, s);
+    for (let i = 0; i < 2; i++) add(new THREE.BoxGeometry(0.011, 0.0012, 0.0012).rotateZ((i * Math.PI) / 2), brass, 0, y, -CAP_R - 0.005, s);
   };
-  valve(stages[1], 0, 0);
-  add(new THREE.TorusGeometry(GLASS_R + 0.003, 0.0032, 4, 36).rotateX(Math.PI / 2), brass, 0, TANK.center, 0, stages[2]);
-  valve(stages[3], 0.026, -0.018);
+  valve(stages[1], TOP_Y - CAP_H * 0.45);
+  add(new THREE.TorusGeometry(GLASS_R + 0.0012, 0.0014, 4, 28).rotateX(Math.PI / 2), brass, 0, TANK.center, 0, stages[2]);
+  valve(stages[3], CAP_H * 0.45);
   setStage({ stages }, stage);
   return { group: g, glass, lights: [], stages, straps: null };
 }
@@ -662,23 +641,18 @@ export function setStage(flask, stage = 0) {
   return flask;
 }
 
-/** The battery's turn on the hip (about up, its clip toward him). */
-const WORN_Q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), TANK.yaw);
-/** Its turn at a place on the hip (`at`, the hip frame): its clip toward his middle (TANK.at's is WORN_Q). */
-export function wornQuat(at, out = new THREE.Quaternion()) { return out.setFromAxisAngle(_yAxis, Math.atan2(-at[0], -at[2])); }
-const _yAxis = new THREE.Vector3(0, 1, 0);
 function buildTank(stage = 0) {
   const { group: g, glass, lights, stages } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: TANK.glow[1], fluidBox: [TANK.glass.y0, TANK.full, TANK.radius, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }), { stage });
   g.name = 'Fluid tank';
   mergeParts(g, [glass, ...lights, ...stages.filter(Boolean)]);
-  g.position.set(...TANK.at); g.quaternion.copy(WORN_Q); g.scale.setScalar(TANK.scale);
-  return { group: noCollide(g), glass, lights, stages, straps: null, top: TANK.at[1] + TANK.height * TANK.scale };
+  g.scale.setScalar(TANK.scale);
+  return { group: noCollide(g), glass, lights, stages, straps: null };
 }
 
 /**
  * The glove the fluid comes out of: the traveller wears it on his right hand (traveller.js
  * fluidGlove: meshes skinned to the hand, hidden until the tank is worn, a plate and three charge
- * lights and the vial on its cuff; Humanoid.glove: their meshes and the fluid's mouth in front of the
+ * lights; Humanoid.glove: their meshes and the fluid's mouth in front of the
  * knuckles). A body without one (an NPC's, the tests' bare rig) still shoots from its right hand: the
  * mouth a hand's length past the wrist.
  */
@@ -778,20 +752,20 @@ export class FluidTool {
     if (player) { player.onDoubleJump = () => this.liftFx(); player.fuelSource = this; player.handoff = this; }
   }
 
-  /** Put the battery and glove on the traveller (needs the humanoid's hip or chest anchor and arm bones). */
+  /** Put the battery, its bracer and the glove on the traveller (needs the humanoid's forearm bone, else its chest anchor). */
   wear() {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
     // (the old body's procedural pack stays hidden: nothing is worn on the back since #728)
     if (!H.outfit) for (const o of p.gear?.pack?.children ?? []) if (o.isMesh) o.visible = false;
     const tank = (this.tank = buildTank(this.stage ?? 0));
-    this.hip = H.hipAnchor ?? H.chestAnchor;
-    tank.group.position.set(...this.tankAt);
-    this.hip.add(tank.group);
-    // (out of his arm's and his thigh's way: swung out on its clip or tucked, battery-hang.js)
-    this.hang = new BatteryHang({ gap: tankGap, pivot: TANK_PIVOT });
+    // (on his right forearm, the gloved one, in its leather bracer: rigid on the forearm's bone, issue #799; a body
+    // without that bone wears it on the chest anchor)
+    this.arm = H.b?.[BRACER.bone] ?? H.chestAnchor;
+    this.arm.add(tank.group);
     this.glove = gloveOf(H);
-    const copies = new Map(), glassMat = tank.glass.material;
+    this.refit();
+    const copies = (this._heroCopies ??= new Map()), glassMat = tank.glass.material;
     markHero(tank.group, copies);
     // the fluid stays out of the player's soft-ink mask, so the post pass inks its blobs like print
     if (TANK.inked) tank.glass.material = glassMat;
@@ -813,7 +787,7 @@ export class FluidTool {
   dispose() {
     this.offs.forEach((off) => off()); this.offs = [];
     this.blade?.dispose();
-    this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.back?.removeFromParent();
+    this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.bracer?.removeFromParent(); this.back?.removeFromParent();
     if (this.glove?.show) this.glove.show(false); else for (const o of this.glove?.meshes ?? []) o.visible = false;
     const p = this.player;
     if (p?.onDoubleJump) p.onDoubleJump = null;
@@ -828,15 +802,42 @@ export class FluidTool {
   get tones() { return fluidTones(this.colours, this.state.flag('tool.tones')); }
   /** What the tank, the globs and the splashes show now: the current mode's tones (stun cold blue, fire ember). */
   get modeTones() { return MODES[this.mode]?.tones ?? this.tones; }
-  /** Where the battery sits at the hip (the hip anchor's frame): the body's own place for it (Humanoid.tankAt), else TANK.at. */
-  get tankAt() { return this.player?.humanoid?.tankAt ?? TANK.at; }
+  /**
+   * The bracer fitted to the forearm he wears (battery-bracer.js fitBracer: his drawn skin and sleeves on the forearm's
+   * bone, the glove left out), and fitted again when they change (v2 dressed, another outfit); checked every half
+   * second. Returns whether it was fitted again.
+   */
+  refit() {
+    const meshes = forearmMeshes(this.player?.object, { skip: new Set(this.glove?.meshes ?? []) });
+    const sig = meshes.map((m) => `${m.id}:${m.geometry.id}`).join(',');
+    if (this.bracer && sig === this.fit?.sig) return false;
+    const fit = fitBracer(meshes, BRACER);
+    const shown = this.bracer?.visible ?? false;
+    this.bracer?.removeFromParent();
+    this.fit = fit;
+    this.cellHome = cellFrame(fit, TANK);
+    this.bracer = buildBracer(fit, TANK, (c) => batteryMat(c));
+    this.bracer.visible = shown;
+    markHero(this.bracer, this._heroCopies ??= new Map());
+    this.arm.add(this.bracer);
+    this.seatCell();
+    return true;
+  }
+
+  /** The cell in its place on the bracer (the forearm bone's frame: battery-bracer.js cellFrame). */
+  seatCell() {
+    const g = this.tank?.group, F = this.cellHome;
+    if (!g || !F) return;
+    if (g.parent !== this.arm) this.arm.add(g);
+    g.position.copy(F.position); g.quaternion.copy(F.quaternion); g.scale.setScalar(TANK.scale);
+  }
   /** The backpack is found. */
   get owned() { return this.items.has('backpack'); }
   /** The tank is empty (the desert's backpack, until the giant's pool fills it): no charges, no refill. */
   get dry() { return this.owned && !!this.state.flag('tool.empty'); }
   /** The makers' dregs left in an empty tank (flag tool.dregs): shots only, spent for good. */
   get dregs() { return this.dry ? Math.max(0, Math.min(this.reserve.max, Math.floor(Number(this.state.flag('tool.dregs')) || 0))) : 0; }
-  /** The battery is at the traveller's hip (not in a vehicle's socket, nor on its way between). */
+  /** The battery is in its bracer on the traveller's forearm (not in a vehicle's socket, nor on its way between). */
   get worn() { const p = this.player; return this.owned && !p?.ride && !p?.boarding && !p?.unboarding; }
   /** The gun modes the traveller owns ('shoot' first); none without the gun (and the backpack it drinks from). */
   get modes() { return ownedModes((id) => this.items.has(id)); }
@@ -1067,10 +1068,10 @@ export class FluidTool {
   // ------------------------------------------------------------ powering vehicles (player.handoff)
   /**
    * Where the battery is this frame follows from the player's state alone, so
-   * nothing can strand it: at his hip ('back': its old name, the worn place); taken
-   * off the belt into the socket of the vehicle being boarded (player.boarding.k);
-   * in the socket while riding a powered vehicle; clipped back on his hip after
-   * stepping off (player.unboarding.k). Returns 'back' | 'flight' | 'socket'.
+   * nothing can strand it: in its bracer on his forearm ('back': its old name, the worn place); slid
+   * out of the bracer into the socket of the vehicle being boarded (player.boarding.k);
+   * in the socket while riding a powered vehicle; back in the bracer after
+   * stepping off (player.unboarding.k). The bracer stays on his arm. Returns 'back' | 'flight' | 'socket'.
    */
   updateDock(dt) {
     const p = this.player, T = this.tank;
@@ -1085,18 +1086,16 @@ export class FluidTool {
     const was = this.where;
     this.where = where;
     this.dockVehicle = where === 'socket' ? v : null;
-    const g = T.group, hip = this.hip;
-    // the hip's pose and the socket's, in world space
+    const g = T.group, arm = this.arm, F = this.cellHome;
+    // its place on the bracer and the socket's, in world space
     const back = this._back ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
-    hip.updateWorldMatrix(true, false);
-    hip.localToWorld(back.p.set(...this.tankAt)); hip.getWorldQuaternion(back.q).multiply(wornQuat(this.tankAt, _wq)); hip.getWorldScale(back.s).multiplyScalar(TANK.scale);
+    arm.updateWorldMatrix(true, false);
+    arm.localToWorld(back.p.copy(F.position)); arm.getWorldQuaternion(back.q).multiply(F.quaternion); arm.getWorldScale(back.s).multiplyScalar(TANK.scale);
     if (where === 'back') {
-      if (g.parent !== hip) hip.add(g);
-      this.hangOnHip(dt);
+      this.seatCell();
       if (was === 'flight') this.onDocked(null, false);
       return where;
     }
-    if (this.hang) { this.hang.tuck = 0; this.hang.swing = 0; }
     const sock = v.socket;
     sock.updateWorldMatrix(true, false);
     const ss = sock.getWorldScale(_t3);
@@ -1107,30 +1106,15 @@ export class FluidTool {
       if (was !== 'socket') this.onDocked(v, true);
       return where;
     }
-    // in flight: in the scene, along an arc from the hip to the socket
+    // in flight: in the scene, along an arc from his forearm to the socket
     const S = this._sock ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
     sock.getWorldPosition(S.p); sock.getWorldQuaternion(S.q); S.s.copy(back.s);
-    const host = this.scene ?? hip;
+    const host = this.scene ?? arm;
     if (g.parent !== host) host.add(g);
     const out = handoffPose(u, back, S, p.frame.up, this._pose2 ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() });
     if (host === this.scene) { g.position.copy(out.p); g.quaternion.copy(out.q); g.scale.copy(out.s); }
     if (was === 'socket') this.onDocked(v, false);
     return where;
-  }
-
-  /**
-   * The battery on his hip this frame (issue #745): at its place (tankAt), swung out on its clip by as little as
-   * keeps his thigh and his arm out of it, or tucked into its clip while he climbs, swims, sits or rolls, or while
-   * nothing else clears it (battery-hang.js). dt 0: settled at once (a still, a test). this.hang.tuck 1: hidden.
-   */
-  hangOnHip(dt) {
-    const g = this.tank?.group, hip = this.hip, p = this.player;
-    if (!g || !hip) return;
-    g.position.set(...this.tankAt); wornQuat(this.tankAt, g.quaternion); g.scale.setScalar(TANK.scale);
-    if (!this.hang || !p?.object || p.object.visible === false) return;
-    g.updateMatrix();
-    const M = this.hang.update(dt, { home: g.matrix, parent: hip, root: p.object, tucked: tuckedPose(p) });
-    M.decompose(g.position, g.quaternion, g.scale);
   }
 
   /** The click of the battery going into a socket (on) or leaving it. */
@@ -1206,7 +1190,7 @@ export class FluidTool {
       U.uFluidB.value.set(this.flash, this.wave, 0, this.slosh * Math.min(1, this.rate));
     }
     if (!this.tank) return;
-    // found: it grows onto his hip with a little overshoot and a shimmer of fluid
+    // found: it grows into its bracer with a little overshoot and a shimmer of fluid
     if (this.appear < 1) {
       const was = this.appear;
       this.appear = Math.min(1, this.appear + dt / 0.9);
@@ -1216,9 +1200,11 @@ export class FluidTool {
       }
     }
     const owned = this.owned, visible = owned && p.object?.visible !== false;
+    if ((this._fitCheck = (this._fitCheck ?? 0.5) - dt) <= 0) { this._fitCheck = 0.5; this.refit(); }
     const where = owned ? this.updateDock(dt) : 'back';
-    this.tank.group.visible = visible && !(where === 'back' && (this.hang?.tuck ?? 0) >= 0.999);
-    // (the old body's rucksack keeps its outer pocket: the battery is at his hip, nothing sits in it since #728)
+    this.tank.group.visible = visible;
+    if (this.bracer) this.bracer.visible = visible;   // (the bracer stays on his arm while the cell sits in a vehicle's socket)
+    // (the old body's rucksack keeps its outer pocket: the battery is on his forearm, nothing sits in it since #728)
     // the glove is the fluid gun (src/gadgets/gun.js): worn once it is found, with the tank (it drinks from it);
     // the hand is bare without it (the sword's hilt is held bare-handed)
     const gloved = owned && this.items.has('gun');
@@ -1247,8 +1233,8 @@ export class FluidTool {
       lightGlove(this.glove?.lights[i], tones[i % tones.length], THREE.MathUtils.clamp(this.ringLit[i], 0, 1), 0.95);
     }
     if (this.glove?.plate) lightGlove(this.glove.plate, tones[0], this.reserve.charges ? 1 : 0.3, 0.7 + 0.3 * Math.max(this.flash, this.mode !== 'shoot' ? 0.5 : 0));
-    // the vial on the cuff: the battery's own fluid, so glove and battery read as one (no hose since October 2026);
-    // its glow follows the level in the glass, a flash as it fires
+    // (a body's glove with a vial of the fluid on its cuff, Humanoid.glove.vial: its glow follows the level in the glass,
+    // a flash as it fires; the traveller's has none since the battery sits just above it, issue #799)
     if (this.glove?.vial) lightGlove(this.glove.vial, tones[1 % n], 0.35 + 0.65 * THREE.MathUtils.clamp(this.fill, 0, 1), 0.75 + 0.25 * this.flash);
   }
 

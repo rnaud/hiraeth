@@ -12,8 +12,9 @@ import { GLOVE } from '../src/traveller.js';
 
 // The fluid glove (traveller.js fluidGlove, Humanoid.wearGlove, fluid-tool.js): the glove on the
 // traveller's right hand is what shoots. It is worn with the tank and only then; the fluid leaves from
-// just in front of its knuckles whatever the aim; no hose runs to it (cut in October 2026): the vial on
-// its cuff glows with the tank's fluid instead; the skin under it is not drawn.
+// just in front of its knuckles whatever the aim; no hose runs to it (cut in October 2026): the battery itself sits
+// just above it on the same forearm, in its bracer (issue #799: it took the place of the vial that stood on the
+// cuff), its glass glowing with the fluid; the skin under it is not drawn.
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
 async function glb(name) {
   const bytes = await readFileP(new URL(`../public/anim/${name}`, import.meta.url));
@@ -48,11 +49,11 @@ function underGlove(h) {
   return n;
 }
 
-test('the glove is the fluid gun, worn with the tank, and only then: its leather, band, plate, three knuckle lights, the cuff fitting and its vial', () => {
+test('the glove is the fluid gun, worn with the tank, and only then: its leather, band, plate and three knuckle lights', () => {
   const { h, tool, has } = wearing(false);
   const G = h.glove;
-  assert.deepEqual(G.meshes.map((m) => m.name).sort(), ['Glove_band_r', 'Glove_fitting_r', 'Glove_light_0_r', 'Glove_light_1_r', 'Glove_light_2_r', 'Glove_plate_r', 'Glove_r', 'Glove_vial_r']);
-  assert.ok(G.vial && G.vial.name === 'Glove_vial_r', 'the vial is the glove\'s lit glass');
+  assert.deepEqual(G.meshes.map((m) => m.name).sort(), ['Glove_band_r', 'Glove_light_0_r', 'Glove_light_1_r', 'Glove_light_2_r', 'Glove_plate_r', 'Glove_r']);
+  assert.ok(!G.vial, 'no vial on its cuff: the battery is in the bracer above it (#799)');
   assert.equal(G.lights.length, 3);
   const bare = underGlove(h);
   assert.ok(bare > 50, `the bare hand is drawn (${bare} triangles)`);
@@ -97,22 +98,19 @@ test('no cable runs from the tank to the glove: nothing named a hose anywhere on
   tool.dispose();
 });
 
-test('the vial on the glove\'s cuff glows with the tank\'s fluid, brighter full than empty, on the forearm by the wrist', () => {
+test('the battery above the glove glows with its fluid, brighter full than empty, on the same forearm a hand above the wrist', () => {
   const { h, char, tool } = wearing(true);
-  const glow = () => h.glove.vial.material.uniforms.uGlow.value;
+  const glow = () => tool.tankU.uGlow.value;
   for (let i = 0; i < 60; i++) tool.updateWorn(1 / 60);
   const full = glow();
   assert.ok(full > 0.6, `lit full (${full.toFixed(2)})`);
-  assert.ok(new Set([h.glove.vial.material, ...h.glove.lights.map((m) => m.material)]).size === 4, 'its own material');
   tool.fill = 0; tool.fillTo = 0;
   tool.updateWorn(1 / 60);
   assert.ok(glow() < full, 'dimmer as the tank empties');
-  char.root.updateMatrixWorld(true); h.body.skeleton.update();
-  const box = new THREE.Box3(), P = h.glove.vial.geometry.attributes.position, c = V();
-  for (let i = 0; i < P.count; i++) box.expandByPoint(h.glove.vial.applyBoneTransform(i, c.fromBufferAttribute(P, i)).applyMatrix4(h.glove.vial.matrixWorld));
-  const size = box.getSize(V()), mid = box.getCenter(V());
-  assert.ok(Math.max(size.x, size.y, size.z) < 0.045, `a small vial (${size.toArray().map((x) => x.toFixed(3))})`);
-  assert.ok(mid.distanceTo(at(h.b.hand_r)) < 0.09, `on the cuff (${mid.distanceTo(at(h.b.hand_r)).toFixed(3)} m from the wrist)`);
+  char.root.updateMatrixWorld(true);
+  const mid = tool.tank.group.localToWorld(V().set(0, 0.044, 0)), wrist = at(h.b.hand_r);
+  assert.ok(tool.tank.group.parent === h.b.lowerarm_r, 'on the gloved hand\'s forearm');
+  assert.ok(mid.distanceTo(wrist) > 0.06 && mid.distanceTo(wrist) < 0.16, `above the glove's cuff (${mid.distanceTo(wrist).toFixed(3)} m from the wrist)`);
   tool.dispose();
 });
 
@@ -141,7 +139,7 @@ test('the game\'s traveller (B3, src/characters/traveller.js) wears the glove on
   char.root.position.set(40, 3, -20); char.root.rotation.y = 2;
   const { humanoid: h, mesh } = createTraveller(char, await travellerB3());
   const G = h.glove;
-  assert.ok(G && G.meshes.length === 8 && G.vial && G.meshes.every((m) => m.skeleton === mesh.skeleton && !m.visible));
+  assert.ok(G && G.meshes.length === 6 && G.meshes.every((m) => m.skeleton === mesh.skeleton && !m.visible));
   char.root.updateMatrixWorld(true); mesh.skeleton.update();
   assert.ok(at(G.muzzle).distanceTo(at(h.b.middle_01_r)) < 0.05, 'the mouth at his knuckles, wherever he stands');
   const index = mesh.geometry.index;

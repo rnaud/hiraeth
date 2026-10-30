@@ -88,7 +88,7 @@ test('the makers\' battery reaches the port: its branch of the tank\'s fluid (Fi
   assert.equal(p.fluidA[3], 0, 'kind 0: the tank');
   assert.equal(p.fluidDome.length, 4);
   assert.equal(p.fluidDomeK, -1, 'the battery\'s branch, set by buildFlask');
-  assert.ok(p.fluidBox[2] > 0.04 && p.fluidBox[2] < 0.06, 'the glass\'s radius');
+  assert.ok(p.fluidBox[2] > 0.005 && p.fluidBox[2] < 0.06, 'the glass\'s radius');
   assert.equal(p.fluidBase.length, 3, 'its lavender');
 });
 

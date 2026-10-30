@@ -1,6 +1,6 @@
 // The sheathed sword seated on the traveller's back (issue #763; src/sword-sheath.js): since the round backpack went
 // (#728) nothing but the frog holds the hilt, so it lies against his back, diagonal over the right shoulder blade, its
-// strip 0.5–4 cm off him, and none of him comes into it in any pose he takes (the battery-hip test's 22: standing, the
+// strip 0.5–4 cm off him, and none of him comes into it in any pose he takes (the battery-bracer test's poses: standing, the
 // gaits, the sprint, talking, the title's stance, climbing, the ledge, riding, the jump, sitting on a bench, swimming,
 // gliding, the dodge roll). Checked on B3 and on v2 in his own clothes and in every outfit of the Wardrobe (an outfit
 // with something on its back, a pack or a hood, has the frog stood off by SHEATH_OUT).
@@ -73,7 +73,7 @@ function sheathShape(outfit) {
   return { hilt, gap };
 }
 
-/** The 22 poses of tests/battery-hip.test.js, each a [label, pose(), look] list (look: measure after it). */
+/** The 22 poses the hip battery's test measured (tests/battery-bracer.test.js measures the bracer on them now), each a [label, pose(), look] list (look: measure after it). */
 function poses(p) {
   const H = p.humanoid, a = p.animator, lib = a.lib, out = [];
   const gait = (label, input, frames, setup, look = (i) => i % 6 === 5) => {

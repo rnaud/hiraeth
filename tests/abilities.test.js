@@ -58,13 +58,14 @@ function setup({ up = null, physics = ground(), mount = null } = {}) {
   return { p, tool, scene, camera, state, step, calls };
 }
 
-test('no battery: no battery or glove, nothing fires, nothing throws, one jump; found, it shimmers onto his hip; the gun found, it shoots', () => {
+test('no battery: no battery or glove, nothing fires, nothing throws, one jump; found, it shimmers into its bracer on his forearm; the gun found, it shoots', () => {
   own();
   const { p, tool, step } = setup();
   const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];   // (the rucksack's outer pocket, traveller.js)
   step(5);
   assert.equal(tool.owned, false);
-  assert.equal(tool.tank.group.visible, false, 'a bare hip');
+  assert.equal(tool.tank.group.visible, false, 'a bare forearm');
+  assert.equal(tool.bracer.visible, false, 'no bracer either');
   assert.equal(pocket.visible, true, 'the rucksack keeps its outer pocket');
   assert.equal(tool.glove.visible, false, 'a bare hand');
   assert.deepEqual(tool.modes, [], 'no gun modes');
@@ -99,8 +100,8 @@ test('no battery: no battery or glove, nothing fires, nothing throws, one jump; 
   assert.ok(tool.glow.list.length > 10, 'a shimmer of fluid');
   step(70);
   assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
-  assert.equal(pocket.visible, true, 'the battery is at his hip: the rucksack keeps its pocket (#728)');
-  assert.ok(tool.tank.group.parent === p.humanoid.hipAnchor, 'on the hip anchor (carried by the pelvis)');
+  assert.equal(pocket.visible, true, 'the battery is on his forearm: the rucksack keeps its pocket (#728)');
+  assert.ok(tool.tank.group.parent === p.humanoid.b.lowerarm_r && tool.bracer.parent === p.humanoid.b.lowerarm_r && tool.bracer.visible, 'in its bracer on his right forearm (issue #799)');
   assert.equal(tool.glove.visible, false, 'no glove: the gun is a find of its own');
   assert.deepEqual(tool.modes, [], 'nothing to shoot with');
   // the fluid gun found, and in hand (the gadgets' runtime takes the first gadget found in hand: src/gadgets/index.js)
@@ -321,7 +322,7 @@ test('a stilling glob freezes people; an ember glob lights a lamp and burns a br
   if (!hadDoc) delete globalThis.document;
 });
 
-test('vehicles run on the battery: refused without it; boarding clicks it off the hip into the socket and back on dismount', () => {
+test('vehicles run on the battery: refused without it; boarding slides it out of its bracer into the socket and back on dismount', () => {
   own();
   const physics = ground();
   const bike = new Hoverbike(physics);
@@ -350,14 +351,14 @@ test('vehicles run on the battery: refused without it; boarding clicks it off th
   ({ p, tool, step, calls } = setup({ physics, mount: bike }));
   const frames = (n, ctl = {}) => { for (let i = 0; i < n; i++) { bike.update(DT, p.ride === bike ? ctl : null); p.update(DT, ctl, 0); p.object.parent?.updateMatrixWorld(); tool.update(DT, ctl); } };
   frames(5);
-  const hip = p.humanoid.hipAnchor;
+  const hip = p.humanoid.b.lowerarm_r;   // (its bracer's forearm, issue #799)
   assert.ok(tool.tank.group.parent === hip);
   frames(1);
   p.interact();
   assert.ok(p.boarding, 'the hand-off starts');
   assert.equal(p.riding, false);
   frames(Math.round(HANDOFF.board * 0.35 / DT));
-  assert.equal(tool.where, 'flight', 'taken off the hip');
+  assert.equal(tool.where, 'flight', 'taken out of its bracer');
   assert.ok(calls.handOff > 0, 'hands on the battery');
   assert.equal(tool.allowed(false), false, 'no tool meanwhile');
   frames(Math.round(HANDOFF.board * 0.4 / DT));
@@ -371,7 +372,7 @@ test('vehicles run on the battery: refused without it; boarding clicks it off th
   assert.ok(bike.powerK > 0.5, 'the fluid lights its engine');
   assert.ok(bike.powerLights[0].mesh.material.uniforms.uGlow.value > 0.3);
   assert.equal(tool.allowed(false), false, 'no tool while riding');
-  // off again: the battery comes back to his hip
+  // off again: the battery comes back to his forearm
   frames(120);
   p.interact();
   assert.equal(p.riding, false);
@@ -379,9 +380,9 @@ test('vehicles run on the battery: refused without it; boarding clicks it off th
   frames(Math.round(HANDOFF.unboard / DT) + 3);
   assert.equal(p.unboarding, null);
   assert.equal(tool.where, 'back');
-  assert.ok(tool.tank.group.parent === hip, 'on his hip again');
-  assert.ok(tool.tank.group.position.distanceTo(v(...TANK.at)) < 1e-6);
-  assert.ok(tool.tank.group.scale.distanceTo(v(TANK.scale, TANK.scale, TANK.scale)) < 1e-6, 'the battery keeps its size back on the hip');
+  assert.ok(tool.tank.group.parent === hip, 'in its bracer again');
+  assert.ok(tool.tank.group.position.distanceTo(tool.cellHome.position) < 1e-6);
+  assert.ok(tool.tank.group.scale.distanceTo(v(TANK.scale, TANK.scale, TANK.scale)) < 1e-6, 'the battery keeps its size back in its bracer');
   assert.equal(tool.allowed(false), true);
   frames(120);
   assert.ok(bike.powerK < 0.1 && Math.abs(bike.speed) < 1, 'unpowered, it settles and stops');
@@ -393,7 +394,7 @@ test('vehicles run on the battery: refused without it; boarding clicks it off th
   assert.equal(p.riding, true, 'skipped');
   frames(1);
   assert.ok(tool.tank.group.parent === bike.socket);
-  // respawning never strands it: the battery is simply back on his hip
+  // respawning never strands it: the battery is simply back in its bracer
   p.respawn(v(0, 1, 0)); frames(2);
   assert.ok(tool.tank.group.parent === hip);
   tool.dispose();

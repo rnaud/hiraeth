@@ -208,7 +208,7 @@ to the plan (`closingShot`: mirrored for **left**, swung toward his side for **s
 | `none` | the battery, the fluid gun | no beat: he wears the battery from the card on; the gun is in his hand once play is back (issue #786: no firing to watch) |
 | `wear` | cosmetics (the pale star) | pinned on; a close look at it worn on his lapel |
 | `keep` | charms | turned over in his fingers, then pocketed with a soft chime |
-| `fit` | battery upgrades (coil, chamber), the battery's parts (the lift valve, the jets, the wings, the bellows), the Givers' blade and guard | the battery's to the battery at his left hip (`FIT_HIP`, `stowFor`; issue #728), the blade and the guard over his shoulder onto his back, a click; shot from behind him |
+| `fit` | battery upgrades (coil, chamber), the battery's parts (the lift valve, the jets, the wings, the bellows), the Givers' blade and guard | the battery's to the battery in its bracer on his right forearm (`FIT_ARM`, `stowFor`; issues #728, #799), the blade and the guard over his shoulder onto his back, a click; shot from behind him |
 | `point` | the glyph lens, the listening shell | held up, he turns (≤ 70°) toward the nearest box still shut (`pointAt`), a thread of light that way, a faint answer |
 | `play` | the bell-note whistle, the echo shell | to his lips: the bell's note, or a few notes on the shell; notes of light rise |
 

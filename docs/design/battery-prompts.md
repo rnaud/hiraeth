@@ -1,6 +1,6 @@
 # Where the makers' battery goes: reference prompts
 
-2026-10-30, issue #799. The makers' battery (`docs/systems/traveller-kit.md`, `src/battery-hang.js`) hangs low on his
+2026-10-30, issue #799. The makers' battery (`docs/systems/traveller-kit.md`; then `src/battery-hang.js`, removed when the bracer was picked) hangs low on his
 left hip since #745, an upright canister 23 cm tall and 14 cm across its rails. The author: "the battery hanging is
 pretty bad, maybe we do reference explorations to find the right spot for it? maybe it should be horizontal and
 slimmer?" These prompts try eight places for it, each drawing a slimmer battery than today's. The battery's look is the

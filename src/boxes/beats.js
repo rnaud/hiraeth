@@ -4,13 +4,13 @@
 //   try    a gadget, a gun mode: he tries it once (held out in his right hand, it fires a spray of light ahead of
 //          him, a kick back, its sound). Only what shoots: the backpack and its parts came before the gun, and him
 //          firing them read as shooting with nothing to shoot (the author's playthrough, issues #58 and #70)
-//   none   the makers' battery: none (he wears it the moment the card goes: at his hip, as it is); and the fluid gun
+//   none   the makers' battery: none (he wears it the moment the card goes: in its bracer on his forearm); and the fluid gun
 //          (issue #786, the author: "When I get the fluid gun no need to show me an animation of it firing": it is
 //          taken in hand by itself once the scene hands back, docs/systems/gadgets.md)
 //   wear   a cosmetic (the pale star): he pins it on, and a close look at it worn
 //   keep   a charm or a token: he turns it over in his hand, then pockets it (the act: the pocket)
-//   fit    an upgrade or a part for the battery (the lift valve, the jets, the wings, the bellows: to the battery at
-//          his hip, FIT_HIP), and the Givers' blade and guard (onto his back, never swung or fired out of the
+//   fit    an upgrade or a part for the battery (the lift valve, the jets, the wings, the bellows: to the battery in its
+//          bracer on his right forearm, FIT_ARM), and the Givers' blade and guard (onto his back, never swung or fired out of the
 //          chest): over his shoulder, a click
 //   point  a finder (the glyph lens, the listening shell): held up, he turns toward where it points
 //          (the nearest unopened box), a thread of light going that way, a faint answer
@@ -24,11 +24,11 @@
 // z = STAND_AT facing -z, where the box was). `Z` below is STAND_AT.
 
 /** Where a part for the makers' battery (the lift valve, the wings, the bellows, a chamber, the coil) is fitted: the
- *  battery hanging at his left side, a little behind it, its middle a hand under his belt (issues #728, #745;
- *  fluid-tool.js TANK.at), not his back. */
-export const FIT_HIP = [-0.25, 0.84, 0.14];
+ *  battery's middle in its bracer on his right forearm as his arm hangs (issue #799; src/battery-bracer.js, measured on
+ * *  v2 standing in node, as tests/battery-bracer.test.js sets him), not his back. */
+export const FIT_ARM = [0.26, 1.04, 0.11];
 /** Where a beat's item ends up for this item (`def` its items.js entry). */
-export const stowFor = (beat, def) => (beat === 'fit' && def?.kind !== 'weapon' ? FIT_HIP : BEATS[beat]?.stow);
+export const stowFor = (beat, def) => (beat === 'fit' && def?.kind !== 'weapon' ? FIT_ARM : BEATS[beat]?.stow);
 
 /** The longest a closing beat may add (s). */
 export const MAX_BEAT = 2;
@@ -43,7 +43,7 @@ export const BEATS = {
   try: { dur: 1.7, act: 0.75, hold: [0.24, 1.2, -0.45], stow: [0.05, 1.3, 0.24], scale: 0.42 },
   wear: { dur: 1.6, act: 0.55, hold: [-0.06, 1.47, -0.16], stow: 'worn', scale: 0.22 },
   keep: { dur: 1.6, act: 1.2, hold: [0.18, 1.18, -0.4], stow: [0.26, 0.96, -0.04], scale: 0.38 },
-  fit: { dur: 1.5, act: 1.25, hold: [0.32, 1.7, 0.02], stow: [0, 1.3, 0.24], scale: 0.4 },   // (the blade and the guard: onto his back; the battery's parts: FIT_HIP)
+  fit: { dur: 1.5, act: 1.25, hold: [0.32, 1.7, 0.02], stow: [0, 1.3, 0.24], scale: 0.4 },   // (the blade and the guard: onto his back; the battery's parts: FIT_ARM)
   point: { dur: 1.8, act: 0.6, hold: [0.2, 1.45, -0.32], stow: [0.26, 0.96, -0.04], scale: 0.38 },
   play: { dur: 1.8, act: 0.5, hold: [0.04, 1.56, -0.24], stow: [0.26, 0.96, -0.04], scale: 0.32 },
   none: { dur: 0, act: 0, hold: [0, 1.3, 0.24], stow: 'worn', scale: 1 },

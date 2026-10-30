@@ -328,8 +328,8 @@ test('dark scruffy hair leaves the eyes clear; the earned star attaches to the c
 
 // The third round of the author's notes: more casual (no space suit), a backpack as at first with the fluid
 // tank slimmer, and closer to the coral-jacket sheets (thinner cheeks, scruffier hair).
-test('an ordinary canvas rucksack, the makers\' battery at his hip', async () => {
-  const { TANK } = await import('../src/fluid-tool.js');
+test('an ordinary canvas rucksack, the makers\' battery on his forearm', async () => {
+  const { BRACER } = await import('../src/battery-bracer.js');
   const { RUCKSACK } = await import('../src/traveller.js');
   const h = traveller(); h.update(true); h.model.updateMatrixWorld(true);
   const inChest = (re) => {
@@ -343,10 +343,10 @@ test('an ordinary canvas rucksack, the makers\' battery at his hip', async () =>
   const sack = inChest(/^Rucksack$/);
   for (const n of ['Rucksack_lid', 'Rucksack_lid_straps', 'Rucksack_buckles', 'Bedroll', 'Rucksack_pocket']) assert.ok(piece(h, n), n);
   assert.equal(piece(h, 'Rucksack').material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.canvas.slice(1), 'canvas, not a radio box');
-  // the makers' battery (issue #728) is not on his back: at his left hip, a little behind it (TANK.at, the hip frame:
-  // the chest's, carried by the pelvis), its top under his ribs
-  const [x0, y0, z0] = TANK.at;
-  assert.ok(x0 > 0.05 && z0 < 0 && y0 + TANK.height < 0.45, `at his left hip (${TANK.at})`);
+  // the makers' battery (issues #728, #799) is not on his back: in its bracer on his right forearm, the gloved one
+  // (battery-bracer.js; measured on the game's traveller in tests/battery-bracer.test.js)
+  assert.equal(BRACER.bone, 'lowerarm_r');
+  assert.ok(h.b.lowerarm_r && BRACER.y[1] < h.b.hand_r.position.length(), 'down his forearm, above the wrist');
 });
 
 test('scruffier hair: broken, tousled locks with lighter edges; a leaner face with thinner cheeks', () => {

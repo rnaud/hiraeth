@@ -1575,7 +1575,7 @@ export class Humanoid {
     blendHand(B.hand_r, to, right.clone().negate(), k);
     if (B.upperarm_l && B.lowerarm_l && B.hand_l) {
       const shl = B.upperarm_l.getWorldPosition(new THREE.Vector3());
-      const under = B.hand_r.getWorldPosition(new THREE.Vector3()).addScaledVector(up, -0.06).addScaledVector(to, -0.05).addScaledVector(right, -0.05);
+      const under = B.hand_r.getWorldPosition(new THREE.Vector3()).addScaledVector(up, -0.067).addScaledVector(to, -0.05).addScaledVector(right, -0.05);   // (under the makers' bracer on that forearm, issue #799)
       this.solveTwoBone(B.upperarm_l, B.lowerarm_l, B.hand_l, under, shl.addScaledVector(up, -0.6).addScaledVector(right, -0.6), k * 0.85);
       blendHand(B.hand_l, to.clone().addScaledVector(right, 1.2).normalize(), up, k * 0.85);   // cupped under it, palm up
     }

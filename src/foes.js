@@ -3701,7 +3701,7 @@ export class Foes {
     if (T?.reserve) {
       T.reserve.level = Math.min(T.reserve.max, T.reserve.level + 1);
       T.flash = 1; T.wave = Math.max(T.wave ?? 0, 0.6);
-      const tank = T.tank?.group ? T.tank.group.localToWorld(_w.set(0, 0.3, 0)) : null;
+      const tank = T.tank?.group && T.handPoint ? T.handPoint(_w) : null;   // (the battery's glass: in its bracer on his forearm, issue #799)
       if (tank) for (let i = 0; i < HIT_SPLASH.toTank; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
     if (breaksApart(f)) this.breakApart(f, { blast: !!f.blast });   // (a machine, a crawler blown up: its pieces fly; nothing of flesh, issue #773)

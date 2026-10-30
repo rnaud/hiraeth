@@ -22,7 +22,7 @@ import { runSteps } from '../src/load-steps.js';
 import { FOES, Foes } from '../src/foes.js';
 import { BLADE, WIDE_CUT } from '../src/fluid-blade.js';
 import { KIT_COLOURS, PIECES, colourById, colourOfWorld, wonColours, chosenColour, chooseColour, cycleColour, unlockColours, coloursData, paintPack, paintWater, PACK_BASE } from '../src/kit-colours.js';
-import { buildFlask } from '../src/fluid-tool.js';
+import { buildFlask, TANK } from '../src/fluid-tool.js';
 import { makeMaterial } from '../src/materials.js';
 import { itemsPanel } from '../src/game-menu.js';
 
@@ -482,16 +482,19 @@ test('the kit’s colours: the makers’ always yours, a world’s won once in i
   assert.equal(rows[0].of, 2);
 });
 
-test('painted on: the backpack’s brass, canvas, cloth and leather take a palette’s and go back; the sword’s and shield’s water retinted', () => {
+test('painted on: the battery’s brass and its bracer’s straps take a palette’s and go back; the sword’s and shield’s water retinted', async () => {
   const glass = makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, 0.3, 0.19, 0.4], fluidTones: Array(6).fill('#ffffff'), fluidBase: '#49ab83' });
   const { group } = buildFlask(glass);
+  // (since #799 the cell is all brass, and its bracer's straps the pack's leather: fluid-tool.js, battery-bracer.js)
+  const { BRACER, fitBracer, buildBracer } = await import('../src/battery-bracer.js');
+  group.add(buildBracer(fitBracer([], BRACER), TANK, (color) => makeMaterial({ color, flat: true })));
   const colours = () => { const s = new Set(); group.traverse((o) => { if (o.isMesh) for (const m of [o.material].flat()) if (m.uniforms?.uColor) s.add('#' + m.uniforms.uColor.value.getHexString()); }); return s; };
   const before = colours();
-  assert.ok(before.has(PACK_BASE.brass) && before.has(PACK_BASE.canvas) && before.has(PACK_BASE.cloth) && before.has(PACK_BASE.leather));
+  assert.ok(before.has(PACK_BASE.brass) && before.has(PACK_BASE.brassDark) && before.has(PACK_BASE.leather));
   const ember = colourById('ember');
   assert.ok(paintPack(group, ember) > 5);
   const after = colours();
-  for (const k of ['brass', 'canvas', 'cloth', 'leather']) { assert.ok(after.has(ember.pack[k]), k); assert.ok(!after.has(PACK_BASE[k]), `no makers’ ${k} left`); }
+  for (const k of ['brass', 'brassDark', 'leather']) { assert.ok(after.has(ember.pack[k]), k); assert.ok(!after.has(PACK_BASE[k]), `no makers’ ${k} left`); }
   assert.equal(glass.uniforms.uFluidBase.value.getHexString(), '49ab83', 'the fluid itself keeps the gun mode’s colour');
   paintPack(group, colourById('makers'));
   assert.deepEqual([...colours()].sort(), [...before].sort(), 'the makers’ put back exactly');

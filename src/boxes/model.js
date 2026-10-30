@@ -148,13 +148,14 @@ const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [C
 const flatM = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
 
 function tankModel() {
-  // the makers' battery as it is worn (fluid-tool.js buildFlask, without its clip), in its own fluid material (not the
-  // worn one's: the box animates its time); tipped as the reference lies, a little turned to the eye (item-icons.js ICON_VIEW)
+  // the makers' battery, the slim cell its bracer holds on his forearm (fluid-tool.js buildFlask, issue #799), in its own
+  // fluid material (not the worn one's: the box animates its time); tipped as the reference lies, a little turned to the eye
+  // (item-icons.js ICON_VIEW), shown at the size the hip battery was (it is 9 cm long)
   const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [TANK.glass.y0, TANK.full, TANK.radius, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false, stage: 0 });
   glass.userData.fluid = true;
   g.position.y = -TANK.height / 2;
   const tip = new THREE.Group(); tip.add(g); tip.rotation.set(0, Math.PI - 0.6, -0.55);
-  const w = new THREE.Group(); w.add(tip); w.scale.setScalar(1.2);
+  const w = new THREE.Group(); w.add(tip); w.scale.setScalar(2.6);
   return w;
 }
 

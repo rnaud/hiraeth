@@ -98,7 +98,8 @@ const human = prepareHuman(await glb('human_m.glb'), 'm');
 function wearer() {
   const char = buildCharacter(), h = new Humanoid(human, char, 'm', { outfit: template });
   const gear = new Gear(new THREE.Scene(), h, char);
-  const group = new THREE.Group(); group.position.set(...TANK.at); group.scale.setScalar(TANK.scale); h.chestAnchor.add(group);
+  // (the battery in its bracer on his right forearm, issue #799: fluid-tool.js seats it there)
+  const group = new THREE.Group(); group.position.set(0.045, 0.14, -0.02); group.scale.setScalar(TANK.scale); h.b.lowerarm_r.add(group);
   h.update(true); h.model.updateMatrixWorld(true);
   return { char, h, gear, tank: group };
 }
