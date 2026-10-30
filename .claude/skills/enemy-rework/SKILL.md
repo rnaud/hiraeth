@@ -1,6 +1,6 @@
 ---
 name: enemy-rework
-description: Building a new enemy of Hiraeth's roster or reworking one to its picked design sheets (references/enemy-archetypes/<id>/sheet-1.jpg the main skin, sheet-2.jpg the alternate) — silhouette and proportions, parts, the procedural surface (patterns, colour zones, glow, gloss: mandatory), each skin's palette, motion, attack wind-ups and telegraphs, the combat review, performance, and the changelog's before / after pictures with the sheet as its own picture. Use for every roster batch (docs/design/enemy-roster.md, batches 3–6), when an enemy looks far from its sheet, or when a skin is added.
+description: Building a new enemy of Hiraeth's roster or reworking one to its picked design — the #800 rebuild from an approved reference with Tripo (T-pose sheets, generation through the API, prepare.mjs: cut by geometry, repainted flat, a 12k LOD, vertex colours; the rig by body family; gaze, moving parts, tools, grips, skin props; the trial page, evidence and landing one foe at a time), and the procedural route to the design sheets (references/enemy-archetypes/<id>/sheet-1.jpg, sheet-2.jpg) — silhouette and proportions, parts, the procedural surface (patterns, colour zones, glow, gloss: mandatory), each skin's palette, motion, attack wind-ups and telegraphs, the combat review, performance, and the changelog's before / after pictures with the reference as its own picture. Use for every foe of the #800 roster rebuild, every roster batch (docs/design/enemy-roster.md), when an enemy looks far from its reference, or when a skin is added.
 ---
 
 # Reworking an enemy to its sheets
@@ -10,6 +10,32 @@ and proportions against the traveller, the same parts, **the same painted surfac
 glow and gloss the sheet draws), the same palette per skin, and it moves and winds up its attacks the way the design
 says. A flat colour per part is never enough: the batch-1 art pass matched the shapes and still looked far from the
 sheets until the surfaces were painted (v1.11).
+
+## Which route
+
+- **A foe of the #800 rebuild (an approved image in `references/enemy-redesign-2026-10-30/<concept>/`): Tripo.** The
+  author picked the Tripo body in all four trials (shellback, hound, wood cutter, dune mummer, 2026-10-30), each after
+  fixes. Follow **[references/tripo-rebuild.md](references/tripo-rebuild.md)**, then this file's steps 5–9 for motion,
+  telegraphs, combat, cost and the changelog. In short:
+  1. **Generate** from the approved image (humanoids: from the author's picked T-pose sheets, made in the reference
+     lab with the approved image as `--refs`, multiview). Tripo API, `TRIPO_3D_API_KEY` (never printed), H3.1
+     (`v3.1-20260211`), texture `v3.5` with `delight: true` (Remove Lighting), PBR off, 30k faces; credits and ids in
+     `task.json`; untouched exports kept.
+  2. **Prepare** (`prepare.mjs`): the game's frame and size; parts cut by geometry, never by colour; repainted by part
+     in the reference's flat colours, island gaps filled, painted eyes and baked shading out; a 12k LOD decimated by
+     geometry alone; COLOR_0 for Unity; 512–1024² texture; landmarks measured from the mesh.
+  3. **Rig by family:** many-legged, a custom skin on the game's legs; four-legged, Tripo's quadruped weights on the
+     game's bones (its skeleton not trusted); machine, rigid parts cut at the joints with blended seams; two-legged,
+     Tripo's biped rig posed directly by the clips (never a hidden copy).
+  4. **Must-haves:** the gaze (eyes or head their own parts, turned to the traveller: the author's rule), claws and
+     jaws on their own bones, tools apart from the hand (each world its own), grips held through every clip, each
+     world's skin and props.
+  5. **Keep** everything in the baseline's list; **prove it** on the trial page (strips, stills, gaze, close-ups,
+     walk and pounce audits, bench, tests, the foe's own README); **land** one foe at a time (replace the archetype, or
+     a new id when the author keeps the old), warmed in the Arena, in Unity, with the changelog's before/after.
+- **Any other rework, or a foe without a Tripo pick: the procedural route below** (the direct bodies of the trials,
+  `src/enemies/plans/shellback.js`, `broad-hound.js`, `woodcutter.js`, `dune-mummer.js`, are its worked examples and
+  the fallbacks where a shipped body is not loaded).
 
 Read first: `docs/design/enemy-roster.md` (the archetype: role, attacks, answers, calm, worlds and skins; "Status"),
 `docs/systems/foes.md` ("The enemy roster", "Procedural surfaces", "Telegraphs: the body, not the floor"),
@@ -140,6 +166,9 @@ the sheet into the render** (the stitched contact sheets stay a working tool). W
 and keeps its `reference`. Look at every pair; check sizes (`tests/changelog-media.test.js`).
 
 ## Checklist
+
+For a Tripo rebuild, first the checklist of [references/tripo-rebuild.md](references/tripo-rebuild.md) section 5
+(what it keeps) and its evidence (section 6); a #800 foe's `reference` picture is its approved image, not a sheet.
 
 - [ ] Both sheets read: views, scale, parts, surface, palette written down; which skin each is.
 - [ ] Silhouette and proportions match the black silhouette and the traveller's scale (contact sheet).

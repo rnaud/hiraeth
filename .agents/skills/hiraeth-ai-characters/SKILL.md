@@ -13,6 +13,8 @@ For procedural people, enemies, or a roster-wide quality pass, read [procedural-
 
 Read [pipeline-and-failures.md](references/pipeline-and-failures.md) when generating, fitting or repairing a character. Read [repo-map.md](references/repo-map.md) for the existing tools and validation commands. Do not duplicate those implementations into the skill.
 
+For a roster foe of the #800 enemy rebuild (an approved reference rebuilt with Tripo), follow [enemy-rebuild.md](references/enemy-rebuild.md).
+
 For creatures and temple guardians, read [non-humanoids.md](references/non-humanoids.md). Choose the animation family first; do not fit a six-legged creature or floating guardian to the MakeHuman skeleton. Apply finger and cloth checks only when that anatomy or garment exists.
 
 ## Decide the asset contract before generating
