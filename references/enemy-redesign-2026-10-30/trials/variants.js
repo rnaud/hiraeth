@@ -27,9 +27,10 @@ async function tripoBuilder(kind) {
     return (skin) => tripoWoodcutterModel(skin, sources.brute);
   }
   if (kind !== 'crab') return null;
-  const { loadTripoShellback, tripoShellbackModel } = await import('./shellback-tripo/model.js');
-  sources.crab ??= await loadTripoShellback(`${here}shellback-tripo/`);
-  return (skin) => tripoShellbackModel(skin, sources.crab);
+  // (the Tripo shellback is the game's crab since #800 landed it: its shipped body and builder, src/enemies/plans/shellback-tripo.js)
+  const { loadShellbackBody, tripoShellbackModel } = await import('/src/enemies/plans/shellback-tripo.js');
+  sources.crab ??= await loadShellbackBody();
+  return (skin) => Object.assign(tripoShellbackModel(skin, sources.crab), { trial: 'tripo' });
 }
 async function tripoHound() {
   const { loadTripoHound, tripoHoundModel } = await import('./hound-tripo/model.js');

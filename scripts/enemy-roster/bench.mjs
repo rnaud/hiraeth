@@ -75,7 +75,14 @@ try {
   await c.ev('(window.__bench.reset(), window.__bench.rec = true, true)');
   await sleep(SECONDS * 1000);
   const r = await c.ev(`(() => { const B = window.__bench; B.rec = false; const med = (a) => { const s = a.filter(Number.isFinite).slice().sort((x, y) => x - y); return s.length ? +s[s.length >> 1].toFixed(2) : null; };
-    return { frames: B.frames.length, frame: med(B.frames), cpu: med(B.cpu), gpu: med(B.gpu), gpuFrames: B.gpu.length, calls: med(B.calls), tris: med(B.tris), timer: !!B.ext }; })()`);
+    // (memory: the renderer's counts, the foes' own buffers and textures, each array or picture once however many share it, the JS heap)
+    const arrays = new Set(), pics = new Set(); let geo = 0, tex = 0;
+    window.foes.group.traverse((o) => { if (!o.isMesh) return; const G = o.geometry;
+      for (const a of [...Object.values(G.attributes), G.index].filter(Boolean)) if (!arrays.has(a.array)) { arrays.add(a.array); geo += a.array.byteLength; }
+      for (const m of [].concat(o.material)) for (const t of [m.map, m.uniforms?.uMap?.value]) if (t?.isTexture && !pics.has(t)) { pics.add(t); const im = t.image; if (im?.width) tex += im.width * im.height * 4 * 4 / 3; } });
+    const R = window.renderer.info.memory, mb = (b) => +(b / 2 ** 20).toFixed(2);
+    const memory = { geometries: R.geometries, textures: R.textures, foeGeometryMB: mb(geo), foeTextureMB: mb(tex), heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 2 ** 20).toFixed(1) : null };
+    return { frames: B.frames.length, frame: med(B.frames), cpu: med(B.cpu), gpu: med(B.gpu), gpuFrames: B.gpu.length, calls: med(B.calls), tris: med(B.tris), timer: !!B.ext, memory }; })()`);
   if (arg('shot')) { const { writeFileSync } = await import('node:fs'); const shot = await c.send('Page.captureScreenshot', { format: 'png' }); writeFileSync(arg('shot'), Buffer.from(shot.data, 'base64')); }
   console.log(JSON.stringify({ commit: arg('commit') ?? 'worktree', quality: QUALITY, variant: VARIANT, size: `${W}x${H}`, ...info, ...r, errors: c.errors.slice(0, 3) }));
 } finally {

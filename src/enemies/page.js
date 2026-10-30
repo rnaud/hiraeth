@@ -12,6 +12,7 @@ import { GalleryFrame, visibleBox } from './frame.js';
 import { loadAnimationLibrary } from '../animator.js';
 import { loadMotionLibrary } from '../motion-match.js';
 import { setFoeClips } from './humanoid-rig.js';
+import { loadShellbackBody } from './plans/shellback-tripo.js';
 
 // The creatures and spirits gallery (enemies.html): the enemy roster's archetypes (src/enemies/archetypes.js), each in
 // every world's skin (src/enemies/skins.js), turning, standing, walking on the locomotion kit or winding up each of
@@ -143,6 +144,7 @@ let drag = null; $('stage').onpointerdown = (e) => { drag = [e.clientX, e.client
 $('stage').onpointermove = (e) => { if (drag) { dragOrbit(viewer.orbit, e.clientX - drag[0], e.clientY - drag[1]); drag = [e.clientX, e.clientY]; } };
 $('stage').onpointerup = () => drag = null;
 $('stage').addEventListener('wheel', (e) => { e.preventDefault(); zoomOrbit(viewer.orbit, Math.exp(e.deltaY * 0.001)); }, { passive: false });
+await loadShellbackBody();   // (the crab's body, src/enemies/plans/shellback-tripo.js: in before any crab is built)
 choose(chosen, world);
 let last = performance.now(), paused = false;
 function frame(now) { if (!paused) { viewer.time += Math.min(0.05, (now - last) / 1000); viewer.setSize($('stage').clientWidth, $('stage').clientHeight); viewer.render(chosen); } last = now; requestAnimationFrame(frame); }

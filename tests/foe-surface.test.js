@@ -13,7 +13,7 @@ import { archetypeModel } from '../src/enemies/plans/index.js';
 
 const BUILT = Object.keys(SURFACES);
 const planSources = {
-  crab: readFileSync(new URL('../src/enemies/plans/walker.js', import.meta.url), 'utf8'),
+  crab: readFileSync(new URL('../src/enemies/plans/shellback-tripo.js', import.meta.url), 'utf8'),
   lizard: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
   hound: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
   tripod: readFileSync(new URL('../src/enemies/plans/piston.js', import.meta.url), 'utf8'),

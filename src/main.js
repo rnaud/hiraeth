@@ -151,6 +151,7 @@ import { MinigameRunner } from './minigames/kit/runner.js';
 import { helperHere } from './minigames/kit/here.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
+import { loadShellbackBody } from './enemies/plans/shellback-tripo.js';
 import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireFight, wireAmbush, toolGauge, wireJumpShade } from './host/game-host.js';
 import { gameLinks } from './minigames/kit/arcade.js';
 import { talkAllowed } from './ship/landing.js';
@@ -346,6 +347,8 @@ const analytics = startWebAnalytics({ game, settings, world: minigameDef ? null 
 window.addEventListener('pagehide', () => analytics.dispose(), { once: true });
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
+// the shellback crab's body (src/enemies/plans/shellback-tripo.js, issue #800), asked for now and awaited before the foes are made
+const shellbackBody = loadShellbackBody(import.meta.env.BASE_URL);
 // B3 or the v2 rebuild (the debug switch, characters/traveller-v2.js; not on the outfits page, which dresses him itself)
 const travellerV2 = { ...travellerSetting.get(), dress: null, failed: null };
 if (query.has('outfits')) travellerV2.on = false;
@@ -1154,6 +1157,7 @@ const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
 // the foes and their drops, the lock-on and its camera, the perfect dodge's flurry, the potion, the low-health cue and the
 // knock-out (src/host/game-host.js wireFight, the engines' too; src/foes.js: the ink blots in the wilds and the makers'
 // machines in the temple, the Enemies setting; its notices teach: paced as hints, src/notice-pace.js)
+await shellbackBody;   // (a crab built before it is in would be the direct shellback: its stand-in)
 fight = wireFight({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans: humanT, waters, game, health,
   toast: (t) => showToast(t), teach: (t) => showToast(t, TEACH) });
 const { foes, chimes, potionDrops, lowHealth } = fight;

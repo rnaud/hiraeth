@@ -8,25 +8,14 @@
 // toward white). Sizes are metres of the part (the body's scale included). `mat` adds makeMaterial options to the part
 // (a denser hatch: `hatch`).
 
-/** Pale lichen stars, flecks of lichen and darker specks over a worn slate dome (the cliff crab's: sheet-1). */
-const LICHEN = {
-  spots: { color: 'accent', scale: 0.17, share: 0.6, size: 1.3, star: 0.75, jitter: 1 },
-  spots2: { color: 'accent', scale: 0.07, share: 0.3, size: 0.7, amount: 0.85 },
-  mottle: { color: 'shell2', scale: 0.12, amount: 0.35, soft: 0.1, detail: 0.55, strength: 0.55 },
-};
 /** Fine dark specks (the sheets' stippled legs, claws and belly plates). */
 const SPECKS = (color = 'dark', amount = 0.55, scale = 0.05) => ({ spots2: { color, scale, share: 0.45, size: 0.45, amount } });
 
 export const SURFACES = {
   crab: {
-    '*': {
-      under: { bands: { color: 'under*0.86', axis: 1, period: 0.07, width: 0.1, ink: 0.55 }, ...SPECKS('dark', 0.35, 0.05) },
-      leg: { ...SPECKS('dark', 0.55, 0.05) },
-      // (the fingers: apricot at the tips, the hand's ivory toward the knuckle)
-      claw: { fade: { color: 'leg', axis: 2, from: 0.22, to: 0.04 }, ...SPECKS('dark', 0.6, 0.045) },
-      joint: { ...SPECKS('dark', 0.4, 0.05) },
-    },
-    arzach2: { shell: { ...LICHEN } },
+    // (the shellback, issue #800: its Tripo body is flat colour, the reference's on its home skin; each skin paints the
+    // dome, its `shell`, with its own surface (the home skin's a soft ochre mottle, the direct body's): src/enemies/plans/shellback-tripo.js)
+    arzach2: { shell: { mottle: { color: 'shell2', scale: 0.22, amount: 0.3, soft: 0.14, detail: 0.4, strength: 0.45 } } },
     saltharbour: {
       shell: {
         mottle: { color: '#c9a35e', scale: 0.16, amount: 0.25, soft: 0.1, detail: 0.5, strength: 0.7 },
@@ -34,14 +23,13 @@ export const SURFACES = {
         spots: { color: 'accent', scale: 0.12, share: 0.95, size: 1.8, star: 0.5, ring: 0.6, jitter: 0.7, soft: 0.5, cluster: 0.38, clusterShare: 0.5 },
         spots2: { color: 'accent', scale: 0.05, share: 0.7, size: 1.0, amount: 0.95, soft: 0.5, cluster: 0.38, clusterShare: 0.6 },
       },
-      claw: { fade: { color: 'leg', axis: 2, from: 0.22, to: 0.04 }, mottle: { color: 'arm', scale: 0.05, amount: 0.3, soft: 0.06, strength: 0.7 }, ...SPECKS('dark', 0.6, 0.045) },
-      leg: { mottle: { color: 'joint', scale: 0.06, amount: 0.2, soft: 0.08, strength: 0.5 }, ...SPECKS('dark', 0.5, 0.05) },
     },
-    garage: { shell: { gloss: { size: 0.05, sky: 0.6 }, bands: { color: 'shell2', axis: 0, period: 0.4, width: 0.05, ink: 0 } } },
+    // (a small crisp highlight of the sun's, no sky's: on the Tripo dome's broad smooth top the old ones lit two patches like eyes)
+    garage: { shell: { gloss: { size: 0.01, sky: 0 }, bands: { color: 'shell2', axis: 0, period: 0.4, width: 0.05, ink: 0 } } },
     antennas: { shell: { rust: { color: 'accent', color2: 'shell2', amount: 0.3, amount2: 0.15, scale: 0.18, down: 0.6, pits: 0.3 } } },
     bazaar: { shell: { mottle: { color: 'shell2', scale: 0.18, amount: 0.4, soft: 0.1 }, ...SPECKS('dark', 0.4) } },
     underwater: { shell: { spots: { color: 'accent', scale: 0.12, share: 0.6, size: 0.7, ring: 0.5 }, ...SPECKS('joint', 0.5) } },
-    glassdunes: { shell: { glow: { color: 'shell2', amount: 0.35, rim: 0.5, core: 1.5, emit: 0.15 }, gloss: { size: 0.04, sky: 0.7 } } },
+    glassdunes: { shell: { glow: { color: 'shell2', amount: 0.35, rim: 0.5, core: 1.5, emit: 0.15 }, gloss: { size: 0.012, sky: 0 } } },
   },
   lizard: {
     '*': {

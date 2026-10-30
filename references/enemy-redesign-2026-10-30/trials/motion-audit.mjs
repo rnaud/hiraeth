@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import * as THREE from 'three';
 import { TRIAL_BUILDERS } from '../../../src/enemies/plans/index.js';
 import { shellbackModel } from '../../../src/enemies/plans/shellback.js';
-import { tripoShellbackModel } from './shellback-tripo/model.js';
+import { tripoShellbackModel, shellbackSource } from '../../../src/enemies/plans/shellback-tripo.js';
 import { broadHoundModel } from '../../../src/enemies/plans/broad-hound.js';
 import { tripoHoundModel } from './hound-tripo/model.js';
 import { nodeSource as houndSource } from './hound-tripo/node-source.mjs';
@@ -20,17 +20,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2), json = args.includes('--json'), id = args.find((a) => !a.startsWith('--')) ?? 'crab@arzach2';
 // (the mummer is on the humanoid clip rig, not the kit: its audit is foe-slide's, on the clips: mummer-tripo/motion.mjs)
 if (id.startsWith('mummer')) { await (await import('./mummer-tripo/motion.mjs')).run(id, json); process.exit(0); }
-/** The Tripo source in node: the GLB's arrays as a BufferGeometry (no texture: the vertex colours stand in). */
-function tripoSource() {
-  const b = readFileSync(join(HERE, 'shellback-tripo/tripo-lod.glb')), jn = b.readUInt32LE(12), j = JSON.parse(b.toString('utf8', 20, 20 + jn)), bin = b.subarray(28 + jn);
-  const TY = { 5126: Float32Array, 5125: Uint32Array, 5121: Uint8Array }, CO = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
-  const acc = (i) => { const a = j.accessors[i], v = j.bufferViews[a.bufferView], A = TY[a.componentType], off = v.byteOffset + (a.byteOffset ?? 0); return { arr: new A(bin.buffer.slice(bin.byteOffset + off, bin.byteOffset + off + a.count * CO[a.type] * A.BYTES_PER_ELEMENT)), n: CO[a.type], norm: !!a.normalized }; };
-  const p = j.meshes[0].primitives[0], g = new THREE.BufferGeometry();
-  for (const [k, name] of [['POSITION', 'position'], ['NORMAL', 'normal'], ['TEXCOORD_0', 'uv'], ['COLOR_0', 'color']]) { const a = acc(p.attributes[k]); g.setAttribute(name, new THREE.BufferAttribute(a.arr, a.n, a.norm)); }
-  g.setIndex(new THREE.BufferAttribute(acc(p.indices).arr, 1));
-  return { geometry: g, map: null, landmarks: JSON.parse(readFileSync(join(HERE, 'shellback-tripo/landmarks.json'), 'utf8')) };
-}
-const src = tripoSource();
+// (the Tripo shellback is the game's crab now, #800: its shipped body, public/enemies/shellback/body.glb, read at once in node)
+const src = shellbackSource();
 const BY_KIND = { crab: { current: null, direct: shellbackModel, tripo: (skin) => tripoShellbackModel(skin, src) } };
 BY_KIND.hound = (() => { const h = houndSource(); return { current: null, direct: broadHoundModel, tripo: (skin) => tripoHoundModel(skin, h) }; })();
 BY_KIND.brute = (() => { const w = woodcutterSource(); return { current: null, direct: woodcutterModel, tripo: (skin) => tripoWoodcutterModel(skin, w) }; })();

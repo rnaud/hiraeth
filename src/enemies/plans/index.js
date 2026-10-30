@@ -1,6 +1,6 @@
 import { ARCHETYPES, archetypeOfKind } from '../archetypes.js';
 import { skinOf } from '../skins.js';
-import { crabModel } from './walker.js';
+import { shellbackCrab } from './shellback-tripo.js';
 import { lizardModel, houndModel } from './quadruped.js';
 import { tripodModel } from './piston.js';
 import { blotModel } from './blob.js';
@@ -33,7 +33,8 @@ import { crawlerModel } from './crawler.js';
 // recolours and dresses it. A model is { group, body, rig, parts, eyeMat, size, tones, tell(attackId), anim(f, c),
 // dispose() }, drawn by src/foes.js Foes.look like the old kinds' (src/foe-kinds.js).
 //
-//   walker.js     plan 1   the shellback crab
+//   shellback-tripo.js plan 1  the shellback crab (issue #800: Tripo's body, public/enemies/shellback/body.glb, on the
+//                 walker plan; the direct shellback.js stands in where the body is not loaded)
 //   skitterers.js plan 2   the skitter swarm (a flock of tiny tripods at the mid tier)
 //   centipede.js  plan 3   the ring centipede (a spine on its own path, legs in a metachronal wave)
 //   hopper.js     plan 5   the bellows toad (hop by hop: its body lands each hop on planted feet)
@@ -62,7 +63,7 @@ import { crawlerModel } from './crawler.js';
 //   oracle.js     plan 28  the oracle (a hovering caster droid: the rig's upper body over a ceramic shell)
 //   crawler.js    plan 29  the crawler (a knee-high droid dome on four legs, on the kit)
 
-const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
+const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
   shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
   grunt: gruntModel, hulk: hulkModel,
@@ -71,7 +72,7 @@ const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, trip
 
 /**
  * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another
- * builder in for an archetype's while it compares them (`TRIAL_BUILDERS.crab = shellbackModel`). The game never sets one.
+ * builder in for an archetype's while it compares them (`TRIAL_BUILDERS.hound = broadHoundModel`). The game never sets one.
  */
 export const TRIAL_BUILDERS = {};
 

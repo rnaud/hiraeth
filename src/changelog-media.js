@@ -1467,6 +1467,10 @@ const FROM788 = 'Hand-made (no `view`): muted headless Chrome (--mute-audio, hir
 const FROM785 = 'Hand-made strip (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller set 3.2 m in front of Qanat’s backpack chest, W held 0.9 s (the game’s own input, a walk at 3.8 m/s), the chest opened as E does (boxes.open) while he walked; the camera pinned 1.7 m off his left side at knee height from the scene’s first frame, four frames 0, 0.25, 0.5 and 0.8 s into it (480 × 560 of each), cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The scene’s own camera sees him from further off: the pin is for the feet';
 
 /** (v2.38, issue #782: Nour's cloak in a conversation) */
+const FROM800 = 'Hand-made (no `view`, the commit to be rebased): a scratch script (scripts/changelog-shots.mjs serve, chrome and shoot: Vite on port 5446, muted headless Chrome, --mute-audio, hiraeth.muted and every volume 0 before load), High, 1280 × 720, 10:00, clear, the HUD hidden; the world loaded with a save past the prologue, its own foes taken away, one crab set down 6 m ahead of the traveller (4 m in the Arena) and posed by the game (Foes.look, its mind stopped), the camera pinned 4.6 m off its front quarter (in the Arena behind the traveller), the snap held at 80 % of its wind-up; before: fcdac987d (an archive of it on the same port), after: this change, 30 October 2026';
+const FROM800_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh shellback -level arena -fight shellback -mute), 30 October 2026, its first picture (unity-shellback-home): the game’s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
+const DEVICE800 = 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
+const SOURCE800 = 'scripts/enemy-roster/bench.mjs --level <world> --pack six crabs of its skin, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 13–29); renderer.info';
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
 const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
@@ -1635,6 +1639,38 @@ export const CHANGELOG_MEDIA = {
       commit: '2a40bf95c', view: { ...studio('who=traveller&bg=flat&gaze=free', [1280, 720]), setup: FOES741_SETUP } },
     { name: 'foes741-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Desert, a mummer set down 4.5 m ahead of the traveller (behind him from this camera): its pot of a head rises over his, though it stands 4.5 m further off',
       from: 'Unity editor batch run (scripts/unity-js-run.sh -level desert -fight mummers -mute) at 2a40bf95c, its first picture (unity-mummers-stand); the mummer king 7 m ahead is hidden behind them, and the run stopped before its later wind-up pictures' },
+  ] },
+  // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The crab has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'crab800-vael2', title: 'Vael II', caption: 'A cliff crab on the red sand of Vael II, three-quarters from its front: before, the low slate dome studded with lichen, thin pointed legs, pale claws held high and eyes on stalks; after, the tall ochre dome over a pale face with two slit eyes, the green collar, thick cream legs on red feet and the two red pincers hanging in front', from: FROM800,
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/shellback/e8102be7-014a-4a03-8150-394a7f722fec-2.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'crab800-saltharbour', title: 'The Salt Harbour', caption: 'An anchor crab on the Salt Harbour’s quay: before, the turquoise slate crab with its rope and anchor; after, the new body in the harbour’s turquoise, its dome crusted with cream barnacles, the old rope over its back and the anchor hanging off its side', from: FROM800 },
+    { name: 'crab800-bazaar', title: 'The Signal Market', caption: 'A stall crab in the Signal Market: before, the slate crab under a flat awning; after, the new body in the market’s tan and red, a striped gabled awning on four poles over its dome', from: FROM800 },
+    { name: 'crab800-fight', title: 'The fight', caption: 'In the Arena, behind the traveller as a crab winds up its snap: before, the slate crab’s claw raised high; after, the new crab rears its near pincer up and forward, the jaw open, its face and eyes on him', from: FROM800 },
+    { name: 'crab800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a cliff crab 4 m ahead of the traveller: the same new body, drawn by its colours', from: FROM800_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six crabs add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800, rows: [
+      { where: 'Vael II, High', before: 594, after: 91 },
+      { where: 'Vael II, Handheld', before: 396, after: 60 },
+      { where: 'The Salt Harbour (with its barnacles, rope and anchor), High', before: 758, after: 146 },
+      { where: 'The Salt Harbour, Handheld', before: 504, after: 96 },
+    ] },
+    { title: 'Triangles six crabs add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800, rows: [
+      { where: 'Vael II, High', before: 152.6, after: 239.8 },
+      { where: 'Vael II, Handheld', before: 101.8, after: 155.3 },
+      { where: 'The Salt Harbour, High', before: 190.7, after: 270.4 },
+      { where: 'The Salt Harbour, Handheld', before: 127.1, after: 180.3 },
+    ] },
+    { title: 'The script’s time a frame six crabs add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; the GPU’s time could not be told from the world’s own at this load, and every run held 60 fps`, rows: [
+      { where: 'Vael II, High', before: 1.7, after: 0.8 },
+      { where: 'Vael II, Handheld', before: 1.3, after: 0 },
+      { where: 'The Salt Harbour, High', before: 2.4, after: 1.5 },
+      { where: 'The Salt Harbour, Handheld', before: 2.3, after: 0.7 },
+    ] },
+    { title: 'Memory the crabs hold on the graphics card', unit: 'MB', better: 'lower', device: DEVICE800, source: `${SOURCE800}; every vertex buffer and picture the six crabs draw, each counted once however many share it`, rows: [
+      { where: 'Vael II (its picture: 512 × 512, five flat colours)', before: 0.32, after: 2.1 },
+      { where: 'The Salt Harbour (no picture: its colours on the vertices)', before: 0.36, after: 0.95 },
+    ] },
   ] },
   ],
   '2.37': [

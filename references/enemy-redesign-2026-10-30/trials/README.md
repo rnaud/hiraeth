@@ -32,7 +32,7 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `page-shot.mjs` | a picture and the report of the trial page (a check that it loads, builds every variant and stays muted) |
 | `shellback-tripo/generate.mjs` | the Tripo generation (API, the key from `.env` unprinted); the untouched export and the task record go to `../shellback/tripo/` |
 | `shellback-tripo/prepare.mjs` | that export into the trial asset: the game's frame and size, the 12k LOD, the dome cut along its lip, the texture repainted flat by part, vertex colours, the landmarks |
-| `shellback-tripo/model.js` | the Tripo body on the crab's rig (the custom skin: legs, claws with their inner finger, the face that turns to you) |
+| `../../../src/enemies/plans/shellback-tripo.js` | the Tripo body on the crab's rig (the custom skin: legs, claws with their inner finger, the face that turns to you): the game's crab since v2.38, moved out of `shellback-tripo/model.js`; its asset `public/enemies/shellback/body.glb` (`scripts/tripo/ship-shellback.mjs` from `tripo-lod.glb`) |
 | `shellback-tripo/closeups.mjs` | the gaze picture (the traveller to its left, then its right) and the snap close-up (in front and side on), a row a variant |
 | `gaze-shot.mjs` | the row of three idle and watching, the traveller to one side: a picture and each body's head/eye yaw toward him (gaze.js) |
 | `hound-tripo/generate.mjs [--rig]` | the hound's Tripo generation, then Tripo's free rig check and its quadruped rig; exports and record to `../hound/tripo/` |
@@ -203,6 +203,34 @@ foes, which the brief already builds direct.
   (1.3 MB, not 5.3); the six other world skins wear their role colours, the dome flat, no props.
 - The other three trial foes (phase 2b and on). The mummer's T-pose was picked by the author on main (`0c2c1b7bc`,
   `../keep-mummer/tpose/`), so its Tripo trial can go ahead.
+
+### In the game (v2.38)
+
+The author picked Tripo and asked for it in the game at once (2026-10-30): the crab's builder is now
+`src/enemies/plans/shellback-tripo.js` `shellbackCrab` (every world, the Arena, the fight temples, the gallery; Unity),
+the old slate crab (`plans/walker.js`) is gone and the direct body stays as the stand-in where the asset is not loaded.
+So on this page `current` and `tripo` are the same body now. What moved and what was added (docs/systems/foes.md, "The
+shellback crab"):
+
+- The asset: `public/enemies/shellback/body.glb`, 396 KB (281 KB gzipped) against the trial's 481: the same mesh, its
+  indices 16 bits, the texture 512² (nearest: still exactly the five colours; 1.33 MB with mips against 5.33), the
+  landmarks in its extras. Loaded before the foes are made (src/main.js, the gallery); read at once in Unity and Node;
+  Unity draws its vertex colours (`-fight shellback`).
+- The skins: the home skin's palette in `src/enemies/skins.js` is the reference's now; the other six recolour the five
+  roles from their palettes (the collar their `joint`), paint the dome with their own `shell` surface (the glosses made
+  small: on this broad smooth dome the old ones lit two patches like eyes) and wear their dress over the dome's measured
+  top: antennae, patina, barnacles with the rope and anchor, coral, glass facets, a gabled awning.
+- The eyes' mesh has its origin between them (the engines' mirror sends their matrix as the face turns); each kit leg
+  answers the walk audit's `lowest` with its foot bone (`tests/motion-plans.test.js`).
+
+Measured in real worlds (Vael II and the Salt Harbour, six crabs of the world's skin against none, High and Handheld,
+two rounds alternating, `scripts/enemy-roster/bench.mjs --level`): draws +594 → +91 (Vael II, High), +396 → +60
+(Handheld), +758 → +146 and +504 → +96 (the Salt Harbour, its dress); triangles +153k → +240k (High, Vael II); the
+script's time a frame +1.7 → +0.8 ms; GPU memory of the crabs 0.32 → 2.1 MB (Vael II, its texture) and 0.36 → 0.95 MB
+(the Salt Harbour). The changelog's v2.38 line has the pictures and numbers.
+
+Still off: the shadow's jagged edge across the dome's shaded side near its lip and on the legs (the game's shadow map on
+the decimated mesh: the clay view has it too); the face in the dome's shadow, grey; the face turns only 0.3 rad.
 
 ## Broad-pawed hound (`hound`), phase 2b
 

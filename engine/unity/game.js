@@ -941,6 +941,17 @@ function makePlan(args) {
       { kind: 'wisp', until: 'near', d: 3.3, secs: 3 }, { kind: 'key', code: 'KeyF', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyF', down: false },
       { kind: 'wisp', until: 'back', secs: 1 }, ...shot('3-deflect'), { kind: 'wisp', until: 'stunned', secs: 2 }, { kind: 'wait', frames: 25, secs: 0.8 }, ...shot('4-stun'), { kind: 'wisp', until: 'log' });
   }
+  if (fights.includes('shellback')) {
+    // (-fight shellback, issue #800: the shellback crab on its Tripo body, public/enemies/shellback/body.glb, drawn by its
+    // vertex colours (no picture decoded here): its home skin 4 m ahead and 2.4 m to the right (out from behind
+    // him), standing, then winding up its snap; then the anchor
+    // crab and the stall crab with their dress; the body each is said in the log)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-shellback-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'crab@arzach2', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('home'),
+      { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 24, secs: 0.45 }, ...shot('snap'),
+      { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@saltharbour', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('saltharbour'),
+      { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@bazaar', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('bazaar'));
+  }
   if (fights.includes('armour')) {
     // (-fight armour, issue #722: a bell walker of the Signal Market set down 5 m ahead, kept up, locked on: its plates on;
     // three charged cuts at it (Foes.hurt, as the blade's): its plates knocked off onto the ground; then a banded bell walker
@@ -1652,6 +1663,12 @@ function playFrame(dt) {
       for (const f of F.list.filter((x) => x.alive)) {
         const a = f.def.attacks.find((x) => x.id === 'overhead') ?? f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.throwsAlly);
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); console.log(`[unity] ${f.kind} winds up ${a.id}`); }
+      }
+    } else if (step.what === 'body') {
+      // (-fight shellback: which body each foe wears, its drawn meshes and whether it is coloured by its vertices)
+      for (const f of F.list.filter((x) => x.alive)) {
+        let n = 0, tinted = 0; f.model?.group?.traverseVisible?.((o) => { if (o.isMesh) { n++; if (o.material?.vertexColors || o.geometry?.attributes?.color) tinted++; } });
+        console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);
       }
     } else if (step.what === 'windup') {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }

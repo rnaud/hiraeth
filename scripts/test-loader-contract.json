@@ -14,7 +14,7 @@
     "engine/game-test-runtime.mjs": "e159d6c6322edcbe100884c108e701884583131f520b0c965f81aae5feda02a9",
     "scripts/engine-bundle-core.mjs": "b880e406b92c4b1c3f5929b7bdaa3269ad7b50d8832257e41d5defde50c12aed",
     "engine/vm-run.mjs": "aa6508970479068ef8cb2cb22686e5ec57348aade39929eaf94aae4ee433ebf3",
-    "engine/boot.js": "a5ba211a1967cee1ba33a14c196dffa0324da090df57492fb563e52c471ecfd9",
+    "engine/boot.js": "ae99d701938fc246f5b2677208b1e907f2bd600c2e00757fa63207090514fce5",
     "engine/platform.js": "99a2d72f5fb588a52cab3e5f0a180e4af785b409bdb57e275028300c6139978d"
   }
 }

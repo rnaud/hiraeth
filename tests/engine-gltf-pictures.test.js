@@ -18,7 +18,7 @@ const PUBLIC = join(import.meta.dirname, '..', 'public');
 /** Every model of the game's, with its glTF images. */
 const MODELS = PUBLIC_MODELS.map((f) => {
   const b = readPublicModel(f), json = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString());
-  return { file: f, images: json.images ?? [] };
+  return { file: f, images: json.images ?? [], colour0: (json.meshes ?? []).every((m) => m.primitives.every((p) => p.attributes.COLOR_0 !== undefined)) };
 });
 
 let built = null;
@@ -45,7 +45,8 @@ test('every model with a picture of its own is named, kept encoded or drawn by i
   for (const m of pictured) {
     const enc = named(m.file, B.ENCODED_PICTURES), col = named(m.file, B.COLOURED_PICTURES);
     assert.ok(enc !== col, `${m.file}: in one of ENCODED_PICTURES, COLOURED_PICTURES`);
-    if (col) assert.ok(existsSync(join(PUBLIC, m.file, '..', 'colors.json')), `${m.file}: its colours beside it`);
+    // (its colours beside it, colors.json; or in its own COLOR_0, the shellback crab's body, #800)
+    if (col) assert.ok(m.colour0 || existsSync(join(PUBLIC, m.file, '..', 'colors.json')), `${m.file}: its colours beside it or on its vertices`);
   }
 });
 

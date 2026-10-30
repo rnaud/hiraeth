@@ -1142,7 +1142,7 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   and the burst as before at the end (the ink, the tank's charge, the chimes, a machine's pieces). **Nothing ends on its
   side** (v2.37, issue #767, the author: "No enemy should fall on their side when they die. Die animation should make
   sense for the character"): one death a body (`DEATHS`), no recipe flips or rolls. Beasts on legs fold them and slump onto
-  their bellies, the head down: the crab (its claws laid forward on the sand, `plans/walker.js`; the killing blow's own
+  their bellies, the head down: the crab (its claws laid forward on the sand, `plans/shellback-tripo.js`; the killing blow's own
   flip, `fight.down`, not played: one already on its back stays there), the skitters (legs curled under), the lizard and
   the hound (legs splayed), the toad (its bellows empty, flat), the heron (off its stilts onto its belly, its neck down;
   a toppled one comes back level, `plans/stilt.js`). The centipede's plates sink flat one after another from the head
@@ -1178,7 +1178,7 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   less the recipe's own `sink` and less `D.allow` easing out over `GROUNDED.ease` (the first 30 %): it rolls over on the
   ground, no pop. The mound worm (a burrower) is left to dive back under its sand. Parts that rest on the ground
   themselves are marked `userData.noGround`: the jelly's threads and lanterns (verlet chains, put back on the ground
-  while it goes down: `plans/floater.js`). The crab's arms drop limp to its sides as it goes (`plans/walker.js`), so on
+  while it goes down: `plans/floater.js`). The crab's arms drop limp to its sides as it goes (`plans/shellback-tripo.js`), so on
   its back its pincers stick up with its legs instead of propping it; a ray or a moth's bank comes out as it touches
   down (`defeatPose`, `plans/glider.js`): it lands flat, not on a wing's tip. Cost: building the hull 0.1–5 ms at the
   blow (in its hit-stop), then about 0.1 ms a falling foe a frame in node (16 falling at once: 2.2 ms against 0.4).
@@ -2361,8 +2361,8 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   alone in the first half of the route, with fillers round them from the third stage on (the group taking
   `GROUP_COST` places), and the first half of the route holds at most one ranged kind a pack. "Balance" below says
   how the curve was set.
-- **Bodies** (`src/enemies/plans/`, one builder per plan, `archetypeModel(kind, skin)`): `walker.js` (plan 1: the
-  crab), `quadruped.js` (plan 6: the lizard and the hound, one rig), `piston.js` (plan 18: the tripod), `blob.js`
+- **Bodies** (`src/enemies/plans/`, one builder per plan, `archetypeModel(kind, skin)`): `shellback-tripo.js` (plan 1: the
+  crab, on Tripo's body since v2.38, issue #800: "The shellback crab" below), `quadruped.js` (plan 6: the lizard and the hound, one rig), `piston.js` (plan 18: the tripod), `blob.js`
   (plan 20: the blot). Each rides the locomotion kit (src/motion-kit/: the rig, the gait, the poses), its loose parts
   on a verlet chain (`src/motion-kit/chain.js`: the lizard's tail, the hound's smoke); a leg may lift on its own
   (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch). Batch 2 rides the kit's chains
@@ -2777,8 +2777,47 @@ The rebuild's trial page, `references/enemy-redesign-2026-10-30/trials/arena.htm
 the four trial foes between current, direct and Tripo (`trials/variants.js` `use(kind, variant)`, which also forgets
 the bodies built ahead) or shows the three 3 m apart on one clip clock; the capture (`baseline/baseline-shots.mjs
 --variant`), the bench (`scripts/enemy-roster/bench.mjs --variant`) and the walk audit (`trials/motion-audit.mjs`)
-take the same switch. The shellback's direct body is `src/enemies/plans/shellback.js` (the crab's id, def, sounds and
-rig family); its Tripo body lives with the trial (`trials/shellback-tripo/`). Findings: the trials README.
+take the same switch. The shellback's two bodies: the direct one, `src/enemies/plans/shellback.js` (the crab's id, def,
+sounds and rig family), and Tripo's, which the author picked and the game now wears (below); `variants.js` `tripo` builds
+the game's, `current` is the same body. Findings: the trials README.
+
+### The shellback crab (v2.38, issue #800)
+
+The `crab` is the Tripo shellback everywhere it is fielded (its eight worlds, the Arena, the fight temples, the creatures
+gallery): `src/enemies/plans/shellback-tripo.js` `shellbackCrab`, the crab's builder in `plans/index.js`. The old
+slate crab of `plans/walker.js` is gone; the direct shellback (`plans/shellback.js`) stands in where the body is not loaded.
+
+- **The asset**: `public/enemies/shellback/body.glb` (396 KB, 281 KB gzipped), made by `scripts/tripo/ship-shellback.mjs`
+  from the trial's (`references/enemy-redesign-2026-10-30/trials/shellback-tripo/`: `prepare.mjs` from the untouched
+  Tripo export): the same 12,592 triangles (the dome's 2,588 first), COLOR_0 in the five flat colours, 16-bit indices, the
+  flat texture at 512² (1.33 MB of GPU memory with its mips, not 5.33), the rig's landmarks in its extras.
+  `parseShellback` reads it without three's loader (one mesh, plain accessors).
+- **Loading**: `loadShellbackBody()` fetches it and decodes its picture (a browser); `src/main.js` asks for it with the
+  first loads and awaits it before `wireFight` makes the foes, the gallery (`src/enemies/page.js`) before its first
+  build. The engines and Node read it at once on the first build (`shellbackSource`: the host's `readFile`, or Node's
+  files; no picture: the home skin is drawn by its vertex colours there, the texture's five exactly). A crab built
+  before it is in, or where the file is missing (an old player's StreamingAssets), is the direct shellback.
+- **The body**: the motion kit's walker plan (an alternating tripod), its legs fitted to the mesh's own; a custom skin
+  (`SkinLegs` bend-plane bones for the legs, the claw's shoulder, blade and inner finger, a face bone); the dome its own
+  mesh on the body, its two front scutes the armour that falls (`Foes.dropPlate`); slit eyes on the face bone that the
+  gaze turns (±0.3 rad) and slides (3.5 cm). Drawn: 5–8 meshes a body (the skin, the dome, two scutes, the eyes, the
+  dress), against the slate crab's 33.
+- **Skins**: the home skin (Vael II's cliff crab, `skins.js` arzach2) wears the reference's colours (its palette is the
+  reference's now); every other skin recolours the five colour roles from its palette (shell, leg, claw, collar =
+  `joint`, dark), paints its dome with the skin's `shell` surface (`surfaces.js`: the anchor crab's barnacle rosettes, the
+  oil beetle's small gloss, the copper beetle's rust, the glass crab's glow, the coral crab's spots, the stall crab's
+  mottle; the home skin's a soft ochre mottle) and wears its dress over the dome's measured top (`domeHeights`), merged a
+  material and gone with the dome when it cracks: antennae (the Sealed Hangar, the Forest of Antennas), a copper
+  patina, barnacles with a rope and an anchor (the Salt Harbour), coral (the Underwater City), glass facets (the Glass
+  Dunes), a stall's gabled awning (the Signal Market).
+- **Kept**: the id, def, attacks and windows, guard, shell, sounds (`walker`/`shell`), gaze, death recipe, ragdoll and
+  lying body, the size floor, the Arena's warm-up (its programs: the skin's two materials and the dome's, warmed with
+  every skin like any foe's), saves and encounters.
+- **Unity**: the bridge draws it as it draws any foe (the mirror sends the skinned mesh, its bones and its vertex
+  colours); `BridgeBuild.Common` copies the body into a player's StreamingAssets. `-fight shellback` pictures it.
+- Tests: `tests/shellback-trial.test.js` (the shipped body is the trial's mesh, every skin's colours and dress, the
+  contract, weights, lip, jaw, gaze, the fight), `tests/motion-plans.test.js` (its walk, by its foot bones:
+  `leg.root.lowest`), `tests/foe-gaze-mirror.test.js`.
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body (`trials/hound-tripo/`) carries Tripo's own rig weights gathered onto the game's bones
 (`tests/hound-trial.test.js`).

@@ -14,9 +14,11 @@ import { PARTS } from '../levels/names.js';
 
 export const SKINS = {
   crab: {
-    // (sheet-1: slate-blue shell with pale lichen stars, ivory legs, arms and belly, apricot pincer tips, black eyes;
-    // sheet-2: turquoise shell crusted with cream barnacles, cream legs on rusty coral joints and arms, rope and anchor)
-    arzach2: { name: 'cliff crab', palette: { shell: '#7b8697', shell2: '#9ea7b3', under: '#e9dfc8', leg: '#eee5d0', joint: '#d9ccae', claw: '#e9a07a', dark: '#2f3846', eye: '#1e1d24', accent: '#efe5c4' }, props: ['lichen'] },
+    // (the shellback, issue #800: its home skin the approved reference's colours, references/enemy-redesign-2026-10-30/
+    // shellback/e8102be7-…-2.png: an ochre dome, cream legs and face, red feet and pincers, a green collar, slit eyes;
+    // the other worlds' skins recolour the same five on its body, src/enemies/plans/shellback-tripo.js; its green collar is
+    // the model's own, ROLES: a key here would be every other skin's too, skinOf)
+    arzach2: { name: 'cliff crab', palette: { shell: '#df9f45', shell2: '#e9b45f', under: '#f1e2ae', leg: '#f1e2ae', joint: '#e7d39a', claw: '#c75f3a', dark: '#3a2c22', eye: '#1e1d24', accent: '#f4e7bf' }, props: [] },
     garage: { name: 'oil beetle', palette: { shell: '#1f3b3d', shell2: '#2f5a5a', under: '#9fb3a8', leg: '#2f5a5a', joint: '#141c1d', claw: '#3b6d6a', dark: '#141c1d', eye: '#e8f07a', accent: '#7fd1c4' }, props: ['antennae', 'sheen'] },
     bazaar: { name: 'stall crab', palette: { shell: '#c98a5c', shell2: '#e0a878', under: '#f2e3c4', leg: '#f2e3c4', joint: '#d0603e', claw: '#d0603e', dark: '#3a2a24', eye: '#2a2024', accent: '#5aa39b', cloth: '#d35d6e', cloth2: '#f2c54b' }, props: ['awning'] },
     saltharbour: { name: 'anchor crab', palette: { shell: '#76b8aa', shell2: '#a0d2c4', under: '#efe4cc', leg: '#f3e9d4', joint: '#c97d64', arm: '#c97d64', tip: '#d07f66', claw: '#d9785e', dark: '#484a68', eye: '#1e1d24', accent: '#eee2c2', rope: '#b38b58', iron: '#8a4c36' }, props: ['barnacles', 'rope'], moves: ['burrow'] },

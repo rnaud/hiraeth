@@ -34,6 +34,7 @@ const KNOWN = [
   [/^prepareSoundWithRetry\(/, 'each fetch/body/decode has a 60 s deadline; failure exposes Retry or Back to title, an explicit player choice'],
   [/^loadPlayableCaravan\(/, 'the ship asset: a 60 s deadline, with explicit reload guidance on failure'],
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
+  [/^shellbackBody\b/, 'the shellback crab\'s body (src/enemies/plans/shellback-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
   [/^warmShaders\(/, 'the race below: compileAsync or 2 s'],
   [/^warmShadersSliced\(/, 'slices and the pacer per kind (on ANGLE over OpenGL a new program\'s isReady() poll, capped at `one`: 300 ms), then the pending() poll with its 2 s cap'],
@@ -80,6 +81,10 @@ test('the known waits keep their bounds', () => {
   assert.match(caravan, /timeoutMs = 60000/);
   assert.match(caravan, /Promise\.race\(/);
   assert.match(caravan, /setTimeout\([\s\S]*?, timeoutMs\)/);
+  const shellback = readFileSync(new URL('../src/enemies/plans/shellback-tripo.js', import.meta.url), 'utf8');
+  assert.match(shellback, /LOAD_DEADLINE = 30000/);
+  assert.match(shellback, /Promise\.race\(\[deadline/);
+  assert.match(shellback, /setTimeout\([\s\S]*?, LOAD_DEADLINE\)/);
   const code = uncomment(main);
   // stage() waits for nextFrame(), which falls back on a timer
   assert.match(code, /const stage = \(msg\) => \{[\s\S]*?return nextFrame\(\)/, 'stage() waits on nextFrame()');

@@ -1,6 +1,6 @@
-// The shellback's two trial bodies (issue #800 phase 2a): the direct one (src/enemies/plans/shellback.js) and the Tripo
-// one (references/enemy-redesign-2026-10-30/trials/shellback-tripo/). Both keep the crab's model contract and stay out
-// of the game until the author picks one (TRIAL_BUILDERS is empty in the game); the Tripo skin's weights are sound.
+// The shellback crab (issue #800): the Tripo body is the game's crab (src/enemies/plans/shellback-tripo.js, its shipped
+// asset public/enemies/shellback/body.glb), the direct one (src/enemies/plans/shellback.js) its stand-in where the body is
+// not loaded. Both keep the crab's model contract; the Tripo skin's weights are sound; every world's skin wears its dress.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -12,29 +12,64 @@ import { SKINS, skinOf } from '../src/enemies/skins.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { TRIAL_BUILDERS, archetypeModel } from '../src/enemies/plans/index.js';
 import { shellbackModel } from '../src/enemies/plans/shellback.js';
+import { tripoShellbackModel, shellbackSource, parseShellback, SHELLBACK_BODY } from '../src/enemies/plans/shellback-tripo.js';
 import { PLANS } from '../src/motion-kit/plans.js';
 import { lyingBody } from '../src/enemies/defeat.js';
-import { tripoShellbackModel } from '../references/enemy-redesign-2026-10-30/trials/shellback-tripo/model.js';
 
-const HERE = new URL('../references/enemy-redesign-2026-10-30/trials/shellback-tripo/', import.meta.url);
-function tripoSource() {
-  const b = readFileSync(new URL('tripo-lod.glb', HERE)), jn = b.readUInt32LE(12), j = JSON.parse(b.toString('utf8', 20, 20 + jn)), bin = b.subarray(28 + jn);
-  const TY = { 5126: Float32Array, 5125: Uint32Array, 5121: Uint8Array }, CO = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
-  const acc = (i) => { const a = j.accessors[i], v = j.bufferViews[a.bufferView], A = TY[a.componentType], off = v.byteOffset + (a.byteOffset ?? 0); return new THREE.BufferAttribute(new A(bin.buffer.slice(bin.byteOffset + off, bin.byteOffset + off + a.count * CO[a.type] * A.BYTES_PER_ELEMENT)), CO[a.type], !!a.normalized); };
-  const p = j.meshes[0].primitives[0], g = new THREE.BufferGeometry();
-  g.setAttribute('position', acc(p.attributes.POSITION)); g.setAttribute('normal', acc(p.attributes.NORMAL)); g.setAttribute('uv', acc(p.attributes.TEXCOORD_0)); g.setAttribute('color', acc(p.attributes.COLOR_0));
-  g.setIndex(acc(p.indices));
-  return { geometry: g, map: null, landmarks: JSON.parse(readFileSync(new URL('landmarks.json', HERE), 'utf8')), triangles: j.meshes[0].extras.triangles };
-}
-const SRC = tripoSource();
+THREE.ColorManagement.enabled = false;   // (as the game: colours are display values, src/main.js)
+const SRC = shellbackSource();
+SRC.triangles = SRC.geometry.index.count / 3;
 const BUILD = { direct: shellbackModel, tripo: (skin) => tripoShellbackModel(skin, SRC) };
+const variant = (M) => M.trial ?? M.shellback;
 const drawn = (g) => { let n = 0; g.traverseVisible((o) => { if (o.isMesh) n++; }); return n; };
 
-test('the game builds its own crab: no trial body stands in (#800)', () => {
+test('the game\'s crab is the Tripo shellback, from its shipped body, in every skin (#800)', () => {
   assert.deepEqual(Object.keys(TRIAL_BUILDERS), []);
-  const M = archetypeModel('crab', 'arzach2');
-  assert.equal(M.trial, undefined, 'the crab of plans/walker.js');
+  for (const id of Object.keys(SKINS.crab)) { const M = archetypeModel('crab', id); assert.equal(M.shellback, 'tripo', id); M.dispose(); }
+  // (the shipped file: the trial's mesh as it is, its indices 16 bits, the flat texture 512², the landmarks in its extras)
+  const trial = readFileSync(new URL('../references/enemy-redesign-2026-10-30/trials/shellback-tripo/tripo-lod.glb', import.meta.url));
+  const T = parseShellback(trial);
+  assert.deepEqual(Array.from(SRC.geometry.attributes.position.array), Array.from(T.geometry.attributes.position.array));
+  assert.deepEqual(Array.from(SRC.geometry.attributes.color.array), Array.from(T.geometry.attributes.color.array));
+  assert.deepEqual(Array.from(SRC.geometry.index.array), Array.from(T.geometry.index.array));
+  assert.ok(SRC.geometry.index.array instanceof Uint16Array);
+  assert.equal(SRC.image.mime, 'image/png');
+  const png = new DataView(SRC.image.bytes.buffer, SRC.image.bytes.byteOffset);
+  assert.deepEqual([png.getUint32(16), png.getUint32(20)], [512, 512], 'the texture 512²');
+  assert.deepEqual(SRC.landmarks, JSON.parse(readFileSync(new URL('../references/enemy-redesign-2026-10-30/trials/shellback-tripo/landmarks.json', import.meta.url), 'utf8')));
+  assert.ok(readFileSync(new URL(`../public/${SHELLBACK_BODY}`, import.meta.url)).length < 450 * 1024, 'under 450 KB');
+});
+
+test('where no picture is drawn (the engines, node) the home skin wears its vertex colours, the texture\'s five', () => {
+  assert.equal(SRC.map, null);
+  const M = tripoShellbackModel(skinOf('crab', 'arzach2'), SRC); let sm = null; M.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; });
+  const C = sm.geometry.attributes.color, S = SRC.geometry.attributes.color;
+  assert.ok(C, 'vertex colours');
+  for (let i = 0; i < C.count; i += 97) for (const [a, b] of [[C.getX(i), S.getX(i)], [C.getY(i), S.getY(i)], [C.getZ(i), S.getZ(i)]]) assert.ok(Math.abs(a - b) < 1.5 / 255, `vertex ${i}`);
   M.dispose();
+});
+
+test('every world\'s skin wears its palette and its dress on the Tripo dome: merged, sitting on it, gone when it cracks', () => {
+  const want = { garage: ['antennae'], bazaar: ['awning'], saltharbour: ['barnacles', 'rope'], glassdunes: ['facets'], underwater: ['coral'], antennas: ['antennae', 'patina'] };
+  for (const [id, props] of Object.entries(want)) {
+    const skin = skinOf('crab', id); assert.deepEqual(skin.props.filter((p) => p !== 'sheen'), props, id);
+    const M = tripoShellbackModel(skin, SRC), dress = M.parts.find((p) => p.name === 'dress'), dome = M.parts.find((p) => p.name === 'dome');
+    let meshes = 0; dress.traverse((o) => { if (o.isMesh) meshes++; });
+    assert.ok(meshes >= 1 && meshes <= 3, `${id}: ${meshes} dress meshes`);
+    // (on the dome: none sunk far into it, the anchor hanging off its side no lower than the hips)
+    M.group.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(dress), d = new THREE.Box3().setFromObject(dome);
+    assert.ok(box.min.y > d.min.y - 0.4 && box.max.y < d.max.y + 0.7, `${id}: the dress over the dome (${box.min.y.toFixed(2)}–${box.max.y.toFixed(2)} against ${d.min.y.toFixed(2)}–${d.max.y.toFixed(2)})`);
+    // the skin's own colours on the body
+    let sm = null; M.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; });
+    const legs = new THREE.Color(skin.palette.leg), C = sm.geometry.attributes.color;
+    let found = false; for (let i = 0; i < C.count && !found; i++) found = Math.abs(C.getX(i) - legs.r) < 1e-4 && Math.abs(C.getY(i) - legs.g) < 1e-4 && Math.abs(C.getZ(i) - legs.b) < 1e-4;
+    assert.ok(found, `${id}: its legs' colour`);
+    assert.equal(dome.material, M.plates[0].material, `${id}: the scutes the dome's own`);
+    M.dispose();
+  }
+  // the home skin: the reference's, no dress
+  const H = tripoShellbackModel(skinOf('crab', 'arzach2'), SRC); let n = 0; H.parts.find((p) => p.name === 'dress').traverse((o) => { if (o.isMesh) n++; }); assert.equal(n, 0); H.dispose();
 });
 
 test('both trial shellbacks build in every crab skin, keep the model contract and cut the crab\'s 67 meshes to a handful', () => {
@@ -42,7 +77,7 @@ test('both trial shellbacks build in every crab skin, keep the model contract an
   for (const [v, build] of Object.entries(BUILD)) for (const id of Object.keys(SKINS.crab)) {
     const M = build(skinOf('crab', id));
     for (const k of ['group', 'body', 'rig', 'parts', 'eyeMat', 'size', 'tones', 'tell', 'anim', 'dispose']) assert.ok(M[k] !== undefined, `${v}@${id}: ${k}`);
-    assert.equal(M.trial, v);
+    assert.equal(variant(M), v);
     assert.equal(M.rig.legs.length, 6, `${v}: six legs on the kit`);
     assert.equal(M.rig.plan, PLANS.walker, `${v}: on the crab's rig family, the walker plan`);
     assert.equal(M.plates.length, 2, `${v}: its two scutes of armour (#722)`);
@@ -58,7 +93,7 @@ test('in the fight both stand at least to the traveller\'s hip, snap, guard, go 
     TRIAL_BUILDERS.crab = build;
     const foes = new Foes({ level: { foes: { own: true } }, levelId: 'arena', scene: null, player: { pos: new THREE.Vector3(0, 0, 40), heading: Math.PI }, physics: { groundAt: () => 0 }, game: new GameState(null), rng: () => 0.01 });
     const f = foes.add('crab@arzach2', new THREE.Vector3(), { tier: 0 }); f.heading = 0;
-    assert.equal(f.model.trial, v);
+    assert.equal(variant(f.model), v);
     for (let i = 0; i < 45; i++) foes.look(f, 1 / 30);
     const top = new THREE.Box3().setFromObject(f.model.group).max.y;
     assert.ok(top >= 0.955 && top < 2.2, `${v}: ${top.toFixed(2)} m`);

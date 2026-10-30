@@ -31,7 +31,8 @@ for (const opts of [{}, { quietWalk: true, listMatrices: true, stillMatrices: tr
     const mirror = new SceneMirror(B, opts), cam = new THREE.PerspectiveCamera();
     const crab = foes.add('crab', v(0, 0, 0)), roller = foes.add('roller', v(8, 0, 0));
     const eyeMesh = (f) => { let m = null; f.model.gaze[0].node.traverse((o) => { if (!m && o.isMesh) m = o; }); return m; };
-    const frame = () => { for (const f of [crab, roller]) { f.heading = 0; f.state = 'chase'; f.provoked = true; f.dist = f.pos.distanceTo(P.pos); foes.look(f, DT); } scene.updateMatrixWorld(); mirror.sync(scene, cam); };
+    // (the crab standing: chasing from afar the shellback scuttles side-on, #800, and he would stay past one side of its look)
+    const frame = () => { for (const f of [crab, roller]) { f.heading = 0; f.state = f === crab ? 'idle' : 'chase'; f.provoked = true; f.dist = f.pos.distanceTo(P.pos); foes.look(f, DT); } scene.updateMatrixWorld(); mirror.sync(scene, cam); };
     for (let i = 0; i < 30; i++) frame();
     const id = mirror.idOf(eyeMesh(crab));
     assert.ok(id > 0, 'the crab\'s eye is a drawable the backend knows');

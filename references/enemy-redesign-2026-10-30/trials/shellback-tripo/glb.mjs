@@ -49,8 +49,9 @@ export function writeGlb({ attrs, indices, image, imageMime = 'image/png', name 
     if (k === 'POSITION') { const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity]; for (let i = 0; i < arr.length; i++) { mn[i % 3] = Math.min(mn[i % 3], arr[i]); mx[i % 3] = Math.max(mx[i % 3], arr[i]); } a.min = mn; a.max = mx; }
     accessors.push(a); attributes[k] = accessors.length - 1;
   }
-  const ind = indices instanceof Uint32Array ? indices : Uint32Array.from(indices);
-  accessors.push({ bufferView: push(Buffer.from(ind.buffer, ind.byteOffset, ind.byteLength), 34963), componentType: 5125, count: ind.length, type: 'SCALAR' });
+  // (a Uint16Array of indices is written as it is, half the bytes: the shipped shellback's, scripts/tripo/ship-shellback.mjs)
+  const ind = indices instanceof Uint32Array || indices instanceof Uint16Array ? indices : Uint32Array.from(indices);
+  accessors.push({ bufferView: push(Buffer.from(ind.buffer, ind.byteOffset, ind.byteLength), 34963), componentType: ind instanceof Uint16Array ? 5123 : 5125, count: ind.length, type: 'SCALAR' });
   const indicesAcc = accessors.length - 1;
   const json = { asset: { version: '2.0', generator: 'hiraeth #800 shellback trial' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ name, mesh: 0 }],
     meshes: [{ name, primitives: [{ attributes, indices: indicesAcc, material: 0 }], extras }], accessors, bufferViews: views, buffers: [{ byteLength: 0 }],
