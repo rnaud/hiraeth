@@ -50,7 +50,7 @@ export const PEOPLE = {
         go: {
           say: ["~happy~ Go *east of Qanat into the high dunes*. Look for the rose-stone drum. *Its door faces the city.*", "~whisper~ Look for the Givers’ fire inside; the Keeper may need light as well as water.",
             "~curious~ Grandmother swore the Givers left *their gun, their blade and their guard* in there.",
-            { if: { flag: 'tool.empty' }, text: "~curious~ Your battery’s empty? The Givers kept a font by their fire in there. Light it, and it fills." }],
+            { if: { flag: 'tool.empty' }, text: "~curious~ Your battery’s empty? The Givers kept a font beside their fire in there. Light the fire, pull the lever, and it fills." }],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {

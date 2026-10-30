@@ -105,8 +105,9 @@ export const QUESTS = [
       // skull, the drain, the pool, the makers' door, the stair, the roots and the bike race went: src/story/desert.js
       // migrateDesertQuest, DESERT_STAGES_GONE). Nothing on the way there asks for the bike
       { id: 'rose', text: 'Walk east to the Rose House', label: 'The Rose House', flag: 'temple.desert.entered', at: 'temple.desert.door', via: 'the Givers’ dry channel' },
-      // the Hall of the Flame: a ball leaned on through the flame into the hooded bowl; lit, the Givers' font rises beside it
-      // and the battery fills there (src/temples/desert.js FONT; a battery filled before at the giant's pool counts)
+      // the Hall of the Flame: a ball leaned on through the flame into the hooded bowl; lit, the lever of the Givers' font in
+      // the Font Room next door wakes, and pulled it fills the pool and the battery (issue #784: src/temples/desert.js FONT,
+      // filmed; a battery filled before at the giant's pool counts)
       { id: 'charge', text: 'Light the Givers’ bowl and fill your battery', label: 'The Givers’ font', flag: 'desert.battery.charged', at: 'roseFont', gate: true },
       // then, in order, the Givers' gun (its push rolls the Dry Channel's weight at once), their blade, their guard
       { id: 'gun', text: 'Take the Givers’ gun by the dry channel', label: 'The Givers’ gun', when: q => q.has('gun'), at: 'temple.desert.next', gate: true },

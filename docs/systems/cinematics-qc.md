@@ -23,6 +23,16 @@ v1.6 pass's, and the verdicts file (`cinematics-qc-notes.json`) later held the v
 
 The frozen `c5449ab6c` pass is recorded in [Cinematics QC v1.90](../audits/cinematics-v1.90.md), with separate technical and five-criterion interest judgments, desktop/phone/skip evidence, and explicit audio limitations. The historical v1.6 table below is preserved. All 111 live scenes now have accepted desktop, phone and skip evidence; the continuous trailer is a separate 112th entry. The independent full-audit native parity gate is complete (87 inspected pairs); publication remains a separate coordinator action.
 
+## After the frozen pass: the Font Room's film (v2.38, issue #784)
+
+`desert.font`, added after the v1.90 pass and reviewed on its own (2026-10-29, the branch's working tree, High, muted
+headless Chrome, 1280 × 720, phone landscape 844 × 390 and the skip pass). It is not in the frozen verdicts file
+(`tests/cinematics-page.test.js` lists it among the films after that pass).
+
+| Cinematic | Tech /5 | Interest /5 | Problems | Fixed |
+|---|---|---|---|---|
+| desert.font · the Rose House, the battery fills | 5 | 4 | first run: a pylon filled A's right third; the lever's knob filled D's left half (the lever pulled into his face); the review staging never lit the bowl, so the font was not found and the pool dry at the hand-back | A moved onto the axis between the pylons; the lever pulled less and stood at 1.6 m; D from his other side; the staging rolls the ball onto the bowl's plate first. 10.8 s, four panels, skip ends in 1.6 s, peak −20 dBFS, no errors; interest short of 5: the mark's light is a small beat at the frame's top |
+
 ## The script: `scripts/cinematics-qc.mjs`
 
 ```sh

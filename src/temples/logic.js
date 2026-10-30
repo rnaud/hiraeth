@@ -5,9 +5,10 @@ import { meetsWith } from '../resources.js';
 // (runtime.js) feeds it what happens in the world and reads the doors back;
 // the tests drive it directly and solve every temple with `solve()`.
 //
-//   const L = new TempleLogic(def, { store, has });
+//   const L = new TempleLogic(def, { store, has, charged });
 //     store: { get(key), set(key, value) }   (the game's flags under temple.<id>.*: one per save slot)
 //     has(item) -> bool                     (the traveller's items, src/items.js)
+//     charged() -> bool                     (the battery has been filled: no makers' door opens before, issue #784)
 //   L.press(plate, by) / L.release(plate, by)  a weight on a plate (by: 'player' or a drum id)
 //   L.moveDrum(drum, t)                     a drum rolled along its rail (0..1); it holds its plate at plateAt
 //   L.light(id)                             a brazier lit, brambles burnt, a switch splashed, a bell door rung
@@ -78,10 +79,11 @@ const FINDS = new Set(['find', 'key', 'cache', 'map']);
 export const held = (e) => !!e && (e.type === 'vane' || !!e.hold);
 
 export class TempleLogic {
-  constructor(def, { store = memoryStore(), has = () => false } = {}) {
+  constructor(def, { store = memoryStore(), has = () => false, charged = () => true } = {}) {
     this.def = def;
     this.store = store;
     this.has = has;
+    this.charged = charged;   // (the battery filled: every makers' door waits for it, issue #784)
     this.weights = new Map();   // plate -> Set of what stands on it (transient)
     this.openNow = new Map();   // door -> open (as last computed)
     this.forced = new Map();    // door -> open, overriding its condition (cleared with force(id, null))
@@ -224,6 +226,10 @@ export class TempleLogic {
     if (e.lock && !this.unlocked(id)) return false;   // (locked: whatever else it waits for)
     if (e.lock && e.opens === undefined) return true;
     if (e.latch && this.store.get(`open.${id}`)) return true;
+    // (issue #784, the author: "Having my battery filled up should be the unlock to open doors with the makers mark":
+    // every door of a house carries the mark on its slab, so none opens while the battery has never been filled. A
+    // door opened before stays open: latched, above)
+    if (e.type === 'door' && e.mark !== false && !this.charged()) return false;
     return this.check(e.opens);
   }
   isOpen(id) { return this.openNow.get(id) ?? this.computeOpen(id); }

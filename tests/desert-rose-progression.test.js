@@ -170,3 +170,49 @@ test('a save inside the Rose House before issue #729 keeps its way: past the bow
   const fresh = state({ 'temple.desert.layout': 6 }); migrateTemples(fresh);
   assert.equal(fresh.flag('temple.desert.found.font'), undefined);
 });
+
+test('issue #784: a full battery opens every makers’ door, in every house; shut before, a door opened before stays open', async () => {
+  const { TempleLogic, memoryStore } = await import('../src/temples/logic.js');
+  const { TEMPLES } = await import('../src/temples/index.js');
+  // every house, solved with the battery full; then the same state with the battery never filled: no door holds open
+  // but those latched open before
+  for (const [id, { def }] of Object.entries(TEMPLES)) {
+    const r = solve(def.logic, { items: [...new Set(Object.values(def.logic.elements).flatMap((e) => e.needs ?? []).concat(['backpack', 'gun', 'sword', 'shield']))] });
+    const data = { ...r.logic.store.data };
+    for (const k of Object.keys(data)) if (k.startsWith('open.')) delete data[k];
+    const dry = new TempleLogic(def.logic, { store: memoryStore(data), has: () => true, charged: () => false });
+    dry.update();
+    for (const [d, e] of Object.entries(def.logic.elements)) {
+      if (e.type !== 'door' || e.mark === false || (e.lock && e.opens === undefined)) continue;
+      assert.equal(dry.isOpen(d), false, `${id}: the makers’ door ${d} shut while the battery has never been full`);
+    }
+  }
+  // the Rose House: the Dry Channel’s door waits for the font (the full battery), not the bowl
+  assert.deepEqual(LOGIC.elements.d1.opens, { found: 'font' });
+  assert.equal(LOGIC.elements.font.room, 'font');
+  const L = new TempleLogic(LOGIC, { store: memoryStore({ 'drum.ball1': 1, 'lit.b0': true }), has: () => true, charged: () => false });
+  L.update();
+  assert.equal(L.isOpen('d1'), false, 'the bowl lit: still shut');
+  L.find('font'); L.update();
+  assert.equal(L.isOpen('d1'), false, 'and shut while the battery is dry');
+  L.charged = () => true; L.update();
+  assert.equal(L.isOpen('d1'), true, 'the battery full: open');
+  L.charged = () => false; L.update();
+  assert.equal(L.isOpen('d1'), true, 'and open for good (latched)');
+  // an old save past the Hall of the Flame (the door opened to the bowl, before #784): it stays open
+  const old = new TempleLogic(LOGIC, { store: memoryStore({ 'lit.b0': true, 'open.d1': true }), has: () => true, charged: () => false });
+  old.update();
+  assert.equal(old.isOpen('d1'), true, 'an old save’s opened door stays open');
+  // the house solved with only the empty battery: the Font Room after the bowl, the Dry Channel after the font
+  const s = solve(LOGIC, { items: ['backpack'] });
+  assert.ok(s.log.indexOf('brazier b0') < s.log.indexOf('find font') && s.log.indexOf('find font') < s.log.indexOf('find gun (gun)'), s.log.join('\n'));
+});
+
+test('issue #784: an old save whose battery was already full finds the Font Room’s pool full and its lever pulled', () => {
+  const { rt } = house({ 'item.backpack': true, 'desert.battery.charged': true, 'temple.desert.found.font': true });
+  assert.equal(rt.font.k, 1, 'its pool full');
+  assert.equal(rt.font.pull, 1, 'its lever over');
+  assert.equal(rt.font.lit, 1, 'its makers’ mark lit');
+  assert.equal(rt.logic.isOpen('d1'), true, 'the makers’ door open');
+  rt.dispose();
+});

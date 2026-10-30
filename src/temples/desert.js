@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { magicMaterial, magicPool, setMagic } from '../story/magic-water.js';
+import { magicMaterial, magicPool, magicStream, setMagic } from '../story/magic-water.js';
 import { STORY, ROSE_SITE } from '../desert-sites.js';
 import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
 import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate, Key } from './pieces.js';
@@ -103,6 +103,9 @@ export const ROOMS = {
   watch: { x0: XE - 18, x1: XE + 18, z0: 91.6, z1: 123.6, y: 0, top: 18 },
   wing: { x0: XC - 18, x1: XC + 18, z0: 48.4, z1: 123.6, y: 0, top: 18 },
   cistern: { x: 0, z: 142.9, r: 18, y: 0, top: 22 },
+  // (issue #784) the Font Room, west of the Hall of the Flame through the doorway by its bowl (`door`: z): the battery's
+  // own room, its pool in the middle
+  font: { x0: XW - 18 - 1.2 - 32, x1: XW - 18 - 1.2, z0: 26.3, z1: 62.3, y: 0, top: 22, door: 44.3 },
 };
 /**
  * The Dry Channel's pier (the kit's x and z): its middle, width and depth, where the Givers' weight lies at its west end
@@ -148,6 +151,7 @@ export const LOGIC = {
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js)
   rooms: {
     threshold: { kind: 'passage' }, hall: { kind: 'puzzle' }, flame: { kind: 'puzzle' },
+    font: { kind: 'chest' },   // (issue #784: the battery's own room, its pool and lever)
     channel: { kind: 'puzzle' }, balcony: { kind: 'puzzle' }, machines: { kind: 'combat' },
     fires: { kind: 'puzzle' }, firesFar: { kind: 'chest' }, wing: { kind: 'puzzle' },
     ante: { kind: 'passage' }, cistern: { boss: true, kind: 'guardian' }, spring: { kind: 'puzzle' },
@@ -155,7 +159,8 @@ export const LOGIC = {
   links: [
     { a: 'threshold', b: 'hall' },
     { a: 'hall', b: 'flame' },                                    // the Great Hall's west archway
-    { a: 'flame', b: 'channel', door: 'd1' },
+    { a: 'flame', b: 'font' },                                    // the doorway by the bowl (issue #784)
+    { a: 'flame', b: 'channel', door: 'd1' },                     // a makers' door: it opens to the full battery
     { a: 'channel', b: 'balcony', door: 'dc' },   // over the bridge the gun's weight raised, up the gallery, through the door (#729: the double jump before)
     { a: 'balcony', b: 'hall', oneWay: true },                    // the drop: off the balcony's edge, 7 m, to the hall's floor
     { a: 'hall', b: 'machines', door: 'dE' },                     // the east door: the small key's lock
@@ -172,9 +177,11 @@ export const LOGIC = {
     pb0: { type: 'plate', room: 'flame' },                                            // (the bowl's mouth)
     ball1: { type: 'drum', room: 'flame', plate: 'pb0', plateAt: 1, start: 0, roll: 'hand' },
     b0: { type: 'brazier', room: 'flame', when: { drumOn: ['ball1', 'pb0'] } },     // hooded: only the ball lights it
-    d1: { type: 'door', opens: { lit: 'b0' }, latch: true },
-    // the Givers' font beside the bowl (issue #729): the bowl lit, living water rises in it and the battery fills there
-    font: { type: 'find', room: 'flame', when: { lit: 'b0' } },
+    // the Givers' font (issue #729), in the Font Room since issue #784: the bowl lit, its lever wakes; pulled, the pool
+    // fills and the battery with it (src/story/desert.js, filmed: desert-moments.js font). The Dry Channel's door is a
+    // makers' door: it opens to the full battery (the bowl lit, before)
+    font: { type: 'find', room: 'font', when: { lit: 'b0' } },
+    d1: { type: 'door', opens: { found: 'font' }, latch: true },
     // the Dry Channel (issue #729): the Givers' gun on the near ledge, its chest shut until the battery is full; the Givers'
     // weight on the ledge's edge answers only the gun's push: rolled onto its plate, the bridge rises over the sand and the
     // gallery's door opens (the double jump and the carried weight before, issue #337)
@@ -310,8 +317,14 @@ const CHEST_THORNS = 7.35 / 14.6;
 export const FIRES = { x: XE, z0: 57.6, z1: 72.2, bowl: 73.6, bridge: XE - 5 };
 const SC_Z = 54.4, WING_Z = 115.4;
 export const WING = { friction: 0.2, burns: 6, relay: 20.5, x: XC, z0: 69.9, z1: 98.8, bowl: 100.2, eye: [XC + 6.8, 86.4] };
-/** The Givers' font in the Hall of the Flame (issue #729): its middle (x, z) beside the hooded bowl, its basin's radius. */
-export const FONT = { at: [XW + 7.5, 45.1], r: 1.6 };
+/**
+ * The Givers' font (issue #729), in a room of its own since issue #784 (the author: "A room dedicated to the battery
+ * fluid, a cinematic when I fill it up. And a lever to fill up the pool"): a round pool of machined stone in the Font
+ * Room's middle (x, z; its radius, its kerb's height, the fluid's height filled), dry until its lever is pulled; the
+ * lever on a plinth at its heart (`stand`: m east of it, where the traveller pulls it, facing west); four pylons round
+ * it at `spoutR` whose spouts (at `spoutY`) pour the fluid in; the kerb's way in (`gap`, radians either side of east).
+ */
+export const FONT = { at: [(ROOMS.font.x0 + ROOMS.font.x1) / 2, ROOMS.font.door], r: 6.4, kerb: 0.4, fill: 0.34, stand: 1.6, spoutR: 9.4, spoutY: 3.4, gap: 0.36 };
 /**
  * The Dry Channel's weight (issue #729): its groove along the near ledge's edge (the ledge out to 67.5 m: the room's middle) (z, from x0 to the plate at x1), and the
  * bridge it raises over the sand (x) from the ledge to the far landing; the gun's mound on the ledge (x, z).
@@ -401,6 +414,119 @@ class Glazed {
 }
 
 
+// ------------------------------------------------------------------ the Font Room (issue #784)
+/**
+ * The battery's own room, west of the Hall of the Flame through the doorway by its bowl: a hall of the house's stone
+ * under an oculus, and in its middle the Givers' font, a round pool of machined stone, dry: a low kerb with a line of
+ * light along it (its way in on the east, toward the door, closed by a curtain of light once the pool is full), rings of
+ * light in its floor, four pylons round it with a spout each, and at its heart the lever on its plinth. The makers' mark
+ * on the far wall (the shared one, src/story/sign-text.js), dark until the battery is full. The bowl lit, its fire runs
+ * down the channel to the pool and the lever's lamp wakes; pulled, the spouts pour and the pool fills (rt.font: driven by
+ * the story's lever and its film, src/story/desert.js, desert-moments.js font; drawn in change().update: drawFont).
+ */
+function fontRoom(rt) {
+  const K = rt.kit, M = rt.M, FR = ROOMS.font, F = FONT, [fx, fz] = F.at;
+  K.hall({ x: (FR.x0 + FR.x1) / 2, z: (FR.z0 + FR.z1) / 2, w: FR.x1 - FR.x0, d: FR.z1 - FR.z0, y: 0, h: FR.top, roof: 'oculus', oculus: 0.3, columns: 0, omit: ['e'] });
+  const light = makeMaterial({ color: rt.P.glow ?? '#70e7df', glow: 0.9, flat: true, key: 'temple.desert.font.light' });
+  const dull = makeMaterial({ color: '#4a5a60', flat: true, key: 'temple.desert.font.dull' });
+  // the pool's floor: a disc of the pale machined stone, rings of light in it (they glow up through the fluid)
+  K.add(M.stoneMat, T(new THREE.CylinderGeometry(F.r, F.r, 0.04, 48), [fx, 0.02, fz]));
+  for (const r of [2.3, 4.1, 5.7]) K.add(light, T(new THREE.TorusGeometry(r, 0.045, 3, 56), [fx, 0.045, fz], [Math.PI / 2, 0, 0]));
+  // the kerb: machined segments round it, a line of light along their tops, the way in left open toward the door
+  const N = 40, KR = F.r + 0.28, chord = 2 * KR * Math.sin(Math.PI / N) + 0.02;
+  for (let i = 0; i < N; i++) {
+    const a = (i + 0.5) * (Math.PI * 2 / N);
+    if (Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < F.gap) continue;
+    const x = fx + Math.sin(a) * KR, z = fz + Math.cos(a) * KR;
+    K.both(M.trim, box(chord, F.kerb, 0.56, x, F.kerb / 2, z, a));
+    K.add(light, box(chord - 0.01, 0.03, 0.08, x - Math.sin(a) * 0.12, F.kerb + 0.015, z - Math.cos(a) * 0.12, a));
+  }
+  // the four pylons and their spouts, on the diagonals; a slit of light down each face toward the pool
+  const spouts = [];
+  for (let k = 0; k < 4; k++) {
+    const a = Math.PI / 4 + k * Math.PI / 2, sx = Math.sin(a), sz = Math.cos(a), x = fx + sx * F.spoutR, z = fz + sz * F.spoutR;
+    K.both(M.stoneMat, box(1.4, 6.2, 1.4, x, 3.1, z, a));
+    K.both(M.trimMat, box(1.7, 0.4, 1.7, x, 6.4, z, a));
+    K.both(M.trimMat, box(1.7, 0.3, 1.7, x, 0.15, z, a));
+    K.add(light, box(0.16, 4.4, 0.04, x - sx * 0.72, 3.0, z - sz * 0.72, a));
+    // the spout: a machined lip out of the pylon's face toward the pool, its mouth dark
+    K.add(M.trimMat, box(0.7, 0.36, 1.1, x - sx * 1.2, F.spoutY, z - sz * 1.2, a));
+    K.add(M.dark, box(0.42, 0.1, 0.05, x - sx * 1.76, F.spoutY - 0.04, z - sz * 1.76, a));
+    spouts.push({ from: K.world(x - sx * 1.72, F.spoutY - 0.12, z - sz * 1.72), to: K.world(fx + sx * (F.r - 1.4), F.fill, fz + sz * (F.r - 1.4)) });
+  }
+  // the lever on its plinth at the pool's heart: a machined drum, a ring of light round its top, the arm and its lamp
+  const PH = 0.95;
+  K.both(M.trimMat, T(new THREE.CylinderGeometry(0.5, 0.62, PH, 16), [fx, PH / 2, fz]));
+  K.add(light, T(new THREE.TorusGeometry(0.52, 0.04, 4, 24), [fx, PH - 0.08, fz], [Math.PI / 2, 0, 0]));
+  const dyn = (m) => { m.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; }); rt.root.add(m); return m; };
+  const arm = new THREE.Group();
+  arm.position.copy(K.world(fx, PH, fz)); arm.rotation.y = K.heading(0);
+  const pivot = new THREE.Group();
+  const steel = makeMaterial({ color: '#c9c2b0', flat: true, metal: 'steel', refl: 0.3, key: 'temple.desert.font.lever' });
+  pivot.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.1, 8).translate(0, 0.55, 0), steel));
+  const knobOn = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8).translate(0, 1.12, 0), light);
+  const knobOff = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8).translate(0, 1.12, 0), dull);
+  pivot.add(knobOn, knobOff);
+  pivot.add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.34, 10).rotateX(Math.PI / 2), steel));
+  arm.add(pivot); dyn(arm);
+  // the makers' mark on the far (west) wall, over the pool: dark, then lit with the full battery
+  const markGeo = glyphGeometry(3.0, 0.12);
+  const mark = new THREE.Group();
+  mark.position.copy(K.world(FR.x0 + 0.2, 11, fz)); mark.rotation.y = K.heading(Math.PI / 2);
+  const markOn = new THREE.Mesh(markGeo, light), markOff = new THREE.Mesh(markGeo, M.glyph);
+  mark.add(markOn, markOff); dyn(mark);
+  // the bowl's fire down its channel (lit with the bowl) to the kerb
+  const lx0 = XW - 1.3, lx1 = fx + KR + 0.3;
+  const line = dyn(new THREE.Mesh(box(lx0 - lx1, 0.03, 0.22, (lx0 + lx1) / 2, 0.045, FR.door).applyMatrix4(K.frame), makeMaterial({ color: '#ffb35a', glow: 1, flat: true, key: 'temple.desert.font.fire' })));
+  // the fluid: the pool, the four pours, the curtain of light over the way in
+  const mat = magicMaterial(5), water = dyn(magicPool(F.r - 0.05, mat));
+  water.position.copy(K.world(fx, 0.06, fz)); water.visible = false;
+  const pours = spouts.map((sp) => { const m = dyn(magicStream(sp.from, sp.to, 0.5, mat)); m.visible = false; return { ...sp, mesh: m, base: m.matrix.clone() }; });
+  const ga = F.gap * 0.98, cw = 2 * KR * Math.sin(ga);
+  const curtain = dyn(new THREE.Mesh(mergeGeometries([0.12, 0.26, 0.4].map((y) => new THREE.BoxGeometry(0.05, 0.025, cw).translate(0, y, 0))), light));   // (three threads of light: the fluid stays in)
+  curtain.position.copy(K.world(fx + KR * Math.cos(ga), 0, fz)); curtain.rotation.y = K.heading(0); curtain.visible = false;
+  rt.add(Mark, { room: 'font', at: [FR.x1 - 4.5, 0, FR.door + 8], yaw: -Math.PI / 2 });
+  const found = rt.logic.isFound('font');
+  rt.font = {
+    at: K.world(fx, 0, fz), stand: K.world(fx + F.stand, 0, fz), facing: K.heading(-Math.PI / 2),
+    lever: arm.position.clone().add(V(0, 0.9, 0)), mark: mark.position.clone(), spouts, door: K.world(FR.x1, 0, FR.door),
+    water, mat, pours, curtain, line, pivot, knobOn, knobOff, markOn, markOff,
+    rest: 0.06, top: F.fill, k: found ? 1 : 0, pour: 0, pull: found ? 1 : 0, lit: found ? 1 : 0, hold: false,
+  };
+}
+
+/** The Font Room drawn from rt.font's state (k the fluid's height 0..1, pour the spouts, pull the lever, lit the mark). */
+function drawFont(rt, dt, t) {
+  const F = rt.font;
+  if (!F) return;
+  const bowl = rt.logic.isLit('b0'), found = rt.logic.isFound('font');
+  if (!F.hold) {
+    // (out of its film: the pool full once the battery is, dry before; the lever over once pulled)
+    F.k = found ? Math.min(1, F.k + dt / 3) : 0;
+    F.pour = Math.max(0, F.pour - dt / 1.5);
+    F.pull += ((found ? 1 : 0) - F.pull) * Math.min(1, dt * 5);
+    F.lit = found ? 1 : 0;
+  }
+  F.water.visible = F.k > 0.005;
+  F.water.position.y = rt.kit.world(0, F.rest + (F.top - F.rest) * F.k, 0).y;
+  if (F.water.visible || F.pour > 0) setMagic(F.mat, t, { bright: 0.4 + 0.4 * Math.max(F.k, F.pour), tones: 6 });
+  for (const p of F.pours) {
+    p.mesh.visible = F.pour > 0.01;
+    if (!p.mesh.visible) continue;
+    // (each pour a ribbon from its spout, its head reaching the pool as it starts, thinning as it stops)
+    const reach = Math.min(1, F.pour * 2.2), e = p.mesh.matrix.copy(p.base).elements;
+    for (let i = 4; i < 7; i++) e[i] *= reach;
+    for (let i = 0; i < 3; i++) e[i] *= Math.min(1, 0.3 + F.pour);
+    p.mesh.matrixWorldNeedsUpdate = true;
+  }
+  F.curtain.visible = F.k > 0.3;
+  F.line.visible = bowl;
+  F.knobOn.visible = bowl && !found && !F.hold; F.knobOff.visible = !F.knobOn.visible;
+  F.markOn.visible = F.lit > 0.5; F.markOff.visible = !F.markOn.visible;
+  // the arm: leaning away while it waits, pulled over toward whoever stands at it
+  F.pivot.rotation.z = THREE.MathUtils.lerp(0.55, -0.45, F.pull);
+}
+
 // ------------------------------------------------------------------ inside
 // (issue #336: every room 36 m across under 18 to 24 m of stone, doors 7 by 9 m, each puzzle in the middle of its room;
 // the props stay at a body's scale: the balls, the bowls, the plates, the weight, the chests, the eye, the jumps)
@@ -481,28 +607,23 @@ function layout(rt) {
   // ---- the Hall of the Flame (west): the pilot flame on the tar ball's groove down the hall's middle, the hooded bowl at
   // its end; its east wall the Great Hall's
   const FL = R0.flame, [, flz] = mid(FL);
-  K.hall({ x: XW, z: flz, w: FL.x1 - FL.x0, d: FL.z1 - FL.z0, y: 0, h: FL.top, roof: 'oculus', oculus: 0.22, columns: 4, omit: ['n', 'e'] });
+  K.hall({ x: XW, z: flz, w: FL.x1 - FL.x0, d: FL.z1 - FL.z0, y: 0, h: FL.top, roof: 'oculus', oculus: 0.22, columns: 4, omit: ['n', 'e'],
+    doors: [{ side: 'w', at: R0.font.door - flz, w: D.w, h: D.h }] });   // (the Font Room's doorway, by the bowl: #784)
   // the wall between the Hall of the Flame and the deeper, taller Dry Channel, with the door through it
   K.wall(XW - 18.6, 54.6, XW + 18.6, 54.6, CH.y, CH.top - CH.y, { t: 1.2, holes: [{ at: 18.6, w: D.w, h: D.h, y0: -CH.y }] });
-  add(Door, { id: 'd1', at: [XW, 0, 54.6], w: D.w, h: D.h, lamps: [{ lit: 'b0' }] });
+  add(Door, { id: 'd1', at: [XW, 0, 54.6], w: D.w, h: D.h, lamps: [{ found: 'font' }] });   // (the full battery's: #784)
   groove(XW, 23.2, XW, 43.2, 0);
   add(Flame, { at: [XW, 0, 29.7], r: 0.9 });
   add(Ball, { id: 'ball1', a: [XW, 0.04, 23.2], b: [XW, 0.04, 43.2], r: 1.0, friction: 0.6, shove: true, blade: true,
     shoveLine: 'You lean on the tar ball, and it rolls ahead of you along its groove.',
     tar: { ...TAR, burns: 14, caught: 'The tar ball rolls through the Givers’ flame and catches. It will not burn for long.' } });
   add(Brazier, { id: 'b0', at: [XW, 0, 45.1], hood: { ball: 'ball1', yaw: Math.PI, said: 'The bowl is hooded in stone, its mouth low on the groove: only something burning rolled into it would reach the coals.' } });
-  // the Givers' font beside the bowl (issue #729): a round basin of the house's stone, dry until the bowl is lit; then
-  // living water rises in it and, at it, the battery fills (src/story/desert.js: the charge)
-  const [fx, fz] = FONT.at;
-  K.both(M.trim, T(lathe([[FONT.r + 0.25, 0], [FONT.r + 0.35, 0.75], [FONT.r + 0.1, 0.95], [FONT.r - 0.15, 0.95], [FONT.r - 0.15, 0.4], [0.01, 0.4]], 28), [fx, 0, fz]));
-  K.add(M.glyph, T(new THREE.TorusGeometry(FONT.r + 0.32, 0.05, 4, 40), [fx, 0.8, fz], [Math.PI / 2, 0, 0]));
-  // the spout over it: a channel from the bowl's hood along the floor to the font's lip
-  K.add(M.dark, box(fx - FONT.r - XW - 1.3, 0.04, 0.7, (XW + 1.3 + fx - FONT.r) / 2, 0.02, fz));
-  const fontMat = magicMaterial(5), fontWater = magicPool(FONT.r - 0.2, fontMat);
-  fontWater.position.copy(K.world(fx, 0.45, fz)); fontWater.scale.set(FONT.r - 0.2, 1e-3, FONT.r - 0.2); fontWater.visible = false; rt.root.add(fontWater);   // (a unit pool laid flat at the basin's radius)
-  rt.font = { water: fontWater, mat: fontMat, at: K.world(fx, 0, fz), rest: 0.45, top: 0.85, k: rt.logic.isLit('b0') ? 1 : 0 };
+  // (issue #784) the bowl's channel: from its hood west along the floor, under the Font Room's doorway, to its pool (its
+  // fire runs down it once the bowl is lit: rt.font.line)
+  K.add(M.dark, box(XW - 1.3 - FL.x0 + 0.6, 0.04, 0.7, (XW - 1.3 + FL.x0 - 0.6) / 2, 0.02, R0.font.door));
+  fontRoom(rt);
   // a mural on the west wall: the giants carrying water, in glyph rows, and carrying fire
-  for (let i = 0; i < 4; i++) K.glyph([XW - 17.95, 3.6 + (i % 2) * 1.8, 22 + i * 8], 1.5, Math.PI / 2);
+  for (let i = 0; i < 3; i++) K.glyph([XW - 17.95, 3.6 + (i % 2) * 1.8, 22 + i * 8], 1.5, Math.PI / 2);   // (the fourth gave way to the Font Room's doorway: #784)
   add(Mark, { room: 'flame', at: [XW - 8, 0, 18], yaw: Math.PI / 2 });
   sandDrift(XW - 13, 30, 2, 5, 0.6, 0.2); sandDrift(XW - 12.6, 50, 1.6, 2.4, 0.4); sandDrift(XW + 12.4, 47, 2.2, 3, 0.5, 0.6);
 
@@ -687,9 +808,9 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 4), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(XW - 21, -14, -3), V(XC + 21, 34, S1 + 3)),
+    bounds: new THREE.Box3(V(ROOMS.font.x0 - 3, -14, -3), V(XC + 21, 34, S1 + 3)),   // (out west to the Font Room: #784)
     gadget: { at: W(DR.blade[0], BA.y + 0.62, DR.blade[1]).toArray(), face: K.heading(-Math.PI * 0.28) },
-    finds: { guard: { at: W(XE - 9, 0.3, 105.4).toArray(), face: K.heading(Math.PI / 2) }, gun: { at: W(WEIGHT.gun[0], 0.3, WEIGHT.gun[1]).toArray(), face: K.heading(-Math.PI * 0.75) }, font: { at: W(FONT.at[0], 0, FONT.at[1]).toArray(), face: 0 } },
+    finds: { guard: { at: W(XE - 9, 0.3, 105.4).toArray(), face: K.heading(Math.PI / 2) }, gun: { at: W(WEIGHT.gun[0], 0.3, WEIGHT.gun[1]).toArray(), face: K.heading(-Math.PI * 0.75) }, font: { at: W(FONT.at[0] + FONT.stand, 0, FONT.at[1]).toArray(), face: K.heading(-Math.PI / 2) } },   // (#784: at the lever, where he pulls it)
     exits: [
       { at: W(0, 0.5, 0.4), r: 1.5 },
       { at: W(C.x, 0.5, S1 - 0.4), r: 1.5 },
@@ -954,14 +1075,8 @@ function change(scene, level, rt) {
         S.pool.scale.set(4.2 + S.k * 2.3, 1e-3, 4.2 + S.k * 2.3);
         if (S.pool.visible) setMagic(S.poolMat, t, { bright: S.k, tones: 6 });
       }
-      // the Givers' font (issue #729): the bowl lit, its living water rises over a few seconds
-      const F = rt.font;
-      if (F) {
-        F.k = rt.logic.isLit('b0') ? Math.min(1, F.k + dt / 3) : 0;
-        F.water.visible = F.k > 0.01;
-        F.water.position.y = rt.kit.world(0, F.rest + (F.top - F.rest) * F.k, 0).y;
-        if (F.water.visible) setMagic(F.mat, t, { bright: 0.4 + 0.6 * F.k, tones: 6 });
-      }
+      // the Givers' font (issue #729), its own room since #784
+      drawFont(rt, dt, t);
     },
   };
 }

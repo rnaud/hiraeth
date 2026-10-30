@@ -155,6 +155,16 @@ export async function stageCinematic(w, e) {
         place(city.rootsLook); await settle(); W.setStone();
         return w.storyRt.moments.current?.id === e.id;
       }
+      if (key === 'font') {
+        // as in play: in the Rose House's Font Room, the Givers' bowl next door lit, the battery dry, at the lever
+        const RT = w.level.temples?.find((t) => t.id === 'desert'), F = RT?.font;
+        if (!F) return false;
+        game.set('item.backpack', 1); game.set('tool.empty', true);
+        RT.logic.moveDrum('ball1', 1); RT.logic.light('b0'); RT.applyDoors(true);
+        place(F.stand); w.player.heading = F.facing; await settle(); await settle();
+        w.player.heading = F.facing;
+        return !!W.film.font({ charge: () => { RT.logic.find('font'); RT.applyDoors(); game.set('tool.empty', false); game.set('desert.battery.charged', true); return { wasDry: true, addColour: true }; } });
+      }
       if (key === 'fill') {
         W.state.level = cave.levels.high; W.state.flow = 1;
         place(V(cave.poolCenter.x + cave.basinR(cave.levels.high) - 1.2, cave.origin.y + cave.levels.high - 0.3, cave.poolCenter.z));

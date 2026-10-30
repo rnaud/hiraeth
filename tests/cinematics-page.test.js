@@ -63,7 +63,9 @@ test('imported QC notes merge by date, and the last QC pass\'s notes load and na
   const unreviewed = ['arrival.mangrove', 'arrival.waterfall', 'arrival.saltharbour', 'arrival.antennas', 'arrival.eclipse', 'arrival.fallenring', 'arrival.underside'];
   assert.deepEqual([...pass.scope.unreviewed].sort(), [...unreviewed].sort());
   // (the trial introductions came after the frozen pass, #655: unreviewed there, never manufactured passes)
-  const later = CINEMATICS.filter(e => e.opening).map(e => e.id);
+  // (and films added after it, reviewed in a pass of their own: docs/systems/cinematics-qc.md; the Font Room's, #784)
+  const after = new Set(['desert.font']);
+  const later = CINEMATICS.filter(e => e.opening || after.has(e.id)).map(e => e.id);
   assert.deepEqual(CINEMATICS.filter(e => !imported[e.id]).map(e => e.id).sort(), [...unreviewed, ...later].sort(), 'catalogue entries outside frozen coverage remain unreviewed, never manufactured passes');
   for (const id of unreviewed) assert.equal(imported[id], undefined);
   for (const id of retired) assert.deepEqual(imported[id], pass.notes[id], 'retired film evidence survives import unchanged');

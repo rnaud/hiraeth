@@ -5,8 +5,10 @@
 The current route (docs/design/desert-red-temple.md has the rooms and the lock-and-key chain): the chest under Qanat's
 tree gives the battery, **empty**; Nour names the spark-stone and the Rose House. The house is walked into with
 nothing else (no race, no double jump: `carriedInto('desert')` is the backpack alone, src/temple-maps/makers.js). Its
-Hall of the Flame's bowl, lit by a ball leaned through the pilot flame, wakes the **Givers' font**, which charges the
-battery (`desert.battery.charged`, the giant's colour the first time); then the **gun** on the Dry Channel's ledge
+Hall of the Flame's bowl, lit by a ball leaned through the pilot flame, wakes the lever of the **Givers' font** in the
+Font Room next door (issue #784): pulled, the pool fills and the battery with it, filmed (`desert.battery.charged`, the
+giant's colour the first time), and the makers' doors open to the full battery (docs/systems/temples.md, "The makers'
+doors and the full battery"); then the **gun** on the Dry Channel's ledge
 (its chest shut until the battery is full: src/boxes/placements.js `desert.gun`), whose push rolls the Givers' weight
 onto its plate there and raises the bridge over the sand; the **blade** on the balcony; the **guard** over the fire
 bridge; the watcher, the Keeper, and the spark-stone in the spring room's cage. On the way back the **giant's skull**, a little
@@ -17,7 +19,7 @@ the main quest's, so Qanat's gift waits for it too). The hoverbike's race is Mar
 
 | what | where now | before |
 |---|---|---|
-| the battery's charge | the Givers' font, the Rose House's Hall of the Flame | the giant's pool |
+| the battery's charge | the Givers' font, the Rose House's Font Room: its lever (#784) | the font by the Hall of the Flame's bowl; the giant's pool |
 | the fluid gun | the Rose House's Dry Channel, first | the Rose House's antechamber, after the guard |
 | the blade, the guard | the Rose House, after the gun | the same rooms, first |
 | the spark-stone | the Rose House's spring room | the same |

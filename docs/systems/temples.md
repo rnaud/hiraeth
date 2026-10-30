@@ -1611,6 +1611,40 @@ these should be reported as a full input-driven temple ending or device acceptan
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
 
+## The makers' doors and the full battery (issue #784)
+
+The author, 2026-10-29: "Having my battery filled up should be the unlock to open doors with the makers mark." Every
+door of a house (`type: 'door'`, the `Door` piece: its slab carries the makers' mark in a ring) waits for the battery
+to have been filled: `TempleLogic`'s `charged()` (src/temples/logic.js computeOpen; the runtime passes
+`game.flag('tool.empty') !== true`, the flag the desert's chest sets on the empty battery and the first fill clears).
+Whatever else the door waits for still holds; a door opened before (latched) stays open, and a lock with no other
+condition is the key's alone. `mark: false` on a door leaves it out. In practice only the Rose House is ever walked with
+an empty battery: every other house is after the Desert. The houses' outer doorways (`portal.js`) are open thresholds,
+not doors, and the skull's makers' shrine is opened by its monsters (issue #730), after the battery.
+
+### The Font Room (the Rose House, issue #784)
+
+"A room dedicated to the battery fluid, a cinematic when I fill it up. And a lever to fill up the pool." West of the
+Hall of the Flame, through a doorway by its hooded bowl (`ROOMS.font`, 32 by 36 m under 22, a `chest` room: the
+font is a `find`): a round pool of machined stone in its middle (`FONT`: r 6.4, a kerb of 40 segments with a line of
+light along it, open toward the door; rings of light in its floor), four pylons on the diagonals with a spout each, the
+makers' mark on the far wall (the shared glyph, dark), and at the pool's heart the lever on its plinth (`fontRoom`).
+The bowl lit, its fire runs down a channel from the bowl through the doorway to the kerb and the lever's lamp wakes;
+pulled (X / □, `rose.font` in src/story/desert.js), his feet are planted at it (`F.stand`, square to it, still,
+`resetFeet`) and the film plays (src/story/desert-moments.js `font`, docs/systems/cinematics.md): the spouts pour, the
+pool fills round his boots, the battery fills and glows, the mark lights. Its state is `rt.font` (`k` the fluid,
+`pour`, `pull`, `lit`, `hold` while the film drives them), drawn in `drawFont`. The element `font` (room `font`, `when:
+{ lit: 'b0' }`) is found, `desert.battery.charged` set, and the Dry Channel's door `d1` (`opens: { found: 'font' }`,
+the bowl before) opens: a makers' door, its lamp the full battery's. After, the full pool tops an empty battery up
+(`rose.font.refill`). Before the bowl is lit the lever only clunks ("light the Givers' bowl next door").
+
+Saves: a battery filled before (`desert.battery.charged`: the giant's pool, the font beside the bowl of v2.36) finds the
+pool full and the lever pulled (the story marks the font found); a save that opened `d1` to the bowl keeps it open
+(latched); one that lit the bowl but never filled the battery pulls the lever. No layout version: no room moved.
+Tests: `tests/desert-rose-progression.test.js` (every house's doors shut to a dry battery, the latched stay open, old
+saves), `tests/temples.test.js` (walked on foot into the pool to the lever), `tests/desert-story.test.js` (the lever
+cold, then pulled, the door), `tests/moment.test.js` (the film).
+
 ## No climbing but the climbs (v1.49, issue #115)
 
 A climb past a puzzle trivialises it, so a temple's walls are not climbed. The runtime's kit (`rt.kit.noClimb`) bakes

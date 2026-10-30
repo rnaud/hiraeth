@@ -20,6 +20,11 @@ export const CHANGELOG = [
       'Opening a chest, you now stand still with both feet planted from the first moment of its scene: you no longer shuffle a step or slide your feet as the camera comes in, however you walked or ran up to it.',
       { text: 'Finding the fluid gun no longer plays a moment of you firing it: after its card, you are straight back in the game with the gun in your hand.',
         see: 'In the Rose House, open the chest in the Givers’ room off the hall: the chest opens, the gun rises and its card shows; press A / × and you are back in control at once, the gun in your hand, with no shot fired.' },
+      // the battery's own room (#784)
+      { text: 'Filling your battery is a big moment now. In the Rose House the Givers’ font has a room of its own, through the doorway beside the bowl in the Hall of the Flame: a dry round pool of machined stone, four spouts round it and a lever at its heart. Light the bowl, walk into the pool and pull the lever: the spouts pour, the pool fills round your boots, the fluid climbs into your empty battery until it glows, and the makers’ mark on the wall lights up.',
+        see: 'In the Rose House, roll the burning ball into the bowl in the Hall of the Flame, then go through the doorway beside it, walk into the dry pool and pull the lever (X / □).' },
+      { text: 'Doors bearing the makers’ mark open only once your battery has been filled. In the Rose House the door from the Hall of the Flame to the Dry Channel now waits for your full battery instead of the lit bowl. A battery you had already filled stays full, the font’s pool is full for you, and doors you had opened stay open.',
+        see: 'In the Rose House, light the bowl in the Hall of the Flame: the door on to the Dry Channel stays shut and its lamp dark until you pull the font’s lever; then it sinks open.' },
     ],
   },
   {

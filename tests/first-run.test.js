@@ -78,7 +78,7 @@ test('the pool’s first fill and the chest’s dregs name the buttons as the pl
   const { items } = await import('../src/items.js');
   // (v1.38: the gun is found after the pool, in the Givers' Hearth; filled before it, the tank names no buttons)
   assert.doesNotMatch(filledText('pad'), /RT \/ R2/);
-  assert.match(filledText('pad'), /hums back/, 'the chest beside the pool answers');
+  assert.match(filledText('pad'), /makers’ mark open/, 'what the full battery opens now (#784)');
   items.grant('gun');
   assert.match(filledText('pad'), /other modes: D-pad ↑ held/);
   assert.match(filledText('pad'), /shoot with LT \/ L2 then RT \/ R2/);

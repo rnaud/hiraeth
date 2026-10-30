@@ -207,7 +207,7 @@ tone, a swell of the world's score, then back to you.
 - **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
   while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
   `'father'` the father's theme in the world's mode on its voice for it.
-- **The desert's three** (`src/story/desert-moments.js`):
+- **The desert's four** (`src/story/desert-moments.js`):
   - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
     beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
     the gutter from past its end, the crack lighting and the water coming down it (the flow
@@ -227,6 +227,14 @@ tone, a swell of the world's score, then back to you.
     with him lifting the glove and firing a first glob over the pool: he has nothing to fire with
     until the gun in the Givers' Hearth. No cinematic shows a thing used before it is found (the
     cinematics QC skill's checklist).
+  - *the battery fills in the Font Room* (`desert.moment.font`, issue #784: "Filling the battery up should feel like a
+    big moment"), when the lever at the dry pool's heart is pulled in the Rose House (`FONT_FILM`, 10.8 s; his feet are
+    planted at the lever before it starts): A, wide and high from by the doorway, the lever over and the four spouts
+    pouring; B, low at the kerb across the fluid rising round his boots, the pool's light coming up on him; C, close
+    behind his hip on the battery as the fluid climbs into the glass (`tool.fillTo`), then the lens tilts up past it to
+    the makers' mark on the far wall as it lights (`sound.boxAnswer`, the motif, a far rumble: the makers' door to the
+    Dry Channel sinks); D, his face lit from the pool, turned up to the mark, a slight smirk. To the father's theme.
+    The charge is applied on C's beat and for sure at its end (`charge`), the toast after.
   - *the tree catching* (`desert.moment.lit`, issue #239: "it should be from afar, so I can really see the scale of
     what's happening. It starts at the ground level, but then zooms out"), when the spark-stone is set in the roots
     (`setStone`; `LIT`, 10.2 s): A, low on the ground beside him, the stone going from his hand into the wet roots; B,

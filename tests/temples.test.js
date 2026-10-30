@@ -1319,16 +1319,26 @@ test('the Rose House on foot, with nothing but the empty battery (issues #406, #
   rest(ball1); wait(1);
   assert.equal(rt.logic.isLit('b0'), true, `burning, it lights the hooded bowl (${lz(ball1.center).toFixed(1)})`);
   wait(2.2);
-  assert.equal(rt.logic.isOpen('d1'), true, 'and the door opens');
+  assert.equal(rt.logic.isOpen('d1'), false, 'the Dry Channel’s door, a makers’ door, stays shut: it waits for the full battery (#784)');
+  assert.ok(rt.font.line.visible, 'the bowl’s fire runs down its channel, west');
 
-  // ---- the Givers' font (issue #729): the bowl lit, living water rises beside it; the battery fills there (its prompt is
-  // the story's: tests/desert-story.test.js)
-  wait(3.5);
-  assert.ok(rt.font.water.visible && rt.font.k > 0.9, 'living water stands in the font');
+  // ---- the Font Room (issue #784): through the doorway by the bowl, the dry pool, the lever at its heart; pulled (the
+  // story's lever and its film: tests/desert-story.test.js), the pool fills and the battery with it, and the door opens
+  assert.equal(walk(L(XW - 12, 0, ROOMS.font.door)), true, `to the Font Room's doorway (${where()})`);
+  assert.equal(walk(L(ROOMS.font.x1 - 4, 0, ROOMS.font.door)), true, `into the Font Room (${where()})`);
+  assert.equal(walk(rt.font.stand, { max: 14 }), true, `through the kerb's way in to the lever (${where()})`);
+  assert.ok(P.pos.distanceTo(rt.font.stand) < 1, 'standing at the lever');
+  assert.ok(!rt.font.water.visible, 'the pool is dry');
   assert.equal(rt.logic.next(), 'font', 'the font is next');
-  assert.ok(nextSpot(rt).distanceTo(rt.font.at) < 0.5, 'the marker on it');
+  assert.ok(nextSpot(rt).distanceTo(rt.font.stand) < 0.5, 'the marker at the lever');
   assert.equal(rt.logic.find('font'), true);
-  game.set('desert.battery.charged', true);
+  game.set('tool.empty', false); game.set('desert.battery.charged', true);
+  wait(3.5);
+  assert.ok(rt.font.water.visible && rt.font.k > 0.9, 'living water stands in the pool');
+  assert.ok(rt.font.markOn.visible, 'the makers’ mark over it lit');
+  assert.equal(rt.logic.isOpen('d1'), true, 'and the makers’ door opens to the full battery');
+  assert.equal(walk(L(ROOMS.font.x1 - 4, 0, ROOMS.font.door)), true, `back out of the pool (${where()})`);
+  assert.equal(walk(L(XW - 10, 0, ROOMS.font.door)), true, `back into the Hall of the Flame (${where()})`);
 
   // ---- the Dry Channel (issue #729): the Givers' gun on the near ledge; the Givers' weight rolls only to its push, onto its
   // plate, and the bridge rises over the sand (the double jump and the carried weight before); one step off falls in

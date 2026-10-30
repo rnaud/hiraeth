@@ -29,6 +29,14 @@ import { PLACEMENTS } from '../boxes/placements.js';
 //         D  his face: a slight smirk, nothing said                                    8.7–11.2
 //         sound: the father's theme on the desert's duduk (sound.swell('father')), the
 //         tank's bubbling run, the chest's faint answer; then the toast
+//   font  the lever pulled in the Rose House's Font Room (issue #784; desert.moment.font)
+//         A  wide and high from by the doorway: the dry pool, the lever pulled, the spouts pour     0.0–2.6
+//         B  low at the kerb, across the fluid rising round his boots, its light on him             2.6–5.4
+//         C  close behind his hip on the battery filling; up past it to the makers' mark as it
+//            lights (the full battery: off in the house a makers' door sinks)                    5.4–8.4
+//         D  his face, lit from the pool, turned up to the mark; a slight smirk                    8.4–10.8
+//         sound: the lever's clunk and a rumble, the father's theme, the pour, the mark's answer
+//         and the motif over it
 //
 // What they show is applied for sure: the channel is open before the flow's first frame (the
 // water runs on its own clock, paced a little); the tank fills on a beat of `fill`, and if that
@@ -45,15 +53,21 @@ const smooth = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 *
 export const FLOW = { A: 2.6, B: 2.7, C: 3.3, D: 2.9, flowDelay: 2.4, SMIRK: 1.1 };
 // answerAt: s into the moment the chest by the pool hums back (panel C)
 export const FILL = { A: 2.3, B: 3.6, C: 2.8, D: 2.5, fillAt: 2.5, fillFor: 2.8, answerAt: 6.5, SMIRK: 0.9 };
+/**
+ * The Font Room's film (issue #784): its panels (s); pourAt: s in, the spouts pour; riseFor: the pool's rise; fillAt: s
+ * into C the glass starts to fill, over fillFor; tiltAt: s into C the lens tilts up to the mark, which lights half a
+ * second on; SMIRK: s into the face's panel.
+ */
+export const FONT_FILM = { A: 2.6, B: 2.8, C: 3.0, D: 2.4, pourAt: 0.9, riseFor: 5.0, fillAt: 0.3, fillFor: 2.0, tiltAt: 1.7, SMIRK: 1.0 };
 
 export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fillJar, FILLED }) {
   const { player, sound, level, toast } = ctx;
-  const off = { flow: () => false, fill: () => false };
+  const off = { flow: () => false, fill: () => false, font: () => false };
   if (!moments || !cave) return off;
   const L = (x, y, z) => cave.local(x, y, z);
   // lights the moments bring (off until then): the stream's head, the tank's glow
-  const headLight = new THREE.Vector4(0, -1e5, 0, 0), tankLight = new THREE.Vector4(0, -1e5, 0, 0);
-  level.lights?.push(headLight, tankLight);
+  const headLight = new THREE.Vector4(0, -1e5, 0, 0), tankLight = new THREE.Vector4(0, -1e5, 0, 0), poolLight = new THREE.Vector4(0, -1e5, 0, 0);
+  level.lights?.push(headLight, tankLight, poolLight);
   const dark = (l) => l.set(0, -1e5, 0, 0);
 
   const _h = V(0, 0, 0), _f = V(0, 0, 0);
@@ -223,6 +237,92 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
     return !!m;
   }
 
+  // ---------------------------------------------------------------- the Font Room: the battery fills (issue #784)
+  /**
+   * The lever pulled at the dry pool's heart in the Rose House's Font Room (src/temples/desert.js fontRoom; the story's
+   * lever, src/story/desert.js, plants his feet at it first): the spouts pour, the pool fills round his boots, the fluid
+   * climbs into the dry battery at his hip and it glows; the makers' mark on the far wall lights with it, and off in the
+   * house a makers' door sinks. `charge()`: the state, applied on its beat and for sure at the end (null once done).
+   */
+  function font({ charge }) {
+    const RT = level.temples?.find?.((t) => t.id === 'desert') ?? (level.temple?.id === 'desert' ? level.temple : null);
+    const F = RT?.font;
+    if (!F) return false;
+    const P = player.pos.clone();
+    const toLever = V(F.at.x - P.x, 0, F.at.z - P.z);
+    const n = toLever.lengthSq() > 0.25 ? toLever.normalize() : facing();
+    const r = rightOf(n);
+    const pool = F.at.clone(), mark = F.mark.clone();
+    let filled = null;
+    const doFill = () => { if (!filled) filled = charge() ?? { wasDry: false, addColour: false }; };
+    const tankAt = (out = V(0, 0, 0)) => {
+      const g = tool?.tank?.group;
+      if (g && player.object?.visible !== false) { g.updateWorldMatrix(true, false); return g.localToWorld(out.set(0, TANK.height * 0.5, 0)); }
+      return out.copy(player.pos).addScaledVector(UP, 1.0).addScaledVector(r, 0.25);
+    };
+    const T0 = FONT_FILM, B0 = T0.A, C0 = B0 + T0.B, D0 = C0 + T0.C;
+    const rise = (t) => smooth((t - T0.pourAt - 0.5) / T0.riseFor);
+    const tilt = { t: -1, look: V(0, 0, 0) };
+    const m = moments.play({
+      id: 'desert.font', flag: 'desert.moment.font', dur: D0 + T0.D,
+      shots: [
+        // A: wide and high from behind him by the doorway: the dry pool, the four pylons, the lever pulled; the spouts pour
+        { dur: T0.A, from: { pos: P.clone().addScaledVector(n, -11.8).addScaledVector(r, 2.2).addScaledVector(UP, 7.2), look: pool.clone().addScaledVector(n, 2).addScaledVector(UP, 0.6), fov: 52 },
+          to: { pos: P.clone().addScaledVector(n, -10.2).addScaledVector(r, 1.8).addScaledVector(UP, 6.0), look: pool.clone().addScaledVector(n, 1.5).addScaledVector(UP, 0.8), fov: 50 } },
+        // B: low at the kerb on his right, across the rising fluid: it climbs round his boots, its light coming up on him
+        { dur: T0.B, from: { pos: P.clone().addScaledVector(r, 4.6).addScaledVector(n, 1.6).addScaledVector(UP, 0.55), look: P.clone().addScaledVector(UP, 0.55), fov: 44 },
+          to: { pos: P.clone().addScaledVector(r, 3.8).addScaledVector(n, 1.3).addScaledVector(UP, 0.65), look: P.clone().addScaledVector(UP, 0.75), fov: 42 } },
+        // C: close behind his hip on the battery as the fluid climbs into the glass; then up past it to the makers' mark on
+        //    the far wall as it lights
+        { dur: T0.C, clear: false, ease: 'linear',
+          from: (t) => {
+            const tk = tankAt(_h), k = smooth((t - T0.tiltAt) / (T0.C - T0.tiltAt));
+            const want = tk.clone().lerp(mark, 0.85 * k);
+            if (tilt.t < 0) tilt.look.copy(want); else tilt.look.lerp(want, 1 - Math.exp(-7 * Math.max(0, t - tilt.t)));
+            tilt.t = t;
+            return { pos: tk.clone().addScaledVector(n, -(1.15 - 0.15 * smooth(t / T0.C))).addScaledVector(r, 0.85).addScaledVector(UP, 0.12 - 0.2 * k), look: tilt.look.clone(), fov: 40 + 8 * k };
+          } },
+        // D: his face, lit from the pool below, turned up to the lit mark
+        { dur: T0.D, clear: false, from: closeUp({ angle: -0.95, dur: T0.D, drop: 0.1 }) },
+      ],
+      beats: [
+        { t: 0.25, run: () => { sound.thud?.(); sound.rumble?.(2.4, 0.3); } },
+        { t: 0.5, run: () => sound.swell?.('father', pool.clone()) },
+        { t: T0.pourAt, run: () => { sound.waterRise?.(); sound.splash?.(0.8); } },
+        { t: C0 + T0.fillAt, run: () => doFill() },
+        { t: C0 + T0.tiltAt + 0.5, run: () => { F.lit = 1; sound.boxAnswer?.(0.8); sound.swell?.('motif', mark.clone()); sound.rumble?.(1.4, 0.18); } },
+      ],
+      onStart: (mm) => {
+        F.hold = true; F.pull = 0; F.pour = 0; F.k = 0; F.lit = 0;
+        if (tool) tool.fillTo = 0;   // (the glass stays dry until its beat, then fills slowly)
+        mm.face = pool.clone(); mm.eyes = F.lever.clone();
+      },
+      onFrame: (mm, t, dt = 1 / 60) => {
+        F.pull = smooth((t - 0.15) / 0.55);
+        F.pour = t < T0.pourAt ? 0 : t < D0 ? smooth((t - T0.pourAt) / 1.2) : Math.max(0, 1 - (t - D0) / 1.5);
+        F.k = rise(t);
+        const k = smooth((t - C0 - T0.fillAt) / T0.fillFor);
+        if (tool) tool.fillTo = t < C0 + T0.fillAt ? 0 : k;
+        // the pool's light comes up with the fluid; the battery's glow on his hip as it fills
+        poolLight.set(pool.x, pool.y + 1.2, pool.z, 12 * F.k);
+        if (t > C0 - 0.3) { const tk = tankAt(_f); tankLight.set(tk.x, tk.y + 0.25, tk.z, 6 * k); } else dark(tankLight);
+        // he watches the lever, then the fluid round him, then the glass at his hip, then the mark as it lights
+        mm.eyes = t < T0.pourAt ? F.lever : t < C0 ? pool.clone().addScaledVector(r, 2.5) : t < C0 + T0.tiltAt + 0.3 ? tankAt(_f) : mark;
+        if (t > C0 + T0.tiltAt + 0.3) mm.face = mark;
+        mm.look = t > D0 + T0.SMIRK ? 'smirk' : null;
+        void dt;
+      },
+      onEnd: () => {
+        F.hold = false;
+        if (tool) tool.fillTo = null;
+        dark(tankLight); dark(poolLight);
+        doFill();
+        toast(filled?.wasDry ? FILLED() : 'Living water fills the pool, and your battery with it.');
+      },
+    });
+    return !!m;
+  }
+
   // ---------------------------------------------------------------- the tree catches (issue #239)
   /**
    * The spark-stone set in the roots: the tree burns again, filmed from the ground by him out to the whole of it
@@ -281,7 +381,7 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
     return !!m;
   }
 
-  return { flow, fill, lit };
+  return { flow, fill, lit, font };
 }
 
 /**

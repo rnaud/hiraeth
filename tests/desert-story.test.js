@@ -502,22 +502,32 @@ test('the main quest, end to end (issues #729, #730): the Rose House, its font, 
   assert.equal(game.flag('tool.empty'), true, 'the tank is still empty');
   // inside, the house's own next step leads: the tar ball first (src/temples/logic.js next), then the font once it is lit
   assert.equal(RT.logic.next(), 'ball1', 'the house leads to the ball by the flame');
-  at(RT.font.at.clone().add(V(1.6, 0, 0))); step(1);
-  assert.notEqual(bestInteractable(player)?.entry.id, 'rose.font', 'a dry font gives nothing before the bowl is lit');
-  // the ball leaned through the flame into the hooded bowl (tests/temples.test.js walks it): lit, the font rises
-  RT.logic.moveDrum('ball1', 1); RT.logic.light('b0'); RT.logic.update(); step(30 * 3);
+  // (issue #784) the Font Room: the lever at the dry pool's heart does nothing while the bowl is cold; the makers' door to
+  // the Dry Channel stays shut (it waits for the full battery)
+  at(RT.font.stand); facing(RT.font.at); step(1);
+  assert.equal(bestInteractable(player)?.entry.id, 'rose.font', 'the lever is in reach');
+  use('rose.font');
+  assert.equal(RT.logic.isFound('font'), false, 'a cold lever: the pool stays dry');
+  assert.equal(game.flag('tool.empty'), true);
+  // the ball leaned through the flame into the hooded bowl (tests/temples.test.js walks it): lit, the lever wakes
+  RT.logic.moveDrum('ball1', 1); RT.logic.light('b0'); RT.applyDoors(); step(30 * 3);
+  assert.equal(RT.logic.isOpen('d1'), false, 'the bowl lit, the Dry Channel’s makers’ door still shut: no full battery yet');
   assert.equal(RT.logic.next(), 'font', 'then to the font');
-  assert.ok(quests.objective().position.distanceTo(RT.font.at) < 0.01, 'the marker at the font');
-  assert.ok(RT.font.water.visible && RT.font.k > 0.9, 'living water stands in the font');
+  assert.ok(quests.objective().position.distanceTo(RT.font.stand) < 0.01, 'the marker at the lever, where he pulls it');
+  assert.equal(RT.font.water.visible, false, 'the pool still dry');
   const refills = [];
   const offRefill = game.on('tool:refill', (e) => refills.push(e));
-  at(RT.font.at.clone().add(V(1.6, 0, 0))); facing(RT.font.at); step(1);
+  at(RT.font.stand.clone().add(V(0.4, 0, 0.3))); facing(RT.font.at); step(1);
   use('rose.font');
   offRefill?.();
+  assert.ok(player.pos.distanceTo(RT.font.stand) < 0.05, 'his feet planted at the lever first');
   assert.deepEqual(refills.map((e) => e.addColour), [true], 'the battery fills, with a new colour the first time');
   assert.equal(game.flag('tool.empty'), false, 'full now, for good');
   assert.equal(game.flag('desert.battery.charged'), true);
   assert.equal(RT.logic.isFound('font'), true);
+  step(30 * 4);
+  assert.ok(RT.font.water.visible && RT.font.k > 0.9, 'living water stands in the pool');
+  assert.equal(RT.logic.isOpen('d1'), true, 'and the makers’ door opens to the full battery');
   assert.equal(W.dry(), false);
   step(2);
   assert.equal(quests.stage('desert.power'), 'gun', 'the gun next');

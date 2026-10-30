@@ -281,7 +281,7 @@ test('the empty tank’s first fill is filmed once: it fills on its beat, the ja
   assert.equal(refills.length, 1, 'never twice');
   assert.ok(rt.quests.has('water'), 'the jar fills at its end');
   // (v1.38: the gun is still ahead, in the Givers' Hearth: the tank's words point at the chest beside the pool)
-  assert.ok(toasts.some((t) => /empty battery fills/.test(t) && /hums back/.test(t)), 'and what answers it (the lift valve\'s chest)');
+  assert.ok(toasts.some((t) => /empty battery fills/.test(t) && /makers’ mark/.test(t)), 'and what it opens now (the makers’ doors, #784)');
   assert.equal(W.dry(), false);
   offRefill?.();
 });
@@ -330,3 +330,54 @@ test('#239: the tree catching is filmed once, from the ground by him out to the 
 });
 
 function st() { return W.state; }
+
+test('#784: the lever in the Rose House’s Font Room starts the film: his feet planted at it, the pool fills round him, the battery on its beat, the makers’ mark lit and the makers’ door open at the end; once', async () => {
+  const { FONT_FILM: FF } = await import('../src/story/desert-moments.js');
+  const { allInteractables } = await import('../src/interact.js');
+  const RT = level.temples.find((t) => t.id === 'desert'), F = RT.font;
+  game.set('tool.empty', true); game.set('desert.battery.charged', undefined);
+  RT.logic.moveDrum('ball1', 1); RT.logic.light('b0'); RT.applyDoors(true); step(2);
+  assert.equal(RT.logic.isOpen('d1'), false, 'the makers’ door to the Dry Channel shut: the battery has never been full');
+  const refills = [];
+  const offRefill = game.on('tool:refill', (e) => refills.push(e));
+  toasts.length = 0;
+  player.pos.copy(F.stand).add(V(0.5, 0, -0.4)); player.vel.set(2, 0, 1); step(1);
+  const lever = allInteractables().find((x) => x.id === 'rose.font');
+  assert.ok(lever && lever.enabled(), 'the lever, the bowl lit');
+  assert.equal(typeof lever.prompt === 'function' ? lever.prompt() : lever.prompt, 'pull the lever');
+  const n0 = ship.shots.length, swells = sound.swells.length;
+  lever.use(player);
+  assert.ok(rt.moments.playing, 'pulling it starts the film');
+  assert.equal(game.flag('desert.moment.font'), true, 'once per save');
+  assert.ok(flat(player.pos, F.stand) < 1e-6 && player.vel.length() < 1e-6, 'his feet planted at the lever first');
+  assert.ok(Math.abs(player.heading - F.facing) < 1e-6, 'square to it');
+  assert.equal(refills.length, 0, 'the glass still dry');
+  const total = FF.A + FF.B + FF.C + FF.D, C0 = FF.A + FF.B;
+  step(Math.round((FF.A + 0.6) * 30));
+  assert.ok(F.pull > 0.99 && F.pour > 0.5 && F.k > 0, 'the lever over, the spouts pouring, the pool rising');
+  assert.ok(F.pours.every((p) => p.mesh.visible), 'all four pour');
+  step(Math.round((C0 + FF.fillAt - FF.A - 0.6) * 30) + 3);
+  assert.equal(refills.length, 1, 'the battery fills on its beat');
+  assert.equal(game.flag('tool.empty'), false);
+  step(Math.round((total - C0 - FF.fillAt) * 30) + 20);
+  assert.ok(!rt.moments.playing, 'then back to you');
+  offRefill?.();
+  assert.equal(refills.length, 1, 'never twice');
+  assert.equal(game.flag('desert.battery.charged'), true);
+  assert.equal(RT.logic.isFound('font'), true);
+  assert.equal(RT.logic.isOpen('d1'), true, 'a full battery: the makers’ door opens');
+  assert.ok(F.markOn.visible && F.water.visible && !F.hold, 'the pool full, the makers’ mark lit');
+  assert.ok(toasts.some((t) => /empty battery fills/.test(t)), 'the toast at its end');
+  // the panels: wide (A), low at the kerb (B), on the battery and up to the mark (C), his face (D)
+  const shots = ship.shots.slice(n0);
+  const A = shots[15], B = shots[Math.round((FF.A + 1) * 30)], Cend = shots[Math.round((C0 + FF.C - 0.1) * 30)], D = shots[Math.round((C0 + FF.C + 1) * 30)];
+  assert.ok(A.pos.y > player.pos.y + 5 && A.pos.distanceTo(player.pos) > 9, 'A wide and high');
+  assert.ok(B.pos.y < player.pos.y + 1 && B.pos.distanceTo(player.pos) < 6, 'B low by him');
+  assert.ok(Cend.look.distanceTo(F.mark) < Cend.look.distanceTo(player.pos), 'C ends looking up to the mark');
+  assert.ok(D.look.distanceTo(player.pos) < 2.2 && D.pos.distanceTo(player.pos) < 3.5, 'D close on his face');
+  for (const s of shots.slice(0, Math.round(total * 30) - 2)) assert.ok(RT.inside(s.pos), 'every lens inside the house');
+  assert.deepEqual(sound.swells.slice(swells), ['father', 'motif'], 'the father’s theme, then the motif as the mark lights');
+  assert.ok(!ship.log.some(([k, v]) => k === 'say' && v), 'no line');
+  assert.equal(lever.enabled(), false, 'pulled for good');
+  assert.equal(W.film.font({ charge: () => null }), false, 'never twice');
+});

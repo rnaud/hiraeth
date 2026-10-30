@@ -885,24 +885,60 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the spark-stone's errand
   // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Rose House waits
   const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry() && items.has('gun')), hasGun: () => items.has('gun'), lit });
-  // the Givers' font in the Rose House's Hall of the Flame (issue #729): the bowl lit, its living water rises, and at it the
-  // battery fills: the charge, the first time with the giant's colour (src/temples/desert.js FONT)
+  // the Givers' font (issue #729), in the Rose House's Font Room since issue #784 (the author: "A room dedicated to the
+  // battery fluid, a cinematic when I fill it up. And a lever to fill up the pool. Triggering the lever should start the
+  // cinematic"): the bowl in the Hall of the Flame lit, the lever at the dry pool's heart wakes; pulled (A / ×), the
+  // spouts pour, the pool fills round him and the battery with it, filmed (src/story/desert-moments.js font); the charge,
+  // the first time with the giant's colour. A full battery opens the makers' doors (src/temples/logic.js charged).
+  // After, the pool tops an empty battery up (src/temples/desert.js FONT, fontRoom)
   const RT = level.temples?.find?.((t) => t.id === 'desert') ?? (level.temple?.id === 'desert' ? level.temple : null);
   if (RT?.font) {
-    const F = RT.font, at = F.at.clone().setY(F.at.y + 0.9);
+    const F = RT.font;
     const fontLit = () => RT.logic.isLit('b0');
-    registerInteractable({ id: 'rose.font', priority: PRIORITY.use + 1, range: 2.9, at: () => at,
-      distance: (p) => (Math.abs(p.pos.y - F.at.y) < 2.5 ? flat(p.pos, F.at) : Infinity),
-      enabled: () => fontLit() && items.has('backpack') && (dry() || !charged() || !RT.logic.isFound('font')),
-      prompt: 'fill your battery at the font',
+    const pulled = () => RT.logic.isFound('font');
+    const inRoom = (p) => Math.abs(p.pos.y - F.at.y) < 2.5;
+    /** The pool filled and the battery with it: the state the film shows, applied for sure (its beat, its end, or no film). */
+    const charge = () => {
+      if (pulled() && charged()) return null;
+      const r = fillTank();
+      RT.logic.find('font'); RT.applyDoors?.();
+      game.set('desert.battery.charged', true);
+      return r;
+    };
+    // (a save whose battery was filled before, at the giant's pool or at the font beside the bowl: its pool full, its lever
+    // pulled, the makers' doors open to it)
+    if (charged() && items.has('backpack') && !pulled()) { RT.logic.find('font'); RT.applyDoors?.(true); }
+    let coldT = -1e9;
+    registerInteractable({ id: 'rose.font', priority: PRIORITY.use + 1, range: 2.4, at: () => F.lever,
+      distance: (p) => (inRoom(p) ? flat(p.pos, F.at) : Infinity),
+      enabled: () => !pulled() && !moments?.playing,
+      prompt: () => (fontLit() ? 'pull the lever' : 'try the lever'),
       use: () => {
-        const { wasDry, addColour } = fillTank();
-        RT.logic.find('font'); RT.logic.update();
-        game.set('desert.battery.charged', true);
-        sound.chime?.(); sound.waterRise?.();
-        toast(wasDry ? FILLED() : addColour ? 'Living water climbs into your battery. Its glass takes the colours.' : 'The font tops up your battery.');
+        if (!fontLit()) {
+          sound.thud?.();
+          if (st.clock - coldT > 4) { coldT = st.clock; toast('The lever won’t budge. The channel to the pool is cold: light the Givers’ bowl next door.'); }
+          return;
+        }
+        if (!items.has('backpack')) { sound.thud?.(); toast('The lever won’t budge. The font answers only the makers’ battery.'); return; }
+        // his feet planted at the lever before the film starts: square to it, still (src/feet.js resetFeet)
+        player.vel?.set(0, 0, 0);
+        player.pos.copy(F.stand).setY(player.pos.y);
+        player.heading = F.facing;
+        if (player.object) { player.object.position.copy(player.pos); player.frame?.quaternion?.(player.heading, player.object.quaternion); }
+        player.humanoid?.resetFeet?.();
+        if (film.font?.({ charge })) return;
+        // (no film: the lever, the pool and the battery at once)
+        const r = charge();
+        sound.rumble?.(1.6, 0.3); sound.waterRise?.(); sound.chime?.();
+        toast(r?.wasDry ? FILLED() : 'Living water fills the pool, and your battery with it. Its glass takes the colours.');
       } });
-    quests.locate('roseFont', () => F.at);
+    // after: the full pool tops an empty battery up (wading in, as at living water anywhere)
+    registerInteractable({ id: 'rose.font.refill', priority: PRIORITY.use, range: 6.4, at: () => F.at.clone().setY(F.at.y + 0.6),
+      distance: (p) => (inRoom(p) ? flat(p.pos, F.at) : Infinity),
+      enabled: () => pulled() && items.has('backpack') && dry(),
+      prompt: 'fill your battery at the pool',
+      use: () => { fillTank(); sound.chime?.(); toast('The pool tops up your battery.'); } });
+    quests.locate('roseFont', () => (fontLit() ? F.lever : RT.piece?.('b0')?.center ?? F.lever));
   }
   // the bowl, the camp and the bell on the long ride there (src/story/desert-way.js)
   const way = setupWay(ctx);

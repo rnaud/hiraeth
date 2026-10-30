@@ -25,7 +25,7 @@ filled in the skull cave.
 | 2 | Open the humming chest under the tree | the dais | the battery (empty) |
 | 3 | Nour wants a word | Nour | she names the spark-stone and the Rose House |
 | 4 | Walk east to the Rose House | its door | `temple.desert.entered` |
-| 5 | Light the Givers’ bowl and fill your battery | the Hall of the Flame's font | `desert.battery.charged` |
+| 5 | Light the Givers’ bowl and fill your battery | the Font Room's lever (#784) | `desert.battery.charged` |
 | 6 | Take the Givers’ gun by the dry channel | the Dry Channel's ledge | the gun |
 | 7 | Find the blade on the Great Hall’s balcony | the balcony | the sword |
 | 8 | Cross the fire bridge and take the guard | the Guard's Hall | the shield |
@@ -55,7 +55,8 @@ Walked into with the empty battery and nothing else (no double jump any more: sr
 |---|---|---|---|
 | the Threshold | passage | the way in | |
 | the Great Hall | hub | the balcony's hole over the caged small key, the watcher, the cistern's door | |
-| the Hall of the Flame | puzzle | **teach (hands):** lean on the tar ball through the pilot flame into the hooded bowl. Lit, the bowl wakes the Givers' **font** beside it: living water rises in its basin; at it, the battery fills (**the charge**). The Dry Channel's door sinks | |
+| the Hall of the Flame | puzzle | **teach (hands):** lean on the tar ball through the pilot flame into the hooded bowl. Lit, its fire runs west into the Font Room | |
+| the Font Room | chest | the Givers' **font** (issue #784): a dry round pool, its lever at its heart. Pulled, the pool fills and the battery with it, filmed (**the charge**); the makers' mark lights and the Dry Channel's makers' door sinks | the bowl lit |
 | the Dry Channel | puzzle, then chest | the **Givers' gun** on its mound on the near ledge (its chest opens once the battery is full). **Test (gun):** the Givers' weight lies on the pier across the sand, too heavy for anything but the gun's push; pushed onto the pier's plate it raises the bridge over the sand and opens the gallery's door. Climb the gallery | the charge; the gun |
 | the balcony | chest, puzzle | **the Givers' blade**; **test (blade):** cut the ball into the hole: it drops onto the plate below and the small key's cage sinks; drop to the floor | the blade |
 | the Machines' Hall | fight | the blade's fight (behind the small key's door) | the small key |

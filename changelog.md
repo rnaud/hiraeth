@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.38 — 2026-10-29
 
+- Doors bearing the makers’ mark open only once your battery has been filled. In the Rose House the door from the Hall of the Flame to the Dry Channel now waits for your full battery instead of the lit bowl. A battery you had already filled stays full, the font’s pool is full for you, and doors you had opened stay open.
+- Filling your battery is a big moment now. In the Rose House the Givers’ font has a room of its own, through the doorway beside the bowl in the Hall of the Flame: a dry round pool of machined stone, four spouts round it and a lever at its heart. Light the bowl, walk into the pool and pull the lever: the spouts pour, the pool fills round your boots, the fluid climbs into your empty battery until it glows, and the makers’ mark on the wall lights up.
 - Finding the fluid gun no longer plays a moment of you firing it: after its card, you are straight back in the game with the gun in your hand.
 - Opening a chest, you now stand still with both feet planted from the first moment of its scene: you no longer shuffle a step or slide your feet as the camera comes in, however you walked or ran up to it.
 - When Nour talks to you, her cloak now stays behind her: as she talks with her hands they come out in front of it, instead of the cloak being thrown forward over her arms and hanging in front of her. The same goes for everyone else in a cloak.

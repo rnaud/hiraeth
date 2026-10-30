@@ -219,8 +219,10 @@ written in).
      recharge the battery by solving a puzzle. Then you continue the temple and get the gun and the sword and shield
      and then finally the spark stone").
   4. `rose`: walk east to the Rose House (no race first: the hoverbike is Marrow's side errand once the gun is had).
-  5. `charge`: in its Hall of the Flame a tar ball leaned on through the pilot flame lights the hooded bowl; the bowl
-     wakes the **Givers' font** beside it, and at it the battery fills (with the giant's colour, the first time).
+  5. `charge`: in its Hall of the Flame a tar ball leaned on through the pilot flame lights the hooded bowl; the bowl's
+     fire runs into the **Font Room** next door, where the **Givers' font** waits, a dry round pool with a lever at its
+     heart (issue #784). Pulled, the pool fills round him and the battery with it (with the giant's colour, the first
+     time): a big moment, filmed. A full battery opens every door with the makers' mark.
   6. `gun`, 7. `blade`, 8. `guard`: the Givers' gun on the Dry Channel's ledge (its push rolls their weight onto the
      plate there and the bridge rises over the sand), their blade on the Great Hall's balcony, their guard over the
      fire bridge (docs/design/desert-red-temple.md has the rooms).

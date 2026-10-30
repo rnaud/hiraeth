@@ -555,7 +555,7 @@ export const EN = {
   'teach.plumb': '{key:scout} talks to Plumb',
   'teach.nudgeMove': 'Look around: move with {move}, look with {look}',
   'teach.nudgeConsole': 'A message blinks on the console by the holo table, mid-ship',
-  'teach.filled': 'The empty battery fills. The makers’ door by the pool hums back.',
+  'teach.filled': 'The empty battery fills. Doors with the makers’ mark open for you now.',
   'teach.filledGun': 'The battery fills: shoot with {aim} then {fire}; other modes: {mode}.',
   'teach.shove': 'Choose push ({key:mode}), then shoot.',
   'teach.foesShort': '{key:blade} cuts · {key:guard} guards · {key:evade} evades.',
