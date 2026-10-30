@@ -15,7 +15,8 @@
 //               flight (the lens on the weak point; src/temples/hints.js), once a threshold.
 //   Opening     a few lines at the start of a game, each said once per save (flags drone.said.<id>):
 //               stepping out of the ship the first time (the village on the horizon, someone there to
-//               help us recharge: then it flies off toward it, issue #434), the first person near, the
+//               help us recharge: then it flies off toward it, issue #434; since issue #781 a new game's is the
+//               landing's talk, LANDING_TALK, opened to his face by itself), the first person near, the
 //               first chest, the first time you are lost (the D-pad → line after the first talk is the hint
 //               system's, issue #151: these say nothing of the button), the first Blade Gate near (issue #483).
 //
@@ -88,6 +89,26 @@ export const OPENING_POINTS = { recharge: 'village' };
 export const CRITICAL = ['still', 'away', 'circling', 'house', 'bladegate'];
 /** How long it waits at your shoulder with the mark (s), unanswered, before it lets it go. */
 export const HAIL = { secs: 40 };
+/**
+ * The landing's talk (issue #781: "after I land and exit the ship Plumb should start a conversation with me to tell me what
+ * to do"): the prologue over, out of the ship, Plumb comes before his face by itself (no mark, no button) and says where to
+ * go; his answer; then it flies the way (the ping's flight), and the desert's quest starts as the talk ends ('drone:village',
+ * src/story/desert.js). It is the opening's out and recharge lines, said to his face (they are marked said with it).
+ * Once a save: LANDING_FLAG is 'due' from the prologue's end (game 'drone:out': Companion.land) and true once the talk
+ * opens, so a save past the prologue before it never has it (its flag unset, its opening lines as they were). Not quieted
+ * by the drone's hints setting: it is the quest's opening talk, as a giver's is.
+ */
+export const LANDING_FLAG = 'drone.landing';
+export const LANDING_TALK = {
+  pages: ['~curious~ Where to? *That city*, under the dark tree.', '~neutral~ Our power is gone. Someone there might help us recharge.'],
+  answer: '~neutral~ Then let’s go.',
+  bark: '',   // (no pointing word on the cue: the quest's card is up as it flies, and the card hides the cue on the page)
+  emit: 'drone:village',
+};
+/** Where it comes for the landing's talk: at his side (rad from his face; src/scout.js talk), so the two-shot looks past them the way he faces. */
+export const LANDING_TURN = Math.PI / 2;
+/** Seconds of quiet (nothing on the screen, no line being said) after the prologue before it comes. */
+export const LANDING = { after: 0.8 };
 /** Plumb as the dialogue box shows it: its name, its colour (the chip behind its portrait), a small high voice. */
 export const PLUMB_PERSON = { id: 'plumb', name: DRONE_NAME, color: '#70a8c8', voice: 1.3, kind: 'f', scale: 0.6, companion: true };
 /** The fewest words on a page of its talk: a shorter sentence goes with the one after it (or before, at the end). */
@@ -125,8 +146,10 @@ export function talkPages(line) {
   while (pages.length > 3) pages.splice(-2, 2, `${pages.at(-2)} ${pages.at(-1)}`);
   return pages.map((p) => `~${tone}~ ${p}`);
 }
-/** The talk as the dialogue box takes it (src/story/dialogue.js start): Plumb, saying the pages, no answers. */
-export const plumbTalk = (pages) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: { say: pages, listen: true } } } });
+/** The talk as the dialogue box takes it (src/story/dialogue.js start): Plumb, saying the pages; no answers, or his one. */
+export const plumbTalk = (pages, answer = null) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: answer
+  ? { say: pages, choices: [{ text: answer, end: true }] }
+  : { say: pages, listen: true } } } });
 
 /**
  * Lost, with the place it means named ({place}: the objective's label, when it is a place: placeOf). Each template
@@ -314,13 +337,26 @@ export class Companion {
     this.gap = 0;   // s until it may say another line of its own (GAP)
     this.pending = null;   // what it waits at your shoulder to tell you (CRITICAL): { id, line, pages, bark, point }
   }
-  /** The talk it waits to have (taken: no longer pending), or null. */
-  take() { const p = this.pending; this.pending = null; return p; }
-  /** Let it go unsaid (unanswered too long). */
-  drop() { this.pending = null; }
+  /** The talk it waits to have (taken: no longer pending), or null. The landing's, taken, is had: once a save. */
+  take() {
+    const p = this.pending; this.pending = null;
+    if (p?.id === 'landing') for (const [k, v] of [[LANDING_FLAG, true], ['drone.said.out', true], ['drone.said.recharge', true]]) this.state?.set?.(k, v);
+    return p;
+  }
+  /** Let it go unsaid (unanswered too long). The landing's is never let go: it waits for its moment. */
+  drop() { if (!this.pending?.auto) this.pending = null; }
+  /** The prologue is over (game 'drone:out'): the landing's talk is due (once a save: LANDING_FLAG). */
+  land() {
+    if (this.state?.flag?.(LANDING_FLAG)) return;
+    this.state?.set?.(LANDING_FLAG, 'due');
+    this.opening.queue = this.opening.queue.filter((k) => k !== 'out' && k !== 'recharge');
+  }
+  /** The landing's talk is due and not yet had. */
+  get landingDue() { return this.state?.flag?.(LANDING_FLAG) === 'due'; }
   get say() { return droneSay(this.setting(), this.hints()); }
   progress() { this.lost.reset(); }
-  note(id) { if (this.say !== 'off') this.opening.note(id); }
+  // (the first steps out after the landing are the landing's talk, due or had: not the opening's lines on their own)
+  note(id) { if (this.say !== 'off' && !(id === 'out' && this.state?.flag?.(LANDING_FLAG))) this.opening.note(id); }
   /** A lost line for this reason (the first time: the opening's pointer line), naming `place` when there is one. */
   lostLine(why, place = null) {
     if (!this.opening.said('pointer')) { this.state?.set?.('drone.said.pointer', true); return DRONE_LINES.pointer; }
@@ -338,7 +374,16 @@ export class Companion {
    */
   update(dt, { active = true, canSpeak = true, pos, goal = null, place = null, house = null, fight = null } = {}) {
     const say = this.say;
-    if (say === 'off') { this.opening.drop(); this.pending = null; }
+    if (say === 'off') { this.opening.drop(); if (!this.pending?.auto) this.pending = null; }
+    // the landing's talk (issue #781): a moment of quiet after the prologue, then it comes to his face by itself ({ talk })
+    if (this.landingDue && !this.pending) {
+      this.landT = canSpeak && !fight ? (this.landT ?? 0) + Math.max(0, dt) : 0;
+      if (this.landT < LANDING.after) return { say: '', point: null };
+      const { pages, answer, bark, emit } = LANDING_TALK;
+      this.pending = { id: 'landing', auto: true, line: pages.join(' '), pages, answer, bark, emit, point: 'village' };
+      return { say: '', point: null, talk: this.pending };
+    }
+    if (this.pending?.auto) return { say: '', point: null };
     if (dt > 0) this.gap = Math.max(0, this.gap - dt);
     const quiet = this.gap > 0 || !!this.pending;   // (waiting to tell you something: nothing else of its own meanwhile)
     // something critical (CRITICAL) is not said on the cue: it waits to be asked ({ hail }: the host brings it to your

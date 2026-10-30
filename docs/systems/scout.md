@@ -156,11 +156,22 @@ go next, or a hint about how to defeat a boss. In the prologue we should see the
   there (`Scout.escort`, phase `escort`, `ESCORT.secs` 60 s at `appearSpot`, a ping sends it off, else it winks out;
   skipped, it comes out of its light). The step out is a **walk**: `ship.autopilot(…, { walk: true })` holds the
   stick at `AUTO_WALK` (0.06: ~1.5 m/s, under the walk clip's top), only in the prologue's first step out.
-- **Its first word**: once outside, the opening's `out` brings `recharge` with it (`FOLLOWS`): "Where to? That village on
-  the horizon." "Someone there might help us recharge." The second points (`OPENING_POINTS`: `village`): main.js (and
-  engine/game.js) emit `drone:village`, which starts the desert's main quest (src/story/desert.js; its first step is
-  "Walk to Qanat, under the dark tree"), and ping, so it flies off toward Qanat, whose camps and great tree stand in the
-  first step out's view. Marrow still calls you over until you meet him.
+- **Its first word: the landing's talk** (v2.38, issue #781; the author: "After I land and exit the ship Plumb should
+  start a conversation with me to tell me what to do vs relying on hud hints"). The prologue over (`drone:out`,
+  `Companion.land`: the save's `drone.landing` is `'due'`), once nothing is on the screen and no line is being said
+  (the ship's word and his answer, the givers' line: the hosts' `speaking`, `ship.cinema.hasSpeech()`) for
+  `LANDING.after` (0.8 s), Plumb comes before his face (`Scout.talk`) and the talk opens by itself: no mark, no button
+  (`pending.auto`). `LANDING_TALK`: "Where to? *That city*, under the dark tree." "Our power is gone. Someone there might
+  help us recharge." His answer: "Then let's go." (it names the city it sees, not Qanat: nobody has named it yet,
+  lore/voice-guide.md "Knowledge before names"). As the talk ends the hosts emit `drone:village`, which starts the
+  desert's main quest (src/story/desert.js; its first step is "Walk to Qanat, under the dark tree": the quest's card
+  then), and ping, so it flies off toward Qanat. `drone.landing` is `true` from the moment it opens (once a save, with
+  `drone.said.out` and `drone.said.recharge`); a reload while it is still due has it then. It is not quieted by the
+  drone's hints setting (it is the quest's opening talk, as a giver's is). A save past the prologue from before it
+  never has the flag and never sees it: its first steps out say the opening's old `out` and `recharge` (`FOLLOWS`,
+  `OPENING_POINTS`: `village`) as before, and Marrow still calls you over until you meet him. Tests:
+  tests/companion.test.js ("the landing's talk…"), the opening's sequence (`plumb`, `plumb-answer`),
+  scripts/playthrough-browser.mjs.
 - **Where to go** (`placeOf`, `PLACE_LINES`): a lost line names the objective when it is a place ("The giant's skull is
   over here"): a label starting "The" / "Your", or "Name, description" whose name is no one's; never a person, never a
   doing, at most 28 characters.
@@ -191,8 +202,8 @@ something critical to tell you, with the same button we use to ping Plumb to go 
 | `house` | minutes on one step of a makers' house (`StepWatch`) | "Put something heavy on that plate. I'll show you." |
 | `bladegate` | danger: the first fight temple's Blade Gate within 12 m (`ONCE`) | (a whisper) "Those blades mark a dangerous entrance." / "Be careful." |
 
-Everything else of Plumb's stays on the cue as before: the opening's chatter (`out`, `recharge`, `person`, `chest`:
-they come before the button is taught, and `recharge`'s flight starts the desert's quest by itself) and a guardian's
+Everything else of Plumb's stays on the cue as before: the opening's chatter (`person`, `chest`; `out` and `recharge` for
+a save from before the landing's talk, above: they come before the button is taught) and a guardian's
 hints, by themselves or asked for (a fight is no time for a conversation). Other characters are unchanged.
 
 **The flow** (`src/host/game-host.js` `wireCompanion`, the web and the engines alike):

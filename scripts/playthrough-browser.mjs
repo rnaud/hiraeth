@@ -4,7 +4,8 @@
 // checks the parts that only the page has:
 //
 //   1. a new game: the title screen, the prologue (skipped as a player does, holding Esc), and the
-//      desert: no quest on landing, the drone finds Marrow by the ship;
+//      desert: no quest on landing, the drone finds Marrow by the ship; then Plumb's landing talk by itself, the
+//      quest started as it ends (issue #781);
 //   2. an old save from before the save slots and the reorder (the jets and the City-Shaft done, a
 //      message waiting): the title's Continue resumes it in the City-Shaft, the jets taken (a debug item
 //      since v1.38: the Warden's bellows instead); the voicemail plays the waiting message; the holo table
@@ -142,6 +143,13 @@ try {
   check(ob1 === 'Marrow, by your ship', `the drone finds Marrow by the ship (“${ob1}”)`);
   check(await ev(`!window.items.has('backpack')`), 'a bare back: no backpack yet');
   console.log(`  ${await shot('desert-landing')}`);
+  // Plumb's landing talk (issue #781): once the ship's lines are said, it comes to his face and says where to go by itself
+  await until(`window.storyRt.dialogue.open`, 90, 'Plumb\'s landing talk');
+  check(await ev(`window.game.flag('drone.landing') === true && /dark tree/.test(document.querySelector('#dialogue')?.innerText ?? '')`), 'Plumb starts its talk by itself: where to go, the city under the dark tree');
+  console.log(`  ${await shot('plumb-talk')}`);
+  await ev(`window.storyRt.dialogue.close(), true`);
+  await sleep(600);
+  check(await ev(`window.quests.isStarted('desert.power')`), 'the desert\'s quest starts as it ends');
 
   // ---------------------------------------------------------------- 2. an old save, the voicemail, the map, travel
   console.log('2. an old save from before the slots and the reorder: the City-Shaft done, the jets, a message waiting');

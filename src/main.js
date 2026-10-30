@@ -873,7 +873,7 @@ wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t, o)
 // Plumb each frame (src/host/game-host.js wireCompanion, the engines' too): its escort out of the prologue, the first
 // person near, its hints when you look lost, its first word (issue #434)
 // (something critical: at your shoulder with its mark, the button opens its talk; the first time, the button's line: issue #543)
-const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue, quests: () => storyRt.quests,
+const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue, quests: () => storyRt.quests, speaking: () => ship.cinema.hasSpeech(),
   teach: () => { if (plumbHintDue(game)) { scoutTeach.line = plumbHintLine; scoutTeach.left = SCOUT_HINT_SHOW; } } });
 /** Plumb, each frame (after the scout's own update): its line on the cue, a moment. */
 function updatePlumb(dt) {

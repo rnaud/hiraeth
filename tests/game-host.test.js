@@ -395,10 +395,21 @@ test('wireCompanion: the prologue\'s drone handed over to the scout; Plumb\'s fi
   let village = 0;
   game.on('drone:village', () => village++);
   plumb.note('out');
-  assert.equal(step(0.1), '', 'no unsolicited departure advice');
-  assert.equal(step(0.1), '', 'no unsolicited recharge advice');
-  assert.equal(village, 1, 'the desert\'s quest starts on it');
-  assert.equal(calls.filter(([kind]) => kind === 'ping').length, 0, 'a scout request still belongs to the player');
+  step(0.1); step(0.1);
+  assert.equal(village, 0, 'a new game: its landing\'s talk is due instead (issue #781, tests/companion.test.js), the quest waits for its end');
+  assert.equal(game.flag('drone.landing'), 'due');
+  // a save past the prologue from before the landing's talk: its first steps out as before
+  const old = new GameState({ getItem: () => null, setItem: () => {} });
+  old.set('prologue.done', true);
+  const oldPlumb = new Companion({ state: old, hints: () => 'subtle' }), oldCalls = [];
+  const oldStep = wireCompanion({ game: old, plumb: oldPlumb, scout: { ...scout, escort: () => oldCalls.push('escort'), ping: () => oldCalls.push('ping') }, level: {}, player, npcs: [], struggle: { t: 0 } });
+  let oldVillage = 0;
+  old.on('drone:village', () => oldVillage++);
+  oldPlumb.note('out');
+  assert.equal(oldStep(0.1), '', 'no unsolicited departure advice');
+  assert.equal(oldStep(0.1), '', 'no unsolicited recharge advice');
+  assert.equal(oldVillage, 1, 'the desert\'s quest starts on it');
+  assert.equal(oldCalls.filter((kind) => kind === 'ping').length, 0, 'a scout request still belongs to the player');
   assert.equal(wireCompanion({ game, plumb: null, scout, level: {}, player })(0.1), '', 'no help: no lines');
 });
 

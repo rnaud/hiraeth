@@ -2,7 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, ONCE, DRONE_HINTS, droneSay, shown, DRONE_NAME, FOLLOWS, OPENING_POINTS,
-  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace, CRITICAL, HAIL, talkPages, splitBark, plumbTalk, PLUMB_PERSON, PAGE_WORDS } from '../src/companion.js';
+  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace, CRITICAL, HAIL, talkPages, splitBark, plumbTalk, PLUMB_PERSON, PAGE_WORDS,
+  LANDING_TALK, LANDING_FLAG, LANDING } from '../src/companion.js';
 import { STRUGGLE } from '../src/hint-level.js';
 import { parseLine } from '../src/story/tone.js';
 
@@ -331,12 +332,12 @@ test('the critical queue: one talk waits, nothing else of its own meanwhile; tak
 });
 
 /** wireCompanion with a stand-in scout, dialogue box and sound (what the hosts give it). */
-async function talkRig() {
+async function talkRig({ speaking = () => false, met = true } = {}) {
   const { wireCompanion } = await import('../src/host/game-host.js');
   const THREE = await import('three');
   const { GameState } = await import('../src/game-state.js');
   const game = new GameState({ getItem: () => null, setItem: () => {} });
-  game.set('met.someone', true);
+  if (met) game.set('met.someone', true);
   const calls = [];
   const scout = {
     out: false, phase: 'away', escortT: 0, hailing: false, object: new THREE.Object3D(),
@@ -350,7 +351,7 @@ async function talkRig() {
   const sounds = [], taught = [];
   const plumb = new Companion({ state: game, hints: () => 'subtle' });
   const player = { pos: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
-  const step = wireCompanion({ game, plumb, scout, level: {}, player, npcs: [], struggle: { t: 0 }, sound: { drone: (k) => sounds.push(k) }, dialogue: () => box, teach: () => taught.push(1) });
+  const step = wireCompanion({ game, plumb, scout, level: {}, player, npcs: [], struggle: { t: 0 }, sound: { drone: (k) => sounds.push(k) }, dialogue: () => box, teach: () => taught.push(1), speaking });
   return { step, scout, box, sounds, taught, calls, plumb, game };
 }
 
@@ -429,4 +430,101 @@ test('unanswered it lets the talk go; a scene puts it away and it comes again; n
   for (let t = 0; t <= HAIL.secs + 1; t += 0.5) step(0.5);
   assert.equal(plumb.pending, null); assert.equal(step.hailing, false);
   assert.equal(step.press(), false);
+});
+
+// ------------------------------------------------------------------ the landing's talk (issue #781)
+test('the landing\'s talk: its lines carry tones, are terse, name no button, and the goal is one short line', () => {
+  const lines = [...LANDING_TALK.pages, LANDING_TALK.answer];
+  for (const l of lines) {
+    assert.ok(parseLine(l).explicit, `${l}: a tone`);
+    for (const sentence of parseLine(l).text.match(/[^.?!]+[.?!]/g)) assert.ok(sentence.trim().split(/\s+/).length <= 7, `${l}: terse (two to seven words a sentence, lore/characters/plumb.md)`);
+    assert.ok(!/R3|\{key|Q\b|D-pad|[AXYB] \//.test(l), `${l}: no button`);
+  }
+  assert.match(LANDING_TALK.pages[0], /\*That city\*, under the dark tree/, 'where to go, as the quest\'s first step shows it (Qanat, under the dark tree)');
+  assert.ok(!/Qanat/.test(LANDING_TALK.pages.join(' ')), 'knowledge before names: it points at the city it sees, nobody has named it yet (lore/voice-guide.md)');
+  assert.ok(!/\b(ask|talk to|see|meet)\b/i.test(LANDING_TALK.pages.join(' ')), 'nobody sends you to somebody else');
+  assert.match(LANDING_TALK.answer, /let’s go/i, 'his answer follows from what it just said (someone there might help: then let\'s go)');
+  assert.equal(LANDING_TALK.emit, 'drone:village', 'the desert\'s quest starts as it ends');
+  const t = plumbTalk(LANDING_TALK.pages, LANDING_TALK.answer).talk.nodes.plumb;
+  assert.deepEqual(t.say, LANDING_TALK.pages);
+  assert.deepEqual(t.choices, [{ text: LANDING_TALK.answer, end: true }], 'one answer, that ends it');
+});
+
+test('stepping out after the prologue, Plumb opens its talk by itself, once; the quest starts as it ends, then it flies the way', async () => {
+  const { step, scout, box, calls, plumb, game, sounds } = await talkRig({ met: false });
+  const village = [];
+  game.on('drone:village', () => village.push(1));
+  game.emit('drone:out', { pos: null });   // (the prologue's end: src/ship/cinematics.js finish)
+  assert.equal(game.flag(LANDING_FLAG), 'due');
+  game.emit('ship:exit');   // (the old silent lines would come from this: no longer)
+  plumb.note('out');
+  step(0.2, { canSpeak: false });
+  assert.equal(box.open, false, 'not while something is on the screen');
+  step(LANDING.after / 2); step(1 / 60); step(1 / 60);
+  assert.equal(box.open, false, 'a moment of quiet first');
+  for (let k = 0; k < 4 && !box.open; k++) step(LANDING.after / 2);
+  assert.equal(scout.phase, 'talk', 'before your face');
+  step(1 / 60); step(1 / 60);
+  assert.equal(box.open, true, 'the talk, opened by itself: no button');
+  assert.ok(!calls.includes('hail') && !sounds.includes('call'), 'no mark, no call: it does not wait to be asked');
+  assert.equal(box.said.person.name, 'Plumb');
+  assert.deepEqual(box.said.person.talk.nodes.plumb.say, LANDING_TALK.pages);
+  assert.equal(box.said.person.talk.nodes.plumb.choices[0].text, LANDING_TALK.answer);
+  assert.deepEqual([game.flag(LANDING_FLAG), game.flag('drone.said.out'), game.flag('drone.said.recharge')], [true, true, true], 'had: once a save');
+  assert.equal(village.length, 0, 'the quest waits for the talk\'s end');
+  box.close();
+  assert.equal(village.length, 1, 'the desert\'s quest starts as the talk ends');
+  assert.equal(calls.at(-1), 'ping', 'then it flies the way');
+  assert.equal(step(0.5), '', 'nothing on the cue: the quest\'s card is up as it goes');
+  // the opening's out and recharge lines, the old top-of-screen ones, never come after it
+  for (let k = 0; k < 20; k++) { const r = plumb.update(0.5, { pos: { x: 0, y: 0, z: 0 } }); assert.ok(r.say !== DRONE_LINES.out && r.say !== DRONE_LINES.recharge && !r.talk); }
+  // once a save: the prologue replayed (?prologue=1) on it does not bring it again
+  game.emit('drone:out', { pos: null });
+  for (let k = 0; k < 6; k++) step(0.5);
+  assert.equal(box.open, false); assert.equal(plumb.pending, null);
+});
+
+test('the landing\'s talk never over a line being said, a fight or a ride, and not let go unanswered', async () => {
+  let talking = true;
+  const { step, box, plumb, game } = await talkRig({ speaking: () => talking });
+  game.emit('drone:out', { pos: null });
+  for (let t = 0; t < HAIL.secs + 5; t += 0.5) step(0.5);
+  assert.equal(box.open, false, 'the ship\'s lines first');
+  assert.ok(plumb.pending === null || plumb.pending.auto, 'still due');
+  for (let t = 0; t < 3; t += 0.5) step(0.5, { fight: true });
+  assert.equal(box.open, false, 'not in a fight');
+  talking = false;
+  for (let k = 0; k < 6 && !box.open; k++) step(0.5);
+  step(1 / 60); step(1 / 60);
+  assert.equal(box.open, true);
+  // the drone's hints off: it is the quest's opening talk, not a hint
+  const off = new Companion({ state: state(), setting: () => 'off', hints: () => 'subtle' });
+  off.land();
+  let r = null;
+  for (let k = 0; k < 4 && !r?.talk; k++) r = off.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.ok(r?.talk, 'said with the drone\'s hints off too');
+  off.drop(); off.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.ok(off.pending?.auto, 'never let go unsaid');
+});
+
+test('a save past the prologue from before the landing\'s talk never has it; its opening lines as they were', () => {
+  // (prologue.done, no landing flag: the prologue never plays again, so drone:out never comes)
+  const s = state(); s.set('prologue.done', true);
+  const c = new Companion({ state: s, hints: () => 'subtle' });
+  for (let k = 0; k < 6; k++) assert.ok(!c.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).talk);
+  assert.equal(s.flags[LANDING_FLAG], undefined, 'the save untouched');
+  c.note('out');
+  assert.equal(c.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).say, DRONE_LINES.out, 'its own first steps out, as before');
+  // and one that has had it keeps it had
+  const h = state(); h.set(LANDING_FLAG, true);
+  const d = new Companion({ state: h, hints: () => 'subtle' });
+  d.land();
+  assert.equal(h.flags[LANDING_FLAG], true);
+  for (let k = 0; k < 6; k++) assert.ok(!d.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).talk);
+  // a reload with the talk still due (closed before it opened) has it then
+  const r = state(); r.set(LANDING_FLAG, 'due');
+  const e = new Companion({ state: r, hints: () => 'subtle' });
+  let got = null;
+  for (let k = 0; k < 4 && !got; k++) got = e.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).talk;
+  assert.ok(got, 'still due after a reload');
 });

@@ -107,9 +107,13 @@ const OPENING = {
     after: b.console ? (G) => { const m = G.ship.modelOf(G.player.pos); if (m?.interior?.points?.cockpit) G.player.pos.copy(G.ship.world(m, m.interior.points.cockpit)); } : null,
     wait: b.console ? 0.9 : 0,
   })),
-  // After the opening, village guidance advances quietly; advice is available when the player asks Plumb.
-  // Keep the real progress milestone and settled handover, without waiting for the removed automatic cue.
-  { name: 'plumb', until: (G) => G.state.flag('drone.said.recharge') && !G.ship?.reveal && !G.ship?.blend, timeout: 60 }],
+  // After the opening, Plumb's landing talk opens by itself once the ship's lines are said (issue #781: src/companion.js
+  // LANDING_TALK); drone.said.recharge is set as it opens. Keep that milestone and the settled handover.
+  // (its talk in the box, opened by itself: where to go; a press for its second page and his answer)
+  { name: 'plumb', until: (G) => G.state.flag('drone.said.recharge') && !!G.story?.dialogue?.open && !G.ship?.reveal && !G.ship?.blend, timeout: 60, wait: 1.2 },
+  // (no beat after the answer: the quest's card and the find's line come in each host's own order of notices, the find's
+  // on the wall clock; tests/companion.test.js holds the quest's start and the flight as the talk ends)
+  { name: 'plumb-answer', keys: tap('Space'), wait: 1.2 }],
 };
 
 /** Every world's filmed moment (src/story/*-moments.js, the catalog's "World moments"): three beats into each. */

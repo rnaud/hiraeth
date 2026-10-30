@@ -53,7 +53,7 @@ export const WALKTHROUGH = [
     test: '1. desert',
     intro: 'A new game starts with the crash: your ship lies dark on the sand outside Qanat, the city under its great dead tree. Its main quest, The Tree That Drinks, runs through the Rose House, the Desert’s one temple, and the giant’s skull. Nothing on the way asks for the bike or a race.',
     steps: [
-      ['desert.power:opener', 'talk', 'Walk down the ramp and talk to Marrow, beside your ship (X / □). The main quest starts: wake your ship with the fire of Qanat’s great tree.'],
+      ['desert.power:opener', 'talk', 'Step out of the ship: Plumb comes to you by itself and says where to go, the city under the dark tree; answer it (A / ×). The main quest starts: wake your ship with the fire of Qanat’s great tree. On an older save, talk to Marrow beside your ship (X / □).', 'The test opens it with Marrow; tests/companion.test.js plays Plumb’s talk.'],
       ['desert.power:city', 'scripted', 'Walk to Qanat (D-pad → asks Plumb, the scout, the way): through the city gate and up its stairs, under the dark tree.', 'The test sets him down at the top of the gate’s stairs.'],
       ['desert.power:box', 'climb', 'Open the humming chest on its dais between the great tree’s roots (X / □): the backpack. The dais is a short climb.'],
       ['desert.power:elder', 'on foot', 'Nour, the eldest, comes to see who opened it and calls you over: talk to her (X / □). She names the spark-stone and the Rose House.'],

@@ -27,6 +27,9 @@ export const CHANGELOG = [
         see: 'In the Rose House, light the bowl in the Hall of the Flame: the door on to the Dry Channel stays shut and its lamp dark until you pull the font’s lever; then it sinks open.' },
       // the loading screen (#791)
       'Loading screens are quieter: the screen is black, and only a small turning circle, the word “Loading” and a thin bar that fills as the world is built sit in the bottom-right corner. The lines naming each step are gone. If something fails to load, its message still shows there in full. With reduced motion on, the circle gently pulses instead of turning.',
+      // the landing (#781)
+      { text: 'After the crash landing, Plumb no longer leaves you to the screen to work out where to go: once the ship has had its say and you stand outside, it comes to your side by itself and tells you, pointing out the city under the dark tree where someone might help you recharge. Answer it and your main quest starts, and Plumb flies off ahead to show the way. It happens once, on a new game.',
+        see: 'Start a new game and play or skip the opening: as you stand on the sand outside the ship, Plumb comes to your side and talks to you; answer with A / × and the quest begins.' },
     ],
   },
   {

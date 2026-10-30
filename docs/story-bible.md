@@ -594,7 +594,7 @@ that shows which way is true. It sleeps in a charging cradle by the hatch, and t
 cradle went dark too, so it says *us* when it says recharge. Curious, dry, warm and a little pleased with itself, it
 knows the way and never the story: it points before it comments, answers its own questions ("Lost? A little. This
 way."), and, unlike the father, never weighs what the traveller brings home. It leaves its cradle in the prologue to
-walk out with him, says the village on the horizon is their best bet, and after that speaks up only when he looks lost:
+walk out with him, and outside talks to him by itself: the city under the dark tree is their best bet (issue #781). After that it speaks up only when he looks lost:
 where to go next, a nudge in a makers' house, a guardian's weak point. What matters it says to his face: it comes to his
 shoulder with a red mark and waits to be asked (issue #543).
 

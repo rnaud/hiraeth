@@ -51,7 +51,7 @@ import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
 import { keyText } from '../prompt-keys.js';
-import { placeOf, droneWorld, shown as droneShown, HAIL, PLUMB_PERSON, plumbTalk } from '../companion.js';
+import { placeOf, droneWorld, shown as droneShown, HAIL, PLUMB_PERSON, plumbTalk, LANDING_TURN } from '../companion.js';
 import { ESCORT, TALK } from '../scout.js';
 import { ATTEND, AttendGate, AttendPicker, attendCandidates } from '../drone-attend.js';
 import { guardianHint } from '../temples/hints.js';
@@ -273,8 +273,10 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
  * lines show (issue #559); a talk with nowhere to point (the Blade Gate's: you are at it, #563) ends there. Unanswered for
  * HAIL.secs, it lets it go; a scene or a fight puts it away, and it comes again after.
  */
-export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null, sound = null, dialogue = () => null, teach = null, quests = () => null }) {
+export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null, sound = null, dialogue = () => null, teach = null, quests = () => null, speaking = () => false }) {
   if (scout) game.on('drone:out', (e) => scout.escort(ESCORT.secs, e?.pos ?? null));
+  // (the prologue over: the landing's talk is due, Plumb comes to your face by itself once it is quiet: issue #781)
+  if (plumb) game.on('drone:out', () => plumb.land?.());
   const at = { goalT: 0, goal: null, lookT: 0, place: null, world: { fight: null, house: null }, names: null };
   // the talk (issue #543): raised at your shoulder (up), how long it has waited; the talk under way
   const hail = { up: false, shown: 0, talking: null, opening: null, bark: '' };
@@ -286,6 +288,7 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
     const said = hail.talking;
     hail.talking = null;
     plumb?.progress();
+    if (said.emit) game.emit(said.emit);   // (the landing's talk: the desert's quest starts as it ends, issue #781)
     if (!said.point) { scout?.home?.(); return; }   // (nowhere to point: the Blade Gate's warning, said at the gate; it goes home)
     hail.bark = said.bark ?? '';
     scout?.ping();   // (then off toward the goal, as the button does: its bark, then the find's line, the flare, the marker)
@@ -319,8 +322,15 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
       at.place = target ? placeOf(target.label, at.names) : null;
       at.world = droneWorld({ level, pos: player.pos, hint, secs });
     }
-    const r = plumb.update(dt, { active: !fight && !(scout?.out && scout.phase !== 'escort'), canSpeak, pos: player.pos, goal: at.goal, place: at.place,
+    const free = !hail.talking && !hail.opening && !player.ride && !dialogue?.()?.open && !!npc;
+    const r = plumb.update(dt, { active: !fight && !(scout?.out && scout.phase !== 'escort'), canSpeak: canSpeak && !(plumb.landingDue && (speaking() || !free)), pos: player.pos, goal: at.goal, place: at.place,
       house: at.world.house, fight: hint ? { id: hint.id, secs } : null });
+    // the landing's talk (issue #781): no mark and no button, it comes before your face and the talk opens by itself
+    if (plumb.pending?.auto) {
+      // (at his side, not before his face: the two-shot then looks past the pair at the city it names)
+      if (canSpeak && !fight && free && !speaking()) { lower(); hail.opening = { said: plumb.take(), frames: OPEN_FRAMES }; scout.talk({ turn: LANDING_TURN }); }
+      return '';
+    }
     if (r.point === 'village') game.emit('drone:village');
     // Automatic observations may advance the opening quest, but only a player's request sends a hint ping.
     // something to tell you: at your shoulder with its mark, until the button, a scene, a fight, or HAIL.secs unanswered
@@ -359,7 +369,11 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
     hail.opening = null;
     const d = dialogue?.();
     hail.talking = o.said;
-    if (!d || d.open || !d.start(plumbTalk(o.said.pages), npc)) { hail.talking = null; if (o.said.point) scout.ping(); else scout.home?.(); }   // (no talk after all: the ping)
+    if (!d || d.open || !d.start(plumbTalk(o.said.pages, o.said.answer ?? null), npc)) {   // (no talk after all: the ping)
+      hail.talking = null;
+      if (o.said.emit) game.emit(o.said.emit);
+      if (o.said.point) scout.ping(); else scout.home?.();
+    }
   };
   Object.defineProperty(step, 'hailing', { get: () => hail.up });
   return step;

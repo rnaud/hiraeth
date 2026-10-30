@@ -768,7 +768,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const droneSaid = { text: '', until: 0 };
   // (Plumb each frame, as the page: src/host/game-host.js wireCompanion, issue #434)
   // (something critical: at your shoulder with its mark, the button opens its talk in the dialogue box; issue #543)
-  const plumbStep = wireCompanion({ game: gameState, plumb, scout, level, player, npcs, struggle, sound: sound !== SILENT ? sound : null, dialogue: () => story?.dialogue ?? null, quests: () => story?.quests ?? null,
+  const plumbStep = wireCompanion({ game: gameState, plumb, scout, level, player, npcs, struggle, sound: sound !== SILENT ? sound : null, dialogue: () => story?.dialogue ?? null, quests: () => story?.quests ?? null, speaking: () => !!(shipOn && ship?.cinema?.hasSpeech?.()),
     teach: () => { if (plumbHintDue(gameState)) { scoutTeach.line = plumbHintLine; scoutTeach.left = SCOUT_HINT_SHOW; } } });
   // what the save's events say and start: a gadget found and its line after its card, a keepsake's theme, the trials'
   // upgrades to the gadgets' tuning (before the gadgets are made), Plumb's clock and notes (src/host/game-host.js

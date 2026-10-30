@@ -421,7 +421,7 @@ export class PrologueDirector {
         }
         C.bars(false); C.hud(true);
         // (no objective card: the father's charge was the one line about it, its own card, issue #222; the way on is
-        // Marrow by the ship, his balloon and the scout's find, and the quest log has the step)
+        // Plumb's talk once the ship's lines are said, by itself (issue #781: src/companion.js LANDING_TALK), and the quest log has the step)
         break;
       }
     }

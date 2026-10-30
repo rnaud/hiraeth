@@ -13,10 +13,12 @@ lines carry its name on the cue ("◇ Plumb: …", issue #434).
 **The prologue (issue #434):** after the landing, inside, by the amber reserve
 light, it wakes in its cradle, blooms, lifts out of the cup and comes to the
 traveller's shoulder at the hatch; it rides at his shoulder as he walks down
-the ramp, and once outside says the opening's two lines: "Where to? That village
-on the horizon." "Someone there might help us recharge." (Its cradle went dark
-with the ship: *us*.) Then it flies off toward the village, and the desert's
-quest starts on it, its first step the same village.
+the ramp, and once outside, the ship's lines said, it comes before his face and
+talks to him (issue #781): "Where to? That city, under the dark tree." "Our power
+is gone. Someone there might help us recharge." (Its cradle went dark with the
+ship: *us*.) He answers "Then let's go."; it flies off toward the city, and the
+desert's quest starts on it, its first step the same city (Qanat, a name it has
+not heard yet).
 
 **Writing premise:** a companion, not a tutorial. It is curious and a little
 pleased with itself, fond of the traveller without making a fuss about it. It

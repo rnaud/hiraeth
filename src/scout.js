@@ -390,14 +390,21 @@ export class Scout {
   /**
    * The talk (issue #543): it is before your face (TALK), open, facing you, until a ping sends it off (or home()). It is
    * put there at once: the conversation's camera cuts to the two-shot. Returns where it hovers.
+   * `turn` (rad): at his side rather than before his face (the landing's talk, issue #781: beside him, so the two-shot
+   * looks past the pair the way he faces, at the city it names); the other side if that one has a wall close.
    */
-  talk() {
+  talk({ turn = 0 } = {}) {
     const p = this.player, up = p.frame.up, fwd = _f2;
     if (p.frame.dir && p.heading != null) p.frame.dir(p.heading, fwd); else fwd.set(Math.sin(p.heading ?? 0), 0, Math.cos(p.heading ?? 0));
     fwd.addScaledVector(up, -fwd.dot(up));
     if (fwd.lengthSq() < 1e-6) fwd.set(up.y, -up.x, 0);
     fwd.normalize();
     const head = _lh.copy(p.pos).addScaledVector(up, HEAD - TALK.below);
+    if (turn) {
+      const base = fwd.clone();
+      fwd.copy(base).applyAxisAngle(up, turn);
+      if ((this.obstacle(head, fwd, TALK.out + RADIUS)?.distance ?? Infinity) < TALK.out + RADIUS) fwd.copy(base).applyAxisAngle(up, -turn);
+    }
     const wall = this.obstacle(head, fwd, TALK.out + RADIUS)?.distance ?? Infinity;
     this.talkAt = (this.talkAt ?? new THREE.Vector3()).copy(head).addScaledVector(fwd, Math.max(TALK.near, Math.min(TALK.out, wall - RADIUS)));
     this.phase = 'talk'; this.hail(false); this.target = null; this.hinting = null; this.attending = null; this.found = false;
