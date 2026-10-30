@@ -46,7 +46,7 @@ export const TEMPLE_ENDINGS = {
   desert: { kind: 'helper', game: 'cistern', door: 'd4', upstream: 'd3', needs: ['sword', 'shield', 'gun'],
     prompt: 'help the Keeper', returnLabel: 'Return to the Keeper',
     captions: [scene('~neutral~ The Keeper’s channels have run dry.'),
-      scene('~neutral~ Turn the channels toward every trough, then open the valve. Five minutes for all three floods.')] },
+      scene('~neutral~ Turn the channels to every trough, then open the valve. Five minutes, three floods.')] },
   arzach: { kind: 'helper', game: 'elderflight', door: 'd3', needs: ['gun', 'glider'],
     prompt: 'fly with the Elder', returnLabel: 'Return to the Aerie',
     captions: [scene('~neutral~ The Elder needs help reaching her old roost.'),
