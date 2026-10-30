@@ -967,6 +967,18 @@ function makePlan(args) {
       { kind: 'key', code: 'F2', down: true }, { kind: 'key', code: 'F2', down: false }, { kind: 'wait', frames: 20 },
       { kind: 'foe', what: 'tripod@desert', dist: 8, hp: 99 }, { kind: 'wait', frames: 150, secs: 3.5 }, { kind: 'foe', what: 'lamp' }, ...shot('lamp-night'));
   }
+  if (fights.includes('ragwall')) {
+    // (-fight ragwall, issue #794, in the Arena (-level arena): a grunt 0.7 m before the wall at +x struck down toward
+    // it, pictured 0.5 s and 1.5 s after; then a grunt on the open sand struck down, its lift over the ground once it lies)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-ragwall-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'clear' },
+      { kind: 'foe', what: 'ragset', kind_: 'grunt', at: [39.3, 0], heading: -Math.PI / 2, from: [36.2, 3.4] }, { kind: 'wait', frames: 12, secs: 0.2 }, ...shot('stand'),
+      { kind: 'foe', what: 'ragkill', dir: [1, 0] }, { kind: 'wait', frames: 30, secs: 0.5 }, { kind: 'foe', what: 'raglog' }, ...shot('0.5'),
+      { kind: 'wait', frames: 60, secs: 1 }, { kind: 'foe', what: 'raglog' }, ...shot('1.5'),
+      { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'clear' },
+      { kind: 'foe', what: 'ragset', kind_: 'grunt', at: [0, -8], heading: Math.PI, from: [3.5, -4] }, { kind: 'wait', frames: 12, secs: 0.2 },
+      { kind: 'foe', what: 'ragkill', dir: [1, 0] }, { kind: 'wait', frames: 100, secs: 1.7 }, { kind: 'foe', what: 'raglog' }, ...shot('lying'));
+  }
   if (fights.includes('duelists')) {
     // (-fight duelists, issue #724: the shade and the fencer moved onto the humanoid rig's clips: a fencer 6 m ahead and a
     // shade 4 m ahead, standing; their rig said; then each winds up its first blow, pictured at three quarters of it; then
@@ -1587,6 +1599,27 @@ function playFrame(dt) {
     } else if (step.what === 'lamp') {
       // (-fight physics, #756: the lamp tripod's light in the shared list, its shaft)
       for (const f of F.list.filter((x) => x.model?.lamp)) console.log(`[unity] lamp on ${f.model.lamp.on}, light ${f.lampFx?.v?.toArray().map((x) => x.toFixed(2)).join(',')}, in the list ${(game.level.lights ?? []).includes(f.lampFx?.v)}, shaft ${!!f.lampFx?.shaft}`);
+    } else if (step.what === 'ragset') {
+      // (-fight ragwall, #794: a foe set down at a spot of the world, its mind held; the traveller at `from`, facing it)
+      const V = game.player.pos.constructor, gy = (x, z) => game.physics?.groundAt?.(x, 20, z) ?? 0, p = game.player;
+      const at = new V(step.at[0], gy(step.at[0], step.at[1]), step.at[1]), from = new V(step.from[0], gy(step.from[0], step.from[1]), step.from[1]);
+      p.teleport(from, new V(0, 1, 0), new V(0, 0, 1)); p.vel?.set?.(0, 0, 0);
+      p.heading = Math.atan2(at.x - from.x, at.z - from.z); if (game.rig) game.rig.yaw = p.heading + Math.PI;
+      const f = F.add(step.kind_, at);
+      f.heading = step.heading; f.hp = 99; f.cool = 99;
+      console.log(`[unity] a ${step.kind_} set down at ${at.toArray().map((x) => x.toFixed(2)).join(' ')}`);
+    } else if (step.what === 'ragkill') {
+      for (const f of F.list.filter((x) => x.alive)) {
+        const dir = new f.pos.constructor(step.dir[0], 0, step.dir[1]).normalize();
+        f.hp = 0.1; f.state = 'recover'; f.timer = 0.5; F.hurt(f, 'blade', dir, { damage: 9, combo: 2 }, f.chest.clone());
+        console.log(`[unity] ${f.kind} struck down: ${f.dying?.rag ? 'a ragdoll' : 'its recipe'}`);
+      }
+    } else if (step.what === 'raglog') {
+      // (its particles against the Arena's wall, r 40 m; the walls it gathered; how high its drawn body is held over the ground)
+      for (const f of F.list.filter((x) => x.dying?.rag)) {
+        const R = f.dying.rag, x = R.rag.x, out = Math.max(...x.map((q, i) => Math.hypot(q.x, q.z) + (R.rag.rw?.[i] ?? R.rag.r[i])));
+        console.log(`[unity] ${f.kind} ragdoll ${R.asleep ? 'still' : 'moving'}: pelvis ${R.rag.pelvis.toArray().map((q) => q.toFixed(2)).join(' ')}, its particles out to r ${out.toFixed(2)} (the wall at 40), walls ${R.rag.walls?.n ?? 0}, lift ${((f.dying.held ?? 0) * 100).toFixed(1)} cm, deepest drawn ${R.deep == null ? '-' : (R.deep * 100).toFixed(1) + ' cm'}`);
+      }
     } else if (step.what === 'clear') {
       for (const f of F.list.slice()) F.remove(f);
       console.log('[unity] the foes cleared');

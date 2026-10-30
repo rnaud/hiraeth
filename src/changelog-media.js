@@ -1461,6 +1461,10 @@ const FROM791 = 'Hand-made (no `view`): a script of mine (scratch, on scripts/ch
 /** (v2.38, issue #781: Plumb's landing talk) */
 const FROM781 = 'Hand-made (no `view`): muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set in storage before load, so the sound is built silent) against its own Vite (port 5441), High, 1280 × 720, a fresh save on ?level=desert&prologue=1, the prologue played (its walk to the voicemail stepped past), 29 October 2026; both 1 s after the prologue hands back the controls, the before at 4f0e7c7f9 (origin/main), the after on branch claude/plumb-781 (4f0e7c7f9 plus the change). The talk has its own camera, so the two views differ: the before is the follow camera behind him';
 
+/** (v2.38, issue #794: ragdolls on the ground and at walls) */
+const FROM794 = 'Hand-made strips of the web game (no `view`): a scratch script (on scripts/changelog-shots.mjs serve/chrome) drove muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set in storage before load; the page reported its master gain at 0) against its own Vite (port 5470 for the after, 5472 for the before), the Arena at 10:00, clear, High; one grunt set down and held still, then struck down with Foes.hurt (blade, damage 99, the combo’s third, heavy) along +x; the game’s own captureView from a pinned eye before the blow and at real times after it (labelled; approximate: the hit-stop and the last foe’s slow motion stretch them). Before: a2982da49 (git archive of the branch’s base), after: this change on it; 30 October 2026; cwebp -q 72. Each ragdoll falls its own way, so the two falls differ';
+const NODE794 = 'Issue #794: a scratch measure of Foes.update at 60 frames a second in node on a level of real colliders (src/physics.js: a ground mesh, a 0.3 m wall), the game’s own models; before at a2982da49, after this change on it; 30 October 2026';
+
 export const CHANGELOG_MEDIA = {
   '2.38': [
   { match: 'When Nour talks to you, her cloak now stays behind her', shots: [
@@ -1496,6 +1500,34 @@ export const CHANGELOG_MEDIA = {
     { name: 'plumb781-landing', title: 'Stepping out', caption: 'The moment the opening hands you the controls outside the ship: before, Plumb hovers silently ahead and the screen shows only the new quest’s card; after, Plumb comes to your side and starts talking: “Where to? That city, under the dark tree.”, the city behind them', from: FROM781 },
     { name: 'plumb781-answer', title: 'The answer', caption: 'Its second page and your answer: “Our power is gone. Someone there might help us recharge.” “Then let’s go.” The quest starts when you answer', only: 'after', from: FROM781 },
   ] },
+  { match: 'An enemy you strike down now lies on the ground with every limb', tags: ['combat'], shots: [
+    { name: 'ragwall794', size: [1280, 320], title: 'Against a wall', caption: 'A grunt 0.7 m from the Arena’s wall struck down toward it, frame by frame: before, at 0.9 s its head and shoulders are inside the stone and only its back half shows; after, it stops at the wall, slumps down the face and lies at its foot', from: FROM794, view: 'the Arena, the grunt at (39.3, 0) facing in, the wall’s face at 40 m; the eye at (37, 1.9, 3.9) looking at (39.6, 0.45, 0), fov 34; frames before the blow and 0.3, 0.5, 0.9, 1.5 s after' },
+    { name: 'raglie794', size: [640, 300], title: 'Lying', caption: 'A grunt struck down on the open sand, 2 s after, seen low from its side: before, the whole body hovers over the sand with a gap and its shadow under it (held up 6.3 cm by one part drawn into the ground); after, its back, arms and legs lie on the sand', from: FROM794, view: 'the Arena, the grunt at (0, -8) struck along +x; the eye at (0.9, 0.3, -1.5) looking at (0.9, 0.22, -8), fov 18, 2 s after the blow' },
+  ], numbers: [
+    { title: 'Each joint lying on the ground: how high its limb is drawn over the ground, cm (the lowest drawn point within the joint’s size and 4 cm)', unit: '', better: 'lower', device: 'node: the grunt, hulk, prowler, warlord, sentinel, fencer, mummer and mummer king, four blows each on the flat, a 14° and a 24° slope (96 falls), as each comes to rest', source: NODE794, rows: [
+      { where: 'all joints, on average', before: 5.1, after: 1.6 },
+      { where: 'joints over 4 cm up (of every 100)', before: 54, after: 8 },
+      { where: 'the head, on average', before: 8.7, after: 2.2 },
+      { where: 'the hands', before: 6.3, after: 2.1 },
+      { where: 'the elbows', before: 5.5, after: 1.2 },
+      { where: 'the feet', before: 4.7, after: 1.0 },
+      { where: 'the knees', before: 2.9, after: 0.7 },
+      { where: 'the trunk (pelvis, chest, hips, shoulders)', before: 3.7, after: 1.9 },
+      { where: 'the whole body’s lift by its deepest drawn part', before: 4.7, after: 0.5 },
+      { where: 'the mummer king’s joints, on average', before: 10.0, after: 2.0 },
+    ] },
+    { title: 'Struck down toward a wall 0.6 m away', unit: '', better: 'lower', device: 'node: the eight humanoids, three blows each, straight at it and 30° and 25° off (24 falls)', source: NODE794, rows: [
+      { where: 'falls with a joint through the wall', before: 24, after: 0 },
+      { where: 'falls with its pelvis through the wall', before: 10, after: 0 },
+      { where: 'its drawn body past the wall’s face once it lies (cm, on average)', before: 85.6, after: 0.6 },
+    ] },
+    { title: 'Seven foes struck down at once toward a wall on a slope (four ragdolls, three fall their old way)', unit: 'ms', better: 'lower', device: 'node on the work Mac, load 6–8, the median of six runs of 60 frames, two or three times each', source: NODE794, rows: [
+      { where: 'the whole of Foes.update, the wall 1.5 m off', before: '2.13–2.17', after: '2.22–2.33' },
+      { where: 'the four ragdolls, the wall 1.5 m off', before: '1.26–1.28', after: '1.36–1.44' },
+      { where: 'the whole of Foes.update, the wall 0.6 m off', before: '2.38–2.49', after: '2.48–2.61' },
+      { where: 'the four ragdolls, the wall 0.6 m off', before: '1.44–1.51', after: '1.54–1.60' },
+    ], note: 'About 0.03 ms more a ragdoll a frame while it moves: one query of the level’s BVH for the walls round it and its limbs measured against the ground in the pass that kept it on the ground before; none once it lies still' },
+  ], see: 'In the Arena, knock a grunt down next to the wall with the third cut of a combo: it hits the wall and slides down it to lie at its foot. Strike one down on the open sand and crouch the camera low beside it: its arms, legs and head lie on the ground.' },
   ],
   '2.37': [
   // (issue #783: the Rose House where two of its glyph stones stood, at the change's commit and its parent, the camera pinned)

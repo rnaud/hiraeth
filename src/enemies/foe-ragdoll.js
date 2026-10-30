@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Ragdoll, J as RJ, JOINTS, toppleVelocities, trunkFrame, RAG } from '../ragdoll.js';
 import { boxOf } from './debris.js';
+import { defeatHull } from './defeat.js';
 
 // Defeated foes ragdoll (issue #750; docs/systems/foes.md, "Hit and defeat"): a humanoid foe on the clip rig
 // (src/enemies/humanoid-rig.js) goes limp under the killing blow instead of playing a fall onto its side. The people's
@@ -78,10 +79,9 @@ function restTrunk(J, pts, s) {
 
 /**
  * The ground for the ragdoll from a height function (Foes' env.ground: the height under (x, z) read from about y, or
- * null): one read for its height, two more for its slope when it is near (a test's flat ground, any world's). The
- * game's own physics (groundHit, pushCapsule: walls) is used where it is there.
+ * null, the level's own floors, platforms and heightfield as the traveller stands on them): one read for its height, two
+ * more for its slope when it is near. With the game's physics (`world`, its BVH), its walls too (`walls`, gatherWalls).
  */
-export const WALLS = { on: false };
 export function groundPhysics(ground, world = null, near = 0.6, probe = 0.15) {
   const UP = new THREE.Vector3(0, 1, 0);
   const hAt = (x, y, z) => { const h = ground(x, y, z); return h == null || !Number.isFinite(h) ? null : h; };
@@ -98,17 +98,53 @@ export function groundPhysics(ground, world = null, near = 0.6, probe = 0.15) {
       return d;
     },
     heightAbove(pos, up, step) { const h = hAt(pos.x, pos.y + step, pos.z); return h == null ? Infinity : pos.y - h; },
-    // (the world's walls, where it has them: the trunk pushed out of them as a capsule; its floors are the ground above)
-    ...(world?.pushCapsule && WALLS.on ? { pushCapsule: (...a) => world.pushCapsule(...a) } : {}),
+    // (the world's walls, the colliders the traveller is stopped by: gathered once a frame round the body, issue #794)
+    walls: (rag, dt) => gatherWalls(rag, world, dt),
   };
+}
+
+/**
+ * The walls round a ragdoll this frame (issue #794; before, its particles knew only the ground under them, and a foe
+ * struck down against a wall fell through it): one query of the level's BVH (Physics.bvh, the colliders the traveller
+ * is pushed out of) over the box its particles can reach this frame, keeping the triangles steeper than RAG.wall (its
+ * floors and slopes are the ground's, read under each particle), at most WALL.most of them, into rag.walls for
+ * Ragdoll.wallPass. None where there is no BVH (a test's flat ground).
+ */
+export const WALL = { most: 48, reach: 0.1 };
+const _wb = new THREE.Box3(), _wn = new THREE.Vector3();
+export function gatherWalls(rag, world, dt) {
+  const W = (rag.walls ??= { n: 0, tris: [] });
+  W.n = 0;
+  if (!world?.bvh?.shapecast) return W;
+  let r = 0, fast = 0;
+  _wb.makeEmpty();
+  for (let i = 0; i < rag.x.length; i++) { _wb.expandByPoint(rag.x[i]); r = Math.max(r, rag.r[i]); fast = Math.max(fast, rag.v[i].lengthSq()); }
+  _wb.expandByScalar(r + Math.sqrt(fast) * dt + WALL.reach);
+  world.bvh.shapecast({
+    bounds: _wb,
+    intersectsBounds: (box) => box.intersectsBox(_wb),
+    intersectsTriangle: (tri) => {
+      if (W.n >= WALL.most) return true;
+      tri.getNormal(_wn);
+      if (!(Math.abs(_wn.y) < RAG.wall) || !tri.intersectsBox(_wb)) return false;
+      const T = (W.tris[W.n] ??= { t: new THREE.Triangle(), n: new THREE.Vector3(), c: new THREE.Vector3(), rad: 0 });
+      T.t.set(tri.a, tri.b, tri.c); T.n.copy(_wn);
+      T.t.getMidpoint(T.c);
+      T.rad = Math.sqrt(Math.max(T.c.distanceToSquared(tri.a), T.c.distanceToSquared(tri.b), T.c.distanceToSquared(tri.c)));
+      W.n++;
+      return false;
+    },
+  });
+  return W;
 }
 
 /**
  * A ragdoll for a humanoid foe struck down: from its rig's pose now, thrown along the blow (`dir`, unit and level;
  * `shove` its speed m/s; `heavy` a heavy blow; `at` where it was struck; `twist` -1..1). Its particles sized by the
- * rig's size (`scale` × `bulk` for a stout body's trunk).
+ * rig's size (`scale` × `bulk` for a stout body's trunk). `group`: its model's root, for its drawn limbs laid on the
+ * ground (fitToDrawn).
  */
-export function startFoeRagdoll(J, { dir, shove = 2, heavy = false, at = null, twist = 0, bulk = 1 } = {}) {
+export function startFoeRagdoll(J, { dir, shove = 2, heavy = false, at = null, twist = 0, bulk = 1, group = null } = {}) {
   const s = J.body.getWorldScale(new THREE.Vector3()).y || 1;
   const size = (J.D.hip * s) / 0.95, shape = bodyShape(J, size, bulk);
   const pts = rigPoints(J, undefined, shape.head);
@@ -149,7 +185,7 @@ export function startFoeRagdoll(J, { dir, shove = 2, heavy = false, at = null, t
   const js = joints(J);
   // (the head turned onto its particle along the line from its joint to the middle of what is drawn of it)
   const headDir = shape.head && shape.head.length() > 0.02 ? shape.head.clone().normalize() : UPV.clone();
-  return { rag, J, loose, lay: layable(J, loose), headDir, snap: { q: js.map((j) => j.quaternion.clone()), p: J.body.position.clone() }, t: 0, asleep: false, s };
+  return { rag, J, loose, lay: layable(J, loose), headDir, snap: { q: js.map((j) => j.quaternion.clone()), p: J.body.position.clone() }, t: 0, asleep: false, s, group, r0: rag.r.slice() };
 }
 
 /**
@@ -201,27 +237,39 @@ function layable(J, loose) {
 
 const _lq = new THREE.Quaternion(), _lq2 = new THREE.Quaternion(), _lp = new THREE.Vector3(), _le = new THREE.Euler();
 /** How far the part's drawn box goes into the ground as it is turned now (m; negative: over it). */
-function layDepth(P, G) {
+function layDepth(P, G, W = null, side = null) {
   P.o.updateMatrixWorld(true);
   let worst = -Infinity;
   for (const c of P.pts) {
     _lp.copy(c).applyMatrix4(P.o.matrixWorld);
     worst = Math.max(worst, G.y + G.sx * (_lp.x - G.x) + G.sz * (_lp.z - G.z) - _lp.y);
+    // (or into a wall beside it, issue #794: a face turned toward the wall it lies against went into it)
+    for (let q = 0; q < (W?.n ?? 0); q++) {
+      const T = W.tris[q], d = _lw.subVectors(_lp, T.t.a).dot(T.n) * side[q];
+      if (!(-d > worst) || d < -FIT.behind) continue;
+      T.t.closestPointToPoint(_lp, _lw);
+      if (_lw.distanceToSquared(_lp) < (FIT.touch - d) * (FIT.touch - d)) worst = -d;
+    }
   }
   return worst;
 }
+const _lw = new THREE.Vector3();
 /**
  * The feet, the head, the fingers and the hanging parts each turned to lie on the ground (after the rig is laid), against
  * the ground's plane under its pelvis this frame (three reads: per corner, 140 reads a frame cost a millisecond for four).
  */
-const _G = { x: 0, y: 0, z: 0, sx: 0, sz: 0 };
+const _G = { x: 0, y: null, z: 0, sx: 0, sz: 0 };
 function layParts(R, physics) {
   const p = R.rag.pelvis, at = (dx, dz) => { const q = _lp.set(p.x + dx, p.y, p.z + dz), h = physics.heightAbove(q, UPV, 1.5); return Number.isFinite(h) ? q.y - h : null; };
   const y0 = at(0, 0);
+  _G.y = y0;
   if (y0 == null) return;
   const yx = at(0.4, 0), yz = at(0, 0.4), G = _G;
   G.x = p.x; G.z = p.z; G.y = y0;
   G.sx = yx != null && Math.abs(yx - y0) < 0.4 ? (yx - y0) / 0.4 : 0; G.sz = yz != null && Math.abs(yz - y0) < 0.4 ? (yz - y0) / 0.4 : 0;
+  // (the walls near it, and the side of each its pelvis is on)
+  const W = R.rag.walls?.n ? R.rag.walls : null, side = (R.wallSide ??= new Float64Array(WALL.most));
+  if (W) for (let q = 0; q < W.n; q++) side[q] = _lw.subVectors(p, W.tris[q].t.a).dot(W.tris[q].n) >= 0 ? 1 : -1;
   for (const P of R.lay) {
     const base = _lq2.copy(P.base ?? P.o.quaternion), T = P.turns, n = T.length;
     const turn = (i) => {
@@ -230,12 +278,12 @@ function layParts(R, physics) {
     };
     // (the turn it had, then the others while that one is in the ground)
     turn(P.pick);
-    let best = P.pick, depth = layDepth(P, G);
+    let best = P.pick, depth = layDepth(P, G, W, side);
     if (depth > LAY.touch) {
       for (let i = 0; i < n; i++) {
         if (i === P.pick) continue;
         turn(i);
-        const d = layDepth(P, G);
+        const d = layDepth(P, G, W, side);
         if (d < depth - LAY.keep) { depth = d; best = i; }
         if (depth <= LAY.touch) break;
       }
@@ -244,6 +292,158 @@ function layParts(R, physics) {
     turn(best);
     P.o.updateMatrixWorld(true);
   }
+}
+
+/**
+ * Each limb as it is drawn lying on the ground (issue #794). The particles are round and the limbs drawn on them are not
+ * (a belly, a boot, a broad forearm, a hem): where a limb's drawn hull went into the ground, the drawn hull's lift
+ * (groundDefeat) raised the whole body by as much, and every other limb lay 4-14 cm over the ground (a belly-down grunt
+ * 5-7 cm, the mummer king 7-20). Now, each frame it moves, each limb's lowest drawn point (its hull's points, the same
+ * as the lift's, src/enemies/defeat.js defeatHull) is measured against the ground under it, and the particles at its
+ * two ends grow by what it is in the ground (shared out by where along it that point is) or, touching the ground with
+ * the limb drawn over it, shrink back: the body comes to lie on what is drawn of it. Returns how deep its deepest drawn
+ * point is (m, for the lift: none left once it fits).
+ */
+export const FIT = {
+  touch: 0.004,   // m into the ground that counts as in it
+  gap: 0.008,     // m over the ground a touching limb lies without its particle shrinking
+  most: 0.03,     // m a particle's size changes by in a frame at most
+  grow: 0.3,      // m (× its size) at most a particle grows over its shape (bodyShape)
+  shrink: 0.8,    // of its shape's size at most it shrinks (a long head's sphere, as big as most of it, over its short side)
+  ease: 0.1,      // of a limb's gap over the ground taken off its particles in a frame
+  relax: 0.15,    // m/s the size a particle went into the ground at is let go of (no hop back and forth: FIT.least)
+  lift: 1.2,      // m/s the whole body's lift (groundDefeat, by its deepest drawn point) comes back down at, lying
+  upright: 0.6,   // its spine's share of up under which it is down (not sitting up, kneeling, falling over)...
+  calm: 4,        // ...and its fastest particle slower than this (m/s): its particles fitted to its limbs (not while it
+                  // tumbles: a trunk's particle changed in a hard landing threw a hulk a metre down a slope)
+  on: 0.025,      // m: a particle no further than this over the ground is on it (held there by the body's other particles)
+  behind: 0.6,    // m behind a wall's face that still counts as in it (further: the far side of the wall, or another)
+  near: 0.3,      // m: a limb's lowest point this near the ground's plane has the ground under it read (a step, a ledge)
+};
+const segList = (J) => [[J.torso, RJ.pelvis, RJ.chest], [J.head, RJ.head, -1], [J.legs[0], RJ.hipR, RJ.kneeR], [J.legs[1], RJ.hipL, RJ.kneeL], [J.knees[0], RJ.kneeR, RJ.footR], [J.knees[1], RJ.kneeL, RJ.footL], [J.feet[0], RJ.footR, -1], [J.feet[1], RJ.footL, -1], [J.arms[0], RJ.shR, RJ.elR], [J.arms[1], RJ.shL, RJ.elL], [J.elbows[0], RJ.elR, RJ.haR], [J.elbows[1], RJ.elL, RJ.haL], [J.hands[0], RJ.haR, -1], [J.hands[1], RJ.haL, -1]];
+/** The drawn hull's points by limb (once, as it goes limp): each point the limb its mesh or its bone hangs on. */
+function drawnLimbs(J, group) {
+  const list = segList(J), at = new Map(list.map(([o], k) => [o, k]));
+  const limbOf = (o) => { for (let x = o; x; x = x.parent) { if (/^(grip|shield)/.test(x.name)) return -1; if (at.has(x)) return at.get(x); if (x === J.body) return 0; } return -1; };
+  const parts = [];
+  for (const { mesh, ids } of defeatHull(group).parts) {
+    const seg = new Int8Array(ids.length);
+    if (mesh.isSkinnedMesh) {
+      const A = mesh.geometry.attributes, SI = A.skinIndex, SW = A.skinWeight, bones = mesh.skeleton.bones, of = new Map();
+      for (let j = 0; j < ids.length; j++) {
+        let b = 0, w = -1;
+        for (let k = 0; k < 4; k++) { const x = SW.getComponent(ids[j], k); if (x > w) { w = x; b = SI.getComponent(ids[j], k); } }
+        if (!of.has(b)) of.set(b, limbOf(bones[b]));
+        seg[j] = of.get(b);
+      }
+    } else seg.fill(limbOf(mesh));
+    if (seg.some((x) => x >= 0)) parts.push({ mesh, ids, seg });
+  }
+  return { ends: list.map(([, a, b]) => [a, b]), parts, group, low: new Float64Array(list.length), pt: list.map(() => new THREE.Vector3()), pad: new Float64Array(JOINTS.length), least: new Float64Array(JOINTS.length).fill(-Infinity), wall: new Float64Array(list.length), wpt: list.map(() => new THREE.Vector3()), side: new Float64Array(WALL.most), up: new Float64Array(JOINTS.length), down: new Float64Array(JOINTS.length), allow: new Float64Array(JOINTS.length) };
+}
+// (the trunk's particles never shrink: one of the rigid trunk let down onto the ground took the friction off it, and a
+// hulk lying on its side slid 30 cm as its chest came down)
+const RIGID = new Set([RJ.pelvis, RJ.chest, RJ.hipL, RJ.hipR, RJ.shL, RJ.shR]);
+/** Come down (FIT): its trunk over on its side, back or front (not up on its knees), three of its joints or more on the ground, slower than FIT.calm. */
+function lying(rag) {
+  const x = rag.x, L = _fw.subVectors(x[RJ.chest], x[RJ.pelvis]), up = L.y / Math.max(1e-6, L.length());
+  let n = 0;
+  for (let i = 0; i < rag.contact.length; i++) n += rag.contact[i];
+  return up < FIT.upright && n >= 3 && rag.speed < FIT.calm;
+}
+const _fp = new THREE.Vector3(), _fw = new THREE.Vector3(), _fm = new THREE.Matrix4(), _fi = new THREE.Matrix4();
+function fitToDrawn(R, physics, dt) {
+  if (!R.lay?.length || _G.y == null) return undefined;
+  const S = (R.drawn ??= drawnLimbs(R.J, R.group)), G = _G, rag = R.rag, x = rag.x, low = S.low;
+  low.fill(Infinity);
+  // (the walls gathered for this frame, gatherWalls: each face's side the pelvis is on)
+  const W = rag.walls, nw = W?.n ?? 0, wall = S.wall.fill(0);
+  for (let q = 0; q < nw; q++) { const T = W.tris[q]; S.side[q] = _fw.subVectors(rag.pelvis, T.t.a).dot(T.n) >= 0 ? 1 : -1; }
+  // each limb's lowest drawn point over the ground's plane under its pelvis (layParts' this frame)
+  for (const P of S.parts) {
+    const m = P.mesh;
+    let shown = true;
+    for (let o = m; o && o !== S.group.parent; o = o.parent) if (!o.visible) { shown = false; break; }
+    if (!shown) continue;
+    const A = m.geometry.attributes.position, n = m.isInstancedMesh ? m.count : 1, ids = P.ids, seg = P.seg;
+    for (let k = 0; k < n; k++) {
+      const e = (m.isInstancedMesh ? _fm.multiplyMatrices(m.matrixWorld, (m.getMatrixAt(k, _fi), _fi)) : m.matrixWorld).elements;
+      for (let j = 0; j < ids.length; j++) {
+        const s = seg[j];
+        if (s < 0) continue;
+        _fp.fromBufferAttribute(A, ids[j]);
+        if (m.isSkinnedMesh) m.applyBoneTransform(ids[j], _fp);
+        const px = _fp.x, py = _fp.y, pz = _fp.z, w = 1 / (e[3] * px + e[7] * py + e[11] * pz + e[15]);
+        const X = (e[0] * px + e[4] * py + e[8] * pz + e[12]) * w, Y = (e[1] * px + e[5] * py + e[9] * pz + e[13]) * w, Z = (e[2] * px + e[6] * py + e[10] * pz + e[14]) * w;
+        const h = Y - (G.y + G.sx * (X - G.x) + G.sz * (Z - G.z));
+        if (h < low[s]) { low[s] = h; S.pt[s].set(X, Y, Z); }
+        // (and how far it is into a wall: behind a face, on the side away from the pelvis, within the face's own bounds)
+        for (let q = 0; q < nw; q++) {
+          const T = W.tris[q], N = T.n, a = T.t.a, d = ((X - a.x) * N.x + (Y - a.y) * N.y + (Z - a.z) * N.z) * S.side[q];
+          if (!(d < -FIT.touch) || d < -FIT.behind || -d <= wall[s]) continue;
+          T.t.closestPointToPoint(_fp.set(X, Y, Z), _fw);
+          if (_fw.distanceToSquared(_fp) < (FIT.touch - d) * (FIT.touch - d)) { wall[s] = -d; S.wpt[s].copy(_fp); }
+        }
+      }
+    }
+  }
+  // (the ground itself under each lowest point near it: a step, a platform's edge, a dune's curve)
+  let deep = -Infinity;
+  const up = S.up.fill(0), down = S.down.fill(0), allow = S.allow.fill(Infinity);
+  for (let s = 0; s < low.length; s++) {
+    if (!Number.isFinite(low[s])) continue;
+    if (low[s] < FIT.near) { const h = physics.heightAbove(S.pt[s], UPV, 1); if (Number.isFinite(h)) low[s] = h; }
+    const h = low[s], [a, b] = S.ends[s];
+    deep = Math.max(deep, -h);
+    // (shared between its ends by where along it its lowest point is: the point rises by as much)
+    let t = 0;
+    if (b >= 0) { const d = _a.subVectors(x[b], x[a]), L2 = d.lengthSq(); t = L2 > 1e-8 ? THREE.MathUtils.clamp(_b.subVectors(S.pt[s], x[a]).dot(d) / L2, 0, 1) : 0.5; }
+    const wa = 1 - t, wb = t, k = wa * wa + wb * wb;
+    if (h < -FIT.touch) {
+      up[a] = Math.max(up[a], (-h * wa) / k);
+      if (b >= 0) up[b] = Math.max(up[b], (-h * wb) / k);
+    } else {
+      // (over the ground: how far each end wants to come down to bring it there, and how far it may before this limb's
+      //  lowest point is in it: an end far from that point, a knee with its shin's foot end on the ground, may freely)
+      const g = Math.max(0, h - FIT.gap);
+      for (let e = 0; e < (b >= 0 ? 2 : 1); e++) {
+        const i = e ? b : a, w = b >= 0 ? (e ? wb : wa) : 1;
+        if (w < 0.05) continue;
+        allow[i] = Math.min(allow[i], g / w);
+        if (g > 0) down[i] = Math.max(down[i], (g * w) / (b >= 0 ? k : 1));
+      }
+    }
+  }
+  if (!lying(rag)) return deep;
+  for (let i = 0; i < JOINTS.length; i++) {
+    let d = 0;
+    if (up[i] > 0) d = Math.min(up[i], FIT.most);
+    // (shrinking only on the ground: its particle touching it, or held just over it by the rest of the body)
+    else if (!RIGID.has(i) && down[i] > 0 && allow[i] > 0 && (rag.contact[i] || x[i].y - rag.r[i] - rag.floor[i] < FIT.on)) d = -Math.min(Math.min(down[i], allow[i]) * FIT.ease, FIT.most);
+    if (!d) continue;
+    const r0 = R.r0[i];
+    S.pad[i] = THREE.MathUtils.clamp(S.pad[i] + d, Math.max(-FIT.shrink * r0, S.least[i]), FIT.grow * rag.scale);
+    // (never back under a size it went into the ground at: a hand turned at its wrist, a foot at its ankle, sank as its
+    //  particle shrank and the next turn lifted it off again, a 14 cm hop of the whole body every few frames; let go of
+    //  slowly, FIT.relax, as it rolls over onto a thinner side)
+    if (d > 0) S.least[i] = Math.max(S.least[i], S.pad[i]);
+    rag.r[i] = r0 + S.pad[i];
+  }
+  for (let i = 0; i < JOINTS.length; i++) S.least[i] -= FIT.relax * dt;
+  // a limb drawn into a wall: its particles as balls against the walls (Ragdoll.rw, its own size against them: never
+  // shrunk for the ground) grown by as much, shared out as for the ground
+  if (nw) {
+    rag.rw ??= R.r0.slice();
+    for (let s = 0; s < wall.length; s++) {
+      if (!(wall[s] > FIT.touch)) continue;
+      const [a, b] = S.ends[s];
+      let t = 0;
+      if (b >= 0) { const d = _a.subVectors(x[b], x[a]), L2 = d.lengthSq(); t = L2 > 1e-8 ? THREE.MathUtils.clamp(_b.subVectors(S.wpt[s], x[a]).dot(d) / L2, 0, 1) : 0.5; }
+      const wa = 1 - t, wb = t, k = wa * wa + wb * wb;
+      for (const [i, w] of b >= 0 ? [[a, wa], [b, wb]] : [[a, 1]]) if (w > 0) rag.rw[i] = Math.min(R.r0[i] + FIT.grow * rag.scale, rag.rw[i] + Math.min(FIT.most, (wall[s] * w) / k));
+    }
+  }
+  return deep;
 }
 
 /**
@@ -341,9 +541,12 @@ export function applyFoeRagdoll(R) {
   J.body.position.copy(P.worldToLocal(origin));
   J.torso.quaternion.identity();
   J.body.updateMatrixWorld(true);
-  // the head over the neck: its +y toward the head's particle from the chest's
+  // the head on its neck: the middle of what is drawn of it turned toward the head's particle from its own joint (from
+  // the chest's, as before #794, the drawn head lay 5-12 cm off its particle: over the ground with its particle on it)
   J.torso.getWorldQuaternion(_q2).invert();
-  J.head.quaternion.setFromUnitVectors(R.headDir ?? UPV, _a.subVectors(x[RJ.head], x[RJ.chest]).normalize().applyQuaternion(_q2));
+  const hd = _a.subVectors(x[RJ.head], J.head.getWorldPosition(_b));
+  if (hd.lengthSq() < 0.03 * 0.03) hd.subVectors(x[RJ.head], x[RJ.chest]);
+  J.head.quaternion.setFromUnitVectors(R.headDir ?? UPV, hd.normalize().applyQuaternion(_q2));
   J.head.updateMatrixWorld(true);
   // the legs and the arms, joint to joint
   for (const [hip, knee, foot, i] of [[RJ.hipR, RJ.kneeR, RJ.footR, 0], [RJ.hipL, RJ.kneeL, RJ.footL, 1]]) {
@@ -402,13 +605,16 @@ function rollFlat(R, dt, physics) {
  */
 export function stepFoeRagdoll(R, dt, physics) {
   R.t += dt;
+  R.deep = undefined;
   let stepped = false;
   // (the time is gathered into steps of at least a 120th: the ragdoll reads its speed off how far a step moved it, and
   // a hit-stop's or a slow motion's sliver of a frame turned its constraints' pushes into thousands of metres a second;
   // a long frame, a hitch, is stepped as at most a 30th, so it never takes a stride that throws it off)
   R.acc = (R.acc ?? 0) + dt;
   if (!R.asleep && R.acc >= RAGDOLL.minStep) {
-    R.rag.step(Math.min(R.acc, 1 / 30), physics, UPV);
+    const h = Math.min(R.acc, 1 / 30);
+    physics.walls?.(R.rag, h);
+    R.rag.step(h, physics, UPV);
     R.acc = 0;
     let touching = 0;
     for (let i = 0; i < R.rag.contact.length; i++) touching += R.rag.contact[i];
@@ -419,8 +625,11 @@ export function stepFoeRagdoll(R, dt, physics) {
     // since it last moved: a knee caught between its limit and the ground trembles at a metre a second, or a leg folds
     // slowly over, and kept the people's speed test awake past its puff)
     const S = (R.rest ??= { at: TRUNK.map((i) => R.rag.x[i].clone()), t: 0 });
+    // (lying on three joints or more, its trunk settling down onto the ground as its particles fit its drawn limbs, FIT,
+    // counts a quarter: it lies still)
     let moved = 0;
-    for (let k = 0; k < TRUNK.length; k++) moved = Math.max(moved, R.rag.x[TRUNK[k]].distanceToSquared(S.at[k]));
+    const vy = touching >= 3 ? 0.25 : 1;
+    for (let k = 0; k < TRUNK.length; k++) { const p = R.rag.x[TRUNK[k]], q = S.at[k]; moved = Math.max(moved, (p.x - q.x) ** 2 + (p.z - q.z) ** 2 + ((p.y - q.y) * vy) ** 2); }
     if (moved > RAGDOLL.stillMove * RAGDOLL.stillMove) { S.t = 0; TRUNK.forEach((i, k) => S.at[k].copy(R.rag.x[i])); } else S.t += dt;
     // (still on its side and rolling over: not asleep yet, unless it has been at it ROLL.most s)
     const rolling = R.tilted && (R.rolling ?? 0) < ROLL.most;
@@ -435,7 +644,12 @@ export function stepFoeRagdoll(R, dt, physics) {
     js.forEach((j, i) => j.quaternion.slerpQuaternions(S.q[i], _q.copy(j.quaternion), w));
     R.J.body.position.lerpVectors(S.p, _a.copy(R.J.body.position), w);
     R.J.body.updateMatrixWorld(true);
-  } else if (R.lay?.length) layParts(R, physics);   // (its feet and what hangs off it laid on the ground: #765)
+    if (stepped) R.tailUp?.();
+  } else {
+    if (R.lay?.length) layParts(R, physics);   // (its feet and what hangs off it laid on the ground: #765)
+    if (stepped) R.tailUp?.();                 // (a tail laid over it: Foes.ragdollFrame)
+    if (stepped && R.group) R.deep = fitToDrawn(R, physics, dt);   // (and each limb as it is drawn on the ground: #794)
+  }
   return stepped;
 }
 

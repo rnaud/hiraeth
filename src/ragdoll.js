@@ -132,6 +132,11 @@ export class Ragdoll {
     // particle faster than maxSpeed m/s (a constraint that could not be met, a big head in the ground, threw a body 15 m)
     this.friction = 0;
     this.maxSpeed = Infinity;
+    // (a defeated foe's, issue #794: the walls near it this frame, steep triangles gathered by its caller, each particle
+    //  kept out of them as a ball: { n, tris: [{ t: Triangle, n: its normal, c: centre, rad }] }; the people's: none)
+    this.walls = null;
+    this.wallHit = new Uint8Array(N);
+    this.wallN = Array.from({ length: N }, () => new THREE.Vector3());
     this.headUp = 0.55;                    // (the head over the neck: the least cosine of its line from the chest to the
                                            //  trunk's up; a foe's head drawn low on its neck, a maned one, sets its own)
     this.t = 0;
@@ -192,6 +197,44 @@ export class Ragdoll {
   takeLanding() { const v = this.landing; this.landing = 0; return v; }
 
   /**
+   * Out of the walls (this.walls, issue #794): each particle a ball of its radius, kept on the side of each triangle it was
+   * on at the sub-step's start (prev), pushed off its face or its edge; one that went through a face this sub-step (a
+   * thin wall, a fast fall) put back in front of it. What it pushes is not speed (cor), and its way into it is stopped.
+   */
+  wallPass() {
+    const W = this.walls, x = this.x, prev = this.prev, cor = this.cor;
+    for (let i = 0; i < N; i++) {
+      const r = this.rw?.[i] ?? this.r[i], p = x[i];
+      for (let k = 0; k < W.n; k++) {
+        const T = W.tris[k];
+        if (p.distanceToSquared(T.c) > (T.rad + r) * (T.rad + r) && prev[i].distanceToSquared(T.c) > (T.rad + r) * (T.rad + r)) continue;
+        const n = T.n, a = T.t.a;
+        let sp = _a.subVectors(prev[i], a).dot(n), sx = _a.subVectors(p, a).dot(n);
+        const side = sp >= 0 ? 1 : -1;
+        sp *= side; sx *= side;
+        if (sx >= r) continue;
+        if (sx < 0) {
+          // (behind its face: through it this sub-step, where the way from prev crosses the face's own triangle)
+          _b.subVectors(p, prev[i]).multiplyScalar(sp / Math.max(1e-9, sp - sx)).add(prev[i]);
+          T.t.closestPointToPoint(_b, _c);
+          if (_c.distanceToSquared(_b) < r * r) {
+            _d.copy(n).multiplyScalar(side * (r - sx));
+            p.add(_d); cor[i].add(_d); this.wallHit[i] = 1; this.wallN[i].copy(n).multiplyScalar(side);
+            continue;
+          }
+        }
+        T.t.closestPointToPoint(p, _c);
+        const d = _d.subVectors(p, _c), L = d.length();
+        if (L >= r) continue;
+        if (L > 1e-6) d.divideScalar(L); else d.copy(n).multiplyScalar(side);
+        this.wallN[i].copy(d); this.wallHit[i] = 1;
+        d.multiplyScalar(r - L);
+        p.add(d); cor[i].add(d);
+      }
+    }
+  }
+
+  /**
    * One frame of simulation. `physics`: heightAbove(pos, up, step); optional groundNormal(x, fromY, z,
    * out) (+y up) or rayHit (any up) for the ground's slope, and pushCapsule for walls.
    *
@@ -215,6 +258,7 @@ export class Ragdoll {
         prev[i].copy(x[i]);
         x[i].addScaledVector(v[i], h);
         cor[i].set(0, 0, 0);
+        this.wallHit[i] = 0;
         // the ground under it: a ray from where it was (so nothing overhead counts as ground)
         const drop = Math.max(0, _a.subVectors(prev[i], x[i]).dot(up));
         const step = drop + this.r[i] + 0.05;
@@ -279,6 +323,7 @@ export class Ragdoll {
             }
           }
         }
+        if (this.walls?.n) this.wallPass();
       }
       // walls: the trunk as a capsule, pelvis to head (once a frame, on the last sub-step)
       let pushed = null;
@@ -301,6 +346,7 @@ export class Ragdoll {
       // particle at a time (the knee, the head), and their pushes added up used to swim a tumbling body sideways,
       // up to ~10 m/s in a long fall: back under the ledge it fell from, and a fall through the cliff (#541)
       let free = !pushed;
+      for (let i = 0; free && i < N; i++) if (this.wallHit[i]) free = false;
       for (let i = 0; free && i < N; i++) if (this.contact[i]) free = false;
       if (free) {
         _cm1.set(0, 0, 0);
@@ -313,6 +359,7 @@ export class Ragdoll {
         // its own motion, not the ground's or the wall's push
         const vi = v[i].subVectors(x[i], prev[i]).sub(cor[i]).divideScalar(h);
         if (pushed) { const into = vi.dot(pushed); if (into < 0) vi.addScaledVector(pushed, -into); }
+        if (this.wallHit[i]) { const into = vi.dot(this.wallN[i]); if (into < 0) vi.addScaledVector(this.wallN[i], -into); }
         if (this.contact[i]) {
           const G = out[i], vn = vi.dot(G);
           // into the ground: stopped (a hard landing gives a little back)

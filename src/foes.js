@@ -43,7 +43,7 @@ import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { Piece, stepPiece, placePiece, boxOf, throwFrom, DEBRIS, breaksApart } from './enemies/debris.js';
-import { RAGDOLL, startFoeRagdoll, stepFoeRagdoll, groundPhysics, anchorRagdoll } from './enemies/foe-ragdoll.js';
+import { RAGDOLL, FIT, startFoeRagdoll, stepFoeRagdoll, groundPhysics, anchorRagdoll } from './enemies/foe-ragdoll.js';
 import { Veils, LightShaft } from './veil.js';
 import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
@@ -3496,7 +3496,7 @@ export class Foes {
     const M = f.model, dir = blow.dir && Math.hypot(blow.dir.x, blow.dir.z) > 1e-4 ? blow.dir : f.recoilDir, shove = Math.max(1.2, Math.hypot(f.vel.x, f.vel.z));
     if (M.joints && R.ragdoll !== false && !M.floats && !f.def.hover && !f.def.burrow && this.ragdolls() < RAGDOLL.most) {
       M.group.updateMatrixWorld(true);
-      f.dying.rag = startFoeRagdoll(M.joints, { dir, shove, heavy: !!blow.heavy, at: blow.point ?? null, twist: this.fxRng()() * 2 - 1, bulk: f.def.stout ? 1.45 : 1 });
+      f.dying.rag = startFoeRagdoll(M.joints, { dir, shove, heavy: !!blow.heavy, at: blow.point ?? null, twist: this.fxRng()() * 2 - 1, bulk: f.def.stout ? 1.45 : 1, group: M.group });
       f.vel.set(0, 0, 0);
       // (its hands let go: what it held flies as a piece of its own and lands, src/enemies/debris.js)
       this.looseGrips(f, dir);
@@ -3535,15 +3535,29 @@ export class Foes {
     g.position.copy(f.pos); g.position.y += f.over ?? 0;
     g.updateMatrixWorld(true);
     this.ragPhys ??= groundPhysics(this.env.ground, this.physics);
-    // (a tail laid back over the ground it lies on: src/enemies/plans/monster.js TailSpring.keepUp)
-    if (stepFoeRagdoll(R, dt, this.ragPhys) && M.tail?.keepUp) { const gy = this.env.ground(R.rag.pelvis.x, R.rag.pelvis.y + 1, R.rag.pelvis.z) ?? f.pos.y; for (let k = 0; k < 4; k++) M.tail.keepUp(gy, 0.05, this.env.ground); }
+    // (a tail laid back over the ground it lies on, src/enemies/plans/monster.js TailSpring.keepUp: each frame it steps,
+    // once the rig is laid and before its limbs are measured against the ground, stepFoeRagdoll)
+    if (M.tail?.keepUp) R.tailUp ??= () => { const gy = this.env.ground(R.rag.pelvis.x, R.rag.pelvis.y + 1, R.rag.pelvis.z) ?? f.pos.y; for (let k = 0; k < 4; k++) M.tail.keepUp(gy, 0.05, this.env.ground); };
+    stepFoeRagdoll(R, dt, this.ragPhys);
     dimEyes(M, Math.min(1, D.u));
     const land = R.rag.takeLanding();
     if (land > 2.2 && D.R.puff === 'dust') this.animKit(f, 0, {}).dust(R.rag.pelvis, '#cdb89a', 6, 0.5);
     // (kept on the ground by its drawn hull, as every defeat is: read while it moves, the last lift held once it lies still)
     if (f.def.burrow) return;
-    if (R.asleep && D.held != null) g.position.y += D.held;
-    else D.held = groundDefeat(D, g, { sink: 0 }, this.physics, f.pos, { size: M.size ?? 1, radius: f.def.radius });
+    // (lying, its limbs fitted to the ground, FIT in src/enemies/foe-ragdoll.js: a part turned into it for a frame lifts
+    // the body at once, never in the ground, but it comes back down at FIT.lift m/s, not dropped by as much the next
+    // frame: a hop of up to 29 cm, #794; still coming down as it falls asleep, it comes the rest of the way)
+    if (R.asleep && D.held != null) {
+      if (D.settle != null && D.held > D.settle) D.held = Math.max(D.settle, D.held - FIT.lift * dt);
+      g.position.y += D.held;
+    } else {
+      const was = D.held;
+      D.held = groundDefeat(D, g, { sink: 0 }, this.physics, f.pos, { size: M.size ?? 1, radius: f.def.radius, deep: R.deep });
+      if (R.deep !== undefined && was != null) {
+        const held = Math.max(D.held, was - FIT.lift * dt);
+        D.settle = D.held; g.position.y += held - D.held; D.held = held;
+      } else D.settle = null;
+    }
   }
 
   /**

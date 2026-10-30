@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.38 — 2026-10-29
 
+- An enemy you strike down now lies on the ground with every limb: its arms, legs and head rest on it instead of hovering a few centimetres over it, and knocked against a wall it stops at the wall and slumps down it instead of falling through the stone.
 - After the crash landing, Plumb no longer leaves you to the screen to work out where to go: once the ship has had its say and you stand outside, it comes to your side by itself and tells you, pointing out the city under the dark tree where someone might help you recharge. Answer it and your main quest starts, and Plumb flies off ahead to show the way. It happens once, on a new game.
 - Loading screens are quieter: the screen is black, and only a small turning circle, the word “Loading” and a thin bar that fills as the world is built sit in the bottom-right corner, arriving by ship too. The lines naming each step are gone. If something fails to load, its message still shows there in full. With reduced motion on, the circle gently pulses instead of turning.
 - Doors bearing the makers’ mark open only once your battery has been filled. In the Rose House the door from the Hall of the Flame to the Dry Channel now waits for your full battery instead of the lit bowl. A battery you had already filled stays full, the font’s pool is full for you, and doors you had opened stay open.

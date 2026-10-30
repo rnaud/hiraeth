@@ -304,10 +304,11 @@ export function groundStart(D, g, physics, at, radius = 0.8) {
  * Lift the falling body onto the ground (after defeatRoot and the plan's own letting go): its lowest point no deeper
  * than what was already under at the blow, coming up over GROUNDED.ease, the recipe's sink aside. Returns the lift (m).
  */
-export function groundDefeat(D, g, P, physics, at, { size = 1, radius = 0.8 } = {}) {
+export function groundDefeat(D, g, P, physics, at, { size = 1, radius = 0.8, deep: known } = {}) {
   groundStart(D, g, physics, at, radius);
   if (!D.plane) return 0;
-  const deep = belowGround(D.hull, D.plane) - (P.sink ?? 0) * size;
+  // (`deep`: how deep its lowest drawn point is, already measured against the ground under it: a ragdoll's, #794)
+  const deep = (Number.isFinite(known) ? known : belowGround(D.hull, D.plane)) - (P.sink ?? 0) * size;
   D.allow ??= Math.max(0, deep);
   const allow = D.allow * (1 - stage({ at: GROUNDED.ease }, D.u));
   const lift = D.lift = deep > allow ? deep - allow : 0;

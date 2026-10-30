@@ -32,6 +32,8 @@ export const CHANGELOG = [
       // the landing (#781)
       { text: 'After the crash landing, Plumb no longer leaves you to the screen to work out where to go: once the ship has had its say and you stand outside, it comes to your side by itself and tells you, pointing out the city under the dark tree where someone might help you recharge. Answer it and your main quest starts, and Plumb flies off ahead to show the way. It happens once, on a new game.',
         see: 'Start a new game and play or skip the opening: as you stand on the sand outside the ship, Plumb comes to your side and talks to you; answer with A / × and the quest begins.' },
+      // enemy deaths (#794)
+      'An enemy you strike down now lies on the ground with every limb: its arms, legs and head rest on it instead of hovering a few centimetres over it, and knocked against a wall it stops at the wall and slumps down it instead of falling through the stone.',
     ],
   },
   {

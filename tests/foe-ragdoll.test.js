@@ -231,4 +231,121 @@ test('the people\'s ragdoll is as it was: no friction of the foes\' and no speed
   const r = new Ragdoll();
   assert.equal(r.friction, 0);
   assert.equal(r.maxSpeed, Infinity);
+  assert.equal(r.walls, null, 'no walls of its own');
+});
+
+// Issue #794: its limbs as drawn lie on the ground (not held 4-14 cm over it by one part in it), and it stops at walls.
+// A level of real colliders (src/physics.js: a ground mesh, a wall), as the game's.
+async function level({ sx = 0, wallZ = null } = {}) {
+  const { Physics } = await import('../src/physics.js');
+  const scene = new THREE.Scene(), g = new THREE.PlaneGeometry(40, 40, 20, 20);
+  g.rotateX(-Math.PI / 2);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, sx * p.getX(i));
+  scene.add(new THREE.Mesh(g));
+  if (wallZ != null) { const w = new THREE.Mesh(new THREE.BoxGeometry(20, 4, 0.3)); w.position.set(0, 2, wallZ + 0.15); scene.add(w); }
+  scene.updateMatrixWorld(true);
+  return new Physics(scene);
+}
+function realWorld(physics) {
+  clearTargets(); resetFeel();
+  const P = { pos: v(0, 0, -30), vel: v(), heading: 0, onGround: true, health: 1, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(9), tool: { drops: { add() {} } } });
+  foes.setPractice('');
+  return { foes, done: () => { foes.dispose(); clearTargets(); } };
+}
+/**
+ * Every drawn vertex of a model's body (world), as three.js draws it: not what it held, let go as a piece of its own
+ * (a skinned club's points on its grip's bones, Foes.looseGrips).
+ */
+function drawn(group, body) {
+  group.updateMatrixWorld(true);
+  const out = [], q = v(), mine = (o) => { for (let x = o; x; x = x.parent) if (x === body) return true; return false; };
+  group.traverseVisible((m) => {
+    if (!m.isMesh || m.userData.noGround) return;
+    const P = m.geometry.attributes.position;
+    if (m.isSkinnedMesh) m.skeleton.update();
+    const SI = m.geometry.attributes.skinIndex, SW = m.geometry.attributes.skinWeight;
+    for (let i = 0; i < P.count; i++) {
+      if (m.isSkinnedMesh) {
+        let b = 0, w = -1;
+        for (let k = 0; k < 4; k++) if (SW.getComponent(i, k) > w) { w = SW.getComponent(i, k); b = SI.getComponent(i, k); }
+        if (!mine(m.skeleton.bones[b])) continue;
+      }
+      out.push((m.isSkinnedMesh ? m.getVertexPosition(i, q) : q.fromBufferAttribute(P, i)).applyMatrix4(m.matrixWorld).clone());
+    }
+  });
+  return out;
+}
+
+test('lying, each limb on the ground lies on it as it is drawn: the body not held up over it by a part in it (#794)', async () => {
+  const floats = [], lifts = [];
+  for (const sx of [0, 0.25]) {
+    const physics = await level({ sx }), gy = (x) => sx * x;
+    for (const kind of ['grunt', 'hulk', 'prowler', 'warlord', 'sentinel', 'fencer', 'mummer', 'mummerking']) {
+      for (const dir of [v(0, 0, 1), v(1, 0, 0), v(-0.6, 0, -0.8)]) {
+        const { foes, done } = realWorld(physics);
+        const f = foes.add(kind, v(0, 0, 0)); f.heading = Math.PI;
+        for (let i = 0; i < 10; i++) foes.update(DT);
+        kill(foes, f, dir);
+        const R = f.dying.rag;
+        for (let t = 0; t < 4 && !(R.asleep && t > 0.6) && !(f.dead <= 0.4); t += DT) foes.update(DT);
+        lifts.push(f.dying.held ?? 0);
+        // (round each joint on the ground, the solver's contact: its lowest drawn point, within its size and 4 cm)
+        const pts = drawn(f.model.group, f.model.joints.body);
+        R.rag.x.forEach((c, i) => {
+          if (!R.rag.contact[i]) return;
+          const r = R.rag.r[i] + 0.04;
+          let lo = Infinity;
+          for (const p of pts) if (p.distanceToSquared(c) < r * r) lo = Math.min(lo, p.y - gy(p.x));
+          if (Number.isFinite(lo)) floats.push([lo, `${kind} ${sx ? 'on a 14° slope' : 'on the flat'} struck along ${dir.toArray()}, joint ${i}`]);
+        });
+        done();
+      }
+    }
+  }
+  // (before: the whole body lifted 4.7 cm on average by its deepest drawn part, each joint on the ground drawn 5.1 cm over
+  // it on average, 54 % of them over 4 cm; now under 1 cm, 1.6 and 8 %)
+  const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length, fl = floats.map(([h]) => h);
+  assert.ok(mean(lifts) < 0.015, `the whole body lifted ${(mean(lifts) * 100).toFixed(1)} cm on average`);
+  assert.ok(mean(fl) < 0.025, `a joint on the ground drawn ${(mean(fl) * 100).toFixed(1)} cm over it on average`);
+  assert.ok(fl.filter((h) => h > 0.04).length < fl.length * 0.15, `${fl.filter((h) => h > 0.04).length} of ${fl.length} joints drawn over 4 cm above the ground`);
+  const [deep, who] = floats.sort((a, b) => a[0] - b[0])[0];
+  assert.ok(deep > -0.03, `${who}: drawn ${(-deep * 100).toFixed(1)} cm into the ground`);
+});
+
+test('struck down against a wall, a ragdoll stops at it, its drawn limbs out of it once it lies (#794)', async () => {
+  const wallZ = 0.6, physics = await level({ wallZ });
+  for (const kind of ['grunt', 'hulk', 'prowler', 'warlord', 'sentinel', 'fencer', 'mummer', 'mummerking']) {
+    for (const dir of [v(0, 0, 1), v(0.5, 0, 0.85).normalize()]) {
+      const { foes, done } = realWorld(physics);
+      const f = foes.add(kind, v(0, 0, 0)); f.heading = 0;
+      for (let i = 0; i < 10; i++) foes.update(DT);
+      kill(foes, f, dir);
+      const R = f.dying.rag;
+      assert.ok(R, `${kind}: a ragdoll`);
+      let through = 0;
+      for (let t = 0; t < 2.6 && foes.list.includes(f) && !(f.dead <= 0.4); t += DT) {
+        foes.update(DT);
+        for (const p of R.rag.x) through = Math.max(through, p.z - wallZ);
+      }
+      // (before: 10 of 16 pelvises through it, every one with joints past it, its drawn body 0.9 m past the face at rest)
+      assert.ok(through < 0.02, `${kind} along ${dir.toArray().map((x) => x.toFixed(2))}: a joint ${(through * 100).toFixed(0)} cm past the wall's face`);
+      const past = Math.max(...drawn(f.model.group, f.model.joints.body).filter((p) => p.y < 3.9).map((p) => p.z - wallZ));
+      assert.ok(past < 0.1, `${kind}: drawn ${(past * 100).toFixed(1)} cm into the wall as it lies`);
+      done();
+    }
+  }
+});
+
+test('the walls round a ragdoll: the level\'s steep faces near it, none where there is no BVH', async () => {
+  const { gatherWalls, WALL } = await import('../src/enemies/foe-ragdoll.js');
+  const { Ragdoll, JOINTS } = await import('../src/ragdoll.js');
+  const rag = new Ragdoll().start(JOINTS.map((_, i) => v(0, 0.2 + i * 0.05, 0.4)), v());
+  const physics = await level({ wallZ: 0.6 });
+  const W = gatherWalls(rag, physics, 1 / 60);
+  assert.ok(W.n > 0 && W.n <= WALL.most, `${W.n} of the wall's faces`);
+  for (let k = 0; k < W.n; k++) assert.ok(Math.abs(W.tris[k].n.y) < 0.5, 'only steep faces: the floor is the ground\'s');
+  assert.equal(gatherWalls(rag, await level({ wallZ: 30 }), 1 / 60).n, 0, 'none out of reach');
+  assert.equal(gatherWalls(rag, { groundAt: () => 0 }, 1 / 60).n, 0, 'none without a BVH');
 });

@@ -1209,7 +1209,8 @@ the feet slack), blended in from the struck pose over `blend` 0.12 s. Its partic
 snout, clawed hands), its hanging parts (hems, kilts, a horn on its back, the face its gaze turned) go back to rest on the
 body, a tail is laid back over the ground (`TailSpring.keepUp`), and what it held flies as a piece of its own
 (`Foes.looseGrips`, "Pieces and plates" below). The drawn hull still keeps it on the ground (`groundDefeat`, as every
-defeat: 4-14 cm for the roster's hems and big heads), held once it lies still.
+defeat), held once it lies still; since v2.38 its limbs are fitted to what is drawn of them, so that lift is next to
+nothing ("On the ground with every limb, and stopped by walls" below).
 
 **It comes to rest** (v2.37, issue #765, the author: "Enemies ragdoll and the slide on the ground?"). Measured over the
 eight humanoids, four blows each on the flat, a 14° and a 24° slope (96 falls, node): before, it slid 2.3 m on average
@@ -1252,10 +1253,51 @@ cm (20 at worst), shrinking where it lies (0.26 m at most, its pelvis's own drop
 - Cost (node, this Mac at load ~25): a ragdoll's step 0.03-0.05 ms, laying it on the rig 0.01-0.08 ms, the hull's ground
   check while it moves 0.6-0.8 ms (held once it lies); four ragdolls and three recipes going down 2.4-2.9 ms a frame.
   The ground for it is Foes' own height read (`groundPhysics`: one read a particle, two more for the slope near the ground);
-  the world's walls are left out (`WALLS.on`).
+  the world's walls since v2.38 (below).
 - Tests: tests/foe-ragdoll.test.js (thrown along the blow, limits, asleep, the rig on its particles; the same blow the same
   fall; every humanoid on flat ground and a slope, its drawn parts 3 cm under at most; the cap and the cost; the crawler's
   limp feet), tests/foe-hit-defeat.test.js as before.
+
+**On the ground with every limb, and stopped by walls** (v2.38, issue #794). Before, a ragdoll's particles lay on the
+ground but the limbs drawn on them did not: a belly, a boot, a broad fist or a long head went into the ground, the drawn
+hull's lift raised the whole body by as much, and every other limb hovered 4-14 cm over the sand; and its particles read
+only the ground under them, so a foe struck down against a wall fell through the stone. Measured over the eight
+humanoids, four blows each on the flat, a 14° and a 24° slope (96 falls, node, a level of real colliders): each joint
+lying on the ground had its limb drawn 5.1 cm over it on average (54 % over 4 cm; the head 8.7, the hands 6.3, the
+mummer king 10), the whole body lifted 4.7 cm; after, 1.6 cm (8 % over 4 cm; the head 2.2, the hands 2.1), lifted 0.5.
+Struck toward a wall 0.6 m away (24 falls): before, every one had joints through it and 10 their pelvis, the drawn body
+0.86 m past the face at rest; after, none, 0.6 cm. What it does:
+- **Fitted to its drawn limbs** (`FIT`, `fitToDrawn`, src/enemies/foe-ragdoll.js): each frame it steps, once the rig is
+  laid, the drawn hull's points (the lift's own, `defeatHull`) are sorted by limb (the trunk, the head, each thigh, shin,
+  foot, upper arm, forearm and hand: the rig joint its mesh or its bone hangs on), each limb's lowest point found against
+  the ground's plane under its pelvis, the ground itself read under it (`near` 0.3 m: a step, a platform's edge), and the
+  particles at its two ends grow by as much as it is in the ground, shared by where along the limb that point is (`most`
+  3 cm a frame, at most `grow` 0.3 m over its shape). Touching the ground with the limb drawn over it, an end shrinks back
+  by `ease` of the gap (down to a fifth of its shape, `shrink`), as far as no limb it is part of goes into the ground; the
+  trunk's particles never shrink (one let down onto the ground took the friction off the rigid trunk: a hulk slid 30 cm).
+  Not while it is upright or tumbling (`upright`, `calm` 4 m/s: a trunk's particle changed in a hard landing threw a hulk
+  a metre down a slope). A size it went into the ground at is held (`least`, let go at `relax` 0.15 m/s), or a hand
+  turned at its wrist sank as its particle shrank and the next turn lifted it out again.
+- **The lift** that remains (`groundDefeat` with the fit's own depth, no second pass over the hull) goes up at once, so
+  nothing is ever drawn in the ground, and comes back down at `lift` 1.2 m/s rather than dropping the body by as much the
+  next frame. Lying on three joints or more, its trunk coming down onto the ground as it fits counts a quarter toward
+  `stillMove` (it falls asleep as before: 85 of 96 still by their puff, 89 before). The head is turned onto its particle
+  from its own joint (from the chest's, its drawn middle lay 5-12 cm off it, over the ground with its particle on it). A
+  tail is laid over the ground (`TailSpring.keepUp`) before its limbs are measured.
+- **Walls** (`gatherWalls`, `Ragdoll.wallPass`): once a frame, one query of the level's BVH (`Physics.bvh`, the
+  colliders the traveller is pushed out of) over the box its particles can reach that frame keeps the faces steeper than
+  `RAG.wall` (its floors and slopes are the ground's), at most `WALL.most` 48; on every solver pass each particle is a
+  ball against them, kept on the side of each face it was on at the sub-step's start, pushed off its face or edge, and
+  put back in front of one it went through in a sub-step (a thin wall, a fast fall); what the wall pushes is not speed
+  and its way into it is stopped. A limb drawn into a wall grows its particles' size against walls (`Ragdoll.rw`, never
+  shrunk for the ground), and the feet, head, hands and hanging parts are laid (`layParts`) out of the walls as of the
+  ground. The people's ragdoll has no walls of its own (`walls` null) and is as it was.
+- Cost (node, the work Mac, load 6-8): seven foes struck down at once toward a wall on a slope, four of them ragdolls,
+  2.13-2.17 ms a frame before, 2.22-2.33 after (the wall 0.6 m off: 2.38-2.49, 2.48-2.61); the four ragdolls 1.26-1.28 ms,
+  now 1.36-1.44 (1.44-1.51, 1.54-1.60): about 0.03 ms more each while it moves, nothing once it lies still. What it held (`Foes.looseGrips`, a piece of its own) still ignores walls.
+- Tests: tests/foe-ragdoll.test.js (each limb on the ground lies on it, on the flat and a 14° slope, over a level of real
+  colliders; struck down against a wall, no joint past its face and its drawn body out of it; the walls gathered are the
+  steep faces in reach, none without a BVH). Unity: `-fight ragwall` (engine/unity/game.js) in the Arena.
 
 ### Pieces and plates (v2.35, issues #753 and #754, `src/enemies/debris.js`)
 
