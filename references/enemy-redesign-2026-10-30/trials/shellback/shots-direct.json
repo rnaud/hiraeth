@@ -18,9 +18,9 @@
     "speed": 3.2,
     "inventory": [
      {
-      "meshes": 7,
+      "meshes": 5,
       "skinned": 1,
-      "triangles": 8668,
+      "triangles": 7544,
       "materials": 4,
       "textures": 0,
       "textureMB": 0

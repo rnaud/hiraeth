@@ -18,26 +18,26 @@
     "speed": 3.2,
     "inventory": [
      {
-      "meshes": 97,
+      "meshes": 33,
       "skinned": 0,
-      "triangles": 16160,
+      "triangles": 8480,
       "materials": 8,
       "textures": 0,
       "textureMB": 0
      },
      {
-      "meshes": 7,
+      "meshes": 5,
       "skinned": 1,
-      "triangles": 8668,
+      "triangles": 7544,
       "materials": 4,
       "textures": 0,
       "textureMB": 0
      },
      {
-      "meshes": 7,
+      "meshes": 5,
       "skinned": 1,
-      "triangles": 14052,
-      "materials": 2,
+      "triangles": 12945,
+      "materials": 3,
       "textures": 1,
       "textureMB": 5.33
      }

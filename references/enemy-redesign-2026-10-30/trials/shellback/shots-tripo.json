@@ -13,15 +13,15 @@
     "size": [
      2.81,
      1.57,
-     2.48
+     2.5
     ],
     "speed": 3.2,
     "inventory": [
      {
-      "meshes": 7,
+      "meshes": 5,
       "skinned": 1,
-      "triangles": 14052,
-      "materials": 2,
+      "triangles": 12945,
+      "materials": 3,
       "textures": 1,
       "textureMB": 5.33
      }

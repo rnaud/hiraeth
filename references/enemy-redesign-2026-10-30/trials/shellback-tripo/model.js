@@ -14,17 +14,28 @@ import { RENDER_FRAME } from '../../../../src/render-frame.js';
 //
 // No humanoid skeleton: a custom skin. Each leg's thigh, shin and foot are bones framed in the leg's bend plane
 // (src/characters/creature-legs.js SkinLegs, the Keeper's route, #267: the kit's own segments solve, the bones follow
-// without the half-turn flips of a straight-down shin); the dome, face, collar and belly ride the body; each claw an
-// arm and a blade. Every vertex is weighted to its nearest part (a capsule round each segment; the body an ellipsoid
+// without the half-turn flips of a straight-down shin); the collar and belly ride the body, the face its own bone; each
+// claw a shoulder, a blade and an inner finger. Every vertex is weighted to its nearest part (a capsule round each segment; the body an ellipsoid
 // under the dome), blended with the next over a few centimetres at the hips, knees, ankles and the claws' joints, so the
-// fused mesh bends there instead of tearing. The dome is cut out as its own mesh on the body (a bomb cracks it off),
-// its two front scutes copied off it as the armour that falls (Foes.dropPlate); two slit eyes over the painted ones
-// (they go orange as it winds up). The claw has no moving finger (Tripo fused it): the snap swings the whole pincer.
+// fused mesh bends there instead of tearing. The dome is cut along its lip by prepare.mjs (its triangles first in the
+// index) and is its own mesh on the body, one flat colour (a bomb cracks it off); its two front scutes copied off it as
+// the armour that falls (Foes.dropPlate).
+//
+// Its look at you (the author's, #800): the painted eyes are painted out of the texture and two slit eyes stand in
+// their place, their own parts on a face bone; the gaze (src/enemies/gaze.js) turns the face toward the traveller and
+// slides the eyes the rest of the way, as the direct body turns its face (they go orange as it winds up).
+//
+// The claw (landmarks.claws): a ball against the face's side (the shoulder), the inner finger rising from it to the
+// knuckle at the top of the arch, the blade hanging from the knuckle in front. The finger and the blade are each their
+// own bone, hinged at the knuckle: the snap opens the jaw between them at the top of its wind and slams it shut as the
+// pincer chops down, as the direct and current crabs open and close theirs.
 //
 // The crab in everything else: the same archetype, def, attacks, sounds, death recipe, lying body.
 
-/** The roles of the flat texture's colours (prepare.mjs's k-means), by the reference's colour nearest each. */
-const ROLES = { shell: '#e6a53f', leg: '#f3e08a', claw: '#c96834', collar: '#82aa73', dark: '#1f2f12' };
+/** The roles of the flat texture's colours (prepare.mjs PALETTE, landmarks.palette: one flat colour a role). */
+const ROLES = { shell: '#df9f45', leg: '#f1e2ae', claw: '#c75f3a', collar: '#6f9d72', dark: '#3a2c22' };
+/** The face that turns to you (game frame, m): the ellipsoid of the vertices it carries, where it turns about, how far. */
+const FACE = { at: [0, 0.7, 0.74], radii: [0.26, 0.15, 0.17], pivot: [0, 0.7, 0.5], yaw: 0.3, up: 0.12, down: 0.15 };
 const BLEND = 0.05;   // m over which a vertex is shared by its two nearest parts
 
 const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
@@ -47,7 +58,7 @@ export async function loadTripoShellback(base) {
 
 /** The colour role of each vertex (its COLOR_0, nearest of ROLES). */
 function rolesOf(geo) {
-  const C = geo.attributes.color, n = C.count, out = new Uint8Array(n), keys = Object.keys(ROLES), ref = keys.map((k) => new THREE.Color(ROLES[k]));
+  const C = geo.attributes.color, n = C.count, out = new Uint8Array(n), keys = Object.keys(ROLES), ref = keys.map((k) => { const h = parseInt(ROLES[k].slice(1), 16); return { r: (h >> 16) / 255, g: ((h >> 8) & 255) / 255, b: (h & 255) / 255 }; });   // (as COLOR_0's bytes: sRGB, not THREE.Color's linear)
   for (let i = 0; i < n; i++) {
     const r = C.getX(i), g = C.getY(i), b = C.getZ(i); let best = 0, d = Infinity;
     ref.forEach((c, k) => { const e = (c.r - r) ** 2 + (c.g - g) ** 2 + (c.b - b) ** 2; if (e < d) { d = e; best = k; } });
@@ -62,10 +73,17 @@ function prepare(src, bones) {
   const hit = CACHE.get(src.geometry); if (hit) return hit;
   const geo = src.geometry, L = src.landmarks, P = geo.attributes.position, n = P.count;
   const { out: role, keys } = rolesOf(geo);
-  const isDome = (i) => keys[role[i]] === 'shell' && P.getY(i) > L.legs[0].hip[1] + 0.1;
-  // the parts' segments, in the group's frame (bone index: the order of `bones.list`)
+  const red = (i) => keys[role[i]] === 'claw';
+  // the parts' segments, in the group's frame (bone index: the order of `bones.list`); a claw's only for its red
+  // vertices (the face's side is pressed against the shoulder's ball)
   const segs = [];
-  L.claws.forEach((c, k) => { segs.push({ b: bones.claw[k].arm, a: vec(c.shoulder), z: vec(c.hand), r: 0.1 }); segs.push({ b: bones.claw[k].blade, a: vec(c.hand), z: vec(c.tip), r: 0.15 }); });
+  L.claws.forEach((c, k) => {
+    const B = bones.claw[k];
+    segs.push({ b: B.arm, a: vec(c.shoulder), z: vec(c.elbow), r: 0.13, claw: true });
+    segs.push({ b: B.finger, a: vec(c.knuckle), z: vec(c.finger), r: 0.08, claw: true });
+    segs.push({ b: B.blade, a: vec(c.knuckle), z: vec(c.hand), r: 0.1, claw: true });
+    segs.push({ b: B.blade, a: vec(c.hand), z: vec(c.tip), r: 0.13, claw: true });
+  });
   L.legs.forEach((l, k) => {
     segs.push({ b: bones.leg[k].thigh, a: vec(l.hip), z: vec(l.knee), r: 0.12 });
     segs.push({ b: bones.leg[k].shin, a: vec(l.knee), z: vec(l.ankle), r: 0.12 });
@@ -75,24 +93,28 @@ function prepare(src, bones) {
   const hipX = Math.abs(L.legs[0].hip[0]), cy = L.legs[0].hip[1] + 0.12, zs = L.legs.map((l) => l.hip[2]), cz = (Math.min(...zs) + Math.max(...zs)) / 2;
   const ex = hipX * 0.98, ey = 0.42, ez = (Math.max(...zs) - Math.min(...zs)) / 2 + 0.32;
   const SI = new Uint16Array(n * 4), SW = new Float32Array(n * 4), p = new THREE.Vector3();
-  const dome = [];
+  const fa = FACE.at, fr = FACE.radii;
   for (let i = 0; i < n; i++) {
     p.fromBufferAttribute(P, i);
-    const e = Math.hypot(p.x / ex, (p.y - cy) / ey, (p.z - cz) / ez);
+    const e = Math.hypot(p.x / ex, (p.y - cy) / ey, (p.z - cz) / ez), isRed = red(i);
     let best = { s: (e - 1) * ex, b: bones.body }, second = { s: Infinity, b: bones.body };
     for (const s of segs) {
+      if (s.claw && !isRed) continue;
       let d = segDist(p, s.a, s.z) - s.r;
       if (s.foot && p.y > 0.16) d += 1;   // (the foot only under the ankle)
       if (d < best.s) { second = best; best = { s: d, b: s.b }; } else if (d < second.s && s.b !== best.b) second = { s: d, b: s.b };
     }
-    const w = second.b === best.b ? 1 : THREE.MathUtils.clamp(0.5 + (second.s - best.s) / (2 * BLEND), 0.5, 1);
+    let w = second.b === best.b ? 1 : THREE.MathUtils.clamp(0.5 + (second.s - best.s) / (2 * BLEND), 0.5, 1);
+    // the face: what the body carries inside the face's ellipsoid goes to the face bone, eased out to its edge
+    if (best.b === bones.body && !isRed) {
+      const f = 1 - THREE.MathUtils.smoothstep(Math.hypot((p.x - fa[0]) / fr[0], (p.y - fa[1]) / fr[1], (p.z - fa[2]) / fr[2]), 0.6, 1);
+      if (f > 0) { const on = f >= 0.5; best = { b: on ? bones.face : bones.body }; second = { b: on ? bones.body : bones.face }; w = on ? f : 1 - f; }
+    }
     SI[i * 4] = best.b; SW[i * 4] = w; SI[i * 4 + 1] = second.b; SW[i * 4 + 1] = 1 - w;
-    if (isDome(i)) dome.push(i);
   }
-  // the triangles: the dome's (all three corners dome) to the dome's mesh, the rest skinned
-  const I = geo.index.array, domeSet = new Uint8Array(n); for (const i of dome) domeSet[i] = 1;
-  const domeTris = [], restTris = [];
-  for (let t = 0; t < I.length; t += 3) (domeSet[I[t]] && domeSet[I[t + 1]] && domeSet[I[t + 2]] ? domeTris : restTris).push(I[t], I[t + 1], I[t + 2]);
+  // the triangles: the dome's (prepare.mjs cut it along its lip: its triangles first) to the dome's mesh, the rest skinned
+  const I = geo.index.array, nd = (src.domeTriangles ?? L.domeTriangles) * 3;
+  const domeTris = Array.from(I.subarray(0, nd)), restTris = Array.from(I.subarray(nd));
   const out = { SI, SW, role, keys, domeTris, restTris, cy };
   CACHE.set(src.geometry, out);
   return out;
@@ -113,7 +135,7 @@ const subset = (geo, tris, attrs) => { const g = new THREE.BufferGeometry(); for
 /** The trial body (the model contract of plans/index.js), from the loaded source (loadTripoShellback). */
 export function tripoShellbackModel(skin, src) {
   const L = src.landmarks, home = skin.id === 'arzach2';
-  const P = { ...skin.palette, ...(home ? { shell: '#e6a53f', leg: '#f3e08a', claw: '#c96834', collar: '#82aa73', dark: '#1f2f12', eye: '#1e1d24' } : {}) };
+  const P = { ...skin.palette, ...(home ? { ...ROLES, eye: '#1e1d24' } : {}) };
   const M = materials('crab', skin);
   const bodyY = L.legs[0].hip[1];
   const g = new THREE.Group(), body = pivot(g, 0, bodyY, 0, 'shell'); g.name = `${skin.name} · shellback (Tripo)`;
@@ -137,27 +159,34 @@ export function tripoShellbackModel(skin, src) {
     const thigh = mk('thigh', hip, knee.clone().sub(hip)), shin = mk('shin', knee, ankle.clone().sub(knee)), foot = mk('foot', ankle.clone().setY(ankle.y - leg.ankle), null);
     return { thigh: index(thigh), shin: index(shin), foot: index(foot), objs: { [`leg${k}_thigh`]: thigh, [`leg${k}_shin`]: shin, [`leg${k}_foot`]: foot } };
   });
+  // (each claw: the shoulder's ball against the face, the blade and the inner finger both hinged at the knuckle)
   const clawBones = L.claws.map((c) => {
     const shoulder = pivot(body, ...B(c.shoulder).toArray(), 'shoulder');
-    const hand = pivot(shoulder, ...vec(c.hand).sub(vec(c.shoulder)).toArray(), 'claw');
-    const tip = pivot(hand, ...vec(c.tip).sub(vec(c.hand)).toArray());
-    return { arm: index(shoulder), blade: index(hand), shoulder, hand, tip };
+    const at = (q) => vec(q).sub(vec(c.shoulder)).toArray();
+    const hand = pivot(shoulder, ...at(c.knuckle), 'claw'), finger = pivot(shoulder, ...at(c.knuckle), 'finger');
+    const tip = pivot(hand, ...vec(c.tip).sub(vec(c.knuckle)).toArray());
+    return { arm: index(shoulder), blade: index(hand), finger: index(finger), shoulder, hand, fingerBone: finger, tip };
   });
+  // the face: a pivot behind it on the body, its look the gaze's (an inner group the gaze turns: the face bone)
+  const faceRoot = pivot(body, ...B(FACE.pivot).toArray(), 'face');
+  const faceGaze = gazePart(g, faceRoot, { mode: 'turn', yaw: FACE.yaw, up: FACE.up, down: FACE.down });
+  const faceBone = index(faceGaze.node);
   // the rest pose (the bind's): the kit's segments at the landmarks, so SkinLegs measures its offsets there
   legs.forEach((leg, k) => { const l = L.legs[k]; leg.root.position.copy(vec(l.hip)); leg.shin.position.copy(vec(l.knee).sub(vec(l.hip))); leg.foot.position.copy(vec(l.ankle).sub(vec(l.hip))).setY(l.ankle[1] - leg.ankle - l.hip[1]); });
   const skinLegs = new SkinLegs({ kit: { legs, rig }, bones: Object.assign({}, ...legBones.map((x) => x.objs)), group: g, body });
   // ---------------------------------------------------------------- the meshes
-  const prep = prepare(src, { body: 0, leg: legBones, claw: clawBones });
+  const prep = prepare(src, { body: 0, face: faceBone, leg: legBones, claw: clawBones });
   const geo = src.geometry;
   const colour = home ? null : skinColours(geo, prep, P);
   const attrs = { position: geo.attributes.position, normal: geo.attributes.normal, uv: geo.attributes.uv, ...(colour ? { color: colour } : {}) };
   // (both sides drawn: Tripo's lip is an open sheet, its inside showed as holes under the rim)
   const skinM = M.mat(home ? 'sbTripo' : 'sbTripoTint', '#ffffff', { side: THREE.DoubleSide, ...(home ? { map: src.map } : { vertexColors: true }) });
-  const domeM = home ? skinM : M.mat('sbTripoDome', '#ffffff', { side: THREE.DoubleSide, vertexColors: true });
+  // (the dome one flat colour: prepare.mjs painted it all ochre, its edge is the cut's own line)
+  const domeM = M.mat('sbTripoDome', P.shell, { side: THREE.DoubleSide });
   const restGeo = subset(geo, prep.restTris, { ...attrs, skinIndex: new THREE.BufferAttribute(prep.SI, 4), skinWeight: new THREE.BufferAttribute(prep.SW, 4) });
   const sm = new THREE.SkinnedMesh(restGeo, skinM); sm.name = 'tripo skin'; sm.frustumCulled = false; g.add(sm);
   // the dome: on the body (in its frame), its own mesh; its two front scutes copied off it, a little proud, the armour
-  const domeGeo = subset(geo, prep.domeTris, attrs).toNonIndexed(); domeGeo.translate(0, -bodyY, 0);
+  const domeGeo = subset(geo, prep.domeTris, { position: attrs.position, normal: attrs.normal, uv: attrs.uv }).toNonIndexed(); domeGeo.translate(0, -bodyY, 0);
   const shell = add(body, domeGeo, domeM); shell.name = 'dome';
   // (they wear the dome's own texture: unseen as plates until one is knocked off)
   const plateM = domeM;
@@ -173,11 +202,17 @@ export function tripoShellbackModel(skin, src) {
     return plate(body, pg, plateM, 0, 0, 0, `scute ${s > 0 ? 'left' : 'right'}`);
   });
   const meat = add(body, new THREE.SphereGeometry(0.66, 12, 6).scale(1, 0.34, 1.1), M.mat('meat', '#e08a70'), 0, 0.2, -0.2); meat.visible = false;
-  // the eyes over the painted ones: two slits (its own material, they glow as it winds up)
+  // the eyes where the painted ones were (prepare.mjs painted those out): two upright slits of their size, a little
+  // proud of the face along its own normal there, on the face bone; the gaze slides them on toward him (their own
+  // material, they glow as it winds up)
   const eyeM = M.own('eye', P.eye, { glow: 0.35 });
-  const eyeGeo = L.eyes.filter(Boolean).map((e) => new THREE.CapsuleGeometry(0.022, 0.07, 3, 8).scale(1, 1, 0.4).translate(e.at[0], e.at[1] - bodyY, e.at[2] + 0.035));
-  const eyes = add(body, eyeGeo.length > 1 ? mergeTwo(eyeGeo) : eyeGeo[0], eyeM); eyes.name = 'eyes';
-  const gaze = [gazePart(g, eyes, { slide: 0.02 })];
+  const F0 = vec(FACE.pivot), eyeGeo = L.eyes.filter(Boolean).map((e) => {
+    const at = vec(e.at), nrm = faceNormal(geo, at), [w, h] = e.size ?? [0.03, 0.09];
+    const r = Math.max(0.012, w * 0.55), q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), nrm);
+    return new THREE.CapsuleGeometry(r, Math.max(0.02, h - 2 * r), 3, 8).scale(1, 1, 0.45).applyQuaternion(q).translate(...at.addScaledVector(nrm, 0.012).sub(F0).toArray());
+  });
+  const eyes = add(faceGaze.node, eyeGeo.length > 1 ? mergeTwo(eyeGeo) : eyeGeo[0], eyeM); eyes.name = 'eyes';
+  const gaze = [faceGaze, gazePart(g, eyes, { mode: 'slide', slide: 0.035 })];
   const shellTop = pivot(body, 0, L.crown - bodyY + 0.05, -0.2);
   finish(g);
   g.updateMatrixWorld(true);
@@ -207,8 +242,11 @@ export function tripoShellbackModel(skin, src) {
       const limp = f.dying ? THREE.MathUtils.smoothstep(f.dying.u, 0.05, 0.45) : 0;
       clawBones.forEach((cl, i) => {
         const near = i === 1 ? snap : snap * 0.25, s = i ? -1 : 1;
-        cl.shoulder.rotation.set(-near * 0.9 + chop * 0.35 - tuck * 0.3 + limp * 0.45, s * tuck * 0.45, -s * tuck * 0.2);
-        cl.hand.rotation.set(-near * 0.6 + chop * 0.6 + tuck * 0.8 - limp * 0.35, 0, 0);
+        // (the jaw: open at the top of the wind, the blade forward and the inner finger back; slammed shut in the chop)
+        const open = near * (1 - chop) + (f.state === 'idle' ? Math.max(0, Math.sin(c.now / 420 + i * 2)) * 0.15 : 0);
+        cl.shoulder.rotation.set(-near * 0.8 + chop * 0.35 - tuck * 0.3 + limp * 0.45, s * tuck * 0.45, -s * tuck * 0.2);
+        cl.hand.rotation.set(-open * 0.5 + chop * 0.3 + tuck * 0.5 - limp * 0.35, 0, 0);
+        cl.fingerBone.rotation.set(open * 0.6 - chop * 0.3 + tuck * 0.2, 0, 0);
       });
       const rock = id === 'spin' && wind ? Math.sin(c.now / 70) * 0.08 * c.wind : 0;
       spin += dt * (strike && id === 'spin' ? 26 : tuck > 0 ? tuck * 4 : 0);
@@ -224,6 +262,14 @@ export function tripoShellbackModel(skin, src) {
     },
     dispose() { M.dispose(); hide.dispose(); restGeo.dispose(); domeGeo.dispose(); for (const x of plates) x.geometry.dispose(); },
   };
+}
+
+/** The surface's normal near `at` (the source geometry's vertices within 5 cm, averaged), pointing ahead. */
+function faceNormal(geo, at) {
+  const P = geo.attributes.position, N = geo.attributes.normal, n = new THREE.Vector3(), v = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) if (v.fromBufferAttribute(P, i).distanceTo(at) < 0.05) n.add(v.fromBufferAttribute(N, i));
+  if (n.z <= 0) n.set(0, 0, 1);
+  return n.normalize();
 }
 
 function mergeTwo(geos) {
