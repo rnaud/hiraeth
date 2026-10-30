@@ -88,7 +88,7 @@ test('back without the win from a game played here, the doorway asks again', () 
 
 test('main.js and the engine try the game here before its page', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /playGame: \(href\) => \{ if \(!helperHereRt\?\.play\(href\)\) location\.href = href; \}/);
+  assert.match(main, /playGame: \(href\) => \{ if \(!helperHereRt\?\.play\(href\)\) travel\(href\); \}/);
   assert.match(main, /!minigameDef && !helperHereRt\?\.running && !player\.god && SaveGame\.write/, 'the save keeps the place in the house');
   const engine = readFileSync(new URL('../engine/game.js', import.meta.url), 'utf8');
   assert.match(engine, /playGame: \(href\) => \{ if \(!trials\?\.here\?\.play\(href\)\) onGame\?\.\(href\); \}/);

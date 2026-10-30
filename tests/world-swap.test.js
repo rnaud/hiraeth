@@ -214,7 +214,7 @@ test('every way between worlds goes through travel(), not a page load', () => {
   const main = src('main.js');
   assert.match(main, /^async function runWorld\(\) \{$/m);
   assert.match(main, /\nawait startWorlds\(runWorld, \{ prepare: seedDebugWorld \}\);\n$/);
-  assert.match(main, /playGame: \(href\) => travel\(href\)/);
+  assert.match(main, /playGame: \(href\) => \{ if \(!helperHereRt\?\.play\(href\)\) travel\(href\); \}/);
   assert.match(main, /navigate: \(href\) => \{ helper\?\.left\(\); transit\?\.left\(\); flushPlay\(\); travel\(href\); \}/);
   assert.doesNotMatch(main, /location\.search = /, 'main.js sets no address by a page load');
   assert.match(src('ship/ship.js'), /else travelSearch\(this\.departure\?\.\(to\) \?\? `\?level=\$\{to\}&via=ship`\)/);
