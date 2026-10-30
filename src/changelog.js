@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.39', date: '2026-10-30',
+    items: [
+      { text: 'The Journal and Pause menus now match the HUD in the browser and Unity: dark enamel, fine brass borders, ivory lettering and a turquoise selection mark. Items have an ivory inspection card beside the grid that follows your selection; confirming still opens the item’s actions. Smaller screens keep the card beneath the grid.',
+        see: 'Open the Journal with View or J, turn to Items with RB / R1 or E, and move through the grid. Open Pause with Menu or Esc to try Settings and Controls. Unity players get the new menu frames in the updated native app.' },
+    ],
+  },
+  {
     v: '2.38', date: '2026-10-29',
     items: [
       // going between worlds (#790)

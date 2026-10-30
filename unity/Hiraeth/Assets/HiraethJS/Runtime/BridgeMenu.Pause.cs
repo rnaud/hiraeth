@@ -15,10 +15,10 @@ namespace Hiraeth.Bridge
     // the monospaced HUD face, the entries as lines.
     public partial class BridgeMenu
     {
-        static readonly Color PausePaper = Ui.Hex("#f3e7cc"), PauseSide = Ui.Hex("#f2c54b"), PauseInk = Ui.Hex("#2b211f"),
-            PauseButton = Ui.Hex("#fbf4e2"), PauseRed = Ui.Hex("#c8483a"), PauseOnText = Ui.Hex("#fff6dc"), PauseRule = Ui.Hex("#2b211f", 0.07f),
-            PauseFocus = new Color(242 / 255f, 197 / 255f, 75 / 255f, 0.3f), PauseDash = Ui.Hex("#2b211f", 0.28f), PauseBox = Ui.Hex("#fffaf0"),
-            PauseTeal = Ui.Hex("#22677a"), PauseMuted = Ui.Hex("#5e4b45"), PauseTrack = Ui.Hex("#2b211f", 0.14f);
+        static readonly Color PausePaper = Ui.Hex("#161d1d"), PauseSide = Ui.Hex("#161d1d"), PauseInk = Ui.Hex("#f7ecd2"),
+            PauseButton = Ui.Hex("#202827"), PauseRed = Ui.Hex("#79c9c0"), PauseOnText = Ui.Hex("#f7ecd2"), PauseRule = Color.clear,
+            PauseFocus = Ui.Hex("#79c9c0", .09f), PauseDash = Ui.Hex("#d9b575", .25f), PauseBox = Ui.Hex("#202827"),
+            PauseTeal = Ui.Hex("#79c9c0"), PauseMuted = Ui.Hex("#f7ecd2", .72f), PauseTrack = Ui.Hex("#434641");
 
         RectTransform pauseRoot, pauseRules; Image pauseSide, pauseSideEdge, pauseSideShade;
         Label pauseBrand, pauseWhere, pauseLine, pauseFrag, pauseSaved, pauseTitle, pauseTag, pauseSub, pauseNote;
@@ -38,26 +38,22 @@ namespace Hiraeth.Bridge
             pauseSide = Ui.Rect(pauseRoot, PauseSide, 0, "side");
             pauseSideShade = Ui.Rect(pauseRoot, Ui.Hex("#2b211f", 0.1f), 0, "side shade");
             pauseSideEdge = Ui.Rect(pauseRoot, PauseInk, 0, "side edge");
-            pauseBrand = Ui.Label(pauseRoot, "brand", Ui.Heavy, 50, PauseButton, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
+            pauseBrand = Ui.Label(pauseRoot, "brand", Ui.Sans, 25, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
             Ui.Space(pauseBrand, 0.06f);
-            // (-webkit-text-stroke 2px and text-shadow 4px 4px: an outline in ink, a hard ink shadow)
-            var o = pauseBrand.gameObject.AddComponent<Outline>(); o.effectColor = PauseInk; o.effectDistance = new Vector2(2, -2);
-            var o2 = pauseBrand.gameObject.AddComponent<Outline>(); o2.effectColor = PauseInk; o2.effectDistance = new Vector2(-2, 2);
-            var sh = pauseBrand.gameObject.AddComponent<Shadow>(); sh.effectColor = PauseInk; sh.effectDistance = new Vector2(5, -5);
             pauseWhere = Ui.Label(pauseRoot, "where", Ui.Sans, 15, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold);
             pauseLine = Ui.Label(pauseRoot, "line", Ui.Sans, 13, PauseInk, TextAnchor.UpperLeft, FontStyle.Normal, 1.1f);
             // (the fragments of the singing light on a line of their own in teal, the page's .where .frag; and the side's
             // foot, .saved: "Your progress is saved as you play.", 0.85em at 0.7)
             pauseFrag = Ui.Label(pauseRoot, "fragments", Ui.Sans, 13, PauseTeal, TextAnchor.UpperLeft, FontStyle.Normal, 1.1f);
-            pauseSaved = Ui.Label(pauseRoot, "saved", Ui.Sans, 12, Ui.Hex("#2b211f", 0.7f), TextAnchor.LowerLeft, FontStyle.Normal);
+            pauseSaved = Ui.Label(pauseRoot, "saved", Ui.Sans, 12, PauseMuted, TextAnchor.LowerLeft, FontStyle.Normal);
             pauseTitle = Ui.Label(pauseRoot, "title", Ui.Sans, 23, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold);
-            Ui.Space(pauseTitle, 0.16f);
+            Ui.Space(pauseTitle, 0.02f);
             // (the version beside the title, the h1's span: --type-s at 0.92, normal, 0.6 opacity; the Controls page's rebinding
             // heading under it, the page's h2: 2.1vh, bold, 0.08em)
-            pauseTag = Ui.Label(pauseRoot, "tag", Ui.Sans, 13, Ui.Hex("#2b211f", 0.6f), TextAnchor.LowerLeft, FontStyle.Normal);
+            pauseTag = Ui.Label(pauseRoot, "tag", Ui.Sans, 13, PauseMuted, TextAnchor.LowerLeft, FontStyle.Normal);
             pauseSub = Ui.Label(pauseRoot, "sub", Ui.Sans, 15, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold);
             Ui.Space(pauseSub, 0.08f);
-            pauseNote = Ui.Label(pauseRoot, "note", Ui.Sans, 12, Ui.Hex("#2b211f", 0.65f), TextAnchor.UpperLeft, FontStyle.Normal);   // (the page's p.keys: 0.85em at 0.65, upright)
+            pauseNote = Ui.Label(pauseRoot, "note", Ui.Sans, 12, PauseMuted, TextAnchor.UpperLeft, FontStyle.Normal);   // (the page's p.keys: 0.85em at 0.65, upright)
             pauseRoot.gameObject.SetActive(false);
         }
 
@@ -65,10 +61,10 @@ namespace Hiraeth.Bridge
         {
             if (navUsed >= navs.Count)
             {
-                var n = new NavButton { box = Ui.Panel(pauseRoot, "entry" + navs.Count, PauseButton, PauseInk, 2.5f, 4, 4) };
+                var n = new NavButton { box = Ui.Panel(pauseRoot, "entry" + navs.Count, Color.clear, EnLine, 1, 0, 0) };
                 n.edge = Ui.Rect(n.box.rt, PauseRed, 0, "edge");
                 n.text = Ui.Label(n.box.rt, "text", Ui.Sans, 17, PauseInk, TextAnchor.MiddleLeft, FontStyle.Bold);
-                Ui.Space(n.text, 0.1f);
+                Ui.Space(n.text, 0.01f);
                 navs.Add(n);
             }
             var b = navs[navUsed++]; b.box.Show(true); return b;
@@ -84,14 +80,14 @@ namespace Hiraeth.Bridge
                 r.text = Ui.Label(r.rt, "text", Ui.Sans, 14, PauseInk, TextAnchor.UpperLeft);
                 r.note = Ui.Label(r.rt, "note", Ui.Sans, 11, PauseMuted, TextAnchor.UpperLeft);
                 r.val = Ui.Label(r.rt, "val", Ui.Sans, 14, PauseInk, TextAnchor.UpperRight);
-                r.valBox = Ui.Panel(r.rt, "choice", PauseBox, PauseInk, 2);
+                r.valBox = Ui.Panel(r.rt, "choice", PauseBox, EnLine, 1);
                 r.valArrow = Ui.Label(r.valBox.rt, "arrow", Ui.Sans, 12, PauseInk, TextAnchor.MiddleRight, FontStyle.Bold);
-                r.check = Ui.Panel(r.rt, "switch", PauseBox, PauseInk, 2, 0, 0, 3);
+                r.check = Ui.Panel(r.rt, "switch", PauseTrack, EnLine, 1, 0, 0, 12);
                 r.tick = Ui.Label(r.check.rt, "tick", Ui.Sans, 16, PauseOnText, TextAnchor.MiddleCenter, FontStyle.Bold);
                 Ui.Stretch(r.tick.rectTransform);
                 r.track = Ui.Rect(r.rt, PauseTrack, 3, "track");
                 r.fill = Ui.Rect(r.track.rectTransform, PauseRed, 3, "fill");
-                r.dot = Ui.Rect(r.rt, PauseRed, 16, "dot");
+                r.dot = Ui.Rect(r.rt, EnInk, 16, "dot");
                 prows.Add(r);
             }
             var row = prows[prowUsed++]; row.rt.gameObject.SetActive(true); return row;
@@ -112,13 +108,13 @@ namespace Hiraeth.Bridge
             {
                 nwRoot = Ui.Stretch(Ui.Node("news (the web's changelog panel)", root));
                 nwRoot.SetSiblingIndex(dim.transform.GetSiblingIndex() + 1);
-                nwPanel = Ui.Panel(nwRoot, "panel", Ui.Hex("#f7ecd2"), PauseInk, 2, 7, 7);
-                nwTitle = Ui.Label(nwPanel.rt, "title", Ui.Heavy, 21, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold, 1f); Ui.Space(nwTitle, 0.1f);
+                nwPanel = Ui.Panel(nwRoot, "panel", Ui.Hex("#f7ecd2"), Ui.Ink, 2, 7, 7);
+                nwTitle = Ui.Label(nwPanel.rt, "title", Ui.Heavy, 21, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1f); Ui.Space(nwTitle, 0.1f);
                 nwTag = Ui.Label(nwPanel.rt, "version", Ui.Sans, 13, Ui.Hex("#2b211f", 0.6f), TextAnchor.LowerLeft);
-                nwPics = Ui.Panel(nwPanel.rt, "see what changed", Ui.Hex("#fffaf0"), PauseInk, 2);
-                nwPicsText = Ui.Label(nwPics.rt, "text", Ui.Sans, 14, PauseInk, TextAnchor.MiddleCenter); Ui.Stretch(nwPicsText.rectTransform);
-                nwClose = Ui.Panel(nwPanel.rt, "close", Ui.Hex("#fffaf0"), PauseInk, 2);
-                nwCloseText = Ui.Label(nwClose.rt, "text", Ui.Sans, 14, PauseInk, TextAnchor.MiddleLeft);
+                nwPics = Ui.Panel(nwPanel.rt, "see what changed", Ui.Hex("#fffaf0"), Ui.Ink, 2);
+                nwPicsText = Ui.Label(nwPics.rt, "text", Ui.Sans, 14, Ui.Ink, TextAnchor.MiddleCenter); Ui.Stretch(nwPicsText.rectTransform);
+                nwClose = Ui.Panel(nwPanel.rt, "close", Ui.Hex("#fffaf0"), Ui.Ink, 2);
+                nwCloseText = Ui.Label(nwClose.rt, "text", Ui.Sans, 14, Ui.Ink, TextAnchor.MiddleLeft);
             }
             nwRoot.gameObject.SetActive(true);
             pauseRoot.gameObject.SetActive(false);
@@ -156,10 +152,10 @@ namespace Hiraeth.Bridge
                 var r = rows[i] as Dictionary<string, object>;
                 while (nwLines.Count <= i)
                 {
-                    var n = new NewsLine { text = Ui.Label(nwPanel.rt, "line" + nwLines.Count, Ui.Sans, 14, PauseInk, TextAnchor.UpperLeft, FontStyle.Normal, 1.07f) };
+                    var n = new NewsLine { text = Ui.Label(nwPanel.rt, "line" + nwLines.Count, Ui.Sans, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Normal, 1.07f) };
                     n.date = Ui.Label(nwPanel.rt, "date", Ui.Sans, 13, Ui.Hex("#2b211f", 0.6f), TextAnchor.LowerLeft);
-                    n.dot = Ui.Label(nwPanel.rt, "dot", Ui.Sans, 14, PauseInk, TextAnchor.UpperLeft); n.dot.text = "•";
-                    n.rule = Ui.Rect(nwPanel.rt, PauseInk, 0, "rule");
+                    n.dot = Ui.Label(nwPanel.rt, "dot", Ui.Sans, 14, Ui.Ink, TextAnchor.UpperLeft); n.dot.text = "•";
+                    n.rule = Ui.Rect(nwPanel.rt, Ui.Ink, 0, "rule");
                     nwLines.Add(n);
                 }
                 bool head = B(r, "head");
@@ -207,18 +203,15 @@ namespace Hiraeth.Bridge
             navUsed = 0; prowUsed = 0;
             sheet.Show(false);
             dim.color = PausePaper;
-            // the page's ruled lines (repeating-linear-gradient: a line every 28 px)
-            int nr = Mathf.CeilToInt(H / 28f);
-            while (rules.Count < nr) rules.Add(Ui.Rect(pauseRules, PauseRule, 0, "rule"));
-            for (int i = 0; i < rules.Count; i++) { rules[i].enabled = i < nr; if (i < nr) Ui.Place(rules[i].rectTransform, 0, 27 + i * 28, W, 1); }
-            // the side: minmax(220px, 31%), its padding clamp(14px, 2.6vw, 44px), 5vh at the top
-            float sideW = Mathf.Max(220, W * 0.31f), pad = Mathf.Clamp(W * 0.026f, 14, 44), top = 36;
-            Ui.Place(pauseSide.rectTransform, 0, 0, sideW, H);
-            Ui.Place(pauseSideShade.rectTransform, sideW - 8, 0, 8, H);   // (box-shadow: inset -8px 0 0 rgba(43, 33, 31, 0.1))
-            Ui.Place(pauseSideEdge.rectTransform, sideW, 0, 3, H);
-            pauseBrand.text = Ui.Upper(state.S("brand") ?? "Paused");
-            Ui.Place(pauseBrand.rectTransform, pad, top, sideW - pad * 2, 56);
-            float y = top + 56 + 14;
+            float inset = Mathf.Clamp(Mathf.Min(W, H) * .026f, 10, 30), top = inset + 84;
+            EnamelFrame(ref pauseFrame, pauseRoot, inset, inset, W - 2 * inset, H - 2 * inset, 62);
+            float sideW = Mathf.Max(190, W * .29f), pad = Mathf.Clamp(W * .026f, 16, 34);
+            Ui.Place(pauseSide.rectTransform, inset + 1, inset + 64, sideW - inset - 1, H - 2 * inset - 65);
+            Show(pauseSideShade, false); pauseSideEdge.color = EnLine;
+            Ui.Place(pauseSideEdge.rectTransform, sideW, inset + 62, 1, H - 2 * inset - 62);
+            pauseBrand.text = "<color=#d9b575>✦</color>   " + (state.S("brand") ?? "Paused");
+            Ui.Place(pauseBrand.rectTransform, inset + 28, inset + 10, W - 2 * inset - 56, 42);
+            float y = top;
             // where you are: the save in bold, the world and the time under it (the page's .where)
             var ln = state.S("line") ?? "";
             int cut = ln.IndexOf(" · ");
@@ -234,7 +227,7 @@ namespace Hiraeth.Bridge
             if (frag.Length > 0) { var fs = Ui.Set(pauseFrag, frag, sideW - pad * 2); Ui.Place(pauseFrag.rectTransform, pad, y + 2, sideW - pad * 2, fs.y); y += fs.y + 2; }
             var saved = state.S("saved") ?? "";
             Show(pauseSaved, saved.Length > 0);
-            if (saved.Length > 0) { Ui.Set(pauseSaved, saved, sideW - pad * 2); Ui.Place(pauseSaved.rectTransform, pad, H - 16 - 20, sideW - pad * 2, 20); }
+            if (saved.Length > 0) { Ui.Set(pauseSaved, saved, sideW - pad * 2); Ui.Place(pauseSaved.rectTransform, pad, H - inset - 34, sideW - pad * 2, 20); }
             y += 16;
             // the entries: as tall as the page's (2.4vh letters, 1.4vh padding), closer where they would run off the screen
             var side = state.L("side") ?? new List<object>();
@@ -249,16 +242,16 @@ namespace Hiraeth.Bridge
                 // shadow, the focus staying where it was: issue #574)
                 bool over = !on && HoverOn(e.S("pt"));
                 var n = Nav();
-                float lift = on || over ? 2 : 0;
+                float lift = 0;
                 Ui.Place(n.box.rt, pad - lift, y - lift, bw, bh);
-                n.box.SetFill(on ? PauseRed : over ? CardHover : PauseButton);
-                n.box.SetShadow(on || over ? 6 : 4, on || over ? 6 : 4);
+                n.box.SetFill(on || over ? EnWash : sel ? PauseButton : Color.clear); n.box.border.color = on ? EnInk : sel ? EnLine : Color.clear;
+                n.box.SetShadow(0, 0);
                 n.text.color = on ? PauseOnText : PauseInk;
                 n.text.fontSize = Mathf.RoundToInt(Mathf.Min(17, bh * 0.38f));
                 // (the page shown while the pad is in it: a red edge at its left, as the page's focused button keeps)
-                n.edge.enabled = sel && !on;
-                Ui.Place(n.edge.rectTransform, 2.5f, 2.5f, 6, bh - 5);
-                n.text.text = Ui.Upper(e.S("text"));
+                n.edge.enabled = sel;
+                Ui.Place(n.edge.rectTransform, -5, bh * .22f, 4, bh * .56f);
+                n.text.text = e.S("text");
                 // the buttons' glyphs (src/ui.js, issue #517): Resume carries Back's (B / Esc goes back to the game), the
                 // entry the pad is on the confirm one, at the right
                 float gs = n.text.fontSize, gx = bw - 12 - GlyphHeight(gs);
@@ -310,7 +303,7 @@ namespace Hiraeth.Bridge
             {
                 var (a, b) = lines[li];
                 var r = rows[a];
-                float rh = 40;
+                float rh = 48;
                 if (Rebind(r)) rh = 46 + (OnNote(r) || (b >= 0 && OnNote(rows[b])) ? 16 : 0);
                 else if (B(r, "plain"))
                 {
@@ -321,7 +314,7 @@ namespace Hiraeth.Bridge
                 else
                 {
                     // (a setting's name in two lines, the page's long ones in a narrow window: the row as tall as it)
-                    if (!B(r, "head")) { var f0 = meas.font; meas.font = Ui.Sans; meas.fontSize = 14; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.25f; rh = Mathf.Max(40, Ui.Measure(meas, r.S("text") ?? "", w - cw - 24).y + 16); meas.font = f0; }
+                    if (!B(r, "head")) { var f0 = meas.font; meas.font = Ui.Sans; meas.fontSize = 14; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.25f; rh = Mathf.Max(52, Ui.Measure(meas, r.S("text") ?? "", w - cw - 24).y + 16); meas.font = f0; }
                     if (OnNote(r)) rh += 16;
                 }
                 hs.Add(rh);
@@ -357,12 +350,12 @@ namespace Hiraeth.Bridge
             Ui.Place(row.focus.rectTransform, 0, 0, w, rh);
             // the dashed line under it (border-bottom: 1px dashed rgba(43, 33, 31, 0.28))
             row.dash.Clear();
-            if (!head) row.dash.Path(new[] { new Vector2(0, 0.5f), new Vector2(w, 0.5f) }, 1, PauseDash, false, 4, 3);
+            if (!head) row.dash.Path(new[] { new Vector2(0, 0.5f), new Vector2(w, 0.5f) }, 1, PauseDash, false);
             Ui.Place(row.dash.rectTransform, 0, rh - 1, w, 1);
             // its words: a heading in spaced capitals (What's new's versions, the keyboard's list), else the setting's name
             row.text.fontSize = head ? 13 : plain ? 13 : 14;
             row.text.fontStyle = head ? FontStyle.Bold : FontStyle.Normal;
-            row.text.color = head ? PauseMuted : PauseInk;
+            row.text.color = head ? EnBrass : PauseInk;
             Ui.Space(row.text, head ? 0.2f : 0);
             // (a verb's cap: as wide as the page's .rebind kbd, its words in the rest of its half)
             float capW = Mathf.Clamp(w * 0.3f, 92, 124);
@@ -378,7 +371,7 @@ namespace Hiraeth.Bridge
             bool slider = r.Get("slider") is double;
             bool box = !plain && !slider && kind != "switch" && val.Length > 0, sw = kind == "switch";
             row.valBox.Show(box || cap); row.check.Show(sw && !cap);
-            row.valBox.SetShadow(cap ? 4 : 0, cap ? 4 : 0);
+            row.valBox.SetShadow(0, 0);
             row.track.enabled = row.fill.enabled = row.dot.enabled = slider;
             Show(row.val, !sw && !slider && val.Length > 0);
             if (cap)
@@ -386,9 +379,9 @@ namespace Hiraeth.Bridge
                 // the key or button on a cap: bold capitals on paper in a thick ink line on a hard ink shadow (the page's
                 // kbd), the pad's lifted onto gold; a moved one's letters red, as the page marks it
                 Show(row.val, true);
-                float ch = 32, lift = on ? 2 : 0;
+                float ch = 32, lift = 0;
                 Ui.Place(row.valBox.rt, w - 6 - capW - lift, mid - ch / 2 - lift, capW, ch);
-                row.valBox.SetFill(on ? PauseSide : PauseBox);
+                row.valBox.SetFill(on ? EnWash : PauseBox);
                 row.val.transform.SetParent(row.valBox.rt, false);
                 row.val.alignment = TextAnchor.MiddleLeft; row.val.fontStyle = FontStyle.Bold; row.val.color = B(r, "moved") ? PauseRed : PauseInk;
                 row.val.fontSize = val.Length > 12 ? 11 : 13;
@@ -407,10 +400,11 @@ namespace Hiraeth.Bridge
             else if (sw)
             {
                 bool yes = val == "on" || val == "On" || val == "yes" || val == "✓" || val == "true";
-                float s = 20;
-                Ui.Place(row.check.rt, w - 6 - s, mid - s / 2, s, s);
-                row.check.SetFill(yes ? PauseRed : PauseBox);
-                row.tick.text = yes ? "✓" : "";
+                float s = 36;
+                Ui.Place(row.check.rt, w - 6 - s, mid - 11, s, 22);
+                row.check.SetFill(yes ? EnAccent : PauseTrack);
+                row.tick.text = "●"; row.tick.fontSize = 20; row.tick.color = EnInk;
+                Ui.Place(row.tick.rectTransform, yes ? 15 : 1, 0, 20, 22);
             }
             else if (box)
             {

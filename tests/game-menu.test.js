@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PANELS, DEFAULT_PANEL, MenuState, moveCursor, GameMenu, itemsPanel, questsPanel, worldsPanel, mapPanel, fullHtml, itemUse, worldFacts, menuPrompts, GEAR_COLS, CARRY_COL, ENDED } from '../src/game-menu.js';
+import { PANELS, DEFAULT_PANEL, MenuState, moveCursor, GameMenu, itemsPanel, questsPanel, worldsPanel, mapPanel, fullHtml, inspectionHtml, itemUse, worldFacts, menuPrompts, GEAR_COLS, CARRY_COL, ENDED } from '../src/game-menu.js';
 import { itemsData, questsData, worldsData, chargeCard, menuSources } from '../src/game-menu-data.js';
 import { Quests } from '../src/story/quests.js';
 import { questGoal, QUEST_GOALS } from '../src/story/quest-goals.js';
@@ -345,4 +345,44 @@ test('the worlds one a row: up and down go between them, A / × shows what you h
   m.navigate(1, 0); assert.equal(m.full.id, 'arzach', '→ the next world');
   assert.match(m.fullCell().full.facts, /not told yet/);
   assert.deepEqual(worldFacts({ told: false }).map((x) => x.text), ['The story is not told yet']);
+});
+
+
+test('inspection follows the selected item without equipping it; confirmation keeps the existing action flow', () => {
+  const used = [];
+  const menu = new GameMenu(null, { sources: { items: () => ({ gear: [
+    { id: 'fan', name: 'Gust fan', kind: 'gadget', text: 'A pocket wind.', usable: true },
+    { id: 'lens', name: 'Seeing lens', kind: 'gadget', text: 'Look through walls.', usable: true },
+  ] }) }, onUse: id => used.push(id) });
+  menu.open('items');
+  assert.match(inspectionHtml(menu.state.cell(menu.rows)), /Gust fan/);
+  menu.select(0, 1);
+  const card = inspectionHtml(menu.state.cell(menu.rows));
+  assert.match(card, /Seeing lens/);
+  assert.match(card, /Look through walls/);
+  assert.doesNotMatch(card, /<button/);
+  assert.deepEqual(used, []);
+  menu.confirm();
+  assert.equal(menu.full.id, 'lens');
+  assert.deepEqual(used, []);
+  menu.confirm();
+  assert.deepEqual(used, ['lens']);
+});
+
+test('inspection escapes item prose and works for carried items, colour choices and empty inventories', () => {
+  assert.equal(inspectionHtml(null), '');
+  const { rows } = itemsPanel({ pack: [{ id: 'parcel', name: '<script>parcel</script>' }], keepsakes: [{ id: 'stone', name: 'Stone', text: '<img src=x onerror=bad>' }] });
+  assert.match(inspectionHtml(rows[0][0]), /&lt;script&gt;parcel/);
+  assert.doesNotMatch(inspectionHtml(rows[0][1]), /<img src=x/);
+  assert.match(inspectionHtml(rows[0][1]), /&lt;img/);
+  assert.match(inspectionHtml({ id: 'blade', name: 'Blade: blue', sub: 'Colours', desc: 'Next colour' }), /Next colour/);
+});
+
+test('late item pictures appear in the next inspection and retain the in-use label', () => {
+  const menu = new GameMenu(null, { sources: { items: () => ({ gear: [{ id: 'fan', name: 'Fan', kind: 'gadget', inUse: true }] }) } });
+  menu.open('items');
+  menu.iconReady('fan', 'data:image/png;base64,preview');
+  const card = inspectionHtml(menu.state.cell(menu.rows));
+  assert.match(card, /src="data:image\/png;base64,preview"/);
+  assert.match(card, /In use/i);
 });

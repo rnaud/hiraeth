@@ -390,6 +390,7 @@ export const FR = {
   'gm.noneYet': 'Aucune pour l\'instant.',
   'gm.nothingAsked': 'On ne vous a encore rien demandé.',
   'gm.done': 'Terminées',
+  'gm.journal': 'Journal',
   'gm.label': 'Menu du jeu',
   'gm.close': 'Fermer',
   'gm.items': 'Objets',

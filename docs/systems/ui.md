@@ -1210,3 +1210,36 @@ entrypoints are in `/admin/` (see `analytics.md`), protected by the notebook
 password, and on the title itself in dev mode (L3 + R3 on the title, above). `src/dev-gate.js` defaults developer entries off in production; explicit
 dev mode and local builds still expose development tools. The native title already
 uses play/saves/settings and its native update control.
+
+
+## Enamel Select and Start menus (v2.39)
+
+The user selected option 1 in `references/menus/enamel/approved-option-1.png`.
+`src/menu-enamel.css`, loaded after the existing menu sheets, applies the HUD’s
+`--en-*` palette to the Journal and Pause/Settings screens: opaque charcoal,
+fine brass rules and corner joins, ivory text and turquoise selection markers.
+Maps and item pictures keep their existing paper; no scenery sits behind the menus.
+
+The Journal header and shoulder controls sit above the page. On Items,
+`inspectionHtml` in `src/game-menu.js` follows the current cell without taking an
+action. Its card scrolls independently; Enter / A / × still opens the existing
+full view, whose confirm action equips or uses the item. Late icon captures also
+populate the inspection card. On narrow portrait screens the card sits beneath
+the scrolling grid. Pause retains its settings, remapping and native controls.
+
+Unity’s `BridgeMenu.Enamel.cs` owns the palette, frame and inspection card;
+`BridgeMenu.Chrome.cs` and `BridgeMenu.Pause.cs` lay out Journal and Pause.
+`engine/menus.js` exposes the selected item’s passive `inspection` separately
+from its actionable full view, with four inventory columns (three on narrow
+canvases). Native cards keep their description within the panel; the full view
+remains available for all details. The native renderer changes require an app
+update; older players can still run the compatible script bundle.
+
+The browser review uses `?level=desert&guardianReview=menus&items=all`, muted
+at audio construction even with an audible saved preference, on its own debug
+save. Reviewed at 1280×720, 730×410 and 390×844, including larger text.
+Unity is checked in muted editor batch mode with an isolated store and sample
+inventory at 1280×720 (mouse) and 960×720 (touch) using the menu-pointer plans. Item descriptions
+resolve control tokens in both the passive card and full view. Controller
+navigation is covered by the menu unit tests; no physical device was used. Actual running-game screenshots are registered in
+`src/changelog-media.js` under v2.39.

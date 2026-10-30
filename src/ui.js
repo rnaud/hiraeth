@@ -320,8 +320,8 @@ export class SettingsMenu {
     const updates = el.querySelector('.updates');   // (kept across a redraw: it has its own state)
     el.innerHTML = `
       <div class="pause">
+        <header class="pause-heading"><span class="menu-emblem" aria-hidden="true">✦</span><h1 class="brand">${game ? t('menu.paused') : 'HIRAETH'}</h1></header>
         <aside class="side">
-          <div class="brand" aria-hidden="true">${game ? t('menu.paused') : 'HIRAETH'}</div>
           <div class="where"></div>
           <nav class="menu-nav">
             <button data-a="close" class="primary">${game ? t('menu.resume') : t('menu.back')}${glyph('back', { key: 'Esc' })}</button>

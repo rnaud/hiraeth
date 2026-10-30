@@ -33,6 +33,7 @@ import { padFor, padConflicts, padRename, capturePad, keyFor, keyLabel, keyConfl
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 import { confirmKey, backKey, padLabels } from '../src/native-pad.js';
 import { padGlyphs } from '../src/pad-glyphs.js';
+import { keyText } from '../src/prompt-keys.js';
 import { stockText, stateText } from '../src/shop-panel.js';
 import { stripTone } from '../src/story/tone.js';
 import { MapView, VIEW, mapAspect } from '../src/world-map.js';
@@ -146,15 +147,9 @@ export const CONTROL_ROWS = [
 /** How many versions What's new lists (the newest first, as the web's changelog panel; the rest on the web's page). */
 export const NEWS_VERSIONS = 4;
 
-/**
- * The Items panel's tiles a row on a menu canvas w × h (BridgeMenu's units), as the page's grid fits them
- * (src/game-menu.css .gm-items .grid: auto-fill of --tile, clamp(62px, min(15.5vh, 9.6vw), 132px), 1vw apart, in the
- * sheet's room between its side tabs): eight at 1280 × 720 as on the web, where the engines had nine (issue #264).
- */
+/** Four inventory columns beside the inspection card; three on narrow menu canvases. */
 export function itemColsFor(w = 1280, h = 720) {
-  const tile = Math.min(132, Math.max(62, Math.min(0.155 * h, 0.096 * w))), gap = Math.min(14, Math.max(6, 0.01 * w));
-  const room = w - 2 * Math.max(56, 0.056 * w) - 66;
-  return Math.max(4, Math.min(12, Math.floor((room + gap) / (tile + gap))));
+  return w <= 760 ? 3 : 4;
 }
 const verbName = (v, kind = 'pad') => { const k = `verb.${v}.${kind}`, s = t(k); return s === k ? t(`verb.${v}`) : s; };
 /** Is the keyboard in hand (the body's 'controller' class unset, as engine/game.js's InputMode keeps it; none: the pad)? */
@@ -1370,7 +1365,7 @@ export class EngineMenus {
         rows[r].push({ text: '', sub: '', col: i % grid.cols, span: 1, kind: 'empty', empty: true, on: false, pic: '', mark: '' });
       }
     }
-    const view = { v: this.v, kind: 'game', panel: p.id, tabs: { names, i: this.state.i, edge: at.edge ?? 0 }, cols: grid ? Array(grid.cols).fill(1 / grid.cols) : COLS[p.id] ?? [1], rows,
+    const view = { v: this.v, kind: 'game', heading: t('gm.journal'), panel: p.id, tabs: { names, i: this.state.i, edge: at.edge ?? 0 }, cols: grid ? Array(grid.cols).fill(1 / grid.cols) : COLS[p.id] ?? [1], rows,
       empty: p.rows.length ? '' : plain(BUILDERS[p.id](p.data).html.match(/<p class="none">([^<]*)<\/p>/)?.[1] ?? ''),
       strip: cell ? { name: cell.name ?? '', sub: cell.sub ?? '', desc: plain(cell.desc), act: cell.act ? ACT[cell.act] : '' } : null,
       hint: this.full ? 'B / ○ back · ◀ ▶ the next' : 'LB / RB turn · A / × choose · B / ○ close' };
@@ -1389,7 +1384,9 @@ export class EngineMenus {
       view.empty = '';
       view.hint = `${cell?.act === 'wear' ? 'A / × wear · ' : ''}LB / RB turn · B / ○ close`;
     }
-    if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
+    if (p.id === 'items') {
+      view.inspection = !this.full && cell ? { title: cell.name ?? '', sub: cell.full?.sub ?? cell.sub ?? '', text: keyText(plain(cell.full?.text ?? cell.desc), { teach: true }), pic: PICTURED.has(cell.kind) && !cell.it?.glyph ? cell.id : '', mark: cell.it?.glyph ?? KIND_MARK[cell.it?.kind ?? cell.kind] ?? '✧', inUse: !!cell.full?.inUse } : null;
+      view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
     if (p.id === 'map') {
       // the map is the whole sheet (no list under it, issue #244): its ground (the engine's picture by its key,
       // engine/game.js mapPicture; "Drawing the map… n %" until then) and the sharper part of it zoomed in, placed by the
@@ -1437,7 +1434,7 @@ export class EngineMenus {
     if (this.full) {
       const c = this.full.cell, F = this.full, f = c.full ?? {};
       const w = c.kind === 'world' ? (Array.isArray(p.data) ? p.data.find((x) => x.id === c.id) : null) : null;
-      view.full = { back: t('gm.back'), title: c.name ?? '', sub: f.sub ?? '', pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', text: plain(f.text), inUse: !!f.inUse, use: f.use ?? '', note: F.note ?? '',
+      view.full = { back: t('gm.back'), title: c.name ?? '', sub: f.sub ?? '', pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', text: keyText(plain(f.text), { teach: true }), inUse: !!f.inUse, use: f.use ?? '', note: F.note ?? '',
         facts: w ? worldFacts(w).map((x) => ({ text: x.text, on: !!x.on, list: (x.list ?? []).join(' · ') })) : [],
         prev: F.list[F.k - 1]?.name ?? '', next: F.list[F.k + 1]?.name ?? '', kind: c.kind };
     }

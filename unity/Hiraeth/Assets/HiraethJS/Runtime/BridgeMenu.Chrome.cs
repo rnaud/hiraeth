@@ -5,12 +5,7 @@ using Label = UnityEngine.UI.Text;
 
 namespace Hiraeth.Bridge
 {
-    // ---------------------------------------------------------------- the game menu's desk, sheet and tabs (issue #423)
-    // src/game-menu.css #journal: the whole screen a warm desk (#e8d9b5, lighter in the middle), the panel's sheet on it in a
-    // thick ink line on a hard ink shadow, ruled faintly; over it the panels' tabs, the one open a gold card lettered big in
-    // the title face (cream, inked, a hard shadow), the others pills; at the sheet's sides the tabs to the panels either
-    // side with their buttons; under it the strip, white in an ink line on its shadow. Until now one paper sheet over the
-    // dimmed world, the tabs as words with a red line under the one open.
+    // The Journal's HUD palette and structural frame, shared with src/menu-enamel.css.
     public partial class BridgeMenu
     {
         static readonly Color Desk = Ui.Hex("#e8d9b5"), GmPaper = Ui.Hex("#fbf4e2"), GmGold = Ui.Hex("#f2c54b"),
@@ -18,19 +13,12 @@ namespace Hiraeth.Bridge
 
         RectTransform gmRoot, gmRules;
         readonly List<Image> gmRuleLines = new();
-        class GmTab { public Ui.Box box; public Label text; }
+        class GmTab { public Ui.Box box; public Label text; public Image accent; }
         readonly List<GmTab> gmTabs = new();
         GmTab gmPrev, gmNext;
         float gStripY, gStripX, gStripW, gStripH;
 
-        /// <summary>
-        /// The page's #journal laid out on this screen (src/game-menu.css: its clamps of vh and vw, a unit here being the
-        /// page's CSS px): the tabs' row, the stage with its side tabs and the sheet, the sheet's body (its padding inside its
-        /// 3 px line: the Map's room, src/game-menu.js mapBoxAspect) and the strip (.gm-info) under it. Unity's own frame
-        /// (the sheet from 70 down, 112 left under it) made the Map's sheet shorter than the page's, so its ground was placed
-        /// and scaled otherwise (SSIM 0.19 at 1280 × 720; issue #264). Checked against the page's boxes at 1280 × 720 and
-        /// 960 × 720 (tests/engine-menus.test.js).
-        /// </summary>
+        /// <summary>The enamel frame's header, tab row, content and footer in the 720-high menu canvas.</summary>
         public struct Journal
         {
             public float pt, ps, gap, tabsH, pillH, stageY, stageH, prevW, nextW, sideH, sheetX, sheetW, bodyX, bodyY, bodyW, bodyH, infoX, infoY, infoW, infoH, closeH;
@@ -38,28 +26,17 @@ namespace Hiraeth.Bridge
 
         public static Journal JournalAt(float W, float H)
         {
-            float vh = H / 100f, vw = W / 100f;
             var j = new Journal();
-            j.pt = Mathf.Clamp(2.2f * vh, 6, 26); float pb = Mathf.Clamp(2.4f * vh, 8, 26);
-            j.ps = Mathf.Clamp(2.4f * vw, 8, 40);
-            j.gap = Mathf.Clamp(1.6f * vh, 5, 16);
-            // (.gm-tab.on: its title face 4.2vh a line, 1vh above and under, its 2.5 line; the pills 1.8vh, 0.9vh, 2)
-            j.tabsH = Mathf.Clamp(4.2f * vh, 16, 34) + 2 * Mathf.Clamp(vh, 5, 9) + 4.4f;
-            j.pillH = Mathf.Clamp(1.8f * vh, 10, 13) + 2 * Mathf.Clamp(0.9f * vh, 4, 8) + 4;
-            j.closeH = Mathf.Clamp(5.4f * vh, 28, 42);
-            j.infoH = Mathf.Clamp(7 * vh, 30, 56);
-            j.stageY = j.pt + j.tabsH + j.gap;
-            j.stageH = H - j.pt - pb - j.tabsH - j.infoH - 2 * j.gap;
-            // (.gm-side: its padding 0.7vw a side, its 2.5 line on three, the vertical name and the glyph ~20 across)
-            float sp = 2 * Mathf.Clamp(0.7f * vw, 4, 9) + 2.5f;
-            j.prevW = sp + 20.5f; j.nextW = sp + 19f;
-            j.sideH = Mathf.Min(0.52f * j.stageH, 300);
-            j.sheetX = j.ps + j.prevW; j.sheetW = W - 2 * j.ps - j.prevW - j.nextW;
-            float padV = Mathf.Clamp(2.4f * vh, 8, 26), padH = Mathf.Clamp(2.2f * vw, 10, 32);
-            j.bodyX = j.sheetX + 3 + padH; j.bodyY = j.stageY + 3 + padV;
-            j.bodyW = j.sheetW - 6 - 2 * padH; j.bodyH = j.stageH - 6 - 2 * padV;
-            float im = Mathf.Clamp(3.8f * vw, 28, 56);
-            j.infoX = j.ps + im; j.infoW = W - 2 * (j.ps + im); j.infoY = j.stageY + j.stageH + j.gap;
+            j.ps = Mathf.Clamp(Mathf.Min(W, H) * .026f, 10, 30); j.pt = j.ps;
+            j.gap = 0; j.closeH = 30; j.tabsH = 46; j.pillH = 46;
+            j.stageY = j.pt + 62 + j.tabsH;
+            j.infoH = 46; j.infoY = H - j.pt - j.infoH;
+            j.stageH = j.infoY - j.stageY;
+            j.prevW = 36; j.nextW = 36; j.sideH = j.tabsH;
+            j.sheetX = j.ps; j.sheetW = W - 2 * j.ps;
+            j.bodyX = j.sheetX + 32; j.bodyY = j.stageY + 20;
+            j.bodyW = j.sheetW - 64; j.bodyH = j.stageH - 40;
+            j.infoX = j.ps; j.infoW = j.sheetW;
             return j;
         }
         Journal journal;
@@ -98,67 +75,41 @@ namespace Hiraeth.Bridge
         void GameFrame(out float sx, out float sw, out float top, out float bottom)
         {
             if (!gmRoot) BuildGameFrame();
-            gmRoot.gameObject.SetActive(true); gmRules.gameObject.SetActive(true);
-            dim.color = Desk;
-            // the sheet (.gm-sheet: 3 px of ink, a hard shadow), between the side tabs, where the page's is (JournalAt)
+            gmRoot.gameObject.SetActive(true); gmRules.gameObject.SetActive(false);
+            dim.color = EnPanel;
             var j = journal = JournalAt(W, H);
-            sx = j.sheetX; sw = j.sheetW;
-            float sy = j.stageY, sh = j.stageH;
-            Ui.Place(sheet.rt, sx, sy, sw, sh);
-            sheet.Show(true); sheet.SetFill(GmPaper); sheet.SetShadow(8, 8);
-            int nr = Mathf.FloorToInt((sh - 6) / 28f);
-            while (gmRuleLines.Count < nr) gmRuleLines.Add(Ui.Rect(gmRules, GmRule, 0, "rule"));
-            for (int i = 0; i < gmRuleLines.Count; i++) { gmRuleLines[i].enabled = i < nr; if (i < nr) Ui.Place(gmRuleLines[i].rectTransform, sx + 3, sy + 3 + 27 + i * 28, sw - 6, 1); }
-            top = sy + 16; bottom = sy + sh - 10;
+            sx = j.sheetX; sw = j.sheetW; top = j.bodyY; bottom = j.bodyY + j.bodyH;
+            Ui.Place(sheet.rt, sx, j.stageY, sw, j.stageH);
+            sheet.Show(true); sheet.SetFill(EnPanel); sheet.SetShadow(0, 0); sheet.border.color = Color.clear;
+            EnamelFrame(ref journalFrame, gmRoot, j.ps, j.pt, j.sheetW, H - 2 * j.pt, 62, 108);
+            if (!journalHeading) journalHeading = Ui.Label(gmRoot, "Journal heading", Ui.Sans, 25, EnInk, TextAnchor.MiddleLeft, FontStyle.Bold);
+            journalHeading.text = "<color=#d9b575>✦</color>   " + (state.S("heading") ?? "Journal");
+            Ui.Place(journalHeading.rectTransform, j.ps + 28, j.pt + 10, sw - 120, 42);
             gStripX = j.infoX; gStripY = j.infoY; gStripW = j.infoW; gStripH = j.infoH;
-            // the tabs over it, centred: the open one a gold card lettered in the title face, the others pills
-            var t = state.O("tabs");
-            var names = t?.L("names") ?? new List<object>();
+            var t = state.O("tabs"); var names = t?.L("names") ?? new List<object>();
             int cur = t?.I("i") ?? 0, edge = t?.I("edge") ?? 0;
-            var widths = new List<float>(); float total = 0;
+            float area = sw - 108, tw = Mathf.Min(120, area / Mathf.Max(1, names.Count));
+            float x = W / 2 - tw * names.Count / 2, ty = j.pt + 62;
             for (int i = 0; i < names.Count; i++)
             {
-                var tab = Tab(i);
-                bool open = i == cur;
-                tab.text.font = open ? Ui.Heavy : Ui.Sans;
-                tab.text.fontSize = open ? 30 : 13;
-                tab.text.fontStyle = open ? FontStyle.Bold : FontStyle.Normal;
-                Ui.Space(tab.text, open ? 0.06f : 0.2f);
-                tab.text.text = Ui.Upper(names[i] as string);
-                float w = Ui.Measure(tab.text, tab.text.text).x + (open ? 44 : 38);
-                widths.Add(w); total += w;
+                var tab = Tab(i); bool on = i == cur;
+                Ui.Place(tab.box.rt, x + i * tw, ty, tw, j.tabsH);
+                tab.box.SetFill(Color.clear); tab.box.border.color = Color.clear; tab.box.SetShadow(0, 0);
+                tab.text.font = Ui.Sans; tab.text.fontSize = W < 700 ? 11 : 14; tab.text.fontStyle = FontStyle.Normal;
+                Ui.Space(tab.text, .025f); tab.text.text = names[i] as string; tab.text.color = on ? EnAccent : EnBrass;
+                foreach (var fx in tab.text.GetComponents<Shadow>()) fx.enabled = false;
+                if (!tab.accent) tab.accent = Ui.Rect(tab.box.rt, EnAccent, 2, "active tab");
+                Show(tab.accent, on); Ui.Place(tab.accent.rectTransform, tw * .23f, j.tabsH - 4, tw * .54f, 4);
+                Hit(tab.box.rt, "tab:" + i);
             }
             for (int i = names.Count; i < gmTabs.Count; i++) gmTabs[i].box.Show(false);
-            // (.gm-tabs: 1vw apart, the open one 1vw more either side; its row as tall as the open one, the pills in its middle)
-            float gap = Mathf.Clamp(W / 100f, 4, 14), om = Mathf.Clamp(W / 100f, 4, 12);
-            total += 2 * om;
-            float x = W / 2 - (total + gap * Mathf.Max(0, names.Count - 1)) / 2;
-            for (int i = 0; i < names.Count; i++)
-            {
-                var tab = gmTabs[i]; bool open = i == cur;
-                float h = open ? j.tabsH : j.pillH, y = open ? j.pt : j.pt + (j.tabsH - j.pillH) / 2;
-                if (open) x += om;
-                Ui.Place(tab.box.rt, x, y, widths[i], h);
-                tab.box.SetFill(open ? GmGold : GmPill);
-                tab.box.border.color = open ? GmInk : GmPillLine;
-                tab.box.SetShadow(open ? 4 : 0, open ? 4 : 0);
-                tab.text.color = open ? GmPaper : GmInk;
-                var outline = tab.text.GetComponent<Outline>();
-                if (open && !outline) { outline = tab.text.gameObject.AddComponent<Outline>(); outline.effectColor = GmInk; outline.effectDistance = new Vector2(1.5f, -1.5f); var sh2 = tab.text.gameObject.AddComponent<Shadow>(); sh2.effectColor = GmInk; sh2.effectDistance = new Vector2(3, -3); }
-                foreach (var fx in tab.text.GetComponents<Shadow>()) fx.enabled = open;
-                Hit(tab.box.rt, "tab:" + i);   // (a tab clicked: its panel, as the page's .gm-tab)
-                x += widths[i] + gap + (open ? om : 0);
-            }
-            // the sides: the panel either side and its button (.gm-side), the one the cursor rests on gold
             Show(tabPrev, false); Show(tabNext, false); Show(tabLine, false);
-            float tabH = j.sideH, tabY = sy + sh / 2 - tabH / 2;
-            // (the buttons as the page's glyphs, LB / RB under the arrows: issue #517; the words where the view has no glyphs)
             bool g = state.O("glyphs") != null;
-            SideTabAt(gmPrev, j.ps, tabY, j.prevW, tabH, "◀\n" + (g ? " " : Key("prev", "LB")) + "\n\n" + Vertical(names, cur - 1), edge < 0, g ? "lb" : null);
-            SideTabAt(gmNext, W - j.ps - j.nextW, tabY, j.nextW, tabH, "▶\n" + (g ? " " : Key("next", "RB")) + "\n\n" + Vertical(names, cur + 1), edge > 0, g ? "rb" : null);
-            Hit(gmPrev.box.rt, "go:-1"); Hit(gmNext.box.rt, "go:1");   // (the page's .gm-side buttons)
-            // the way out at the top right (.gm-close: B / Esc's glyph and ✕ on a paper pill)
+            SideTabAt(gmPrev, j.ps + 12, ty, 36, j.tabsH, g ? "" : Key("prev", "LB"), edge < 0, g ? "lb" : null);
+            SideTabAt(gmNext, W - j.ps - 48, ty, 36, j.tabsH, g ? "" : Key("next", "RB"), edge > 0, g ? "rb" : null);
+            Hit(gmPrev.box.rt, "go:-1"); Hit(gmNext.box.rt, "go:1");
             GmClose(g);
+            empty.color = EnSoft; sub.color = EnBrass;
         }
 
         Ui.Box gmClose; Label gmCloseX;
@@ -166,14 +117,14 @@ namespace Hiraeth.Bridge
         {
             if (gmClose == null)
             {
-                gmClose = Ui.Panel(gmRoot, "close", Ui.Hex("#fffaf0"), GmInk, 2, 3, 3, 18);
-                gmCloseX = Ui.Label(gmClose.rt, "x", Ui.Sans, 20, GmInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+                gmClose = Ui.Panel(gmRoot, "close", Color.clear, Color.clear, 0);
+                gmCloseX = Ui.Label(gmClose.rt, "x", Ui.Sans, 20, EnInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
             }
             gmClose.Show(g);
             if (!g) return;
             // (.gm-close: 5.4vh tall, at the frame's padding from the top and the right)
             float h = journal.closeH, gw = GlyphHeight(16), w = 10 + gw + 6 + 20 + 10;
-            Ui.Place(gmClose.rt, W - journal.ps - w, journal.pt, w, h);
+            Ui.Place(gmClose.rt, W - journal.ps - w, journal.pt + 16, w, h);
             PutGlyph(gmClose.rt, "back", 10, h / 2, 16);
             Ui.Place(gmCloseX.rectTransform, 10 + gw + 6, 0, 20, h);
             gmCloseX.text = "✕";
@@ -189,27 +140,20 @@ namespace Hiraeth.Bridge
 
         void SideTabAt(GmTab t, float x, float y, float w, float h, string text, bool at, string glyph = null)
         {
-            t.box.Show(w > 24);
-            Ui.Place(t.box.rt, x, y, w, h);
-            t.box.SetFill(at ? GmGold : Ui.Hex("#f6ecd3"));
-            t.text.fontSize = 12; t.text.lineSpacing = 1.05f;
-            t.text.text = text;
-            if (glyph == null || w <= 24) return;
-            // the glyph on the second line (the words are centred: their top from their height, a line each)
-            int lines = text.Split('\n').Length;
-            float th = Ui.Measure(t.text, text, w).y, pitch = th / Mathf.Max(1, lines), top = h / 2 - th / 2;
-            CentreGlyph(t.box.rt, glyph, w / 2, top + pitch * 1.5f, 13);
+            t.box.Show(true); Ui.Place(t.box.rt, x, y, w, h);
+            t.box.SetFill(at ? EnWash : Color.clear); t.box.border.color = at ? EnInk : Color.clear; t.box.SetShadow(0, 0);
+            t.text.color = EnInk; t.text.text = text; t.text.fontSize = 13;
+            if (glyph != null) CentreGlyph(t.box.rt, glyph, w / 2, h / 2, 14);
         }
 
         /// <summary>The strip under the sheet (.gm-strip): white in an ink line on its hard shadow, the name in spaced capitals,
         /// what it is in red beside it.</summary>
         void StripLook()
         {
-            strip.SetFill(Ui.Hex("#fffaf0")); strip.SetShadow(5, 5);
-            stripName.font = Ui.Sans; stripName.fontSize = 16; stripName.fontStyle = FontStyle.Bold; Ui.Space(stripName, 0.1f);
-            stripSub.font = Ui.Sans; stripSub.fontSize = 13; stripSub.color = GmRed; stripSub.fontStyle = FontStyle.Normal;
-            stripDesc.font = Ui.Sans; stripDesc.fontSize = 13;
-            stripAct.font = Ui.Sans;
+            strip.SetFill(EnPanel); strip.SetShadow(0, 0); strip.border.color = EnLine;
+            stripName.font = Ui.Sans; stripName.fontSize = 15; stripName.color = EnInk; stripName.fontStyle = FontStyle.Bold; Ui.Space(stripName, .02f);
+            stripSub.font = Ui.Sans; stripSub.fontSize = 12; stripSub.color = EnSoft;
+            stripAct.font = Ui.Sans; stripAct.color = EnInk;
         }
 
         // a quest's card (.qcard): white in a 2 px ink line on a hard shadow, its kind's colour down its left edge (the main
@@ -244,15 +188,17 @@ namespace Hiraeth.Bridge
             k.box.Show(true);
             bool on = B(c, "on");
             string kind = c.S("kind") ?? "quest";
-            float lift = on ? 2 : 0;
+            float lift = 0;
             Ui.Place(k.box.rt, x - lift, y - lift, w - 6, h);
             bool tracked = B(c, "tracked");
-            k.box.SetFill(on ? QAt : tracked ? QTracked : kind == "charge" ? QCharge : QWhite);
-            k.box.border.color = tracked ? GmRed : GmInk;
-            k.box.SetShadow(on ? 6 : 4, on ? 6 : 4);
+            k.box.SetFill(on ? EnWash : EnPanel);
+            k.name.color = k.step.color = k.prompt.color = EnInk; k.sub.color = EnSoft; k.next.color = EnAccent;
+            k.tag.SetFill(EnAccent); k.tag.border.color = Color.clear; k.tagText.color = EnPanel; k.ring.border.color = EnInk;
+            k.box.border.color = tracked ? EnAccent : EnLine;
+            k.box.SetShadow(0, 0);
             k.ring.Show(on);
             if (on) Ui.Place(k.ring.rt, x - lift - 7, y - lift - 7, w - 6 + 14, h + 14);
-            k.edge.color = kind == "charge" ? GmGold : kind == "errand" ? QTeal : kind == "quest" ? GmRed : QPlain;
+            k.edge.color = tracked ? EnAccent : EnBrass; k.edgeLine.color = Color.clear;
             Ui.Place(k.edge.rectTransform, 2, 2, 7, h - 4); Ui.Place(k.edgeLine.rectTransform, 9, 2, 2, h - 4);
             float tx = 24, tw = w - 6 - tx - 14, ty = 14;
             // (at the right of the name: TRACKING on the tracked one, A / × TRACK on the pad's when it can be tracked)
@@ -322,14 +268,14 @@ namespace Hiraeth.Bridge
             // the ended (.qdone): its heading (the panel's h2: 1.75vh, spaced 0.34em, capitals), then a line each
             var dv = state.O("done");
             float rx = x + leftW + colGap, ry = y;
-            if (!qdHead) { qdHead = Ui.Label(root, "done head", Ui.Sans, 13, GmInk, TextAnchor.UpperLeft, FontStyle.Normal); Ui.Space(qdHead, 0.34f); }
+            if (!qdHead) { qdHead = Ui.Label(root, "done head", Ui.Sans, 13, EnInk, TextAnchor.UpperLeft, FontStyle.Normal); Ui.Space(qdHead, 0.34f); }
             Show(qdHead, true);
             var hz = Ui.Set(qdHead, Ui.Upper(dv?.S("head") ?? "Done"), rightW);
             Ui.Place(qdHead.rectTransform, rx, ry, rightW, hz.y); ry += hz.y + 9;
             void More(string text)
             {
                 if (string.IsNullOrEmpty(text) || ry + 19 > y + h) return;
-                if (qdMoreUsed >= qdMores.Count) qdMores.Add(Ui.Label(root, "more" + qdMores.Count, Ui.Sans, 11, Ui.Hex("#2b211f", 0.6f), TextAnchor.UpperLeft));
+                if (qdMoreUsed >= qdMores.Count) qdMores.Add(Ui.Label(root, "more" + qdMores.Count, Ui.Sans, 11, EnSoft, TextAnchor.UpperLeft));
                 var m = qdMores[qdMoreUsed++]; Show(m, true);
                 Ui.Set(m, text, rightW - 16); Ui.Place(m.rectTransform, rx + 8, ry + 3, rightW - 16, 16); ry += 19;
             }
@@ -346,17 +292,17 @@ namespace Hiraeth.Bridge
                 if (qdUsed >= qdLines.Count)
                 {
                     var n = new QLine { rt = Ui.Node("ended" + qdLines.Count, root) };
-                    n.fill = Ui.Fill(n.rt, GmGold, 0, "at");
-                    n.text = Ui.Label(n.rt, "text", Ui.Sans, 13, GmInk, TextAnchor.MiddleLeft);
+                    n.fill = Ui.Fill(n.rt, EnWash, 0, "at");
+                    n.text = Ui.Label(n.rt, "text", Ui.Sans, 13, EnInk, TextAnchor.MiddleLeft);
                     n.dash = Ui.Node("dash", n.rt).gameObject.AddComponent<Sketch>(); n.dash.raycastTarget = false;
                     qdLines.Add(n);
                 }
                 var l = qdLines[qdUsed++]; l.rt.gameObject.SetActive(true);
                 Ui.Place(l.rt, rx, ry, rightW, lh);
                 l.fill.enabled = B(c, "on");
-                l.text.text = (failed ? "<color=#9a4a32><b>·</b></color>  " : "<color=#2f7a55><b>✓</b></color>  ") + (c.S("text") ?? "");
+                l.text.text = (failed ? "<color=#d9b575><b>·</b></color>  " : "<color=#79c9c0><b>✓</b></color>  ") + (c.S("text") ?? "");
                 Ui.Place(l.text.rectTransform, 8, 0, rightW - 16, lh - 1);
-                l.dash.Clear(); l.dash.Path(new[] { new Vector2(0, 0.5f), new Vector2(rightW, 0.5f) }, 1, Ui.Hex("#2b211f", 0.3f), false, 4, 3);
+                l.dash.Clear(); l.dash.Path(new[] { new Vector2(0, 0.5f), new Vector2(rightW, 0.5f) }, 1, EnLine, false, 4, 3);
                 Ui.Place(l.dash.rectTransform, 0, lh - 1, rightW, 1);
                 Hit(l.rt, c.S("pt"));
                 ry += lh;
@@ -381,6 +327,7 @@ namespace Hiraeth.Bridge
         /// <summary>The journal's own pieces off when another menu is drawn.</summary>
         void HideGameFrame()
         {
+            inspection?.Show(false);
             for (int i = 0; i < qcards.Count; i++) { qcards[i].box.Show(false); qcards[i].ring.Show(false); }
             qcardsUsed = 0;
             foreach (var l in qdLines) l.rt.gameObject.SetActive(false);
@@ -389,7 +336,7 @@ namespace Hiraeth.Bridge
             qdUsed = 0; qdMoreUsed = 0;
             if (!gmRoot) return;
             gmRoot.gameObject.SetActive(false); gmRules.gameObject.SetActive(false);
-            sheet.SetShadow(6, 6); sheet.SetFill(Ui.Page);
+            sheet.SetShadow(6, 6); sheet.SetFill(Ui.Page); sheet.border.color = Ui.Ink;
         }
     }
 }

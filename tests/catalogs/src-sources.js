@@ -537,6 +537,7 @@ const readers = {
   'market-ways.js': () => readFileSync(new URL('../../src/market-ways.js', import.meta.url), 'utf8'),
   'materials.js': () => readFileSync(new URL('../../src/materials.js', import.meta.url), 'utf8'),
   'matrix-cache.js': () => readFileSync(new URL('../../src/matrix-cache.js', import.meta.url), 'utf8'),
+  'menu-enamel.css': () => readFileSync(new URL('../../src/menu-enamel.css', import.meta.url), 'utf8'),
   'menu-pad.js': () => readFileSync(new URL('../../src/menu-pad.js', import.meta.url), 'utf8'),
   'menus.css': () => readFileSync(new URL('../../src/menus.css', import.meta.url), 'utf8'),
   'minigames/canyon-rider.js': () => readFileSync(new URL('../../src/minigames/canyon-rider.js', import.meta.url), 'utf8'),

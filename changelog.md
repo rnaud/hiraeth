@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.39 — 2026-10-30
+
+- The Journal and Pause menus now match the HUD in the browser and Unity: dark enamel, fine brass borders, ivory lettering and a turquoise selection mark. Items have an ivory inspection card beside the grid that follows your selection; confirming still opens the item’s actions. Smaller screens keep the card beneath the grid.
+
 ## v2.38 — 2026-10-29
 
 - In the Arena, the game no longer stutters each time a new enemy comes in. Every look an enemy can arrive in is prepared while the Arena loads, and each new enemy’s body is ready before it steps out of its cloud. Cutting down a machine (a furnace brute, a crucible cart, a bell walker) no longer catches the game either, in any world. The Arena takes about a second longer to load.

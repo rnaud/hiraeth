@@ -391,6 +391,7 @@ export const EN = {
   'gm.noneYet': 'None yet.',
   'gm.nothingAsked': 'Nothing asked of you yet.',
   'gm.done': 'Done',
+  'gm.journal': 'Journal',
   'gm.label': 'Game menu',
   'gm.close': 'Close',
   'gm.items': 'Items',

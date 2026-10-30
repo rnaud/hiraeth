@@ -128,7 +128,7 @@ namespace Hiraeth.Bridge
                 if (words.Length > 0)
                 {
                     var l = HintWord();
-                    l.fontSize = Small; l.color = Ui.Ink;
+                    l.fontSize = Small; l.color = state.S("kind") == "start" ? EnInk : Ui.Ink;
                     var s = Ui.Set(l, words);
                     Ui.Place(l.rectTransform, x, midY - s.y / 2, s.x, s.y);
                     x += s.x;

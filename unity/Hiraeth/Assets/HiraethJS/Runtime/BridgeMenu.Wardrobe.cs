@@ -33,13 +33,13 @@ namespace Hiraeth.Bridge
         void BuildWardrobe()
         {
             if (wdFrame != null) return;
-            wdOutfitHead = Ui.Label(root, "wardrobe outfits", Ui.Sans, 13, Ui.Ink, TextAnchor.UpperLeft); Ui.Space(wdOutfitHead, 0.34f);
-            wdBladeHead = Ui.Label(root, "wardrobe blades", Ui.Sans, 13, Ui.Ink, TextAnchor.UpperLeft); Ui.Space(wdBladeHead, 0.34f);
-            wdOutfitNote = Ui.Label(root, "wardrobe outfits note", Ui.Sans, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
-            wdBladeNote = Ui.Label(root, "wardrobe blades note", Ui.Sans, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
-            wdTurn = Ui.Label(root, "wardrobe turn", Ui.Sans, Tiny, Muted, TextAnchor.UpperCenter, FontStyle.Italic);
+            wdOutfitHead = Ui.Label(root, "wardrobe outfits", Ui.Sans, 13, EnInk, TextAnchor.UpperLeft); Ui.Space(wdOutfitHead, 0.34f);
+            wdBladeHead = Ui.Label(root, "wardrobe blades", Ui.Sans, 13, EnInk, TextAnchor.UpperLeft); Ui.Space(wdBladeHead, 0.34f);
+            wdOutfitNote = Ui.Label(root, "wardrobe outfits note", Ui.Sans, Small, EnSoft, TextAnchor.UpperLeft, FontStyle.Italic);
+            wdBladeNote = Ui.Label(root, "wardrobe blades note", Ui.Sans, Small, EnSoft, TextAnchor.UpperLeft, FontStyle.Italic);
+            wdTurn = Ui.Label(root, "wardrobe turn", Ui.Sans, Tiny, EnSoft, TextAnchor.UpperCenter, FontStyle.Italic);
             // (.wd-view: the paper a shade darker, a 2.5 ink line, a hard 5 px shadow)
-            wdFrame = Ui.Panel(root, "wardrobe", Ui.Hex("#ece0c2"), Ui.Ink, 2.5f, 5, 5, 4);
+            wdFrame = Ui.Panel(root, "wardrobe", EnPanel, EnLine, 1, 0, 0, 3);
             wdView = Ui.Node("traveller", wdFrame.rt).gameObject.AddComponent<RawImage>(); wdView.raycastTarget = false;
             Ui.Stretch(wdView.rectTransform, 2.5f, 2.5f, 2.5f, 2.5f);
             if (BridgeHost.Runner && BridgeHost.Runner.wardrobeRT) wdView.texture = BridgeHost.Runner.wardrobeRT;
@@ -49,7 +49,7 @@ namespace Hiraeth.Bridge
         {
             if (wdSwUsed >= wdSwatches.Count)
             {
-                var ring = Ui.Rect(root, Ui.Ink, 0, "swatch ring"); ring.sprite = Ui.Round(32);
+                var ring = Ui.Rect(root, EnInk, 0, "swatch ring"); ring.sprite = Ui.Round(32);
                 var fill = Ui.Rect(root, Color.white, 0, "swatch"); fill.sprite = Ui.Round(32);
                 wdSwatches.Add((ring, fill));
             }
@@ -102,7 +102,7 @@ namespace Hiraeth.Bridge
                     var cell = Entry(x, yy, lw, lineH - 6, (colour ? "" : (locked ? "?  " : "✦  ")) + c.S("text"), null, worn ? Ui.Upper(wd.S("wornTag") ?? "wearing") : null, B(c, "on"), size: Small + 1, dimmed: locked, boxed: true);
                     Hit(cell.box.rt, c.S("pt"));   // (the pointer: the mouse over a line picks it, a click on the one picked wears it; issue #574)
                     cell.text.alignment = TextAnchor.UpperLeft;
-                    if (worn) { cell.val.color = GmRed; cell.val.fontSize = Tiny; cell.val.fontStyle = FontStyle.Bold; }
+                    if (worn) { cell.val.color = EnAccent; cell.val.fontSize = Tiny; cell.val.fontStyle = FontStyle.Bold; }
                     if (colour)
                     {
                         float s = lineH - 16;

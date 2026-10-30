@@ -231,6 +231,7 @@ namespace Hiraeth.Bridge
         Cell Entry(float x, float y, float w, float h, string text, string under, string val, bool on, float slider = -1, int size = Body, bool dimmed = false, bool boxed = false)
         {
             var c = Take();
+            c.sub.color = Muted; c.val.color = Ui.Ink; c.mark.color = c.line.color = Ui.Red;
             Ui.Place(c.box.rt, x, y, w, h);
             c.box.SetFill(on ? Band : boxed ? Ui.Hex("#fff6dc", 0.6f) : Color.clear);
             c.text.fontSize = size; c.text.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
@@ -249,6 +250,11 @@ namespace Hiraeth.Bridge
             if (c.pic) Show(c.pic, false);
             c.line.gameObject.SetActive(on);
             if (on) { Ui.Place(c.mark.rectTransform, 0, 4, 4, h - 8); Ui.Place(c.line.rectTransform, pad, 5 + ts.y + (hasSub ? 0 : 1), Mathf.Min(Ui.Measure(c.text, text ?? "").x, w - pad * 2), 2); }
+            if (state.S("kind") == "game") {
+                c.box.SetFill(on ? EnWash : EnPanel); c.box.SetShadow(0, 0);
+                c.text.color = dimmed ? EnSoft : EnInk; c.sub.color = EnSoft; c.val.color = EnBrass;
+                c.mark.color = EnAccent; c.line.color = EnAccent;
+            }
             return c;
         }
 
@@ -276,7 +282,7 @@ namespace Hiraeth.Bridge
         {
             if (tilesUsed >= tiles.Count)
             {
-                var t = new Tile { box = Ui.Panel(root, "tile" + tiles.Count, Ui.Hex("#f6e9c8"), Ui.Ink, 2.5f, 0, 0, 18) };
+                var t = new Tile { box = Ui.Panel(root, "tile" + tiles.Count, EnPanel, EnLine, 1, 0, 0, 2) };
                 t.ring = Ui.Rect(t.box.rt, Ui.Red, 20, "ring"); t.ring.transform.SetAsFirstSibling();
                 t.pic = Ui.Node("pic", t.box.rt).gameObject.AddComponent<RawImage>(); t.pic.raycastTarget = false;
                 t.mark = Ui.Label(t.box.rt, "mark", Ui.Sans, 40, Ui.Teal, TextAnchor.MiddleCenter);
@@ -292,13 +298,14 @@ namespace Hiraeth.Bridge
             var tile = tiles[tilesUsed++];
             tile.box.Show(true);
             bool on = B(c, "on"), empty = B(c, "empty"), inUse = B(c, "inUse");
-            float lift = on ? 2 : 0, px = x + (w - side) / 2 - lift;
-            Ui.Place(tile.box.rt, px, y - lift, side, side);
-            tile.box.SetFill(empty ? Ui.Hex("#2b211f", 0.03f) : on ? Ui.Gold : Ui.Hex("#f6e9c8"));
-            if (tile.box.border) tile.box.border.color = empty ? Ui.Hex("#2b211f", 0.26f) : inUse ? Ui.Red : Ui.Ink;
-            tile.box.shadow.enabled = on; tile.box.SetShadow(on ? 4 : 0, on ? 4 : 0);
+            float lift = 0, px = x + (w - side) / 2;
+            Ui.Place(tile.box.rt, px, y, side, side + 30);
+            tile.box.SetFill(on ? EnWash : EnPanel); tile.name.color = EnInk; tile.mark.color = EnBrass;
+            tile.tag.SetFill(EnAccent); tile.tag.border.color = Color.clear; tile.inUse.color = EnPanel;
+            if (tile.box.border) tile.box.border.color = on ? EnInk : EnLine;
+            tile.box.SetShadow(0, 0);
             Show(tile.ring, on);
-            if (on) { tile.ring.rectTransform.anchorMin = Vector2.zero; tile.ring.rectTransform.anchorMax = Vector2.one; tile.ring.rectTransform.offsetMin = new Vector2(-6, -6); tile.ring.rectTransform.offsetMax = new Vector2(6, 6); tile.ring.color = Ui.Hex("#c8483a", 0.85f); }
+            if (on) { tile.ring.rectTransform.anchorMin = tile.ring.rectTransform.anchorMax = new Vector2(0, 1); Ui.Place(tile.ring.rectTransform, -5, side * .3f, 4, side * .4f); tile.ring.color = EnAccent; }
             var tex = empty ? null : Picture(c.S("pic"));
             Show(tile.pic, tex != null);
             if (tex != null) { tile.pic.texture = tex; float ps = side * 0.86f; Ui.Place(tile.pic.rectTransform, (side - ps) / 2, (side - ps) / 2, ps, ps); }
@@ -307,7 +314,7 @@ namespace Hiraeth.Bridge
             tile.tag.Show(inUse);
             if (inUse) { tile.tag.rt.SetAsLastSibling(); Ui.Place(tile.tag.rt, side / 2 - 29, side - 11, 58, 15); Ui.Place(tile.inUse.rectTransform, 0, 0, 58, 15); }
             Show(tile.name, !empty);
-            if (!empty) { tile.name.text = c.S("text") ?? ""; Ui.Place(tile.name.rectTransform, (side - w) / 2 + lift, side + 5 + lift, w, 30); }
+            if (!empty) { tile.name.text = c.S("text") ?? ""; Ui.Place(tile.name.rectTransform, (side - w) / 2 + lift, side, w, 28); }
         }
 
         void Update()
@@ -349,6 +356,8 @@ namespace Hiraeth.Bridge
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
+            head.color = note.color = empty.color = hint.color = kind == "game" || kind == "start" ? EnInk : Ui.Ink;
+            sub.color = kind == "game" ? EnBrass : Muted;
             HideGameFrame();   // (the journal's desk and tabs: BridgeMenu.Chrome.cs, drawn again by DrawGame)
             HideWardrobe();   // (the game menu's Wardrobe: BridgeMenu.Wardrobe.cs, drawn again by DrawGame)
             if (pauseRoot && kind != "start") pauseRoot.gameObject.SetActive(false);   // (the Start menu's own page: BridgeMenu.Pause.cs)
@@ -369,7 +378,7 @@ namespace Hiraeth.Bridge
             // (the title's own entries carry the confirm glyph, the one the pad is on: no line under them, as the page's)
             if (kind == "title" && (state.S("screen") == "main" || state.S("starting") != null)) h = "";
             // the prompts as the buttons' glyphs and their words (issue #517); an older script's as words
-            float hy = kind == "title" ? H - 52 : H - 34;   // (on the title the version takes the corner, the buttons' prompts over it)
+            float hy = kind == "title" ? H - 52 : kind == "start" ? H - 48 : H - 34;   // (on the title the version takes the corner, the buttons' prompts over it)
             bool glyphs = h.Length > 0 && DrawHints(W - 24, hy + 11);
             Show(hint, h.Length > 0 && !glyphs);
             if (h.Length > 0 && !glyphs) { hint.text = h; Ui.Place(hint.rectTransform, 24, hy, W - 48, 22); }
@@ -882,12 +891,19 @@ namespace Hiraeth.Bridge
             float px = sx + 18, pw = sw - 36;
             var person = state.O("person");
             var full = state.O("full");
+            if (full != null) { DrawFull(full); return; }
             var panel = state.S("panel");
             var house = state.O("house");
             if (person != null) DrawPerson(person, px, top, pw, bottom - top);
             else if (panel == "map") DrawMap(journal.bodyX, journal.bodyY, journal.bodyW, journal.bodyH);   // (the sheet's body, as the page's .gm-body)
             else if (panel == "house" && house != null) DrawHouse(house, px, top + 8, pw, bottom - top - 16);
             else if (panel == "wardrobe" && state.O("wardrobe") is Dictionary<string, object> wd) DrawWardrobe(wd, journal.bodyX, journal.bodyY, journal.bodyW, journal.bodyH);   // (BridgeMenu.Wardrobe.cs)
+            else if (panel == "items" && full == null)
+            {
+                float room = bottom - top;
+                if (W < 600) { float cardH = Mathf.Min(240, room * .43f); DrawRows(panel, px, top, pw, room - cardH - 14); DrawInspection(state.O("inspection"), px, bottom - cardH, pw, cardH); }
+                else { float left = pw * .61f; DrawRows(panel, px, top, left - 24, room); DrawInspection(state.O("inspection"), px + left + 16, top, pw - left - 16, room); }
+            }
             else DrawRows(panel, px, top, pw, bottom - top);
             // the strip: the cell's name, what it is, and what A / × does
             var s = state.O("strip");
@@ -900,7 +916,7 @@ namespace Hiraeth.Bridge
                 float stw = gStripW, sth = gStripH, mid = sth / 2;
                 Ui.Place(strip.rt, gStripX, gStripY, stw, sth);
                 StripLook();
-                var ns = Ui.Set(stripName, Ui.Upper(s.S("name")), stw * 0.5f);
+                var ns = Ui.Set(stripName, s.S("name"), stw * 0.5f);
                 Ui.Place(stripName.rectTransform, 20, mid - ns.y / 2, ns.x, ns.y);
                 Ui.Set(stripSub, s.S("sub"), stw * 0.4f);
                 Ui.Place(stripSub.rectTransform, 34 + ns.x, mid - ns.y / 2 + 3, stw * 0.4f, 18);
@@ -936,9 +952,9 @@ namespace Hiraeth.Bridge
                 // the gear's count and the wallet over the tiles
                 // (the page's h2: GEAR spaced out, "62 of 66" fainter beside it; the chimes at the right in bold)
                 Show(sub, true); sub.fontStyle = FontStyle.Normal;
-                Ui.Set(sub, $"G E A R    <color=#2b211f99>{state.I("gear")} of {state.I("slots")}</color>", w);
+                Ui.Set(sub, $"G E A R    <color=#f7ecd2b8>{state.I("gear")} of {state.I("slots")}</color>", w);
                 Ui.Place(sub.rectTransform, x + 8, y + 4, w, 18);
-                if (!gearChimes) gearChimes = Ui.Label(root, "chimes", Ui.Sans, 13, Ui.Ink, TextAnchor.UpperRight, FontStyle.Bold);
+                if (!gearChimes) gearChimes = Ui.Label(root, "chimes", Ui.Sans, 13, EnBrass, TextAnchor.UpperRight, FontStyle.Bold);
                 Show(gearChimes, state.Get("chimes") is double);
                 if (state.Get("chimes") is double ch) { gearChimes.text = $"{ch:0} chimes"; Ui.Place(gearChimes.rectTransform, x, y + 4, w - 10, 18); }
                 y += 28; h -= 28;
@@ -946,7 +962,7 @@ namespace Hiraeth.Bridge
             // a row's height by what is in it
             // (the gear's tiles: as wide as a column lets them, up to the web's 132 px, their names under them)
             // (and no bigger than the page's --tile: clamp(62px, min(15.5vh, 9.6vw), 132px), issue #264)
-            float side = Mathf.Min(Mathf.Clamp(w / Mathf.Max(1, cols.Count) - 14, 56, 132), Mathf.Clamp(Mathf.Min(H * 0.155f, W * 0.096f), 62, 132));
+            float side = Mathf.Clamp(w / Mathf.Max(1, cols.Count) - 16, 48, 180);
             float RowH(List<object> row)
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
@@ -1214,7 +1230,8 @@ namespace Hiraeth.Bridge
 
         void DrawFull(Dictionary<string, object> f)
         {
-            card.Show(true);
+            card.Show(true); card.SetFill(EnPanel); card.SetShadow(0, 0); card.border.color = EnLine;
+            cardTitle.color = cardText.color = cardFacts.color = EnInk; cardSub.color = EnBrass; cardUse.color = EnAccent; cardSteps.color = EnInk;
             card.rt.SetAsLastSibling();
             float w = Mathf.Min(720, W - 80), x = W / 2 - w / 2, pad = 26, cw = w - pad * 2;
             // (a thing's picture large at the top right, the words beside it: the web's .gm-full .big)
@@ -1231,8 +1248,8 @@ namespace Hiraeth.Bridge
             var bk = f.S("back") ?? "";
             if (cardBack == null)
             {
-                cardBack = Ui.Panel(card.rt, "back", Ui.Paper, Ui.Ink, 2, 2, 2, 15);
-                cardBackText = Ui.Label(cardBack.rt, "text", Ui.Sans, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Normal); Ui.Space(cardBackText, 0.12f);
+                cardBack = Ui.Panel(card.rt, "back", EnPanel, EnLine, 1, 0, 0, 2);
+                cardBackText = Ui.Label(cardBack.rt, "text", Ui.Sans, 13, EnInk, TextAnchor.MiddleLeft, FontStyle.Normal); Ui.Space(cardBackText, 0.12f);
             }
             cardBack.Show(bk.Length > 0);
             if (bk.Length > 0)

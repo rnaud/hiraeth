@@ -472,6 +472,18 @@ export function fullHtml(cell, { prev = null, next = null, note = null } = {}) {
   </div>`;
 }
 
+/** A non-interactive inspection card: choosing a cell previews it; confirm still opens its actions. */
+export function inspectionHtml(cell) {
+  if (!cell) return '';
+  const f = cell.full ?? {};
+  return `<div class="gm-inspection" data-inspect="${esc(cell.id)}">
+    <div class="inspection-picture">${f.pic ?? ''}</div>
+    <h2>${esc(f.title ?? cell.name)}</h2>
+    <div class="inspection-kind">${esc(f.sub ?? cell.sub ?? '')}${f.inUse ? `<em>${t('gm.inUse')}</em>` : ''}</div>
+    ${f.text || cell.desc ? `<p>${keyText(esc(f.text ?? cell.desc), { html: true, teach: true })}</p>` : ''}
+  </div>`;
+}
+
 // ------------------------------------------------------------------ the menu on the page
 
 export class GameMenu {
@@ -503,12 +515,15 @@ export class GameMenu {
     el.classList.add('gamemenu');
     el.innerHTML = `
       <div class="gm pad-raw" role="dialog" aria-label="${t('gm.label')}">
-        <nav class="gm-tabs"></nav>
-        <button class="gm-close close" aria-label="${t('gm.close')}">${glyph('back', { key: 'Esc' })}✕</button>
-        <div class="gm-stage">
+        <header class="gm-heading"><span class="menu-emblem" aria-hidden="true">✦</span><h1>${t('gm.journal')}</h1>
+          <button class="gm-close close" aria-label="${t('gm.close')}">${glyph('back', { key: 'Esc' })}✕</button></header>
+        <div class="gm-tabbar">
           <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span>${glyph('lb', { key: 'Q' })}<span class="nm"></span></button>
-          <div class="gm-sheet"><h1 class="gm-title"></h1><div class="gm-body"></div><div class="gm-full" hidden></div></div>
+          <nav class="gm-tabs"></nav>
           <button class="gm-side next" data-go="1"><span class="arrow">▶</span>${glyph('rb', { key: 'E' })}<span class="nm"></span></button>
+        </div>
+        <div class="gm-stage">
+          <div class="gm-sheet"><h2 class="gm-title"></h2><div class="gm-body"></div><aside class="gm-inspect" aria-live="polite" hidden></aside><div class="gm-full" hidden></div></div>
         </div>
         <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span></div><div class="gm-keys"></div></footer>
       </div>`;
@@ -520,6 +535,7 @@ export class GameMenu {
     // (a new language: the tabs' and the close button's words; the panels are drawn again as they open)
     onLanguage(() => {
       this.drawTabs();
+      el.querySelector('.gm-heading h1').textContent = t('gm.journal');
       el.querySelector('.gm')?.setAttribute('aria-label', t('gm.label'));
       el.querySelector('.gm-close')?.setAttribute('aria-label', t('gm.close'));
     });
@@ -666,6 +682,11 @@ export class GameMenu {
     for (const x of this.el.querySelectorAll('.at')) x.classList.remove('at');
     for (const s of this.el.querySelectorAll('.gm-side')) s.classList.toggle('at', !this.full && !!at.edge && +s.dataset.go === at.edge);
     const cell = this.state.cell(this.rows);
+    const inspection = this.el.querySelector('.gm-inspect');
+    if (inspection) {
+      inspection.hidden = this.panel !== 'items' || !cell || !!this.full;
+      inspection.innerHTML = this.panel === 'items' ? inspectionHtml(cell) : '';
+    }
     const node = cell && this.body.querySelector(`[data-at="${at.r},${at.c}"]`);
     if (node) { node.classList.add('at'); if (scroll && !this.full) node.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }
     if (this.panel === 'map' && !this.full && !at.edge) { this.mapStrip(); return; }
