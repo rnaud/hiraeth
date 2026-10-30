@@ -148,6 +148,21 @@ const SAVE729_SKULL = { flags: { 'prologue.done': true, 'save.migrated': 31, 'it
 const SAVE729_OPEN = { flags: { ...SAVE729_SKULL.flags, 'site.desert.skull-hall': true, 'desert.door.open': true }, keepsakes: [] };
 const SAVE_DESERT = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] };
 const studio = (query, size = [960, 720]) => ({ page: 'studio.html', query: `${query}&paused=true`, size, wait: 3000 });
+/** Issue #741's line-up: a mummer, a grunt, a crawler and a skitter (the game's bodies, each its first weapon) in a row beside the
+ * traveller in the studio, the camera pinned side-on 9 m off. */
+const FOES741_SETUP = `
+  const T = await import('/node_modules/three/build/three.module.js');
+  const { Foes } = await import('/src/foes.js');
+  const S = window.studio;
+  S.set({ bg: 'flat', gaze: 'free', turntable: false });
+  const foes = new Foes({ scene: S.scene, level: { foes: { own: true } }, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new T.Vector3(0, 0, 30), heading: Math.PI }, lib: S.assets.lib, humans: [S.assets.humans.m], rng: () => 0.01 });
+  const row = [['mummer', 1.35], ['grunt', 2.75], ['crawler', 4.05], ['skitter', 5.15]];
+  for (const [k, x] of row) { const f = foes.add(k, new T.Vector3(x, 0, 0), { tier: 0 }); f.heading = 0; for (let i = 0; i < 45; i++) foes.look(f, 1 / 30); }
+  const eye = new T.Vector3(2.45, 1.05, 9.2), at = new T.Vector3(2.45, 0.92, 0), q = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().lookAt(eye, at, new T.Vector3(0, 1, 0)));
+  const cam = S.camera, base = T.PerspectiveCamera.prototype.updateMatrixWorld;
+  cam.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 27) { this.fov = 27; this.updateProjectionMatrix(); } return base.call(this, force); };
+  window.__lineup = foes;
+`;
 const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 720], wait: 1500, ...o });
 // (a dune ray held buried a few steps ahead of the traveller, side on to a camera pinned close, so its fin and ripple show)
 const RAY_AHEAD = `for (let i = 0; i < 40 && !foes.list.some((f) => f.kind === 'ray'); i++) await new Promise((r) => setTimeout(r, 250));
@@ -1602,6 +1617,14 @@ export const CHANGELOG_MEDIA = {
     { title: 'Flicker in the Unity version as the camera turns (per 10 000 px a frame)', unit: '', better: 'lower', device: 'MacBook Pro M4 Pro, Unity editor batch, Handheld', source: 'Issue #739: the bridge’s -pan 24 on the wall 17 m off, measured by scripts/bench/unity-shimmer.mjs; before 7656e9b09’s skin', rows: [
       { where: 'a wall 17 m off', before: 33.6, after: 8.1 },
     ] },
+  ] },
+  // (issue #741: the four grown foes beside the traveller in the character studio, the game's own bodies through Foes.look,
+  // each with its first weapon, standing a second and a half; the branch's parent 9407f3f84 and the change)
+  { match: 'No foe is tiny any more', shots: [
+    { name: 'foes741-lineup', caption: 'Beside the traveller (1.75 m), left to right: a Desert mummer, a grunt, a crawler and a skitter, all in a row 9 m from the camera: before, the mummer and the grunt come up to his chest and the crawler and the skitter stay well under his hip; after, the mummer and the grunt stand as tall as he does and the crawler and the skitter come up to his hip',
+      commit: '2a40bf95c', view: { ...studio('who=traveller&bg=flat&gaze=free', [1280, 720]), setup: FOES741_SETUP } },
+    { name: 'foes741-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Desert, a mummer set down 4.5 m ahead of the traveller (behind him from this camera): its pot of a head rises over his, though it stands 4.5 m further off',
+      from: 'Unity editor batch run (scripts/unity-js-run.sh -level desert -fight mummers -mute) at 2a40bf95c, its first picture (unity-mummers-stand); the mummer king 7 m ahead is hidden behind them, and the run stopped before its later wind-up pictures' },
   ] },
   ],
   '2.37': [
