@@ -321,6 +321,8 @@ resize();
 
 // ------------------------------------------------------------------ world
 const query = new URLSearchParams(location.search);
+// ?renderer=webgpu / webgpu-gl (issue #802, a spike, web only): the world drawn by three's WebGPURenderer (src/webgpu-spike/)
+let webgpuSlice = null;
 migrateSave();   // saves from before the items: whoever finished the prologue keeps the backpack (src/boxes/index.js)
 // items (src/items.js), for development: ?items=all grants everything, ?items=none takes it all
 // away, ?items=backpack,glider owns exactly those (the dev menu toggles them one by one)
@@ -2063,6 +2065,13 @@ function renderFrame() {
   emptyInstances.hide(frameHidden);   // (last: what the levels of detail left shown and holds no instance)
   catchUpShown(scene);   // (what was hidden at the matrices and is shown now: its matrices as the walk's, before it is drawn)
   statics?.update(renderer);   // (the batched still meshes that moved: static-batch.js; after the catch-up, which may move one)
+  if (webgpuSlice) {   // (the spike draws the frame instead: src/webgpu-spike/slice.js)
+    webgpuSlice.render();
+    for (const o of frameHidden) o.visible = true;
+    framePin.end();
+    scene.matrixWorldAutoUpdate = true;
+    return;
+  }
   flatPass.begin();
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
@@ -2855,6 +2864,13 @@ analytics.ready(); // measure world construction before waiting for the player's
 if (titleHold) { titleHold.arrive(); await titleHold.go; sound.startIfAllowed(); }
 analytics.play();
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
+// (the spike's renderer, made once the world is ready, not waited for: the WebGL frame draws until it is, issue #802)
+if (/^webgpu/.test(query.get('renderer') ?? '')) {
+  import('./webgpu-spike/slice.js')
+    .then(({ createSlice }) => createSlice({ scene, camera, sharedUniforms, U, player, preset: () => preset, size: () => ({ w: gbuffer.width, h: gbuffer.height }), forceWebGL: query.get('renderer') === 'webgpu-gl' }))
+    .then((s) => { webgpuSlice = s; renderer.domElement.style.display = 'none'; })
+    .catch((e) => console.warn('webgpu slice', e));
+}
 requestAnimationFrame((t) => {
   renderer.domElement.style.visibility = '';
   frame(t);

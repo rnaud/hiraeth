@@ -103,6 +103,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
 | [xbox.md](systems/xbox.md) | the Xbox Dev Mode package: the UWP app, its updates and saves, signing, CI, deploying and measuring on the console |
+| [webgpu-spike.md](systems/webgpu-spike.md) | the WebGPU spike (issue #802): where WebGPU works (not in GeckoView on Android), the GLSL inventory, the `?renderer=webgpu` slice, its numbers on the Mac and the Odin 3, the port's estimate; no-go for now |
 | [xbox-setup.md](xbox-setup.md) | playing on your Xbox in Developer Mode, step by step: sign-up, activation, installing |
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the `references/` folder's layout (`levels/<World>/environment, characters, places`, the retired world enemies in `archive/world-enemies/`, the guard on its paths), the references page (`references.html`, Debug → References, on the site too: every picture by world and folder with its prompt and provenance; the deploy writes its index, thumbnails and web copies, `scripts/references-site.mjs`) and the References level: the reference sheets rebuilt as views |

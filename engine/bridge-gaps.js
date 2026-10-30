@@ -125,6 +125,8 @@ export const GAPS = {
     { keys: ['src/title-world.js: new Scene scene', 'src/title-world.js: cascades.near.render(renderer)', 'src/title-world.js: cascades.far.render(renderer)', 'src/title-world.js: cascades.fine.render(renderer)',
       'src/title-world.js: render(o)', 'src/title-world.js: render(scene)', 'src/title-world.js: bloom.render(renderer)', 'src/title-world.js: render(post.scene)', 'src/title-world.js: render(blit.scene)'],
     what: 'the world behind the title', status: 'handled', where: 'the engines\' title stands over the world they run (engine/menus.js chooseShot)' },
+    { keys: ['src/webgpu-spike/slice.js: new Scene proxyScene', 'src/webgpu-spike/slice.js: render(proxyScene)'], what: 'the WebGPU spike\'s frame (?renderer=webgpu, issue #802)', status: 'web-only',
+      why: 'a measuring spike of three\'s WebGPURenderer for the page, off unless asked for in the URL; Unity draws with its own renderer (docs/systems/webgpu-spike.md)' },
     { keys: ['src/ship/arrival-view.js: new Scene proxy'], what: 'the arrival views\' sight lines', status: 'web-only', why: 'offline only (scripts/arrival-views.mjs, its test)' },
   ],
 
@@ -132,6 +134,7 @@ export const GAPS = {
   dom: [
     { keys: ['src/analytics-page/main.js', 'src/admin/main.js'], count: { 'src/analytics-page/main.js': 17, 'src/admin/main.js': 2 }, what: 'private administration and analytics reporting', status: 'web-only', why: 'site-only author tools; native players send to the same dataset but do not render admin pages' },
     { keys: ['src/effect-loading.js'], count: { 'src/effect-loading.js': 6 }, what: 'recoverable sound recording load failure and Retry / Back controls', status: 'handled', where: 'engine/unity/game.js catches SoundEffectsLoadError; EngineMenus.showSoundLoadFailure supplies the native title-menu Retry and Back actions before gameplay is ready' },
+    { keys: ['src/webgpu-spike/slice.js'], count: { 'src/webgpu-spike/slice.js': 1 }, what: 'the WebGPU spike\'s canvas (?renderer=webgpu, issue #802)', status: 'web-only', why: 'a measuring spike of the page\'s renderer, off unless asked for in the URL (docs/systems/webgpu-spike.md)' },
     { keys: ['src/sfx-trace.js'], count: { 'src/sfx-trace.js': 2 }, what: 'optional sound-effect source panel', status: 'handled', where: 'shared screen.sfxTrace state, BridgeHud.SoundSources.cs; actual muted Editor recording, procedural, loop, stop and mute views checked for #619' },
     // gaps
     // handled: drawn from the screen's parts, or the engines' own menus
