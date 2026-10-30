@@ -366,6 +366,13 @@ The hound pair is in the same folder (the trials README's hound section): a dire
 (generation 30 credits, Tripo's quadruped rig 25, its weights kept on the game's bones). Both look at the traveller.
 Neither is in the game until the author picks one.
 
+### Phase 2b results (wood cutter)
+
+Both wood cutters stand 2.4 m (the author's 2.2–2.6 m) on the brute's rig family with its id, attacks and windows, the
+reach scaled (`woodcutterDef`), the saw and clamp meeting the ground where the slam lands, the head turning to the
+traveller; the comparison, pictures and recommendation are in the trials README's wood cutter section. Tripo used 30
+credits. Neither is in the game until the author picks one.
+
 ## 5. Decisions for the author
 
 1. **Completed:** all 45 selected originals are archived in the folders above; no download action remains.

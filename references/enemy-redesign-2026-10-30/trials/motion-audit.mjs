@@ -1,6 +1,6 @@
 // #800 phase 2: scripts/motion-audit's straight-line walk of a trial foe in each variant (node, no GPU): slide a metre,
 // worst contact, reach and lift, groups and cadence, at full and half pace, per variant.
-//   node references/enemy-redesign-2026-10-30/trials/motion-audit.mjs [crab@arzach2] [--json]
+//   node references/enemy-redesign-2026-10-30/trials/motion-audit.mjs [crab@arzach2 | brute@perdide2] [--json]
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,9 @@ import { tripoShellbackModel } from './shellback-tripo/model.js';
 import { broadHoundModel } from '../../../src/enemies/plans/broad-hound.js';
 import { tripoHoundModel } from './hound-tripo/model.js';
 import { nodeSource as houndSource } from './hound-tripo/node-source.mjs';
+import { woodcutterModel } from '../../../src/enemies/plans/woodcutter.js';
+import { tripoWoodcutterModel } from './woodcutter-tripo/model.js';
+import { nodeSource as woodcutterSource } from './woodcutter-tripo/source-node.mjs';
 import { foeSystem, foeSubject, legsFor } from '../../../scripts/motion-audit/walk.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -30,6 +33,7 @@ function tripoSource() {
 const src = tripoSource();
 const BY_KIND = { crab: { current: null, direct: shellbackModel, tripo: (skin) => tripoShellbackModel(skin, src) } };
 BY_KIND.hound = (() => { const h = houndSource(); return { current: null, direct: broadHoundModel, tripo: (skin) => tripoHoundModel(skin, h) }; })();
+BY_KIND.brute = (() => { const w = woodcutterSource(); return { current: null, direct: woodcutterModel, tripo: (skin) => tripoWoodcutterModel(skin, w) }; })();
 const VARIANTS = BY_KIND[id.split('@')[0]];
 // (two measures of a foot: the audit's own, the leg's lowest drawn point, and the kit's foot joint itself: a broad flat
 //  sole has no one lowest point, its lowest vertex hops heel to toe, which reads as slide; the Tripo legs are bones

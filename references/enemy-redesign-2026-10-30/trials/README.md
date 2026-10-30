@@ -15,7 +15,7 @@ the game). Web only: nothing the Unity build loads.
 every volume 0; checked before anything plays), the traveller cannot be hurt, saves stay in the page's memory.
 **Side by side** puts current, direct and Tripo 3 m apart on one clip clock (the same state at the same moment).
 The panel picks the attack, the skin, the camera, and toggles a clay view (textures and colours off: baked light shows).
-The shellback and the hound have direct and Tripo bodies; the wood cutter and mummer show current only until theirs land.
+All four trial foes (the shellback, the hound, the dune mummer and the wood cutter) have direct and Tripo bodies.
 
 ![the trial page](shellback/trial-page.webp)
 
@@ -27,8 +27,8 @@ The shellback and the hound have direct and Tripo bodies; the wood cutter and mu
 | `../baseline/baseline-shots.mjs --variant v [--extra]` | phase 1's capture, the same spot, camera, light and eight-frame strips; `--extra` front, flank, rear and clay stills; `side` the row of three |
 | `../../../scripts/enemy-roster/bench.mjs --variant v` | the Arena bench with the pack built in that variant |
 | `bench-trial.mjs`, `bench-table.mjs` | 1 and 6 of each variant and an empty control, High and Handheld, two rounds reversed; the table |
-| `motion-audit.mjs` | `scripts/motion-audit`'s straight walk of each variant, full and half pace, in node |
-| `sheet.mjs` | the stills at an equal size beside the approved reference |
+| `motion-audit.mjs` | `scripts/motion-audit`'s straight walk of each variant, full and half pace, in node (`crab@arzach2` or `brute@perdide2`) |
+| `sheet.mjs` | the stills at an equal size beside the approved reference (a fifth argument raises the crops for a taller foe) |
 | `page-shot.mjs` | a picture and the report of the trial page (a check that it loads, builds every variant and stays muted) |
 | `shellback-tripo/generate.mjs` | the Tripo generation (API, the key from `.env` unprinted); the untouched export and the task record go to `../shellback/tripo/` |
 | `shellback-tripo/prepare.mjs` | that export into the trial asset: the game's frame and size, the 12k LOD, the dome cut along its lip, the texture repainted flat by part, vertex colours, the landmarks |
@@ -38,6 +38,9 @@ The shellback and the hound have direct and Tripo bodies; the wood cutter and mu
 | `hound-tripo/generate.mjs [--rig]` | the hound's Tripo generation, then Tripo's free rig check and its quadruped rig; exports and record to `../hound/tripo/` |
 | `hound-tripo/prepare.mjs` | the rigged export into the trial asset: frame and size, flat texture, vertex colours, Tripo's weights gathered onto the game's bones, the 12k LOD, landmarks from the rig's joints |
 | `hound-tripo/model.js`, `node-source.mjs` | the Tripo hound on the quadruped plan (bend-plane leg bones, its head the gaze's bone); the asset in node |
+| `gaze-one.mjs` | the same check for one variant or the row, the traveller to the foe's right front (the wood cutter's gaze pictures) |
+| `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its trial asset: 2.4 m, five flat colours, COLOR_0, 12k LOD, landmarks |
+| `woodcutter-tripo/model.js`, `source-node.mjs` | the Tripo wood cutter cut into rigid parts on the brute's rig family (the shared `woodcutterMotion`); its source in node |
 
 ## Shellback (`crab`), phase 2a and its fixes
 
@@ -395,3 +398,120 @@ author would rather not carry a texture for a foe this common, the direct one la
 - Unity: neither body is wired there; the trial is web only. The Tripo asset carries COLOR_0 for the engines' VMs.
 - The headshot point is the look node (the head joint, 1.29 m), as for every foe on the rig; the slits sit about
   0.25 m over it.
+
+## Wood cutter (`brute`), phase 2b
+
+Reference: `../keep-brute/a1860f49-ecc5-4922-91f6-94b031e5e9a7-0.png` (approved). Home skin perdide2 (Lorn II). The
+author's size: **2.2–2.6 m** (today's brute 4.72 m); both bodies are built to 2.4 m, over the traveller (#741's floor).
+All pictures in `woodcutter/`, captured 2026-10-30 on this branch, muted headless Chrome on this Mac (Apple M-series,
+Metal), High preset, 1280×720, 10:00, clear; looked at one by one.
+
+![stills](woodcutter/compare-stills.webp)
+
+Strips (eight frames, game time in the labels): `brute-<variant>-<idle|walk|turn|attack|hurt|death>.webp`, the row of
+three on one clock in `brute-side-*.webp`; stills `brute[-<variant>]-still-<3q|front|flank|rear|clay|clay-front>.webp`
+(current: `brute-still-*`, re-captured with `--extra`); the gaze check `gaze-direct.webp`, `gaze-tripo.webp`,
+`gaze-side.webp` (`gaze-one.mjs`: the traveller off to its right, its head turned to him); two other worlds' skins in
+the row, `brute-side-skin-glassdunes.webp`, `brute-side-skin-moonfoundry.webp`; the trial page `trial-page.webp`.
+
+![gaze](woodcutter/gaze-direct.webp)
+
+### What each is
+
+- **Direct** (`src/enemies/plans/woodcutter.js`): a sage barrel of a torso with a seam across the chest and an ochre
+  louvred vent on the belly, a pale dome head with one black visor slit sunk in its top, two great round pauldrons, a
+  ball shoulder, upper arm, banded elbow and thick gauntlet forearm each side, a rust-red twelve-tooth saw disc on a
+  clamp at the right wrist (it spins: slow idling, whining up through a wind-up, fast in a blow), an open three-fingered
+  dark-green clamp on the left, short thick legs with a knee band and bolt into wide rounded clogs. The hull, head and
+  limbs one skinned mesh on the kit's joints (`skinBy`, colours as vertex tints), the ochre fittings another, the disc,
+  visor, vent glow and the three plates their own: 8 drawn meshes. The home skin wears the reference's colours (its moss
+  and roots dropped: the reference has none); the other four skins keep their world's palette and tools (Viridel's
+  shears, the Moon Foundry's ladle, the Waterfall's turbine, the Glass Dunes' second glow).
+- **Tripo** (task `32ba0f6c-65ed-4cb9-8685-bdfb19b47047`, image to model, H3.1, texture v3.5 with `delight: true` =
+  Remove Lighting, PBR off, 30k face target; 29,103 triangles, 2048² JPEG; untouched in `../keep-brute/tripo/model.glb`).
+  `woodcutter-tripo/prepare.mjs`: turned into the game's frame, scaled to 2.4 m and centred between its feet (Tripo
+  centres the box, saw and all), a 1024² texture flattened to **five** colours (k-means, then shades nearer than 40 RGB
+  merged: the baked shading on the hull's greens goes), COLOR_0 sampled from it, 12,000 triangles, landmarks measured
+  from the mesh's vertex slices. `model.js`: **a machine rig, not a skin**: every triangle whole in one of 15 rigid parts
+  (hull, head, each arm's upper arm, forearm and hand, the saw's disc, each leg's thigh, shin and boot), each vertex
+  weighted 1 to its part's joint; the arms on the direct body's pivots bound in Tripo's pose (its saw forearm held
+  forward), the legs on the kit's brute plan through `SkinLegs` bend-plane bones, the head on its own pivot that the
+  gaze turns, the disc on a frame along its own normal (it spins). The pauldrons cut out as the armour that falls (a dark
+  ball joint under each), the breastplate copied off the chest; a slit over the painted visor and a glow over the vent.
+  Other skins: the mesh's colour roles recoloured from the skin's palette; its saw is fused in the mesh, so every skin
+  keeps the saw (no shears or ladle).
+- **Both** share `woodcutterMotion` (the poses, the ground contact, the attacks) and `woodcutterDef` (below), so the
+  comparison is of bodies only.
+
+### Reach and timing (`woodcutterDef`, laid over the brute's def as the body is built: `Foes.add` `trialDef`)
+
+| | brute (4.7 m) | wood cutter (2.4 m) |
+|---|---|---|
+| body radius · chest height | 1.15 · 2.4 m | 0.7 · 1.45 m |
+| slam: ring radius · centre ahead · starts from | 2.1 · 1.9 · ≤ 3.6 m | 1.45 · 1.5 · ≤ 2.7 m |
+| slam quake (the ring you jump) | speed 7, reach 8, 0.5 damage | the same |
+| sweep: cone range · starts from | 3.6 · ≤ 3.4 m (angle 1.3) | 2.5 · ≤ 2.4 m (the same angle) |
+| hurl: landing mark radius (range 4.5–12 m) | 1.7 m | 1.4 m (a smaller slab) |
+| guard: comes up within | 4.5 m | 3.2 m |
+| wind, strike, contact, recover, cool, damage, knock, parry and evade answers, hp, poise, stout, speed 1.7 | – | **unchanged** |
+
+Fair by construction: every window you read and answer is the brute's (the parry and evade contract, the guard's hold
+and three blocks); only where it stands and what its arms reach is nearer, and each hit shape sits where the tool lands.
+Its arms end at its knees, so the slam is a deep bend at the hips and a drop onto its knees, the saw's edge and the clamp
+meeting the ground 1.4–1.6 m ahead, inside the ring centred 1.5 m ahead (`tests/woodcutter-trial.test.js` checks both
+bodies: the lowest point within 3 cm of the ground, inside the ring). The quake is unchanged, so "jump the quake" works
+at the same moment.
+
+### Comparison
+
+| Measure | Current | Direct | Tripo |
+|---|---|---|---|
+| Fidelity to the reference | a 4.7 m cracked ivory egg with brass, tar and moss: not the reference | the reference's parts and colours: barrel, vent, dome head and visor, pauldrons, saw and clamp, clogs; pauldrons too round, the head a little small, faceted kit limbs | the closest silhouette and proportions (head size, pauldrons sloping over the arms, boots); a darker green than the reference (Tripo's texture), the saw a dark brown that reads as a mitten more than a disc from the front, cut seams dark at the shoulders and neck |
+| At combat distance (14–19 m, ink) | reads as a giant | reads: sage robot, red saw, pale head | reads: green robot, pale head; the saw weaker |
+| Baked light (clay, unlit) | – | none (procedural) | clean geometry; the five flat colours carry no shading (the merge took the hull's shade band out) |
+| Size (w × h × d, idle) | 4.39 × 4.72 × 3.47 m | 2.22 × 2.39 × 1.79 m | 2.47 × 2.38 × 1.50 m |
+| Drawn meshes · triangles (one body, one pass) | 11 (3 skinned) · 16,306 | 8 (2 skinned) · 6,920 | 7 (1 skinned) · 12,648 |
+| Materials · texture memory | 8 · 0 | 6 · 0 | 5 · 5.33 MB (1024² RGBA8 + mips) |
+| Shipped bytes (raw · gzip) | `brute.js` 23.1 · 8.4 KB | `woodcutter.js` 26.8 · 9.9 KB | `tripo-lod.glb` 458 · 276 KB + `model.js` 20.9 · 7.9 KB + landmarks 1.3 KB (source export 1.35 MB) |
+| Draws over the empty Arena, High, 1 · 6 | +35 · +195 | +27 · +144 | **+21 · +126** |
+| Triangles all passes, High, 1 · 6 | +54.9k · +297.5k | **+24.6k · +125.0k** | +37.4k · +227.4k |
+| Draws, Handheld, 1 · 6 | +23 · +128 | +16 · +96 | +16 · +84 |
+| Triangles all passes, Handheld, 1 · 6 | +35.9k · +198.8k | +14.1k · +83.4k | +27.3k · +153.5k |
+| CPU ms, High, 1 · 6 | +0.25 · +1.15 | +0.75 · +0.75 | +0.45 · +1.10 |
+| CPU ms, Handheld, 1 · 6 | −0.10 · +0.45 | +0.70 · +0.55 | +0.15 · +0.60 |
+| GPU ms | not separable from the empty Arena at this load (deltas of either sign up to 2.5 ms, as in phase 1): no GPU claim | | |
+| Walk (foot joints), full · half pace: slide m/m, worst | 0.001 · 0.003, 2 cm | 0 · 0, 0 | 0.004 · 0.006, 2 cm |
+| Reach / lift (share of leg), cadence Hz, full pace | 0.19 / 0.14, 1.25 | 0.17 / 0.10, 1.75 | 0.12 / 0.12, 1.88 |
+| Gait | alternate, its legs 1.15 m | the same plan scaled (`WOODCUTTER_PLAN`), legs 0.77 m | the same, legs 0.66 m (the mesh's) |
+| Deformation | rigid parts in a skin | rigid parts in a skin | rigid parts (weight 1 a vertex), bind round trip < 0.1 mm, an elbow bent alone moves only its forearm and hand (tests); open cut edges show their inside (drawn double-sided), a dark seam at the neck as the head turns |
+| Gaze (#508; the author's ask) | its torso twists (no head) | **the head turns** to the traveller, the torso twists a fifth of it | **the head is its own part and turns** to the traveller |
+| Gaze measured (traveller at a bearing of −0.75 rad) | yaw −0.70 | yaw −0.70 | yaw −0.70 (the gaze's limit) |
+| Slam | both fists up, down onto the ground | both arms up, the saw spinning up; a deep bend, saw edge and clamp on the ground in the ring | the same motion; the tools on the ground in the ring |
+| Hurt, death | stout (no stagger, on into its next move); sags and comes apart | the same; comes apart into its parts | the same; comes apart into its 15 parts (their insides show) |
+| Kept (both) | id `brute`, archetype, skins, attacks and windows, guard, stout, plates (2 pauldrons + breastplate), weak point (now the vent), sounds (`iron` / `brute`), breaks apart, calm (slumped, the head hanging), size floor | ✓ | ✓ (its world skins recoloured; tools fused) |
+| Time (agent) | – | about 1 h (model 30 min, contact and pose fixes 30 min) | about 1.3 h (generation 1.5 min wall; prepare and landmarks 30 min; rigid cut and rig 35 min; fixes 15 min) |
+| Tripo credits | – | – | **30** (task record; no rig credits: the rig is the game's) |
+
+(Bench: 28 runs, two rounds reversed, load 13.5–35.3 (runs waited while it was over 25), `woodcutter/bench.jsonl`; walk: `motion-audit.mjs brute@perdide2`.)
+
+### Recommendation
+
+**Direct for the wood cutter.** Unlike the shellback, this is the case the direct route is good at: the reference is
+broad simple masses (a barrel, a dome, two shells, cylinders, a disc), and the direct body draws them in the reference's
+own colours with the fewest triangles (a third fewer than Tripo's over all passes, under half of today's), no texture,
+the fewest bytes, and each world's own tool; it costs six draws a body more than Tripo (+27 against +21 on High, its
+fittings, disc and visor drawn apart: merging the ochre fittings and the visor into the skin would close most of it). The Tripo body
+has the better proportions (the head and pauldrons especially) and its rigid parts cut cleanly at the joints, but it pays
+a 5.3 MB texture and 276 KB gzipped for a darker palette, a muddy saw, visible cut seams, and a saw fused into every skin.
+Both draw fewer than today's brute (+35 a body on High, six +195) at about half its height.
+
+Before it lands: take the Tripo body's proportions into the direct one (a larger head, the pauldrons sloping down over
+the arms rather than round caps), run `defend.mjs` / `dodge.mjs` on the scaled reach, and re-time the slam's blow sound to
+the bite. The Tripo body stays as the fallback if the author prefers its silhouette (then: lift its palette to the
+reference, cut the disc's hub off the clamp, close the seams).
+
+### Not done (wood cutter)
+
+- The combat review's `defend.mjs` / `dodge.mjs` and the sound QC renders (windows and sound keys are the brute's own;
+  the contact frames are checked in the strips and tests).
+- Unity: neither body is wired there; web only (a trial page). The Tripo asset carries COLOR_0 for the engines' VMs.

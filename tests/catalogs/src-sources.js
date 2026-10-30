@@ -208,6 +208,7 @@ const readers = {
   'enemies/plans/tentacled.js': () => readFileSync(new URL('../../src/enemies/plans/tentacled.js', import.meta.url), 'utf8'),
   'enemies/plans/tracked.js': () => readFileSync(new URL('../../src/enemies/plans/tracked.js', import.meta.url), 'utf8'),
   'enemies/plans/walker.js': () => readFileSync(new URL('../../src/enemies/plans/walker.js', import.meta.url), 'utf8'),
+  'enemies/plans/woodcutter.js': () => readFileSync(new URL('../../src/enemies/plans/woodcutter.js', import.meta.url), 'utf8'),
   'enemies/skins.js': () => readFileSync(new URL('../../src/enemies/skins.js', import.meta.url), 'utf8'),
   'enemies/slope.js': () => readFileSync(new URL('../../src/enemies/slope.js', import.meta.url), 'utf8'),
   'enemies/surfaces.js': () => readFileSync(new URL('../../src/enemies/surfaces.js', import.meta.url), 'utf8'),

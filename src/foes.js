@@ -2802,6 +2802,8 @@ export class Foes {
       // part, one alone in its shape too, so a body compiles one set of programs (instanced), not two the first time it is met
       f.batches = batchParts(f.model.group);
     }
+    // (a trial body of another size, issue #800: its def's reach laid over the kind's; no game body has one)
+    if (f.model.trialDef) { f.def = f.model.trialDef(f.def); f.atk = f.def.attack; }
     f.model.group.position.copy(at);
     this.group.add(f.model.group);
     if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)

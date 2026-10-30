@@ -7,6 +7,7 @@ import { TRIAL_BUILDERS } from '/src/enemies/plans/index.js';
 import { shellbackModel } from '/src/enemies/plans/shellback.js';
 import { broadHoundModel } from '/src/enemies/plans/broad-hound.js';
 import { duneMummerModel } from '/src/enemies/plans/dune-mummer.js';
+import { woodcutterModel } from '/src/enemies/plans/woodcutter.js';
 
 // (this folder's URL: not new URL('./', import.meta.url), which Vite rewrites to the folder without its slash)
 const here = import.meta.url.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
@@ -14,12 +15,17 @@ const here = import.meta.url.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
 export const TRIALS = {
   crab: { concept: 'shellback', skin: 'arzach2', direct: true, tripo: true },
   hound: { concept: 'hound', skin: 'eclipse', direct: true, tripo: true },
-  brute: { concept: 'keep-brute', skin: 'perdide2', direct: false, tripo: false },
+  brute: { concept: 'keep-brute', skin: 'perdide2', direct: true, tripo: true },
   mummer: { concept: 'keep-mummer', skin: 'desert', direct: true, tripo: true },
 };
 const sources = {};
 /** The Tripo bodies' sources, loaded once. */
 async function tripoBuilder(kind) {
+  if (kind === 'brute') {
+    const { loadTripoWoodcutter, tripoWoodcutterModel } = await import('./woodcutter-tripo/model.js');
+    sources.brute ??= await loadTripoWoodcutter(`${here}woodcutter-tripo/`);
+    return (skin) => tripoWoodcutterModel(skin, sources.brute);
+  }
   if (kind !== 'crab') return null;
   const { loadTripoShellback, tripoShellbackModel } = await import('./shellback-tripo/model.js');
   sources.crab ??= await loadTripoShellback(`${here}shellback-tripo/`);
@@ -38,6 +44,7 @@ BUILD.mummer = { direct: async () => duneMummerModel, tripo: async () => {
   sources.mummer ??= await loadTripoMummer(`${here}mummer-tripo/`);
   return (skin) => tripoMummerModel(skin, sources.mummer);
 } };
+BUILD.brute = { direct: async () => woodcutterModel, tripo: () => tripoBuilder('brute') };
 
 /** The variant a kind is built in now. */
 export const chosen = {};

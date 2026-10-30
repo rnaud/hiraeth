@@ -1,0 +1,35 @@
+{
+  "issue": 800,
+  "phase": "2b",
+  "foe": "brute (wood cutter)",
+  "source": "references/enemy-redesign-2026-10-30/keep-brute/a1860f49-ecc5-4922-91f6-94b031e5e9a7-0.png",
+  "sourceSha256": "f1a072301eaab1adc484b3868fa45abc0b06d7301f9e5a0af45de7ae2989001d",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "32ba0f6c-65ed-4cb9-8685-bdfb19b47047",
+  "started": "2026-10-30T19:21:27.464Z",
+  "finished": "2026-10-30T19:22:59.550Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1765,
+  "balanceAfter": 1710,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1387156,
+    "sha256": "f68a2c8e09fdb9fb19a0b006f981a73f80c1e9d45885fed10d1d4eb7734c5f39",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 235988
+  }
+}

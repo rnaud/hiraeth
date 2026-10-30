@@ -2782,6 +2782,11 @@ rig family); its Tripo body lives with the trial (`trials/shellback-tripo/`). Fi
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body (`trials/hound-tripo/`) carries Tripo's own rig weights gathered onto the game's bones
 (`tests/hound-trial.test.js`).
+A trial body of another size carries `trialDef(def)` (the wood cutter's: `src/enemies/plans/woodcutter.js`
+`woodcutterDef`, the brute's def with its reach scaled to 2.4 m and every timing window kept); `Foes.add` lays it over
+the foe's def as the body is built, so the page, the capture and the bench fight the body they draw. No game body has
+one (`tests/woodcutter-trial.test.js`). The wood cutter's Tripo body: `trials/woodcutter-tripo/`, rigid parts on the
+shared motion (`woodcutterMotion`).
 
 ## Tests
 
