@@ -298,6 +298,12 @@ namespace Hiraeth.Bridge
         /// save, Travel here): the script's engine and the mirrored world made anew, as the web opens a fresh page.
         /// </summary>
         public static void Reboot(string json) => On(() => Runner?.Reboot(json));
+        /// <summary>
+        /// Another world swapped in place (issue #792, engine/unity/game.js swapWorld): the mirrored scene let go and made
+        /// anew, in order with the ops (the last world's before it, the next world's after), the script's engine, the sound
+        /// (BridgeAudio, BridgeMusic), the HUD and the menus kept.
+        /// </summary>
+        public static void SwapWorld() => On(() => Runner?.SwapWorld());
         /// <summary>Forget what the script handed over and not yet applied, and its last input (a reboot's new start).</summary>
         public static void Reset()
         {

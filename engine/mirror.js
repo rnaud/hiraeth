@@ -169,11 +169,16 @@ export class SceneMirror {
     mid = this.nextMat++;
     this.mats.set(m, mid);
     this.stats.materials++;
+    // (what a last mirror noted on a material a module keeps, a world swapped in place (issue #792): forgotten, so this
+    // mirror sends its pictures and live values to the material it makes now)
+    if (m.__mirrorLiveF !== undefined) forgetMaterial(m);
     this.backend.material?.(mid, this.materialSpec(m), m);
     return mid;
   }
 
-  _skeletonId(sk) { return sk.__mirrorId ??= this.nextSkeleton++; }
+  // (its id in this mirror: a skeleton a module keeps outlives a world, and the next world's mirror counts from 1 again,
+  // a world swapped in place in the Unity bridge: issue #792)
+  _skeletonId(sk) { if (sk.__mirrorOwner !== this) { sk.__mirrorOwner = this; sk.__mirrorId = this.nextSkeleton++; } return sk.__mirrorId; }
 
   /**
    * A material's colour and glow as last sent (once a frame, however many drawables use it): told when they moved.
@@ -678,4 +683,9 @@ function deinterleave(attr) {
   const out = new Float32Array(attr.count * attr.itemSize);
   for (let i = 0; i < attr.count; i++) for (let k = 0; k < attr.itemSize; k++) out[i * attr.itemSize + k] = attr.getComponent(i, k);
   return out;
+}
+
+/** A material's notes from another mirror forgotten (_material: a world swapped in place, issue #792). */
+function forgetMaterial(m) {
+  m.__mirrorLiveF = m.__mirrorRec = m.__mirrorVec = m.__mirrorMovedAt = m.__mirrorVeinMap = m.__mirrorBed = m.__mirrorFluid = m.__mirrorSkinN = m.__mirrorSkin = m.__mirrorLive = undefined;
 }

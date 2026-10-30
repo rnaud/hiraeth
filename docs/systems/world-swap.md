@@ -98,10 +98,10 @@ definitions, on which each world's story hung its `onDone` (`Quests.define` now 
 ## Unity and Android
 
 - **Android (Capacitor)** runs the same page: the swap is the same code; the native bridge is unchanged.
-- **Unity** (the bridge build, `engine/unity/game.js`): there is no page and no browser rule holding sound back
-  until a press, so the bug was the web's alone. A flight (`flyTo`) or a place reached by a page on the web
-  (`pageTo`) restarts the script's engine and reloads the scene (`BridgeRunner.RebootNow`,
-  unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs): the next world's sound starts by itself, but its music
-  starts afresh rather than crossfading (BridgeAudio is made again with the scene). Swapping in place there (one
-  script engine for several worlds, its audio kept) is its own piece of work. The C# port's own `Game.SwitchWorldNow`
-  (unity/Hiraeth/Assets/Hiraeth/Runtime/Game.cs) already swaps its world in place.
+- **Unity** (the bridge build, `engine/unity/game.js`): swapped in place too since issue #792 (it rebooted before,
+  `BridgeRunner.RebootNow`, so the next world's music started afresh instead of crossfading). The same scopes
+  (`installScopes(globalThis)` on the VM's stand-ins for the page's timers and listeners), the same `Sound.handOver`
+  and `start(ctx, { fadeIn })` (engine/game.js `audio.adopt`), one script engine; Unity's mirrored scene is made anew
+  (`BridgeRunner.SwapWorld`) while BridgeAudio, BridgeMusic, the HUD (a flight's warp) and the menus stay.
+  docs/systems/engine-bridge.md, "Another world in place". The C# port's own `Game.SwitchWorldNow`
+  (unity/Hiraeth/Assets/Hiraeth/Runtime/Game.cs) already swapped its world in place.

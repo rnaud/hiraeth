@@ -301,6 +301,9 @@ namespace Hiraeth.Bridge
             return sb.Append(']').ToString();
         }
 
+        /// <summary>The sources playing now (a world swapped in place logs them: BridgeRunner.SwapWorld, issue #792).</summary>
+        public int PlayingNow => playing.Count;
+
         /// <summary>For the exit's log: the clips decoded, the sources that played, the loudest gain.</summary>
         public string Report()
         {

@@ -587,7 +587,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   carryHooks.notice = (t) => toast(t, { kind: 'hint' });   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
-  if (audio) { sound.start(); if (audio.volume !== undefined && sound.master) sound.master.gain.value = 0.9 * audio.volume; }
+  // (audio.adopt: the last world's context, a world swapped in place in the Unity bridge (engine/unity/game.js swapWorld,
+  // issue #792): this world's sound starts on it, faded in as the last one's is released, the music crossfading as on the
+  // web's swap, src/world-travel.js)
+  if (audio) { sound.start(audio.adopt ?? null, audio.adopt ? { fadeIn: audio.fadeIn ?? 1.5 } : undefined); if (audio.volume !== undefined && sound.master) sound.master.gain.value = 0.9 * audio.volume; }
   // the body heard, as main.js (src/foley.js: jumps, landings, the climb, the wings, the roll, falling and getting up),
   // a pick-up, a thing carried set down or thrown, the water's splashes and strokes, the menus (src/ui-sound.js): the
   // engines played none of them before issue #379 (the sound QC, .claude/skills/sound-qc)

@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Opening a chest, you now stand still with both feet planted from the first moment of its scene: you no longer shuffle a step or slide your feet as the camera comes in, however you walked or ran up to it.
 - When Nour talks to you, her cloak now stays behind her: as she talks with her hands they come out in front of it, instead of the cloak being thrown forward over her arms and hanging in front of her. The same goes for everyone else in a cloak.
 - A healing potion now gives you three hearts back instead of two, never more than your hearts can hold.
+- On the Xbox, the Steam Deck and the Retroid app, going to another world no longer restarts the game behind the scenes either: when you fly your ship, take the night train, start or leave a game, or travel from the Worlds page, the music keeps playing through the take-off, the warp and the loading screen and fades into the new world’s, instead of stopping and starting again from the beginning.
 - Going to another world no longer reloads the game. Fly your ship, ride on to the next stop or pick a world in the Debug menu, and the next world is built in place: the music keeps playing over the loading page and fades into the new world’s, and in a browser the new world is heard straight away instead of staying silent until you press a button.
 
 ## v2.37 — 2026-10-29

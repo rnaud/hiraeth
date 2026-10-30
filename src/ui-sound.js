@@ -28,7 +28,9 @@ export function uiKind({ key = null, action = null, nav = null } = {}) {
  * is open (the press that opens one is heard as it opening, menusHeard). Returns `menus`.
  */
 export function wrapMenus(menus, play) {
-  if (!menus || menus._heard) return menus;
+  if (!menus) return menus;
+  // (wrapped once; a later world's sound takes over the same menus, a world swapped in place in the Unity bridge: #792)
+  if (menus._heard) { menus._heard.play = play; return menus; }
   menus._heard = { open: !!menus.open, play };
   for (const [name, kind] of [['key', (a) => uiKind({ key: a[0] })], ['action', (a) => uiKind({ action: a[0] })], ['navigate', (a) => uiKind({ nav: [a[0], a[1]] })]]) {
     const f = menus[name];
@@ -36,7 +38,7 @@ export function wrapMenus(menus, play) {
     menus[name] = function (...a) {
       const was = !!this.open, r = f.apply(this, a);
       const k = kind(a);
-      if (was && this.open && k) play(k);
+      if (was && this.open && k) this._heard.play(k);
       return r;
     };
   }

@@ -120,6 +120,7 @@ namespace Hiraeth.Bridge
 #endif
             }
             audioOut = new GameObject("Sound").AddComponent<BridgeAudio>();
+            SoundsMade++;
             audioOut.transform.SetParent(transform, false);
             audioOut.Begin(mute);
             // the recorded music, which Unity decodes and plays where the script's graph says (BridgeMusic)
@@ -1274,6 +1275,31 @@ namespace Hiraeth.Bridge
             pendingReboot = string.IsNullOrEmpty(json) ? "{}" : json;
             if (thread == null) RebootNow();   // (-js-main: the script ran in this Update, it is between frames now)
         }
+
+        /// <summary>
+        /// Another world in place (issue #792, BridgeHost.SwapWorld; the web's src/world-travel.js since #790): the mirrored
+        /// scene destroyed at once (its OnDestroy frees the jobs' and the GPU's buffers and the capes' static list, before
+        /// the next world's capes come) and a new one made for the next world's ops, the shadows' lists of the last world's
+        /// casters forgotten. The script's engine, its threads, BridgeAudio, BridgeMusic (the music's voices playing on), the
+        /// HUD (a flight's warp drawn on over the build) and the menus stay: no scene load.
+        /// </summary>
+        public void SwapWorld()
+        {
+            if (exiting) return;
+            int nodes = scene ? scene.Nodes : 0;
+            if (scene) DestroyImmediate(scene.gameObject);
+            BridgeShadowChunks.Forget();
+            HiraethShadows.Instanced.Clear();
+            HiraethShadows.ForgetMaterials();
+            scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
+            scene.transform.SetParent(transform, false);
+            scene.cam = cam; scene.look = look;
+            Swaps++;
+            Debug.Log($"Hiraeth bridge: world swap {Swaps} in place: the mirrored scene ({nodes} nodes) made anew; the script's engine, " +
+                      $"the sound (BridgeAudio and BridgeMusic made {SoundsMade} time(s) since launch{(music ? ", " + music.PlayingNow + " music sources playing" : "")}) and the scene kept, no reload");
+        }
+        /// <summary>How many worlds were swapped in place since launch (SwapWorld), and how many times the sound's objects were made (each start).</summary>
+        public static int Swaps, SoundsMade;
 
         /// <summary>
         /// The engine made anew, as the web game opens a fresh page (src/title.js: another save, another world): the script's

@@ -767,6 +767,10 @@ export class Sound {
     setTimeout(() => {
       for (const l of Object.values(this.layers ?? {})) { try { l.src?.stop(); } catch { /* stopped */ } }
       for (const o of [this.engine?.osc, ...(this.hum?.osc ?? [])]) { try { o?.stop(); } catch { /* stopped */ } }
+      // (the world's recorded theme too: looping on, silent, it played on for good in the context; the Unity bridge's
+      // music voices kept it going, issue #792)
+      try { this.recordedTrack?.stop(); this.recordedTrack?.disconnect(); } catch { /* stopped */ }
+      this.recordedTrack = null;
       try { this.musicOwner?.dispose?.(); } catch { /* gone */ }
       try { master.disconnect(); } catch { /* gone */ }
     }, fade * 1000 + 100);

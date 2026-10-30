@@ -192,10 +192,41 @@ the same entries in the same order, moved through by the web's own rules, and `v
 - While one is open engine/game.js holds the world still (the scene still mirrored), the controller in its
   menu context hands its actions to the menu; Esc and J open them from the keyboard. Where you stand is saved
   every 10 s and as the Start menu opens (ui.js `SaveGame`, the save's playtime by `slots.touch`).
-- **Another save or world** (Quit to title then another save, Travel here): the engine starts again
+- **Another world** (a flight, Travel here, a game's page and its way back, the night train's page load) is swapped
+  in place, as the web's since #790 (issue #792; "Another world in place" below): one script engine, the sound and
+  its music going on. **Another save** (Quit to title then another save) still starts the engine again
   (`BridgeHost.Reboot`, BridgeRunner `RebootNow`: the script's threads stopped and their V8 engines disposed,
   what they handed over forgotten, the scene loaded again, the bridge started on its arguments with the
-  script's `boot` choice), as the web opens a fresh page. The same save and world just resume.
+  script's `boot` choice), as the web opens the title's fresh page; so do a plan's runs and `-reboot`. The same save
+  and world just resume.
+
+**Another world in place** (issue #792; the web's own: docs/systems/world-swap.md, #790). Before, every trip rebooted
+the bridge (the scene loaded anew, BridgeAudio and BridgeMusic made again), so the next world's music started afresh
+instead of carrying over. Now engine/unity/game.js `goWorld(boot)` (flyTo, pageTo, playGame, leaveGame, the Worlds
+page's Travel here without the ship's scenes) notes the trip, and the next frame's start `swapWorld()` does it, out of
+the frame that asked: the world's save; its scope closed (src/world-scope.js, installed on the VM's global once:
+`installScopes(globalThis)` wraps engine/platform.js's timers, frames and listeners; each played world is built in
+`openScope()` and its registries' entries are `owned()`, as on the web); its sound handed over (`Sound.handOver`: its
+context and score going on, pumped by playFrame while the next world builds); its backend's host replaced by one that
+does nothing; the HUD's state (src/platform.js `screen`, which outlives a world in the VM) reset, so the next world's first state
+has none of the last one's parts (its warp, letterbox, talk); `BridgeHost.SwapWorld()`; then `begin(boot)` as a boot's choice. createGame's `audio.adopt` starts the
+next world's Sound on the same context faded in over 1.5 s, and the last one is released as the next one plays
+(faded out, its loops and its recorded theme stopped: src/audio.js `release`), the music crossfading. BridgeRunner
+`SwapWorld` (in order with the ops, so the last world's go to the old scene and the next world's to the new) destroys
+the mirrored scene at once (its OnDestroy frees its buffers and the capes' static list) and makes a new BridgeRenderer,
+the shadows' caster lists forgotten; the script's threads, BridgeAudio, BridgeMusic (its voices go on playing: a
+clip decoded once is kept for a world that asks again), the HUD and the menus stay. The loading screen comes up for the
+build as from the title; a flight's warp, still drawn by the same HUD, keeps it away and goes on over the build until
+the new world's first state fades it, as the web's `#loading.space`. engine/mirror.js keeps a skeleton's id per mirror
+and forgets what a last mirror noted on a material a module keeps (its live values, vein and bed pictures), since each
+world's mirror counts from 1 in its own scene. A swap that fails to build starts the engine again on the trip (as the
+web loads the page); an older player without `SwapWorld` (a newer script over the air) reboots as before. `-trip
+arzach:lantern:arzach [-trip-secs 8] [-music-check] -out dir` plays a trip on the debug save (the ship's take-off and
+warp where it may fly, else straight there), logs the sound's context and its clock in each world (one context, its
+clock going on) and photographs each (`unity-trip-<k>-<world>.png`); `-reboot` makes it by reboots, the before.
+Tests: tests/unity-world-swap.test.js (the bundle against a stand-in host: a trip there and back with no reboot, one
+`SwapWorld` a trip, the same context, the first world's theme the same source going on past the swap and fading out
+as the next world's comes up; an older player rebooting).
 - A run with a plan (`-views`, `-talk`, `-walk`, `-tour`, `-idle`, `-play`) goes straight into its world as
   before; `-no-title` does too, and `-arrive` puts a plan's traveller at the ramp. A plan without fixed views
   starts at the level's spawn, as the web's `?level=` does: the ship moves a spawn it covers to the foot of its ramp
@@ -339,7 +370,7 @@ its `update` after the rig (a scene's shot replaces the rig's camera), `hud()` i
 map", "E step outside"), its `busy()` in the world's. So the rooms, the hold and the console are reached: the
 voicemail plays a waiting recording (CallDirector) or says "No new messages."; the holo table opens the galactic map,
 the menus' own here (below, "The galactic map"); its travel is the ship's own (`ship.travel`: the take-off, then `go(to)`, which the web does with
-`location.search`: the engine starts again at that world's landing, `boot.via` 'ship', and plays the arrival,
+`location.search`: that world swapped in at its landing (below, "Another world in place"), `boot.via` 'ship', and plays the arrival,
 ArrivalDirector). The ship's cinema (src/ship/cinema.js) has no page here (`cinema.dom` false): what it would draw
 is the screen's state as well, `cine` (the letterbox, the eyes' opening, the fade, the red wash, the hint,
 hold-to-skip, the HUD hidden but for the cue in a scene you walk through) and `sub` (the speaker's tag and the
@@ -534,9 +565,9 @@ have; starting it also sets the screen's `warp` (the next world's title and an i
 `DrawWarp` draws it from there on its own clock, as the page's canvas does: the climbing sky under the paper fading
 in, the disc of night ink growing from the middle to the corners in 0.9 s with its inked rim, the 220 streaks in cream,
 teal and red rushing out (cut at the rim), the 90 fixed stars, and the title on its paper card. The flight then ends
-in a reboot onto the next world (the scene loaded anew): the warp's title is kept in a static, so the new HUD draws it
-whole while the world loads (the web's `#loading.space`) and fades it out as the new world's first state comes (the
-arrival). `-warp Vael` with `-views … -out …` pictures it over a view without flying. Test: tests/engine-ship.test.js
+in the next world swapped in place (issue #792): the same HUD draws the warp on while the world loads (the web's
+`#loading.space`) and fades it out as the new world's first state comes (the arrival). A reboot onto it (an older
+player, `-reboot`) keeps the warp's title in a static, so the new HUD draws it whole meanwhile. `-warp Vael` with `-views … -out …` pictures it over a view without flying. Test: tests/engine-ship.test.js
 (the take-off from the holo table: the warp with the destination's name, then `onTravel`).
 
 **Fragments and hazards** (the Unity-default plan's D3, docs/plans/unity-default-portables.md). engine/game.js makes
@@ -1651,8 +1682,8 @@ own graph still decides everything about them.
   (`BridgeMusic.Fetch`, from 8 s after the world is up, one at a time, the world played first; a failure waits two
   minutes; never in batch runs). `PublicRoots` reads that folder too, and the world waiting for its theme looks for it there every 5 s (`themeArrival`, `setThemeWait`), so it fades in as soon as it has arrived (issue #471; before, only from the next world's load).
 
-Memory: only the clips asked for are loaded (the title's, the world's, a cue), streamed, released when the engine
-reboots into the next world. Tests: tests/engine-music.test.js (the shim's places and gains, recorded and replayed
+Memory: only the clips asked for are loaded (the title's, the world's, a cue), streamed; kept while worlds are swapped
+in place (issue #792: a world that asks again finds its clip decoded), released when the engine reboots. Tests: tests/engine-music.test.js (the shim's places and gains, recorded and replayed
 alike, the game's Sound under the volumes, the menu, a bench, the mute, the moments and the away, the title),
 tests/engine-unity.test.js (the bundle against a stand-in host: the title's and the world's recordings decoded and
 faded in, the download list).
@@ -2110,7 +2141,7 @@ screen; the batch run's pictures only.
   the HUD's first frame until BridgeRunner.Booted (the world built and its first frame played), then fades it as the
   page's `.done` (0.8 s); its line is main.js's stages, which engine/game.js says through `onStage` ("sketching <the
   world>…", "inking the collisions…", "waking the people…", "mixing the inks…") and engine/unity/game.js hands to
-  `BridgeHost.LoadStage`. A flight's arrival keeps the warp (carried over the reboot, the page's `#loading.space`).
+  `BridgeHost.LoadStage`. A flight's arrival keeps the warp (drawn on over the swap, or carried over a reboot; the page's `#loading.space`).
   `-loading-shot <file>` photographs it at "waking the people…"; `-no-loading` leaves it out (the before).
 - **The buttons' prompts** (#422, "the button prompts default to the long version instead of just the button"). The
   floating prompt's words already followed the hints (#394: the button alone unless hints are full), but Unity still drew

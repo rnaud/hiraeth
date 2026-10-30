@@ -48,6 +48,8 @@ import { parsePresses } from '../../src/hud-buttons.js';
 import { parseMenuPointer } from '../menus.js';
 import { uiPose, UI_KEYS } from '../ui-poses.js';
 import { items as ownedItems } from '../../src/items.js';
+import { installScopes, openScope, closeScope, persist } from '../../src/world-scope.js';
+import { screen as hudScreen } from '../../src/platform.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
 // entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
@@ -59,6 +61,9 @@ watchSceneEdits();
 
 let S = null;
 const now = () => host.Now();
+// (the page's timers, frames and listeners written into the world now running, so a world swapped in place lets go of
+// its own: src/world-scope.js, as the web's swap does, issue #792)
+installScopes(globalThis);
 // (the recorded music: Unity decodes the MP3s the shim can't, BridgeMusic.cs; engine/unity/music.js)
 setAudioDecoder(musicDecoder(host));
 setThemeWait(themeArrival());   // (a theme this player downloads: played as soon as it is there, issue #471)
@@ -102,6 +107,16 @@ const starmapScenes = (a) => String(a.starmap ?? '').split(',').filter((k) => ST
  * (level.arrivals); a picture before and after (unity-page-before.png, unity-page-arrival.png), where he stands logged.
  */
 const pageRun = (a) => { const [to, from] = String(a.page ?? '').split(':'); return to && from ? { to, from } : null; };
+/**
+ * -trip desert:lantern[:…] (issue #792): played as a player travels, on the debug save seeded in the first world, then
+ * the ship to each next one (its take-off and warp when the ship's scenes are on and the trip is allowed, else straight
+ * there), each world swapped in place. In each: how the sound's context stands (the same one throughout, its clock going
+ * on), a picture (unity-trip-<k>-<world>.png) with -out; done in the last. -music-check makes BridgeMusic's voices play
+ * (silenced) and log where their clips are, so the theme playing on over a swap is seen in Unity's own sources.
+ */
+const tripRun = (a) => { const w = String(a.trip ?? '').split(':').filter(Boolean); return w.length >= 2 ? w : null; };
+let ctxIds = 0;
+const ctxId = (ctx) => (ctx ? (ctx.__tripId ??= ++ctxIds) : 0);
 /** A scene's save: the base (past the prologue, the map's first lines heard), its flags; the save's format kept. */
 function starmapFlags(scene) {
   const keep = Object.fromEntries(['save.migrated', 'res.v'].map((k) => [k, gameState.data.flags[k]]).filter(([, v]) => v !== undefined));
@@ -195,6 +210,7 @@ export function start(argsJson) {
   if (args.boot) begin(args.boot);
   // (-page overnighttrain:bazaar: in the second world first, on the debug save, then by a page load's way to the first; below)
   else if (pageRun(args)) begin({ slot: DEBUG_SLOT, level: pageRun(args).from, arrive: true });
+  else if (tripRun(args)) begin({ debug: tripRun(args)[0], slot: DEBUG_SLOT });   // (-trip: the first world's debug save)
   else { menus.show('title'); S.titleSound = titleSound(args, settings); updates.auto(); }   // (and the title's own check for a newer script)
   // (-title-shots 960x1280,1280x960 -out dir: the title on screens of those sizes one after another, the first from
   // before the first frame as a device's cold start, each photographed once settled: unity-title-<k>-<w>x<h>.png; issue #470)
@@ -344,9 +360,9 @@ function playGame(href) {
   const { game, from, to, stage, encounter } = readHref(href);
   if (!game) return;
   S.game?.save();
-  console.log(`[unity] the game ${game}${to ? ` on the way to ${to}` : ''}: the engine starts again on its page`);
+  console.log(`[unity] the game ${game}${to ? ` on the way to ${to}` : ''}: its page`);
   // (to: the chime-pirates on the first flight to a world, ?game=pirates&to=<world>: src/ambush.js, issue #435)
-  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game: encounter ? `${game}?encounter=${encodeURIComponent(encounter)}` : stage ? `${game}?stage=${stage}` : game, to: to ?? null, resolved: true } }));   // (stage: the pirates' next place, issue #555)
+  goWorld({ slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game: encounter ? `${game}?encounter=${encodeURIComponent(encounter)}` : stage ? `${game}?stage=${stage}` : game, to: to ?? null, resolved: true }, `the game ${game}`);   // (stage: the pirates' next place, issue #555)
 }
 function leaveGame(href) {
   const { level, from, via, game, back } = readHref(href);
@@ -358,22 +374,84 @@ function leaveGame(href) {
   if (S.plan) { host.Exit(0); return; }
   // (the pirates won on the way: on to the world, landing, as the page's ?level=<world>&via=ship)
   // (Back to the Arcade, ?level=arcade&back=<id>: in front of that game's sign, as the page's address puts you)
-  host.Reboot?.(JSON.stringify({ boot: via === 'ship' ? { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } : { slot: slots.active, level: to, back: back ?? null, resolved: true } }));
+  goWorld(via === 'ship' ? { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } : { slot: slots.active, level: to, back: back ?? null, resolved: true }, `back to ${to}`);
 }
 
-/** Another world by the ship (its take-off done, Ship.travel's `go`): the engine starts again at that world's landing, arriving. */
+/** Another world by the ship (its take-off done, Ship.travel's `go`): that world's landing, arriving, swapped in place. */
 function flyTo(to) {
   S.game?.save();
-  console.log(`[unity] the ship flies to ${to}: the engine starts again, arriving by ship`);
-  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } }));
+  console.log(`[unity] the ship flies to ${to}, arriving by ship`);
+  goWorld({ slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true }, `the ship to ${to}`);
 }
 
-/** A place reached by a page load on the web (the night train's halt and porch): the engine starts again there. */
+/** A place reached by a page load on the web (the night train's halt and porch): swapped in place there. */
 function pageTo({ level, from = null }) {
   S.game?.save();
-  console.log(`[unity] by way of ${from ?? '?'} to ${level}: the engine starts again`);
-  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level, from, resolved: true } }));
+  console.log(`[unity] by way of ${from ?? '?'} to ${level}`);
+  goWorld({ slot: slots.active, level, from, resolved: true }, `by way of ${from ?? '?'} to ${level}`);
 }
+
+/**
+ * Another world (issue #792, as the web's src/world-travel.js since #790): swapped in place, the script's engine and the
+ * sound kept, so the music carries over and crossfades instead of starting afresh. Done at the next frame's start, out
+ * of the frame that asked (a ship's scene, a menu's press). A plan's run (benches, pictures: they start again on their
+ * own arguments), -reboot, or an older player without BridgeHost.SwapWorld: the engine starts again as before
+ * (BridgeRunner.Reboot, the scene loaded anew).
+ */
+function goWorld(boot, why) {
+  if (!S?.game || planned(S.args) || S.args.reboot || !host.SwapWorld) {
+    console.log(`[unity] ${why}: the engine starts again`);
+    host.Reboot?.(JSON.stringify({ boot }));
+    return;
+  }
+  S.swapNext ??= { boot, why };
+}
+
+/**
+ * The swap itself (playFrame, before anything else of the frame): the world's save; its scope closed (its timers,
+ * frames, listeners and registries' entries let go: src/world-scope.js); its sound handed over, still playing (Sound.
+ * handOver: the score goes on over the loading screen, pumped by playFrame); its backend cut off from Unity; Unity's
+ * mirrored scene let go and made anew (BridgeHost.SwapWorld, in order with the ops: the next world's go to the new one);
+ * then the next world begun as a boot's choice is (begin), its sound started on the same context (launch: audio.adopt)
+ * and the last one released once it plays. The HUD, the menus, BridgeAudio and BridgeMusic stay: a flight's warp goes
+ * on over the build as the web's loading page keeps its space crossing.
+ */
+function swapWorld() {
+  const { boot, why } = S.swapNext;
+  S.swapNext = null;
+  const old = S.game, t0 = now();
+  try { old.save?.(); } catch (e) { console.warn('[unity] world swap: the save', e?.message ?? e); }
+  const letGo = closeScope(S.scope);
+  S.scope = null;
+  // (the last world's sound handed on: its context, the music still playing; null if it never started)
+  S.carried = old.sound?.handOver?.() ?? null;
+  if (S.backend) S.backend.host = NO_HOST;   // (the last world's mirror tells Unity nothing more)
+  S.game = null; S.plan = null; S.backend = null;
+  // (the HUD's state as a fresh engine's: the last world's parts (its warp, letterbox, cue, talk) gone from the next world's
+  // first state, which BridgeHud gets once that world plays: until then it draws the last one's, a flight's warp on over
+  // the build, then fades it as the arrival begins)
+  hudScreen.reset();
+  S.screenV = -1; S.accessKey = null;   // (the next world's screen sent whole)
+  host.SwapWorld();
+  const n = (S.swap?.n ?? 0) + 1;
+  S.swap = { n, from: old.level?.id ?? null, to: boot.game ? `game ${String(boot.game).split('?')[0]}` : boot.level, t0, ctx: S.carried?.ctx ?? null, ok: false };
+  console.log(`[unity] world swap ${n}: ${why}, ${S.swap.from} → ${S.swap.to} in place, the sound carried over${letGo ? ` (let go: ${letGo.listeners} listeners, ${letGo.timers} timers, ${letGo.frames} frames, ${letGo.offs} entries)` : ''}`);
+  // (a plan's own steps read the boot as after a reboot: the -page run's second world, -trip's)
+  S.args = { ...S.args, boot };
+  try { begin({ ...boot }); }
+  catch (e) { swapFailed(e); }
+}
+
+/** A swap that could not build the next world: the engine started again on it, the old way (as the web loads the page). */
+function swapFailed(e) {
+  console.error('[unity] world swap failed: the engine starts again', e?.stack ?? e);
+  try { S.carried?.release?.(0.2); } catch { /* gone */ }
+  S.carried = null;
+  host.Reboot?.(JSON.stringify({ boot: S.args.boot ?? {} }));
+}
+
+/** A host that takes every call and does nothing (the last world's backend, after a swap). */
+const NO_HOST = new Proxy({}, { get: () => () => undefined });
 
 function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null, transit = null, back = null, retryEffects = false } = {}) {
   const retryOptions = { start: from, arrive, via, prologue, game, came, transit, back, retryEffects: true };
@@ -408,6 +486,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // from a start or a reboot, until its first frame has played; Unity draws on meanwhile instead of waiting on the build
   // (BridgeRunner). Issue #510: from the title the screen stayed on the title's "…" until the world popped up.
   S.loadingWorld = !planned(args);
+  // (the world's own scope: what it adds to the page's timers, listeners and the registries, let go if it is swapped for
+  // another, swapWorld; issue #792)
+  S.scope = openScope('world');
   if (S.loadingWorld) host.Loading?.(true);
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = soundRate(args);
@@ -496,7 +577,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   game = game ? gameId : null;
   const gq = readHref(`?${gameQ ?? ''}`), stage = gq.stage;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, encounter: gq.encounter ?? null, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, encounter: gq.encounter ?? null, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects, adopt: S.carried?.ctx ?? null, fadeIn: 1.5 } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null, sprint: off.has('kevinSprint') ? 'ual' : String(args.on ?? '').split(',').includes('kevinSprint') ? 'kevin' : null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe && !args.menuPointer, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
@@ -511,6 +592,14 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
       if (S.loadingWorld) host.LoadProgress?.(loadShare('mixing', 'surfaces'), LOAD_WHY.surfaces);
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
       if (S.titleSound) { S.titleSound.dispose(); S.titleSound = null; }
+      // (a world swapped in place: the last world's sound faded out as this one's fades in on the same context, the music
+      // crossfading; its fade's timer outside this world's scope, so a swap soon after still ends it. Issue #792)
+      if (S.carried) { const c = S.carried; S.carried = null; persist(() => c.release(1.5)); }
+      if (S.swap && !S.swap.ok) {
+        S.swap.ok = true;
+        console.log(`[unity] world swap ${S.swap.n}: ${S.swap.to} built in ${(now() - S.swap.t0).toFixed(0)} ms, no reboot; the sound's context ${game.audio && game.audio === S.swap.ctx ? 'the same' : S.swap.ctx ? 'ANOTHER' : 'none carried'}`);
+        S.swap.ctx = null;
+      }
       if (rate && !planned(args)) { const d = themeDownloads(SOUNDTRACKS[game.level?.id] ?? null); host.MusicFetch?.(d.list, d.carried); }
       if (menus) {
         // the game menu's panels from the world now running (engine/game.js menuSources), its Travel here by a reboot
@@ -527,8 +616,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           // (the ship's own way, as the web's: its take-off, then the next world's arrival; ship.travel's `go`, flyTo)
           // (game.travel: a world on the holo table's chart too, found by its signature as it is chosen: engine/chart.js)
           if (game.shipScenes) { menus.close(); return game.travel(id); }
-          console.log(`[unity] travel to ${id}: the engine starts again at its landing`);
-          host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: id, arrive: true, resolved: true } }));
+          menus.close();
+          goWorld({ slot: slots.active, level: id, arrive: true, resolved: true }, `travel to ${id}`);
           return null;
         };
         if (menus.mode === 'title') menus.close();
@@ -549,6 +638,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
       S.plan = makePlan(args);
     })
     .catch((e) => {
+      if (S.swap && !S.swap.ok) { swapFailed(e); return; }   // (a swap's next world: the engine started again on it instead)
       console.error('[unity] the game failed to start', e?.stack ?? e);
       if (e?.name !== 'SoundEffectsLoadError') { host.Exit(3); return; }
       S.loadingWorld = false; host.Loading?.(false);
@@ -1017,6 +1107,13 @@ function makePlan(args) {
     // (the first world: the hand-over, then the engine starts again; the second: done)
     steps.push(args.boot ? { kind: 'done' } : { kind: 'page', to, from }, { kind: 'hold' });
   }
+  if (tripRun(args)) {
+    // (the k-th world of the trip: the swaps so far; a while in it, its sound's state, a picture, then on to the next)
+    const worlds = tripRun(args), k = S.swap?.n ?? (args.boot ? Math.max(1, worlds.indexOf(args.boot.level, 1)) : 0);   // (-reboot: the boot says where)
+    steps.push({ kind: 'wait', frames: Number(args.tripFrames ?? 240), secs: Number(args.tripSecs ?? 8) }, { kind: 'tripState', k, world: worlds[k] ?? '?' });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-trip-${k}-${worlds[k] ?? 'x'}.png` });
+    steps.push(k + 1 < worlds.length ? { kind: 'tripGo', to: worlds[k + 1] } : { kind: 'done' }, { kind: 'hold' });
+  }
   if (args.sequence) steps.push({ kind: 'seq', id: String(args.sequence) });
   if (args.ending) {
     const n = args.endingShots ?? 40, every = args.endingEvery ?? 5;
@@ -1208,6 +1305,14 @@ export function frame(dt) {
 function playFrame(dt) {
   S?.menus?.tick?.();   // (a rebinding on the Controls page left waiting: kept as it was, engine/menus.js)
   pollMusic(host);   // (the recordings Unity has decoded since: their decodeAudioData answered)
+  // (another world asked for in the last frame: swapped in place now, issue #792)
+  if (S?.swapNext) swapWorld();
+  // the next world being built after a swap: the last one's sound (its score's timers, its PCM) going on meanwhile
+  if ((S?.carried || (S?.swap && !S.swap.ok)) && !S.game) {
+    page.tick(now()); pumpAudio(S.carried?.ctx);
+    if (S.menus) showMenu();
+    return;
+  }
   // the title, before a world: only its menu (the world loading behind it once chosen) and its music
   if (S?.menus && !S.game) {
     if (!S.menus.title.starting && S.titlePad) readTitleInput(dt);
@@ -1284,6 +1389,21 @@ function playFrame(dt) {
     // (as the night train's bell says it: the page's location, here the engine's onPage, engine/game.js)
     console.log(`[unity] page: ?level=${step.to}&from=${step.from}`);
     gameState.emit('travel:page', { href: `?level=${step.to}&from=${step.from}` });
+    next();
+  }
+  else if (step.kind === 'tripState') {
+    // (the sound's context: one through the trip, its clock never back at 0; the voices playing; issue #792)
+    const ctx = game.audio;
+    console.log(`[unity] trip: world ${step.k} ${game.level.id} (asked ${step.world}), frame ${S.frames}; the sound's context #${ctxId(ctx)}, its clock at ${ctx ? ctx.currentTime.toFixed(2) : '-'} s, ${ctx?.state ?? 'none'}; swaps ${S.swap?.n ?? 0}, the script's engine started once (${calls} frames since)`);
+    next();
+  }
+  else if (step.kind === 'tripGo') {
+    // (the ship's own way when it can: its take-off, the warp, then ship.travel's go, flyTo; else straight there)
+    const ctx = game.audio;
+    console.log(`[unity] trip: to ${step.to}, the sound's context #${ctxId(ctx)} at ${ctx ? ctx.currentTime.toFixed(2) : '-'} s`);
+    const no = game.shipScenes ? game.travel(step.to) : 'no ship scenes';
+    if (no) { console.log(`[unity] trip: no take-off (${no}): straight there`); flyTo(step.to); }
+    else console.log('[unity] trip: the ship takes off');
     next();
   }
   else if (step.kind === 'pageAt') {

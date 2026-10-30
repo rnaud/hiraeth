@@ -252,6 +252,11 @@ namespace Hiraeth.Bridge
             if (Arg("-starmap") != null) args["starmap"] = Arg("-starmap");
             // (-page overnighttrain:bazaar: in the market, then by the night train's page load to the train's porch: engine/unity/game.js)
             if (Arg("-page") != null) args["page"] = Arg("-page");
+            // (-trip desert:lantern: the ship from world to world, each swapped in place, the sound carried over; -trip-secs N
+            // in each; -reboot: every trip by the engine started again instead, as before issue #792: engine/unity/game.js)
+            if (Arg("-trip") != null) args["trip"] = Arg("-trip");
+            if (Arg("-trip-secs") != null) args["tripSecs"] = double.Parse(Arg("-trip-secs"), CultureInfo.InvariantCulture);
+            if (Flag("-reboot")) args["reboot"] = true;
             // (-hull-spawn: a plan's traveller on the spot the ship covers, as the plans started before issue #254 moved
             // the desert's spawn to the ramp's foot: to compare with numbers taken then, issue #265)
             if (Flag("-hull-spawn")) args["hullSpawn"] = true;
