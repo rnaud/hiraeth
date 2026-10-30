@@ -1,0 +1,183 @@
+import * as THREE from 'three';
+import { Rig, planLeg } from '../../../../src/motion-kit/rig.js';
+import { PLANS } from '../../../../src/motion-kit/plans.js';
+import { materials, add, merged, pivot, pair, ease, eyeColor, finish, shade } from '../../../../src/enemies/plans/kit.js';
+import { hornGeometries } from '../../../../src/enemies/plans/broad-hound.js';
+import { gazePart } from '../../../../src/enemies/gaze.js';
+import { SkinLegs, bendFrame } from '../../../../src/characters/creature-legs.js';
+import { RENDER_FRAME } from '../../../../src/render-frame.js';
+
+// The broad-pawed hound from Tripo (issue #800 phase 2b; a trial body, web only, behind the trial page): Tripo task
+// 09f5de9e-… from the approved image, rigged by Tripo's quadruped rig (task 66154a67-…; the untouched exports in the
+// hound folder's tripo/), made into the game asset by prepare.mjs (the game's frame and size, a flat 1024² texture,
+// vertex colours, 12k triangles, Tripo's weights gathered onto the game's bones) and put on the hound's rig family
+// here: the motion kit's quadruped plan, a trot on diagonal pairs, its legs fitted to the rig's own joints.
+//
+// No humanoid skeleton, and not Tripo's skeleton either (54 joints, its left hind leg twice over, stray tail
+// branches): the game's bones carry Tripo's weights. Each leg's thigh, shin and foot are bones framed in the leg's bend
+// plane (src/characters/creature-legs.js SkinLegs, the Keeper's route: the kit's own segments solve, the bones follow);
+// the body, neck, head and four tail joints are pivots on the kit's body. Its eyes look at you (issue #508, the
+// author's rule for every Tripo body): the head turns toward the traveller (gaze.js 'turn', the bone the head's
+// vertices hang on is the gaze's own node), and two slit eyes of their own (they go orange as it winds up) sit over the
+// painted ones on that bone. Its shadow form is kept: lying in wait, stepping behind you or phased it is a pool with
+// its head and horns rising out of it. Tripo fused the jaw: the bite and the snarl are the head's.
+//
+// The hound in everything else: the same archetype, def, attacks, sounds, death recipe, lying body.
+
+/** The flat texture's colour roles: the coat's shades, the mauve saddle, the cream horns and muzzle. */
+const ROLE = (hex) => { const c = new THREE.Color(hex); return c.r + c.g + c.b > 2 ? 'cream' : c.r > 0.35 ? 'patch' : 'coat'; };
+
+/** The trial's source, loaded once (browser): { geometry, map, landmarks }. base: this folder's URL. */
+export async function loadTripoHound(base) {
+  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+  const get = async (name) => { const r = await fetch(`${base}${name}`); if (!r.ok || /text\/html/.test(r.headers.get('content-type') ?? '')) throw new Error(`no ${base}${name} (${r.status})`); return r; };
+  const [bytes, landmarks] = await Promise.all([get('tripo-lod.glb').then((r) => r.arrayBuffer()), get('landmarks.json').then((r) => r.json())]);
+  const gltf = await new GLTFLoader().parseAsync(bytes, base);
+  let mesh = null; gltf.scene.traverse((o) => { if (o.isMesh && !mesh) mesh = o; });
+  const map = mesh.material.map; if (map) { map.colorSpace = THREE.NoColorSpace; map.flipY = false; map.needsUpdate = true; }
+  return { geometry: mesh.geometry, map, landmarks };
+}
+
+/** A skin's colours over the mesh's roles (a world's own look on the same body): COLOR_0 recoloured, its shades kept. */
+function skinColours(geo, P, palette) {
+  const C = geo.attributes.color, n = C.count, out = new Float32Array(n * 3), c = new THREE.Color();
+  const coats = palette.filter((h) => ROLE(h) === 'coat').map((h) => new THREE.Color(h)), mid = coats[Math.floor(coats.length / 2)];
+  const lum = (x) => x.r + x.g + x.b;
+  const want = { cream: new THREE.Color(P.antler), patch: new THREE.Color(P.patch) };
+  for (let i = 0; i < n; i++) {
+    c.setRGB(C.getX(i), C.getY(i), C.getZ(i));
+    const role = ROLE(`#${c.getHexString()}`);
+    const t = role === 'coat' ? new THREE.Color(P.ink).multiplyScalar(Math.min(1.6, lum(c) / Math.max(1e-3, lum(mid)))) : want[role];
+    out[i * 3] = t.r; out[i * 3 + 1] = t.g; out[i * 3 + 2] = t.b;
+  }
+  return new THREE.BufferAttribute(out, 3);
+}
+
+const vec = (a) => new THREE.Vector3(...a);
+
+/** The trial body (the model contract of plans/index.js), from the loaded source (loadTripoHound, or node-source.mjs). */
+export function tripoHoundModel(skin, src) {
+  const L = src.landmarks, home = skin.id === 'eclipse', props = new Set(skin.props);
+  const P = { ...skin.palette, ...(home ? { eye: '#f2e8c8' } : {}) };
+  P.patch ??= P.smoke2 ?? P.smoke;
+  const M = materials('hound', skin);
+  const white = !props.has('glints');
+  const g = new THREE.Group(), body = pivot(g, 0, 0, 0, 'body'); g.name = `${skin.name} · broad hound (Tripo)`;
+  // ---------------------------------------------------------------- the kit's legs on the rig's own, their segments hidden
+  const hide = new THREE.MeshBasicMaterial({ visible: false });
+  const plan = PLANS.quadruped;
+  const legs = L.legs.map((l, k) => {
+    const hip = vec(l.hip), knee = vec(l.knee), ankle = vec(l.ankle);
+    const along = ankle.clone().sub(hip), pole = knee.clone().sub(hip).addScaledVector(along, -knee.clone().sub(hip).dot(along) / along.lengthSq()).normalize();
+    // (the feet's homes made even, left and right: the mesh stands mid-stride)
+    const pair2 = L.legs.find((m) => m.front === l.front && m !== l), fx = (Math.abs(l.foot[0]) + Math.abs(pair2.foot[0])) / 2 * l.side, fz = (l.foot[2] + pair2.foot[2]) / 2;
+    const leg = planLeg(plan, { group: g, body, hip: vec(l.hip), foot: { x: fx, z: fz }, lenA: hip.distanceTo(knee), lenB: knee.distanceTo(ankle), pole, ankle: ankle.y, radius: 0.02, mats: { joint: hide }, name: `tripo hound leg ${k}` });
+    const gone = []; leg.root.traverse((o) => { if (o.isMesh) gone.push(o); }); for (const o of gone) { o.geometry.dispose(); o.removeFromParent(); }
+    return leg;
+  });
+  const rig = new Rig({ plan, group: g, body, legs });
+  // ---------------------------------------------------------------- the bones (prepare.mjs's BONES order)
+  const bones = {};
+  bones.body = body;
+  const neck = bones.neck = pivot(body, ...L.neck, 'neck');
+  const headPivot = pivot(neck, ...vec(L.headBase).sub(vec(L.neck)).toArray(), 'head');
+  // (its look: the head turns toward the traveller; the bone the head's vertices hang on is the gaze's own node)
+  const headGaze = gazePart(g, headPivot, { mode: 'turn', yaw: 0.55, up: 0.3, down: 0.35 });
+  bones.head = headGaze.node;
+  let parent = body, prev = [0, 0, 0];
+  L.tail.slice(0, 4).forEach((t, i) => { const b = pivot(parent, ...vec(t).sub(vec(prev)).toArray(), `tail ${i}`); bones[`tail${i}`] = b; parent = b; prev = t; });
+  const legBones = legs.map((leg, k) => {
+    const l = L.legs[k], hip = vec(l.hip), knee = vec(l.knee), ankle = vec(l.ankle);
+    const mk = (name, at, dir) => { const b = new THREE.Bone(); b.name = `leg${k}_${name}`; b.position.copy(at); if (dir) bendFrame(dir, leg.pole, b.quaternion); g.add(b); bones[b.name] = b; return b; };
+    return { thigh: mk('thigh', hip, knee.clone().sub(hip)), shin: mk('shin', knee, ankle.clone().sub(knee)), foot: mk('foot', ankle.clone().setY(ankle.y - leg.ankle), null) };
+  });
+  // the rest pose (the bind's): the kit's segments at the landmarks, so SkinLegs measures its offsets there
+  legs.forEach((leg, k) => { const l = L.legs[k]; leg.root.position.copy(vec(l.hip)); leg.shin.position.copy(vec(l.knee).sub(vec(l.hip))); leg.foot.position.copy(vec(l.ankle).sub(vec(l.hip))).setY(l.ankle[1] - leg.ankle - l.hip[1]); });
+  const skinLegs = new SkinLegs({ kit: { legs, rig }, bones: Object.fromEntries(legBones.flatMap((b, k) => [[`leg${k}_thigh`, b.thigh], [`leg${k}_shin`, b.shin], [`leg${k}_foot`, b.foot]])), group: g, body });
+  const list = L.bones.map((n) => bones[n]);
+  // ---------------------------------------------------------------- the skin
+  const geo = src.geometry;
+  const colour = home ? null : skinColours(geo, P, L.palette);
+  const SI = geo.attributes.skinIndex, sIdx = new Uint16Array(SI.count * 4); for (let i = 0; i < sIdx.length; i++) sIdx[i] = SI.array[i];
+  const restGeo = new THREE.BufferGeometry();
+  for (const k of ['position', 'normal', 'uv']) restGeo.setAttribute(k, geo.attributes[k]);
+  if (colour) restGeo.setAttribute('color', colour);
+  restGeo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(sIdx, 4)); restGeo.setAttribute('skinWeight', geo.attributes.skinWeight);
+  restGeo.setIndex(geo.index);
+  const skinM = M.mat(home ? 'bhTripo' : 'bhTripoTint', '#ffffff', { lineWhite: white, ...(home ? { map: src.map } : { vertexColors: true }) });
+  const sm = new THREE.SkinnedMesh(restGeo, skinM); sm.name = 'tripo skin'; sm.frustumCulled = false; g.add(sm);
+  // the eyes over the painted ones: two pale slits on the head's gaze bone (its own material, they glow as it winds up)
+  const eyeM = M.own('eye', P.eye, { glow: 0.85 });
+  const hb = vec(L.headBase);
+  const eyeGeo = merged(L.eyes.filter(Boolean).map((e) => new THREE.CapsuleGeometry(0.016, 0.04, 3, 8).rotateZ(Math.PI / 2 - e.side * 0.35).scale(1, 1, 0.5).translate(...vec(e.at).sub(hb).add(new THREE.Vector3(0, 0, 0.012)).toArray())));
+  const eyes = add(headGaze.node, eyeGeo, eyeM); eyes.name = 'eyes';
+  const hornTip = pivot(headGaze.node, 0, vec(L.head).y - hb.y + 0.2, vec(L.head).z - hb.z - 0.12);
+  // ---------------------------------------------------------------- its shadow form: a pool, its head and horns rising out of it
+  const poolShape = new THREE.Shape(); for (let i = 0; i <= 24; i++) { const a = (i / 24) * Math.PI * 2, r = 0.55 * (1 + (i % 2 ? 0.18 : -0.05) + Math.sin(i * 2.3) * 0.08); poolShape[i ? 'lineTo' : 'moveTo'](Math.sin(a) * r, Math.cos(a) * r); }
+  const poolM = M.mat('bhPool', P.ink, { flat: true, lineWhite: white });
+  const pool = add(g, new THREE.ShapeGeometry(poolShape).scale(0.95, 1.7, 1).rotateX(-Math.PI / 2), poolM, 0, 0.03, 0);
+  const glowRim = add(g, new THREE.RingGeometry(0.62, 0.72, 24).scale(0.95, 1.7, 1).rotateX(-Math.PI / 2), M.own('glow', P.glow, { glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
+  const rising = pivot(g, 0, 0, 0.4, 'rising');
+  add(rising, new THREE.SphereGeometry(1, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.15, 0.16, 0.22), poolM);
+  add(rising, merged([...hornGeometries(props, 0.85).map((x) => x.translate(0, 0.06, -0.02)), new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.1, 0.07, 0.11).translate(0, 0, 0.17)]), M.mat('bhRiseLight', P.antler, { flat: true, lineWhite: white }));
+  add(rising, merged(pair((s) => new THREE.SphereGeometry(0.04, 8, 6).scale(1, 0.55, 1).translate(s * 0.08, 0.08, 0.15))), eyeM);
+  const gaze = [headGaze, gazePart(g, rising, { mode: 'turn', yaw: 0.5, up: 0.3, down: 0.3 })];
+  finish(g);
+  g.updateMatrixWorld(true);
+  sm.bind(new THREE.Skeleton(list));
+  boneBoxes(sm, list);
+  const tailBones = [0, 1, 2, 3].map((i) => bones[`tail${i}`]);
+  let solid = 1, crouch = 0, rake = 0, coil = 0, bite = 0;
+  return {
+    group: g, gaze, body, rig, parts: [], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.antler, P.patch],
+    trial: 'tripo',
+    tell: (id) => (id === 'rake' ? hornTip : headPivot),
+    anim(f, c) {
+      const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
+      const sinking = wind && f.atk?.blink;
+      const lying = f.state === 'idle' && !f.provoked && !f.watcher;
+      const gone = f.phased || sinking || lying;
+      solid = ease(solid, gone ? 0 : 1, gone ? 6 : 14, dt);
+      sm.visible = body.visible = solid > 0.08; body.scale.set(1, Math.max(0.05, solid), 1);
+      pool.visible = solid < 0.9; pool.scale.setScalar(1.2 - solid * 0.5);
+      glowRim.visible = rising.visible = solid < 0.6;
+      rising.position.y = -0.12 + (1 - solid) * 0.12 + Math.sin(c.now / 140) * 0.015;
+      glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
+      crouch = ease(crouch, id === 'pounce' && wind ? c.wind : 0, 10, dt);
+      coil = ease(coil, id === 'pounce' && wind ? THREE.MathUtils.smoothstep(f.k, 0.5, 0.8) : 0, 14, dt);
+      rake = ease(rake, id === 'rake' ? (wind ? c.wind : strike ? 1 - c.release : 0) : 0, 12, dt);
+      bite = ease(bite, (strike && id === 'bite' ? Math.sin(Math.PI * f.k) : 0) + coil * 0.4, 20, dt);
+      const leap = strike && f.atk?.lunge ? Math.min(1, Math.sin(Math.PI * Math.min(1, f.k * 1.4)) * 3) : 0;
+      const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, recovery: c.recovery, air: leap });
+      const shiver = coil * Math.sin(c.now / 22) * 0.018;
+      body.position.set(o.x + shiver, -(1 - solid) * 0.3 + o.y - crouch * 0.2 + coil * 0.06, o.z);
+      body.rotation.set(o.pitch + crouch * 0.12 + coil * 0.14, o.yaw + rake * (strike ? -0.5 : 0.25), o.roll + shiver);
+      neck.rotation.set(crouch * 0.7 + rake * 0.6 - o.pitch * 0.6, 0, rake * 0.4);
+      headPivot.rotation.x = crouch * 0.3 + rake * 0.3 + bite * 0.35;
+      g.position.y += leap ? Math.sin(Math.PI * f.k) * 0.5 : 0;
+      const run = c.moving ? Math.min(1, (f.def.speed ?? 5) / 5) : 0;
+      const sway = Math.sin(c.now / (c.moving ? 170 : 520)) * (c.moving ? 0.22 : 0.1) * (1 - coil);
+      tailBones.forEach((t, i) => t.rotation.set(-run * 0.15 - leap * 0.2 + coil * (i ? 0.08 : 0.45) + Math.sin(c.now / 30 + i) * coil * 0.03 - crouch * 0.12 * (1 - coil), sway * (0.5 + i * 0.3), 0));
+      rig.write();
+      skinLegs.write(f.heading, { air: leap > 0.5 ? 1 : 0 });
+      eyeM.uniforms.uColor.value.set(eyeColor(f, f.lit > 0 ? '#ffe2a8' : P.eye, '#ff6a8a'));
+      if (solid > 0.5 && Math.random() < (props.has('drips') ? 0.25 : 0.12)) c.drip(f, P.ink);
+    },
+    dispose() { M.dispose(); hide.dispose(); restGeo.dispose(); eyeGeo.dispose(); },
+  };
+}
+
+/** Each bone's box of the vertices it carries most (the body the blade meets, src/foe-body.js; a gallery's frame), as kit.js skinned. */
+function boneBoxes(sm, bones) {
+  const local = bones.map(() => new THREE.Box3()), pos = sm.geometry.attributes.position, SI = sm.geometry.attributes.skinIndex, SW = sm.geometry.attributes.skinWeight, v = new THREE.Vector3();
+  sm.updateMatrixWorld(true);
+  for (let i = 0; i < pos.count; i++) { let b = SI.getX(i), w = SW.getX(i); for (const [bb, ww] of [[SI.getY(i), SW.getY(i)], [SI.getZ(i), SW.getZ(i)], [SI.getW(i), SW.getW(i)]]) if (ww > w) { b = bb; w = ww; } local[b].expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(sm.matrixWorld).applyMatrix4(sm.skeleton.boneInverses[b])); }
+  sm.userData.boneBoxes = { bones, local };
+  const box = new THREE.Box3(), sphere = new THREE.Sphere(), back = new THREE.Matrix4(), corner = new THREE.Vector3();
+  const bounds = () => { sm.updateWorldMatrix(true, false); back.copy(sm.matrixWorld).invert(); box.makeEmpty();
+    bones.forEach((b, i) => { const Lb = local[i]; if (Lb.isEmpty()) return; b.updateWorldMatrix(true, false); for (let k = 0; k < 8; k++) box.expandByPoint(corner.set(k & 1 ? Lb.max.x : Lb.min.x, k & 2 ? Lb.max.y : Lb.min.y, k & 4 ? Lb.max.z : Lb.min.z).applyMatrix4(b.matrixWorld).applyMatrix4(back)); });
+    return box; };
+  let at = -1;
+  Object.defineProperty(sm, 'boundingBox', { configurable: true, get: bounds, set() {} });
+  Object.defineProperty(sm, 'boundingSphere', { configurable: true, get: () => { if (RENDER_FRAME.on && at === RENDER_FRAME.n) return sphere; at = RENDER_FRAME.on ? RENDER_FRAME.n : -1; return bounds().getBoundingSphere(sphere); }, set() {} });
+}

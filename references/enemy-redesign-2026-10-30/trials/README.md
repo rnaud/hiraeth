@@ -15,7 +15,7 @@ the game). Web only: nothing the Unity build loads.
 every volume 0; checked before anything plays), the traveller cannot be hurt, saves stay in the page's memory.
 **Side by side** puts current, direct and Tripo 3 m apart on one clip clock (the same state at the same moment).
 The panel picks the attack, the skin, the camera, and toggles a clay view (textures and colours off: baked light shows).
-Only the shellback has direct and Tripo bodies so far; the hound, wood cutter and mummer show current only.
+The shellback and the hound have direct and Tripo bodies; the wood cutter and mummer show current only until theirs land.
 
 ![the trial page](shellback/trial-page.webp)
 
@@ -33,6 +33,10 @@ Only the shellback has direct and Tripo bodies so far; the hound, wood cutter an
 | `shellback-tripo/generate.mjs` | the Tripo generation (API, the key from `.env` unprinted); the untouched export and the task record go to `../shellback/tripo/` |
 | `shellback-tripo/prepare.mjs` | that export into the trial asset: the game's frame and size, the flat texture, vertex colours, the 12k LOD, the landmarks |
 | `shellback-tripo/model.js` | the Tripo body on the crab's rig (the custom skin) |
+| `gaze-shot.mjs` | the row of three idle and watching, the traveller to one side: a picture and each body's head/eye yaw toward him (gaze.js) |
+| `hound-tripo/generate.mjs [--rig]` | the hound's Tripo generation, then Tripo's free rig check and its quadruped rig; exports and record to `../hound/tripo/` |
+| `hound-tripo/prepare.mjs` | the rigged export into the trial asset: frame and size, flat texture, vertex colours, Tripo's weights gathered onto the game's bones, the 12k LOD, landmarks from the rig's joints |
+| `hound-tripo/model.js`, `node-source.mjs` | the Tripo hound on the quadruped plan (bend-plane leg bones, its head the gaze's bone); the asset in node |
 
 ## Shellback (`crab`), phase 2a
 
@@ -121,3 +125,102 @@ foes, which the brief already builds direct.
 - Unity: neither body is wired there; the trial is web only. The Tripo asset carries COLOR_0 for the engines' VMs.
 - The other three trial foes (phase 2b and on). The mummer's T-pose was picked by the author on main (`0c2c1b7bc`,
   `../keep-mummer/tpose/`), so its Tripo trial can go ahead.
+
+## Broad-pawed hound (`hound`), phase 2b
+
+Reference: `../hound/5d7b275f-a6fd-4e34-a0fe-7c6d4ebc850a-1.png` (approved). Home skin eclipse. All pictures in
+`hound/`, captured 2026-10-30 on this branch, muted headless Chrome on this Mac (Apple M-series, Metal), High preset,
+1280×720, 10:00, clear; looked at one by one. The same page, capture, strips, stills, walk audit and bench as the
+shellback; added for this foe: the pounce in the walk audit and `gaze-shot.mjs` (the author's rule, every Tripo body
+looks at the traveller).
+
+![stills](hound/compare-stills.webp)
+
+Strips: `hound-<variant>-<idle|walk|turn|attack|hurt|death>.webp` (the attack is the pounce), the row of three in
+`hound-side-*.webp`; stills `hound[-<variant>]-still-<3q|front|flank|rear|clay|clay-front>.webp`; the gaze
+`gaze-front.webp`; the page `trial-page.webp`. The current strips re-captured here match phase 1's
+(`../baseline/hound-*.webp`, mean difference 1.3/255 idle, 1.1/255 walk: WebP noise). In the row's hurt strip only the
+nearest body phases (the other two stand further from the traveller when the blow lands); each variant's own hurt strip
+shows its phase into the pool and its rising again.
+
+![the gaze](hound/gaze-front.webp)
+
+### What each is
+
+- **Direct** (`src/enemies/plans/broad-hound.js`): a long deep-chested teal-black body (a lofted trunk, the withers
+  high, the waist tucked, broad haunches), a mauve saddle lying on the withers, four thick legs (one long capsule a
+  segment, the kit's cylinders taken off) on big round paws with three toes, a long four-jointed tail, a lofted neck, a
+  head with pointed ears, a cream capsule muzzle over a hinged jaw, two pale slit eyes in their own material and two
+  cream ram's horns curling round beside the head. No mane. On the quadruped plan as today; its shadow form kept (the
+  pool with the head and horns rising out of it, lying in wait, stepping behind you, phased). The pounce: crouch, head
+  and horns down, then the coil (rump up, tail stiff and quivering, jaw open in a snarl, a shiver) and the leap; the
+  bite opens the jaw; the rake lowers the horns to one side. Two skinned meshes (dark, light) and the eyes: 3 draws
+  standing. The other skins keep their world's palette on the new body (ink, antler colour for horns and muzzle,
+  smoke for the saddle) and their props (drips, a halo, gold glints, a tangle of wire horns, thicker bleached horns).
+- **Tripo** (task `09f5de9e-79ff-4d16-ab12-be8784944eb4`, image to model, H3.1, texture v3.5 with `delight: true` =
+  Remove Lighting, PBR off, 30k face target; 28,584 triangles, 2048² JPEG; then Tripo's free rig check, `quadruped`, and
+  its quadruped rig, task `66154a67-3bdc-426a-88ff-f1dc00b93ee9`; both untouched in `../hound/tripo/`). Tripo's rig is
+  not used as a skeleton (54 joints, the left hind leg twice over, stray tail branches, unnamed joints), but its
+  **weights are**: `prepare.mjs` gathers each Tripo joint onto the game bone along the same stretch (body, neck, head,
+  four tail joints, each leg's thigh, shin and foot) and the landmarks are the rig's own joints. Scaled to the direct
+  body's 1.69 m (horns' top), a 1024² texture flattened to seven colours (median, k-means), COLOR_0, 12,000 triangles
+  (meshoptimizer; the weights ride on the kept vertices). `model.js`: the kit's quadruped legs fitted to those joints,
+  bend-plane leg bones (`SkinLegs`, the shellback's route), the head's bone the gaze's own node, so the head turns to
+  the traveller, with two slit eyes of their own on it over the painted ones; the same shadow form, pounce, coil and
+  rake as the direct (the jaw is fused: the bite and snarl nod the head). One skinned mesh and the eyes: 2 draws
+  standing. Other skins: the coat's shades, the saddle and the cream recoloured from the skin's palette (vertex colours);
+  no halo, glints or drips props on it.
+
+### Comparison
+
+| Measure | Current | Direct | Tripo |
+|---|---|---|---|
+| Fidelity to the reference | a black stick-legged deer under a spiky violet mane, long antlers: not the reference | the reference's parts and colours (horns, cream muzzle, saddle, big paws, tail); legs and paws read as stacked capsules (boots more than paws), the muzzle a little like a bobbin, the tail a straight stick rising | the closest: the long body, muscled thick legs, big toed paws, the sickle tail, the saddle, the horn crescents and the muzzle; horns smaller than the reference, the head a little narrow |
+| At combat distance (14 m, ink) | antlers and mane | a dark hound with pale horns and muzzle; reads a little toy-like | a dark hound on big paws, pale crescents at its head; reads as the drawing |
+| Baked light (clay, unlit) | – | none (procedural) | clean; the flattened colours keep the coat's five greens (a little shading in the muscle folds), no hatching printed |
+| Drawn meshes · triangles (one body, one pass, standing) | 22 · 4,738 | 3 · 10,084 | 2 · 12,224 |
+| Materials · texture memory | 6 · 0 | 3 · 0 | 2 · 5.33 MB (1024² RGBA8 + mips) |
+| Shipped bytes (raw · gzip) | `quadruped.js` 28.8 · 9.8 KB (with the lizard) | `broad-hound.js` 20.1 · 7.6 KB | `tripo-lod.glb` 645 · 370 KB + `model.js` 15.5 · 6.2 KB + landmarks 2.3 KB (source exports 1.23 + 1.41 MB) |
+| Draws over the empty Arena, High, 1 · 6 | +18 · +93 | **+14 · +69** | **+14 · +69** |
+| Triangles all passes, High, 1 · 6 | +7.3k · +22.8k | +10.0k · +37.2k | +9.6k · +37.6k |
+| Draws, Handheld, 1 · 6 | +14 · +68 | +10 · +50 | +10 · +50 |
+| Triangles all passes, Handheld, 1 · 6 | +3.7k · +15.9k | +5.3k · +25.2k | +7.0k · +26.2k |
+| CPU ms, High, 1 · 6 | +0.10 · +0.05 | +0.70 · +0.40 | +0.05 · +0.40 |
+| CPU ms, Handheld, 1 · 6 | +0.13 · +0.47 | −0.03 · +0.32 | −0.03 · +0.27 |
+| GPU ms | not separable from the empty Arena at this load (deltas of either sign up to 2.7 ms): no GPU claim | | |
+| Walk (foot joints), full · half pace: slide m/m, worst | 0.007 · 0.006, 2 cm | 0.009 · 0.012, 2 cm | 0.010 · 0.025, 3 cm |
+| Reach / lift (share of leg), cadence Hz, full pace | 0.28 / 0.20, 3.75 | 0.28 / 0.20, 5.0 | 0.25 / 0.20, 5.9 |
+| Gait | diagonal pairs [0,3] [1,2] | the same; legs 0.85 m against 1.25 m, so quicker steps | the same; legs 0.77 m (the mesh's) |
+| Pounce (node, standing, 60 fps): planted-foot slip, bracing steps, crouch dip, leap rise, head forward | 0, 4, 0.42 m, 1.03 m, 0.36 m | 0, 4, 0.33 m, 1.01 m, 0.41 m | 0, 4, 0.31 m, 1.00 m, 0.30 m |
+| Looks at the traveller (gaze.js, him 1–1.5 rad to its side) | head turns, yaw 0.55 (its reach) | head turns, yaw 0.55, the eyes ride on it (test both sides) | head turns, yaw 0.31–0.55, the eyes its own parts on the head's gaze bone (test both sides) |
+| Deformation | rigid parts | rigid parts in two skins (no stretch) | Tripo's weights: normalised, bind round trip < 0.1 mm, a shin bent alone moves only its leg (tests); the shoulders and hams bend smoothly in the walk and leap; the left hind leg's two Tripo chains merged onto one bone |
+| Hurt, death, lying body | phase into the ink pool; legs fold, ink puff | the same recipe and pool (the body hidden under it) | the same |
+| Kept (both) | id `hound`, def and attacks (pounce with its coil cue, step behind, bite, rake below two thirds), windows, reach, `phase`, sounds (`quadruped`/`smoke`), death recipe, lying body, size floor, white contour on dark worlds, drips | ✓ | ✓ |
+| Time (agent) | – | about 1.2 h (model 40 min, look fixes 30 min) | about 1.3 h (generation 1 min and rig 1 min wall; prepare and weight mapping 30 min; model 30 min; fixes 15 min) |
+| Tripo credits | – | – | **55** (generation 30, rig check 0, quadruped rig 25) |
+
+(Bench: 31 runs, two rounds reversed, load 12.6–35 (other agents' runs; waited over 25), `hound/bench.jsonl`; at the
+bench's distance the hounds run as shadows part of the time (`phase`), so its triangles are less than a standing body's.
+Walk and pounce: `motion-audit.mjs hound@eclipse`. The direct row re-benched after a fix: its skinned meshes hang on
+the root and were drawn squashed under the pool while it was a shadow.)
+
+### Recommendation
+
+**Tripo.** Side by side the Tripo hound is the reference: its long muscled body, thick legs, big toed paws, sickle
+tail and saddle are the drawing's, where the direct one has the right parts but reads as a toy of stacked capsules.
+Tripo's own quadruped rig was worth its 25 credits for its weights (smooth shoulders and hams, which the direct's rigid
+parts and the shellback's nearest-part weights do not give) but not for its skeleton, which is untidy; the game's bones
+carry the weights. Costs are even: both draw +14 a body on High against today's +18 (six: +69 against +93) and
+about +10k triangles over all passes; Tripo carries a 5.3 MB texture and 370 KB gzipped. Both look at the traveller.
+
+Cleanups before it lands: larger horns (Tripo shrank them; scale the horn vertices about their root), the halo,
+glints and drips props for the Garden of Spheres' and the Mangrove's skins, a little more leg (its 0.77 m legs step at
+5.9 Hz at full chase), and its world skins checked in pictures (built and tested in node only). The direct body stays
+as the fallback.
+
+### Not done
+
+- The combat review's `defend.mjs` / `dodge.mjs` and the sound QC renders on the new bodies (attacks, windows and sound
+  keys are the hound's own, unchanged; the pounce, coil and rake poses were checked in the strips and tests).
+- Unity: neither body is wired there; the trial is web only. The Tripo asset carries COLOR_0 for the engines' VMs.
+- Pictures of the other three skins (mangrove, spheres, bazaar): built and tested in node only.

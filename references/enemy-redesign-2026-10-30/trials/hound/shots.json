@@ -1,0 +1,50 @@
+{
+ "quality": "high",
+ "variant": "current",
+ "foes": {
+  "hound@eclipse": {
+   "info": {
+    "kind": "hound",
+    "skin": "eclipse",
+    "atk": "pounce",
+    "wind": 1,
+    "strike": 0.28,
+    "recover": 1.2,
+    "size": [
+     1.37,
+     2.67,
+     2.71
+    ],
+    "speed": 5.6,
+    "inventory": null
+   },
+   "built": [
+    "current"
+   ],
+   "strips": {
+    "hurt": {
+     "hp": 2.75,
+     "state": "chase",
+     "reel": null,
+     "alive": true,
+     "rag": false,
+     "dying": false
+    },
+    "death": {
+     "hp": -96,
+     "state": "dead",
+     "reel": "broken",
+     "alive": false,
+     "rag": false,
+     "dying": true
+    }
+   }
+  }
+ },
+ "mute": {
+  "muted": true,
+  "master": 0,
+  "ctxGain": 0
+ },
+ "errors": []
+}

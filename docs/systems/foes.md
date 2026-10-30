@@ -2779,6 +2779,9 @@ the bodies built ahead) or shows the three 3 m apart on one clip clock; the capt
 --variant`), the bench (`scripts/enemy-roster/bench.mjs --variant`) and the walk audit (`trials/motion-audit.mjs`)
 take the same switch. The shellback's direct body is `src/enemies/plans/shellback.js` (the crab's id, def, sounds and
 rig family); its Tripo body lives with the trial (`trials/shellback-tripo/`). Findings: the trials README.
+The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
+rig family); its Tripo body (`trials/hound-tripo/`) carries Tripo's own rig weights gathered onto the game's bones
+(`tests/hound-trial.test.js`).
 
 ## Tests
 

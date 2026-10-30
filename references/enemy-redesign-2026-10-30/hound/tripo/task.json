@@ -1,0 +1,61 @@
+{
+  "issue": 800,
+  "phase": "2b",
+  "source": "references/enemy-redesign-2026-10-30/hound/5d7b275f-a6fd-4e34-a0fe-7c6d4ebc850a-1.png",
+  "sourceSha256": "480243c10b1c8326583bc4c16760c1de04a4db99447c8f9156286df30c0b53a9",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "09f5de9e-79ff-4d16-ab12-be8784944eb4",
+  "started": "2026-10-30T19:20:46.739Z",
+  "finished": "2026-10-30T19:21:42.135Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1795,
+  "balanceAfter": 1735,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1233808,
+    "sha256": "615cb0c90ccc6a0a367f04c5d5570c1f3063c582ac6217d53fa3b6da3d324b3a",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 107963
+  },
+  "rigCheck": {
+    "task": "85e8e6f9-3e8c-4414-8bae-357ba7df1950",
+    "output": {
+      "riggable": true,
+      "rig_type": "quadruped"
+    },
+    "credits": 0
+  },
+  "rig": {
+    "endpoint": "POST /v3/animations/rig",
+    "request": {
+      "input": "09f5de9e-79ff-4d16-ab12-be8784944eb4",
+      "model": "v2.5-20260210",
+      "rig_type": "quadruped",
+      "spec": "tripo",
+      "out_format": "glb"
+    },
+    "task": "66154a67-3bdc-426a-88ff-f1dc00b93ee9",
+    "creditsConsumed": 25,
+    "balanceBefore": 1735,
+    "balanceAfter": 1710,
+    "model": {
+      "file": "rigged.glb",
+      "bytes": 1412832,
+      "sha256": "6be8c2aa50104bcc800cc555c49cb6ae597b594ce9cb600f39b2a38460af2d4e"
+    }
+  }
+}

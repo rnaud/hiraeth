@@ -5,13 +5,14 @@
 // 'current' takes the stand-in away: the game's own body. The game's roster never sees any of this.
 import { TRIAL_BUILDERS } from '/src/enemies/plans/index.js';
 import { shellbackModel } from '/src/enemies/plans/shellback.js';
+import { broadHoundModel } from '/src/enemies/plans/broad-hound.js';
 
 // (this folder's URL: not new URL('./', import.meta.url), which Vite rewrites to the folder without its slash)
 const here = import.meta.url.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
 /** What each trial foe has, and what is built so far. */
 export const TRIALS = {
   crab: { concept: 'shellback', skin: 'arzach2', direct: true, tripo: true },
-  hound: { concept: 'hound', skin: 'eclipse', direct: false, tripo: false },
+  hound: { concept: 'hound', skin: 'eclipse', direct: true, tripo: true },
   brute: { concept: 'keep-brute', skin: 'perdide2', direct: false, tripo: false },
   mummer: { concept: 'keep-mummer', skin: 'desert', direct: false, tripo: false },
 };
@@ -23,7 +24,13 @@ async function tripoBuilder(kind) {
   sources.crab ??= await loadTripoShellback(`${here}shellback-tripo/`);
   return (skin) => tripoShellbackModel(skin, sources.crab);
 }
+async function tripoHound() {
+  const { loadTripoHound, tripoHoundModel } = await import('./hound-tripo/model.js');
+  sources.hound ??= await loadTripoHound(`${here}hound-tripo/`);
+  return (skin) => tripoHoundModel(skin, sources.hound);
+}
 const BUILD = { crab: { direct: async () => shellbackModel, tripo: () => tripoBuilder('crab') } };
+BUILD.hound = { direct: async () => broadHoundModel, tripo: tripoHound };
 
 /** The variant a kind is built in now. */
 export const chosen = {};

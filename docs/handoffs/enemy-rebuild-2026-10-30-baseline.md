@@ -360,6 +360,12 @@ The harness and the shellback pair are in `references/enemy-redesign-2026-10-30/
 the scripts, the pictures and the comparison table). Both new bodies cut the crab's draws from +99 to +15 a body on
 High (six: +594 to +90); Tripo used 30 credits. Neither is in the game until the author picks one.
 
+### Phase 2b results (hound)
+
+The hound pair is in the same folder (the trials README's hound section): a direct broad-pawed hound and a Tripo one
+(generation 30 credits, Tripo's quadruped rig 25, its weights kept on the game's bones). Both look at the traveller.
+Neither is in the game until the author picks one.
+
 ## 5. Decisions for the author
 
 1. **Completed:** all 45 selected originals are archived in the folders above; no download action remains.
