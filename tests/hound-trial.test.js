@@ -105,6 +105,40 @@ test('both look at the traveller: with him off to one side its head turns to him
   clearTargets();
 });
 
+test('the Tripo hound\'s cleanups (#800, the author\'s pick): big ram\'s horns of its own on the head\'s bone, its worlds\' props, a little more leg', () => {
+  const L = SRC.landmarks, P0 = SRC.geometry.attributes.position, C0 = SRC.geometry.attributes.color, head = new THREE.Vector3(...L.head);
+  // Tripo's own small horns are gone from the asset: no cream left above the head but the eyes' slits
+  let cream = 0; for (let i = 0; i < P0.count; i++) if (C0.getX(i) + C0.getY(i) + C0.getZ(i) > 2 && P0.getY(i) > head.y + 0.05) cream++;
+  assert.ok(cream < 20, `${cream} cream vertices above the head`);
+  assert.equal(L.hornRoot.length, 2);
+  // a little more leg: the kit's legs measure ≥ 0.9 m (0.77 before), the paws still on the ground
+  assert.ok(L.legExtra >= 0.15 && L.legExtra <= 0.25, `${L.legExtra} m more leg`);
+  const skinOfModel = (M) => { let sm = null; M.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; }); return sm; };
+  const props = {};
+  for (const id of Object.keys(SKINS.hound)) {
+    const M = tripoHoundModel(skinOf('hound', id), SRC), sm = skinOfModel(M), g = sm.geometry, P = g.attributes.position, J = g.attributes.skinIndex;
+    assert.ok(M.rig.length >= 0.9, `${id}: legs ${M.rig.length.toFixed(2)} m`);
+    let lo = Infinity; for (let i = 0; i < P0.count; i++) lo = Math.min(lo, P.getY(i));
+    assert.ok(Math.abs(lo) < 0.02, `${id}: its paws on the ground (${lo.toFixed(3)} m)`);
+    // the horns (and drips): added after the source's vertices, each on one bone; the horns on the head's
+    const added = []; for (let i = P0.count; i < P.count; i++) added.push(i);
+    const onHead = added.filter((i) => J.getX(i) === L.bones.indexOf('head'));
+    assert.ok(onHead.length > 300, `${id}: ${onHead.length} horn vertices on the head's bone`);
+    const top = Math.max(...onHead.map((i) => P.getY(i))), wide = Math.max(...onHead.map((i) => Math.abs(P.getX(i))));
+    assert.ok(top > head.y + 0.2 && wide > 0.25, `${id}: horns up to ${top.toFixed(2)} m, ${wide.toFixed(2)} m out (big curls beside the head)`);
+    const named = (n) => { let x = null; M.group.traverse((o) => { if (o.name === n) x = o; }); return x; };
+    props[id] = { added: added.length, drips: added.filter((i) => J.getX(i) !== L.bones.indexOf('head')).length, halo: named('halo'), glints: named('glints') };
+    // (the Garden of Spheres' halo and glints ride on the head's gaze bone: they turn with its look)
+    for (const n of ['halo', 'glints']) { const o = props[id][n]; if (!o) continue; let p = o; while (p && p !== M.gaze[0].node) p = p.parent; assert.ok(p, `${id}: its ${n} on the head's gaze bone`); }
+    M.dispose();
+  }
+  assert.ok(props.mangrove.drips >= 6 * 7, 'the Mangrove: ink drips hanging off it, in the skin');
+  for (const id of ['eclipse', 'spheres', 'bazaar']) assert.equal(props[id].drips, 0, `${id}: no drips`);
+  assert.ok(props.spheres.halo && props.spheres.glints, 'the Garden of Spheres: its halo and gold glints');
+  for (const id of ['eclipse', 'mangrove', 'bazaar']) assert.ok(!props[id].halo && !props[id].glints, `${id}: no halo, no glints`);
+  assert.ok(props.bazaar.added !== props.eclipse.added, 'the Market: its horns a tangle of wire');
+});
+
 test('the Tripo skin: 10–15k triangles, normalised weights, an exact bind, a shin bent alone moving only its own leg', () => {
   assert.ok(SRC.triangles >= 10000 && SRC.triangles <= 15000, `${SRC.triangles} triangles`);
   const M = tripoHoundModel(skinOf('hound', 'eclipse'), SRC);

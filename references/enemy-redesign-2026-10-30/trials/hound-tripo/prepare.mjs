@@ -11,11 +11,20 @@
 //    thigh, shin and foot): each Tripo joint is mapped to the game bone carrying the same stretch of the body (its
 //    duplicated left hind chain and stray tail branches onto the bones they lie along), summed, the four largest kept,
 //    normalised. Written as JOINTS_0 / WEIGHTS_0 in BONES's order.
-// 5. Decimated to TARGET triangles (meshoptimizer, colour borders and UV seams kept; the weights ride on the kept vertices).
-// 6. The landmarks the trial's rig is fitted to (game frame, m): each leg's hip, knee, ankle and foot, the neck, head,
-//    jaw line, eyes and the tail's joints, from the rig's own joints (their inverse bind matrices) and the mesh.
+// 5. The cleanups the author asked for when he picked it (2026-10-30):
+//    a. a little more leg (LEGS m): every vertex rises LEGS, less its share of each leg (that leg's weights) times how
+//       far down the leg it lies (0 at the hip, 1 at the ankle and below): the body rises, the paws stay on the ground
+//       as they are, the thighs and shins stretch; the rig's joints the same way.
+//    b. Tripo's horns taken off (it drew them small, thin crescents round the ears): the two cream pieces on the head,
+//       each of their vertices welded onto the nearest skull vertex round its root, so no hole is left; model.js puts
+//       the reference's big ram's horns back as their own shapes in the same skin (a world's own horns: bleached,
+//       wire). Their roots are landmarks.
+// 6. Decimated to TARGET triangles (meshoptimizer, colour borders and UV seams kept; the weights ride on the kept vertices).
+// 7. The landmarks the trial's rig is fitted to (game frame, m): each leg's hip, knee, ankle and foot, the neck, head,
+//    jaw line, eyes, the horns' roots and the tail's joints, from the rig's own joints (their inverse bind matrices) and
+//    the mesh; and two texels' UVs (cream, coat) for the parts model.js adds to the skin.
 //
-//   node references/enemy-redesign-2026-10-30/trials/hound-tripo/prepare.mjs [--target 12000]
+//   node references/enemy-redesign-2026-10-30/trials/hound-tripo/prepare.mjs [--target 12000] [--legs 0.2]
 // Deterministic: the same input writes the same bytes.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -29,7 +38,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '../../../..');
 const IN = join(ROOT, 'references/enemy-redesign-2026-10-30/hound/tripo/rigged.glb');
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
-const TARGET = +opt('--target', 12000), K = +opt('--colours', 7), TEX = 1024;
+const TARGET = +opt('--target', 12000), K = +opt('--colours', 7), TEX = 1024, LEGS = +opt('--legs', 0.2);
 /** The direct hound's top (src/enemies/plans/broad-hound.js HOUND.height). */
 const HEIGHT = 1.69;
 /** The game's bones, in the asset's JOINTS_0 order. Legs: 0 front right, 1 front left, 2 hind right, 3 hind left (as the kit builds them). */
@@ -106,8 +115,62 @@ for (let v = 0; v < n0; v++) {
   top.forEach((bi, i) => { J[v * 4 + i] = bi; W[v * 4 + i] = sum[bi] / tot; });
 }
 
-// ------------------------------------------------------------------ 5. decimated
-const [simp, err] = MS.simplifyWithAttributes(SI, P, 3, ATT, 3, [0.6, 0.6, 0.6], null, Math.min(SI.length, TARGET * 3), 0.05, ['LockBorder']);
+// ------------------------------------------------------------------ 5a. a little more leg
+// (the legs in the game frame from the rig's joints, before anything moves: hip and ankle, and the stretch's share)
+const legJoint = [['tripo::0_Right_Limb_0', 'tripo::0_Right_Limb_2'], ['tripo::0_Left_Limb_0', 'tripo::0_Left_Limb_2'], ['tripo::1_Right_Limb_0', 'tripo::1_Right_Limb_2'], ['bone_20', 'bone_22']]
+  .map(([h, a]) => [toGame(...jointAt(h)), toGame(...jointAt(a))]);
+const LEG_BONES = [0, 1, 2, 3].map((k) => ['thigh', 'shin', 'foot'].map((x) => BONES.indexOf(`leg${k}_${x}`)));
+/** How far down leg k a point lies: 0 at the hip, 1 at the ankle (clamped). */
+const down = (k, x, y, z) => { const [h, a] = legJoint[k], d = [a[0] - h[0], a[1] - h[1], a[2] - h[2]]; return Math.min(1, Math.max(0, ((x - h[0]) * d[0] + (y - h[1]) * d[1] + (z - h[2]) * d[2]) / (d[0] ** 2 + d[1] ** 2 + d[2] ** 2))); };
+/** A point's rise: LEGS, less each leg's share of it (weights) times how far down that leg it is. */
+const rise = (x, y, z, share) => LEGS * (1 - [0, 1, 2, 3].reduce((s, k) => s + share(k) * down(k, x, y, z), 0));
+const lifted = new Float32Array(n0);
+for (let v = 0; v < n0; v++) {
+  const share = (k) => { let w = 0; for (let i = 0; i < 4; i++) if (LEG_BONES[k].includes(J[v * 4 + i])) w += W[v * 4 + i]; return w; };
+  lifted[v] = rise(P[v * 3], P[v * 3 + 1], P[v * 3 + 2], share);
+}
+// (each vertex rises; a rig joint of leg k rises as that leg's own vertices do, any other joint the whole LEGS)
+const jointRise = (name, p) => { const k = [0, 1, 2, 3].find((k) => MAP[name] && LEG_BONES[k].includes(BONES.indexOf(MAP[name]))); return rise(...p, (j) => (j === k ? 1 : 0)); };
+
+// ------------------------------------------------------------------ 5b. Tripo's horns off
+// the cream pieces (the pale flat colour, welded across UV seams) whose middle is above the head's joint: the horns; the
+// muzzle (lower, ahead) and the eyes' small pale slits are kept
+const headJoint = toGame(...jointAt('tripo::Head_1'));
+const paleK = C.map((x, k) => [x[0] + x[1] + x[2], k]).sort((a, d) => d[0] - a[0])[0][1];
+const isPale = (v) => COL[v * 4] === C[paleK][0] && COL[v * 4 + 1] === C[paleK][1] && COL[v * 4 + 2] === C[paleK][2];
+const root = Int32Array.from({ length: n0 }, (_, i) => i), find = (x) => { while (root[x] !== x) x = root[x] = root[root[x]]; return x; };
+const at = new Map(); for (let v = 0; v < n0; v++) { const k = `${Math.round(P[v * 3] * 1e4)},${Math.round(P[v * 3 + 1] * 1e4)},${Math.round(P[v * 3 + 2] * 1e4)}`; if (!at.has(k)) at.set(k, v); else if (isPale(v) === isPale(at.get(k))) root[find(v)] = find(at.get(k)); }
+for (let t = 0; t < SI.length; t += 3) for (let a = 0; a < 3; a++) { const u = SI[t + a], w = SI[t + (a + 1) % 3]; if (isPale(u) === isPale(w)) root[find(u)] = find(w); }
+const pieces = new Map(); for (let v = 0; v < n0; v++) if (isPale(v)) { const r = find(v); if (!pieces.has(r)) pieces.set(r, []); pieces.get(r).push(v); }
+const horn = new Uint8Array(n0), hornPieces = [];
+for (const vs of pieces.values()) {
+  if (vs.length < 200) continue;
+  const my = vs.reduce((s, v) => s + P[v * 3 + 1], 0) / vs.length, mz = vs.reduce((s, v) => s + P[v * 3 + 2], 0) / vs.length;
+  if (my > headJoint[1] + 0.05 && mz < headJoint[2] + 0.12) { hornPieces.push(vs); for (const v of vs) horn[v] = 1; }
+}
+if (hornPieces.length !== 2) throw new Error(`expected two horns, found ${hornPieces.length}`);
+// each horn's root: the skull's vertices touching it; every horn vertex welded onto the nearest of them
+const rim = new Set();
+for (let t = 0; t < SI.length; t += 3) { const tri = [SI[t], SI[t + 1], SI[t + 2]]; if (tri.some((v) => horn[v])) for (const v of tri) if (!horn[v]) rim.add(v); }
+for (const v of [...Array(n0).keys()]) if (horn[v]) { const k = `${Math.round(P[v * 3] * 1e4)},${Math.round(P[v * 3 + 1] * 1e4)},${Math.round(P[v * 3 + 2] * 1e4)}`, w = at.get(k); if (w !== undefined && !horn[w]) rim.add(w); }
+const rimList = [...rim], weld = new Int32Array(n0).fill(-1);
+const d2 = (a, b) => (P[a * 3] - P[b * 3]) ** 2 + (P[a * 3 + 1] - P[b * 3 + 1]) ** 2 + (P[a * 3 + 2] - P[b * 3 + 2]) ** 2;
+for (let v = 0; v < n0; v++) if (horn[v]) { let best = -1, bd = Infinity; for (const r of rimList) { if (Math.sign(P[r * 3]) !== Math.sign(P[v * 3])) continue; const d = d2(v, r); if (d < bd) { bd = d; best = r; } } weld[v] = best; }
+const kept = [];
+for (let t = 0; t < SI.length; t += 3) {
+  const tri = [SI[t], SI[t + 1], SI[t + 2]].map((v) => (horn[v] ? weld[v] : v));
+  if (tri[0] !== tri[1] && tri[1] !== tri[2] && tri[0] !== tri[2]) kept.push(...tri);
+}
+const SK = Uint32Array.from(kept);
+const hornRoot = [1, -1].map((s) => { const rs = rimList.filter((r) => Math.sign(P[r * 3]) === s), a = [0, 1, 2].map((c) => rs.reduce((x, r) => x + P[r * 3 + c], 0) / rs.length); return { side: s, at: a, n: rs.length }; });
+// (the parts model.js adds sample these texels on the home skin: the muzzle's cream, the coat beside the horn's root)
+const muzzle = [...pieces.values()].filter((vs) => !hornPieces.includes(vs)).sort((a, b) => b.length - a.length)[0];
+const creamUV = [SUV[muzzle[0] * 2], SUV[muzzle[0] * 2 + 1]], coatUV = [SUV[rimList[0] * 2], SUV[rimList[0] * 2 + 1]];
+// and now every vertex rises
+for (let v = 0; v < n0; v++) P[v * 3 + 1] += lifted[v];
+
+// ------------------------------------------------------------------ 6. decimated
+const [simp, err] = MS.simplifyWithAttributes(SK, P, 3, ATT, 3, [0.6, 0.6, 0.6], null, Math.min(SK.length, TARGET * 3), 0.05, ['LockBorder']);
 const used = new Int32Array(n0).fill(-1); let nv = 0;
 for (const i of simp) if (used[i] < 0) used[i] = nv++;
 const out = { P: new Float32Array(nv * 3), N: new Float32Array(nv * 3), UV: new Float32Array(nv * 2), COL: new Uint8Array(nv * 4), J: new Uint8Array(nv * 4), W: new Float32Array(nv * 4) };
@@ -116,9 +179,9 @@ for (let v = 0; v < n0; v++) { const j = used[v]; if (j < 0) continue;
   out.COL.set(COL.subarray(v * 4, v * 4 + 4), j * 4); out.J.set(J.subarray(v * 4, v * 4 + 4), j * 4); out.W.set(W.subarray(v * 4, v * 4 + 4), j * 4); }
 const I = Uint32Array.from(simp, (i) => used[i]);
 
-// ------------------------------------------------------------------ 6. landmarks (game frame)
+// ------------------------------------------------------------------ 7. landmarks (game frame)
 const T = (a) => toGame(...a).map((x) => +x.toFixed(4));
-const J3 = (n) => T(jointAt(n));
+const J3 = (n) => { const p = toGame(...jointAt(n)); p[1] += jointRise(n, p); return p.map((x) => +x.toFixed(4)); };
 const legs = [
   { side: -1, front: true, hip: J3('tripo::0_Right_Limb_0'), knee: J3('tripo::0_Right_Limb_1'), ankle: J3('tripo::0_Right_Limb_2'), toe: J3('tripo::0_Right_Limb_4') },
   { side: 1, front: true, hip: J3('tripo::0_Left_Limb_0'), knee: J3('tripo::0_Left_Limb_1'), ankle: J3('tripo::0_Left_Limb_2'), toe: J3('tripo::0_Left_Limb_4') },
@@ -134,11 +197,11 @@ const eyes = [1, -1].map((s) => { const a = [0, 0, 0]; let k = 0;
   for (let v = 0; v < n0; v++) { const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2];
     if (x * s < 0.02 || Math.abs(x) > 0.16 || y < headAt[1] - 0.05 || y > headAt[1] + 0.16 || z < headAt[2] + 0.02 || z > headAt[2] + 0.2) continue;
     sample(srcTex, SUV[v * 2], SUV[v * 2 + 1], c); const r = c[0], g = c[1], bl = c[2];
-    if (!(r + g + bl > 420 && near(r, g, bl) === pale)) continue; a[0] += x; a[1] += y; a[2] += z; k++; }
+    if (horn[v] || !(r + g + bl > 420 && near(r, g, bl) === pale)) continue; a[0] += x; a[1] += y; a[2] += z; k++; }
   return k ? { side: s, at: a.map((x) => +(x / k).toFixed(4)), n: k } : null; });
 const tail = ['bone_32', 'tripo::Tail_0', 'tripo::Tail_1', 'tripo::Tail_2', 'bone_41'].map(J3);
-const landmarks = { frame: 'game: +z ahead, +y up, metres, feet on y 0', scale: +S.toFixed(5), height: HEIGHT, bones: BONES, legs,
-  neck: neckRoot, headBase: neckAt, head: headAt, eyes, tail, palette: C.map((x) => '#' + x.map((y) => y.toString(16).padStart(2, '0')).join('')) };
+const landmarks = { frame: 'game: +z ahead, +y up, metres, feet on y 0', scale: +S.toFixed(5), height: HEIGHT, legExtra: LEGS, bones: BONES, legs,
+  neck: neckRoot, headBase: neckAt, head: headAt, eyes, hornRoot: hornRoot.map((h) => ({ side: h.side, at: [h.at[0], h.at[1] + LEGS, h.at[2]].map((x) => +x.toFixed(4)), n: h.n })), creamUV, coatUV, tail, palette: C.map((x) => '#' + x.map((y) => y.toString(16).padStart(2, '0')).join('')) };
 writeFileSync(join(HERE, 'landmarks.json'), JSON.stringify(landmarks, null, 1) + '\n');
 
 const glb = writeGlb({ attrs: { POSITION: out.P, NORMAL: out.N, TEXCOORD_0: out.UV, COLOR_0: out.COL, JOINTS_0: out.J, WEIGHTS_0: out.W }, indices: I, image: png, name: 'hound tripo lod',

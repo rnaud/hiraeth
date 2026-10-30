@@ -11,16 +11,16 @@
     "strike": 0.28,
     "recover": 1.2,
     "size": [
-     1.33,
-     1.81,
-     2.38
+     1.45,
+     2.07,
+     2.59
     ],
     "speed": 5.6,
     "inventory": [
      {
       "meshes": 5,
       "skinned": 1,
-      "triangles": 13993,
+      "triangles": 15120,
       "materials": 4,
       "textures": 1,
       "textureMB": 5.33
