@@ -15,7 +15,8 @@ const BUILT = Object.keys(SURFACES);
 const planSources = {
   crab: readFileSync(new URL('../src/enemies/plans/shellback-tripo.js', import.meta.url), 'utf8'),
   lizard: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
-  hound: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
+  // (the hound's world surfaces are its direct fallback's, #800: the Tripo body wears its texture and vertex colours)
+  hound: readFileSync(new URL('../src/enemies/plans/broad-hound.js', import.meta.url), 'utf8'),
   tripod: readFileSync(new URL('../src/enemies/plans/piston.js', import.meta.url), 'utf8'),
   blot: readFileSync(new URL('../src/enemies/plans/blob.js', import.meta.url), 'utf8'),
   centipede: readFileSync(new URL('../src/enemies/plans/centipede.js', import.meta.url), 'utf8'),
@@ -99,7 +100,7 @@ test('every skin’s surfaces resolve from its palette, on parts its body really
   for (const a of BUILT) {
     assert.ok(SKINS[a], `${a}: an archetype with skins`);
     const src = planSources[a];
-    const parts = new Set([...src.matchAll(/M\.(?:mat|own)\([`'"]([a-z0-9]+)/g)].map((m) => m[1]));
+    const parts = new Set([...src.matchAll(/(?:M\.(?:mat|own)\(|worldPaint\(skin, )[`'"]([a-z0-9]+)/g)].map((m) => m[1]));
     for (const [skin, table] of Object.entries(SURFACES[a])) {
       if (skin !== '*') assert.ok(SKINS[a][skin], `${a}: a skin ${skin}`);
       for (const name of Object.keys(table)) assert.ok(parts.has(name), `${a}.${skin}: ${name} is a part of its body`);
@@ -144,7 +145,9 @@ test('every built archetype wears a painted surface in every skin, at no extra d
       const m = archetypeModel(ARCHETYPES[a].kind, w);
       let painted = 0, meshes = 0;
       m.group.traverse((o) => { if (o.isMesh) { meshes++; if (o.material?.defines?.FOE_SURFACE) painted++; } });
-      assert.ok(painted > 0, `${a}@${w}: painted`);
+      // (a Tripo body is painted by its own flat texture or vertex colours, #800: the hound's)
+      let own = 0; if (m.body3d === 'tripo') m.group.traverse((o) => { if (o.isSkinnedMesh && (o.material?.vertexColors || o.material?.uniforms?.uMap?.value || o.material?.map)) own++; });
+      assert.ok(painted > 0 || own > 0, `${a}@${w}: painted`);
       m.dispose?.();
     }
   }

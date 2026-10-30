@@ -39,7 +39,7 @@ test('the worlds’ old kinds are all gone: the last stand-ins (the glass golem,
   assert.deepEqual(Object.keys(NOTES), []);
   for (const k of ['golem', 'slag']) assert.ok(!FOES[k], `${k} retired`);
   assert.equal(kindModel('golem'), null);
-  assert.equal(waveWords(['crab', 'crab', 'hound']), '2 shellback crabs and 1 antler hound');
+  assert.equal(waveWords(['crab', 'crab', 'hound']), '2 shellback crabs and 1 horned hound');
   assert.equal(waveWords(['lizard@bazaar', 'lizard@bazaar', 'blot']), '2 coin lizards and 1 ink blot', 'a skin by its name');
   for (const k of ['brute', 'drone', 'cart', 'bell']) assert.ok(WAVES.some((w) => w.includes(k)), `${k} in the Arena's waves`);
 });

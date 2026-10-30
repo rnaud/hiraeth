@@ -6,6 +6,8 @@
 //   node scripts/enemy-roster/bench.mjs [--commit <sha>] [--quality high|deck|low] [--size 1280x720] [--seconds 8]
 //     [--pack crab@arzach2,crab@saltharbour,lizard@incal,…] [--shot file.png] [--level arzach2: in a world, for its look]
 //     [--variant current|direct|tripo: the pack's kinds built in an enemy-rebuild trial variant, #800's trials/variants.js]
+//     [--solid: each foe lit, so a shadowy one (the hound) stands solid, not a pool; --pack none: the empty control]
+// It reports the median frame, CPU and GPU ms and draws, and the memory after the run (JS heap, renderer.info.memory).
 // --commit measures that commit (extracted with git archive into $TMPDIR, this checkout's node_modules linked in,
 // deleted after); without it, this checkout. One Vite (PORT, default 5480; never 5173), one Chrome (CDP: PORT + 1).
 // Headless timings are for comparing a before with an after on one machine, not absolute numbers.
@@ -27,7 +29,8 @@ process.env.PORT = String(PORT);
 const { serve, chrome } = await import('../changelog-shots.mjs');
 const [W, H] = arg('size', '1280x720').split('x').map(Number);
 const QUALITY = arg('quality', 'high'), SECONDS = Number(arg('seconds', 8));
-const PACK = arg('pack', 'crab@arzach2,crab@saltharbour,lizard@incal,lizard@bazaar,hound@spheres,tripod@incal,blot@desert,blot@garage,centipede@buried,jelly@arzach2,moth@perdide2,ray@arzach').split(',');
+const PACK_ARG = arg('pack', 'crab@arzach2,crab@saltharbour,lizard@incal,lizard@bazaar,hound@spheres,tripod@incal,blot@desert,blot@garage,centipede@buried,jelly@arzach2,moth@perdide2,ray@arzach');
+const PACK = PACK_ARG === 'none' ? [] : PACK_ARG.split(','), SOLID = args.includes('--solid');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let dir = ROOT, work = null;
@@ -64,7 +67,7 @@ try {
     const update = foes.update.bind(foes);
     foes.update = () => { for (const x of foes.list) foes.look(x, 1 / 60); };
     for (const x of [...foes.list]) foes.remove(x);
-    const made = pack.map((id, i) => { const at = P.clone().addScaledVector(f, 7 + (i % 3) * 2.2).addScaledVector(r, ((i / 3) | 0) * 2.4 - 3.6); try { const x = foes.add(id, at); if (x) { x.heading = Math.atan2(-f.x, -f.z); x.provoked = true; foes.look(x, 0); } return x ? id : null; } catch (e) { return 'x:' + id + ' ' + e.message; } });
+    const made = pack.map((id, i) => { const at = P.clone().addScaledVector(f, 7 + (i % 3) * 2.2).addScaledVector(r, ((i / 3) | 0) * 2.4 - 3.6); try { const x = foes.add(id, at, { tier: 0 }); if (x) { x.heading = Math.atan2(-f.x, -f.z); x.provoked = true; if (${SOLID}) x.lit = 99; foes.look(x, 0); } return x ? id : null; } catch (e) { return 'x:' + id + ' ' + e.message; } });
     const eye = P.clone().addScaledVector(f, -3).add(new THREE.Vector3(0, 3.2, 0)), at = P.clone().addScaledVector(f, 9).add(new THREE.Vector3(0, 0.8, 0));
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new THREE.Vector3(0, 1, 0)));
     const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
@@ -84,7 +87,7 @@ try {
     const memory = { geometries: R.geometries, textures: R.textures, foeGeometryMB: mb(geo), foeTextureMB: mb(tex), heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 2 ** 20).toFixed(1) : null };
     return { frames: B.frames.length, frame: med(B.frames), cpu: med(B.cpu), gpu: med(B.gpu), gpuFrames: B.gpu.length, calls: med(B.calls), tris: med(B.tris), timer: !!B.ext, memory }; })()`);
   if (arg('shot')) { const { writeFileSync } = await import('node:fs'); const shot = await c.send('Page.captureScreenshot', { format: 'png' }); writeFileSync(arg('shot'), Buffer.from(shot.data, 'base64')); }
-  console.log(JSON.stringify({ commit: arg('commit') ?? 'worktree', quality: QUALITY, variant: VARIANT, size: `${W}x${H}`, ...info, ...r, errors: c.errors.slice(0, 3) }));
+  console.log(JSON.stringify({ commit: arg('commit') ?? 'worktree', quality: QUALITY, variant: VARIANT, level: arg('level', 'arena'), solid: SOLID, size: `${W}x${H}`, ...info, ...r, errors: c.errors.slice(0, 3) }));
 } finally {
   await c.close();
   await server.close();

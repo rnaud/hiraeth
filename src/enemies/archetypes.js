@@ -600,29 +600,30 @@ export const ARCHETYPES = {
     note: 'A shade: parry and riposte; when its sword drops to the hip, step aside.',
   },
   hound: {
-    name: 'antler hound', family: 'spirit', plan: 'quadruped', planNo: 6, role: 'stalker', tier: 4, ranged: false,
-    status: 'built', kind: 'hound', was: ['shadow hound'], sound: 'smoke', drop: 4, art: { main: 'spheres', alt: 'mangrove' },
+    name: 'horned hound', family: 'spirit', plan: 'quadruped', planNo: 6, role: 'stalker', tier: 4, ranged: false,
+    status: 'built', kind: 'hound', was: ['shadow hound', 'antler hound'], sound: 'smoke', drop: 4, art: { main: 'spheres', alt: 'mangrove' },
     manifestation: 'a shadow cast by nothing: it runs as a flat shadow and rises out of it into a body',
-    moves: ['pounce', 'step behind', 'antler rake'], answers: ['ember (solid, and it burns: 2)', 'the lantern', 'parry'],
+    moves: ['pounce', 'step behind', 'horn rake'], answers: ['ember (solid, and it burns: 2)', 'the lantern', 'parry'],
     idle: 'shadows lie under trees and arches where there shouldn’t be any; one stands up and watches you go; not every one hunts',
     def: S({
-      name: 'antler hound', hp: 3, hook: 'light', radius: 0.55, height: 1.15, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
+      name: 'horned hound', hp: 3, hook: 'light', radius: 0.55, height: 1.15, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
       tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
       calm: { mode: 'lie', provoke: 11, hunts: 0.7, alarm: 12 },
       attacks: [
         // (wind 0.8 until v1.63: its most frequent blow, read a beat late, combat-v1.61 #260. Now a crouch, then the coil:
-        // the rump up, the smoke of its mane on end, a shiver and a snarl, held to 1.0 s; and picked less often)
+        // the rump up, the smoke of its mane on end, a shiver and a snarl, held to 1.0 s; and picked less often. Since #800
+        // the broad-pawed body: its tail stiff for the mane)
         { id: 'pounce', name: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.5, wind: 1.0, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.0, cue: 'coil',
-          tell: 'it crouches, the antlers dipping forward and the shoulders bunching; then it coils, rump up, its smoke on end, shivering, and snarls', counter: 'evade as it snarls, or parry and riposte' },
+          tell: 'it crouches, the horns dipping forward and the shoulders bunching; then it coils, rump up, its tail stiff, shivering, and snarls', counter: 'evade as it snarls, or parry and riposte' },
         { id: 'step', name: 'step behind', shape: 'ring', at: 'behind', instant: true, radius: 1.3, track: 0.5, damage: 0, blink: true, wind: 0.9, then: 'bite', min: 2.5, max: 7,
           tell: 'it sinks into its shadow, which slides round you; a growl behind you', counter: 'turn and guard; ember makes it solid at once' },
         { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.5, wind: 0.55, strike: 0.2, contact: 0.5 },
-        { id: 'rake', name: 'antler rake', shape: 'cone', range: 2.9, angle: 1.15, damage: 0.75, wind: 1.0, strike: 0.3, contact: 0.5, max: 2.8, below: 0.67, weight: 2,
-          tell: 'its head low and to one side, the antlers lowered like a plough', counter: 'step back out of the sweep, or guard' },
+        { id: 'rake', name: 'horn rake', shape: 'cone', range: 2.9, angle: 1.15, damage: 0.75, wind: 1.0, strike: 0.3, contact: 0.5, max: 2.8, below: 0.67, weight: 2,
+          tell: 'its head low and to one side, the horns lowered like a plough', counter: 'step back out of the sweep, or guard' },
       ],
       recover: 1.2, cool: [1.1, 2.0],
     }),
-    note: 'Antler hounds: only shadows far off. Cut as they rise, or use an ember.',
+    note: 'Horned hounds: only shadows far off. Cut as they rise, or use an ember.',
   },
   marionette: {
     name: 'marionette', family: 'spirit', plan: 'strings', planNo: 21, role: 'puppeteer', tier: 4, ranged: true,

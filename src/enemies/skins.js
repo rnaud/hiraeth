@@ -196,7 +196,8 @@ export const SKINS = {
     // like wet ink, sage and lilac smoke, small turquoise eyes)
     eclipse: { name: 'night hound', palette: { ink: '#15121c', rim: '#3b2a5c', antler: '#d6c2ff', eye: '#d6c2ff', glow: '#d6c2ff', smoke: '#3b2a5c', smoke2: '#5a4686' }, props: ['crescent'] },
     mangrove: { name: 'driftwood hound', palette: { ink: '#1a1a20', rim: '#3a3a44', antler: '#ebe3d1', eye: '#6fe0d0', glow: '#6fe0d0', smoke: '#a3c1ab', smoke2: '#c2b0dc' }, props: ['bleached', 'drips'] },
-    spheres: { name: 'halo hound', palette: { ink: '#1a1521', rim: '#3a2c4e', antler: '#241c2e', eye: '#f4f0ff', glow: '#dcb860', smoke: '#4a3868', smoke2: '#8676a6' }, props: ['halo', 'glints'] },
+    // (its muzzle pale, the pearl of its halo: on the broad-pawed body it took the horns' black, #800)
+    spheres: { name: 'halo hound', palette: { ink: '#1a1521', rim: '#3a2c4e', antler: '#241c2e', muzzle: '#d8cfe4', eye:'#f4f0ff', glow: '#dcb860', smoke: '#4a3868', smoke2: '#8676a6' }, props: ['halo', 'glints'] },
     bazaar: { name: 'alley hound', palette: { ink: '#16141a', rim: '#3a3440', antler: '#b39464', eye: '#ffb8d0', glow: '#ff9ac0', smoke: '#3a3440', smoke2: '#5a4a58' }, props: ['wire'] },
   },
   marionette: {

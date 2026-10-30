@@ -187,7 +187,7 @@ export function broadHoundModel(skin) {
   const glowRim = add(g, new THREE.RingGeometry(0.62, 0.72, 24).scale(0.95, 1.7, 1).rotateX(-Math.PI / 2), M.own('glow', P.glow, { glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
   const rising = pivot(g, 0, 0, 0.4, 'rising');
   add(rising, new THREE.SphereGeometry(1, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.15, 0.16, 0.22), poolM);
-  add(rising, merged([...hornGeometries(props, 0.85).map((x) => x.translate(0, 0.06, -0.02)), new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.1, 0.07, 0.11).translate(0, 0, 0.17)]), M.mat('bhRiseLight', P.antler, { flat: true, lineWhite: white }));
+  add(rising, merged([...hornGeometries(props, 0.85).map((x) => x.translate(0, props.has('wire') ? 0.11 : 0.06, -0.02)), new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.1, 0.07, 0.11).translate(0, 0, 0.17)]), M.mat('bhRiseLight', P.antler, { flat: true, lineWhite: white }));
   add(rising, merged(pair((s) => new THREE.SphereGeometry(0.04, 8, 6).scale(1, 0.55, 1).translate(s * 0.08, 0.08, 0.15))), eyeM);
   // ---------------------------------------------------------------- its look at you, one skinned mesh in the dark and one in the light
   // (its eyes on you once it has noticed you, on its way before: src/enemies/gaze.js, issue #508)

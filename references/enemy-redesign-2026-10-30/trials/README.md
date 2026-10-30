@@ -39,6 +39,8 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `hound-tripo/prepare.mjs` | the rigged export into the trial asset: frame and size, flat texture, vertex colours, Tripo's weights gathered onto the game's bones, the 12k LOD, landmarks from the rig's joints |
 | `hound-tripo/model.js`, `node-source.mjs` | the Tripo hound on the quadruped plan (bend-plane leg bones, its head the gaze's bone; its horns, drips, glints and halo); the asset in node |
 | `hound-tripo/skins-shot.mjs` | every world skin of the hound, current beside Tripo: three-quarter, flank and head stills, and the sheet `hound/skins/skins.webp` |
+| `scripts/tripo/ship-hound.mjs` | the trial asset made into the game's (`public/enemies/hound/body.glb`: the texture at 512², the landmarks in the mesh's extras) |
+| `world-shot.mjs` | a foe as the game builds it, in its own worlds as you land (three-quarter, flank, head, wide; `--attack` its wind-up and leap, its pool): a before/after by hand (`ROOT=` another tree) |
 | `gaze-one.mjs` | the same check for one variant or the row, the traveller to the foe's right front (the wood cutter's gaze pictures) |
 | `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its trial asset: 2.4 m, decimated by geometry, cut into parts by geometry (Tripo's saw hand dropped), the texture repainted by part in the reference's colours with swatches, COLOR_0, landmarks (the cuts, the head's sphere, the visor, the disc) |
 | `mummer-tripo/generate.mjs`, `prepare.mjs` | the dune mummer's Tripo generation and rig (to `../keep-mummer/tripo/`) and its trial asset: 1.2 m, 12k LOD on Tripo's weights, the mittens widened, eight flat colours by part, COLOR_0, the skeleton (`--no-repaint --no-widen`: phase 2's asset) |
@@ -328,7 +330,7 @@ as the fallback. **The author picked Tripo (2026-10-30); the cleanups are done (
 
 ### The cleanups (the author's pick, 2026-10-30)
 
-On the Tripo body only; the game keeps today's hound (`TRIAL_BUILDERS` empty). No new generation (0 credits).
+On the Tripo body only (then; it is the game's hound since, below). No new generation (0 credits).
 
 1. **Big ram's horns, their own shapes.** Tripo drew the horns as thin crescents hugging the ears, too small to read as
    the reference's. Scaling them about a root would have stretched the ears they are sewn to, so `prepare.mjs` takes
@@ -361,15 +363,29 @@ On the Tripo body only; the game keeps today's hound (`TRIAL_BUILDERS` empty). N
 
 ![every world skin: today's hound, then the Tripo hound three-quarter, flank and head](hound/skins/skins.webp)
 
-### Not done
+### In the game (2026-10-30)
 
-- The combat review's `defend.mjs` / `dodge.mjs` and the sound QC renders on the new bodies (attacks, windows and sound
-  keys are the hound's own, unchanged; the pounce, coil and rake poses were checked in the strips and tests).
-- Unity: neither body is wired there; the trial is web only. The Tripo asset carries COLOR_0 for the engines' VMs.
-- The skins' pictures are in the Arena's daylight, not in each world (the Garden of Spheres' black hound is drawn for
-  a pale world). The muzzle takes the horns' colour on every skin, as the direct's: on the Garden of Spheres a dark
-  muzzle.
-- The shadow form's rising head keeps the direct's smaller horns (`hornGeometries`, 0.85).
+The Tripo hound is the game's hound now, the **horned hound** (the same id, def, windows, sounds, gaze, shadow form,
+death and lying body): `src/enemies/plans/hound-tripo.js` (this folder's `model.js` re-exports its builder for the trial
+page), its asset `public/enemies/hound/body.glb` made from `tripo-lod.glb` by `scripts/tripo/ship-hound.mjs` (texture 1024² →
+512² nearest, which still reads: its seven flat colours stay flat; the horns' and drips' texels moved to the middle of
+a patch of their colour, as at 512² the cream texel sat within a texel of the saddle's mauve and the horns came out
+grey; the landmarks in the mesh's extras). It loads as the shellback's does (main.js and the gallery fetch it before the foes are
+made, the engines and Node read it at once); the direct body (`broad-hound.js`) is its fallback. The trial page's `current` is now this body. See
+docs/systems/foes.md, "The horned hound in the game". What the trial left open, done there:
+- Every world skin pictured in its own world (`world-shot.mjs`: the Eclipse, the Mangrove, the Garden of Spheres and
+  the Signal Market as you land, 10:00; the changelog's v2.38 pairs). The Garden of Spheres' muzzle was the horns' black:
+  now pale (`muzzle` in its palette; the horns and muzzle are told apart, the horns being the vertices added after the
+  mesh's).
+- The shadow form's rising head wears the new swept horns (0.85 of the body's, a world's own; the home skin's in the
+  texture's cream). The direct fallback's wire horns there were lifted 5 cm (a running Market hound's pool stood
+  0.29 m, under the 0.3 m every flat foe shows, tests/foe-presence.test.js).
+- The combat review's `defend.mjs` and `dodge.mjs` and the sound QC's foes, and Unity (vertex colours; `-fight hounds`).
+- The bench in real worlds and the Arena's arrivals: the changelog's numbers (`hound/bench-worlds.jsonl`: six solid
+  hounds against the empty world, the Eclipse and the Signal Market, High and Handheld, before at 192711a63, two rounds
+  alternated, load 19–35; draws 358 → 28 and 432 → 28 on High, 231 → 21 and 280 → 23 on Handheld, triangles about three
+  times as many, CPU and GPU ms not separable at this load; `hound/arrivals.jsonl`: no program compiled and no frame
+  over 33.3 ms as a hound of any look arrives in the Arena, as before).
 
 ## Dune mummer (`mummer` on the trial page; its own enemy `dunemummer` later), phase 2 and its fixes
 

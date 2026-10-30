@@ -2418,7 +2418,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   |---|---|---|---|---|
   | shellback crab (`crab`) | a low wide dome, two raised pincers, six legs splayed like a table | snap (0.75 s; a parry chips it), shell spin (1.1 s; guarded, it flips), burrow and pinch (1.2 s; Salt Harbour and Underwater only) | parry, dash cut to its side, bombs, ember; the shell glances a light cut from the front, a heavy blow bites through at half (`SHELL`, v1.41; hp 3, was 4: the author found it took too many hits) | grazes, backs away, fights at 3.2 m or cornered |
   | horn lizard (`lizard`) | long and low, a curled tail, a brass trumpet for a snout | blare (1.0 s; shoves you toward its partner), flank bite (0.8 s; only from behind you), tail whip (1.15 s; only at its back) | parry and riposte on the bite, dash cut past the blarer, split the pair | basks on its stones; territorial within 6 m |
-  | antler hound (`hound`) | lean, tall, a crown of antlers wider than its body; running, a shadow | pounce (1.0 s, a crouch then the coil and a snarl; 0.8 s until v1.63), step behind (0.9 s) then bite, antler rake (1.0 s; under two thirds of its health) | ember (solid, 2), parry; the blade passes through its running shadow | lies as a shadow; some only watch |
+  | horned hound (`hound`; the antler hound until v2.38, #800) | a long, deep-chested dark hound on big paws, a saddle on its withers, two big ram's horns; running, a shadow | pounce (1.0 s, a crouch then the coil and a snarl; 0.8 s until v1.63), step behind (0.9 s) then bite, antler rake (1.0 s; under two thirds of its health) | ember (solid, 2), parry; the blade passes through its running shadow | lies as a shadow; some only watch |
   | lamp tripod (`tripod`) | a lighthouse on stilts, 3.5 m: a boiler, a searchlight, three piston legs; a face at the porthole | beam and bolt (1.4 s; the light follows, then locks), stamp (1.35 s), steam vent (1.0 s) | cover breaks the beam, dash under it, the magnet glove, a perfect parry sends the bolt back | patrols sweeping its lamp; always hostile |
   | ink blot (`blot`) | a squat ink drop with two white eyes, a rim of the ground's colour | lunge (0.7 s), lunge combo, spit (1.2 s; a lob with its landing mark, once you keep away) | everything: it teaches the combo, the guard and the shot | lies pooled, stands up as you come near |
 
@@ -2819,8 +2819,33 @@ slate crab of `plans/walker.js` is gone; the direct shellback (`plans/shellback.
   contract, weights, lip, jaw, gaze, the fight), `tests/motion-plans.test.js` (its walk, by its foot bones:
   `leg.root.lowest`), `tests/foe-gaze-mirror.test.js`.
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
-rig family); its Tripo body (`trials/hound-tripo/`) carries Tripo's own rig weights gathered onto the game's bones
-(`tests/hound-trial.test.js`).
+rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)
+and is the game's hound now (below).
+
+### The horned hound in the game (v2.38, issue #800, `src/enemies/plans/hound-tripo.js`)
+
+The author picked the Tripo hound; it replaces the antler hound everywhere the `hound` archetype is fielded (every
+world, the Arena, the fight temples, the gallery), the same id, def, attacks and windows, reach, `phase`, sounds,
+gaze, death recipe, lying body and size; its name is now the **horned hound** (`was` keeps "antler hound"). Its asset is
+`public/enemies/hound/body.glb` (540 KB, 337 KB gzipped: 12.0k triangles on 16-bit indices, COLOR_0, Tripo's weights
+on the game's nineteen bones, a 512² flat texture of seven colours, the landmarks in the mesh's extras), made from the
+trial's `tripo-lod.glb` by `scripts/tripo/ship-hound.mjs` (the texture taken down nearest, the horns' and drips' texels
+moved to the middle of a patch of their colour). It loads as the shellback crab's does: read without three's loader
+(`parseHound`); a browser fetches it (`loadHoundBody`, asked for with the load's early assets in main.js and awaited
+before `wireFight`, a 30 s deadline; the gallery awaits it too), the engines and Node read it at once on the first hound
+built. Without it the hound is the direct broad-pawed body (`houndModel`: `body3d` says which). The load's warm builds it like any body, so its
+programs (the skinned mesh in the texture, and in the vertex colours) compile behind the loading screen and the Arena's
+first hound of a skin arrives with none to make (`scripts/enemy-roster/arrivals.mjs`, `tests/hound.test.js`).
+
+On the hound's rig family: the kit's quadruped plan, its legs fitted to the rig's own joints, thigh, shin and foot bones
+in each leg's bend plane (`SkinLegs`); the head the gaze's bone. Its ram's horns are swept from the landmarks' roots into
+the same skinned mesh (bleached thicker in the Mangrove, a tangle of wire in the Market); the Mangrove's drips hang in
+the skin; the Garden of Spheres' glints and halo ride the head's gaze bone (its muzzle pale, the skins' `muzzle`, not
+the horns' black). Its shadow form's rising head wears the same swept horns, smaller. The home skin is drawn by its
+texture on the web; in the engines (no picture decoded: `engine/boot.js` `COLOURED_PICTURES`) by the asset's own vertex
+colours, as every other skin is (their colours recoloured by role: coat shades, saddle, muzzle, horns). Unity's player
+copies the GLB (`BridgeBuild.cs`); an engine without it builds the direct body. Draws standing: 2 (the skin, the eyes),
+4 in the Garden of Spheres; the old antler hound drew 54 meshes. Tests: `tests/hound.test.js`, `tests/hound-trial.test.js`.
 A trial body of another size carries `trialDef(def)` (the wood cutter's: `src/enemies/plans/woodcutter.js`
 `woodcutterDef`, the brute's def with its reach scaled to 2.4 m and every timing window kept); `Foes.add` lays it over
 the foe's def as the body is built, so the page, the capture and the bench fight the body they draw. No game body has

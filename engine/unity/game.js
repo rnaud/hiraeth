@@ -65,6 +65,8 @@ watchSceneEdits();
 
 let S = null;
 const now = () => host.Now();
+/** A shadowy foe's state, said in a log (-fight hounds): solid, phased or lying in wait. */
+const solidWord = (f) => (f.phased ? 'phased' : f.state === 'idle' && !f.provoked ? 'lying in wait' : 'solid');
 // (the page's timers, frames and listeners written into the world now running, so a world swapped in place lets go of
 // its own: src/world-scope.js, as the web's swap does, issue #792)
 installScopes(globalThis);
@@ -962,6 +964,18 @@ function makePlan(args) {
       { kind: 'foe', what: 'strip' }, { kind: 'wait', frames: 100, secs: 2 }, ...shot('off'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'bell@bazaar*', dist: 5, hp: 99 }, { kind: 'wait', frames: 90, secs: 2 }, ...shot('tier'));
   }
+  if (fights.includes('hounds')) {
+    // (-fight hounds, issue #800: the broad-pawed Tripo hound in each of its skins, 4.5 m ahead, kept solid (lit), standing;
+    // its body said (the Tripo body or the direct fallback, drawn by vertex colours); then its pounce wound up to the coil;
+    // then lying in wait, its pool and the horned head rising out of it)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-hounds-${name}.png` }] : []);
+    for (const skin of ['eclipse', 'mangrove', 'spheres', 'bazaar']) {
+      steps.push({ kind: 'wait', frames: 40, secs: 1 }, { kind: 'foe', what: 'clear' }, { kind: 'foe', what: `hound@${skin}`, dist: 4.5, hp: 99, tier: 0 },
+        { kind: 'foe', what: 'aside', kinds: ['hound'] }, { kind: 'foe', what: 'houndlog', solid: true }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'houndlog', look: true }, ...shot(`${skin}-stand`));
+      if (skin === 'eclipse') steps.push({ kind: 'foe', what: 'houndpounce' }, { kind: 'wait', frames: 48, secs: 0.8 }, { kind: 'foe', what: 'houndlog', look: true }, ...shot('eclipse-coil'),
+        { kind: 'foe', what: 'houndlog', solid: false }, { kind: 'wait', frames: 60, secs: 1.5 }, ...shot('eclipse-pool'));
+    }
+  }
   if (fights.includes('mummers')) {
     // (-fight mummers, issue #724: the humanoid foes on clips, src/enemies/humanoid-rig.js: a mummer king 7 m ahead and a
     // mummer 4.5 m ahead, standing; their rig said (the clips in, the state's clip); then each winds up its first blow,
@@ -1670,6 +1684,20 @@ function playFrame(dt) {
         let n = 0, tinted = 0; f.model?.group?.traverseVisible?.((o) => { if (o.isMesh) { n++; if (o.material?.vertexColors || o.geometry?.attributes?.color) tinted++; } });
         console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);
       }
+    } else if (step.what === 'houndlog') {
+      // (-fight hounds, #800: each hound held solid (lit) or left to lie in wait; its body and how it is drawn)
+      for (const f of F.list.filter((x) => x.alive && x.kind === 'hound')) {
+        const p = game.player.pos;
+        if (step.look) { console.log(`[unity] hound@${f.skin} ${solidWord(f)}, ${f.state}${f.atk ? ' ' + f.atk.id + ' ' + f.k.toFixed(2) : ''}, ${Math.hypot(f.pos.x - p.x, f.pos.z - p.z).toFixed(1)} m from him, drawn ${f.model.group.visible && f.model.body.visible}`); continue; }
+        // (held where it stands, facing him: its mind stopped, its body still posed each frame by Foes.look)
+        f.update = () => []; f.heading = Math.atan2(p.x - f.pos.x, p.z - f.pos.z);
+        if (step.solid) { f.lit = 99; f.provoked = true; f.state = 'idle'; f.atk = null; } else { f.lit = 0; f.provoked = false; f.watcher = false; f.state = 'idle'; f.atk = null; }
+        let n = 0, vc = 0, map = 0; f.model.group.traverse((o) => { if (o.isMesh) { n++; const m = o.material; if (m?.vertexColors) vc++; if (m?.map || m?.uniforms?.uMap?.value) map++; } });
+        console.log(`[unity] hound@${f.skin}: ${f.model.body3d ?? 'kind'} body, ${n} meshes (${vc} vertex-coloured, ${map} textured), ${solidWord(f)}`);
+      }
+    } else if (step.what === 'houndpounce') {
+      // (held at 80 % of the wind-up, its coil: its mind stopped by houndlog)
+      for (const f of F.list.filter((x) => x.alive && x.kind === 'hound')) { f.atk = f.def.attacks.find((x) => x.id === 'pounce'); f.state = 'wind'; f.k = 0.8; }
     } else if (step.what === 'windup') {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }
     } else if (step.what === 'kill') {

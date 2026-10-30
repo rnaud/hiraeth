@@ -5,21 +5,16 @@ import { VerletChain } from '../../motion-kit/chain.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 import { gazePart } from '../gaze.js';
 
-// Plan 6, the quadruped beast (docs/systems/procedural-animation.md §4), one rig in two archetypes
-// (docs/design/enemy-roster.md, the build plan's "one quadruped plan, two skins of the rig"), each drawn to its sheets
-// (references/enemy-archetypes/<id>/):
+// Plan 6, the quadruped beast (docs/systems/procedural-animation.md §4), drawn to its sheets
+// (references/enemy-archetypes/<id>/). The plan's other archetype, the hound, is plans/hound-tripo.js since issue #800 (the
+// broad-pawed Tripo hound; the antler hound drawn here before it is in the history, 192711a63):
 //   the horn lizard (archetype 5)   a salamander hugging the ground, three metres with its tail and its back at your
 //                                   knee: four short legs sprawled out to the sides, elbows and knees out like a
 //                                   crocodile's, splayed toes; a long low neck level with the back and a flat wedge of
 //                                   a head whose snout grows into a curved brass horn with a flared mouth; a heavy tail
 //                                   lying on the ground and coiling up into a tight spiral at its tip
-//   the antler hound (archetype 20) a lean deer-like hound of shadow, 1.3 m at the shoulder on long legs, elbows back
-//                                   and hocks back; a deep chest and a narrow waist, a long muzzle carried low, a
-//                                   crown of branching antlers far wider than its body, smoke streaming off its back
-//                                   like a mane; running, only a shadow on the ground with its crown rising out of it
-// Both trot on diagonal pairs on the kit (the lizard's knees out to the sides, the hound's front knees forward and
-// hocks back); the head is held steady against the body's bob; the tail (or the smoke) follows on a verlet chain
-// (src/motion-kit/chain.js).
+// It trots on diagonal pairs on the kit (its knees out to the sides); the head is held steady against the body's bob;
+// the tail follows on a verlet chain (src/motion-kit/chain.js).
 
 const _p = new THREE.Vector3(), _m = new THREE.Matrix4();
 
@@ -61,33 +56,6 @@ function placeBeads(beads, points, g) {
     if (_p.y < r) { _p.y = r; points[i].copy(_p.applyMatrix4(g.matrixWorld)); }
   }
   beads.forEach((b, i) => { _p.lerpVectors(points[i], points[i + 1], 0.5).applyMatrix4(_m); b.position.copy(_p); });
-}
-
-/**
- * A body lofted through cross-sections along z: each [z, half-width, top y, bottom y] an ellipse (the sheet's side
- * view gives the top and bottom lines, its front view the width), closed at both ends; one geometry.
- */
-function loftGeometry(sections, radial = 12) {
-  const pos = [], idx = [], n = sections.length;
-  for (const [z, w, top, bot] of sections) {
-    const cy = (top + bot) / 2, ry = (top - bot) / 2;
-    for (let k = 0; k < radial; k++) { const a = (k / radial) * Math.PI * 2; pos.push(Math.sin(a) * w, cy + Math.cos(a) * ry, z); }
-  }
-  for (let i = 0; i < n - 1; i++) for (let k = 0; k < radial; k++) {
-    const a = i * radial + k, b = i * radial + ((k + 1) % radial), c = a + radial, d = b + radial;
-    idx.push(a, c, b, b, c, d);
-  }
-  // (the end caps: a fan to each end's centre)
-  for (const [i, flip] of [[0, true], [n - 1, false]]) {
-    const [z, , top, bot] = sections[i], ci = pos.length / 3;
-    pos.push(0, (top + bot) / 2, z);
-    for (let k = 0; k < radial; k++) { const a = i * radial + k, b = i * radial + ((k + 1) % radial); idx.push(...(flip ? [ci, a, b] : [ci, b, a])); }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  return geo;
 }
 
 // --------------------------------------------------------------------------------------- the horn lizard
@@ -213,153 +181,6 @@ export function lizardModel(skin) {
       coins.forEach((x, i) => { x.rotation.x = Math.sin(c.now / 140 + i * 1.7) * (c.moving ? 0.5 : 0.15); x.rotation.z = Math.sin(c.now / 190 + i) * 0.2; });
       if (soot && (c.moving || rear > 0.5) && Math.random() < 0.1) c.spray(V().copy(f.chest), [P.horn, P.dark], 1, 0.8, -1);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye));
-    },
-    dispose: M.dispose,
-  };
-}
-
-// --------------------------------------------------------------------------------------- the antler hound
-/** A flame of smoke for the mane: a tongue rising and streaming back (x forward, y up; laid in the body's yz plane). */
-const FLAME = (() => { const s = new THREE.Shape(); s.moveTo(0.12, 0); s.bezierCurveTo(0.12, 0.18, -0.05, 0.3, -0.35, 0.46); s.bezierCurveTo(-0.25, 0.32, -0.3, 0.28, -0.42, 0.3); s.bezierCurveTo(-0.5, 0.32, -0.6, 0.38, -0.8, 0.36); s.bezierCurveTo(-0.58, 0.25, -0.54, 0.18, -0.62, 0.14); s.bezierCurveTo(-0.68, 0.12, -0.78, 0.11, -0.94, 0.08); s.bezierCurveTo(-0.62, 0.02, -0.4, 0, -0.2, 0); s.lineTo(0.12, 0); return s; })();
-
-/** A crown of branching antlers on `parent`: a beam each side sweeping out and up, tines rising off it. */
-function antlerCrown(parent, props, mat, glintM) {
-  const tines = [], glints = [];
-  for (const s of [-1, 1]) {
-    if (props.has('crescent')) {
-      tines.push(tube(parent, [[s * 0.05, 0, 0], [s * 0.35, 0.18, -0.05], [s * 0.55, 0.45, 0.02], [s * 0.48, 0.72, 0.12], [s * 0.3, 0.86, 0.16]], 0.03, mat, 0.012));
-      continue;
-    }
-    if (props.has('wire')) {
-      for (let k = 0; k < 3; k++) tines.push(tube(parent, [[s * 0.05, 0, 0], [s * (0.22 + k * 0.08), 0.2 + k * 0.05, -0.04], [s * (0.18 + k * 0.17), 0.45 + k * 0.05, 0.05 * k], [s * (0.42 + k * 0.1), 0.62 - k * 0.04, -0.03], [s * (0.6 + k * 0.05), 0.55 + k * 0.1, 0.04]], 0.009, mat));
-      continue;
-    }
-    const thick = props.has('bleached') ? 0.036 : 0.03;
-    const beam = [[s * 0.04, 0, 0], [s * 0.2, 0.17, -0.07], [s * 0.4, 0.4, -0.1], [s * 0.56, 0.66, -0.06], [s * 0.66, 0.92, 0.02]];
-    tines.push(tube(parent, beam, thick, mat, thick * 0.4));
-    // a brow tine forward over the face, then three tines up off the beam, the last forking the top
-    tines.push(tube(parent, [[s * 0.12, 0.1, -0.04], [s * 0.2, 0.2, 0.12], [s * 0.18, 0.3, 0.22]], thick * 0.7, mat, thick * 0.3));
-    const curve = new THREE.CatmullRomCurve3(beam.map((p) => V(...p)));
-    for (const [t, up, out] of [[0.38, 0.3, -0.06], [0.58, 0.32, 0.02], [0.78, 0.28, 0.1], [0.92, 0.22, 0.14]]) {
-      const b = curve.getPoint(t);
-      tines.push(tube(parent, [[b.x, b.y, b.z], [b.x + s * out * 0.5, b.y + up * 0.6, b.z + 0.06], [b.x + s * out, b.y + up, b.z + 0.1]], thick * 0.65, mat, thick * 0.25));
-      if (glintM) for (let k = 0; k < 2; k++) glints.push(add(parent, new THREE.SphereGeometry(0.011, 5, 4), glintM, b.x + s * out * (0.3 + k * 0.4), b.y + up * (0.3 + k * 0.4), b.z + 0.03 + k * 0.04));
-    }
-    if (glintM) for (let k = 1; k < 5; k++) { const b = curve.getPoint(k / 5); glints.push(add(parent, new THREE.SphereGeometry(0.012, 5, 4), glintM, b.x, b.y + 0.01, b.z + 0.025)); }
-  }
-  return { tines, glints };
-}
-
-export function houndModel(skin) {
-  const P = skin.palette, props = new Set(skin.props), M = materials('hound', skin);
-  const g = new THREE.Group(); g.name = skin.name;
-  // its ink is drawn with a white contour, as the shade's: black on the Eclipse's dark streets it would be only a
-  // hole (playtest 2026-10-08, no invisible foes: src/foe-presence.js)
-  // (the Garden of Spheres' hound is inked black on its pale world, as drawn: its gold glints, halo and eyes are its light parts)
-  const white = !props.has('glints');
-  const inkM = M.mat('ink', P.ink, { flat: true, lineWhite: white }), rimM = M.mat('rim', P.rim, { flat: true, lineWhite: white });
-  const antlerM = M.mat('antler', P.antler, { flat: true, lineWhite: white }), eyeM = M.own('eye', P.eye, { glow: 0.95 });
-  const smokeM = M.mat('smoke', P.smoke, { flat: true, side: THREE.DoubleSide }), smoke2M = M.mat('smoke2', P.smoke2 ?? P.smoke, { flat: true, side: THREE.DoubleSide });
-  const glintM = props.has('glints') ? M.own('glint', P.glow, { glow: 0.9 }) : null;
-  const Q = quadBody(g, { name: 'hound', hipY: 1.18, hips: [0.55, -0.55], halfWidth: 0.11, feet: [0.14, 0.62, -0.68], legR: 0.046, knee: { lenA: 0.57, lenB: 0.56 }, mats: { joint: inkM, thigh: inkM, shin: inkM, foot: rimM } });
-  const { body, torso, legs, rig } = Q;
-  // one lean body from the breast to the rump (the sheet's side view): the deep keel of the chest behind the front
-  // legs, the belly tucking up sharply to a narrow waist, the loins and haunches rising again, the back line nearly level
-  const chest = pivot(torso, 0, 0.0, 0.5, 'chest');
-  add(torso, loftGeometry([
-    [0.86, 0.02, -0.07, -0.11], [0.8, 0.09, 0.0, -0.22], [0.68, 0.15, 0.12, -0.36], [0.5, 0.17, 0.16, -0.45], [0.3, 0.16, 0.15, -0.42],
-    [0.08, 0.13, 0.12, -0.27], [-0.16, 0.11, 0.1, -0.12], [-0.38, 0.13, 0.13, -0.13], [-0.58, 0.14, 0.12, -0.18], [-0.74, 0.1, 0.07, -0.13], [-0.82, 0.03, 0.02, -0.05],
-  ]), inkM);
-  // the muscle of each leg: the shoulder and forearm in front, the great hams behind, thinning to the sheet's bony shins
-  legs.forEach((l, i) => {
-    const hind = i >= 2;
-    add(l.thigh, new THREE.SphereGeometry(1, 10, 8).scale(hind ? 0.085 : 0.065, hind ? 0.26 : 0.2, hind ? 0.13 : 0.095), inkM, 0, hind ? 0.17 : 0.13, hind ? -0.02 : 0.01);
-    add(l.shin, new THREE.SphereGeometry(1, 8, 6).scale(0.05, 0.16, 0.06), inkM, 0, 0.12, 0);
-  });
-  // the neck forward and up off the chest, deep at its root, the head carried low on it with a long muzzle
-  const neck = pivot(chest, 0, 0.08, 0.2, 'neck');
-  tube(neck, [[0, -0.06, -0.1], [0, 0.08, 0.08], [0, 0.17, 0.26]], 0.15, inkM, 0.075);
-  const head = pivot(neck, 0, 0.18, 0.3, 'head');
-  add(head, new THREE.SphereGeometry(1, 10, 8).scale(0.095, 0.1, 0.15), inkM);
-  const muzzle = add(head, new THREE.ConeGeometry(0.07, 0.46, 7).rotateX(Math.PI / 2), inkM, 0, -0.06, 0.25); muzzle.rotation.x = 0.42;
-  pair((s) => { const ear = add(head, new THREE.ConeGeometry(0.035, 0.14, 5), inkM, s * 0.07, 0.11, -0.04); ear.rotation.set(-0.5, 0, -s * 0.5); });
-  const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.03, 8, 6), eyeM, s * 0.07, 0.02, 0.1));
-  // the crown of antlers, far wider than its body (a crescent in the Eclipse, bleached driftwood in the Mangrove, a
-  // tangle of wire in the Market; in the Garden of Spheres black, glinting gold, a pearl-and-gold halo caught in them)
-  const crown = pivot(head, 0, 0.08, -0.03, 'antlers'); crown.scale.setScalar(1.18);   // (the sheet's crown nearly as wide as the body is long)
-  const { tines } = antlerCrown(crown, props, antlerM, glintM);
-  if (props.has('halo')) {
-    const h = pivot(crown, 0, 0.5, 0.0, 'halo'); h.rotation.set(-0.12, 0, 0.06);
-    add(h, new THREE.TorusGeometry(0.62, 0.011, 5, 48).rotateX(Math.PI / 2), M.own('halo', P.glow, { glow: 0.8 }));
-    add(h, new THREE.SphereGeometry(0.04, 10, 8), M.mat('pearl', '#f2eee6'), 0.0, 0, 0.62);
-    tines.push(h);
-  }
-  // dripping like wet ink (the Mangrove): drops hanging off its chin, neck, chest and belly
-  if (props.has('drips')) {
-    for (const [p, x, y, z, l] of [[head, 0, -0.1, 0.12, 0.14], [head, 0.05, -0.12, 0.3, 0.1], [neck, 0.06, 0.02, 0.12, 0.16], [neck, -0.06, 0.08, 0.2, 0.12], [chest, 0.1, -0.42, 0.0, 0.2], [chest, -0.08, -0.43, -0.12, 0.16], [torso, 0.08, -0.22, 0.05, 0.18], [torso, -0.07, -0.12, -0.2, 0.14], [torso, 0.06, -0.16, -0.5, 0.12], [crown, 0.3, 0.3, -0.06, 0.12], [crown, -0.42, 0.5, -0.08, 0.14]])
-      add(p, new THREE.ConeGeometry(0.018, l, 5).rotateX(Math.PI).translate(0, -l / 2, 0), inkM, x, y, z);
-  }
-  // the mane: tongues of smoke streaming off its back from the withers to the rump
-  const mane = [];
-  for (let i = 0; i < 8; i++) {
-    const t = i / 7, z = lerp(0.62, -0.62, t), size = 0.55 + Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.55;
-    const fl = add(torso, new THREE.ShapeGeometry(FLAME).rotateY(-Math.PI / 2), i % 2 ? smoke2M : smokeM, (i % 2 ? 0.03 : -0.03), 0.12 + (i % 2 ? 0.07 : 0) + Math.sin(Math.PI * t) * 0.05, z);
-    fl.scale.setScalar(size * (i % 2 ? 0.85 : 1));   // (the second smoke riding higher among the first)
-    fl.userData.yaw = (i % 2 ? 1 : -1) * (0.18 + (i % 3) * 0.08);
-    mane.push(fl);
-  }
-  // a thin long tail hanging behind
-  tube(torso, [[0, 0.04, -0.76], [0, -0.08, -0.92], [0, -0.34, -1.02], [0, -0.6, -1.04]], 0.028, inkM, 0.008);
-  // its shadow form: a ragged pool of shadow on the ground with its head and crown rising out of it, the eyes over the rim
-  const poolShape = new THREE.Shape(); for (let i = 0; i <= 24; i++) { const a = (i / 24) * Math.PI * 2, r = 0.55 * (1 + (i % 2 ? 0.18 : -0.05) + Math.sin(i * 2.3) * 0.08); poolShape[i ? 'lineTo' : 'moveTo'](Math.sin(a) * r, Math.cos(a) * r); }
-  const pool = add(g, new THREE.ShapeGeometry(poolShape).scale(0.9, 1.6, 1).rotateX(-Math.PI / 2), inkM, 0, 0.03, 0);
-  const glowRim = add(g, new THREE.RingGeometry(0.62, 0.72, 24).scale(0.9, 1.6, 1).rotateX(-Math.PI / 2), M.own('glow', P.glow, { glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
-  const rising = pivot(g, 0, 0, 0.35, 'rising');
-  add(rising, new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.13, 0.14, 0.2), inkM);
-  const risingCrown = pivot(rising, 0, 0.1, -0.03); risingCrown.scale.setScalar(0.85);
-  antlerCrown(risingCrown, props, antlerM, glintM);
-  const poolEyes = pair((s) => add(rising, new THREE.SphereGeometry(0.045, 8, 6).scale(1, 0.6, 1), eyeM, s * 0.08, 0.07, 0.15));
-  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
-  const gaze = [gazePart(g, head, { mode: 'turn', yaw: 0.55, up: 0.3, down: 0.35 }), gazePart(g, rising, { mode: 'turn', yaw: 0.5, up: 0.3, down: 0.3 })];   // (the head, and the one rising from its pool)
-  finish(g);
-  let solid = 1, crouch = 0, rake = 0, coil = 0;
-  return {
-    group: g, gaze, body, rig, parts: [], mane, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.rim, P.antler],
-    tell: (id) => (id === 'rake' ? tines[0] : head),
-    anim(f, c) {
-      const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
-      // stepping through the shadow (its 'step'): it sinks into its own pool as it winds up, nothing drawn behind you
-      const sinking = wind && f.atk?.blink;
-      // lying in wait (calm, unprovoked): only its shadow under a tree, until it stands up to watch you
-      const lying = f.state === 'idle' && !f.provoked && !f.watcher;
-      solid = ease(solid, f.phased || sinking || lying ? 0 : 1, f.phased || sinking || lying ? 6 : 14, dt);
-      body.visible = solid > 0.08; body.scale.set(1, Math.max(0.05, solid), 1);
-      pool.visible = solid < 0.9; pool.scale.setScalar(1.2 - solid * 0.5);
-      glowRim.visible = rising.visible = solid < 0.6;
-      rising.position.y = -0.12 + (1 - solid) * 0.12 + Math.sin(c.now / 140) * 0.015;
-      glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
-      // the pounce: crouched low, the head down by the ground, the antlers dipped forward, the shoulders bunched
-      crouch = ease(crouch, id === 'pounce' && wind ? c.wind : 0, 10, dt);
-      // then the coil (the wind-up's last 45 %, v1.63 #260): the rump up, the smoke of its mane on end, a shiver
-      coil = ease(coil, id === 'pounce' && wind ? THREE.MathUtils.smoothstep(f.k, 0.5, 0.8) : 0, 14, dt);
-      rake = ease(rake, id === 'rake' ? (wind ? c.wind : strike ? 1 - c.release : 0) : 0, 12, dt);
-      const leap = strike && f.atk?.lunge ? Math.min(1, Math.sin(Math.PI * Math.min(1, f.k * 1.4)) * 3) : 0;
-      const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, recovery: c.recovery, air: leap });
-      const shiver = coil * Math.sin(c.now / 22) * 0.018;
-      body.position.set(o.x + shiver, -(1 - solid) * 0.3 + o.y - crouch * 0.2 + coil * 0.06, o.z);
-      body.rotation.set(o.pitch + crouch * 0.12 + coil * 0.14, o.yaw + rake * (strike ? -0.5 : 0.25), o.roll + shiver);
-      chest.scale.set(1 + crouch * 0.12, 1 - crouch * 0.06, 1);
-      neck.rotation.x = crouch * 1.0 + rake * 0.7 - o.pitch * 0.6;
-      neck.rotation.z = rake * 0.45;
-      head.rotation.x = crouch * 0.25 + rake * 0.25 + (strike && id === 'bite' ? -0.4 * Math.sin(Math.PI * f.k) : 0);
-      g.position.y += leap ? Math.sin(Math.PI * f.k) * 0.5 : 0;
-      rig.visible = body.visible;
-      rig.write();
-      // the mane streams back off its back, flickering, flattened by its speed
-      const run = c.moving ? Math.min(1, (f.def.speed ?? 5) / 5) : 0;
-      mane.forEach((m, i) => { m.rotation.set(Math.sin(c.now / 260 + i * 0.9) * 0.1 - run * 0.3 - crouch * 0.2 * (1 - coil) + coil * 0.35, m.userData.yaw + Math.sin(c.now / 330 + i) * 0.08, 0); m.scale.y = m.scale.x * (1 + Math.sin(c.now / 180 + i * 1.7) * 0.1 + coil * 0.6); });
-      eyeM.uniforms.uColor.value.set(eyeColor(f, f.lit > 0 ? '#ffe2a8' : P.eye, '#ff6a8a'));
-      if (solid > 0.5 && Math.random() < (props.has('drips') ? 0.25 : 0.12)) c.drip(f, P.ink);
     },
     dispose: M.dispose,
   };

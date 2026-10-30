@@ -1,7 +1,8 @@
 // The broad-pawed hound's two trial bodies (issue #800 phase 2b): the direct one (src/enemies/plans/broad-hound.js) and
-// the Tripo one (references/enemy-redesign-2026-10-30/trials/hound-tripo/). Both keep the hound's model contract, its
-// shadow form and its look at the traveller, and stay out of the game until the author picks one (TRIAL_BUILDERS is
-// empty in the game); the Tripo skin's weights (Tripo's own, gathered onto the game's bones) are sound.
+// the Tripo one (references/enemy-redesign-2026-10-30/trials/hound-tripo/, on the trial's own 1024² asset). Both keep the
+// hound's model contract, its shadow form and its look at the traveller; the Tripo skin's weights (Tripo's own, gathered
+// onto the game's bones) are sound. The author picked Tripo: it is the game's hound now (src/enemies/plans/hound-tripo.js,
+// tests/hound.test.js), the direct body its fallback; the trial page still stands either in (TRIAL_BUILDERS).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -18,14 +19,14 @@ import { tripoHoundModel } from '../references/enemy-redesign-2026-10-30/trials/
 import { nodeSource } from '../references/enemy-redesign-2026-10-30/trials/hound-tripo/node-source.mjs';
 
 const SRC = nodeSource();
-const BUILD = { direct: broadHoundModel, tripo: (skin) => tripoHoundModel(skin, SRC) };
+const BUILD = { direct: broadHoundModel, tripo: (skin) => Object.assign(tripoHoundModel(skin, SRC), { trial: 'tripo' }) };
 const drawn = (g) => { let n = 0; g.traverseVisible((o) => { if (o.isMesh) n++; }); return n; };
 const arena = (player) => new Foes({ level: { foes: { own: true } }, levelId: 'arena', scene: null, player, physics: { groundAt: () => 0 }, game: new GameState(null), rng: () => 0.01 });
 
 test('the game builds its own hound: no trial body stands in (#800)', () => {
   assert.equal(TRIAL_BUILDERS.hound, undefined);
   const M = archetypeModel('hound', 'eclipse');
-  assert.equal(M.trial, undefined, 'the hound of plans/quadruped.js');
+  assert.equal(M.trial, undefined, 'the hound of plans/hound-tripo.js (its direct fallback here: no asset loaded in this test)');
   M.dispose();
 });
 

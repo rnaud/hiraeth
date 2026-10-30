@@ -58,7 +58,8 @@ export async function swingAt(rig, kind, { gap = 1.5, angle = 0, swing = 0, lock
   const d = def.radius + gap, at = v(home.x + Math.sin(angle) * d, home.y, home.z + Math.cos(angle) * d);
   const f = foes.add(kind, at);
   f.heading = Math.atan2(home.x - at.x, home.z - at.z);
-  f.state = 'idle'; f.provoked = true;
+  // (its distance from him, as its own update keeps it: a shadowy hound is solid this close, PHASE.near)
+  f.state = 'idle'; f.provoked = true; f.dist = d;
   // posed at rest by the game's own look (no mind: it stands where it was put)
   for (let i = 0; i < 40; i++) foes.look(f, DT);
   f.model.group.updateMatrixWorld(true);

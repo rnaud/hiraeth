@@ -189,6 +189,7 @@ const readers = {
   'enemies/plans/flyer.js': () => readFileSync(new URL('../../src/enemies/plans/flyer.js', import.meta.url), 'utf8'),
   'enemies/plans/glider.js': () => readFileSync(new URL('../../src/enemies/plans/glider.js', import.meta.url), 'utf8'),
   'enemies/plans/hopper.js': () => readFileSync(new URL('../../src/enemies/plans/hopper.js', import.meta.url), 'utf8'),
+  'enemies/plans/hound-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/hound-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/hover.js': () => readFileSync(new URL('../../src/enemies/plans/hover.js', import.meta.url), 'utf8'),
   'enemies/plans/humanoid.js': () => readFileSync(new URL('../../src/enemies/plans/humanoid.js', import.meta.url), 'utf8'),
   'enemies/plans/index.js': () => readFileSync(new URL('../../src/enemies/plans/index.js', import.meta.url), 'utf8'),

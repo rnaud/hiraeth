@@ -35,7 +35,8 @@ async function tripoBuilder(kind) {
 async function tripoHound() {
   const { loadTripoHound, tripoHoundModel } = await import('./hound-tripo/model.js');
   sources.hound ??= await loadTripoHound(`${here}hound-tripo/`);
-  return (skin) => tripoHoundModel(skin, sources.hound);
+  // (the game's own builder on the trial's asset: marked as the trial's, as the others are)
+  return (skin) => Object.assign(tripoHoundModel(skin, sources.hound), { trial: 'tripo' });
 }
 const BUILD = { crab: { direct: async () => shellbackModel, tripo: () => tripoBuilder('crab') } };
 BUILD.hound = { direct: async () => broadHoundModel, tripo: tripoHound };

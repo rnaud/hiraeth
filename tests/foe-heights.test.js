@@ -29,7 +29,9 @@ function standing(kinds) {
   const foes = new Foes({ level: { foes: { own: true } }, levelId: 'arena', scene: null, player: { pos: new THREE.Vector3(0, 0, 40), heading: Math.PI }, physics: { groundAt: () => 0 }, game: new GameState(null), rng: () => 0.01 });
   const out = {};
   for (const k of kinds) {
-    const f = foes.add(k, new THREE.Vector3(), { tier: 0 }); f.heading = 0;
+    // (provoked and close, as its own update would have it (the gallery's way): a shadowy hound stands solid; lying in
+    // wait or running far off it is a pool on the ground, held to foe-presence's flat rule)
+    const f = foes.add(k, new THREE.Vector3(), { tier: 0 }); f.heading = 0; f.provoked = true; f.dist = 2;
     for (let i = 0; i < 45; i++) foes.look(f, 1 / 30);
     out[k] = { top: visibleBox(f.model.group).max.y, f };
   }

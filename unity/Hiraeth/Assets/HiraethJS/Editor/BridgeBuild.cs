@@ -50,9 +50,9 @@ namespace Hiraeth.EditorTools
             // head-v3: without them a player on a device, which has no repository beside it, fell back to the old explorer),
             // the father's generated hologram body (#658), and the Rose House's Keeper on its fitted skin
             // (guardians/keeper-v1, issue #267, and elder-v3: without them the bundle falls back to the procedural bodies; and
-            // their colors.json, the skins' colours as the engines draw them, issue #264; and the shellback crab's body, #800:
-            // without it the direct shellback stands in)
-            foreach (var (from, files) in new[] { ("models/ships/caravan-a", new[] { "playable.glb" }), ("anim/mh", new[] { "body.bin" }), ("characters/father-v1", new[] { "model.glb" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png", "eye-paint.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }), ("enemies/shellback", new[] { "body.glb" }) })
+            // their colors.json, the skins' colours as the engines draw them, issue #264; and the shellback crab's and the horned hound's bodies, #800:
+            // without them the direct shellback and broad-pawed hound stand in)
+            foreach (var (from, files) in new[] { ("models/ships/caravan-a", new[] { "playable.glb" }), ("anim/mh", new[] { "body.bin" }), ("characters/father-v1", new[] { "model.glb" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png", "eye-paint.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }), ("enemies/shellback", new[] { "body.glb" }), ("enemies/hound", new[] { "body.glb" }) })
             {
                 var d = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", from);
                 Directory.CreateDirectory(d);

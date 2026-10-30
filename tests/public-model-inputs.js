@@ -14,6 +14,7 @@ const READERS = {
   "characters/father-v1/model.glb": () => readFileSync(new URL("../public/characters/father-v1/model.glb", import.meta.url)),
   "characters/traveller-b3/model.glb": () => readFileSync(new URL("../public/characters/traveller-b3/model.glb", import.meta.url)),
   "characters/traveller-v1/head-v3/model.glb": () => readFileSync(new URL("../public/characters/traveller-v1/head-v3/model.glb", import.meta.url)),
+  "enemies/hound/body.glb": () => readFileSync(new URL("../public/enemies/hound/body.glb", import.meta.url)),
   "enemies/shellback/body.glb": () => readFileSync(new URL("../public/enemies/shellback/body.glb", import.meta.url)),
   "guardians/elder-v3/model.glb": () => readFileSync(new URL("../public/guardians/elder-v3/model.glb", import.meta.url)),
   "guardians/keeper-v1/model.glb": () => readFileSync(new URL("../public/guardians/keeper-v1/model.glb", import.meta.url)),

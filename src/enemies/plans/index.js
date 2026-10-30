@@ -1,7 +1,8 @@
 import { ARCHETYPES, archetypeOfKind } from '../archetypes.js';
 import { skinOf } from '../skins.js';
 import { shellbackCrab } from './shellback-tripo.js';
-import { lizardModel, houndModel } from './quadruped.js';
+import { lizardModel } from './quadruped.js';
+import { houndModel } from './hound-tripo.js';
 import { tripodModel } from './piston.js';
 import { blotModel } from './blob.js';
 import { centipedeModel } from './centipede.js';
@@ -38,7 +39,9 @@ import { crawlerModel } from './crawler.js';
 //   skitterers.js plan 2   the skitter swarm (a flock of tiny tripods at the mid tier)
 //   centipede.js  plan 3   the ring centipede (a spine on its own path, legs in a metachronal wave)
 //   hopper.js     plan 5   the bellows toad (hop by hop: its body lands each hop on planted feet)
-//   quadruped.js  plan 6   the horn lizard and the antler hound (one rig, two archetypes)
+//   quadruped.js  plan 6   the horn lizard
+//   hound-tripo.js plan 6  the horned hound (issue #800: Tripo's body, public/enemies/hound/body.glb, on the quadruped
+//                 plan; the direct broad-hound.js stands in where the body is not loaded)
 //   brute.js      plan 8   the furnace brute (a slow heavy biped, its arms swinging; the hull and limbs skinned)
 //   humanoid.js   plan 9   the shade (a cloak worn by nothing on two empty boots; ribbons on verlet chains)
 //   stilt.js      plan 7   the stilt heron (two stilts one at a time, an S-neck of segments)

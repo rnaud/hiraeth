@@ -1,0 +1,16 @@
+{"kind":"hound@eclipse","quality":"high","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@mangrove","quality":"high","commit":"worktree","runs":[{"worst":33.3,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@spheres","quality":"high","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@bazaar","quality":"high","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@eclipse","quality":"high","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@mangrove","quality":"high","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@spheres","quality":"high","commit":"192711a63","runs":[{"worst":33.3,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@bazaar","quality":"high","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@eclipse","quality":"handheld","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@mangrove","quality":"handheld","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@spheres","quality":"handheld","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@bazaar","quality":"handheld","commit":"worktree","runs":[{"worst":16.8,"programs":0,"body":"tripo"},{"worst":16.8,"programs":0,"body":"tripo"}],"errors":[]}
+{"kind":"hound@eclipse","quality":"handheld","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@mangrove","quality":"handheld","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@spheres","quality":"handheld","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}
+{"kind":"hound@bazaar","quality":"handheld","commit":"192711a63","runs":[{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"},{"worst":16.8,"programs":0,"body":"kind"}],"errors":[]}

@@ -73,6 +73,23 @@ export const CHANGELOG = [
           { where: 'High', before: 2.2, after: 3.5 },
           { where: 'Handheld', before: 2.8, after: '3.6–4.5' },
         ], source: 'the game’s own “load: total” after the modules load; 109 enemy bodies prepared instead of 33' }] },
+      // the hound rebuilt (#800)
+      { text: 'The horned hound now stalks the Eclipse, the Mangrove, the Garden of Spheres and the Signal Market in place of the antler hound. Where a thin black deer on stick legs used to come at you under a spiky mane and a crown of antlers, a long, deep-chested hound now prowls on big paws, a patch of colour on its back and two great ram’s horns curling round its head. It still runs as a shadow far off, rises out of its pool to face you, turns its head to watch you, crouches and coils before it pounces, and fights exactly as before. Each world dresses it its own way: cream horns in the Eclipse, thick bleached horns and dripping ink in the Mangrove, dark gold-flecked horns under a pearl halo in the Garden of Spheres, and a tangle of brass wire in the Signal Market.',
+        numbers: [{ title: 'What a pack of six hounds adds to a world’s frame, standing solid in view', unit: '', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720, as you land, 10:00; the medians of two runs each, alternated, against the same world with no hounds; the machine shared (load 19–35)', rows: [
+          { where: 'the Eclipse, High: draw calls', before: 358, after: 28 },
+          { where: 'the Eclipse, Handheld: draw calls', before: 231, after: 21 },
+          { where: 'the Signal Market, High: draw calls', before: 432, after: 28 },
+          { where: 'the Signal Market, Handheld: draw calls', before: 280, after: 23 },
+          { where: 'the Eclipse, High: triangles, every pass (thousands)', before: 84.6, after: 242.8 },
+          { where: 'the Eclipse, High: CPU ms a frame', before: 1.2, after: 0.5 },
+          { where: 'the Signal Market, High: CPU ms a frame', before: 2.2, after: 3.1 },
+        ], source: 'scripts/enemy-roster/bench.mjs --level eclipse|bazaar --quality high|handheld --pack 6 hounds --solid (and --pack none), before at 192711a63; the frame held at 16.7 ms (60 Hz) in every run; the GPU time and the JS heap moved by more than the hounds either way between runs at this load, so no claim on them. The model is a 540 KB download (337 KB compressed), its texture 512 × 512 (1.3 MB on the GPU)' },
+        { title: 'A hound arriving in the Arena: the worst frame from its arrival to 2.5 s after', unit: 'ms', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720; ?level=arena&enemy=hound@<world>, each of the four looks, 2–3 arrivals each, each cut down 2.6 s after it came in', rows: [
+          { where: 'High, typical', before: 16.8, after: 16.8 },
+          { where: 'High, worst', before: 33.3, after: 33.3 },
+          { where: 'Handheld, worst', before: 16.8, after: 16.8 },
+          { where: 'new GPU programs made at an arrival', before: 0, after: 0 },
+        ], source: 'scripts/enemy-roster/arrivals.mjs, before at 192711a63: the new body is prepared with the rest while the Arena loads, so no hound arrives with anything left to build or compile' }] },
     ],
   },
   {

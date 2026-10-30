@@ -68,7 +68,13 @@ export function foeSystem() {
 }
 
 // Where each kind keeps its legs: on the kit, its rig's chains; before it, by position in `parts`.
-export const kitLegs = (M) => M.rig?.legs.map((l) => l.root);
+// (a body skinned on bones of its own outside the kit's chains, the horned hound's, #800: its foot bone, on the ground
+// under the ankle, is the foot; the chain's root the hip)
+const drawsNothing = (root) => { let n = 0; root.traverse((o) => { if (o.isMesh || o.isBone) n++; }); return !n; };
+export const kitLegs = (M) => M.rig?.legs.map((l, k) => {
+  const foot = drawsNothing(l.root) ? M.group.getObjectByName(`leg${k}_foot`) : null;
+  return foot ? { parent: l.root.parent, traverse: (fn) => fn(foot), lowest: (o) => foot.getWorldPosition(o), getWorldPosition: (o) => l.root.getWorldPosition(o) } : l.root;
+});
 export const OLD = {
   machine: (M) => M.legs,
 };
