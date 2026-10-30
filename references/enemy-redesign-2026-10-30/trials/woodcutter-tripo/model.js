@@ -1,32 +1,47 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../../../src/motion-kit/rig.js';
-import { materials, add, pivot, finish, plate, outerPoints } from '../../../../src/enemies/plans/kit.js';
+import { materials, add, many, pivot, finish, plate, outerPoints } from '../../../../src/enemies/plans/kit.js';
 import { gazePart } from '../../../../src/enemies/gaze.js';
 import { SkinLegs, bendFrame } from '../../../../src/characters/creature-legs.js';
 import { RENDER_FRAME } from '../../../../src/render-frame.js';
-import { WOODCUTTER, WOODCUTTER_PLAN, woodcutterDef, woodcutterMotion } from '../../../../src/enemies/plans/woodcutter.js';
+import { WOODCUTTER, WOODCUTTER_ID, WOODCUTTER_OWN, WOODCUTTER_PLAN, WOODCUTTER_TOOLS, woodcutterDef, woodcutterMotion, sawDisc } from '../../../../src/enemies/plans/woodcutter.js';
 
-// The wood cutter from Tripo (issue #800 phase 2b; a trial body, web only, behind the trial page): Tripo task
-// 32ba0f6c-… from the approved image (the untouched export in keep-brute/tripo/), made into the game asset by
-// prepare.mjs (the game's frame, the direct body's 2.4 m, a flat 1024² texture of five colours, vertex colours, 12k
-// triangles) and put on the brute's rig family here: the motion kit's brute plan for its legs (fitted to the mesh's own:
-// landmarks.json), the direct wood cutter's arm pivots and its motion (woodcutterMotion: the same poses, ground contact
-// and attacks), its def (woodcutterDef).
+// The wood cutter from Tripo (issue #800 phase 2b and its fixes; a trial body, web only, behind the trial page): Tripo
+// task 32ba0f6c-… from the approved image (the untouched export in keep-brute/tripo/), made into the game asset by
+// prepare.mjs (the game's frame, the direct body's 2.4 m, a 1024² texture repainted by part in the reference's flat
+// colours, vertex colours, about 11k triangles cut into parts by geometry, Tripo's saw hand dropped) and put on the
+// brute's rig family here: the motion kit's brute plan for its legs (fitted to the mesh's own: landmarks.json), the
+// direct wood cutter's arm pivots and its motion (woodcutterMotion: the same poses, ground contact and attacks), its def
+// (woodcutterDef). Its own enemy, `woodcutter` (WOODCUTTER_ID), not the brute's replacement: the trial page stands it
+// in the brute's slot only.
 //
-// A machine's rig, not a skinned humanoid: the mesh is cut at its joints into rigid parts, every triangle whole in one
-// part (each vertex weighted 1 to one joint; a vertex the cut shares is copied, one for each side): the hull, the head,
-// each arm's upper arm, forearm and hand (the saw arm's hub and clamp; the disc its own part, it spins), each leg's
-// thigh, shin and boot (bones framed in the leg's bend plane, src/characters/creature-legs.js SkinLegs). Tripo stood the
-// saw arm's forearm forward and level; its pivots are bound in that pose, so the shared motion's hanging rest lowers it.
-// The head is its own part on a pivot the gaze turns (src/enemies/gaze.js, #508): it looks at you. The two pauldrons are
-// cut out as the armour that falls (#722; a dark ball joint under each), the breastplate copied off the chest a little
-// proud; a slit over the painted visor (orange as it winds up) and a glow over the vent (its weak point).
+// A machine's rig, not a skinned humanoid: every triangle whole in one rigid part (each vertex weighted 1 to one joint):
+// the hull, the head, each arm's upper arm and forearm (the clamp arm's hand), each leg's thigh, shin and boot (bones
+// framed in the leg's bend plane, src/characters/creature-legs.js SkinLegs). Tripo stood the saw arm's forearm forward
+// and level; its pivots are bound in that pose, so the shared motion's hanging rest lowers it. The head is the dome
+// itself and turns about its own sphere's centre (src/enemies/gaze.js, #508): it looks at you, and turning it opens no
+// gap at the collar. The two pauldrons are cut out as the armour that falls (#722; a dark ball joint under each), the
+// breastplate copied off the chest a little proud; a slit in the visor's groove (orange as it winds up) and a glow over
+// the vent (its weak point).
+//
+// Its tools and joints are the model's own parts, in the same skinned mesh (no draws more): each world's tool on the
+// saw arm's wrist (Lorn II's toothed rust disc on its clamp, the disc on its own joint that spins; Viridel's shears;
+// elsewhere a clamp hand, the left one's mirrored, with the Moon Foundry's ladle in it), and a dark ball inside each
+// joint (prepare.mjs cuts in Tripo's own bands and creases), so a bent joint shows no inside. Their colours: on the home skin a swatch of the flat texture each (landmarks.swatches), on the
+// other skins their palette's, as vertex colours.
 
-const _v = new THREE.Vector3(), _a = new THREE.Vector3();
+const _v = new THREE.Vector3();
 const vec = (a) => new THREE.Vector3(...a);
-const segDist = (p, a, b) => { _a.subVectors(b, a); const t = THREE.MathUtils.clamp(_v.subVectors(p, a).dot(_a) / Math.max(1e-9, _a.lengthSq()), 0, 1); return _v.copy(a).addScaledVector(_a, t).distanceTo(p); };
-/** The roles of the flat texture's colours (prepare.mjs), by the nearest of these. */
-const ROLES = { body: '#55795e', dark: '#212417', rust: '#543b23', band: '#a79979', head: '#e6c7a1' };
+/** The asset's parts (prepare.mjs writes its triangles grouped in this order: landmarks.parts [first, count]). */
+export const PARTS = ['hull', 'head', 'upper0', 'fore0', 'upper1', 'fore1', 'hand1', 'thigh0', 'shin0', 'foot0', 'thigh1', 'shin1', 'foot1', 'pauldron0', 'pauldron1'];
+const PI = Object.fromEntries(PARTS.map((p, i) => [p, i]));
+/** The skeleton's bones, in order; the asset's part each takes (the fist of the saw arm and its disc carry the tool). */
+export const BONES = ['hull', 'head', 'upper0', 'fore0', 'fist0', 'saw', 'upper1', 'fore1', 'hand1', 'thigh0', 'shin0', 'foot0', 'thigh1', 'shin1', 'foot1'];
+const BI = Object.fromEntries(BONES.map((p, i) => [p, i]));
+/** The limbs' cuts blended across (prepare.mjs landmarks.cuts): [cut, the part before it, the part past it]. */
+const JOINTS = [['elbow0', 'upper0', 'fore0'], ['elbow1', 'upper1', 'fore1'], ['wrist1', 'fore1', 'hand1'], ['hip0', 'hull', 'thigh0'], ['knee0', 'thigh0', 'shin0'], ['ankle0', 'shin0', 'foot0'], ['hip1', 'hull', 'thigh1'], ['knee1', 'thigh1', 'shin1'], ['ankle1', 'shin1', 'foot1']];
+/** How far either side of a cut its vertices are blended (m). */
+export const BLEND = 0.09;
 
 /** The trial's source in the browser: { geometry, map, landmarks }. base: this folder's URL. */
 export async function loadTripoWoodcutter(base) {
@@ -40,94 +55,39 @@ export async function loadTripoWoodcutter(base) {
 }
 
 /** A hex colour's own 0–1 channels (the vertex colours are the texture's printed values: no colour-space conversion). */
-const raw = (hex) => { const h = parseInt(hex.slice(1), 16); return { r: (h >> 16) / 255, g: ((h >> 8) & 255) / 255, b: (h & 255) / 255 }; };
-function rolesOf(geo) {
-  const C = geo.attributes.color, n = C.count, out = new Uint8Array(n), keys = Object.keys(ROLES), ref = keys.map((k) => raw(ROLES[k]));
-  for (let i = 0; i < n; i++) { const r = C.getX(i), g = C.getY(i), b = C.getZ(i); let best = 0, d = Infinity; ref.forEach((c, k) => { const e = (c.r - r) ** 2 + (c.g - g) ** 2 + (c.b - b) ** 2; if (e < d) { d = e; best = k; } }); out[i] = best; }
-  return { out, keys };
-}
+const raw = (hex) => { const h = parseInt(hex.slice(1), 16); return new THREE.Color((h >> 16) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255); };
 
-/** Part names, in bone order. */
-export const PARTS = ['hull', 'head', 'upper0', 'fore0', 'hand0', 'saw', 'upper1', 'fore1', 'hand1', 'thigh0', 'shin0', 'foot0', 'thigh1', 'shin1', 'foot1', 'pauldron0', 'pauldron1'];
-const PI = Object.fromEntries(PARTS.map((p, i) => [p, i]));
 const CACHE = new WeakMap();
 /**
- * Each triangle's part (worked out once a source: every wood cutter shares it). A vertex's part: the nearest of the
- * parts' capsules (the hull an ellipsoid), the head and the pauldrons by their own regions first; a triangle goes whole
- * to the part most of its corners are in (the head's and the pauldrons' only with all three).
+ * Each triangle's part (from the asset's ranges) and each vertex's colour role (the nearest of the palette's), worked out
+ * once a source: every wood cutter shares it.
  */
 export function partsOf(src) {
   const hit = CACHE.get(src.geometry); if (hit) return hit;
-  const geo = src.geometry, L = src.landmarks, P = geo.attributes.position, n = P.count, { out: role, keys } = rolesOf(geo);
-  const H = L.head, hc = vec(H.centre);
-  const A = L.arms.map((a) => ({ sh: vec(a.shoulder), el: vec(a.elbow), wr: vec(a.wrist), end: vec(a.end), tool: a.tool }));
-  const G = L.legs.map((l) => ({ hip: vec(l.hip), knee: vec(l.knee), ankle: vec(l.ankle), foot: vec(l.foot) }));
-  const saw = A[0], sawC = saw.end, sawN = sawNormal(P, role, keys, sawC);
-  const vpart = new Uint8Array(n), p = new THREE.Vector3();
-  for (let i = 0; i < n; i++) {
-    p.fromBufferAttribute(P, i);
-    const rk = keys[role[i]];
-    // the head: its cream, and what is inside its sphere over the collar
-    if ((rk === 'head' && p.y > 1.75) || (p.distanceTo(hc) < H.r && p.y > 1.9 && Math.abs(p.x) < 0.38)) { vpart[i] = PI.head; continue; }
-    // the pauldrons: the great caps over the shoulders
-    const pk = A.findIndex((a) => p.y > L.pauldronY && Math.sign(p.x) === Math.sign(a.sh.x) && Math.abs(p.x) > 0.42 && p.distanceTo(a.sh) < 0.62);
-    if (pk >= 0) { vpart[i] = PI[`pauldron${pk}`]; continue; }
-    // the saw's disc: rust in its plane, out from its hub
-    const d = _v.subVectors(p, sawC);
-    if (rk === 'rust' && Math.abs(d.dot(sawN)) < 0.07 && d.length() > 0.17 && d.length() < 0.5) { vpart[i] = PI.saw; continue; }
-    const cand = [
-      ['hull', Math.hypot(p.x / 0.6, (p.y - 1.48) / 0.66, (p.z + 0.06) / 0.58) * 0.6 - 0.6],
-      ...A.flatMap((a, k) => [[`upper${k}`, segDist(p, a.sh, a.el) - 0.17], [`fore${k}`, segDist(p, a.el, a.wr) - 0.2], [`hand${k}`, a.tool === 'saw' ? p.distanceTo(a.end) - 0.42 : segDist(p, a.wr, a.end) - 0.16]]),
-      ...G.flatMap((l, k) => [[`thigh${k}`, segDist(p, l.hip, l.knee) - 0.2 + (p.y > l.hip.y ? 0.15 : 0)], [`shin${k}`, segDist(p, l.knee, l.ankle) - 0.24], [`foot${k}`, p.y < l.ankle.y + 0.05 ? segDist(p, l.ankle.clone().setY(0.1), l.foot.clone().setY(0.1)) - 0.5 : 9]]),
-    ];
-    let best = cand[0]; for (const c of cand) if (c[1] < best[1]) best = c;
-    vpart[i] = PI[best[0]];
-  }
-  const I = geo.index.array, tri = new Uint8Array(I.length / 3), votes = new Uint8Array(PARTS.length);
-  const strict = new Set([PI.head, PI.pauldron0, PI.pauldron1, PI.saw]);
-  for (let t = 0; t < tri.length; t++) {
-    const a = vpart[I[t * 3]], b = vpart[I[t * 3 + 1]], c = vpart[I[t * 3 + 2]];
-    let pick = a === b || a === c ? a : b === c ? b : a;
-    if (strict.has(pick) && !(a === pick && b === pick && c === pick)) pick = [a, b, c].find((x) => !strict.has(x)) ?? pick;
-    tri[t] = pick; votes[pick] = 1;
-  }
-  const out = { tri, vpart, role, keys, sawN, A, G, hc };
+  const geo = src.geometry, L = src.landmarks, C = geo.attributes.color, n = C.count, tri = new Uint8Array(geo.index.count / 3);
+  for (const [name, [first, count]] of Object.entries(L.parts)) tri.fill(PI[name], first, first + count);
+  const keys = Object.keys(L.palette), ref = keys.map((k) => raw(L.palette[k])), role = new Uint8Array(n);
+  for (let i = 0; i < n; i++) { const r = C.getX(i), g = C.getY(i), b = C.getZ(i); let best = 0, d = Infinity; ref.forEach((c, k) => { const e = (c.r - r) ** 2 + (c.g - g) ** 2 + (c.b - b) ** 2; if (e < d) { d = e; best = k; } }); role[i] = best; }
+  const out = { tri, role, keys, A: L.arms.map((a) => ({ sh: vec(a.shoulder), el: vec(a.elbow), wr: vec(a.wrist), end: vec(a.end), tool: a.tool })),
+    G: L.legs.map((l) => ({ hip: vec(l.hip), knee: vec(l.knee), ankle: vec(l.ankle), foot: vec(l.foot) })), hc: vec(L.head.centre), sawN: vec(L.saw.normal).normalize() };
   CACHE.set(src.geometry, out);
   return out;
 }
-/** The disc's normal: the rust vertices round the saw's centre, their least spread direction. */
-function sawNormal(P, role, keys, c) {
-  const rust = keys.indexOf('rust'), pts = [], p = new THREE.Vector3();
-  for (let i = 0; i < P.count; i++) if (role[i] === rust && p.fromBufferAttribute(P, i).distanceTo(c) < 0.45) pts.push(p.clone().sub(c));
-  // (power iteration on the inverse is awkward; the smallest of the covariance's directions by sweeping a hemisphere)
-  let best = null, bv = Infinity;
-  for (let a = 0; a < 90; a++) for (let b = 0; b <= 30; b++) {
-    const th = (a / 90) * Math.PI * 2, ph = (b / 30) * Math.PI / 2, d = new THREE.Vector3(Math.cos(th) * Math.sin(ph), Math.cos(ph), Math.sin(th) * Math.sin(ph));
-    let v = 0; for (const q of pts) v += q.dot(d) ** 2;
-    if (v < bv) { bv = v; best = d; }
-  }
-  return best.normalize();
-}
 
-/** The geometry of one part's triangles, its corners copied (non-indexed), with a colour attribute recoloured or kept. */
+/** One part's triangles, their corners copied (non-indexed): position, normal, uv, colour (recoloured or kept). */
 function partGeo(src, prep, ids, colour) {
-  const geo = src.geometry, I = geo.index.array, pos = [], nor = [], uv = [], col = [];
+  const geo = src.geometry, I = geo.index.array, pos = [], nor = [], uv = [], col = [], part = [];
   const PP = geo.attributes.position, NN = geo.attributes.normal, UU = geo.attributes.uv, CC = colour ?? geo.attributes.color;
-  const skinI = [];
   for (let t = 0; t < prep.tri.length; t++) {
     if (!ids.includes(prep.tri[t])) continue;
-    for (let k = 0; k < 3; k++) { const i = I[t * 3 + k]; pos.push(PP.getX(i), PP.getY(i), PP.getZ(i)); nor.push(NN.getX(i), NN.getY(i), NN.getZ(i)); uv.push(UU.getX(i), UU.getY(i)); col.push(CC.getX(i), CC.getY(i), CC.getZ(i)); skinI.push(prep.tri[t]); }
+    for (let k = 0; k < 3; k++) { const i = I[t * 3 + k]; pos.push(PP.getX(i), PP.getY(i), PP.getZ(i)); nor.push(NN.getX(i), NN.getY(i), NN.getZ(i)); uv.push(UU.getX(i), UU.getY(i)); col.push(CC.getX(i), CC.getY(i), CC.getZ(i)); part.push(prep.tri[t]); }
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  return { g, skinI };
+  return { pos, nor, uv, col, part };
 }
 
 /** A skin's colours over the mesh's roles (a world's own look on the same body). */
-function skinColours(geo, prep, P) {
-  const n = geo.attributes.position.count, out = new Float32Array(n * 3);
-  const want = { body: P.body, dark: P.joint ?? P.dark, rust: P.saw ?? P.joint, band: P.brass, head: P.head ?? P.body2 };
-  const cols = prep.keys.map((k) => new THREE.Color(want[k] ?? ROLES[k]));
+function skinColours(geo, prep, want) {
+  const n = geo.attributes.position.count, out = new Float32Array(n * 3), cols = prep.keys.map((k) => raw(want[k]));
   for (let i = 0; i < n; i++) { const c = cols[prep.role[i]]; out[i * 3] = c.r; out[i * 3 + 1] = c.g; out[i * 3 + 2] = c.b; }
   return new THREE.BufferAttribute(out, 3);
 }
@@ -135,8 +95,8 @@ function skinColours(geo, prep, P) {
 /** The trial body (the model contract of plans/index.js), from the loaded source (loadTripoWoodcutter). */
 export function tripoWoodcutterModel(skin, src) {
   const L = src.landmarks, home = skin.id === 'perdide2', props = new Set(skin.props);
-  const P = { ...skin.palette, ...(home ? { body: '#55795e', joint: '#212417', head: '#e6c7a1', visor: '#18161c', saw: '#543b23', core: '#f0b54a', dark: '#212417' } : {}) };
-  P.visor ??= P.dark;
+  const P = { ...skin.palette, ...(home ? WOODCUTTER_OWN.perdide2 : {}) };
+  P.visor ??= P.dark; P.head ??= P.body2; P.band ??= P.brass; P.clamp ??= P.joint;
   const M = materials('brute', skin), prep = partsOf(src), hipY = WOODCUTTER.hipY;
   const g = new THREE.Group(); g.name = `${skin.name} · wood cutter (Tripo)`;
   const body = pivot(g, 0, 0, 0, 'body');
@@ -154,20 +114,19 @@ export function tripoWoodcutterModel(skin, src) {
     const qf = qs.clone().multiply(qe).invert().multiply(new THREE.Quaternion().setFromUnitVectors(down, tool.clone().normalize()));
     sh.quaternion.copy(qs); el.quaternion.copy(qe); fist.quaternion.copy(qf);
     let saw = null;
-    if (a.tool === 'saw') {
-      // (the disc's spin: a frame at its centre, its x along the disc's normal; the disc turns about it)
+    if (k === 0) {
+      // (the disc's joint: a frame at Tripo's disc centre, its x along the disc's normal; the disc turns about it)
       g.updateMatrixWorld(true);
       const frame = new THREE.Object3D(); frame.name = 'saw frame'; fist.add(frame);
       frame.position.copy(fist.worldToLocal(a.end.clone()));
       fist.getWorldQuaternion(qW);
-      const nLocal = prep.sawN.clone().applyQuaternion(qW.clone().invert());
-      frame.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), nLocal);
+      frame.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), prep.sawN.clone().applyQuaternion(qW.clone().invert()));
       saw = new THREE.Bone(); saw.name = 'saw'; frame.add(saw);
     }
     return { sh, el, fist, hand: null, reach: null, saw, s };
   });
-  // the head: a pivot at its foot the gaze turns, the head's own part a joint under it
-  const headPivot = pivot(hull, prep.hc.x, 1.9, prep.hc.z - 0.05, 'head');
+  // the head: it turns about its dome's centre (the gaze), the head's own part a joint under it
+  const headPivot = pivot(hull, ...prep.hc.toArray(), 'head');
   const headBone = pivot(headPivot, 0, 0, 0, 'head part');
   // ---------------------------------------------------------------- the kit's legs on the mesh's own (SkinLegs), segments hidden
   const hide = new THREE.MeshBasicMaterial({ visible: false });
@@ -184,41 +143,113 @@ export function tripoWoodcutterModel(skin, src) {
   });
   legs.forEach((leg, k) => { const l = prep.G[k]; leg.root.position.copy(l.hip); leg.shin.position.copy(l.knee.clone().sub(l.hip)); leg.foot.position.copy(l.ankle.clone().sub(l.hip)).setY(l.ankle.y - leg.ankle - l.hip.y); });
   const skinLegs = new SkinLegs({ kit: { legs, rig }, bones: Object.assign({}, ...legBones.map((b, k) => ({ [`leg${k}_thigh`]: b.thigh, [`leg${k}_shin`]: b.shin, [`leg${k}_foot`]: b.foot }))), group: g, body: hullTurn });
-  // ---------------------------------------------------------------- the meshes: one rigid skin, the plates, the overlays
   const bones = [hull, headBone, arms[0].sh, arms[0].el, arms[0].fist, arms[0].saw, arms[1].sh, arms[1].el, arms[1].fist, ...legBones.flatMap((b) => [b.thigh, b.shin, b.foot])];
-  const colour = home ? null : skinColours(src.geometry, prep, P);
-  const skinIds = PARTS.map((_, i) => i).filter((i) => i < PI.pauldron0);
-  const { g: skinGeo, skinI } = partGeo(src, prep, skinIds, colour);
+  g.updateMatrixWorld(true);
+  // ---------------------------------------------------------------- the mesh: the asset's parts, then the model's own (tools, bands, balls)
+  const want = { body: P.body, dark: P.joint ?? P.dark, band: P.band, vent: P.brass, head: P.head, visor: P.visor };
+  const colour = home ? null : skinColours(src.geometry, prep, want);
+  const boneOfPart = (p) => BI[PARTS[p]];
+  const S = partGeo(src, prep, PARTS.map((_, i) => i).filter((i) => i < PI.pauldron0), colour);
+  const skinI = S.part.map(boneOfPart);
+  const ownCol = { saw: P.saw ?? P.joint, clamp: P.clamp, brass: P.brass, dark: P.joint ?? P.dark, band: P.band, body: P.body, blade: P.blade ?? '#cfd4d8', iron: P.dark };
+  /** One of the model's own parts: `geo` in `obj`'s frame, on bone `bone`, in colour role `key` (a swatch at home). */
+  const own = (geo, obj, bone, key) => {
+    const gg = (geo.index ? geo.toNonIndexed() : geo.clone()).applyMatrix4(obj.matrixWorld);
+    if (!gg.attributes.normal) gg.computeVertexNormals();
+    const p = gg.attributes.position, nn = gg.attributes.normal, uv = L.swatches[key] ?? L.swatches.dark, c = home && L.swatches[key] ? raw(L.swatchColours[key]) : raw(ownCol[key]);
+    for (let i = 0; i < p.count; i++) { S.pos.push(p.getX(i), p.getY(i), p.getZ(i)); S.nor.push(nn.getX(i), nn.getY(i), nn.getZ(i)); S.uv.push(uv[0], uv[1]); S.col.push(c.r, c.g, c.b); skinI.push(BI[bone]); }
+    gg.dispose(); if (gg !== geo) geo.dispose();
+  };
+  // the saw arm's tool, at its wrist
+  const fist0 = arms[0].fist, hub = fist0.worldToLocal(prep.A[0].end.clone());
+  /** A box from a to b (fist frame), w × d across. */
+  const strut = (a, b, w, d) => { const len = a.distanceTo(b); const geo = new THREE.BoxGeometry(w, len, d); geo.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize())); return geo.translate(...a.clone().add(b).multiplyScalar(0.5).toArray()); };
+  const wristCap = (key) => own(new THREE.CylinderGeometry(L.cuts.wrist0.r * 0.95, L.cuts.wrist0.r * 0.95, 0.12, 16).translate(0, -0.03, 0), fist0, 'fist0', key);
+  if (props.has('saw')) {
+    // the reference's: a rust clamp round the wrist, a bracket out to the disc's hub, the toothed disc (it spins)
+    wristCap('band');
+    own(new THREE.BoxGeometry(0.26, 0.16, 0.26).translate(0, -0.12, 0), fist0, 'fist0', 'clamp');
+    own(strut(new THREE.Vector3(0, -0.14, 0), hub, 0.16, 0.12), fist0, 'fist0', 'clamp');
+    own(new THREE.CylinderGeometry(0.13, 0.13, 0.12, 18).rotateZ(Math.PI / 2), arms[0].saw, 'fist0', 'clamp');
+    own(sawDisc(L.saw.r, 0.04, 12), arms[0].saw, 'saw', 'saw');
+    own(new THREE.CylinderGeometry(0.055, 0.055, 0.16, 10).rotateZ(Math.PI / 2), arms[0].saw, 'saw', 'brass');
+  } else if (props.has('shears')) {
+    wristCap('dark');
+    const T = WOODCUTTER_TOOLS.shears(); for (const b of T.blades) own(b, fist0, 'fist0', 'blade'); own(T.pin, fist0, 'fist0', 'brass');
+  } else {
+    // a clamp hand: the left one's (Tripo's), mirrored onto the right wrist
+    const H = partGeo(src, prep, [PI.hand1], colour), inv = arms[1].fist.matrixWorld.clone().invert(), mirror = new THREE.Matrix4().makeScale(-1, 1, 1);
+    const toRight = new THREE.Matrix4().multiplyMatrices(fist0.matrixWorld, mirror).multiply(inv), nm = new THREE.Matrix3().getNormalMatrix(toRight);
+    for (let t = 0; t < H.part.length; t += 3) for (const k of [0, 2, 1]) {   // (mirrored: each triangle's winding turned)
+      const i = t + k; _v.set(H.pos[i * 3], H.pos[i * 3 + 1], H.pos[i * 3 + 2]).applyMatrix4(toRight); S.pos.push(_v.x, _v.y, _v.z);
+      _v.set(H.nor[i * 3], H.nor[i * 3 + 1], H.nor[i * 3 + 2]).applyMatrix3(nm).normalize(); S.nor.push(_v.x, _v.y, _v.z);
+      S.uv.push(H.uv[i * 2], H.uv[i * 2 + 1]); S.col.push(H.col[i * 3], H.col[i * 3 + 1], H.col[i * 3 + 2]); skinI.push(BI.fist0);
+    }
+    if (props.has('ladle')) { const T = WOODCUTTER_TOOLS.ladle(); const lad = pivot(fist0, 0, -0.2, 0.08, 'ladle'); g.updateMatrixWorld(true); for (const x of T.iron) own(x, lad, 'fist0', 'iron'); T.melt.dispose(); }
+  }
+  // a dark ball inside each joint, on the part before it (the cuts lie in Tripo's own bands and creases: at rest the
+  // ball is hidden in the limb; as the joint bends, it fills what opens)
+  const BALL = { elbow0: 'upper0', elbow1: 'upper1', wrist1: 'fore1', knee0: 'thigh0', ankle0: 'shin0', knee1: 'thigh1', ankle1: 'shin1' };
+  for (const [name, parent] of Object.entries(BALL)) { const c = L.cuts[name]; if (c) own(new THREE.SphereGeometry(c.inner * 0.8, 10, 7).translate(...c.at), g, parent, 'dark'); }
+  // (inside the collar, under the dome: dark, should a turn of the head ever show past its rim)
+  own(new THREE.SphereGeometry(L.head.r * 0.75, 12, 8).translate(...L.head.centre), g, 'hull', 'dark');
+  const skinGeo = new THREE.BufferGeometry();
+  skinGeo.setAttribute('position', new THREE.Float32BufferAttribute(S.pos, 3)); skinGeo.setAttribute('normal', new THREE.Float32BufferAttribute(S.nor, 3)); skinGeo.setAttribute('uv', new THREE.Float32BufferAttribute(S.uv, 2)); skinGeo.setAttribute('color', new THREE.Float32BufferAttribute(S.col, 3));
   const n = skinI.length, SI = new Uint16Array(n * 4), SW = new Float32Array(n * 4);
   for (let i = 0; i < n; i++) { SI[i * 4] = skinI[i]; SW[i * 4] = 1; }
+  // (across each cut of a limb, the asset's vertices blended between its two bones over BLEND m either side of the
+  //  plane: the same weights for the corners either part has there, so the joint bends without opening; the model's
+  //  own parts, the head and the pauldrons stay rigid)
+  const pos = skinGeo.attributes.position;
+  for (let i = 0; i < S.part.length; i++) {
+    const own0 = skinI[i];
+    for (const [cut, parent, child] of JOINTS) {
+      if (own0 !== BI[parent] && own0 !== BI[child]) continue;
+      const c = L.cuts[cut]; if (!c) continue;
+      const s = (pos.getX(i) - c.at[0]) * c.n[0] + (pos.getY(i) - c.at[1]) * c.n[1] + (pos.getZ(i) - c.at[2]) * c.n[2];
+      if (Math.abs(s) >= BLEND || _v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).distanceTo(vec(c.at)) > c.r + 0.15) continue;
+      const w = THREE.MathUtils.smoothstep(s, -BLEND, BLEND);
+      SI[i * 4] = BI[child]; SW[i * 4] = w; SI[i * 4 + 1] = BI[parent]; SW[i * 4 + 1] = 1 - w;
+      if (own0 === BI[parent]) { SI[i * 4] = BI[parent]; SW[i * 4] = 1 - w; SI[i * 4 + 1] = BI[child]; SW[i * 4 + 1] = w; }
+      break;
+    }
+  }
   skinGeo.setAttribute('skinIndex', new THREE.BufferAttribute(SI, 4)); skinGeo.setAttribute('skinWeight', new THREE.BufferAttribute(SW, 4));
-  // (both sides drawn: a cut part's open edge shows its inside, not a hole)
+  // (both sides drawn: a pauldron's or a plate's open edge shows its inside, not a hole)
   const skinM = M.mat(home ? 'wcTripo' : 'wcTripoTint', '#ffffff', { side: THREE.DoubleSide, ...(home ? { map: src.map } : { vertexColors: true }) });
   const sm = new THREE.SkinnedMesh(skinGeo, skinM); sm.name = 'tripo skin'; sm.frustumCulled = false; g.add(sm);
   // the armour: the pauldrons cut out (on their shoulders), the breastplate copied off the chest, a little proud
   const plateM = M.mat(home ? 'wcTripoPlate' : 'wcTripoPlateTint', '#ffffff', { side: THREE.DoubleSide, ...(home ? { map: src.map } : { vertexColors: true }) });
   const jointM = M.mat('wcTripoJoint', P.joint);
-  g.updateMatrixWorld(true);
+  const geoOf = (A) => { const b = new THREE.BufferGeometry(); b.setAttribute('position', new THREE.Float32BufferAttribute(A.pos, 3)); b.setAttribute('normal', new THREE.Float32BufferAttribute(A.nor, 3)); b.setAttribute('uv', new THREE.Float32BufferAttribute(A.uv, 2)); b.setAttribute('color', new THREE.Float32BufferAttribute(A.col, 3)); return b; };
   const plates = [];
   for (const k of [0, 1]) {
-    const { g: pg } = partGeo(src, prep, [PI[`pauldron${k}`]], colour);
+    const pg = geoOf(partGeo(src, prep, [PI[`pauldron${k}`]], colour));
     pg.applyMatrix4(arms[k].sh.matrixWorld.clone().invert());
     plates.push(plate(arms[k].sh, pg, plateM, 0, 0, 0, `pauldron ${k ? 'left' : 'right'}`));
     add(arms[k].sh, new THREE.SphereGeometry(0.2, 12, 8), jointM, 0, -0.02, 0);   // (the ball joint the pauldron covers)
   }
   {
-    const { g: hg } = partGeo(src, prep, [PI.hull], colour), HP = hg.attributes.position, HN = hg.attributes.normal, keep = [];
+    const hg = geoOf(partGeo(src, prep, [PI.hull], colour)), HP = hg.attributes.position, HN = hg.attributes.normal, keep = [];
     for (let t = 0; t < HP.count; t += 3) { let ok = true; for (let q = 0; q < 3; q++) { const x = HP.getX(t + q), y = HP.getY(t + q), z = HP.getZ(t + q); if (!(y > L.chestY[0] && y < L.chestY[1] && z > 0.12 && Math.abs(x) < 0.45 && HN.getZ(t + q) > 0.3)) ok = false; } if (ok) keep.push(t); }
-    const bp = new THREE.BufferGeometry(), A = {};
-    for (const name of ['position', 'normal', 'uv', 'color']) { const src2 = hg.attributes[name], arr = []; for (const t of keep) for (let q = 0; q < 3; q++) for (let c = 0; c < src2.itemSize; c++) arr.push(src2.array[(t + q) * src2.itemSize + c] + (name === 'position' ? HN.array[(t + q) * 3 + c] * 0.008 : 0)); A[name] = new THREE.Float32BufferAttribute(arr, src2.itemSize); bp.setAttribute(name, A[name]); }
+    const bp = new THREE.BufferGeometry();
+    for (const name of ['position', 'normal', 'uv', 'color']) { const src2 = hg.attributes[name], arr = []; for (const t of keep) for (let q = 0; q < 3; q++) for (let c = 0; c < src2.itemSize; c++) arr.push(src2.array[(t + q) * src2.itemSize + c] + (name === 'position' ? HN.array[(t + q) * 3 + c] * 0.008 : 0)); bp.setAttribute(name, new THREE.Float32BufferAttribute(arr, src2.itemSize)); }
     plates.splice(1, 0, plate(hull, bp, plateM, 0, 0, 0, 'breastplate'));
     hg.dispose();
   }
-  // the visor's slit over the painted one (its own material: it goes orange as it winds up), the vent's glow
+  // the visor's slit in its groove (its own material: it goes orange as it winds up), the vent's glow
   const eyeM = M.own('visor', P.visor, { glow: 0.2 }), coreM = M.own('core', P.core ?? '#f0b54a', { glow: 0.3 });
-  const visor = add(headBone, new THREE.CapsuleGeometry(0.03, 0.2, 3, 10).rotateZ(Math.PI / 2).scale(1, 1, 0.5), eyeM, 0, 0.25, 0.38 - (prep.hc.z - 0.05));
-  visor.rotation.x = -0.35; visor.name = 'visor';
+  {
+    const V = L.visor, at = vec(V.at), nrm = at.clone().sub(prep.hc).normalize(), len = Math.min(0.24, V.size[0] * 0.6);
+    const visor = add(headBone, new THREE.CapsuleGeometry(0.028, len, 3, 10).rotateZ(Math.PI / 2).scale(1, 1, 0.45), eyeM, ...at.clone().addScaledVector(nrm, 0.006).sub(prep.hc).toArray());
+    visor.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), nrm); visor.name = 'visor';
+  }
   const v = L.vent, core = add(hull, new THREE.PlaneGeometry(0.24, 0.2), coreM, v[0], v[1], v[2] + 0.025); core.name = 'vent';
+  // the other worlds' dress: the Waterfall's turbine on its chest, the Glass Dunes' furnace glow, the Moon Foundry's melt
+  let fan = null;
+  if (props.has('turbine')) { fan = pivot(hull, 0, 1.58, 0.56, 'turbine'); many(fan, WOODCUTTER_TOOLS.vanes(), M.mat('wcTurbine', P.brass)); }
+  if (props.has('door')) add(hull, new THREE.CircleGeometry(0.11, 16), coreM, 0, 1.5, 0.565);
+  if (props.has('ladle') && !props.has('saw') && !props.has('shears')) { const lad = fist0.getObjectByName('ladle'); if (lad) add(lad, WOODCUTTER_TOOLS.ladle().melt, coreM); }
   const gaze = [gazePart(g, headPivot, { mode: 'turn', yaw: 0.6, up: 0.2, down: 0.3 })];
   // the slab it hurls, in the clamp
   const slab = add(arms[1].fist, new THREE.DodecahedronGeometry(0.24, 0).scale(1.3, 0.7, 1), M.mat('slab', P.slab ?? '#8a7f70', { flat: true }), 0, -0.3, 0.12);
@@ -227,20 +258,25 @@ export function tripoWoodcutterModel(skin, src) {
   g.updateMatrixWorld(true);
   sm.bind(new THREE.Skeleton(bones));
   boneBoxes(sm, bones, skinI);
-  // each hand's outer points (the clamp's fingers, the saw's disc) in its fist's frame, for the ground contact
+  // each hand's outer points (the clamp's fingers, the saw's disc and bracket, the shears' tips) in its fist's frame, for the ground contact
   for (const [k, a] of arms.entries()) {
-    const ids = k ? [PI.hand1] : [PI.hand0, PI.saw], P0 = skinGeo.attributes.position, inv = a.fist.matrixWorld.clone().invert(), pts = [];
+    const ids = k ? [BI.hand1] : [BI.fist0, BI.saw], P0 = skinGeo.attributes.position, inv = a.fist.matrixWorld.clone().invert(), pts = [];
     for (let i = 0; i < n; i++) if (ids.includes(skinI[i])) pts.push(_v.fromBufferAttribute(P0, i).applyMatrix4(inv).toArray());
     const tmp = new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pts.flat(), 3))); a.fist.add(tmp);
     a.reach = outerPoints(a.fist, (o) => o === tmp); tmp.removeFromParent(); tmp.geometry.dispose();
   }
   const parts = [hullTurn, headBone, ...arms.flatMap((a) => [a.sh, a.el, a.fist]), ...legBones.flatMap((b) => [b.thigh, b.shin, b.foot])];
-  const motion = woodcutterMotion({ g, hull: hullTurn, hullY: hipY, arms, rig, slab, coreM, eyeM, bodyM: null, P, props, saw: arms[0].saw, head: headPivot });
+  let rigid = false;
+  const motion = woodcutterMotion({ g, hull: hullTurn, hullY: hipY, arms, rig, slab, coreM, eyeM, bodyM: null, P, props, saw: props.has('saw') ? arms[0].saw : null, fan, head: headPivot });
   return {
     group: g, gaze, body: hullTurn, rig, parts, eyeMat: eyeM, base: P.visor, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.saw ?? P.joint],
-    plates, weak: { obj: core, r: 0.2, name: 'vent' }, trial: 'tripo', trialDef: woodcutterDef, wcJoints: { arms, legs, head: headPivot, legBones },
+    plates, weak: { obj: core, r: 0.2, name: 'vent' }, trial: 'tripo', archetype: WOODCUTTER_ID, trialDef: woodcutterDef, wcJoints: { arms, legs, head: headPivot, legBones },
     tell: (id) => (id === 'hurl' ? arms[1].fist : arms[0].fist),
-    anim(f, c) { motion(f, c); skinLegs.write(f.heading, { air: f.alt > 0.05 ? 1 : 0 }); },
+    anim(f, c) {
+      // (going down: the cuts' blends let go, each vertex all its own part's, so the parts come apart clean, not stretched)
+      if (f.dying && !rigid) { rigid = true; const w = skinGeo.attributes.skinWeight, j = skinGeo.attributes.skinIndex; for (let i = 0; i < n; i++) { j.setXY(i, skinI[i], 0); w.setXY(i, 1, 0); } w.needsUpdate = j.needsUpdate = true; }
+      motion(f, c); skinLegs.write(f.heading, { air: f.alt > 0.05 ? 1 : 0 });
+    },
     dispose() { M.dispose(); hide.dispose(); skinGeo.dispose(); for (const x of plates) x.geometry.dispose(); },
   };
 }

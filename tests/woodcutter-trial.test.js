@@ -11,9 +11,9 @@ import { clearTargets } from '../src/targets.js';
 import { SKINS, skinOf } from '../src/enemies/skins.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { TRIAL_BUILDERS, archetypeModel } from '../src/enemies/plans/index.js';
-import { woodcutterModel, woodcutterDef, WOODCUTTER } from '../src/enemies/plans/woodcutter.js';
+import { woodcutterModel, woodcutterDef, woodcutterArchetype, WOODCUTTER, WOODCUTTER_ID } from '../src/enemies/plans/woodcutter.js';
 import { lowestIn } from '../src/enemies/plans/kit.js';
-import { tripoWoodcutterModel, partsOf, PARTS } from '../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/model.js';
+import { tripoWoodcutterModel, partsOf, PARTS, BONES, BLEND } from '../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/model.js';
 import { nodeSource } from '../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/source-node.mjs';
 
 const SRC = nodeSource(new URL('../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/', import.meta.url));
@@ -26,6 +26,18 @@ test('the game builds its own brute: no trial body stands in, its def untouched 
   const M = archetypeModel('brute', 'perdide2');
   assert.equal(M.trial, undefined); assert.equal(M.trialDef, undefined);
   M.dispose();
+});
+
+test('its own enemy, keyed `woodcutter`: the brute untouched, in no roster yet (the author, 2026-10-30)', () => {
+  assert.equal(WOODCUTTER_ID, 'woodcutter');
+  assert.equal(ARCHETYPES.woodcutter, undefined, 'not registered until it is placed');
+  assert.equal(SKINS.woodcutter, undefined);
+  const before = JSON.stringify(ARCHETYPES.brute), A = woodcutterArchetype(ARCHETYPES.brute);
+  assert.equal(JSON.stringify(ARCHETYPES.brute), before, 'the brute\'s archetype unchanged');
+  assert.equal(A.kind, WOODCUTTER_ID); assert.equal(A.name, 'wood cutter'); assert.equal(A.def.name, 'wood cutter');
+  assert.equal(A.plan, 'brute', 'on the brute\'s rig family'); assert.equal(A.sound, ARCHETYPES.brute.sound);
+  assert.equal(A.def.radius, WOODCUTTER.radius);
+  for (const [v, build] of Object.entries(BUILD)) { const M = build(skinOf('brute', 'perdide2')); assert.equal(M.archetype, WOODCUTTER_ID, v); M.dispose(); }
 });
 
 test('its def: the brute\'s windows kept, the reach scaled to the body', () => {
@@ -94,18 +106,28 @@ test('in the fight: 2.2–2.6 m, over the traveller; the slam\'s tools meet the 
     foes.hurt(f, 'blade', new THREE.Vector3(-1, 0, 0), { damage: 99, source: 'charge', breaks: true });
     for (let i = 0; i < 40; i++) foes.update(1 / 30);
     assert.ok(f.dying, `${v}: down`);
+    if (v === 'tripo') { let sm = null; f.model.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; }); if (!sm) foes.group?.traverse((o) => { if (o.isSkinnedMesh && o.name === 'tripo skin') sm = o; });
+      const w = sm.geometry.attributes.skinWeight; let soft = 0; for (let i = 0; i < w.count; i++) if (w.getX(i) < 1) soft++; assert.equal(soft, 0, 'tripo: rigid as it comes apart (no stretched cuts)'); }
     foes.dispose();
     delete TRIAL_BUILDERS.brute;
   }
   clearTargets();
 });
 
-test('the Tripo machine rig: 10–15k triangles, every vertex rigid on one joint, an exact bind, a joint moves only its part', () => {
+test('the Tripo machine rig: 10–15k triangles, every vertex on one joint (two only across a limb\'s cut), an exact bind, a joint moves only its parts', () => {
   assert.ok(SRC.triangles >= 10000 && SRC.triangles <= 15000, `${SRC.triangles} triangles`);
   const M = tripoWoodcutterModel(skinOf('brute', 'perdide2'), SRC);
   let sm = null; M.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; });
   const W = sm.geometry.attributes.skinWeight, J = sm.geometry.attributes.skinIndex, P = sm.geometry.attributes.position, n = P.count, per = new Map();
-  for (let i = 0; i < n; i++) { assert.equal(W.getX(i), 1, 'rigid: one joint a vertex'); per.set(J.getX(i), (per.get(J.getX(i)) ?? 0) + 1); }
+  // (rigid but for a band BLEND either side of each limb's cut, where a vertex is shared by the two bones: the joint
+  //  bends closed. Its two weights sum to 1 and it lies within BLEND of a cut)
+  let blended = 0;
+  for (let i = 0; i < n; i++) {
+    assert.ok(Math.abs(W.getX(i) + W.getY(i) - 1) < 1e-6 && W.getZ(i) === 0, 'one joint a vertex, or two');
+    if (W.getX(i) < 1) { blended++; const near = Object.values(SRC.landmarks.cuts).some((c) => Math.abs((P.getX(i) - c.at[0]) * c.n[0] + (P.getY(i) - c.at[1]) * c.n[1] + (P.getZ(i) - c.at[2]) * c.n[2]) < BLEND + 1e-4); assert.ok(near, 'blended only at a cut'); }
+    per.set(J.getX(i), (per.get(J.getX(i)) ?? 0) + 1);
+  }
+  assert.ok(blended > 200 && blended < n * 0.25, `${blended} vertices blended across the cuts`);
   assert.equal(per.size, sm.skeleton.bones.length, 'every joint carries a part');
   for (const [b, c] of per) assert.ok(c > 30, `${sm.skeleton.bones[b].name}: ${c} vertices`);
   M.group.updateMatrixWorld(true); sm.skeleton.update();
@@ -117,10 +139,22 @@ test('the Tripo machine rig: 10–15k triangles, every vertex rigid on one joint
   const before = Array.from({ length: n }, (_, i) => skinned(i).clone());
   el.rotateX(-0.8); M.group.updateMatrixWorld(true); sm.skeleton.update();
   let moved = 0, wrong = 0;
-  for (let i = 0; i < n; i++) { if (skinned(i).distanceTo(before[i]) > 1e-3) { moved++; if (!ids.has(J.getX(i))) wrong++; } }
+  for (let i = 0; i < n; i++) { if (skinned(i).distanceTo(before[i]) > 1e-3) { moved++; if (!ids.has(J.getX(i)) && !(ids.has(J.getY(i)) && W.getY(i) > 0)) wrong++; } }
   assert.ok(moved > 100, `the elbow moved ${moved}`); assert.equal(wrong, 0, 'nothing else moved');
-  // the parts by name: the head its own (the gaze turns it), the saw's disc its own (it spins)
+  // a bent elbow opens no gap: the corners the upper arm and the forearm both have at its cut stay together
+  {
+    const arm = new Set(['upper1', 'fore1'].map((x) => BONES.indexOf(x))), key = (i) => `${P.getX(i).toFixed(4)},${P.getY(i).toFixed(4)},${P.getZ(i).toFixed(4)}`, groups = new Map();
+    for (let i = 0; i < n; i++) { if (!arm.has(J.getX(i))) continue; const k = key(i); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); }
+    let gap = 0, shared = 0;
+    for (const g of groups.values()) { if (new Set(g.map((i) => J.getX(i))).size < 2) continue; shared++; const a = skinned(g[0]).clone(); for (const i of g) gap = Math.max(gap, skinned(i).distanceTo(a)); }
+    assert.ok(shared > 10, `${shared} corners shared across the elbow's cut`);
+    assert.ok(gap < 1e-4, `the elbow bent: the widest seam ${gap.toFixed(4)} m`);
+  }
+  // the parts by name: the head its own (the gaze turns it), the pauldrons, the boots; Tripo's saw hand dropped, the
+  // disc the model's own on its own joint (it spins), with the clamp and bracket on the fist
   const prep = partsOf(SRC), count = (name) => prep.tri.filter((t) => t === PARTS.indexOf(name)).length;
-  for (const name of ['head', 'saw', 'pauldron0', 'pauldron1', 'foot0', 'foot1']) assert.ok(count(name) > 50, `${name}: ${count(name)} triangles`);
+  for (const name of ['head', 'pauldron0', 'pauldron1', 'foot0', 'foot1', 'hand1']) assert.ok(count(name) > 50, `${name}: ${count(name)} triangles`);
+  assert.equal(count('hand0') + count('saw'), 0, 'no Tripo saw hand');
+  for (const name of ['fist0', 'saw']) assert.ok(per.get(BONES.indexOf(name)) > 60, `${name}: the model's own tool (${per.get(BONES.indexOf(name))} vertices)`);
   M.dispose();
 });

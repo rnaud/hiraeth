@@ -71,8 +71,22 @@ export function woodcutterDef(def) {
   return out;
 }
 
+/**
+ * The wood cutter as its own enemy (the author, 2026-10-30): not the brute's replacement (today's 4.7 m brute stays in
+ * the game as it is) but a new archetype, keyed `woodcutter`, on the brute's rig family. Ready to be registered (its own
+ * entry in src/enemies/archetypes.js, skins.js and plans/index.js, its sounds and placement) when the author places it;
+ * until then only the trial page builds it, standing in the brute's slot there. In no world's roster yet.
+ */
+export const WOODCUTTER_ID = 'woodcutter';
+/** Its archetype, from the brute's (ARCHETYPES.brute): its own id and name, the brute's sounds and skins for now, its def. */
+export function woodcutterArchetype(brute) {
+  return { ...brute, name: 'wood cutter', kind: WOODCUTTER_ID, status: 'trial', planNo: undefined, art: { main: 'perdide2' },
+    def: { ...woodcutterDef(brute.def), name: 'wood cutter' }, skins: 'the brute\'s (src/enemies/skins.js SKINS.brute), its home perdide2 in WOODCUTTER_OWN',
+    note: 'A wood cutter: saw up? Get to its side and jump the quake.' };
+}
+
 /** The reference's own colours, on its home skin (Lorn II's wood cutter); the other skins keep their world's palette. */
-const OWN = {
+export const WOODCUTTER_OWN = {
   perdide2: { body: '#7f9f88', body2: '#93b19a', joint: '#2f4b3b', head: '#e5cfbb', visor: '#18161c', saw: '#8c3d2c', clamp: '#7a3527', brass: '#c8922f', band: '#5c5c37', core: '#f0b54a', dark: '#1e2622' },
 };
 /** Each part's surface (src/foe-surface.js): a soft mottle on the hull, a fine net of cracks whose veins open as it is hurt. */
@@ -101,6 +115,17 @@ export function sawDisc(r, t, n = 12) {
   const hole = new THREE.Path(); hole.absarc(0, 0, r * 0.12, 0, Math.PI * 2, true); s.holes.push(hole);
   return new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: 3 }).translate(0, 0, -t / 2).rotateY(Math.PI / 2);
 }
+
+/**
+ * The other worlds' tools, in the frame of the hand that holds them (its −y down the forearm), shared by the direct body
+ * and the Tripo one: Viridel's shears (two blades on a pin), the Moon Foundry's ladle (its iron and the melt in its bowl,
+ * hung from the fist at (0, −0.2, 0.08)), the Waterfall's turbine (its eight vanes, on the chest).
+ */
+export const WOODCUTTER_TOOLS = {
+  shears: () => ({ blades: pair((t) => new THREE.ConeGeometry(0.06, 0.55, 4).scale(1, 1, 0.35).rotateZ(Math.PI + t * 0.12).translate(t * 0.06, -0.38, 0.05)), pin: new THREE.CylinderGeometry(0.04, 0.04, 0.18, 10).rotateZ(Math.PI / 2).translate(0, -0.1, 0.05) }),
+  ladle: () => ({ iron: [new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8).translate(0, -0.3, 0.1).rotateX(0.5), new THREE.SphereGeometry(0.17, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, -0.7, 0.4)], melt: new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2).translate(0, -0.72, 0.4) }),
+  vanes: () => Array.from({ length: 8 }, (_, j) => new THREE.BoxGeometry(0.05, 0.22, 0.02).translate(0, 0.13, 0).rotateY(0.5).rotateZ((j / 8) * Math.PI * 2)),
+};
 
 /**
  * The arm poses, the hands on the ground and the attacks, shared by the direct body and the Tripo one (their joints:
@@ -201,9 +226,9 @@ export function woodcutterMotion({ g, hull, arms, rig, slab, coreM, eyeM, bodyM,
 }
 
 export function woodcutterModel(skin) {
-  const P = { ...skin.palette, ...(OWN[skin.id] ?? {}) }, props = new Set(skin.props), M = materials('brute', skin);
+  const P = { ...skin.palette, ...(WOODCUTTER_OWN[skin.id] ?? {}) }, props = new Set(skin.props), M = materials('brute', skin);
   P.head ??= P.body2; P.visor ??= P.dark; P.band ??= P.brass; P.clamp ??= P.joint;
-  const home = !!OWN[skin.id];
+  const home = !!WOODCUTTER_OWN[skin.id];
   const g = new THREE.Group(); g.name = `${skin.name} · wood cutter (direct)`;
   const body = pivot(g, 0, 0, 0, 'body');
   // (the hull turns about its hips: its frame `H` under it puts the parts at their heights over the ground)
@@ -261,8 +286,8 @@ export function woodcutterModel(skin) {
     } else if (props.has('shears')) {
       const bladeM = M.mat('blade', P.blade ?? '#cfd4d8');
       hand = pivot(fist, 0, 0, 0, 'fingers');
-      many(hand, pair((t) => new THREE.ConeGeometry(0.06, 0.55, 4).scale(1, 1, 0.35).rotateZ(Math.PI + t * 0.12).translate(t * 0.06, -0.38, 0.05)), bladeM);
-      add(hand, new THREE.CylinderGeometry(0.04, 0.04, 0.18, 10).rotateZ(Math.PI / 2), brassB, 0, -0.1, 0.05);
+      const T = WOODCUTTER_TOOLS.shears();
+      many(hand, T.blades, bladeM); many(hand, [T.pin], brassB);
     } else {
       // the clamp: a palm and three plated fingers curling forward, a thumb inside (the reference's open hand)
       hand = pivot(fist, 0, 0, 0, 'fingers');
@@ -309,14 +334,12 @@ export function woodcutterModel(skin) {
   let fan = null;
   if (props.has('turbine')) {
     fan = pivot(hull, 0, 1.58, radiusAt(1.58) * DEPTH + 0.03, 'turbine');
-    const vanes = [];
-    for (let j = 0; j < 8; j++) vanes.push(new THREE.BoxGeometry(0.05, 0.22, 0.02).translate(0, 0.13, 0).rotateY(0.5).rotateZ((j / 8) * Math.PI * 2));
-    many(fan, vanes, brassB);
+    many(fan, WOODCUTTER_TOOLS.vanes(), brassB);
   }
   if (props.has('ladle')) {
     const lad = pivot(arms[0].fist, 0, -0.2, 0.08, 'ladle'), ironM = M.mat('iron', P.dark);
-    many(lad, [new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8).translate(0, -0.3, 0.1).rotateX(0.5), new THREE.SphereGeometry(0.17, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, -0.7, 0.4)], ironM);
-    add(lad, new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2), coreM, 0, -0.72, 0.4);
+    const T = WOODCUTTER_TOOLS.ladle();
+    many(lad, T.iron, ironM); add(lad, T.melt, coreM);
     extras.push(lad);
   }
   if (props.has('door')) add(hull, new THREE.CircleGeometry(0.11, 16), coreM, 0, 1.6, radiusAt(1.6) * DEPTH + 0.01);   // (the furnace walker's: a second glow over its heart)
@@ -337,7 +360,7 @@ export function woodcutterModel(skin) {
   const parts = [hullTurn, ...arms.flatMap((a) => [a.sh, a.el, a.fist]), ...extras, ...legs.map((l) => l.root)];
   return {
     group: g, gaze, body: hullTurn, rig, parts, eyeMat: eyeM, base: P.visor, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.saw ?? P.joint],
-    plates, weak: { obj: core, r: 0.2, name: 'vent' }, trial: 'direct', trialDef: woodcutterDef, wcJoints: { arms, legs, head },
+    plates, weak: { obj: core, r: 0.2, name: 'vent' }, trial: 'direct', archetype: WOODCUTTER_ID, trialDef: woodcutterDef, wcJoints: { arms, legs, head },
     tell: (id) => (id === 'hurl' ? arms[1].fist : arms[0].fist),
     anim: woodcutterMotion({ g, hull: hullTurn, hullY: W.hipY, arms, rig, slab, coreM, eyeM, bodyM, P, props, saw: sawDiscPivot, fan, head }),
     dispose: M.dispose,

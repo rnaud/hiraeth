@@ -2785,8 +2785,11 @@ rig family); its Tripo body (`trials/hound-tripo/`) carries Tripo's own rig weig
 A trial body of another size carries `trialDef(def)` (the wood cutter's: `src/enemies/plans/woodcutter.js`
 `woodcutterDef`, the brute's def with its reach scaled to 2.4 m and every timing window kept); `Foes.add` lays it over
 the foe's def as the body is built, so the page, the capture and the bench fight the body they draw. No game body has
-one (`tests/woodcutter-trial.test.js`). The wood cutter's Tripo body: `trials/woodcutter-tripo/`, rigid parts on the
-shared motion (`woodcutterMotion`).
+one (`tests/woodcutter-trial.test.js`). The wood cutter's Tripo body (the author's pick): `trials/woodcutter-tripo/`,
+rigid parts cut by geometry and blended across the limbs' cuts, on the shared motion (`woodcutterMotion`), each world's
+tool built on its wrist (`WOODCUTTER_TOOLS`). The wood cutter is to be its own enemy, not the brute's replacement:
+`WOODCUTTER_ID` (`'woodcutter'`) and `woodcutterArchetype(ARCHETYPES.brute)` key it for its own registration when it
+is placed; today's brute is unchanged and the wood cutter is in no roster yet.
 
 ## Tests
 

@@ -40,11 +40,11 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `hound-tripo/model.js`, `node-source.mjs` | the Tripo hound on the quadruped plan (bend-plane leg bones, its head the gaze's bone; its horns, drips, glints and halo); the asset in node |
 | `hound-tripo/skins-shot.mjs` | every world skin of the hound, current beside Tripo: three-quarter, flank and head stills, and the sheet `hound/skins/skins.webp` |
 | `gaze-one.mjs` | the same check for one variant or the row, the traveller to the foe's right front (the wood cutter's gaze pictures) |
-| `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its trial asset: 2.4 m, five flat colours, COLOR_0, 12k LOD, landmarks |
+| `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its trial asset: 2.4 m, decimated by geometry, cut into parts by geometry (Tripo's saw hand dropped), the texture repainted by part in the reference's colours with swatches, COLOR_0, landmarks (the cuts, the head's sphere, the visor, the disc) |
 | `mummer-tripo/generate.mjs`, `prepare.mjs` | the dune mummer's Tripo generation and rig (to `../keep-mummer/tripo/`) and its trial asset: 1.2 m, 12k LOD on Tripo's weights, the mittens widened, eight flat colours by part, COLOR_0, the skeleton (`--no-repaint --no-widen`: phase 2's asset) |
 | `mummer-tripo/model.js`, `node-source.mjs`, `closeups.mjs` | the Tripo mummer on the humanoid clip rig, Tripo's own skeleton posed directly; its source in node; the close rows (body, mask, mittens, the whack, clay) |
 | `mummer-tripo/archetype.js` | the dune mummer keyed as its own enemy, `dunemummer` (`duneMummerEntry()`: id, def, skins, weapons, sounds, places), not yet registered |
-| `woodcutter-tripo/model.js`, `source-node.mjs` | the Tripo wood cutter cut into rigid parts on the brute's rig family (the shared `woodcutterMotion`); its source in node |
+| `woodcutter-tripo/model.js`, `source-node.mjs` | the Tripo wood cutter on the brute's rig family (the shared `woodcutterMotion`): rigid parts blended across the limbs' cuts, each world's own tool on the wrist, the head turning about its dome's centre; its source in node |
 
 ## Shellback (`crab`), phase 2a and its fixes
 
@@ -503,7 +503,20 @@ folder into `src/`, then its places in the worlds; the mummer stays as it is.
 - The headshot point is the look node (the head joint, 1.29 m), as for every foe on the rig; the slits sit about
   0.25 m over it.
 
-## Wood cutter (`brute`), phase 2b
+## Wood cutter (`woodcutter`, in the brute's slot), phase 2b and its fixes
+
+**Its own enemy** (the author, 2026-10-30): the wood cutter is a new archetype, `woodcutter`, not the brute's replacement.
+Today's 4.7 m brute stays in the game as it is (its id, def and skins untouched). The wood cutter is built on the brute's
+rig family and carries its own key: `WOODCUTTER_ID` and `woodcutterArchetype(ARCHETYPES.brute)` in
+`src/enemies/plans/woodcutter.js` (its own id and name, the brute's sounds and skins for now, `woodcutterDef`), and both
+bodies report `archetype: 'woodcutter'`, so it can be registered on its own (archetypes.js, skins.js, plans/index.js, its
+sounds and placement) when the author places it. It is in no world's roster yet; the trial page stands it in the
+brute's slot (`foe=brute`) only.
+
+The author picked **Tripo** for it (2026-10-30), with its fixes first: the reference's flat colours, a real toothed saw
+disc that spins, the tool separate from the arm so each world keeps its own, the cut seams closed
+([the fixes](#the-tripo-fixes-wood-cutter)). Every Tripo picture and number in this section is of the fixed body,
+re-shot after them; phase 2b's are in the history (`b5b05d835`) and in the before/after picture.
 
 Reference: `../keep-brute/a1860f49-ecc5-4922-91f6-94b031e5e9a7-0.png` (approved). Home skin perdide2 (Lorn II). The
 author's size: **2.2–2.6 m** (today's brute 4.72 m); both bodies are built to 2.4 m, over the traveller (#741's floor).
@@ -515,8 +528,11 @@ Metal), High preset, 1280×720, 10:00, clear; looked at one by one.
 Strips (eight frames, game time in the labels): `brute-<variant>-<idle|walk|turn|attack|hurt|death>.webp`, the row of
 three on one clock in `brute-side-*.webp`; stills `brute[-<variant>]-still-<3q|front|flank|rear|clay|clay-front>.webp`
 (current: `brute-still-*`, re-captured with `--extra`); the gaze check `gaze-direct.webp`, `gaze-tripo.webp`,
-`gaze-side.webp` (`gaze-one.mjs`: the traveller off to its right, its head turned to him); two other worlds' skins in
-the row, `brute-side-skin-glassdunes.webp`, `brute-side-skin-moonfoundry.webp`; the trial page `trial-page.webp`.
+`gaze-side.webp` (`gaze-one.mjs`: the traveller off to its right, its head turned to him); three other worlds' skins in
+the row, `brute-side-skin-glassdunes.webp` (a clamp hand), `brute-side-skin-moonfoundry.webp` (the ladle),
+`brute-side-skin-edena.webp` (the shears); the trial page `trial-page.webp`; phase 2b against fixed, `tripo-fixes.webp`.
+The Tripo strips, stills, row, skins and gaze pictures re-captured after the fixes; the direct and current ones are
+phase 2b's (unchanged bodies).
 
 ![gaze](woodcutter/gaze-direct.webp)
 
@@ -543,9 +559,58 @@ the row, `brute-side-skin-glassdunes.webp`, `brute-side-skin-moonfoundry.webp`; 
   gaze turns, the disc on a frame along its own normal (it spins). The pauldrons cut out as the armour that falls (a dark
   ball joint under each), the breastplate copied off the chest; a slit over the painted visor and a glow over the vent.
   Other skins: the mesh's colour roles recoloured from the skin's palette; its saw is fused in the mesh, so every skin
-  keeps the saw (no shears or ladle).
+  keeps the saw (no shears or ladle). *Phase 2b's; after the fixes (below): 10,834 triangles in 15 parts cut by
+  geometry, Tripo's saw hand dropped and each world's tool built on the wrist, the texture repainted by part, the cuts
+  blended.*
 - **Both** share `woodcutterMotion` (the poses, the ground contact, the attacks) and `woodcutterDef` (below), so the
   comparison is of bodies only.
+
+### The Tripo fixes (wood cutter)
+
+![phase 2b against fixed: three-quarter, front, clay front, the saw and the head close](woodcutter/tripo-fixes.webp)
+
+No new generation (no credits): the same Tripo export, `prepare.mjs` and `model.js` reworked.
+
+1. **Colour: the reference's flat colours, by part.** Tripo's texture is darker and greener than the reference (its
+   values low: Remove Lighting), and phase 2b kept its k-means colours (the hull `#55795e`, the knee and elbow bands
+   lumped into the rust, the vent's ochre lost). Now each texel's *role* is read from its colour (sage, dark, olive,
+   rust, ochre, cream; a 7 × 7 majority over the creases' specks) and painted in the reference's own colour for its
+   part (the direct body's home skin, `WOODCUTTER_OWN`: sage `#7f9f88`, pale head `#e5cfbb`, ochre vent `#c8922f`,
+   olive bands `#5c5c37`, dark joints `#2f4b3b`, visor `#18161c`): the head all cream but its visor's groove, nothing
+   cream on the hull (the collar's inside dark), the ochre only round the vent, a crease's shade (not black) the
+   surface it is on (the ink draws the creases). The texels between the islands are filled from the nearest island
+   (breadth first), so no other colour bleeds in at the smaller mips; vertex colours from the repainted texture.
+2. **The saw: the reference's toothed rust disc, its own part.** Tripo's saw hand (the hub, clamp and disc, its teeth
+   lost to the decimation: the brown "mitten") is cut off at the wrist and dropped (1,161 triangles). The model builds
+   the tool on the wrist: an olive cuff, a rust clamp and a bracket out to the hub, the direct body's twelve-tooth disc
+   (`sawDisc`, 0.38 m) and a brass cap. The disc is on its own joint at the hub, its normal Tripo's turned 0.6 rad
+   about the forearm toward its front (Tripo's faced straight out, edge on from the front; the reference shows its face
+   to a three-quarter view), its hub 0.24 m past the wrist (the reference holds it at the forearm's end). It spins as
+   the direct one: slow idling, whining up through a wind-up, fast in a blow. The slam's lowest point is now the disc's
+   teeth on the ground in the ring (the test).
+3. **The tool apart from the arm: each world its own.** With Tripo's hand gone, the wrist takes the skin's tool:
+   Lorn II the saw; Viridel the shears; elsewhere a clamp hand (the left one's, Tripo's own, mirrored onto the right
+   wrist), with the Moon Foundry's ladle in it; the Waterfall's turbine on its chest, the Glass Dunes' furnace glow
+   (`WOODCUTTER_TOOLS`, the direct body's tools, now shared). The tools and the joints' balls are in the same skinned
+   mesh (their colours a swatch each in the flat texture at home, `landmarks.swatches`; vertex colours elsewhere), so
+   the tool costs no draw; only the turbine and the melt are meshes of their own, in their skins.
+4. **The seams.** Phase 2b cut at run time by the nearest capsule: a ragged line through the colours, its saw-tooth
+   edges opening dark as the legs and arms moved, and the head's cut ragged through its collar. Now (prepare.mjs, by
+   geometry): the head is the dome itself, grown from its crown over the surface on the dome's fitted sphere (centre
+   y 2.08 m, r 0.31 m) that faces out of it, so the cut runs in the crease against the collar; the head turns about the
+   sphere's centre, which opens no gap; each arm and leg is cut across by a plane at each joint (elbows, the clamp's
+   wrist, hips, knees, boot tops), and across each cut its vertices are **blended** between the two bones over 9 cm
+   either side (the same weights for the corners either part has there), so a bent joint stays closed (the test: an
+   elbow bent 0.8 rad, the widest seam < 0.1 mm); a dark ball inside each joint for what a strong bend shows. As it
+   dies the blends let go (each vertex all its own part's) and it comes apart into clean parts, not stretched ones.
+   The decimation is now by geometry alone: weighting the colour borders (phase 2b) kept the creases' noise as
+   saw-toothed folds that shaded dark at the knees and boots.
+5. **Within reason, else.** The visor's slit sits in the dome's own groove (measured from its painted dark), not over
+   it; the dark ball at the neck is small enough not to show through the dome.
+
+Still off: a few dark creases of Tripo's own on the boots and under the barrel (in its geometry: they show in clay);
+the clamp hand's mirrored copy has the left hand's pose; the pauldrons' open edges still show a dark line from close
+by; the disc's face shows to the three-quarter view, but from straight in front it is still seen at a slant.
 
 ### Reach and timing (`woodcutterDef`, laid over the brute's def as the body is built: `Foes.add` `trialDef`)
 
