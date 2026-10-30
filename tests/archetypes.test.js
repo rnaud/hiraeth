@@ -201,6 +201,28 @@ test('the last worlds press harder: three strikers at once, quicker turns, heavi
   clearTargets();
 });
 
+test('the late packs harder again (issue #796): each stage one world earlier from the Glass Dunes on, the first six worlds as they were', () => {
+  // (the Glass Dunes on stage 3's stats, the Floating City on the Market's stage 4; measured with the combat review's node
+  // bench: docs/systems/foes.md, "The late packs harder again")
+  assert.deepEqual(ORDER.map((w) => WORLDS[w].stage), [0, 0, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4]);
+  const at = (levelId) => { clearTargets(); return new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId, physics: flat, player: player(), settings: { enemies: 'normal' }, game: new GameState(null), rng: () => 0.99 }); };
+  const blows = (F) => [0.5, 0.75].map((d) => F.harmOf(d));
+  const hp = (F) => { const f = F.add('brute', v(0, 0, 8), { calm: true, tier: 0 }); const h = f.hp; F.remove(f); return h; };
+  const incal = at('incal'), dunes = at('glassdunes'), city = at('spacecity'), market = at('bazaar');
+  // (the City-Shaft keeps stage 2: two strikers, the table's harm)
+  assert.equal(incal.strikers, 2); assert.deepEqual(blows(incal), [0.5, 0.75]);
+  // (the Glass Dunes: three strikers, a heavy blow lands as a crushing one, its foes tougher)
+  assert.equal(dunes.strikers, 3); assert.deepEqual(blows(dunes), [0.5, 1]);
+  assert.ok(hp(dunes) > hp(incal), `a Glass Dunes brute stands more (${hp(dunes)} > ${hp(incal)})`);
+  // (the Floating City as the Market: an ordinary blow as a heavy one, its foes as tough)
+  assert.deepEqual(blows(city), [0.75, 1]); assert.deepEqual(blows(city), blows(market));
+  assert.equal(hp(city), hp(market));
+  // (no one-shots: the heaviest blow there a hearts and a half, of the 13 and 17 hearts he can have by then)
+  for (const F of [dunes, city]) assert.ok(F.harmOf(1) <= 1.5, `its heaviest blow ${F.harmOf(1)}`);
+  for (const F of [incal, dunes, city, market]) F.dispose();
+  clearTargets();
+});
+
 test('spawning by world: the wilds draw each world’s archetypes (or the old kinds standing in), in its skin; planned ones wait', () => {
   for (const [w, R] of Object.entries(ROSTERS)) {
     const kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first]);

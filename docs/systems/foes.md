@@ -453,8 +453,8 @@ traveller instead of an eighth: a little harder, as asked.
 | A hard landing (a drop of 16–36 m) | ¼ to 2 (`FALL.worst`), never the last quarter | `fallDamage` (`player.js`) |
 | A fatal fall (36 m and more) | all of them | `FALL.lethal` |
 
-- **The last worlds** (v1.22, `HARM_BY_STAGE`): in the Buried Machine, the Garden of Spheres and the Signal Market a
-  heavy blow takes a heart; in the Market an ordinary blow takes three quarters ("Balance and sound" below).
+- **The last worlds** (v1.22, `HARM_BY_STAGE`; one world earlier since #796): from the Glass Dunes to the Garden of
+  Spheres a heavy blow takes a heart; in the City Floating in Space and the Market an ordinary blow takes three quarters ("Balance and sound" below).
 - **Gentle** (the Enemies setting) still halves the foes' harm (`GENTLE.harm`), then counts it in quarters,
   never under one: a heart's blow takes half, half a heart a quarter, a quarter still a quarter.
   The guardians and the world's hazards don't change with it (as before).
@@ -2246,12 +2246,24 @@ The roster's last step (docs/design/enemy-roster.md, "Build plan" 8), measured i
   late worlds' rosters weighted toward their late kinds (the Garden's centipedes, shades and halo hounds; the Market's
   alley hounds from its second pack, its parcel puppets from the third). Measured by the combat-review script's
   `--packs` (the cost of a pack in hearts against the hearts by then: `.claude/skills/combat-review/SKILL.md`).
-- **The last worlds press harder** (src/foes.js): from stage 3 (the Buried Machine, the Garden, the Market) three foes
+- **The last worlds press harder** (src/foes.js): from stage 3 (the Glass Dunes on since #796) three foes
   may wind up at once instead of two and each waits three quarters as long between strikes (`TURNS.late`,
   `strikersAt`, `coolAt`), and the harm rises with the stage (`HARM_BY_STAGE`, through `Foes.harmOf`, in quarters):
   there a heavy blow lands as a crushing one (¾ → 1), and in the Market an ordinary blow as a heavy one (½ → ¾). The
   stage is the world's (`Foes.stageHere`: the Arena plays its world's when it plays a world's waves, else stage 1; the
   review script sets `foes.stage`); Gentle keeps one striker, the usual waits, and halves the harm as before.
+- **The late packs harder again** (issue #796, the author 2026-10-30): each stage's stats one world earlier from the
+  Glass Dunes on (`WORLDS` stage: the Glass Dunes 2 → 3, the City Floating in Space 3 → 4; the first six worlds as they
+  were). There, health × 1.8 and 2.2 (`TIER.hp`), three strikers and quicker turns (`TURNS.late`), the heavier blows
+  (`HARM_BY_STAGE`), the banded tiers (`TIER_SHARE`) and the site coffers' purse of the stage. Measured with the combat
+  review's node bench (the #722 bench of docs/audits/combat-v2.34.md: real `Foes` on flat ground, packs 0–5 of every
+  route world, six seeds, 36 packs a world, with the hearts after that world's shop), hearts lost a pack, masher /
+  careful (guards every blow, every other a parry and its riposte), before → after: Glass Dunes 3.7 / 1.8 → 5.8 / 3.2,
+  City Floating in Space 3.1 / 1.5 → 4.6 / 2.4; the Buried Machine, the Moon Foundry, the Garden and the Market
+  unchanged (3.2 / 2.2, 6.0 / 4.3, 4.3 / 1.7, 7.9 / 5.3). The six late worlds' mean 4.7 / 2.8 → 5.3 / 3.2 against the
+  pre-v4 rosters' 5.1 / 2.9 (v2.34). Time to clear a pack 15.9 → 18.9 s and 15.9 → 17.5 s; no knock-out of a full
+  traveller there (the Market's masher 2 of 36, as before); the heaviest blow 1.25 and 1.5 hearts, the worst two
+  seconds 4 of 13 and 3.5 of 17 hearts. `tests/archetypes.test.js` pins the stages and what they bring.
 - **The moves' niches** (src/fluid-blade.js): the light combo's third swing lands 3 (`BLADE.damage` 1, 1, 3: the quickest
   through the mid-weight foes on the ground, 4–5 hearts of health), the air cut lands double on a hovering foe
   (`AIR_MEETS`: the ray, the moth, the jelly, the drone, the marionette), the full charged cut takes 0.85 s
@@ -2681,11 +2693,11 @@ a root knot's pack in Lorn II has root-edged blots round it rather than standing
 | Viridel | 2 | moth | moth 4, rootknot 2, brute 1.5, blot 1 | unchanged | | unchanged |
 | Underwater City | 2 | crab | crab 4, jelly 3, ray 2.5, tripod 2 | unchanged | | unchanged |
 | City-Shaft | 2 | tripod | tripod 4, toad 3.5, drone 2.5, shade 2.5, blot 1.5 | the lizards' fire: two blots and a toad (`blot-fire`) | | blots, drones, toads, tripods |
-| Glass Dunes | 2 | brute | brute 4, crab 3, ray 2, worm 2, drone 2, shade 1 | unchanged | | unchanged |
+| Glass Dunes | 3 (#796) | brute | brute 4, crab 3, ray 2, worm 2, drone 2, shade 1 | unchanged | | unchanged |
 | Buried Machine | 3 | worm | worm 3.5, skitter 3.5, tripod 3, centipede 3, cart 2, blot 1 | `centipede-fire`: two centipedes and a blot; `cart-beat`: a cart and a mining tripod | | skitters, worms, blots, carts |
 | Moon Foundry | 3 | cart | cart 4, skitter 3.5, wisp 3, brute 2.5, fencer 1.5, blot 1 | `fencer-fire`: two blots and a fencer | | skitters, blots, carts, wisps |
 | Garden of Spheres | 3 | roller | roller 4, centipede 4, hound 4 (late), shade 3.5, drone 1, jelly 1 | `hound-shadow`: a halo shade and two hounds | (the glass puppet gone) | last wave a pearl centipede and two hounds |
-| City Floating in Space | 3 | drone | drone 4, moth 3, roller 3, fencer 2 | unchanged | | unchanged |
+| City Floating in Space | 4 (#796) | drone | drone 4, moth 3, roller 3, fencer 2 | unchanged | | unchanged |
 | Signal Market | 4 | hound | hound 5, crab 3, bell 2.5, moth 2, fencer 2 (late) | `hound-fire`, `crab-nest`, `moth-shadow` (three moths and a hound) | | hounds, crabs, moths; last wave the bell walker and a crab |
 
 A renamed site (`mummer-hoard`, `blot-fire`, `centipede-fire`, `hound-shadow`, `hound-fire`, `crab-nest`,

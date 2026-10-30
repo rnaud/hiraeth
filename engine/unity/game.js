@@ -1028,6 +1028,15 @@ function makePlan(args) {
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...one('grunt@desert', 7, 'rock', winding('grunt', 0.8)), ...shot('lob'), ...one('crawler@desert', 3.5, 'blast', winding('crawler', 0.86)), ...shot('area'),
       ...one('hulk@desert', 6, 'stomp', (G) => G.foes.shocks?.some((s) => s.r > 5.4)), ...shot('wave'));
   }
+  // (-fight stage, issue #796: the world's place on the difficulty curve said (its stage, strikers, a blow's harm), a
+  // furnace brute in its plain tier set down 4 m ahead and locked on, eight seconds of it against the standing traveller,
+  // then its health and the hearts it took: the same numbers as the node bench's, from the same JS)
+  if (fights.includes('stage')) {
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'stage' }, { kind: 'foe', what: 'brute', dist: 4, tier: 0 }, { kind: 'wait', frames: 20, secs: 0.4 },
+      { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 480, secs: 8 },
+      { kind: 'foe', what: 'stage-after' });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-stage.png` });
+  }
   // (-fight site:<id>,…: an encounter site of this world (issue #722, src/encounters/): the traveller set down 16 m in front of
   // it facing it, its things made and its foes out in their idle, a picture from his follow camera)
   for (const f of fights.filter((x) => x.startsWith('site:'))) {
@@ -1489,6 +1498,16 @@ function playFrame(dt) {
     if (!F) console.log('[unity] no foes here');
     else if (step.what === 'low') { game.player.hearts = 0.5; game.player.hurt?.(0.25, 'foe'); console.log(`[unity] hearts ${game.player.hearts}`); }
     else if (step.what === 'out') { game.player.hurt?.(1, 'foe'); console.log(`[unity] knocked out: ${!!game.player.dead}`); }
+    else if (step.what === 'stage') {
+      game.stageHearts = { at: game.player.hearts, lost: 0 };
+      const hurt = game.player.hurt?.bind(game.player);
+      if (hurt) game.player.hurt = (d, ...r) => { const h = game.player.hearts, out = hurt(d, ...r); game.stageHearts.lost += Math.max(0, h - game.player.hearts); return out; };
+      console.log(`[unity] stage ${F.stageHere}: strikers ${F.strikers}, a ½ blow ${F.harmOf(0.5)}, a ¾ blow ${F.harmOf(0.75)}, a heart's ${F.harmOf(1)}`);
+    }
+    else if (step.what === 'stage-after') {
+      for (const f of F.list.filter((x) => x.alive && x.kind === 'brute')) console.log(`[unity] brute hp ${f.hp} of ${f.def.hp}, tier ${f.tierN ?? 0}`);
+      console.log(`[unity] hearts lost in 8 s: ${game.stageHearts?.lost ?? '?'} (of ${game.stageHearts?.at ?? '?'})`);
+    }
     else if (step.what === 'site') {
       const s = F.encounters?.sites.find((q) => q.id === step.id);
       if (!s) console.log(`[unity] no site ${step.id} here`);

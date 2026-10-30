@@ -835,7 +835,8 @@ Signal Market stands alone at the top (stage 4: 5–6); a world may set its own 
 its kinds are softer one by one). From the third stage on a pair or a flock comes with fillers round it (the pair two
 places, the moths' three three, the skitters' eight two), and in the last three worlds three foes may wind up at once
 instead of two, each a little sooner, and their blows land heavier (a heavy blow a heart; in the Market an ordinary one
-three quarters: src/foes.js `TURNS.late`, `HARM_BY_STAGE`). The late kinds lead there: the Garden's shades and halo hounds, the Market's
+three quarters: src/foes.js `TURNS.late`, `HARM_BY_STAGE`; since #796 one world earlier: from the Glass Dunes, and in the
+Floating City as in the Market). The late kinds lead there: the Garden's shades and halo hounds, the Market's
 alley hounds (from its second pack) and parcel puppets. Measured with the combat-review script's `--packs`: the hearts a
 pack costs a traveller who trades blows with it standing still, as a share of the hearts he can have by then (every
 earlier shop's heart containers bought), falls from the middle of the route to the end before, and rises to the Market

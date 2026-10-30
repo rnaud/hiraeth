@@ -37,6 +37,9 @@ export const CHANGELOG = [
         see: 'Start a new game and play or skip the opening: as you stand on the sand outside the ship, Plumb comes to your side and talks to you; answer with A / × and the quest begins.' },
       // enemy deaths (#794)
       'An enemy you strike down now lies on the ground with every limb: its arms, legs and head rest on it instead of hovering a few centimetres over it, and knocked against a wall it stops at the wall and slumps down it instead of falling through the stone.',
+      // the late worlds harder (#796)
+      { text: 'Enemies from the Glass Dunes on are tougher again: each world’s foes now fight as hard as the next world’s used to. In the Glass Dunes they take more cuts to bring down, three of them may strike at once instead of two, their heavy blows take a full heart and some come in their stronger, banded look; in the City Floating in Space they hit as hard as in the Signal Market. The first six worlds are unchanged. Measured over 36 scripted fights with each world’s packs: a player who just keeps slashing now loses about 5¾ hearts a pack in the Glass Dunes (was 3¾) and 4½ in the Floating City (was 3), one who blocks every blow about 3¼ (was 1¾) and 2½ (was 1½); no single blow takes more than a heart and a half.',
+        see: 'Land in the Glass Dunes and fight a pack of furnace brutes and glass crabs: they last longer under your combo, three can come at you together, and a heavy blow takes a whole heart. In the City Floating in Space, an ordinary blow takes three quarters of a heart, as in the Signal Market.' },
     ],
   },
   {

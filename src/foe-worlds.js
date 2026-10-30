@@ -5,8 +5,8 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 // world's skin (src/enemies/skins.js). Pure tables and picks (tests/archetypes.test.js, tests/foe-kinds.test.js).
 //
 // WORLDS[world] (the doc's table):
-//   stage    where on the difficulty curve it stands (0: the Desert and Vael … 3: the Buried Machine and the Garden,
-//            4: the Signal Market alone; side worlds 2): its packs' places (BUDGET), and from 3 the turns and the harm
+//   stage    where on the difficulty curve it stands (0: the Desert and Vael … 3: the Glass Dunes to the Garden,
+//            4: the Floating City and the Signal Market, #796; side worlds 2): its packs' places (BUDGET), and from 3 the turns and the harm
 //            of src/foes.js (TURNS.late, HARM_BY_STAGE)
 //   budget   [lo, hi] places when a world's differ from its stage's (v1.22: docs/audits/combat-v1.22.md)
 //   lead     the pack lead: the most common archetype there (no two route worlds in a row share one)
@@ -42,14 +42,16 @@ export const WORLDS = {
   garage: { stage: 2, budget: [4, 5], lead: 'drone', roster: { drone: 4, cart: 3.5, crab: 2.5, roller: 2, ray: 1, shade: 2.5 }, temple: ['machine', 'drone'] },
   // (the Glass Dunes in the Hangar's slot since October 2026: its own glass crabs, mantas and worms, its furnace walkers
   // and nomads, and the Clock-House's drones, which came with the house; its rooms the makers' machines and drones)
-  glassdunes: { stage: 2, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
+  // (issue #796, the author 2026-10-30: the late packs harder again. Each stage's stats come one world earlier: the
+  // Glass Dunes on stage 3's (tougher, heavier blows, three strikers, tiers), the Floating City on the Market's stage 4)
+  glassdunes: { stage: 3, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, centipede: 3, skitter: 3.5, blot: 1 }, temple: ['machine', 'drone'] },
   // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
   // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
   moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3.5, brute: 2.5, wisp: 3, fencer: 1.5, blot: 1 }, temple: ['machine', 'drone'] },
   spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound'] },
   // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
-  spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3, fencer: 2 }, temple: ['machine', 'drone'] },
+  spacecity: { stage: 4, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3, fencer: 2 }, temple: ['machine', 'drone'] },
   // (the alley hounds lead the Market since #769: its coin lizards and parcel puppets are gone)
   bazaar: { stage: 4, lead: 'hound', roster: { hound: 5, crab: 3, moth: 2, bell: 2.5, fencer: 2 }, late: ['fencer'] },
   // the side worlds (all discarded, names.js DISCARDED: their tables stay as they are, OUT_OF_PLAY's foes in them too)
