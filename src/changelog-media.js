@@ -1451,6 +1451,11 @@ const FROM785 = 'Hand-made strip (no `view`): a scratch script (Vite + CDP, as s
 
 /** (v2.38, issue #782: Nour's cloak in a conversation) */
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
+/** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
+const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
+  ...(full ? { 'desert.battery.charged': true, 'temple.desert.found.font': true, 'temple.desert.open.d1': true } : {}) }, keepsakes: [] });
+const FONT784_VIEW = (full, eye, target) => ({ level: 'desert', player: [75.2, 2400.1, -205.7], heading: -1.5708, eye, target, fov: 55, save: FONT784_SAVE(full), wait: 4000 });
+const FROM784 = 'Hand-made (no `view`): frames of the film (desert.font) from the cinematics QC script (scripts/cinematics-qc.mjs: muted headless Chrome, --mute-audio and the game muted before load, its own Vite on port 5412, High, a 1280 × 720 viewport, frames kept at 960 × 540), staged as the review page stages it (the Rose House’s bowl lit, the battery dry, at the lever), on this branch’s working tree just before 8faff5c4b (the same film), 29 October 2026. After only: the room is new.';
 
 export const CHANGELOG_MEDIA = {
   '2.38': [
@@ -1466,6 +1471,14 @@ export const CHANGELOG_MEDIA = {
       { where: 'last foot movement over 2 mm a frame (s into the scene)', before: 0.78, after: 0 },
     ] },
   ], see: 'Walk or run up to a chest you have not opened and press A / × as you arrive: the camera comes in on you already standing, both feet still.' },
+  { match: 'Filling your battery is a big moment now', shots: [
+    { name: 'font784-room', title: 'The room', only: 'after', caption: 'The Font Room from by its doorway, the bowl next door lit: the dry round pool with its rings of light, the four pylons, the lever at its heart, the traveller beside it', commit: '8faff5c4b', view: FONT784_VIEW(false, [87.5, 2408, -210], [72.5, 2400.5, -205.7]) },
+    { name: 'font784-pour', title: 'The pour', only: 'after', caption: 'The film, 2 s in: the lever pulled, the four spouts pour and the fluid spreads over the pool round him', from: FROM784 },
+    { name: 'font784-boots', title: 'Round his boots', only: 'after', caption: 'The film, 4 s in: low at the kerb, the fluid risen round his boots, its light on him', from: FROM784 },
+    { name: 'font784-battery', title: 'The battery', only: 'after', caption: 'The film, 6.5 s in: close on his hip, the fluid climbed into the empty battery and glowing', from: FROM784 },
+    { name: 'font784-mark', title: 'The mark', only: 'after', caption: 'The film, 7.5 s in: the lens tilted up past him to the makers’ mark on the far wall as it lights', from: FROM784 },
+    { name: 'font784-full', title: 'Full', only: 'after', caption: 'After: the pool full of the fluid, the makers’ mark over it lit, from beside the pool', commit: '8faff5c4b', view: FONT784_VIEW(true, [86, 2402.4, -204.4], [60, 2405.2, -205.7]) },
+  ] },
   ],
   '2.37': [
   // (issue #783: the Rose House where two of its glyph stones stood, at the change's commit and its parent, the camera pinned)

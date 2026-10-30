@@ -1645,6 +1645,12 @@ Tests: `tests/desert-rose-progression.test.js` (every house's doors shut to a dr
 saves), `tests/temples.test.js` (walked on foot into the pool to the lever), `tests/desert-story.test.js` (the lever
 cold, then pulled, the door), `tests/moment.test.js` (the film).
 
+In Unity (the same JavaScript through the bridge): the Font Room, its full pool, the lit mark and the pulled lever drawn
+as on the web, checked in the editor's batch (scripts/unity-compare/unity.mjs, a view from beside the pool, 29 October
+2026). The dry state was not reproduced there: the batch's debug save, its flags set by name with no save version, goes
+through the old-save migrations (`temple.desert.entered` gives the gun, the gun counts as a filled battery), so the
+pool is full, which is the old-saves rule above at work. The film was not played in Unity.
+
 ## No climbing but the climbs (v1.49, issue #115)
 
 A climb past a puzzle trivialises it, so a temple's walls are not climbed. The runtime's kit (`rt.kit.noClimb`) bakes
