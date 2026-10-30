@@ -3,13 +3,16 @@
 //   node references/enemy-archetypes/grunt/tripo-trial/side-by-side-capture.mjs <scratch folder>
 // Headless Chrome with --mute-audio; the page's own review mute is checked before any capture.
 // MODE=side3: the trio, procedural | Tripo textured | Tripo flat (flatten-tripo.mjs), framed wider.
+// MODE=side3l: procedural | Tripo flat 31k | Tripo LOD 12k (lod-tripo.mjs, the fitted grip), plus the club's whole cycle
+// front and side for the grip sheet.
 import { spawn } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-const BENCH = !!process.env.BENCH, MODE = process.env.MODE ?? 'side', N = MODE === 'side3' ? 3 : 2, DIST = MODE === 'side3' ? 4.6 : 3.6;
+const BENCH = !!process.env.BENCH, MODE = process.env.MODE ?? 'side', TRIO = /^side3/.test(MODE), N = TRIO ? 3 : 2, DIST = TRIO ? 4.6 : 3.6;
 const DIR = process.argv[2]; if (!DIR) throw new Error('usage: side-by-side-capture.mjs <scratch folder>');
 const OUT = join(DIR, 'shots'); mkdirSync(OUT, { recursive: true });
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', CDP = 5449, URL = `http://127.0.0.1:${process.env.PORT ?? 5448}/references/enemy-archetypes/grunt/tripo-trial/arena.html`;
+// (QUALITY=handheld: the page's preset, ?quality=, else High)
+const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', CDP = +(process.env.CDP ?? 5449), URL = `http://127.0.0.1:${process.env.PORT ?? 5448}/references/enemy-archetypes/grunt/tripo-trial/arena.html${process.env.QUALITY ? '?quality=' + process.env.QUALITY : ''}`;
 const profile = join(DIR, 'chrome-profile'); rmSync(profile, { recursive: true, force: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
@@ -34,6 +37,9 @@ try {
   if (!audio.muted || audio.level !== 0) throw new Error('not muted ' + JSON.stringify(audio));
   // BENCH=1: the page's own matched benchmark instead of the pictures (Measure 0 / 1 / 6 / 12, two rounds, every model).
   if (BENCH) {
+    // (BENCH_MODELS=current,flat,lod: those models, in that order in round 1 and reversed in round 2; BENCH_COUNTS=0,1,6,12,24)
+    if (process.env.BENCH_MODELS) await ev(`(()=>{const m=${JSON.stringify(process.env.BENCH_MODELS.split(','))};window.__benchModels=r=>r%2?[...m].reverse():m;return true})()`);
+    if (process.env.BENCH_COUNTS) await ev(`(()=>{window.__benchCounts=${JSON.stringify(process.env.BENCH_COUNTS.split(',').map(Number))};return true})()`);
     await ev(`(()=>{document.getElementById('trial-bench').click();return true})()`);
     for (let i = 0; i < 2400 && !(await ev(`/complete/.test(document.getElementById('trial-status').textContent)`)); i++) await sleep(250);
     const data = await ev(`JSON.parse(document.getElementById('trial-report').dataset.result)`);
@@ -48,10 +54,14 @@ try {
   ];
   const views = [['front', 0], ['threeq', -0.6], ['side', -1.5708], ['back', 3.1416]];
   // (the trio's faces, closer: idle, and the wind-up's eye flash)
-  const faces = MODE === 'side3' ? [['face-idle', 'idle', 2.0], ['face-wind', 'attack', club.wind * 0.9]] : [];
+  const faces = TRIO ? [['face-idle', 'idle', 2.0], ['face-wind', 'attack', club.wind * 0.9]] : [];
+  // (side3l: the club through its whole cycle, front and side, to see it stay in the hands)
+  const cycle = MODE === 'side3l' ? [['wind', 0.3], ['wind', 0.6], ['strike', 0.3], ['strike', 0.9], ['recover', 0.1], ['recover', 0.6], ['recover', 0.95]].map(([ph, k]) => [`grip-${ph}-${Math.round(k * 100)}`, 'attack', ph === 'wind' ? club.wind * k : ph === 'strike' ? club.wind + club.strike * k : club.wind + club.strike + club.recover * k]) : [];
+  for (const c of cycle) poses.push(c);
   const report = { mode: MODE, audio, club, errors, shots: [] };
   for (const [name, mode, t] of BENCH ? [] : poses) for (const [vn, yaw] of views) {
     if (mode === 'walk' && vn !== 'front') continue;
+    if (name.startsWith('grip-') && vn !== 'front' && vn !== 'side') continue;
     await ev(`(()=>{const G=window.__gruntTrial;G.turn(${yaw});G.set('trial-mode','${mode}');G.spawn(${N});G.pairView(0,${DIST});G.setTime(0);G.runTo(${t});return true})()`);
     for (let i = 0; i < 400 && !(await ev('window.__gruntTrial.time()>=' + t)); i++) await sleep(50);
     await sleep(500);
@@ -69,7 +79,7 @@ try {
     report.shots.push({ file, pose: name, view: 'front', time: t });
   }
   // per-model inventory as the page measures it (main pass, one foe)
-  report.inventory = await ev(`(()=>{window.__gruntTrial.show();const d=JSON.parse(document.getElementById('trial-report').dataset.result);return {procedural:d.baselineInventory,tripo:d.generatedInventory,flat:d.flatInventory}})()`);
+  report.inventory = await ev(`(()=>{window.__gruntTrial.show();const d=JSON.parse(document.getElementById('trial-report').dataset.result);return {procedural:d.baselineInventory,tripo:d.generatedInventory,flat:d.flatInventory,lod:d.lodInventory}})()`);
   report.errors = errors;
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 1));
   console.log(JSON.stringify({ shots: report.shots.length, audio, inventory: report.inventory, errors: errors.slice(0, 5) }, null, 1));

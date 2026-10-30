@@ -31,3 +31,17 @@ console.log('Custom source geometry / UV / normal / texture bytes unchanged.');
   try{execFileSync(process.execPath,[dir+'flatten-tripo.mjs',dir+'tripo-rigged.glb',tmp+'/again.glb']);assert.ok(fs.readFileSync(tmp+'/again.glb').equals(fs.readFileSync(dir+'tripo-flat.glb')),'flatten-tripo.mjs reproduces tripo-flat.glb')}finally{fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(`tripo-flat.glb: zones ${zones.join(', ')}; no texture; 54 joints, consistent binding; reproduced byte for byte`);
 }
+// The LOD export (lod-tripo.mjs, round 3): 10–15k triangles, every zone, the flat export's skeleton, two nostrils on the
+// Head, and reproducible byte for byte from tripo-flat.glb.
+{
+  const lod=read('tripo-lod.glb'),zones=lod.json.meshes[0].primitives.map(p=>p.extras.zone),x=lod.json.asset.extras;
+  assert.deepEqual(zones,['skin','cloth','leather','iron','bone','ink','eye'],'LOD export keeps every zone, in order');
+  assert.ok(x.triangles>=10000&&x.triangles<=15000,`LOD export in the 10–15k budget (${x.triangles})`);
+  assert.equal(x.nostrils.length,2,'two nostrils');
+  const report=JSON.parse(execFileSync(process.execPath,[dir+'audit.mjs',dir+'tripo-lod.glb'],{encoding:'utf8'}));
+  assert.equal(report.triangles,x.triangles);const skin=report.skins[0];assert.equal(skin.joints,54);assert.equal(skin.invalidWeights,0);assert.equal(skin.invalidJointIndices,0);
+  assert.ok(skin.maxWeightError<1e-5);assert.ok(skin.bindMatrixConsistencyError<1e-5);
+  const tmp=fs.mkdtempSync((process.env.TMPDIR??'/tmp/')+'tripo-lod-');
+  try{execFileSync(process.execPath,[dir+'lod-tripo.mjs',dir+'tripo-flat.glb',tmp+'/again.glb']);assert.ok(fs.readFileSync(tmp+'/again.glb').equals(fs.readFileSync(dir+'tripo-lod.glb')),'lod-tripo.mjs reproduces tripo-lod.glb')}finally{fs.rmSync(tmp,{recursive:true,force:true})}
+  console.log(`tripo-lod.glb: ${x.triangles} triangles (from ${x.from}); zones ${zones.join(', ')}; 54 joints, consistent binding; reproduced byte for byte`);
+}

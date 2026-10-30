@@ -226,3 +226,73 @@ procedural grunt is the geometry, not the texture. The scan-like scalp bumps, br
 more small shadow shapes and creases than the procedural spheres do, and the snout has no inked nostrils. The procedural
 face still reads more clearly at play distance (big snout, black nostrils, bigger eyes); the flat Tripo is closer to the
 sheet's silhouette. The rig limits above (overhead shoulders, club grip) are unchanged.
+
+## Round 3: the LOD, the scalp, the nostrils, a fitted grip (2026-10-30)
+
+The author: "tripo grunt: keep going". `lod-tripo.mjs` turns `tripo-flat.glb` into `tripo-lod.glb` (reproducible byte for byte,
+checked by `validate-trial.mjs`):
+
+- **12,159 triangles** (from 31,213), 18,171 vertices, 1.24 MB. meshoptimizer's attribute-aware simplifier (three's bundled
+  WASM build) only collapses edges onto existing vertices, so every vertex keeps Tripo's own joints and weights: the rig is
+  unchanged (54 bones). Each zone has its own copy of the vertices on its edge, so zone borders are seams the simplifier
+  keeps; the eyes and the ink are locked. The silhouette survives: head sunk into the shoulders, the belly, bandy legs,
+  ears and loincloth tatters (`review/lod-turnaround.jpg`).
+- **The scalp** gets a shrink-free (Taubin) smoothing of the cranium's positions (Head-weighted, above the brow and behind
+  the eyes, ears and face left alone, faded at the edges), and the normals are rebuilt from the simplified surface. The small
+  dark flecks the scan-like bumps cast under the house shading are gone (`review/lod-faces-level.jpg`, flat vs LOD).
+  These flecks were not shadows. Turning the grunt's shadow casting off left them unchanged, and the pale-skin vertex
+  tint is not on the scalp.
+- **Inked nostrils**: two black flattened ellipsoids (1.6 cm, the procedural grunt's shape) pressed into the snout's front
+  2 cm under its tip, bound wholly to the Head, drawn with the ink zone (no extra draw). At the tip's own height they sat
+  level with the eyes and read as a second pair of eyes. Tripo's mouth is modelled, so it has no grin line.
+- **The fitted grip** (`arena-model.js` `fitArms`, used for the LOD export): the clavicles lift with an upper arm raised
+  past level (45 % of the rise past 0.15 rad), so overhead poses no longer fold the shoulder into the neck. A two-bone IK
+  puts the right palm where the procedural grip is (measured from each one's own shoulder, scaled by arm length, the elbow
+  toward the procedural elbow). The club sits in that palm on the procedural grip's turn, with the fingers closed into a
+  fist. When the procedural left hand is on the haft, the Tripo left palm goes to the same place on the Tripo club,
+  eased in by distance. The club stays in the fist through wind-up, strike and recover (`review/lod-grip.jpg`: seven
+  moments of the club cycle, front and side). The overhead recover still raises both arms straight up, as the clip does.
+  The club is still the trial's plain two-mesh stick, not the procedural knobbed club.
+
+Selector: **Tripo LOD · 12k, fitted grip** and **Side by side · current | flat 31k | LOD 12k** (`MODE=side3l` for the
+capture/sheet scripts, which also capture the club's whole cycle for `lod-grip.jpg`). Sheets (headless Chrome, muted,
+review mute checked, High, 1280×720, Apple M4 Pro / ANGLE Metal, on 47d2279d3 plus this change): `review/lod-poses.jpg`,
+`review/lod-turnaround.jpg`, `review/lod-faces.jpg`, `review/lod-grip.jpg` (same views as the `trio-*` sheets: middle is
+round 2's flat 31k, right this LOD), and `review/lod-faces-level.jpg` (front and three-quarter at face height:
+procedural | flat | LOD). Normal-AI fights with six LOD grunts, blade hits and two defeats ran with no page errors.
+
+| Per foe (page inventory, main pass) | Procedural | Tripo flat | Tripo LOD |
+|---|---:|---:|---:|
+| Triangles | 10,234 | 31,213 | **12,159** |
+| Vertices | 30,060 | 33,495 | 18,171 |
+| Body draws | 8 | 7 | 7 (+2 trial club) |
+| Geometry bytes | 2,034,624 | 2,384,256 | 1,236,168 |
+| Texture | none | none | none |
+
+**Handheld preset benchmark** (`arena-performance-lod-handheld.json`): `BENCH=1 QUALITY=handheld BENCH_MODELS=current,flat,lod
+BENCH_COUNTS=0,1,6,12,24`. Mac Apple M4 Pro, headless Chrome / ANGLE Metal, Handheld preset (render scale 0.75, dynamic
+resolution off), 1280×720, walk loop, fixed camera. Two rounds in reversed order, each value the mean of the two rounds'
+medians. Frames were vsync-bound at 16.7 ms (p95 ≤ 16.8 ms) for every model and count, so the frame time does not tell
+them apart. The CPU and GPU timers do:
+
+| Foes | CPU ms cur / flat / LOD | GPU ms cur / flat / LOD | Scene draws cur / flat / LOD | Submitted tris cur / flat / LOD |
+|---:|---:|---:|---:|---:|
+| 1 | 1.65 / 2.10 / 1.90 | 3.67 / 3.93 / 3.90 | 83 / 85 / 85 | 134k / 177k / 138k |
+| 6 | 2.35 / 2.55 / 2.50 | 4.32 / 4.67 / 4.24 | 163 / 175 / 175 | 237k / 491k / 262k |
+| 12 | 2.95 / 3.35 / 3.50 | 4.95 / 5.32 / 4.77 | 259 / 283 / 283 | 359k / 867k / 410k |
+| 24 | 3.70 / 4.85 / 5.25 | 3.58 / 5.32 / 4.67 | 451 / 499 / 499 | 605k / 1,621k / 706k |
+
+GPU: the LOD is level with the procedural grunt up to 12 foes (round-to-round spread ±0.4 ms). At 24 it is about 1 ms
+more, and the procedural 24 reads below its own 12. Submitted triangles: +14 % over the procedural grunt, against +141 %
+for the flat 31k. Draws: +2 a foe across all passes, from the 7 zones and the trial club. CPU: +0.55 ms at 12 and
++1.55 ms at 24. That is the trial adapter, not the mesh. The page still poses the hidden procedural skeleton, then
+retargets 25 bones, lifts the clavicles, runs two IKs and updates matrices bone by bone. A production version would pose
+the Tripo skeleton directly. No Retroid was connected (only another Android handheld, not used), so this is the Mac
+running the Handheld preset, not a device measurement.
+
+**Reading it against the sheet.** The LOD keeps what made Tripo closer to `sheet-1.jpg`: the sunk head, round belly,
+bandy three-toed legs and ragged cloth. It drops two thirds of the triangles with no visible loss at play distance. The
+scalp now takes broad shading like the sheet's, and the snout has its nostrils. The club stays in the hand. Still behind
+the procedural grunt: the eyes are smaller and set under the brow, so from a raised camera the face reads less boldly than
+the procedural one's big snout and grin. The mouth has no ink line. The trial club is plain. The adapter is a trial
+retarget, not a production rig. Web only: nothing the game or Unity loads.
