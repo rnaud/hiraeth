@@ -1,6 +1,6 @@
 {
   "recorded": "2026-10-30",
-  "sha": "fb2bb5edf",
+  "sha": "888aaad20",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -305,7 +305,7 @@
             "stage": "wake"
           },
           "objects": {
-            "ink": 1661,
+            "ink": 1664,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -343,7 +343,7 @@
             "stage": "walk"
           },
           "objects": {
-            "ink": 1673,
+            "ink": 1677,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -383,14 +383,14 @@
             "stage": "walk"
           },
           "objects": {
-            "ink": 1664,
+            "ink": 1667,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
             "veil": 1
           },
           "cam": [
-            141.7,
+            141.8,
             2601.7,
             243.9,
             65
@@ -423,7 +423,7 @@
             "stage": "call"
           },
           "objects": {
-            "ink": 1641,
+            "ink": 1643,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -463,7 +463,7 @@
             "stage": "call"
           },
           "objects": {
-            "ink": 1640,
+            "ink": 1642,
             "print": 1,
             "hidden": 4,
             "chimeshade": 1,
@@ -504,7 +504,7 @@
             "stage": "call"
           },
           "objects": {
-            "ink": 1641,
+            "ink": 1643,
             "print": 1,
             "hidden": 4,
             "chimeshade": 1,
@@ -541,7 +541,7 @@
             "stage": "pause"
           },
           "objects": {
-            "ink": 1638,
+            "ink": 1640,
             "print": 1,
             "hidden": 4,
             "chimeshade": 1,
@@ -578,7 +578,7 @@
             "stage": "pause"
           },
           "objects": {
-            "ink": 1641,
+            "ink": 1643,
             "print": 1,
             "hidden": 4,
             "chimeshade": 1,
@@ -615,7 +615,7 @@
             "stage": "pass"
           },
           "objects": {
-            "ink": 1627,
+            "ink": 1629,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -656,7 +656,7 @@
             "stage": "pass"
           },
           "objects": {
-            "ink": 1675,
+            "ink": 1679,
             "print": 1,
             "hidden": 4,
             "chimeshade": 1,
@@ -665,7 +665,7 @@
           },
           "cam": [
             72.7,
-            2607.3,
+            2607.4,
             257.3,
             56
           ],
@@ -697,7 +697,7 @@
             "stage": "drain"
           },
           "objects": {
-            "ink": 1627,
+            "ink": 1629,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -737,7 +737,7 @@
             "stage": "drain"
           },
           "objects": {
-            "ink": 1627,
+            "ink": 1629,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -773,7 +773,7 @@
             "stage": "glide"
           },
           "objects": {
-            "ink": 1536,
+            "ink": 1537,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -810,7 +810,7 @@
             "stage": "land"
           },
           "objects": {
-            "ink": 1634,
+            "ink": 1637,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -852,7 +852,7 @@
             "stage": "settle"
           },
           "objects": {
-            "ink": 1611,
+            "ink": 1613,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -861,9 +861,9 @@
             "mote": 1
           },
           "cam": [
-            68.3,
-            33.6,
-            286.4,
+            68.1,
+            33.7,
+            286.6,
             46
           ],
           "player": [
@@ -890,7 +890,7 @@
             "stage": "drone"
           },
           "objects": {
-            "ink": 1656,
+            "ink": 1658,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -927,7 +927,7 @@
             "stage": "drone"
           },
           "objects": {
-            "ink": 1654,
+            "ink": 1655,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -964,7 +964,7 @@
             "stage": "drone"
           },
           "objects": {
-            "ink": 1645,
+            "ink": 1648,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -1005,7 +1005,7 @@
             "stage": "hatch"
           },
           "objects": {
-            "ink": 1665,
+            "ink": 1668,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -1049,7 +1049,7 @@
             "stage": "stepout"
           },
           "objects": {
-            "ink": 1708,
+            "ink": 1710,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -1093,7 +1093,7 @@
             "stage": "stepout"
           },
           "objects": {
-            "ink": 1707,
+            "ink": 1709,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -1111,18 +1111,24 @@
           ],
           "player": [
             146.7,
-            5.1,
+            5,
             255
           ],
           "late": false
         },
         {
           "beat": "plumb",
-          "hud": {},
+          "hud": {
+            "dialogue": {
+              "name": "Plumb",
+              "text": "Where to? *That city*, under the dark tree.",
+              "choices": []
+            }
+          },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1623,
+            "ink": 1625,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -1130,9 +1136,43 @@
             "mote": 1
           },
           "cam": [
-            149.9,
-            4.1,
-            261.6,
+            151.1,
+            3.1,
+            262.8,
+            55
+          ],
+          "player": [
+            152.7,
+            1.2,
+            265.3
+          ],
+          "late": false
+        },
+        {
+          "beat": "plumb-answer",
+          "hud": {
+            "dialogue": {
+              "name": "Plumb",
+              "text": "Our power is gone. Someone there might help us recharge.",
+              "choices": [
+                "Then let’s go."
+              ]
+            }
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1626,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            151.1,
+            3.1,
+            262.8,
             55
           ],
           "player": [
