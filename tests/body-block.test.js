@@ -87,7 +87,8 @@ test('the ring is the foe\'s whole radius: a grunt\'s body and his no longer ove
   clearTargets();
   const P = player(v(0, 0, -3)), foes = world(P), g = foes.add('grunt', v(0, 0, 0)), h = foes.add('hulk', v(8, 0, 0));
   g.state = h.state = 'idle';
-  assert.ok(ringOf(h) >= h.def.radius + BODY_BLOCK.player - 1e-9 && ringOf(h) > ringOf(g) + 0.4);
+  // (as far further off as the hulk is wider: the grunt grown to the traveller since #741, 0.65 m against its 1 m)
+  assert.ok(ringOf(h) >= h.def.radius + BODY_BLOCK.player - 1e-9 && ringOf(h) - ringOf(g) >= h.def.radius - g.def.radius - 1e-9 && h.def.radius - g.def.radius > 0.3);
   clearTargets();
 });
 

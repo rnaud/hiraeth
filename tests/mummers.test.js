@@ -9,7 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES, WAVES, CARRY, BLIND, pickWeight } from '../src/foes.js';
-import { ARCHETYPES } from '../src/enemies/archetypes.js';
+import { ARCHETYPES, GROWN } from '../src/enemies/archetypes.js';
 import { FIGHT, TIERS, tierDef } from '../src/enemies/fight.js';
 import { SITES, layoutSite } from '../src/encounters/sites.js';
 import { WORLDS, ROSTERS, worldArchetypes, packOf } from '../src/foe-worlds.js';
@@ -48,7 +48,8 @@ test('the mummers on the roster: two spirits of their own plans, a camp\'s rank 
     for (const a of A.def.attacks) assert.ok(a.wind >= windMin(a) - 1e-9, `${id}.${a.id}: ${a.wind} s`);
   }
   assert.equal(ARCHETYPES.mummer.tier, 1); assert.equal(ARCHETYPES.mummerking.tier, 3);
-  assert.ok(ARCHETYPES.mummer.def.height <= 1.15 && ARCHETYPES.mummerking.def.height >= 2.5, 'a head shorter than the traveller\'s shoulder; the king 2.6 m');
+  // (built a head shorter than the traveller's shoulder, 1.1 m; grown to his height since #741: GROWN, tests/foe-heights.test.js)
+  assert.ok(ARCHETYPES.mummer.def.height === 1.1 * GROWN.mummer && ARCHETYPES.mummer.scale === GROWN.mummer && ARCHETYPES.mummerking.def.height >= 2.5, 'grown 1.5 times; the king 2.6 m');
   // a body is a handful of draws: its parts skinned by material
   for (const id of ['mummer', 'mummerking']) { const m = archetypeModel(id, skinWorlds(id)[0]); let n = 0; m.group.traverse((o) => { if (o.isMesh) n++; }); assert.ok(n <= 12, `${id}: ${n} meshes`); m.dispose(); }
 });

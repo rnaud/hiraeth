@@ -995,6 +995,22 @@ export const ARCHETYPES = {
   },
 };
 
+/**
+ * The foes grown to the traveller (issue #741, the author: "we can just scale up all the monsters that were tiny, all the
+ * bi-pedal ones should be at least my size"; and no foe under his hip, the tiny critters were too hard to hit): each drawn
+ * this many times as big as it is built (its skins' scale: src/enemies/skins.js skinOf, the model's size), and its body
+ * with it (grow: the hit body's and collision's radius, its height, its hover). Its attacks keep their reach from its
+ * centre, which still lies past its grown body (tests/foe-heights.test.js): the mummer and the grunt to 1.8 m (he is
+ * 1.75), the skitter and the crawler to his hip (0.95 m).
+ */
+export const GROWN = { mummer: 1.5, grunt: 1.45, skitter: 1.75, crawler: 1.5 };
+/** A def grown k times: its body's measures (m), not its senses, its speed or its attacks' reach. */
+export function grow(def, k) {
+  for (const key of ['radius', 'height', 'hover']) if (Number.isFinite(def[key])) def[key] *= k;
+  return def;
+}
+for (const [id, k] of Object.entries(GROWN)) { ARCHETYPES[id].scale = k; grow(ARCHETYPES[id].def, k); }
+
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);
 /** The archetypes on their own bodies (src/enemies/plans/), whose tuning is here. */
 export const BUILT = ARCHETYPE_IDS.filter((id) => ARCHETYPES[id].status === 'built');

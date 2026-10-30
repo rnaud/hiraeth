@@ -54,7 +54,7 @@ export function skitterModel(skin) {
     tube(leg.foot, [[0, 0.05 * K, 0], [s * 0.012 * K, 0.02 * K, 0.01 * K], [-s * 0.008 * K, 0, 0.012 * K]], 0.012 * K, legM, 0.003);   // (the hook)
     legs.push(leg);
   }
-  const rig = new Rig({ plan: PLANS.skitterers, group: g, body, legs });
+  const rig = new Rig({ plan: PLANS.skitterers, group: g, body, legs, scale: skin.scale ?? 1 });   // (the kit's steps in m: drawn grown, issue #741)
   const feelerPts = feelers.map((p) => outerPoints(p));   // (before the merge: their lowest points, kept off the ground)
   // (the legs and feelers: one skinned mesh on the kit's joints, the joints tinted by vertex colour)
   const limbs = [];

@@ -94,7 +94,7 @@ test('bodyHits: a blade swept through a foe\'s drawn body hits it there; through
   f.model.group.updateMatrixWorld(true);
   const S = bodySpan(f.model), y = (S.lo + S.hi) / 2;
   const hit = bodyHits(v(0, 1.1, 0), 3, null, { a: v(-1.2, y, 1.6), b: v(-0.4, y, 1.6) }, { a: v(0.4, y, 1.6), b: v(1.2, y, 1.6) });
-  assert.equal(hit.length, 1); assert.ok(hit[0].body && hit[0].point.distanceTo(S.centre) < 0.6, 'at its body');
+  assert.equal(hit.length, 1); assert.ok(hit[0].body && hit[0].point.distanceTo(S.centre) < 0.6 * (f.model.size ?? 1), 'at its body');
   assert.equal(bodyHits(v(0, 1.1, 0), 3, null, { a: v(-1.2, 1.1, 1.6), b: v(-0.4, 1.1, 1.6) }, { a: v(0.4, 1.1, 1.6), b: v(1.2, 1.1, 1.6) }).length, 0, 'the old level arc over it: nothing');
   foes.dispose(); clearTargets();
 });
@@ -118,8 +118,7 @@ test('the miss table\'s first row: every archetype on the ground is hit by a pla
     if (!r.hit) misses.push(`${id} (blade's lowest over it ${r.low?.toFixed(2) ?? 'never over it'}, its body ${r.span.lo.toFixed(2)}–${r.span.hi.toFixed(2)})`);
   }
   assert.deepEqual(misses, [], `missed: ${misses.join(', ')}`);
-  // and the low ones need the soft aim: without it the first swing goes over a skitter
-  const legacy = await swingAt(rig, 'skitter', { gap: 1.5, angle: 0, swing: 0, legacy: true });
-  assert.ok(!legacy.hit && legacy.over > 0, 'before v1.35 it passed over a skitter');
+  // (before v1.35 the first swing passed over a skitter, and the soft aim brought it down to it; since #741 no foe on the
+  // ground is shorter than his hip: the soft aim itself, tests/hitboxes.test.js)
   rig.tool.dispose(); clearTargets();
 });

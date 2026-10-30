@@ -56,7 +56,8 @@ async function comboRun(rig, kind, { gap = 1.5, angle = 0, locked = false, stick
   const input = (k) => ({ ...(stick ? { stick } : {}), ...(k ? { KeyF: true } : {}) });
   const startAt = [], gaps = [], path = [];
   let closest = Infinity;
-  const near = () => { if (f) closest = Math.min(closest, Math.hypot(f.pos.x - p.pos.x, f.pos.z - p.pos.z) - R); };
+  // (off its drawn body, as `off` and the step itself measure it: a grown foe's radius stands wider than its torso, #741)
+  const near = () => { if (f) closest = Math.min(closest, Math.hypot(f.pos.x - p.pos.x, f.pos.z - p.pos.z) - (T.reach ?? R)); };
   let pressed = 1, n = -1;
   const S = [], st = {};
   let t = 0;

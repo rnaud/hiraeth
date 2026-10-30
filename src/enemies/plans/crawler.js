@@ -64,7 +64,7 @@ export function crawlerModel(skin) {
     add(leg.thigh, new THREE.SphereGeometry(0.032, 8, 6), K);
     legs.push(leg);
   }
-  const rig = new Rig({ plan: PLANS.crawler, group: g, body, legs });
+  const rig = new Rig({ plan: PLANS.crawler, group: g, body, legs, scale: skin.scale ?? 1 });   // (the kit's steps in m: drawn grown, issue #741)
   const gaze = [gazePart(g, eyes, { mode: 'turn' })];
   skinBy(g, X.sets);
   finish(g);

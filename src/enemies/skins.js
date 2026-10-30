@@ -8,6 +8,7 @@ import { PARTS } from '../levels/names.js';
 //     palette  the colours its body builder reads (each plan its own keys; missing ones fall back to the first skin's)
 //     props    what dresses it: lichen, antennae, an awning, barnacles and rope, glass facets, coral, patina, coins…
 //     moves    skin-only attacks (an attack's `skins`: the crab's burrow in the Salt Harbour and Underwater)
+//     scale    how big it is drawn, over its archetype's own (ARCHETYPES[a].scale: the foes grown to the traveller, #741)
 //     arena    a skin met only in the Arena (Home, the Atelier, the Overnight Train stay peaceful)
 // The first world listed is the archetype's own skin: where it is met first, and what the Arena shows by default.
 
@@ -316,7 +317,7 @@ export function skinOf(a, world, tier = 0) {
   const id = skinFor(a, world);
   if (!id) return null;
   const S = SKINS[a][id], home = SKINS[a][HOME_SKIN[a]];
-  const out = { id, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: S.scale ?? 1, arena: !!S.arena };
+  const out = { id, name: S.name, palette: { ...home.palette, ...S.palette }, props: S.props ?? [], moves: S.moves ?? [], scale: (S.scale ?? 1) * (ARCHETYPES[a].scale ?? 1), arena: !!S.arena };
   return tier ? tierSkin(out, S.tier) : out;
 }
 

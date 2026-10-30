@@ -2703,6 +2703,21 @@ a root knot's pack in Lorn II has root-edged blots round it rather than standing
 A renamed site (`mummer-hoard`, `blot-fire`, `centipede-fire`, `hound-shadow`, `hound-fire`, `crab-nest`,
 `moth-shadow`) is a new place to a save: one cleared before is there to clear again, its coffer with it.
 
+### No tiny foes (v2.38, issue #741, `src/enemies/archetypes.js` `GROWN`)
+
+The author: "we can just scale up all the monsters that were tiny, all the bi-pedal ones should be at least my size";
+and no foe under hip height, the tiny critters were too hard to hit. Every foe in play (the built archetypes but
+`OUT_OF_PLAY`'s, and the makers' machine) stands, as drawn, at least as tall as the traveller (1.75 m, B3's) if it walks
+on two legs, at least to his hip (0.955 m) otherwise. The four that did not are grown through their archetype's
+`scale` (`GROWN`): the mummer ×1.5 (1.20 → 1.80 m), the grunt ×1.45 (1.25 → 1.81 m), the skitter ×1.75
+(0.56 → 0.98 m) and the crawler ×1.5 (0.90 → 1.35 m to its antenna's tip, its dome to his hip). The scale is its skins'
+(`skinOf`: the model's `size`, the group drawn that big) and its body's (`grow`: the def's `radius`, `height` and
+`hover`, so the hit body, the collision, the chest, the lock-on and the ragdoll grow with it); the kit's legs plan their
+steps in metres (`Rig` `scale`, its body offsets back in the group's units). Its attacks keep their reach from its
+centre (still past its grown body), its senses and speed their tuning, and its voice its built height
+(`src/foe-sounds.js` `voiceHeight`). None is wider or taller than the makers' machine, which walks every temple's rooms.
+Tests: `tests/foe-heights.test.js`.
+
 ## Tests
 
 `tests/foe-kinds.test.js`: each new kind's attacks, telegraphs, damage and parry / stun answers, the old foes'

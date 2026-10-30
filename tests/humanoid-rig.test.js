@@ -92,15 +92,16 @@ test('with the clips: the bodies take the clip\'s pose, hold the loaded wind-up,
   foes.setPractice('');
   for (const [kind, D, id] of [['mummer', MUMMER_BODY, 'whack'], ['mummerking', KING_BODY, 'smash']]) {
     const f = foes.add(kind, v(0, 0, 0)); f.provoked = true;
-    const J = f.model.joints, hand = new THREE.Vector3(), low = () => { f.model.group.updateMatrixWorld(true); return Math.min(...J.feet.map((x) => x.getWorldPosition(new THREE.Vector3()).y)); };
+    // (s: the body drawn grown, the mummer to the traveller's height since #741; D is its body as built)
+    const J = f.model.joints, s = f.model.size ?? 1, hand = new THREE.Vector3(), low = () => { f.model.group.updateMatrixWorld(true); return Math.min(...J.feet.map((x) => x.getWorldPosition(new THREE.Vector3()).y)); };
     for (let i = 0; i < 30; i++) foes.look(f, DT);
     assert.ok(f.model.driver.A, `${kind}: its own Animator`);
-    assert.ok(Math.abs(low() - (D.hip - D.thigh - D.shin)) < 0.08, `${kind}: standing on its feet (${low().toFixed(3)})`);
+    assert.ok(Math.abs(low() - (D.hip - D.thigh - D.shin) * s) < 0.08 * s, `${kind}: standing on its feet (${low().toFixed(3)})`);
     // the wind-up: its fist rises toward the loaded pose and holds it from 75 %
     const a = f.def.attacks.find((x) => x.id === id), at = (k) => { f.state = 'wind'; f.atk = a; f.k = k; for (let i = 0; i < 12; i++) foes.look(f, DT); f.model.group.updateMatrixWorld(true); return J.hands[0].getWorldPosition(hand).clone(); };
     const rest = at(0), held = at(HOLD_AT), late = at(0.97);
-    assert.ok(held.y > rest.y + 0.2 * D.hip, `${kind}: its arm up in the wind-up (${rest.y.toFixed(2)} → ${held.y.toFixed(2)})`);
-    assert.ok(held.distanceTo(late) < 0.12 * (D.hip + D.chest), `${kind}: the loaded pose held to the end (${held.distanceTo(late).toFixed(3)} m)`);
+    assert.ok(held.y > rest.y + 0.2 * D.hip * s, `${kind}: its arm up in the wind-up (${rest.y.toFixed(2)} → ${held.y.toFixed(2)})`);
+    assert.ok(held.distanceTo(late) < 0.12 * (D.hip + D.chest) * s, `${kind}: the loaded pose held to the end (${held.distanceTo(late).toFixed(3)} m)`);
     f.state = 'chase'; f.atk = null;
     // the cost: a frame of its pose (the clip's mixer and the retarget), median of many
     const t = [];

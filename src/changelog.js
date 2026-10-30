@@ -45,6 +45,8 @@ export const CHANGELOG = [
       // the Rose House's walls (#739)
       { text: 'The walls inside the Rose House are calmer, and on a handheld their lines no longer flicker as you walk and look around. Far fewer thin amber circuits run up the walls, and those left show only when you are close enough to see them as clean lines; the glow stays in the floor’s joints. Each stone slab’s bevelled edge is now a soft shade rather than two more pen lines beside its joint, so the big slabs read plainly.',
         see: 'Go into the Rose House and walk slowly down the Great Hall turning the camera: the side walls and the far wall stay still instead of shimmering, and the circuits light up only on the walls right beside you.' },
+      // no tiny foes (#741)
+      'No foe is tiny any more. The Desert’s mummers and the grunts of the Arena now stand as tall as you, and the skitters and the Arena’s crawlers come up to your hip, so your blade finds them easily. Everything about them grew with them: where your blows land, how close they get to you and the lock-on round them. Their voices and the way they fight are as before.',
     ],
   },
   {

@@ -305,13 +305,15 @@ export function trimOf(group, key, event = null) {
 /** Is it a machine (a swing rings, a shot is a bolt)? */
 export const isMetal = (f) => (ARCHETYPES[f.archetype]?.family ?? (f.def?.sound === 'machine' ? 'machine' : '')) === 'machine';
 /** Its body's loudness (FOE_SOUND.loud): a small one quieter, a big one a little louder, whatever its voice. */
+/** Its body's height as its voice was tuned (m): a foe grown to the traveller (ARCHETYPES[a].scale, #741) keeps its voice. */
+const voiceHeight = (f, or) => (f.def?.height != null ? f.def.height / (ARCHETYPES[f.archetype]?.scale ?? 1) : or);
 export function bodyLoud(f) {
-  const L = FOE_SOUND.loud, h = f.def?.height ?? L.ref;
+  const L = FOE_SOUND.loud, h = voiceHeight(f, L.ref);
   return Math.max(L.range[0], Math.min(L.range[1], (h / L.ref) ** L.power));
 }
 /** Its body's pitch against its voice's ref height: a bigger one lower. */
 export function bodyPitch(f, ref) {
-  const h = f.def?.height ?? ref ?? 1;
+  const h = voiceHeight(f, ref ?? 1);
   return Math.max(FOE_SOUND.pitch[0], Math.min(FOE_SOUND.pitch[1], Math.sqrt((ref ?? h) / Math.max(0.1, h))));
 }
 
@@ -463,7 +465,7 @@ export class FoeSounds {
   step(f, k = 1) {
     const S = this.sound?.(), M = movesOf(f);
     if (!S?.foeSay || !(k > 0)) return false;
-    const p = bodyPitch(f, M.ref ?? f.def?.height) * (1 + (this.rng() * 2 - 1) * FOE_SOUND.vary.pitch);
+    const p = bodyPitch(f, M.ref ?? voiceHeight(f)) * (1 + (this.rng() * 2 - 1) * FOE_SOUND.vary.pitch);
     S.foeSay(pitched(M.step, p), () => f.pos, { k: (this.trims ? trimOf('moves', moveKey(f)) * bodyLoud(f) : 1) * k * (1 + (this.rng() * 2 - 1) * FOE_SOUND.vary.level) });
     return true;
   }

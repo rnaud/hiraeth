@@ -198,7 +198,7 @@ export class Rig {
    * One frame of planning. f: the foe ({ pos, heading, state, k, atk, stunned }); ctx: { eye (where the camera
    * or the player is), ground(x, fromY, z), air (0..1: off the ground: tucked or hanging), recovery, touch(at), free (a
    * wind-up still aiming: the feet brace but may step round as it turns) }.
-   * Returns the body's offsets { y, x, z, pitch, roll, yaw } for the model to draw (with its own moves on top).
+   * Returns the body's offsets { y, x, z (in the group's units), pitch, roll, yaw } for the model to draw (with its own moves on top).
    */
   update(f, dt, ctx = {}) {
     const p = f.pos;
@@ -247,6 +247,8 @@ export class Rig {
     // (struck down, its legs limp: the body comes level across as it slumps, over a quarter of a second; its feet, planted
     // where they were as the blow shoved it aside, tipped a skitter 28° onto its side, issue #767)
     if (this.limp) { this.limpT = (this.limpT ?? 0) + dt; o.roll *= Math.max(0, 1 - this.limpT * 4); }
+    // (planned in world m; the model sets them in its group's units: a body drawn grown, issue #741)
+    if (this.scale !== 1) { o.x /= this.scale; o.y /= this.scale; o.z /= this.scale; }
     // on a slope (its root turned onto the ground's plane: src/enemies/slope.js), a tall body stands back up toward
     // upright by `upright` of it, on its legs (the IK reaches them down to the hillside)
     if (this.slope && this.upright) {

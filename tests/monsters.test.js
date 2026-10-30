@@ -9,7 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES, WAVES, CARRY, RACK } from '../src/foes.js';
-import { ARCHETYPES } from '../src/enemies/archetypes.js';
+import { ARCHETYPES, GROWN } from '../src/enemies/archetypes.js';
 import { FIGHT, TIERS, POISE, tierDef } from '../src/enemies/fight.js';
 import { SITES, STAGED, layoutSite, sitesOf, stagedFrom, siteFootprint } from '../src/encounters/sites.js';
 import { BODIES } from '../src/encounters/index.js';
@@ -64,7 +64,8 @@ test('the grunt and the hulk on the roster: monsters on their own plan, built, s
     assert.deepEqual(surfaceFor(id, dark, 'skin').stripes.amount, TIER_SURFACE.stripes.amount, 'banded');
     assert.ok(surfaceFor(id, base, 'skin').mottle, 'its skin painted');
   }
-  assert.ok(ARCHETYPES.grunt.def.height === 1.3 && ARCHETYPES.hulk.def.height === 2.7, 'the sheets: 1.3 m and 2.7 m');
+  // (the grunt grown to the traveller since #741: GROWN, tests/foe-heights.test.js)
+  assert.ok(ARCHETYPES.grunt.def.height === 1.3 * GROWN.grunt && ARCHETYPES.hulk.def.height === 2.7, 'the sheets: 1.3 m (grown 1.45 times) and 2.7 m');
   assert.equal(FOES.hulk.throws, 'grunt');
   // the Arena's waves and its foe list, the gallery's roster (ARCHETYPE_IDS)
   assert.ok(WAVES.some((w) => w.includes('grunt')) && WAVES.some((w) => w.includes('hulk') && w.includes('grunt')), 'the Arena\'s waves');
