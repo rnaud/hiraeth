@@ -3166,8 +3166,8 @@ a Givers' test chamber of dark slate and ember light, over the same rooms. Its s
   finish borders half the slabs), and the chamfer keeps half its tone (`ROSE_SKIN.bevel`, under the colour edges'
   threshold). The walls are the pick's plain slabs; the ember stays in the floor's joints and the frieze. Flicker events
   per 10 000 px a frame, pan: on the Mac's Handheld 28.5 → 4.5 (the hall's length), 24.9 → 3.3 (a wall 17 m off), 22.4
-  → 1.8 (beside a wall); on Medium 23.1 → 4.1, 46.1 → 3.9, 20.4 → 7.2. The Odin 3's numbers are in the changelog's line
-  (v2.38). `tests/temple-skin-patterns.test.js` keeps the fade and the shares, in the web and in SkinPatterns.hlsl.
+  → 1.8 (beside a wall); on Medium 23.1 → 4.1, 46.1 → 3.9, 20.4 → 7.2; in Unity (editor batch, Handheld, `-pan`,
+  `scripts/bench/unity-shimmer.mjs`) 33.6 → 8.1 at the wall. The Odin 3's numbers are in the changelog's line (v2.38). `tests/temple-skin-patterns.test.js` keeps the fade and the shares, in the web and in SkinPatterns.hlsl.
 
 `tests/temple-skins.test.js` checks it wears the skin, and that its collision and climbs are vertex for vertex those of
 the house without it (`rt.noSkin`), every piece where it was, and the dressing out of every doorway.

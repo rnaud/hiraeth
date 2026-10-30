@@ -1468,6 +1468,7 @@ const FROM794 = 'Hand-made strips of the web game (no `view`): a scratch script 
 const NODE794 = 'Issue #794: a scratch measure of Foes.update at 60 frames a second in node on a level of real colliders (src/physics.js: a ground mesh, a 0.3 m wall), the game’s own models; before at a2982da49, after this change on it; 30 October 2026';
 const FROM739_MAC = 'Hand-made (no `view`): a script of mine drove muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load) on the Mac’s GPU, 30 October 2026, against builds of 7656e9b09 (before) and this change (after), each served by scripts/motion-check/serve.mjs on port 5431; ?level=desert, the traveller put at the Rose House’s arrival, 10:00, clear, the camera pinned at the same eye and target in both, the HUD hidden. Handheld: 1280 × 720 at render scale 0.75 (960 × 540), dynamic resolution off; Medium: 1920 × 1080 at scale 1, shown at 1280. WebP by cwebp -q 72';
 const FROM739_ODIN = 'Hand-made (no `view`): the AYN Odin 3 (Adreno 830, 1920 × 1080) over adb, its own Chrome 156 in a tab of ours on localhost:5431 (adb reverse; the player’s app untouched), the game’s sound muted before load and checked at its start, the frame readout on; Handheld at a fixed render scale 0.75, dynamic resolution off, 30 October 2026; builds of 7656e9b09 (before) and this change (after), the same pinned camera in the Great Hall. Page screenshots by DevTools (Chrome’s own strip under the page cut off), WebP by cwebp -q 72';
+const FROM739_UNITY = 'Unity editor batch mode, muted (scripts/unity-js-run.sh -mute -quality handheld -level desert -views <the same three views> -out …; the handoff’s build lock held), 30 October 2026, the Library cloned from the main checkout; before: 7656e9b09’s rose-house.js and SkinPatterns.hlsl swapped in for the run, after: this change. The batch picture 1280 × 720, WebP by cwebp -q 72';
 const FROM739_FRAMES = 'Hand-made (no `view`): the Odin 3’s own frames of scripts/motion-check/record.mjs --android (its Chrome, muted, Handheld at 0.75, the world held and the camera turned a third of a pixel a frame), frames 30 and 31 of the 60, a 1:1 crop of the canvas (832 × 388 device px) at the wall 17 m off; 7656e9b09 (before) and this change (after), 30 October 2026. WebP by cwebp -q 74';
 
 export const CHANGELOG_MEDIA = {
@@ -1559,6 +1560,7 @@ export const CHANGELOG_MEDIA = {
     { name: 'rose739-odin', title: 'Odin 3', caption: 'On the Odin 3 in its Chrome (Handheld, frame readout on), the Great Hall’s west end from 21 m: before, thin amber circuits in most of the slabs’ columns, each with a broken pen line down both sides, and every joint drawn three times; after, the plain slabs with one line to a joint, the floor’s amber joints and the frieze’s lamps as they were, still 60 frames a second', from: FROM739_ODIN },
     { name: 'rose739-frames', title: 'Two frames', caption: 'Two frames in a row on the Odin 3 as the camera turns a third of a pixel: before, the circuits’ edge lines and the doubled joints come and go between the two (the flicker); after, the two are the same', from: FROM739_FRAMES },
     { name: 'rose739-handheld', title: 'Handheld (Mac)', caption: 'The same wall on the Mac’s Handheld preset (960 × 540): before, the busy circuits and their dashed outlines; after, the slabs, their joints, the obelisk, the door and the lamps', from: FROM739_MAC },
+    { name: 'rose739-unity', title: 'Unity', caption: 'The Unity version, Handheld, down the Great Hall: the same change as the web’s, the circuits and the doubled joints before, the plain slabs after', from: FROM739_UNITY },
     { name: 'rose739-medium', title: 'Medium (Mac)', caption: 'Down the length of the Great Hall on Medium at 1920 × 1080: before, circuits up every side wall, the ceiling and the far wall; after, the walls plain slabs as in the house’s drawing, the light in the floor’s joints and the lamps', from: FROM739_MAC },
   ], numbers: [
     { title: 'Flicker as the camera turns slowly in the Great Hall (pixels that flick and come straight back, per 10 000 a frame)', unit: '', better: 'lower', device: 'AYN Odin 3, Chrome 156, Handheld at 0.75 (1664 × 776 canvas)', source: 'Issue #739: scripts/motion-check/record.mjs --android, pan path (60 frames, a third of a pixel a frame, the world held), 30 October 2026; before 7656e9b09', rows: [
@@ -1583,6 +1585,9 @@ export const CHANGELOG_MEDIA = {
       { where: 'Medium, down the hall', before: 23.1, after: 4.1 },
       { where: 'Medium, a wall 17 m off', before: 46.1, after: 3.9 },
       { where: 'Medium, beside a wall', before: 20.4, after: 7.2 },
+    ] },
+    { title: 'Flicker in the Unity version as the camera turns (per 10 000 px a frame)', unit: '', better: 'lower', device: 'MacBook Pro M4 Pro, Unity editor batch, Handheld', source: 'Issue #739: the bridge’s -pan 24 on the wall 17 m off, measured by scripts/bench/unity-shimmer.mjs; before 7656e9b09’s skin', rows: [
+      { where: 'a wall 17 m off', before: 33.6, after: 8.1 },
     ] },
   ] },
   ],
