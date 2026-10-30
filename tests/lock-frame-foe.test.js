@@ -21,8 +21,8 @@ test('a foe\'s box: its drawn body round its footing, clamped near its size, its
   const out = foeBox(f, f.pos, { min: V(), max: V() }, 0, span);
   assert.deepEqual(out.min.toArray(), [9, 2.9, 4]); assert.deepEqual(out.max.toArray(), [11, 4.1, 6]);
   assert.equal(out.ground, 0); assert.equal(out.F, LOCK_FRAME_FOE);
-  // (held between measures, carried with its point: no new measure until `every` s on)
-  const moved = foeBox(f, V(12, 0, 5), out, 0.1, () => { throw new Error('measured again'); });
+  // (held between measures, carried with its point: no new measure until `measure` s on)
+  const moved = foeBox(f, V(12, 0, 5), out, LOCK_FRAME_FOE.measure * 0.8, () => { throw new Error('measured again'); });
   assert.deepEqual(moved.min.toArray(), [11, 2.9, 4]);
   // (a part flung far off its body is clamped near its size; no body to measure, its radius and chest)
   const g = { pos: V(), chest: V(0, 1, 0), def: { radius: 0.5 }, model: { group: new THREE.Group() } };
@@ -80,12 +80,14 @@ test('circling a hulk and a crawler locked on: smooth (the camera QC\'s limits) 
 test('a foe\'s framing only in the open: close in (a corridor, a temple\'s room) the rig keeps its close-in camera', () => {
   const G = arenaFoe('grunt');
   const r = lockedOn(G, V(0, 0, 5));
-  assert.ok(r.rig.fitK > 0.9, `open: the fit on (${r.rig.fitK.toFixed(2)})`);
-  // (the same rig told it is close in: the fit eases out, the close-in framing comes back)
+  assert.ok(r.rig.fitK > 0.9 && r.rig.fitOpenK > 0.9, `open: the fit on (${r.rig.fitK.toFixed(2)})`);
+  // (the same rig told it is close in: the open fit eases out, the close-in framing comes back; the room's tuning, its
+  // tilt and its lens only, takes over: issue #795)
   const rig = r.rig, box = { min: V(), max: V() };
   rig.tight = 1;
   for (let i = 0; i < 180; i++) { rig.locked = true; rig.frameWith = foeBox(G.f, G.f.pos, box, i / 60, bodySpan); rig.update(V(0, 0, 5), 1 / 60, null); }
-  assert.ok(rig.fitK < 0.05, `close in: the fit off (${rig.fitK.toFixed(2)})`);
+  assert.ok(rig.fitOpenK < 0.05, `close in: the open fit off (${rig.fitOpenK.toFixed(2)})`);
+  assert.ok(rig._fitInRoom && rig.fitF === LOCK_FRAME_FOE.room, 'close in: the room\'s tuning');
 });
 
 test('the camera QC locks on to every built kind in the Arena at 2, 5 and 9 m, and counts the frames with everything framed', () => {

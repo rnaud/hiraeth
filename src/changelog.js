@@ -27,6 +27,9 @@ export const CHANGELOG = [
         see: 'In the Rose House, roll the burning ball into the bowl in the Hall of the Flame, then go through the doorway beside it, walk into the dry pool and pull the lever (X / □).' },
       { text: 'Doors bearing the makers’ mark open only once your battery has been filled. In the Rose House the door from the Hall of the Flame to the Dry Channel now waits for your full battery instead of the lit bowl. A battery you had already filled stays full, the font’s pool is full for you, and doors you had opened stay open.',
         see: 'In the Rose House, light the bowl in the Hall of the Flame: the door on to the Dry Channel stays shut and its lamp dark until you pull the font’s lever; then it sinks open.' },
+      // the lock-on camera close in (#795)
+      { text: 'Locked on a step or two from a tall enemy, the camera now keeps all of it in view: a furnace brute’s raised arms, a bell walker’s top, a stilt heron’s head and a warlord’s glaive held over its head no longer go off the top of the screen. The camera starts to step back as soon as an enemy winds up a blow, widening a little while it does. In a small room it stays close behind you but looks up, so a tall enemy’s head stays in view wherever the ceiling allows.',
+        see: 'In the Arena, pick a furnace brute or a warlord from the foe list, lock on (R3, Tab) one or two steps away and let it swing: its arms or its glaive stay inside the picture.' },
       // the loading screen (#791)
       'Loading screens are quieter: the screen is black, and only a small turning circle, the word “Loading” and a thin bar that fills as the world is built sit in the bottom-right corner, arriving by ship too. The lines naming each step are gone. If something fails to load, its message still shows there in full. With reduced motion on, the circle gently pulses instead of turning.',
       // the landing (#781)

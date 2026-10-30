@@ -886,6 +886,18 @@ function makePlan(args) {
       steps.push({ kind: 'foe', what: 'clear' }, { kind: 'wait', frames: 20, secs: 0.4 }, { kind: 'foe', what, dist, hp: 99 }, { kind: 'wait', frames: 30, secs: 1 }, ...lock, ...shot(name));
     }
   }
+  if (fights.includes('lockclose')) {
+    // (-fight lockclose, issue #795: locked on 2 m off a tall foe winding up a blow: a warlord's glaive and a furnace
+    // brute's arms raised; kept up, its own blows held off, its wind-up begun by the plan; a picture once the camera has
+    // eased, and two as the wind-up rises)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-lockclose-${name}.png` }] : []);
+    const lock = [{ kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 90, secs: 2 }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 });
+    for (const what of ['warlord', 'brute']) {
+      steps.push({ kind: 'foe', what: 'clear' }, { kind: 'wait', frames: 20, secs: 0.4 }, { kind: 'foe', what, dist: 2, hp: 99 }, { kind: 'wait', frames: 30, secs: 1 }, ...lock, ...shot(`${what}-locked`),
+        { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 30, secs: 0.5 }, ...shot(`${what}-wind`), { kind: 'wait', frames: 20, secs: 0.35 }, ...shot(`${what}-top`), { kind: 'wait', frames: 60, secs: 1 });
+    }
+  }
   if (fights.includes('combo')) {
     // (-fight combo, issues #712 / #713: a toad set down 2.4 m ahead, kept alive, locked on; the three cuts pressed in a
     // chain, a picture every few frames from the first press: the hit bursts, the heavy third)
@@ -1579,6 +1591,12 @@ function playFrame(dt) {
         if (f.kind === 'shade') { f.state = 'chase'; f.atk = null; f.guardK = 1; continue; }
         const a = f.def.attacks.find((x) => x.id === 'bash');
         if (a) { f.guardK = 0; f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
+      }
+    } else if (step.what === 'raise') {
+      // (-fight lockclose, issue #795: any foe's blow begun, the warlord's overhead if it has one, else its first blow)
+      for (const f of F.list.filter((x) => x.alive)) {
+        const a = f.def.attacks.find((x) => x.id === 'overhead') ?? f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.throwsAlly);
+        if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); console.log(`[unity] ${f.kind} winds up ${a.id}`); }
       }
     } else if (step.what === 'windup') {
       for (const f of F.list.filter((x) => x.model?.driver && x.alive)) { const a = f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.unarmed && !x.throwsAlly && !x.horn); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }

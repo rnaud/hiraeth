@@ -31,8 +31,14 @@ export const LOCK_FRAME = { margin: 0.1, pitches: [0.24, 0.32, 0.4, 0.5, 0.62, 0
  * at most `fov`°; only in the open (the close-in framing under `open[0]` to start, over `open[1]` to stop: CameraRig.update).
  * The guardians keep LOCK_FRAME (their arenas, their size). docs/systems/movement-and-camera.md
  * "Locked on any foe: the BotW framing".
+ * Close to a tall foe fighting (issue #795): its box measured every `measure` s, let go at `hold` /s, its top raised by
+ * `wind` of its height at rest as it winds up (foeBox); `margin` of the frame kept clear; the arm out at `rateOut` /s;
+ * the frame overfull from where the camera is now (past `catch`), the lens widened at once (`fovRateUp` /s) while the arm
+ * stands back. `room`: close in, the close-in camera kept, its view tipped up and its lens widened (CameraRig.roomTilt),
+ * him counted from `from` m up and no ground, so the foe's top is kept before his feet. "Close to a tall foe" there.
  */
-export const LOCK_FRAME_FOE = { ...LOCK_FRAME, pitches: [0.3, 0.36, 0.43, 0.52, 0.62, 0.2, 0.1], arm: [4.5, 10], prefer: 7, lift: 0.3, fov: 62, margin: 0.12, box: 2.5, corners: true, open: [0.1, 0.25], hold: 0.15, low: 0.75 };
+export const LOCK_FRAME_FOE = { ...LOCK_FRAME, pitches: [0.3, 0.36, 0.43, 0.52, 0.62, 0.2, 0.1], arm: [4.5, 10], prefer: 7, lift: 0.3, fov: 62, margin: 0.18, box: 2.5, corners: true, open: [0.1, 0.25], hold: 0.3, measure: 0.05, low: 0.75, rateOut: 5, wind: 0.6, catch: 0.92, fovRateUp: 5 };
+LOCK_FRAME_FOE.room = { ...LOCK_FRAME_FOE, room: null, from: 0.9, ground: false, low: 0 };
 
 const _v = new THREE.Vector3(), _r0 = new THREE.Vector3(), _f0 = new THREE.Vector3(), _rt = new THREE.Vector3(), _up = new THREE.Vector3(), _cam = new THREE.Vector3(), _dir = new THREE.Vector3();
 
@@ -47,7 +53,8 @@ const _v = new THREE.Vector3(), _r0 = new THREE.Vector3(), _f0 = new THREE.Vecto
 export function framePoints(feet, box, out = [], F = LOCK_FRAME) {
   let n = 0;
   const put = (x, y, z) => { (out[n] ??= new THREE.Vector3()).set(x, y, z); n++; };
-  for (let k = 0; k < 8; k++) put(feet.x + (k & 1 ? F.body : -F.body), feet.y + (k & 2 ? F.height : 0), feet.z + (k & 4 ? F.body : -F.body));
+  // (in a room, LOCK_FRAME_FOE.room, him from `from` m up: his chest and head, the foe's top before his feet)
+  for (let k = 0; k < 8; k++) put(feet.x + (k & 1 ? F.body : -F.body), feet.y + (k & 2 ? F.height : F.from ?? 0), feet.z + (k & 4 ? F.body : -F.body));
   const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, R = F.round * Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
   let tx = feet.x - cx, tz = feet.z - cz;
   const L = Math.hypot(tx, tz) || 1; tx /= L; tz /= L;
@@ -57,9 +64,11 @@ export function framePoints(feet, box, out = [], F = LOCK_FRAME) {
     for (const y of [box.min.y, (box.min.y + box.max.y) / 2, box.max.y]) { put(cx - tz * R, y, cz + tx * R); put(cx + tz * R, y, cz - tx * R); }
     put(cx + tx * R, box.min.y, cz + tz * R);
   }
-  put((feet.x + cx) / 2, feet.y, (feet.z + cz) / 2);
-  // (a flyer: the ground under it as well, where its shadow falls: `box.ground`, its footing, foeBox)
-  if (box.ground != null && box.min.y > box.ground + 0.3) put(cx, box.ground, cz);
+  if (F.ground !== false) {
+    put((feet.x + cx) / 2, feet.y, (feet.z + cz) / 2);
+    // (a flyer: the ground under it as well, where its shadow falls: `box.ground`, its footing, foeBox)
+    if (box.ground != null && box.min.y > box.ground + 0.3) put(cx, box.ground, cz);
+  }
   out.length = n;
   return out;
 }
@@ -165,17 +174,20 @@ export function guardianBox(model, at, out, now, every = 0.25, F = LOCK_FRAME) {
 
 /**
  * Any other foe's box as the framing reads it (issue #752): its drawn body's bounds (src/foe-body.js bodySpan: its parts as
- * posed, not the trails and drops round it), measured every `every` s round its footing (`f.pos`), kept within
- * LOCK_FRAME_FOE.box × its radius and height of it (grown at once, shrunk by `hold` of the way a measure), placed round `at` (the lock's own point: f.pos), and its footing as
+ * posed, not the trails and drops round it), measured every `every` s (F.measure) round its footing (`f.pos`), kept within
+ * LOCK_FRAME_FOE.box × its radius and height of it (grown at once, shrunk at `hold` /s; winding up a blow, its top raised
+ * by `wind` of its height at rest), placed round `at` (the lock's own point: f.pos), and its footing as
  * `ground` (a flyer's shadow: framePoints). `span` the body's measure (bodySpan, passed in: node's tests give their own).
  * Into `out` ({ min, max, ground, F }).
  */
-const _foeBoxes = new WeakMap(), _bmin = new THREE.Vector3(), _bmax = new THREE.Vector3();
-export function foeBox(f, at, out, now, span, every = 0.25, F = LOCK_FRAME_FOE) {
+const _foeBoxes = new WeakMap(), _bmin = new THREE.Vector3(), _bmax = new THREE.Vector3(), BLOW = new Set(['wind', 'strike', 'recover']);
+export function foeBox(f, at, out, now, span, every = null, F = LOCK_FRAME_FOE) {
   const m = f.model;
+  every ??= F.measure ?? 0.25;
   let c = m ? _foeBoxes.get(m) : null;
   if (!c || now - c.t > every || now < c.t) {
-    c ??= { min: new THREE.Vector3(), max: new THREE.Vector3(), t: 0 };
+    c ??= { min: new THREE.Vector3(), max: new THREE.Vector3(), t: now };
+    const since = now > c.t ? Math.min(1, now - c.t) : every;
     c.t = now;
     const r = Math.max(0.4, f.def?.radius ?? 0.6), h = Math.max(0.5, (f.chest?.y ?? f.pos.y + 1) - f.pos.y + r);
     let b = null;
@@ -185,11 +197,19 @@ export function foeBox(f, at, out, now, span, every = 0.25, F = LOCK_FRAME_FOE) 
       const R = r * F.box + 0.5, H = h * F.box + 0.5, p = f.pos;
       _bmin.set(Math.max(b.min.x - p.x, -R), Math.max(b.min.y - p.y, -0.5), Math.max(b.min.z - p.z, -R));
       _bmax.set(Math.min(b.max.x - p.x, R), Math.min(b.max.y - p.y, H), Math.min(b.max.z - p.z, R));
-      // (grown at once, shrunk slowly, `hold` of the way each measure: a club swung up over its head between two
-      // measures, or a wing beat, stays in the box, and the camera doesn't breathe in and out with every swing)
+      // (grown at once, shrunk slowly, at `hold` /s: a club swung up over its head between two measures, or a wing beat,
+      // stays in the box, and the camera doesn't breathe in and out with every swing; issue #795: by time, not by measure,
+      // so the reach of its last swing is kept a few seconds and the next wind-up's raised arm or glaive tip is already
+      // in the frame)
+      // (and winding up a blow, before its arm or its weapon is up: its top raised by `wind` of its height at rest, so the
+      // camera is already standing back as the swing rises, not catching up after it; the first swing included)
+      // (its height at rest: measured outside a blow, its wind-up, strike and recovery)
+      if (c.rest == null || !BLOW.has(f.state)) c.rest = _bmax.y;
+      else if (F.wind) _bmax.y = Math.min(H, Math.max(_bmax.y, c.rest + F.wind * (c.rest - _bmin.y)));
       if (!c.set) { c.min.copy(_bmin); c.max.copy(_bmax); c.set = true; }
       else {
-        c.min.min(_bmin).lerp(_bmin, F.hold); c.max.max(_bmax).lerp(_bmax, F.hold);
+        const k = 1 - Math.exp(-F.hold * since);
+        c.min.min(_bmin).lerp(_bmin, k); c.max.max(_bmax).lerp(_bmax, k);
         c.min.min(_bmin); c.max.max(_bmax);
       }
     }

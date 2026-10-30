@@ -525,6 +525,9 @@ const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vect
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
 const _lkA = new THREE.Vector3(), _lkB = new THREE.Vector3(), _lkC = new THREE.Vector3(), _lkD = new THREE.Vector3();
+const _rtH = new THREE.Vector3(), _rtP = new THREE.Vector3(), _rtQ = new THREE.Vector3();
+/** Locked on close in a room (issue #795, CameraRig.roomTilt): the view tipped up only with the arm over `near` m (eased in to the second): crushed to his back the lens is too near him to tip. */
+const ROOM_TILT = { near: [1.4, 2.4] };
 const _fl = new THREE.Vector3(), _fb = new THREE.Vector3(), _fd = new THREE.Vector3();   // (fitFrame)
 const _hs = new THREE.Vector3(), _pv = new THREE.Vector3(), _pb = new THREE.Vector3();
 const _sr = new THREE.Vector3(), _sp = new THREE.Vector3(), _lb = new THREE.Vector3();   // (CameraRig.pickShoulder)
@@ -3782,7 +3785,7 @@ export class CameraRig {
     else if (this._lockT <= 0 || this._jumped) {
       this._lockT = L.every;
       // (locked on a guardian, framed whole: the arm its framing wants, up to `fit` m, LOCK_FRAME; issue #359)
-      const want = this.armLength(), need = Math.max(Math.min(want, L.arm), this.fitK > 0.5 ? Math.min(this._fitNeed ?? 0, L.fit) : 0), r = this._sweepR ?? LENS_R;
+      const want = this.armLength(), need = Math.max(Math.min(want, L.arm), this.fitOpenK > 0.5 ? Math.min(this._fitNeed ?? 0, L.fit) : 0), r = this._sweepR ?? LENS_R;
       const p = Math.min(this.pitch + (this._roofPitch ?? 0), PITCH_DOWN), c = Math.cos(p), s = Math.sin(p);
       // (here, and where the line is turning to: circling him toward a wall, it turns off before the wall is behind him)
       // (and from where he will be: backing or strafing toward a wall, before it is behind him)
@@ -3953,10 +3956,15 @@ export class CameraRig {
     // framing: in a corridor or a temple's antechamber the arm can't stand back anyway, and the close-in camera keeps him)
     const tRaw = this.updateTight(playerPos, dt, U, Fw, Rt), Fo = this.locked ? this.frameWith?.F?.open : null;
     if (Fo) this._fitOpen = this._jumped || this._fitOpen == null ? tRaw < (Fo[0] + Fo[1]) / 2 : this._fitOpen ? tRaw < Fo[1] : tRaw < Fo[0];
-    const fitOn = this._fitOn = !!(this.locked && this.frameWith && (!Fo || this._fitOpen));
+    // (close in, a room: its own tuning, `room`, if the box has one: the close-in camera kept where it is, only its view
+    // tipped up and its lens widened, so a tall foe's head stays in the frame where the room has height; #795, roomTilt)
+    this._fitInRoom = !!(Fo && !this._fitOpen && this.locked && this.frameWith?.F?.room);
+    const fitOn = this._fitOn = !!(this.locked && this.frameWith && (!Fo || this._fitOpen || this._fitInRoom));
+    this.fitOpenK = this._jumped ? (fitOn && !this._fitInRoom ? 1 : 0) : (this.fitOpenK ?? 0) + ((fitOn && !this._fitInRoom ? 1 : 0) - (this.fitOpenK ?? 0)) * (1 - Math.exp(-LOCK_FRAME.in * dt));
     this.fitK = this._jumped ? (fitOn ? 1 : 0) : this.fitK + ((fitOn ? 1 : 0) - this.fitK) * (1 - Math.exp(-LOCK_FRAME.in * dt));
     if (this.fitK < 1e-3 && !fitOn) this.fitK = 0;
-    const tk = tRaw * (1 - Math.max(this.bossK, this.fitK));
+    // (the close-in framing gives way to the fit in the open; in a room's (`room`) it stays: the fit only turns the view and widens the lens)
+    const tk = tRaw * (1 - Math.max(this.bossK, this.fitOpenK));
     const k = Math.max(ik, tk);   // how close-quarters the framing is
     // closing in (a doorway, an alley), or done aiming: a steep look up eases back down to what fits
     // (with the aim's own easing: aimK)
@@ -4019,13 +4027,14 @@ export class CameraRig {
     this._roofPitch = this.roofK * (1 - k) * (1 - ak) * (1 - this.downK) * ROOF_TILT;
     let pitch = Math.min(this.pitch + this._tilt * SHORT_TILT + this._climb + this._roofPitch + this.bossK * (1 - ak) * this._boss.pitch, PITCH_DOWN);
     // locked on a guardian: the arm and the height that frame you both (fitFrame: LOCK_FRAME), eased; not aiming
-    const fw = this.fitK * (1 - ak);
+    // (`fw` the fit's arm and height, in the open; `fwv` its lens and its look, a room's too)
+    const fw = this.fitOpenK * (1 - ak), fwv = this.fitK * (1 - ak);
     if (this.fitK > 0 || this._fitSet) {
       this.fitFrame(dt, dist, pitch, k, ak, U, Fw, Rt, turnRate);
       dist = THREE.MathUtils.lerp(dist, Math.max(dist, this._fitArm), fw);
       pitch = THREE.MathUtils.lerp(pitch, this._fitPitch, fw);
       if (this._fovBase != null) {
-        const fov = THREE.MathUtils.lerp(this._fovBase, this._fitFov, fw);
+        const fov = THREE.MathUtils.lerp(this._fovBase, this._fitFov, fwv);
         if (Math.abs(fov - this.camera.fov) > 1e-3) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
       }
     }
@@ -4110,7 +4119,7 @@ export class CameraRig {
     // .claude/skills/camera-qc: the Overnight Train's carriages); and the lens keeps its room by itself (no shove off a
     // wall afterwards). The ball is as big as the room round the look point allows, so a look point near a wall still
     // finds its arm. In the open, the one ray as before.
-    const swept = !rolling && (k > 0.05 || this.bossK > 0.3 || this.fitK > 0.3) && this.physics.sweepSphere;   // (and in a guardian's fight: its long arm swept too)
+    const swept = !rolling && (k > 0.05 || this.bossK > 0.3 || this.fitOpenK > 0.3) && this.physics.sweepSphere;   // (and in a guardian's fight: its long arm swept too)
     let hit, margin = THREE.MathUtils.lerp(0.6, 0.4, k);
     if (swept) {
       const r = this._sweepR = THREE.MathUtils.clamp(this.physics.roomAt(this._look, LENS_R) - 0.02, 0.12, LENS_R);
@@ -4173,8 +4182,8 @@ export class CameraRig {
     let soft = allowed;
     // (locked on a guardian, framed, its long arm looks ahead along the lock's own turn and his run too: running round
     // it, a wall came across the arm faster than the spring could take it in; LOCK_FRAME)
-    const turning = (hands || this.fitK > 0.5) && Math.abs(turnRate) > 0.3, moving = (this._vel?.lengthSq() ?? 0) > 4;
-    if ((turning || moving) && swept && (k > 0.5 || this.fitK > 0.5) && U.y > 0.999) {
+    const turning = (hands || this.fitOpenK > 0.5) && Math.abs(turnRate) > 0.3, moving = (this._vel?.lengthSq() ?? 0) > 4;
+    if ((turning || moving) && swept && (k > 0.5 || this.fitOpenK > 0.5) && U.y > 0.999) {
       const a = this.yaw + (turning ? THREE.MathUtils.clamp(turnRate * ARM_AHEAD, -0.8, 0.8) : 0);
       _hs.copy(Rt).multiplyScalar(Math.sin(a) * cp).addScaledVector(U, Math.sin(pitch)).addScaledVector(Fw, Math.cos(a) * cp);
       let from = this._look;
@@ -4193,7 +4202,7 @@ export class CameraRig {
     if (cut > 0.02) {
       // (locked on, in on the spring too where the room is part open: standing by a doorway into a hall, the arm reached
       // 4.4 m out through it, and the lock's turn brought its edge across the arm, a cut of 2.4 m in a frame; issue #289)
-      const close = (k > 0.5 || (this.locked && k > 0.05) || this.bossK > 0.3 || this.fitK > 0.3) && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
+      const close = (k > 0.5 || (this.locked && k > 0.05) || this.bossK > 0.3 || this.fitOpenK > 0.3) && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
       // (not locked on: the lock turns the camera, and holding the old spot turned the view 0.3 rad in a frame and back,
       // or back toward the wall it had turned off for room, LOCK_ROOM; the camera QC's ante-lock and guardian-lock)
       if (close && !hands && !this.locked && cut > ARM_HOLD_CUT && this.holdSpot(dist, U, Fw, Rt)) this._armV = 0;   // (held: yaw, pitch and the arm turned to where it was)
@@ -4225,7 +4234,7 @@ export class CameraRig {
     // keep the lens clear of walls beside, above and below it (its near plane
     // reaches ~0.35 m off the axis: a wall that close would be cut open)
     // (and locked on a guardian, framed: its close-in framing given way, but the lens still kept off the walls, LOCK_FRAME)
-    if ((k > 0.05 || this.fitK > 0.05) && !rolling) {
+    if ((k > 0.05 || this.fitOpenK > 0.05) && !rolling) {
       if (!swept) this.unclip(cam, U);   // (the swept ball left the lens its room already: the rays only shoved it about)
       // and off anything else that close (a bunk's edge just under the lens, a corner): a sphere pushed out
       if (this.physics.pushCapsule) {
@@ -4261,9 +4270,9 @@ export class CameraRig {
     // (crushed in close, his back to a wall, the arm under LOCK_FRAME.near m: the look at him as before, the framing gone:
     // turned to frame them from a hand's breadth it looked at the floor)
     // (by the arm it has or the one the room will leave it, whichever is shorter: the solve sees the wall coming)
-    const nearGoal = smoothstep(LOCK_FRAME.near[0], LOCK_FRAME.near[1], Math.min(this._curDist, this._fitGoal?.arm ?? Infinity));
+    const nearF = this.fitF.near ?? LOCK_FRAME.near, nearGoal = smoothstep(nearF[0], nearF[1], Math.min(this._curDist, this._fitInRoom ? Infinity : this._fitGoal?.arm ?? Infinity));
     this._fitNearK = this._jumped || this._fitNearK == null ? nearGoal : this._fitNearK + (nearGoal - this._fitNearK) * (1 - Math.exp(-LOCK_FRAME.nearRate * dt));
-    const fwl = fw * this._fitNearK;
+    const fwl = this.fitOpenK * (1 - ak) * this._fitNearK, fwr = Math.max(0, this.fitK - this.fitOpenK) * (1 - ak) * smoothstep(ROOM_TILT.near[0], ROOM_TILT.near[1], this._curDist);
     // the view: at the look point (along the arm when it is very short), or the two-shot turned toward the foe; then, framed
     // locked on, turned toward the middle of what it frames by the fit's weight (blended from whichever look it had, so the
     // fit easing in or out never switches the look from one frame to the next: #752, a foe's fit given way in a corner)
@@ -4289,21 +4298,47 @@ export class CameraRig {
       // (locked on: the view turned to the middle of the two of you and the floor between, LOCK_FRAME; from where the
       // camera is now, so a wall that cut the arm still frames what it can, his feet first)
       const F = this.fitF, pts = framePoints(this.target, this._fitBox, this._fitPts ??= [], F);
-      const { dir } = frameAim(cam, pts, _lkC.copy(this._dir).negate(), U, Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2), this.camera.aspect || 16 / 9, _lkB, F.margin, F.low ?? 0);
+      const tanNow = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2), { dir, fill } = frameAim(cam, pts, _lkC.copy(this._dir).negate(), U, tanNow, this.camera.aspect || 16 / 9, _lkB, F.margin, F.low ?? 0);
+      // (how full the frame is from where the camera is now, at the lens it would have unwidened: fitFrame widens it at
+      // once while the arm is still standing back, issue #795)
+      this._fitNowFill = Number.isFinite(fill) ? fill * tanNow / Math.tan(THREE.MathUtils.degToRad(this._fovBase ?? this.camera.fov) / 2) : null;
       // (eased a little: what it frames moves smoothly, but a point coming round past the lens's side must not flick it)
       const fl = (this._fitLook ??= dir.clone());
       if (this._jumped || !(Math.abs(this._fitLookT - (this._now - dt)) < 1e-4)) fl.copy(dir); else fl.lerp(dir, 1 - Math.exp(-LOCK_FRAME.look * dt)).normalize();
       this._fitLookT = this._now;
       view.lerp(fl, fwl).normalize();
     }
+    // (close in, a room, LOCK_FRAME_FOE.room: the camera where the close-in framing put it, the view only tipped up, eased,
+    // as far as brings the foe's top into the frame and keeps his chest in it; the lens widened for what is left)
+    this._roomTilt = (this._roomTilt ?? 0) + ((fwr > 0.002 && this._fitBox ? fwr * this.roomTilt(cam, view, U) : 0) - (this._roomTilt ?? 0)) * (1 - Math.exp(-(this._jumped ? 1e9 : LOCK_FRAME.look) * dt));
+    if (Math.abs(this._roomTilt) > 1e-5) view.applyAxisAngle(_lkC.crossVectors(view, U).normalize(), this._roomTilt);
     this.camera.lookAt(_lkC.copy(cam).add(view));
     (this._camPrev ??= new THREE.Vector3()).copy(cam);
     this._yawPrev = this.yaw;
   }
 
+  /**
+   * How far to tip the view `view` (from the lens at `cam`) up, locked on close in a room (issue #795): so the top of the
+   * foe's box is in the frame, `margin` of its half-height clear, but his chest (1.1 m up) never under its foot; never down.
+   * Writes how full the frame is up and down (`_fitNowFill`, at the unwidened lens), so the lens widens for the rest.
+   */
+  roomTilt(cam, view, U) {
+    const F = this.fitF, B = this._fitBox, tanB = Math.tan(THREE.MathUtils.degToRad(this._fovBase ?? this.camera.fov) / 2);
+    const half = Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * (1 - F.margin));
+    const h = _rtH.copy(view).addScaledVector(U, -view.dot(U));
+    if (h.lengthSq() < 1e-6) return 0;
+    h.normalize();
+    const el = (p) => { _rtP.subVectors(p, cam); return Math.atan2(_rtP.dot(U), Math.max(0.3, _rtP.dot(h))); };
+    let top = -Infinity;
+    for (let k = 0; k < 4; k++) top = Math.max(top, el(_rtQ.set(k & 1 ? B.max.x : B.min.x, B.max.y, k & 2 ? B.max.z : B.min.z)));
+    const chest = el(_rtQ.copy(this.target).addScaledVector(U, 1.1)), ev = Math.asin(THREE.MathUtils.clamp(view.dot(U), -1, 1));
+    this._fitNowFill = Math.tan(Math.max(0, top - chest) / 2) / tanB;
+    return THREE.MathUtils.clamp(Math.min(top - half, chest + half) - ev, 0, 1.2);
+  }
+
   /** The fit's tuning: the box's own (a guardian's LOCK_FRAME, any other foe's LOCK_FRAME_FOE), kept while it eases out. */
   get fitF() {
-    if (this.locked && this.frameWith?.F) this._fitFLast = this.frameWith.F;
+    if (this.locked && this.frameWith?.F) this._fitFLast = this._fitInRoom && this.frameWith.F.room ? this.frameWith.F.room : this.frameWith.F;
     return this._fitFLast ?? LOCK_FRAME;
   }
 
@@ -4355,9 +4390,18 @@ export class CameraRig {
       // (and the arm it would want with nothing behind: the room the lock's turn off the line looks for, lockRoom)
       this._fitNeed = solveFrame(look, back, U, pts, tanV, aspect, Math.max(F.arm[0], this.dist + this._distBoost), null, F).arm;
     }
-    this._fitFov += ((B ? this._fitFovGoal ?? this._fovBase : this._fovBase) - this._fitFov) * (1 - Math.exp(-F.fovRate * dt));
+    // (and while the arm stands back to what the solve asked, the frame overfull from where it is now, a foe's wind-up
+    // rising: the lens widened for it meanwhile, `catch` of its fill, faster, `fovRateUp`; F.catch, issue #795)
+    let fovGoal = B ? this._fitFovGoal ?? this._fovBase : this._fovBase;
+    // (held: what it widened to is let go at the box's own `hold` /s, so the lens doesn't breathe with each step)
+    if (B && F.catch) {
+      const want = this._fitNowFill > F.catch ? Math.min(F.fov, THREE.MathUtils.radToDeg(2 * Math.atan(tanV * this._fitNowFill / F.catch))) : this._fovBase;
+      this._fitCatch = this._fitCatch == null || want > this._fitCatch ? want : this._fitCatch + (want - this._fitCatch) * (1 - Math.exp(-F.hold * dt));
+      fovGoal = Math.max(fovGoal, this._fitCatch);
+    } else this._fitCatch = null;
+    this._fitFov += (fovGoal - this._fitFov) * (1 - Math.exp(-(fovGoal > this._fitFov ? F.fovRateUp ?? F.fovRate : F.fovRate) * dt));
     const g = this._fitGoal ?? { arm: dist, pitch };
-    const w = F.rate, wa = g.arm < this._fitArm ? F.rateIn : F.rate;
+    const w = F.rate, wa = g.arm < this._fitArm ? F.rateIn : F.rateOut ?? F.rate;
     this._fitArmV += (wa * wa * (g.arm - this._fitArm) - 2 * wa * this._fitArmV) * dt; this._fitArm += this._fitArmV * dt;
     this._fitPitchV += (w * w * (g.pitch - this._fitPitch) - 2 * w * this._fitPitchV) * dt; this._fitPitch += this._fitPitchV * dt;
   }

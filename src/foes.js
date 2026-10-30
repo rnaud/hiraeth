@@ -268,7 +268,7 @@ export function lockFollow(view, rig, f, pos, F, dt) {
   if (Math.abs(view.turn) > 0.3) view.side = -Math.sign(view.turn);
   else if (Math.abs(off) > 0.03 && Math.sign(off) !== view.side) view.side = Math.sign(off);
   // (framed in the open, rig.fitK, the swing whole nearer: LOCK_VIEW_OPEN, #752)
-  const fr = f.def?.radius ?? 0.6, fh = (f.chest?.y ?? f.pos.y + 1) - f.pos.y, ok = rig.fitK ?? 0;
+  const fr = f.def?.radius ?? 0.6, fh = (f.chest?.y ?? f.pos.y + 1) - f.pos.y, ok = rig.fitOpenK ?? rig.fitK ?? 0;
   const goal = view.side * THREE.MathUtils.lerp(lockViewAngle(d, rig._curDist, fr, fh), ok > 0 ? lockViewAngle(d, rig._curDist, fr, fh, LOCK_VIEW_OPEN) : 0, ok);
   view.angle += (goal - view.angle) * (1 - Math.exp(-4 * dt));
   line += view.angle;

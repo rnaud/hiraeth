@@ -259,7 +259,53 @@ guardian-lock and snapper-lock green. In node (`scripts/camera-qc/sim-foes.mjs`,
 Left: the ember wisp's and the sky ray's numbers are the scenario's, not the camera's (held at the Arena's middle the
 wisp's body drifts away from its footing; the ray swoops); big bodies 2 m off (the brute, the bell walker, the heron) still
 lose a part of their top while he walks round them in the cut's reach, and the warlord's glaive tip touches the top edge
-there (99 → 78 % 2 m off) while the camera turns.
+there (99 → 78 % 2 m off) while the camera turns. (Fixed by #795, below.)
+
+## Close to a tall foe: its raised weapon kept in the frame (v2.38, issue #795; `LOCK_FRAME_FOE` `wind`, `catch`, `room`; `CameraRig.roomTilt`)
+
+The gap #752 left: 1.5–3 m off a fighting furnace brute, bell walker, stilt heron or warlord, the fit's arm caught up
+only after the wind-up had raised the arms or the glaive (its box measured every 0.25 s, the arm out at 2.2 /s, the
+solve fitted to 12 % of the frame's edge), so the top went off the picture for a second each blow; and in a room the
+fit was off, the close camera level behind him, the foe's head cut whatever the room's height.
+
+- **The box ahead of the swing** (`foeBox`): measured every 0.05 s (`measure`), let go by time at `hold` 0.3 /s (the
+  reach of its last swing kept a few seconds, so the next is already framed), and winding up a blow its top raised at
+  once by `wind` 0.6 of its height at rest (measured outside its wind-up, strike and recovery): the camera starts to stand
+  back as the blow begins, not after it has risen.
+- **The fit with room to spare**: `margin` 0.18 (was 0.12), the arm out at `rateOut` 5 /s (in still at 8, out was 2.2),
+  both on the critically damped spring; while the arm is on its way, the frame overfull from where the camera is now
+  (past `catch` 0.92), the lens widens at once (`fovRateUp` 5 /s, 7° at most, held at `hold` /s so it doesn't breathe).
+- **In a room** (`room`, the close-in framing over the fit's `open`): the close-in camera stays exactly where it was
+  (arm, height, shoulder and walls as before: the open fit's long arm there popped against the antechamber's walls), and
+  only its view is tipped up, eased (`roomTilt`): as far as brings the foe's top into the frame, never so far that his
+  chest leaves its foot, with the arm over 1.4–2.4 m (`ROOM_TILT.near`); the lens widened for what is left. The fit's
+  weights split: `fitOpenK` (the arm, the height, the stand-off swing, the close-in framing giving way) and `fitK` (the
+  lens and the look, a room's too).
+
+Measured in node (`scripts/camera-qc/sim-close.mjs`: the foe awake and fighting, its real update and pose, held to its
+spot; him standing 2 s then circling it 4 s each way at a jog; the real rig; `tests/lock-close.test.js`), before → after:
+
+| open | its bounds off the screen (mean) | frames cut (> 2 %) | its top off |
+|---|---|---|---|
+| brute 1.5 / 2 / 3 m | 5.8 / 3.3 / 2.6 → 0.3 / 0.2 / 0.0 % | 33 / 24 / 26 → 4.6 / 3.9 / 0.4 % | 21 / 9 / 10 → 0 % |
+| bell walker | 3.8 / 1.0 / 0.6 → 0 % | 36 / 11 / 10 → 0 % | 18 / 4 / 2 → 0 % |
+| stilt heron | 9.1 / 0.6 / 0 → 0 % | 58 / 7 / 0 → 0 % | 45 / 3 / 0 → 0 % |
+| warlord | 7.7 / 0.8 / 0.1 → 0 % | 32 / 13 / 3 → 0.4 / 0 / 0 % | 29 / 0.7 / 0 → 0 % |
+| hulk 1.5 m | 4.3 → 1.3 % | 14 → 7 % | 11 → 6 % |
+
+| room (the Undertower's antechamber, 8.5 m high) | its top off: 1.5 / 2 / 3 m |
+|---|---|
+| brute | 100 / 100 / 88 → 47 / 23 / 51 % |
+| bell walker | 100 / 100 / 100 → 32 / 52 / 55 % |
+| stilt heron | 100 / 100 / 100 → 91 / 57 / 68 % |
+| warlord | 79 / 78 / 58 → 22 / 23 / 45 % |
+| hulk | 39 / 36 / 39 → 19 / 2 / 21 % |
+
+The motion: no pops, jumps, look jumps or spins in the open before or after, roughness 0.1–1.2 cm (limit 1.5); in the
+room the camera's path is the same to the digit (only the view turns: its largest change of turning speed in a frame
+within 6°/s of before). The grunt, the crab and the other small foes are unchanged; the guardians keep LOCK_FRAME.
+Left: in a room the box is often bigger than the frame from 1–2 m behind him (a 6.6 m brute's raised arms 1.5 m off), so
+its feet go before its head; the heron is too tall and thin to tip for without losing his chest.
 
 ## Aiming locked on: centred, then nudged (v1.77, issue #362; `src/lock-aim.js`)
 
