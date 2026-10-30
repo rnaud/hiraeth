@@ -14,6 +14,8 @@ float skBayer4(float2 p) { float2 q = skMod(floor(p), 4.0); int i = (int)q.x + (
 
 // ------------------------------------------------------------------ rose-house (src/temples/skins/rose-house.js)
 #define s0_RH_JOINTS float2(0.400, 0.750)
+#define s0_RH_THIN float2(1.500, 3.000)
+#define s0_RH_BEVEL 0.500
 
   float s0_rhH(float2 p) { return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453); }
   float s0_rhSeg(float2 p, float2 a, float2 b) { float2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0); return length(pa - ba * h); }
@@ -42,9 +44,12 @@ float skBayer4(float2 p) { float2 q = skMod(floor(p), 4.0); int i = (int)q.x + (
   // the circuits' lit pixels, breathing a little, each run its own beat: just over the post pass_'s 0.62, a tight halo
   float s0_rhBreathe(float seed) { return 0.74 + 0.06 * sin(_MTime * 1.15 + seed * 2.3); }
   // a circuit's look over albedo: lit ((_SkinData[5].xyz), emit) or dark ((_SkinData[3].xyz), a groove); its lens terminals
+  // (issue #739: a trace or a node fades out once under s0_RH_THIN render px across, its light and its colour: held at a
+  // pixel it came and went as the view moved, and the colour edges drew a broken pen line_ down both its sides)
   void s0_rhCircuit(float3 T, float pxm, float lite, float seed, inout float3 albedo, inout float emit, inout float ink) {
-    float cl = s0_rhCov(T.x, 0.045, pxm), cd = (1.0 - lite) * s0_rhCov(T.y, 0.035, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
-    float lensC = s0_rhCov(T.z, 0.15, pxm), ring = s0_rhCov(abs(T.z - 0.12), 0.03, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
+    float kT = smoothstep(s0_RH_THIN.x, s0_RH_THIN.y, 0.045 / pxm), kD = smoothstep(s0_RH_THIN.x, s0_RH_THIN.y, 0.035 / pxm), kN = smoothstep(s0_RH_THIN.x, s0_RH_THIN.y, 0.075 / pxm);
+    float cl = s0_rhCov(T.x, 0.045, pxm) * kT, cd = (1.0 - lite) * s0_rhCov(T.y, 0.035, pxm) * kD * (1.0 - smoothstep(0.02, 0.05, pxm));
+    float lensC = s0_rhCov(T.z, 0.15, pxm) * kN, ring = s0_rhCov(abs(T.z - 0.12), 0.03, pxm) * kN * (1.0 - smoothstep(0.02, 0.05, pxm));
     albedo = lerp(albedo, (_SkinData[3].xyz), max(cd * 0.85, ring));
     float on = max(cl, lensC) * s0_rhBreathe(seed);
     albedo = lerp(albedo, (_SkinData[5].xyz), max(cl, lensC));
@@ -142,10 +147,12 @@ void s0_slab(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextur
       float2 f = float2(frac(uv.x / W), frac(vq)), dm = min(f, 1.0 - f) * float2(W, H);
       float dj = min(dm.x, dm.y);
       albedo = uColor * (1.0 + (s0_rhH(float2(col, row) + 13.0) - 0.5) * 0.1 + (vnoise(uv * 0.31) - 0.5) * 0.05);
-      // the chamfer round each slab: lit on its upper edge (and its left), shaded under it (and on its right)
+      // the chamfer round each slab: lit on its upper edge (and its left), shaded under it (and on its right); a tone under
+      // the colour edges' threshold (s0_RH_BEVEL of it, issue #739: at its whole tone each joint was drawn three times, its pen
+      // line_ and a colour edge down each side of the chamfer, and those came and went as the view moved)
       float bev = (1.0 - smoothstep((_SkinData[2]).z, (_SkinData[2]).z + pxm, dj)) * near * (1.0 - lite * 0.6);
       float up = dm.y < dm.x ? (f.y > 0.5 ? 1.0 : -1.0) : (f.x < 0.5 ? 0.55 : -0.55);
-      albedo = lerp(albedo, up > 0.0 ? (_SkinData[4].xyz) : uColor * 0.7, bev * abs(up));
+      albedo = lerp(albedo, up > 0.0 ? (_SkinData[4].xyz) : uColor * 0.7, bev * abs(up) * s0_RH_BEVEL);
       // the joint: a pen line_, rose sand caught in some of them
       skInk = s0_rhLine(dj / pxm) * 0.85;
       // the makers' finish (machined.js) on the slab (issue #691)
@@ -230,6 +237,8 @@ void s0_basin(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextu
   albedoOut = albedo; inkOut = skInk; emitOut = skEmit;
 }
 #undef s0_RH_JOINTS
+#undef s0_RH_THIN
+#undef s0_RH_BEVEL
 
 // ------------------------------------------------------------------ wardens-well (src/temples/skins/wardens-well.js)
 #define s1_SK_UNDER float3(0.1046, 0.1301, 0.2346)

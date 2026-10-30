@@ -40,6 +40,9 @@ export const CHANGELOG = [
       // the late worlds harder (#796)
       { text: 'Enemies from the Glass Dunes on are tougher again: each world’s foes now fight as hard as the next world’s used to. In the Glass Dunes they take more cuts to bring down, three of them may strike at once instead of two, their heavy blows take a full heart and some come in their stronger, banded look; in the City Floating in Space they hit as hard as in the Signal Market. The first six worlds are unchanged. Measured over 36 scripted fights with each world’s packs: a player who just keeps slashing now loses about 5¾ hearts a pack in the Glass Dunes (was 3¾) and 4½ in the Floating City (was 3), one who blocks every blow about 3¼ (was 1¾) and 2½ (was 1½); no single blow takes more than a heart and a half.',
         see: 'Land in the Glass Dunes and fight a pack of furnace brutes and glass crabs: they last longer under your combo, three can come at you together, and a heavy blow takes a whole heart. In the City Floating in Space, an ordinary blow takes three quarters of a heart, as in the Signal Market.' },
+      // the Rose House's walls (#739)
+      { text: 'The walls inside the Rose House are calmer, and on a handheld their lines no longer flicker as you walk and look around. Far fewer thin amber circuits run up the walls, and those left show only when you are close enough to see them as clean lines; the glow stays in the floor’s joints. Each stone slab’s bevelled edge is now a soft shade rather than two more pen lines beside its joint, so the big slabs read plainly.',
+        see: 'Go into the Rose House and walk slowly down the Great Hall turning the camera: the side walls and the far wall stay still instead of shimmering, and the circuits light up only on the walls right beside you.' },
     ],
   },
   {

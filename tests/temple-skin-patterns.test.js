@@ -83,6 +83,31 @@ test('the Rose House\'s skinned materials carry their pattern to the bridge: the
   assert.equal(portMaterial(inkSpec(makeMaterial({ color: "#ffffff" }))).skinPattern, undefined);
 });
 
+test('the Rose House\'s walls stay quiet (issue #739): few circuits, none held under a few pixels, in the web and the port', () => {
+  // (a circuit in over half the wall's strips, each trace held at a pixel's width however far: on the Handheld preset
+  // the walls' lines came and went as the view moved, 28 flicker events in 10 000 px a frame down the Great Hall)
+  assert.ok(ROSE_SKIN.wall.more[1] <= 0.2, `the wall's circuit share: ${ROSE_SKIN.wall.more[1]}`);
+  assert.equal(ROSE_SKIN.wall.more[0], 0, 'no panel inset of the skin\'s own on the walls (the machined finish has its border)');
+  assert.ok(ROSE_SKIN.thin[0] >= 1 && ROSE_SKIN.thin[1] > ROSE_SKIN.thin[0], `the fade's widths: ${ROSE_SKIN.thin}`);
+  const S = skinShaders().find((s) => s.id === 'rose-house');
+  const circuit = S.glsl.slice(S.glsl.indexOf('void rhCircuit'), S.glsl.indexOf('}', S.glsl.indexOf('void rhCircuit')));
+  for (const k of ['kT', 'kD', 'kN']) assert.ok(circuit.includes(`${k} = smoothstep(RH_THIN.x, RH_THIN.y, `), `its fade ${k}`);
+  assert.match(circuit, /rhCov\(T\.x, [0-9.]+, pxm\) \* kT/, 'the lit trace fades');
+  assert.match(circuit, /rhCov\(T\.z, [0-9.]+, pxm\) \* kN/, 'the node fades');
+  assert.match(circuit, /\* kN \* \(1\.0 - smoothstep/, 'the node\'s ring with it');
+  assert.ok(S.defines.includes(`#define RH_THIN vec2(${ROSE_SKIN.thin.map((v) => v.toFixed(3)).join(', ')})`), 'the define');
+  // (the slabs' chamfer a soft tone, under the colour edges' threshold: at its whole tone each joint was drawn three times)
+  assert.ok(ROSE_SKIN.bevel > 0 && ROSE_SKIN.bevel <= 0.5, `the chamfer's tone: ${ROSE_SKIN.bevel}`);
+  assert.ok(S.defines.includes(`#define RH_BEVEL ${ROSE_SKIN.bevel.toFixed(3)}`) && S.bodies.slab.includes('bev * abs(up) * RH_BEVEL'), 'the chamfer by RH_BEVEL');
+  // the port's HLSL is made from the same (scripts/unity-export/skin-hlsl.mjs): it has the fade too
+  const hlsl = readFileSync(SKIN_HLSL_PATH, 'utf8');
+  assert.ok(hlsl.includes(`#define s0_RH_THIN float2(${ROSE_SKIN.thin.map((v) => v.toFixed(3)).join(', ')})`), 'SkinPatterns.hlsl is regenerated');
+  assert.match(hlsl, /s0_rhCov\(T\.x, [0-9.]+, pxm\) \* kT/);
+  // and the house's walls carry the share to the bridge
+  const wall = roseRt().skin.mats.wall;
+  assert.ok(Math.abs(wall.uniforms.uSkQ.value.y - ROSE_SKIN.wall.more[1]) < 1e-6);
+});
+
 test('the Warden\'s Well\'s pattern carries its rooms (the drums the slabs run round) and its pieces\' own frame', () => {
   const rt = wellRt();
   const S = skinShaders().find((s) => s.id === 'wardens-well');

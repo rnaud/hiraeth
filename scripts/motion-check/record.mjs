@@ -7,10 +7,12 @@
 //   [--toggles detail,wear,...]    the slow paths again with a feature off (TOG below): its share of the flicker
 //   [--save 1]                     the frames as WebM clips (half size, and a 1:1 crop of the hottest part: --crop x,y,w,h)
 //   [--frames N] [--tag t] [--hour 10] [--js file] (run in the page after setup) [--keepframes 3,4] [--heatcrop x,y,w,h]
+//   [--view ex,ey,ez,tx,ty,tz]     the still, pan and drift from this eye toward this point (a room's wall), not a wall found
 //   [--zoomfrom 30 --zoomto 2]     the zoom path's distances
 //   [--live]                       the flocks, creatures and foes left to move round the traveller (held by default: freeze.mjs)
 //   [--far 60]                     also the flicker of what is over 60 m off alone (farFlicker: per 10 000 of those pixels;
 //                                  the mask read once a path from debug view 4, the depth)
+//   [--android]                    on the handheld in the device's Chrome (its tab open on this build: handheld-perf/lib.mjs)
 //   [--gecko <dist dir>]           on the handheld over adb instead: the GeckoView test app at the device's own screen
 //                                  (--res ignored), that build served from this Mac (scripts/bench/gecko-load.mjs)
 // Measures (per frame, per 10 000 px): flicker, a pixel that went one way by over 20 levels and came straight back
@@ -27,7 +29,7 @@ import { importPlaywright, CHROME } from '../bench/browser.mjs';
 import { freezeLife } from './freeze.mjs';
 
 const A = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, all) => (x.startsWith('--') ? [...a, [x.slice(2), all[i + 1] && !all[i + 1].startsWith('--') ? all[i + 1] : '1']] : a), []));
-const { chromium } = A.gecko ? {} : await importPlaywright();   // (not needed on the handheld: --gecko)
+const { chromium } = A.gecko || A.android ? {} : await importPlaywright();   // (not needed on the handheld: --gecko, --android)
 const FFMPEG = process.env.FFMPEG ?? `${homedir()}/Library/Caches/ms-playwright/ffmpeg-1011/ffmpeg-mac`;
 const port = +(A.port ?? 6121), level = A.level ?? 'bazaar', build = A.build ?? 'main', preset = A.preset ?? 'high';
 const out = A.out ?? `${tmpdir()}/hiraeth-motion`;
@@ -103,6 +105,23 @@ if (GECKO) {
   };
   browser = { close: async () => gserver.close() };
   for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => { gserver.close(); process.exit(130); });
+} else if (A.android) {
+  // --android: on the handheld in the device's Chrome instead, its tab already open on this build (served from this Mac
+  // through adb reverse on PERF_PORT, DevTools through adb forward: scripts/handheld-perf/lib.mjs ourPage); only that
+  // tab is driven, its own storage (localhost:<port>), nothing of the player's app
+  const { ourPage } = await import('../handheld-perf/lib.mjs');
+  const P = await ourPage();
+  P.log = (type, text) => { if (type === 'exception' || (type === 'error' && /Shader|WebGLProgram|GL_INVALID|THREE/.test(text))) console.log(type, String(text).slice(0, 300)); };
+  page = {
+    evaluate: (fn, arg) => P.eval(fn, arg),
+    goto: (url) => P.goto(url),
+    waitForFunction: (fn, _a, { timeout = 300000, polling = 200 } = {}) => P.waitFor(`!!(${fn})()`, timeout, polling),
+    waitForTimeout: (ms) => new Promise((r) => setTimeout(r, ms)),
+    addInitScript: (src) => P.send('Page.addScriptToEvaluateOnNewDocument', { source: src }),
+    on: () => {},
+  };
+  // (the game stopped when done: the tab left on a blank page)
+  browser = { close: async () => { try { await P.send('Page.navigate', { url: 'about:blank' }); } catch { /* gone */ } P.close(); } };
 } else {
   browser = await chromium.launch({ executablePath: CHROME, headless: true,
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio', '--no-first-run', '--autoplay-policy=no-user-gesture-required',
@@ -122,7 +141,7 @@ await page.evaluate(([q, fps]) => {
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
   localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: fps, hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1, volume: 0 }));
   return true;
-}, [preset, !!GECKO]);   // (on the handheld the frame readout on: it is the page's, never in the frames read back)
+}, [preset, !!(GECKO || A.android)]);   // (on the handheld the frame readout on: it is the page's, never in the frames read back)
 const t0 = Date.now();
 await page.goto(base + `?level=${level}` + (A.q ? '&' + A.q : ''), { waitUntil: 'load' });
 await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 200 });
@@ -172,7 +191,7 @@ const setup = await page.evaluate(({ hour, noPlace, live }) => {
   return { eye: camera.position.toArray(), dir: d.toArray(), fov: camera.fov, player: window.player.pos.toArray(), fb: [c.width, c.height], scale: window.quality.renderScale, sky: window.sky.hour, frozen: window.__frozenLife };
 }, { hour: A.hour !== undefined ? +A.hour : null, noPlace: !!A.noplace, live: !!A.live });
 console.log('setup', JSON.stringify(setup));
-if (GECKO) {   // (the handheld's speaker: silent, checked; its frame readout left showing)
+if (GECKO || A.android) {   // (the handheld's speaker: silent, checked; its frame readout left showing)
   const s = await page.evaluate(() => { document.getElementById('fps')?.style.setProperty('visibility', 'visible', 'important'); return [window.sound?.musicVol, window.sound?.fxVol, window.sound?.voiceVol]; });
   if (s.some((v) => v > 0)) { await browser.close(); throw new Error(`the game's sound is not at 0 (${s})`); }
 }
@@ -244,7 +263,10 @@ const targets = await page.evaluate(() => {
 });
 const score = (w) => Math.abs(w.dist - 40) / 40 - Math.min(w.clear, A.zoomfrom ? 192 : 32) / 16 - w.flat * 0.5 - (w.from[0] === setup.player[0] && w.from[2] === setup.player[2] ? 0.5 : 0);
 const wallsBy = (k) => targets.walls.filter((w) => w.kind === k).sort((a, b) => score(a) - score(b));
-const wall = wallsBy('wall')[0] ?? null, formT = wallsBy('form').find((w) => w.form) ?? wallsBy('form')[0] ?? null;
+// --view ex,ey,ez,tx,ty,tz: the pan, the drift and the still from this eye toward this point instead of the wall the rays
+// found (a room's wall, a temple's: issue #739); no walk, zoom or orbit then
+const VIEW = A.view ? String(A.view).split(',').map(Number) : null;
+const wall = VIEW ? null : wallsBy('wall')[0] ?? null, formT = VIEW ? null : wallsBy('form').find((w) => w.form) ?? wallsBy('form')[0] ?? null;
 console.log(`targets: ${targets.built} built meshes, ${targets.formed} formed; wall ${wall ? wall.dist.toFixed(0) + ' m clear ' + wall.clear + ' flat ' + wall.flat + ' ' + wall.name : 'none'}; form ${formT ? formT.dist.toFixed(0) + ' m ' + (formT.form ? 'axis' : 'no axis') : 'none'}`);
 
 // the paths: (i, n) -> { eye, target, fov }
@@ -253,9 +275,10 @@ const add = (a, b, k = 1) => a.map((x, i) => x + b[i] * k);
 const norm = (a) => { const l = Math.hypot(...a) || 1; return a.map((x) => x / l); };
 const fov = setup.fov;
 const radPerPx = (2 * Math.tan((fov * Math.PI) / 360)) / setup.fb[1];
+if (VIEW) setup.eye = VIEW.slice(0, 3), setup.dir = norm(VIEW.slice(3).map((x, i) => x - VIEW[i]));
 const eye0 = V(setup.eye), dir0 = norm([setup.dir[0], 0, setup.dir[2]]);
 const yawDir = (d, a) => [d[0] * Math.cos(a) + d[2] * Math.sin(a), d[1], -d[0] * Math.sin(a) + d[2] * Math.cos(a)];
-const W0 = wall ? { eye: wall.from, look: wall.p } : { eye: eye0, look: add(eye0, setup.dir, 10) };
+const W0 = VIEW ? { eye: VIEW.slice(0, 3), look: VIEW.slice(3) } : wall ? { eye: wall.from, look: wall.p } : { eye: eye0, look: add(eye0, setup.dir, 10) };
 const dirW = norm([W0.look[0] - W0.eye[0], 0, W0.look[2] - W0.eye[2]]);
 const pitchW = (W0.look[1] - W0.eye[1]) / Math.max(1, Math.hypot(W0.look[0] - W0.eye[0], W0.look[2] - W0.eye[2]));
 const zoomD = wall ? [Math.min(+(A.zoomfrom ?? 30), Math.max(8, wall.clear)), +(A.zoomto ?? 2)] : null;

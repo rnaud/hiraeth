@@ -28,6 +28,8 @@ import { MK_GLSL } from './machined.js';
 //      mouth low on the groove, its circuit lit when the bowl is (rt.skin.lit).
 // On Low, Handheld and the Steam Deck (uWearLite) the shader leaves out the dark circuits, the insets and the chamfers'
 // shading, and the floating plates are hidden.
+// Since issue #739 the walls are quieter (docs/systems/temples.md "Quiet walls"): a circuit in few of their strips, none
+// drawn under a few pixels across, and the chamfers a soft tone under the colour edges' threshold.
 // ---------------------------------------------------------------------------
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -41,8 +43,15 @@ export const ROSE_SKIN = {
   ember: '#ffb04a',
   /** the floor's lit joints: the share of joint lines lit, the share of a lit line's plates it runs along */
   joints: [0.4, 0.75],
-  wall: { color: '#a85a56', seam: '#5c2f30', bevel: '#c98078', sand: '#d8a08a', size: [4.2, 6.0, 4.4, 0.8], more: [0.32, 0.55, 0.07, 0.4] },
-  machine: { color: '#9a5050', seam: '#522a2c', bevel: '#bd726a', sand: '#d8a08a', size: [1.7, 2.3, 2.0, 0.8], more: [0.45, 0.8, 0.05, 0.2] },
+  /** a circuit's lit trace (and a node's radius) fades out between these widths on screen (render px; issue #739) */
+  thin: [1.5, 3.0],
+  /** how much of its tone a wall slab's chamfer keeps (issue #739: 1 before) */
+  bevel: 0.5,
+  // (issue #739, the walls calmer, nearer the pick's plain slabs, its light in the floor's joints: a circuit in one strip
+  // in seven of the wall's (was 0.55), half of the makers' faces' (0.8), and no panel inset of the skin's own (0.32; 0.45
+  // on the makers' faces): the machined finish draws a border on half of the slabs already)
+  wall: { color: '#a85a56', seam: '#5c2f30', bevel: '#c98078', sand: '#d8a08a', size: [4.2, 6.0, 4.4, 0.8], more: [0, 0.15, 0.07, 0.4] },
+  machine: { color: '#9a5050', seam: '#522a2c', bevel: '#bd726a', sand: '#d8a08a', size: [1.7, 2.3, 2.0, 0.8], more: [0, 0.5, 0.05, 0.2] },
   floor: { color: '#cf8676', seam: '#7e4642', bevel: '#e3a594', sand: '#dcab92', size: [4.2, 0, 3.8, 0.6], more: [0, 0.3, 0.04, 0.5] },
   basin: { color: '#a8665e', seam: '#5c3432', tide: '#ecd2c0', step: 0.62 },
   trim: '#86484a', stone: '#94504e', fitting: '#6c3a3c', groove: '#3e2426', dressing: '#8c4c4c',
@@ -95,9 +104,12 @@ const RH_GLSL = /* glsl */ `
   // the circuits' lit pixels, breathing a little, each run its own beat: just over the post pass's 0.62, a tight halo
   float rhBreathe(float seed) { return 0.74 + 0.06 * sin(uTime * 1.15 + seed * 2.3); }
   // a circuit's look over albedo: lit (uSkE, emit) or dark (uSkA, a groove); its lens terminals
+  // (issue #739: a trace or a node fades out once under RH_THIN render px across, its light and its colour: held at a
+  // pixel it came and went as the view moved, and the colour edges drew a broken pen line down both its sides)
   void rhCircuit(vec3 T, float pxm, float lite, float seed, inout vec3 albedo, inout float emit, inout float ink) {
-    float cl = rhCov(T.x, 0.045, pxm), cd = (1.0 - lite) * rhCov(T.y, 0.035, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
-    float lensC = rhCov(T.z, 0.15, pxm), ring = rhCov(abs(T.z - 0.12), 0.03, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
+    float kT = smoothstep(RH_THIN.x, RH_THIN.y, 0.045 / pxm), kD = smoothstep(RH_THIN.x, RH_THIN.y, 0.035 / pxm), kN = smoothstep(RH_THIN.x, RH_THIN.y, 0.075 / pxm);
+    float cl = rhCov(T.x, 0.045, pxm) * kT, cd = (1.0 - lite) * rhCov(T.y, 0.035, pxm) * kD * (1.0 - smoothstep(0.02, 0.05, pxm));
+    float lensC = rhCov(T.z, 0.15, pxm) * kN, ring = rhCov(abs(T.z - 0.12), 0.03, pxm) * kN * (1.0 - smoothstep(0.02, 0.05, pxm));
     albedo = mix(albedo, uSkA, max(cd * 0.85, ring));
     float on = max(cl, lensC) * rhBreathe(seed);
     albedo = mix(albedo, uSkE, max(cl, lensC));
@@ -125,10 +137,12 @@ const BODIES = {
       vec2 f = vec2(fract(uv.x / W), fract(vq)), dm = min(f, 1.0 - f) * vec2(W, H);
       float dj = min(dm.x, dm.y);
       albedo = uColor * (1.0 + (rhH(vec2(col, row) + 13.0) - 0.5) * 0.1 + (vnoise(uv * 0.31) - 0.5) * 0.05);
-      // the chamfer round each slab: lit on its upper edge (and its left), shaded under it (and on its right)
+      // the chamfer round each slab: lit on its upper edge (and its left), shaded under it (and on its right); a tone under
+      // the colour edges' threshold (RH_BEVEL of it, issue #739: at its whole tone each joint was drawn three times, its pen
+      // line and a colour edge down each side of the chamfer, and those came and went as the view moved)
       float bev = (1.0 - smoothstep(uSkQ.z, uSkQ.z + pxm, dj)) * near * (1.0 - lite * 0.6);
       float up = dm.y < dm.x ? (f.y > 0.5 ? 1.0 : -1.0) : (f.x < 0.5 ? 0.55 : -0.55);
-      albedo = mix(albedo, up > 0.0 ? uSkB : uColor * 0.7, bev * abs(up));
+      albedo = mix(albedo, up > 0.0 ? uSkB : uColor * 0.7, bev * abs(up) * RH_BEVEL);
       // the joint: a pen line, rose sand caught in some of them
       skInk = rhLine(dj / pxm) * 0.85;
       // the makers' finish (machined.js) on the slab (issue #691)
@@ -207,7 +221,7 @@ const BODIES = {
 };
 
 /** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
-const SHADER = skinShader('rose-house', { pars: RH_PARS, defines: `#define RH_JOINTS vec2(${ROSE_SKIN.joints[0].toFixed(3)}, ${ROSE_SKIN.joints[1].toFixed(3)})\n`, glsl: RH_GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+const SHADER = skinShader('rose-house', { pars: RH_PARS, defines: `#define RH_JOINTS vec2(${ROSE_SKIN.joints[0].toFixed(3)}, ${ROSE_SKIN.joints[1].toFixed(3)})\n#define RH_THIN vec2(${ROSE_SKIN.thin[0].toFixed(3)}, ${ROSE_SKIN.thin[1].toFixed(3)})\n#define RH_BEVEL ${ROSE_SKIN.bevel.toFixed(3)}\n`, glsl: RH_GLSL + MK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and emit the body's. */
 function skinMaterial(body, look, o, U, key, object = false) {

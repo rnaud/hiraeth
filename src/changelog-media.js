@@ -1466,6 +1466,9 @@ const FROM781 = 'Hand-made (no `view`): muted headless Chrome (--mute-audio, hir
 /** (v2.38, issue #794: ragdolls on the ground and at walls) */
 const FROM794 = 'Hand-made strips of the web game (no `view`): a scratch script (on scripts/changelog-shots.mjs serve/chrome) drove muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set in storage before load; the page reported its master gain at 0) against its own Vite (port 5470 for the after, 5472 for the before), the Arena at 10:00, clear, High; one grunt set down and held still, then struck down with Foes.hurt (blade, damage 99, the combo’s third, heavy) along +x; the game’s own captureView from a pinned eye before the blow and at real times after it (labelled; approximate: the hit-stop and the last foe’s slow motion stretch them). Before: a2982da49 (git archive of the branch’s base), after: this change on it; 30 October 2026; cwebp -q 72. Each ragdoll falls its own way, so the two falls differ';
 const NODE794 = 'Issue #794: a scratch measure of Foes.update at 60 frames a second in node on a level of real colliders (src/physics.js: a ground mesh, a 0.3 m wall), the game’s own models; before at a2982da49, after this change on it; 30 October 2026';
+const FROM739_MAC = 'Hand-made (no `view`): a script of mine drove muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load) on the Mac’s GPU, 30 October 2026, against builds of 7656e9b09 (before) and this change (after), each served by scripts/motion-check/serve.mjs on port 5431; ?level=desert, the traveller put at the Rose House’s arrival, 10:00, clear, the camera pinned at the same eye and target in both, the HUD hidden. Handheld: 1280 × 720 at render scale 0.75 (960 × 540), dynamic resolution off; Medium: 1920 × 1080 at scale 1, shown at 1280. WebP by cwebp -q 72';
+const FROM739_ODIN = 'Hand-made (no `view`): the AYN Odin 3 (Adreno 830, 1920 × 1080) over adb, its own Chrome 156 in a tab of ours on localhost:5431 (adb reverse; the player’s app untouched), the game’s sound muted before load and checked at its start, the frame readout on; Handheld at a fixed render scale 0.75, dynamic resolution off, 30 October 2026; builds of 7656e9b09 (before) and this change (after), the same pinned camera in the Great Hall. Page screenshots by DevTools (Chrome’s own strip under the page cut off), WebP by cwebp -q 72';
+const FROM739_FRAMES = 'Hand-made (no `view`): the Odin 3’s own frames of scripts/motion-check/record.mjs --android (its Chrome, muted, Handheld at 0.75, the world held and the camera turned a third of a pixel a frame), frames 30 and 31 of the 60, a 1:1 crop of the canvas (832 × 388 device px) at the wall 17 m off; 7656e9b09 (before) and this change (after), 30 October 2026. WebP by cwebp -q 74';
 
 export const CHANGELOG_MEDIA = {
   '2.38': [
@@ -1551,6 +1554,37 @@ export const CHANGELOG_MEDIA = {
       { where: 'the four ragdolls, the wall 0.6 m off', before: '1.44–1.51', after: '1.54–1.60' },
     ], note: 'About 0.03 ms more a ragdoll a frame while it moves: one query of the level’s BVH for the walls round it and its limbs measured against the ground in the pass that kept it on the ground before; none once it lies still' },
   ], see: 'In the Arena, knock a grunt down next to the wall with the third cut of a combo: it hits the wall and slides down it to lie at its foot. Strike one down on the open sand and crouch the camera low beside it: its arms, legs and head lie on the ground.' },
+  // (issue #739: the Rose House's walls in motion on the Odin 3 and the Mac, the motion check's flicker in three views)
+  { match: 'The walls inside the Rose House are calmer', tags: ['devices'], shots: [
+    { name: 'rose739-odin', title: 'Odin 3', caption: 'On the Odin 3 in its Chrome (Handheld, frame readout on), the Great Hall’s west end from 21 m: before, thin amber circuits in most of the slabs’ columns, each with a broken pen line down both sides, and every joint drawn three times; after, the plain slabs with one line to a joint, the floor’s amber joints and the frieze’s lamps as they were, still 60 frames a second', from: FROM739_ODIN },
+    { name: 'rose739-frames', title: 'Two frames', caption: 'Two frames in a row on the Odin 3 as the camera turns a third of a pixel: before, the circuits’ edge lines and the doubled joints come and go between the two (the flicker); after, the two are the same', from: FROM739_FRAMES },
+    { name: 'rose739-handheld', title: 'Handheld (Mac)', caption: 'The same wall on the Mac’s Handheld preset (960 × 540): before, the busy circuits and their dashed outlines; after, the slabs, their joints, the obelisk, the door and the lamps', from: FROM739_MAC },
+    { name: 'rose739-medium', title: 'Medium (Mac)', caption: 'Down the length of the Great Hall on Medium at 1920 × 1080: before, circuits up every side wall, the ceiling and the far wall; after, the walls plain slabs as in the house’s drawing, the light in the floor’s joints and the lamps', from: FROM739_MAC },
+  ], numbers: [
+    { title: 'Flicker as the camera turns slowly in the Great Hall (pixels that flick and come straight back, per 10 000 a frame)', unit: '', better: 'lower', device: 'AYN Odin 3, Chrome 156, Handheld at 0.75 (1664 × 776 canvas)', source: 'Issue #739: scripts/motion-check/record.mjs --android, pan path (60 frames, a third of a pixel a frame, the world held), 30 October 2026; before 7656e9b09', rows: [
+      { where: 'down the hall’s length', before: 47.6, after: 4.8 },
+      { where: 'a wall 17 m off', before: 40.1, after: 4.5 },
+      { where: 'beside a wall', before: 17.8, after: 1.5 },
+    ] },
+    { title: 'Flicker as the camera drifts sideways (per 10 000 px a frame)', unit: '', better: 'lower', device: 'AYN Odin 3, Chrome 156, Handheld at 0.75', source: 'Issue #739: record.mjs --android, drift path; before 7656e9b09', rows: [
+      { where: 'down the hall’s length', before: 11.9, after: 1.5 },
+      { where: 'a wall 17 m off', before: 22.4, after: 2.7 },
+      { where: 'beside a wall', before: 16.2, after: 5.0 },
+    ] },
+    { title: 'The GPU’s busy share holding 60 frames a second in the hall (%, kgsl)', unit: '%', better: 'lower', device: 'AYN Odin 3, Chrome 156, Handheld at a fixed 0.75', source: 'Issue #739: each view held 8 s, the readout at 60 fps and 16.6 ms in both, the median of the GPU’s busy share sampled once a second; before 7656e9b09', rows: [
+      { where: 'down the hall’s length', before: 30, after: 26 },
+      { where: 'a wall 17 m off', before: 27, after: 23 },
+      { where: 'beside a wall', before: 28, after: 25 },
+    ] },
+    { title: 'Flicker as the camera turns, on the Mac (per 10 000 px a frame)', unit: '', better: 'lower', device: 'MacBook Pro M4 Pro, muted headless Chrome: Handheld 1280 × 720 at 0.75 / Medium 1920 × 1080', source: 'Issue #739: record.mjs pan path; before 7656e9b09', rows: [
+      { where: 'Handheld, down the hall', before: 28.5, after: 4.5 },
+      { where: 'Handheld, a wall 17 m off', before: 24.9, after: 3.3 },
+      { where: 'Handheld, beside a wall', before: 22.4, after: 1.8 },
+      { where: 'Medium, down the hall', before: 23.1, after: 4.1 },
+      { where: 'Medium, a wall 17 m off', before: 46.1, after: 3.9 },
+      { where: 'Medium, beside a wall', before: 20.4, after: 7.2 },
+    ] },
+  ] },
   ],
   '2.37': [
   // (issue #783: the Rose House where two of its glyph stones stood, at the change's commit and its parent, the camera pinned)

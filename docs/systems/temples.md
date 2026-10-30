@@ -3136,7 +3136,7 @@ a Givers' test chamber of dark slate and ember light, over the same rooms. Its s
   gallery's face, the pier, the obelisk, the braziers) a finer machined slab. Warm sandstone floor plates, split in halves and
   quarters, rose sand drifted over them. The cistern's basin in stepped rings round its middle, a pale tide line under
   its rim. Along each face's own direction, so the round rooms' stones pattern as the straight walls do.
-- **Circuits**: thin lines (4.5 cm, never under a pixel) in long straight runs up the slabs and through the floor plates,
+- **Circuits**: thin lines (4.5 cm, gone under a few pixels since #739: "Quiet walls" below) in long straight runs up the slabs and through the floor plates,
   two strips to a slab column, each run on one of three lanes across its strip (so a third of the joints go straight on
   and the rest turn at right angles); most lit ember orange in runs of three segments, the rest dark grooves, a small lit
   node where a lit run turns or ends. Lit pixels set the surface's `emit` at 0.68 to 0.8, breathing slowly: just over the
@@ -3156,6 +3156,18 @@ a Givers' test chamber of dark slate and ember light, over the same rooms. Its s
   the groove, a square cup, a cowl, the obelisk behind with the sign), its circuit lit with the bowl (`rt.skin.lit`).
 - **Lighter presets** (Low, Handheld, the Deck: `uWearLite`): no dark circuits or panel insets, softer chamfers, and the
   floating plates hidden.
+- **Quiet walls** (issue #739; the author on the Retroid and the Odin 3: the wall lines "flicker too much", the walls
+  "feel very busy"). The motion check (`scripts/motion-check/record.mjs --view … --js …`, a slow pan and drift down the
+  Great Hall) put the flicker in the colour edges post.js drew round the circuits (84 % of it on Handheld: a 4.5 cm trace
+  held at a pixel's width however far, its two edges inked on and off as the view moved) and, on Medium, round the
+  slabs' chamfers (each joint its pen line and a colour edge down each side). Now a trace, a dark groove and a node fade
+  out under `ROSE_SKIN.thin` (1.5-3 render px across, their light, colour and ring), a circuit runs in one strip in seven
+  of the wall's (`wall.more[1]` 0.15; half of the makers' faces'), the skin's own panel inset is gone (the machined
+  finish borders half the slabs), and the chamfer keeps half its tone (`ROSE_SKIN.bevel`, under the colour edges'
+  threshold). The walls are the pick's plain slabs; the ember stays in the floor's joints and the frieze. Flicker events
+  per 10 000 px a frame, pan: on the Mac's Handheld 28.5 → 4.5 (the hall's length), 24.9 → 3.3 (a wall 17 m off), 22.4
+  → 1.8 (beside a wall); on Medium 23.1 → 4.1, 46.1 → 3.9, 20.4 → 7.2. The Odin 3's numbers are in the changelog's line
+  (v2.38). `tests/temple-skin-patterns.test.js` keeps the fade and the shares, in the web and in SkinPatterns.hlsl.
 
 `tests/temple-skins.test.js` checks it wears the skin, and that its collision and climbs are vertex for vertex those of
 the house without it (`rt.noSkin`), every piece where it was, and the dressing out of every doorway.
