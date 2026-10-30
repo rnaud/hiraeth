@@ -4,7 +4,7 @@ Phase 1 of [issue #800](https://github.com/rnaud/hiraeth/issues/800), made 30 Oc
 `f50d71928` (after #741, #794, #797 landed). It changes no game code and rebuilds no enemy. It records:
 
 1. what each of the 29 archetype IDs in rebuild scope is today, and what any rebuild must keep;
-2. the state of the selected Midjourney source images (none could be downloaded: what the author must do);
+2. the selected Midjourney source images (all 45 originals now archived; see section 2);
 3. baseline pictures, motion strips and costs of the four trial foes (crab, hound, brute, mummer);
 4. the phase 2 brief: eight prototypes (direct and Tripo for each of the four), the harness, the measures, the inputs
    the author must pick, and the cost.
@@ -132,19 +132,17 @@ renames `plan` silently changes its footsteps. Every voice has its trims (FOE_TR
 
 ## 2. The selected source images
 
-**None obtained.** The manifest's links for the 45 selected images (41 concepts) point at Midjourney; on
-30 October every form of the CDN address tried for the approved shellback (`0_2_640_N.webp?method=shortest`,
-`0_2.png`, `0_2.webp`, `0_2_2048_N.webp`, `grid_0.png` under `cdn.midjourney.com/e8102be7-…/`) returned HTTP 403
-with Cloudflare's "Just a moment…" challenge page, even with an ordinary desktop browser's headers and referer.
-Passing that challenge needs a browser session; a headless-browser attempt was not run (refused as bot-check
-circumvention), and no login, cookie or the author's own browser was used. Nothing was substituted: the only image
-in this folder is still the 640 px shellback preview from the handoff session (`shellback.webp`).
+**Resolved after the baseline audit:** all 45 selected originals are now saved unchanged in
+`references/enemy-redesign-2026-10-30/<concept-key>/<job>-<index>.png`, downloaded using
+Midjourney’s Download image action in the signed-in internal browser on 2026-10-30.
+All are 1232 × 928 PNGs. The folder’s `originals.json` records provenance, sizes and
+SHA-256 checksums, and each concept folder has a README. No author download is needed.
+The original audit’s direct CDN requests returned HTTP 403; the browser download
+resolved that blocker without changing the selections or substituting previews.
+The existing `shellback.webp` remains a historical 640px preview only.
 
-**What the author must do.** In Midjourney, signed in, open each job, pick the image by its zero-based index
-(index 0 is the grid's first image, "option 1"), use *Download* for the original, and save it untouched as
-`<job>-<index>.png` in a new folder named after the concept key (shellback, hound, keep-brute, …) inside
-`references/enemy-redesign-2026-10-30/`, with one line in that folder's README
-(job, index, date). The four trial foes first; their phase 2 cannot start without them.
+The table below uses zero-based indices (index 0 is “option 1”). All four trial images
+and the remaining roster inputs are available locally. Other phase 2 gates remain below.
 
 | Priority | Concept key | Existing ID | Job | Index |
 |---|---|---|---|---|
@@ -272,8 +270,8 @@ these runs. Raw runs: `references/enemy-redesign-2026-10-30/baseline/bench.jsonl
 
 ### Inputs (gates)
 
-1. **The four originals at full resolution** (section 2): the author downloads them. Without them nobody can judge
-   fidelity or feed Tripo the approved image.
+1. **The four originals at full resolution — satisfied** (section 2): archived in `shellback/`,
+   `hound/`, `keep-brute/` and `keep-mummer/` under the reference folder. Use those unchanged PNGs.
 2. **The mummer's T-pose** (the character skill's hard gate for a Tripo humanoid): Midjourney in the visible internal
    browser, from `keep-mummer` job `ad94a6b0-…` index 1 as the image prompt, one frontal full-body T-pose: arms
    straight out, open empty hands with separated fingers, legs apart, no club, flat even light, plain background.
@@ -358,8 +356,7 @@ seen the side-by-side.
 
 ## 5. Decisions for the author
 
-1. Download the 45 selected originals (the four trial ones first) into the folders above; nothing could be
-   fetched without a signed-in browser.
+1. **Completed:** all 45 selected originals are archived in the folders above; no download action remains.
 2. Generate and pick the mummer's T-pose (and say whether non-humanoid rest views are wanted).
 3. Which Tripo route and what credit ceiling (estimate: 320–600 credits for the four).
 4. The wood cutter's size: today's brute is 4.7 m tall; the new reference reads as a compact robot. Confirm a target

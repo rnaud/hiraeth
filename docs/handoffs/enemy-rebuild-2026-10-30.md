@@ -43,13 +43,14 @@ enemy catalogue; do not silently expand the scope to them.
   `/tools/enemy-review.html`. Never use/stop port 5173. The earlier session used 5446;
   that server is not a durable dependency. Views cover references, current models,
   new concepts and kept-enemy explorations. Models and reference images are separate.
-- Art is currently linked from Midjourney, **not vendored as full-resolution source
-  assets**. Only the approved shellback review preview is archived in
-  `references/enemy-redesign-2026-10-30/`; see its README. Direct CDN archiving returned HTTP 403 during handoff preparation.
-  Download the selected original through the visible internal Midjourney browser
-  before modeling; preserve its job/index and untouched source. The 640px review
-  URL is a preview, not proof of full-resolution modeling input. The source links
-  remain usable if CDN thumbnails fail. Do not substitute an unselected variant.
+- **All 45 full-resolution originals are now archived** under
+  `references/enemy-redesign-2026-10-30/<concept-key>/<job>-<index>.png`.
+  Downloaded unchanged through the signed-in internal Midjourney browser on 2026-10-30;
+  every file is a 1232 × 928 PNG. `originals.json` in that folder records source URLs,
+  dimensions, byte counts and SHA-256 checksums; each concept folder has a README.
+  The review page uses these local originals. The earlier HTTP 403 download blocker
+  is resolved; no author download is needed. `shellback.webp` is only the older preview.
+  Multiple selected alternatives remain separate; do not substitute an unselected variant.
 - Reference generation stays in visible internal Midjourney. New corrective views
   or T-poses still need the author's selection before saving/integration. Existing
   selected art and the rebuild itself are authorized by the current request.

@@ -1,19 +1,19 @@
-# Approved enemy reference preview
+# Approved enemy reference originals
 
-`shellback.webp` is the unchanged 640px preview of the approved shellback,
-Midjourney job `e8102be7-014a-4a03-8150-394a7f722fec`, zero-based image index `2`.
-Source: https://www.midjourney.com/jobs/e8102be7-014a-4a03-8150-394a7f722fec?index=2
-Downloaded through the internal browser on 2026-10-30. This is reference art,
-not an implemented model or full-resolution modeling source.
+All **45 selected originals across 41 concepts** are archived here, downloaded unchanged
+through Midjourney’s **Download image** action in the signed-in internal browser on
+2026-10-30. Each is a **1232 × 928 PNG**. No conversion, resizing or regeneration was used.
 
-Only this preview is archived here. The complete set of 45 selected source URLs
-is recorded in `tools/enemy-review-references.js` and the enemy rebuild handoff.
-Direct bulk CDN downloads returned HTTP 403; use the visible Midjourney browser
-to obtain selected originals as each enemy is implemented.
+- Files: `<concept-key>/<job>-<zero-based-index>.png`.
+- [originals.json](originals.json) records every path, source URL, job/index, pixel dimensions,
+  byte count and SHA-256 checksum. Each concept folder also has a source README.
+- `tools/enemy-review-references.js` remains the selection authority. Its current selections
+  now use these local originals; superseded references remain source links only.
+- The four trial inputs are in `shellback/`, `hound/`, `keep-brute/` and `keep-mummer/`.
+- `shellback.webp` is the earlier 640px preview, retained for history. Use the PNG in
+  `shellback/` for modeling.
+- `baseline/` contains the existing game models’ comparison pictures, not concept art.
 
-## Phase 1 (#800)
-
-The selected originals could not be fetched (the CDN answers HTTP 403 with a browser challenge); the list of the
-45 jobs and indexes the author must download, and where each goes, is in
-`docs/handoffs/enemy-rebuild-2026-10-30-baseline.md` section 2. `baseline/` holds today's in-game pictures of the
-four trial foes (see its README).
+The earlier CDN HTTP 403 download blocker is resolved for all selected images. These
+are approved references, **not implemented enemy models**. The rebuild and remaining
+Tripo rest-pose decisions are tracked in issue #800 and the enemy rebuild handoffs.

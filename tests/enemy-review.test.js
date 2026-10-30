@@ -1,9 +1,36 @@
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { CATALOG, CONCEPTS, REVIEW_ROWS, filterRows, decisionFor, readReview, exportReview } from '../tools/enemy-review-data.js';
 import { STYLE_PASSES } from '../tools/enemy-review-references.js';
+
+test('all 45 current selections have intact full-resolution local originals', () => {
+  const archive = new URL('../references/enemy-redesign-2026-10-30/', import.meta.url);
+  const manifest = JSON.parse(readFileSync(new URL('originals.json', archive), 'utf8'));
+  const selections = CONCEPTS.flatMap(c => c.selections.map(s => ({ c, s })));
+  assert.equal(selections.length, 45);
+  assert.equal(manifest.count, selections.length);
+  assert.equal(manifest.images.length, selections.length);
+  assert.equal(new Set(manifest.images.map(e => e.file)).size, selections.length);
+  for (const { c, s } of selections) {
+    const file = `${c.key}/${s.job}-${s.index}.png`;
+    const entry = manifest.images.find(e => e.file === file);
+    assert.ok(entry, file);
+    assert.equal(entry.source, s.url);
+    assert.equal(entry.job, s.job);
+    assert.equal(entry.index, s.index);
+    assert.equal(entry.concept, c.key);
+    assert.equal(s.image, `../references/enemy-redesign-2026-10-30/${file}`);
+    const bytes = readFileSync(new URL(file, archive));
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', file);
+    assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [1232, 928], file);
+    assert.deepEqual([entry.width, entry.height], [1232, 928]);
+    assert.equal(bytes.length, entry.bytes, file);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, file);
+  }
+});
 
 test('review covers every built archetype once in the main collection and every appearance has a unique id', () => {
   assert.deepEqual(filterRows({}, {}).map((r) => r.type).sort(), Object.keys(ARCHETYPES).filter((id) => ARCHETYPES[id].status === 'built').sort());

@@ -33,8 +33,11 @@ as a separate enemy. New robot concepts do not replace retained robots implicitl
 The 30 October rebuild is authorized in [issue #800](https://github.com/rnaud/hiraeth/issues/800);
 all reference builds remain unimplemented until verified. See the
 [handoff](../handoffs/enemy-rebuild-2026-10-30.md) and its importable feedback snapshot. Unselected explorations have source links but no saved reference image.
-Selected 640px previews load from Midjourney's CDN; failed images retain source
-links. No reference image is bundled into the game by this tool.
+All 45 current selections load from archived 1232 × 928 PNG originals under
+`references/enemy-redesign-2026-10-30/`; `originals.json` records source job/index,
+dimensions and SHA-256 checksums. Midjourney links remain for provenance. The
+review test checks archive completeness and intact bytes. No reference image is
+bundled into the game by this tool.
 When a selected concept is being redone, `STYLE_PASSES` marks it `revising`:
 the earlier image stays labelled as an earlier selection, the new batch is linked
 for review, and the next step is to choose the new reference rather than build it.

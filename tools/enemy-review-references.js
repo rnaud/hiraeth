@@ -213,5 +213,10 @@ for (const c of CONCEPTS) if (STYLE_PASSES[c.key]) {
 }
 
 export const STAGE_LABELS = { selected: 'Reference selected', shortlist: 'Shortlisted · final choice open', reserved: 'Reserved for later', exploring: 'Awaiting selection', revising: 'New style pass · awaiting selection' };
+// Current selections are archived originals; previousSelections remain historical source links.
+for (const c of CONCEPTS) for (const s of c.selections) {
+  s.previewImage = s.image;
+  s.image = `../references/enemy-redesign-2026-10-30/${c.key}/${s.job}-${s.index}.png`;
+}
 export const referencesFor = (type) => CONCEPTS.filter((c) => c.type === type);
 export const BUILD_LABEL = 'Not implemented';
