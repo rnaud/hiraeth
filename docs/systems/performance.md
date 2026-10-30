@@ -6132,7 +6132,7 @@ or the why line into it: the stages still go to the log, `__loadLog`, the title'
 `onLoad`, unshown. A failure (the ship's "could not be loaded", `role="alert"`) takes the corner whole, readable, the
 ring and bar hidden; the sound effects' failure stays its own dialog (src/effect-loading.js). Reduced motion (the
 system's, or the setting's `html.reduce-motion`): the ring pulses (`load-pulse`) instead of turning. The flight's
-arrival (`#loading.space`) keeps the warp's navy so the jump carries over. The title's waiting mark (a save chosen
+arrival is black too (it kept the warp's navy until the author chose black, 2026-10-30). The title's waiting mark (a save chosen
 while the world builds behind it: src/title.js `.starting`) is the same in miniature, bottom right, and says
 `loadWords(hold.stage)`: "Loading", or a failure's line as it is. Unity's `BridgeHud.Loading` draws the same corner
 (black, `LoadWord`, the ring pulsing on the settings' `still`, sent with `access`). Android's native splash

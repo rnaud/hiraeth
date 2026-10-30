@@ -230,8 +230,6 @@
         font: var(--type-s) var(--face);
       }
       #loading.done { opacity: 0; pointer-events: none; }
-      /* arriving from the ship's jump (?via=ship), or the chime-pirates on the way (?game=pirates): the warp's space ink, not black (src/ship/cinema.js WARP) */
-      #loading.space { background: #151a2b; color: #f7ecd2; }
       #loading .corner {
         position: absolute; right: calc(28px + var(--safe-right, env(safe-area-inset-right, 0px))); bottom: calc(24px + var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
         display: flex; align-items: center; gap: 10px; opacity: 0.78;

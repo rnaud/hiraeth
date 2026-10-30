@@ -138,9 +138,10 @@ test('heading to space opens on the night’s ink, not a white page (playtest 20
   assert.equal(warpLook(0).hole, 0);
   assert.equal(warpLook(WARP.open).hole, 1);
   assert.ok(warpLook(WARP.open / 2).hole > 0.3 && warpLook(WARP.open / 2).hole < 0.7);
-  // and the next world's loading screen, reached ?via=ship (or the chime-pirates' page on the way, ?game=pirates), keeps that ink
+  // the next world's loading screen, reached ?via=ship (or the chime-pirates' page on the way, ?game=pirates), is black like
+  // every other (the author, 2026-10-30): the page still marks it .space, with no look of its own
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  assert.ok(html.includes(`#loading.space { background: ${WARP.space};`));
+  assert.ok(!html.includes('#loading.space {') && !html.includes(WARP.space));
   assert.ok(html.includes("<script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>"));
   // (a world swapped in, issue #790: the same test on the loading page put back)
   assert.ok(readFileSync(new URL('../src/world-travel.js', import.meta.url), 'utf8').includes("export const spaceLoading = (search) => /[?&](via=ship|game=pirates)(&|$)/.test(search);"));

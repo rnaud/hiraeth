@@ -580,10 +580,10 @@ export class Cinema {
  * Now space opens from the middle of the screen: a disc of the night's ink grows out over the climb (`hole`,
  * the share of the screen's half-diagonal it covers, eased), the streaks are drawn in the paper's cream, a
  * little teal and red on it, and a few fixed stars show; the paper is only the course card's. The next world's
- * loading screen keeps the same ink (index.html #loading.space, ?via=ship).
+ * loading screen is black, as every other (index.html #loading).
  */
 export const WARP = {
-  space: '#151a2b',    // the night's ink: the same as the loading screen's (index.html #loading.space)
+  space: '#151a2b',    // the night's ink
   ink: '#2b211f', paper: '#f7ecd2',
   streaks: ['#f7ecd2', '#62c3c9', '#e0705f'],   // cream, the teal and the red, light on the dark
   open: 0.9,           // s: the disc covers the screen
