@@ -295,3 +295,103 @@ as the fallback.
   keys are the hound's own, unchanged; the pounce, coil and rake poses were checked in the strips and tests).
 - Unity: neither body is wired there; the trial is web only. The Tripo asset carries COLOR_0 for the engines' VMs.
 - Pictures of the other three skins (mangrove, spheres, bazaar): built and tested in node only.
+
+## Dune mummer (`mummer`), phase 2
+
+Reference: `../keep-mummer/ad94a6b0-55ba-461e-9577-d745036565ae-1.png` (approved), measured off the author's T-pose
+picks (`../keep-mummer/tpose/sheet-1.jpg` front and back, `sheet-2.jpg` the side; their narrower hands not taken: the
+approved broad mittens are kept). Home skin desert. All pictures in `mummer/`, captured 2026-10-30 on this branch,
+muted headless Chrome on this Mac (Apple M-series, Metal), High preset, 1280×720, 10:00, clear; looked at one by one.
+The same page, scripts, strips and stills as the shellback (`--variant current|direct|tripo|side --extra`); the
+current strips re-captured beside them.
+
+![stills](mummer/compare-stills.webp)
+
+Strips: `mummer-<variant>-<idle|walk|turn|attack|hurt|death>.webp`, the row of three on one clock in
+`mummer-side-*.webp`; stills `mummer[-<variant>]-still-<3q|front|flank|rear|clay|clay-front>.webp`; the look in
+`mummer-gaze.webp` (the traveller off to either side, every head turned to him); the page in `trial-page.webp`. Each
+spawn picks its weapon (club, spear or bow) as the game does, so the single-variant captures may carry different ones.
+
+![the look](mummer/mummer-gaze.webp)
+
+### What each is
+
+- **Direct** (`src/enemies/plans/dune-mummer.js`): one sage gourd that is head and body (its rings measured off the
+  T-pose sheets: 0.58 m wide, 0.45 deep, widest low; 1.2 m at size 1, 1.8 m in the game), a cream oval mask high on its
+  front with two black slits (its eyes: they take the wind-up's colour; small and pale on the black face when the mask
+  is off), the salmon patch, short sage sleeves, big rust gauntlets with a dark wrist band, broad mittens (one block of
+  fingers on the Fist's pivots: it closes round the haft), short legs in tall rust boots with sand toe caps. On the
+  humanoid clip rig as today (`humanoidSkeleton`, `HumanoidDriver`, `MUMMER_MOVES`, `MUMMER_HOLD`, Wielder), its
+  proportions Tripo's joint places on the same body. The gourd is one skinned mesh, the body's weight below 0.76 m and
+  the head's over 0.86 m, so its top turns with the look; every other part (with the weapons, the dropped ones and the
+  flown mask) one rigidly skinned mesh with vertex tints; the eyes their own: 3 meshes. The mummer's life (the weapon in
+  hand, the disarm, the mask knocked flying, the rock lob, the eyes) is `mummerLife`, shared by both bodies. The
+  bleached skin (glassdunes) takes its colours from its own palette (cream gourd, sky patch, saffron gloves).
+- **Tripo** (multiview task `126e68e7-5536-4dc8-ac59-bad4f20e2977`: front and back cut from sheet-1, the left side
+  from sheet-2, each on a square of its sheet's cream at the same body height, `../keep-mummer/tripo/view-*.png` as
+  sent; H3.1, `texture_version` v3.5 with `delight: true` = Remove Lighting, PBR off, 30k face target; 28,270
+  triangles, 2048² JPEG. Rig check (free): riggable, biped. Rig task `34054a6c-90f3-417f-a3f8-d0b2bb7b0d09`: Tripo's
+  biped rig, Mixamo names, 23 joints, no fingers. Untouched in `../keep-mummer/tripo/model.glb` and `rigged.glb`, the
+  record in `task.json`.) `mummer-tripo/prepare.mjs`: the game's frame, 1.2 m, a 1024² texture flattened to eight
+  colours, COLOR_0, 12,000 triangles (meshoptimizer; Tripo's joints and weights ride every kept vertex), the joints'
+  bind places (`skeleton.json`). `mummer-tripo/model.js` **poses the Tripo skeleton directly**: the humanoid rig's
+  joints stood where Tripo's rig put its joints and the mesh skinned to them with Tripo's own weights (23 joints folded
+  onto 14 bones: the hips, three spine bones and clavicles onto the torso, the neck and head onto the head's look, the
+  toes onto the feet), bound in the T-pose (each limb's −y along Tripo's bone), then let down to the rig's rest. The
+  clips pose those very bones: no hidden skeleton copied over (#768's adapter). The mask's triangles are cut out and
+  rebuilt flat cream on their own pivot (it flies off), an ink oval in the hole (the black face), two slit eyes over the
+  painted ones. The mittens are one piece: the haft goes through each mitten's measured centre (Wielder `at`). Other
+  skins: the mesh's colour roles recoloured from the skin's palette.
+
+### Comparison
+
+| Measure | Current | Direct | Tripo |
+|---|---|---|---|
+| Fidelity to the reference | coffee-pot mask on an indigo patched sack, stick legs, three-fingered ink hands: not the reference | the reference's parts and colours: gourd, oval mask and slits, patch, sleeves, gauntlets, mittens, boots and toe caps; a smooth lathe, a little narrow at the top, the mask flat | the closest silhouette: the softer gourd, the mask set into it, plumper gauntlets and boots; the mittens Tripo's narrower T-pose hands |
+| At combat distance (14 m, ink) | reads as the pot and the sack | reads: sage gourd, cream mask, rust gloves and boots | reads the same; the mask a little duller (its sand rim) |
+| Baked light (clay, unlit) | – | none (procedural; the gourd's soft mottle is its surface paint) | clean geometry; the flat colours keep an olive band on the gourd's lower side and back (Tripo's shading snapped to one flat shade) |
+| The look (head on the traveller) | the pot turns, reach 0.9 rad | the head joint turns (reach 0.7), the mask, slits and the gourd's top with it | the same, on Tripo's neck and head weights (the look node is the head bone) |
+| Drawn meshes · triangles (one body, one pass) | 9 · 9,738 | 3 · 11,672 | 3 · 15,527 (body 12,000; the mask and the weapons) |
+| Materials · texture memory | 8 · 0 | 3 · 0 | 3 · 5.33 MB (1024² RGBA8 + mips) |
+| Shipped bytes (raw · gzip) | `mummer.js` 36.5 · 11.7 KB | `dune-mummer.js` 22.4 · 8.5 KB (+ mummer.js's weapons and holds) | `tripo-lod.glb` 645 · 352 KB + `model.js` 16.1 · 6.3 KB + skeleton 3.2 KB (source export 1.4 MB) |
+| Draws over the empty Arena, High, 1 · 6 | +27 · +162 | **+9 · +54** | **+9 · +54** |
+| Triangles all passes, High, 1 · 6 | +29.1k · +175.2k | +35.2k · +210.0k | +46.4k · +324.8k |
+| Draws, Handheld, 1 · 6 | +20 · +108 | +6 · +36 | +6 · +36 |
+| Triangles all passes, Handheld, 1 · 6 | +21.6k · +116.7k | +24.1k · +140.0k | +31.3k · +186.7k |
+| CPU ms, High, 1 · 6 | +0.40 · +1.40 | +0.05 · +1.45 | +0.05 · +1.15 |
+| CPU ms, Handheld, 1 · 6 | +0.35 · +1.45 | +0.15 · +0.95 | +0.10 · +0.75 |
+| GPU ms | not separable from the empty Arena at this load (deltas of either sign up to 1.5 ms): no GPU claim | | |
+| Walk audit (foe-slide on the clips): slide m/m · worst m, walk / run / strafe / turn (per rad) / knock | 0·0 / 0·0 / 0.054·0.09 / 0.035·0.16 / 0.063·0.34 | 0·0 / 0·0 / 0.040·0.07 / 0.041·0.12 / 0.076·0.41 | 0.002·0.003 / 0.002·0.006 / 0.047·0.11 / 0.032·0.10 / 0.017·0.06 |
+| Gait, full · half pace: steps/s; lift (share of the leg) | 3.0 · 1.75; 0.42 · 0.56 | 3.25 · 2.25; 0.53 · 0.55 | 3.25 · 2.0; 0.53 · 0.56 |
+| Deformation | rigid parts | rigid parts; the gourd's top twists with the look over 0.76–0.86 m | weights normalised (test); the mittens hang at rest; a knee bent alone moves only its leg (Tripo's crotch blend carries a few vertices across the middle, under 5 mm) |
+| Whack (wind, strike, recover) | both arms up, the club behind the pot, down | the same clip; the club in the closed mitten throughout | the same clip; the club through the mitten's centre throughout (no fingers to close) |
+| Hurt, death, lying body | flinch; ragdoll, then the puff | the same (the ragdoll on the rig's joints) | the same |
+| Kept (both) | id `mummer`, skins, def and attacks (whack, jab, volley, rock), windows, weapons per spawn and the disarm, the mask (knocked off: it runs, swings blind), sounds (`junk` / `mummer`), size ×1.5 (#741), ragdoll | ✓ | ✓ |
+| Time (agent) | – | about 1.2 h (model 50 min; fixes 20 min: the gourd's winding, the eyes) | about 1.5 h (generation and rig 4 min wall; prepare 20 min; the skin on the rig 40 min; mask and slits 20 min) |
+| Tripo credits | – | – | **55** (generation 30, rig check 0, rig 25; balance 1,710 → 1,655) |
+
+(Bench: 28 runs, two rounds reversed, load 17.8–40.2 (other agents' runs; the bench waits only for under 25 before
+each run), `mummer/bench.jsonl`; walk: `motion-audit.mjs mummer@desert`, which runs `mummer-tripo/motion.mjs`: the
+humanoid foes' foot-slide measure (#749) with the clip library loaded. All three walk in the clip's crouched scuttle;
+the gourds keep 55 % of the clip's spine lean off in their loops, `GOURD_UP`.)
+
+### Recommendation
+
+**Tripo for the look by a small margin; direct is close and cheaper.** Both cut the mummer's draws by two thirds (+9
+against +27 a body on High; six: +54 against +162). The Tripo gourd is softer and its gauntlets and boots plumper,
+nearer the drawing; the direct one has every part right and reads as cleanly at 14 m, with a flatter mask, mittens
+that close and no texture (0 against 5.3 MB; 8.5 KB against 352 KB gzipped). Posing Tripo's own skeleton directly
+worked: the same clips, holds, look, mask and ragdoll with no adapter and no extra CPU; the cost is a third more
+triangles, the texture, and mittens that cannot close.
+
+My recommendation: **take the Tripo mummer**, with two cleanups: snap the olive shade into the sage (one body colour:
+the game shades it) and widen the mittens toward the approved broad ones (scale the hand-weighted vertices). If the
+author would rather not carry a texture for a foe this common, the direct one lands as it is. Both are web only.
+
+### Not done (mummer)
+
+- The combat review's `defend.mjs` / `dodge.mjs` and the sound QC renders on the new bodies (the attacks, windows and
+  sound keys are the mummer's own, unchanged; the poses that carry the contact were checked in the strips and tests).
+- Unity: neither body is wired there; the trial is web only. The Tripo asset carries COLOR_0 for the engines' VMs.
+- The headshot point is the look node (the head joint, 1.29 m), as for every foe on the rig; the slits sit about
+  0.25 m over it.

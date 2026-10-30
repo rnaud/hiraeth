@@ -1,0 +1,98 @@
+{
+  "issue": 800,
+  "phase": "2 (mummer)",
+  "sources": [
+    {
+      "view": "front",
+      "sheet": "references/enemy-redesign-2026-10-30/keep-mummer/tpose/sheet-1.jpg",
+      "box": [
+        55,
+        132,
+        712,
+        581
+      ],
+      "sent": "view-front.png",
+      "sha256": "e61ffae88c30b715d4e37e5a357a02ea64d24067c352f3ed7e9744175b7bbbe7"
+    },
+    {
+      "view": "back",
+      "sheet": "references/enemy-redesign-2026-10-30/keep-mummer/tpose/sheet-1.jpg",
+      "box": [
+        773,
+        132,
+        710,
+        580
+      ],
+      "sent": "view-back.png",
+      "sha256": "b58a434887d5982d4181c81683628626f28322c99f6265073ca5bb8a50741eb8"
+    },
+    {
+      "view": "left",
+      "sheet": "references/enemy-redesign-2026-10-30/keep-mummer/tpose/sheet-2.jpg",
+      "box": [
+        568,
+        139,
+        457,
+        1218
+      ],
+      "sent": "view-left.png",
+      "sha256": "1f73f704c8f8f3488f101f2511cb66df632428fd12c7f911cb0a9718a4b54dbc"
+    }
+  ],
+  "generation": {
+    "endpoint": "POST /v3/generation/multiview-to-model",
+    "request": {
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": false,
+      "texture_quality": "standard",
+      "texture_version": "v3.5-20260815",
+      "delight": true,
+      "texture_alignment": "original_image",
+      "face_limit": 30000,
+      "export_uv": true
+    },
+    "task": "126e68e7-5536-4dc8-ac59-bad4f20e2977",
+    "started": "2026-10-30T19:23:11.532Z",
+    "finished": "2026-10-30T19:24:56.116Z",
+    "creditsConsumed": 30,
+    "balanceBefore": 1710,
+    "balanceAfter": 1680,
+    "model": {
+      "file": "model.glb",
+      "bytes": 1280684,
+      "sha256": "0d97143ecb5297d3a55579c61c0c28bdf0ea17cfbd104cc31c614485d14a1578"
+    },
+    "preview": {
+      "file": "preview.png",
+      "bytes": 127823
+    }
+  },
+  "rig": {
+    "check": {
+      "endpoint": "POST /v3/animations/rig-check",
+      "task": "7d250304-df4e-4e7f-ab07-b42eef60fb5a",
+      "output": {
+        "riggable": true,
+        "rig_type": "biped"
+      },
+      "creditsConsumed": 0
+    },
+    "endpoint": "POST /v3/animations/rig",
+    "request": {
+      "model": "v1.0-20240301",
+      "rig_type": "biped",
+      "spec": "mixamo",
+      "out_format": "glb"
+    },
+    "task": "34054a6c-90f3-417f-a3f8-d0b2bb7b0d09",
+    "creditsConsumed": 25,
+    "balanceBefore": 1680,
+    "balanceAfter": 1655,
+    "model": {
+      "file": "rigged.glb",
+      "bytes": 1444208,
+      "sha256": "13ccf36d665fa90da7f6d663c11e6506cf8ba5c63a6474aac6ec5956a3efdfbf"
+    }
+  }
+}

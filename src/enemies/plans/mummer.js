@@ -84,7 +84,7 @@ function wraps(from, to, r, n = 3) {
 // ------------------------------------------------------------------ the weapons (each its own pivot: shown, hidden, dropped)
 
 /** The driftwood club along +y from the grip: a knobbed pale log, rope wound round its grip and its head. */
-function clubParts(L = 0.72) {
+export function clubParts(L = 0.72) {
   return {
     wood: [new THREE.CylinderGeometry(0.05, 0.028, L, 7, 3).translate(0, L * 0.38, 0), new THREE.SphereGeometry(0.06, 7, 5).scale(1, 1.3, 0.9).translate(0.01, L * 0.82, 0),
       new THREE.SphereGeometry(0.03, 6, 4).translate(0.04, L * 0.55, 0.02), new THREE.SphereGeometry(0.025, 6, 4).translate(-0.035, L * 0.68, -0.01)],

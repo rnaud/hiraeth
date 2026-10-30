@@ -6,6 +6,7 @@
 import { TRIAL_BUILDERS } from '/src/enemies/plans/index.js';
 import { shellbackModel } from '/src/enemies/plans/shellback.js';
 import { broadHoundModel } from '/src/enemies/plans/broad-hound.js';
+import { duneMummerModel } from '/src/enemies/plans/dune-mummer.js';
 
 // (this folder's URL: not new URL('./', import.meta.url), which Vite rewrites to the folder without its slash)
 const here = import.meta.url.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
@@ -14,7 +15,7 @@ export const TRIALS = {
   crab: { concept: 'shellback', skin: 'arzach2', direct: true, tripo: true },
   hound: { concept: 'hound', skin: 'eclipse', direct: true, tripo: true },
   brute: { concept: 'keep-brute', skin: 'perdide2', direct: false, tripo: false },
-  mummer: { concept: 'keep-mummer', skin: 'desert', direct: false, tripo: false },
+  mummer: { concept: 'keep-mummer', skin: 'desert', direct: true, tripo: true },
 };
 const sources = {};
 /** The Tripo bodies' sources, loaded once. */
@@ -31,6 +32,12 @@ async function tripoHound() {
 }
 const BUILD = { crab: { direct: async () => shellbackModel, tripo: () => tripoBuilder('crab') } };
 BUILD.hound = { direct: async () => broadHoundModel, tripo: tripoHound };
+// the dune mummer (#800 phase 2): direct in src/enemies/plans/dune-mummer.js, Tripo in mummer-tripo/
+BUILD.mummer = { direct: async () => duneMummerModel, tripo: async () => {
+  const { loadTripoMummer, tripoMummerModel } = await import('./mummer-tripo/model.js');
+  sources.mummer ??= await loadTripoMummer(`${here}mummer-tripo/`);
+  return (skin) => tripoMummerModel(skin, sources.mummer);
+} };
 
 /** The variant a kind is built in now. */
 export const chosen = {};

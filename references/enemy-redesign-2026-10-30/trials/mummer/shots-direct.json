@@ -1,0 +1,65 @@
+{
+ "quality": "high",
+ "variant": "direct",
+ "foes": {
+  "mummer@desert": {
+   "info": {
+    "kind": "mummer",
+    "skin": "desert",
+    "atk": "whack",
+    "wind": 0.75,
+    "strike": 0.3,
+    "recover": 1,
+    "size": [
+     1.63,
+     1.85,
+     1.31
+    ],
+    "speed": 3.4,
+    "inventory": [
+     {
+      "meshes": 3,
+      "skinned": 2,
+      "triangles": 11672,
+      "materials": 3,
+      "textures": 0,
+      "textureMB": 0
+     }
+    ]
+   },
+   "built": [
+    "direct"
+   ],
+   "strips": {
+    "hurt": {
+     "hp": 1.75,
+     "state": "chase",
+     "reel": null,
+     "alive": true,
+     "rag": false,
+     "dying": false
+    },
+    "death": {
+     "hp": -97,
+     "state": "dead",
+     "reel": "broken",
+     "alive": false,
+     "rag": true,
+     "dying": true
+    }
+   }
+  }
+ },
+ "mute": {
+  "muted": true,
+  "master": 0,
+  "ctxGain": 0
+ },
+ "trial": [
+  "crab",
+  "hound",
+  "brute",
+  "mummer"
+ ],
+ "errors": []
+}

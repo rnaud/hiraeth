@@ -1,0 +1,263 @@
+{
+ "frame": "game: +z ahead, +y up, metres, feet on y 0",
+ "source": "references/enemy-redesign-2026-10-30/keep-mummer/tripo/rigged.glb",
+ "scale": 1.46148,
+ "height": 1.2,
+ "joints": [
+  {
+   "name": "Root",
+   "parent": null,
+   "at": [
+    0.0083,
+    0,
+    0.0232
+   ]
+  },
+  {
+   "name": "Hips",
+   "parent": "Root",
+   "at": [
+    0.0083,
+    0.4163,
+    0.0232
+   ]
+  },
+  {
+   "name": "Spine",
+   "parent": "Hips",
+   "at": [
+    0.0077,
+    0.4909,
+    0.0222
+   ]
+  },
+  {
+   "name": "Spine1",
+   "parent": "Spine",
+   "at": [
+    0.0068,
+    0.5967,
+    0.0209
+   ]
+  },
+  {
+   "name": "Spine2",
+   "parent": "Spine1",
+   "at": [
+    0.0059,
+    0.7025,
+    0.0196
+   ]
+  },
+  {
+   "name": "Neck",
+   "parent": "Spine2",
+   "at": [
+    0.005,
+    0.8082,
+    0.0182
+   ]
+  },
+  {
+   "name": "Head",
+   "parent": "Neck",
+   "at": [
+    0.0045,
+    0.8634,
+    0.0175
+   ]
+  },
+  {
+   "name": "LeftShoulder",
+   "parent": "Spine2",
+   "at": [
+    0.0052,
+    0.8082,
+    0.0182
+   ]
+  },
+  {
+   "name": "LeftArm",
+   "parent": "LeftShoulder",
+   "at": [
+    0.2438,
+    0.8015,
+    0.0149
+   ]
+  },
+  {
+   "name": "LeftForeArm",
+   "parent": "LeftArm",
+   "at": [
+    0.4227,
+    0.7658,
+    -0.0215
+   ]
+  },
+  {
+   "name": "LeftHand",
+   "parent": "LeftForeArm",
+   "at": [
+    0.585,
+    0.7526,
+    -0.0182
+   ]
+  },
+  {
+   "name": "RightShoulder",
+   "parent": "Spine2",
+   "at": [
+    0.0047,
+    0.8082,
+    0.0182
+   ]
+  },
+  {
+   "name": "RightArm",
+   "parent": "RightShoulder",
+   "at": [
+    -0.2338,
+    0.8147,
+    0.0215
+   ]
+  },
+  {
+   "name": "RightForeArm",
+   "parent": "RightArm",
+   "at": [
+    -0.4227,
+    0.7658,
+    -0.0182
+   ]
+  },
+  {
+   "name": "RightHand",
+   "parent": "RightForeArm",
+   "at": [
+    -0.5618,
+    0.7526,
+    -0.0182
+   ]
+  },
+  {
+   "name": "LeftUpLeg",
+   "parent": "Hips",
+   "at": [
+    0.1574,
+    0.4116,
+    0.0215
+   ]
+  },
+  {
+   "name": "LeftLeg",
+   "parent": "LeftUpLeg",
+   "at": [
+    0.174,
+    0.2513,
+    0.0248
+   ]
+  },
+  {
+   "name": "LeftFoot",
+   "parent": "LeftLeg",
+   "at": [
+    0.17,
+    0.0728,
+    -0.0029
+   ]
+  },
+  {
+   "name": "LeftToeBase",
+   "parent": "LeftFoot",
+   "at": [
+    0.1742,
+    0.0563,
+    0.0572
+   ]
+  },
+  {
+   "name": "RightUpLeg",
+   "parent": "Hips",
+   "at": [
+    -0.1409,
+    0.4208,
+    0.0248
+   ]
+  },
+  {
+   "name": "RightLeg",
+   "parent": "RightUpLeg",
+   "at": [
+    -0.1574,
+    0.2513,
+    0.0149
+   ]
+  },
+  {
+   "name": "RightFoot",
+   "parent": "RightLeg",
+   "at": [
+    -0.1375,
+    0.0617,
+    0.0031
+   ]
+  },
+  {
+   "name": "RightToeBase",
+   "parent": "RightFoot",
+   "at": [
+    -0.1435,
+    0.0452,
+    0.0594
+   ]
+  }
+ ],
+ "hands": {
+  "Left": {
+   "centre": [
+    0.6445,
+    0.7568,
+    -0.0534
+   ],
+   "min": [
+    0.5826,
+    0.6942,
+    -0.1185
+   ],
+   "max": [
+    0.7307,
+    0.8157,
+    0.0103
+   ],
+   "vertices": 400
+  },
+  "Right": {
+   "centre": [
+    -0.6342,
+    0.7565,
+    -0.0501
+   ],
+   "min": [
+    -0.7307,
+    0.6886,
+    -0.1186
+   ],
+   "max": [
+    -0.5701,
+    0.8207,
+    0.0145
+   ],
+   "vertices": 492
+  }
+ },
+ "palette": [
+  "#20170e",
+  "#6d4324",
+  "#5b6855",
+  "#728c77",
+  "#948e6d",
+  "#c27a3e",
+  "#bd8552",
+  "#efd58c"
+ ]
+}

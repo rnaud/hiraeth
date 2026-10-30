@@ -182,6 +182,7 @@ const readers = {
   'enemies/plans/centipede.js': () => readFileSync(new URL('../../src/enemies/plans/centipede.js', import.meta.url), 'utf8'),
   'enemies/plans/crawler.js': () => readFileSync(new URL('../../src/enemies/plans/crawler.js', import.meta.url), 'utf8'),
   'enemies/plans/droid.js': () => readFileSync(new URL('../../src/enemies/plans/droid.js', import.meta.url), 'utf8'),
+  'enemies/plans/dune-mummer.js': () => readFileSync(new URL('../../src/enemies/plans/dune-mummer.js', import.meta.url), 'utf8'),
   'enemies/plans/ember.js': () => readFileSync(new URL('../../src/enemies/plans/ember.js', import.meta.url), 'utf8'),
   'enemies/plans/fencer.js': () => readFileSync(new URL('../../src/enemies/plans/fencer.js', import.meta.url), 'utf8'),
   'enemies/plans/floater.js': () => readFileSync(new URL('../../src/enemies/plans/floater.js', import.meta.url), 'utf8'),

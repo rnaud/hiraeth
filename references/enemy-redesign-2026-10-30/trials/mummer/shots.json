@@ -1,0 +1,50 @@
+{
+ "quality": "high",
+ "variant": "current",
+ "foes": {
+  "mummer@desert": {
+   "info": {
+    "kind": "mummer",
+    "skin": "desert",
+    "atk": "whack",
+    "wind": 0.75,
+    "strike": 0.3,
+    "recover": 1,
+    "size": [
+     1.16,
+     2.86,
+     0.92
+    ],
+    "speed": 3.4,
+    "inventory": null
+   },
+   "built": [
+    "current"
+   ],
+   "strips": {
+    "hurt": {
+     "hp": 1.75,
+     "state": "chase",
+     "reel": null,
+     "alive": true,
+     "rag": false,
+     "dying": false
+    },
+    "death": {
+     "hp": -97,
+     "state": "dead",
+     "reel": "broken",
+     "alive": false,
+     "rag": true,
+     "dying": true
+    }
+   }
+  }
+ },
+ "mute": {
+  "muted": true,
+  "master": 0,
+  "ctxGain": 0
+ },
+ "errors": []
+}

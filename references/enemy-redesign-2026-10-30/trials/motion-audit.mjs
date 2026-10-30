@@ -15,6 +15,8 @@ import { foeSystem, foeSubject, legsFor } from '../../../scripts/motion-audit/wa
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2), json = args.includes('--json'), id = args.find((a) => !a.startsWith('--')) ?? 'crab@arzach2';
+// (the mummer is on the humanoid clip rig, not the kit: its audit is foe-slide's, on the clips: mummer-tripo/motion.mjs)
+if (id.startsWith('mummer')) { await (await import('./mummer-tripo/motion.mjs')).run(id, json); process.exit(0); }
 /** The Tripo source in node: the GLB's arrays as a BufferGeometry (no texture: the vertex colours stand in). */
 function tripoSource() {
   const b = readFileSync(join(HERE, 'shellback-tripo/tripo-lod.glb')), jn = b.readUInt32LE(12), j = JSON.parse(b.toString('utf8', 20, 20 + jn)), bin = b.subarray(28 + jn);
