@@ -5,6 +5,7 @@
 //
 //   node scripts/enemy-roster/bench.mjs [--commit <sha>] [--quality high|deck|low] [--size 1280x720] [--seconds 8]
 //     [--pack crab@arzach2,crab@saltharbour,lizard@incal,…] [--shot file.png] [--level arzach2: in a world, for its look]
+//     [--variant current|direct|tripo: the pack's kinds built in an enemy-rebuild trial variant, #800's trials/variants.js]
 // --commit measures that commit (extracted with git archive into $TMPDIR, this checkout's node_modules linked in,
 // deleted after); without it, this checkout. One Vite (PORT, default 5480; never 5173), one Chrome (CDP: PORT + 1).
 // Headless timings are for comparing a before with an after on one machine, not absolute numbers.
@@ -49,6 +50,8 @@ try {
   await c.send('Page.navigate', { url: `${base}?level=${arg('level', 'arena')}` });
   for (let i = 0; i < 400; i++) { try { if (await c.ev('!!window.__hiraethBooted && !!window.foes && !!window.player')) break; } catch { /* loading */ } await sleep(250); }
   await sleep(3000);
+  const VARIANT = arg('variant', 'current');
+  if (VARIANT !== 'current') await c.ev(`import('/references/enemy-redesign-2026-10-30/trials/variants.js').then(async (m) => { await m.preload(); for (const k of new Set(${JSON.stringify(PACK)}.map((id) => id.split('@')[0]))) if (!(await m.use(k, ${JSON.stringify(VARIANT)}))) throw new Error('no ' + ${JSON.stringify(VARIANT)} + ' ' + k); return true; })`);
   const info = await c.ev(`(() => {
     const { THREE, camera, player, foes } = window;
     window.sound?.setVolumes?.(0, 0);
@@ -74,7 +77,7 @@ try {
   const r = await c.ev(`(() => { const B = window.__bench; B.rec = false; const med = (a) => { const s = a.filter(Number.isFinite).slice().sort((x, y) => x - y); return s.length ? +s[s.length >> 1].toFixed(2) : null; };
     return { frames: B.frames.length, frame: med(B.frames), cpu: med(B.cpu), gpu: med(B.gpu), gpuFrames: B.gpu.length, calls: med(B.calls), tris: med(B.tris), timer: !!B.ext }; })()`);
   if (arg('shot')) { const { writeFileSync } = await import('node:fs'); const shot = await c.send('Page.captureScreenshot', { format: 'png' }); writeFileSync(arg('shot'), Buffer.from(shot.data, 'base64')); }
-  console.log(JSON.stringify({ commit: arg('commit') ?? 'worktree', quality: QUALITY, size: `${W}x${H}`, ...info, ...r, errors: c.errors.slice(0, 3) }));
+  console.log(JSON.stringify({ commit: arg('commit') ?? 'worktree', quality: QUALITY, variant: VARIANT, size: `${W}x${H}`, ...info, ...r, errors: c.errors.slice(0, 3) }));
 } finally {
   await c.close();
   await server.close();

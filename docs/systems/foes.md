@@ -2769,6 +2769,17 @@ centre (still past its grown body), its senses and speed their tuning, and its v
 (`src/foe-sounds.js` `voiceHeight`). None is wider or taller than the makers' machine, which walks every temple's rooms.
 Tests: `tests/foe-heights.test.js`.
 
+### Trial bodies (issue #800, the enemy rebuild)
+
+`src/enemies/plans/index.js` `TRIAL_BUILDERS`: a review page may stand another body builder in for an archetype's
+(`TRIAL_BUILDERS.crab = shellbackModel`); `archetypeModel` uses it, the game never sets one (`tests/shellback-trial.test.js`).
+The rebuild's trial page, `references/enemy-redesign-2026-10-30/trials/arena.html` (its own Vite: `trials/serve.mjs`), switches
+the four trial foes between current, direct and Tripo (`trials/variants.js` `use(kind, variant)`, which also forgets
+the bodies built ahead) or shows the three 3 m apart on one clip clock; the capture (`baseline/baseline-shots.mjs
+--variant`), the bench (`scripts/enemy-roster/bench.mjs --variant`) and the walk audit (`trials/motion-audit.mjs`)
+take the same switch. The shellback's direct body is `src/enemies/plans/shellback.js` (the crab's id, def, sounds and
+rig family); its Tripo body lives with the trial (`trials/shellback-tripo/`). Findings: the trials README.
+
 ## Tests
 
 `tests/foe-kinds.test.js`: each new kind's attacks, telegraphs, damage and parry / stun answers, the old foes'

@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#6f9fd3" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Hiraeth" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
+    <link rel="icon" href="./favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <title>Enemy rebuild trials (#800)</title>
+    <style>
+      :root {
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        /* every hint and announcement: one look (a near-black strip, cream letters, gold for a button's name), one place
+           (the top centre, stacked by src/ship/cinema.js layoutCinema): issue #306, src/hint-look.js HINT */
+        --hint-bg: rgba(22, 23, 23, 0.96); --hint-ink: #f7ecd2; --hint-accent: #79c9c0; --hint-radius: 7px; --hint-top: calc(12px + var(--safe-top, 0px));
+        /* every other message in the same enamel (issue #687, src/hud-look.js ENAMEL): C's strip, D's dark panel and brass */
+        --en-strip: rgba(22, 23, 23, 0.96); --en-panel: rgba(22, 29, 29, 0.97); --en-ink: #f7ecd2; --en-soft: rgba(247, 236, 210, 0.72); --en-accent: #79c9c0; --en-brass: #d9b575; --en-brass-ink: #edbc76; --en-frame: rgba(247, 236, 210, 0.65); --en-key-ink: #18201f; --en-radius: 7px; --en-shadow: 0 2px 5px rgba(0, 0, 0, 0.33); --en-scrim: rgba(12, 15, 15, 0.55); --en-gold: #f2c54b; --en-bad: #e0775f;
+        /* the game's type (docs/systems/ui.md "Type", src/typefaces.js; issue #128): one face for everything a player reads,
+           the title face for names and headings, the mono for the debug and dev panels alone. Numbers are in the face too,
+           with figures of one width (tabular-nums) where they count. Sizes follow the screen's height, as the conversation
+           panel's (issue #147): --type for what is read (a notice, the cue, a game's card, the settings), --type-s for the
+           small print (labels, a card's strip, the HUD's chips); both under the text size setting (--ts) */
+        --face: 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+        --face-title: Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif;
+        --face-mono: ui-monospace, Menlo, Consolas, monospace;
+        --type: calc(clamp(15px, 2.4vh, 36px) * var(--ts, 1));
+        --type-s: calc(clamp(13px, 1.9vh, 28px) * var(--ts, 1));
+        /* a button's letter, wherever a prompt shows one (issue #150): from the screen's height too, so a badge is as easy
+           to see on the Deck's 800 as on a 1440p screen. --type-key: the round badges (.key: the use prompt, the cue);
+           --glyph-min: the least a button glyph inside a menu's or a card's button is (src/pad-glyphs.js) */
+        --type-key: calc(clamp(14px, 2.2vh, 34px) * var(--ts, 1));
+        --glyph-min: calc(clamp(11px, 1.6vh, 24px) * var(--ts, 1));
+      }
+      /* the Xbox app on a TV (src/xbox.js): the HUD and the menus inside the TV's safe area, 5 % from each edge */
+      :root.tv-safe {
+        --safe-top: max(env(safe-area-inset-top, 0px), 5vh);
+        --safe-right: max(env(safe-area-inset-right, 0px), 5vw);
+        --safe-bottom: max(env(safe-area-inset-bottom, 0px), 5vh);
+        --safe-left: max(env(safe-area-inset-left, 0px), 5vw);
+      }
+      /* overscroll-behavior: a swipe down on the title or a menu must not pull the page to reload it (Chrome on Android,
+         Safari on iOS; overflow: hidden doesn't stop it), issue #546 */
+      html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #f7ecd2; }
+      canvas { display: block; touch-action: none; }
+      /* Nothing on the screen at rest (src/hud.js). The cue: one short line, only for what the use button does right
+         here with nothing to float over, a first lesson, the scout's find, a region's name as you cross into it; it
+         fades in and out. A hint like the others (issue #306): the notices' dark strip, first in their stack at the top
+         centre (src/ship/cinema.js layout places it; this is where it starts) */
+      #cue {
+        position: fixed; left: 50%; top: var(--hint-top); z-index: 61; transform: translateX(-50%);
+        width: max-content; max-width: min(44em, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
+        font: 500 var(--type)/1.4 var(--face); color: var(--hint-ink); background: var(--hint-bg);
+        border: 0; border-radius: var(--hint-radius); padding: 0.2em 0.95em 0.25em; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+        pointer-events: none; user-select: none; opacity: 0; transition: opacity 0.35s, top 0.3s;
+      }
+      #cue.show { opacity: 1; }
+      #cue .key { font-size: var(--type-key); min-width: 1.7em; height: 1.7em; margin: -2px 1px 0 0; }
+      /* a button's badge on the dark strip: cream, the ink letter (the cue, the floating prompt) */
+      #cue:not(.glyph) .key, #prompt:not(.glyph) .key { background: var(--hint-ink); color: #1d1715; }
+      #cue kbd.kp, #prompt kbd.kp { color: var(--hint-accent); }
+      /* a region's name: thin capitals on the land, no box */
+      #cue.place { background: none; border: 0; box-shadow: none; padding: 0; transition: opacity 0.9s, top 0.3s; color: #2b211f;
+        font: 300 calc(clamp(13px, 2.4vh, 19px) * var(--ts, 1))/1.2 var(--face);
+        letter-spacing: 0.32em; text-transform: uppercase; text-shadow: 0 0 2px #fffaf0, 0 0 6px #fffaf0, 0 0 14px rgba(255, 250, 240, 0.95); }
+      /* the scout's find: the quest's goal, small, over its next step (src/hud.js findSummary) */
+      #cue.quest { padding: 4px 16px 5px; }
+      #cue.quest .goal { display: block; font: italic 500 0.85em/1.3 var(--face); letter-spacing: 0.06em; opacity: 0.75; }
+      #cue.quest .step { display: block; font-weight: bold; }
+      body.talking #cue, body.cine-on #cue { visibility: hidden; }
+      /* hearts, the magic bar and the potion, top left: only while a heart is missing, the bar spends or refills,
+         or a fight is on (src/main.js updateHealth, src/hud.js heartsSvg / magicHud) */
+      #health { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
+        --hh: calc(clamp(17px, 3vh, 24px) * var(--ts, 1));
+        display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--hh) * 0.22);
+        opacity: 0; transition: opacity .5s; pointer-events: none; }
+      #health.on { opacity: 1; }
+      #health .row { display: flex; align-items: center; gap: calc(var(--hh) * 0.35); }
+      #health .hearts svg { display: block; height: var(--hh); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #health .he { fill: #f7ecd2; }
+      #health .hf { fill: #d9503f; }
+      #health .hq { fill: none; stroke: #2b211f; stroke-width: 0.9; opacity: 0.55; }
+      #health .hl { fill: none; stroke: #fff4dc; stroke-width: 1.4; stroke-linecap: round; opacity: 0.85; }
+      #health .ho { fill: none; stroke: #2b211f; stroke-width: 2.1; stroke-linejoin: round; }
+      #health .h.empty .hl { opacity: 0; }
+      #health .h.low { animation: hpulse .8s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 60%; }
+      @keyframes hpulse { 50% { transform: scale(1.14); } }
+      #health .h.low .hf { fill: #e8643c; }
+      /* the healing potion: a little corked flask, its stock beside it (∞ until the shops); on a touch screen it is the button */
+      #health .potion { position: relative; display: flex; align-items: center; gap: 2px; padding: 0; margin: 0; border: 0; background: none; color: #2b211f;
+        font: 800 calc(var(--hh) * 0.9)/1 var(--face); font-variant-numeric: tabular-nums; pointer-events: none; }
+      #health .potion svg { display: block; height: calc(var(--hh) * 1.15); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #health .potion b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; }
+      #health .potion.none { opacity: 0.4; }
+      #health.drink .potion svg { animation: pdrink .9s ease-in-out; }
+      @keyframes pdrink { 30% { transform: rotate(-35deg) translateY(-2px); } 60% { transform: rotate(-35deg) translateY(-2px); } }
+      body.touch #health.on .potion { pointer-events: auto; padding: 6px; margin: -6px; }
+      /* the chimes (src/chimes.js): a small cyan crystal (src/chime-icon.js) and the wallet's count, counting up; it turns as one rings in */
+      #health .chimes { display: flex; align-items: center; gap: 3px; margin-left: calc(var(--hh) * 0.2); color: #2b211f; font: 800 calc(var(--hh) * 0.8)/1 var(--face); font-variant-numeric: tabular-nums; }
+      #health .chimes svg { display: block; height: calc(var(--hh) * 0.95); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #health .chimes b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; transition: color .2s, transform .2s; display: inline-block; }
+      #health .chimes.tick b { color: #1f7f95; transform: scale(1.15); }
+      #health .chimes.got svg { animation: cflip .35s ease-out; }
+      @keyframes cflip { 50% { transform: scaleX(0.15) translateY(-2px); } }
+      #health .chimes.none { display: none; }
+      /* the magic bar: a unit is a third of the starting bar (its ticks); it grows with expansions; short of a unit, hatched */
+      #health .magic { position: relative; height: calc(var(--hh) * 0.5); width: calc(var(--hh) * 2.35 * var(--units, 3)); box-sizing: border-box;
+        border: 2px solid #2b211f; background: #f7ecd2; box-shadow: 1.5px 1.5px 0 #2b211f; border-radius: 6px; overflow: hidden; }
+      #health .magic i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: #3fae9a; border-right: 2px solid #2b211f; }
+      #health .magic.short i { background-color: #8fb9ad; background-image: repeating-linear-gradient(-45deg, transparent 0 4px, rgba(43, 33, 31, 0.35) 4px 6px); }
+      #health .magic u { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(100% / var(--units, 3) - 1.5px), rgba(43, 33, 31, 0.75) calc(100% / var(--units, 3) - 1.5px) calc(100% / var(--units, 3))); }
+      #health .magic.none { display: none; }
+      body.talking #health { opacity: 0; }
+      /* the key counter, top left while in a temple (issue #274: src/hud.js keysHud, main.js updateKeys): a small brass key
+         and ×N, the great key beside it once found; under the hearts while they show */
+      #keys { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
+        --hh: calc(clamp(17px, 3vh, 24px) * var(--ts, 1));
+        display: flex; align-items: center; gap: calc(var(--hh) * 0.4); color: #2b211f; font: 800 calc(var(--hh) * 0.95)/1 var(--face);
+        font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .5s, top .35s; pointer-events: none; }
+      #keys.on { opacity: 1; }
+      #health.on ~ #keys { top: calc(12px + var(--safe-top, 0px) + var(--hh) * 2.25); }
+      #keys .small, #keys .big { display: flex; align-items: center; gap: 2px; }
+      #keys svg { display: block; height: calc(var(--hh) * 1.3); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #keys .big svg { height: calc(var(--hh) * 1.45); }
+      #keys b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; display: inline-block; transition: color .2s, transform .2s; }
+      #keys .small.none { opacity: 0.55; }
+      #keys .big.none { display: none; }
+      #keys.got .small b { color: #9c7330; transform: scale(1.25); }
+      #keys.got .small svg { animation: kturn .45s ease-out; }   /* (a hop, not a turn: nothing in the UI slanted, issue #222) */
+      @keyframes kturn { 40% { transform: translateY(-3px) scale(1.18); } }
+      body.talking #keys { opacity: 0; }
+      /* stamina: a small enamel ring beside the traveller, only while it isn't full, nothing in its middle (src/hud-look.js
+         STAMINA_RING / staminaSvg, src/main.js updateStamina, src/stamina.js; issue #710) */
+      #stamina { position: fixed; left: 0; top: 0; width: 34px; height: 34px; z-index: 29; pointer-events: none; opacity: 0; transition: opacity .35s;
+        will-change: transform; }
+      #stamina.on { opacity: 1; }
+      #stamina svg { display: block; width: 100%; height: 100%; overflow: visible; transform: none; }
+      #stamina .arc { transition: stroke .3s; }
+      #stamina.winded .arc { stroke: #c8483a; animation: stpulse .7s ease-in-out infinite; }
+      @keyframes stpulse { 50% { stroke: #f2c54b; } }
+      body.talking #stamina { opacity: 0; }
+      /* knocked out (a fatal fall): the screen dims and asks to restart (src/main.js) */
+      #restart { position: fixed; inset: 0; z-index: 85; display: grid; place-items: start center; padding-top: 16vh; background: var(--en-scrim);
+        opacity: 0; visibility: hidden; transition: opacity .9s, visibility 0s .9s; }
+      #restart.open { opacity: 1; visibility: visible; transition: opacity .9s; }
+      /* the enamel card (issue #687, src/hud-look.js enamelCard): the dark panel, one brass hairline */
+      #restart .sheet { padding: 20px 32px 16px; background: var(--en-panel); color: var(--en-ink); border: 1.5px solid var(--en-brass); border-radius: var(--en-radius);
+        box-shadow: var(--en-shadow); transform: none; font: var(--type)/1.5 var(--face); text-align: center; min-width: 13em; max-width: calc(100vw - 32px); box-sizing: border-box; }
+      #restart p { margin: 0 0 10px; letter-spacing: 0.04em; }
+      /* its Restart: the button's glyph and the word, small, at the card's bottom right, no box (issue #695, src/hud-look.js enamelPrompt) */
+      #restart .sheet { display: flex; flex-direction: column; }
+      #restart button { align-self: flex-end; }
+      #restart button { display: inline-flex; align-items: center; gap: 0.45em; margin: 0; padding: 0; min-height: 1.9em; font: 600 0.92em/1.2 var(--face); letter-spacing: 0.04em; text-transform: none; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; transform: none; }
+      #restart button:hover, #restart button:focus, #restart button:focus-visible, #restart button:active { color: inherit; background: none; border: 0; outline: none; box-shadow: none; transform: none; }
+      body.controller #restart button:not(:only-of-type):focus > .lbl, #restart button:hover > .lbl { text-decoration: underline 1.5px; text-underline-offset: 0.3em; }
+      #restart button > .glyph { margin: 0; }
+      body.controller #restart button > .glyph { background: var(--en-ink, #f7ecd2); color: var(--gk, var(--en-key-ink, #18201f)); }
+      body.controller #restart button > .glyph.keys-only { display: none; }
+      /* photo mode's keys: a hint like the others (issue #306), the dark strip at the top centre */
+      #photo {
+        position: fixed; left: 50%; top: var(--hint-top); transform: translateX(-50%); display: none; z-index: 60;
+        font: 500 var(--type-s) var(--face); color: var(--hint-ink); background: var(--hint-bg);
+        border: 0; border-radius: var(--hint-radius); padding: 0.3em 0.95em 0.35em; pointer-events: none; animation: fadehint 4s forwards;
+      }
+      body.controller.controller-hint #photo { display: none; }   /* (a pad in hand: its buttons' line instead, #controller-hint) */
+      #photo.open { display: block; }
+      @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+      #fps { position: fixed; right: 64px; bottom: 22px; z-index: 30; font: 12px var(--face-mono);   /* (a measuring readout: the mono's even columns) */ color: #2b211f;
+        background: rgba(255, 250, 240, 0.8); border: 1.5px solid #2b211f; padding: 3px 7px; pointer-events: none; }
+      #fps:empty, body.nofps #fps { display: none; }
+      body.touch #fps { top: 22px; bottom: auto; right: 64px; }
+      /* the menu's button: only on a touch screen (keyboard: O / Esc, a pad: Menu), small and faint in the corner */
+      #gear {
+        position: fixed; right: 14px; bottom: 14px; z-index: 30; width: 30px; height: 30px; padding: 0; font-size: 17px; line-height: 1;
+        background: rgba(255, 250, 240, 0.35); color: #2b211f; border: 1.5px solid rgba(43, 33, 31, 0.45); border-radius: 50%; cursor: pointer;
+        opacity: 0.45; transition: opacity 0.2s;
+      }
+      #gear:active, #gear:focus-visible { opacity: 1; }
+      body:not(.touch) #gear { display: none; }
+      #changelog { position: fixed; inset: 0; z-index: 8700; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
+      #changelog.open { display: grid; }
+      #changelog .panel {
+        width: min(46em, 94vw); max-height: 86vh; display: flex; flex-direction: column; padding: 1.5em 1.8em; background: #f7ecd2;
+        border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: var(--type-s)/1.45 var(--face); color: #2b211f;
+      }
+      #changelog h1 { margin: 0 0 10px; font: 900 1.55em/1.1 var(--face-title); letter-spacing: 0.1em; }
+      #changelog h1 span, #changelog h2 span { font-family: var(--face); font-size: 0.6em; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+      #changelog .list { overflow-y: auto; padding-right: 8px; }
+      #changelog h2 { margin: 14px 0 4px; font-size: 1.08em; border-bottom: 1px solid #2b211f; }
+      #changelog h2 span { font-size: 0.85em; }
+      #changelog ul { margin: 0; padding-left: 18px; }
+      #changelog li { margin: 3px 0; }
+      #changelog .buttons { margin-top: 12px; text-align: right; }
+      #changelog button { display: inline-flex; align-items: center; font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
+      #changelog .buttons button + button { margin-left: 8px; }
+      /* the interactive changelog (changelog.html?embed=1) over the game */
+      #changelog iframe.pictures { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #f7ecd2; z-index: 1; }
+      #changelog iframe.pictures[hidden] { display: none; }
+
+
+      /* touch */
+      #touch { display: none; }
+      body.touch #touch { display: block; }
+      /* a phone: the cue below the hearts and the magic bar (they show the moment you are hurt, top left) until the
+         stack places it (src/ship/cinema.js) */
+      @media (max-width: 700px) { body.touch #cue { top: calc(62px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); --enamel-width-cap: calc(100vw - 96px); } }
+      #touch .stick { position: fixed; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(43, 33, 31, 0.5); background: rgba(255, 250, 240, 0.25); display: none; z-index: 35; pointer-events: none; }
+      #touch .stick.on { display: block; }
+      #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
+      #touch button {
+        position: fixed; z-index: 36; width: 64px; height: 64px; border-radius: 50%; font: 700 18px var(--face);
+        color: #2b211f; background: rgba(255, 250, 240, 0.8); border: 2px solid #2b211f; touch-action: none;
+      }
+      /* each button's place and size: src/touch-layout.js (ui.js TouchControls sets them, scaled to the screen's short side) */
+      #touch .b-run.on { background: #f2c54b; }
+      body.touch #gear { top: 14px; bottom: auto; }
+      /* the loading screen (issue #791): black, and in the bottom-right corner only a small turning circle, the word
+         "Loading" and a thin bar moving with the load's real steps (src/load-page.js); a failure's line is put in its
+         place (main.js), wider and brighter so it can be read */
+      #loading {
+        position: fixed; inset: 0; z-index: 9000; background: #000; color: #e9e4d8; transition: opacity 0.8s;
+        font: var(--type-s) var(--face);
+      }
+      #loading.done { opacity: 0; pointer-events: none; }
+      #loading .corner {
+        position: absolute; right: calc(28px + var(--safe-right, env(safe-area-inset-right, 0px))); bottom: calc(24px + var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
+        display: flex; align-items: center; gap: 10px; opacity: 0.78;
+      }
+      /* transform animations run on the compositor, so they keep moving while the world is built: on an HTML
+         box of its own (will-change: its own layer from the start) */
+      #loading .pen {
+        flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%;
+        border: 2px solid currentColor; border-right-color: transparent; animation: spin 1s linear infinite; will-change: transform;
+      }
+      #loading .col { display: grid; gap: 5px; justify-items: end; }
+      #loading .msg { font-size: 0.82em; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+      #loading .bar { width: 96px; height: 2px; background: rgba(233, 228, 216, 0.18); overflow: hidden; }
+      #loading .bar i { display: block; width: 100%; height: 100%; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease-out; }
+      /* a failure (main.js gives the line role="alert"): the whole line, readable, alone (no circle, no bar) */
+      #loading .corner:has(.msg[role="alert"]) { opacity: 1; }
+      #loading .msg[role="alert"] { white-space: normal; max-width: min(26em, 80vw); text-align: right; text-transform: none; letter-spacing: 0.02em; font-size: 1em; line-height: 1.35; }
+      #loading .corner:has(.msg[role="alert"]) :is(.pen, .bar) { display: none; }
+      /* reduced motion (the system's, or the setting's .reduce-motion on the root): the circle pulses instead of turning */
+      @media (prefers-reduced-motion: reduce) { #loading .pen { animation: load-pulse 1.6s ease-in-out infinite alternate; border-right-color: currentColor; } }
+      html.reduce-motion #loading .pen { animation: load-pulse 1.6s ease-in-out infinite alternate; border-right-color: currentColor; }
+      @keyframes load-pulse { from { opacity: 0.25; } to { opacity: 1; } }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* what people say in passing: the conversation's dark panel (issue #687, src/hud-look.js), its tail in the brass */
+      .balloon {
+        position: fixed; left: 0; top: 0; z-index: 40; will-change: transform; max-width: 17em; padding: 0.45em 0.8em;
+        font: var(--type-s)/1.35 var(--face); color: var(--en-ink); background: var(--en-panel);
+        border: 1.5px solid var(--en-brass); border-radius: var(--en-radius); box-shadow: var(--en-shadow); pointer-events: none; opacity: 0; transition: opacity 0.25s;
+      }
+      .balloon::after {
+        content: ''; position: absolute; left: 22px; bottom: -9px; border: 8px solid transparent;
+        border-top-color: var(--en-brass); border-bottom: 0; border-left: 0;
+      }
+      .balloon.show { opacity: 1; }
+      /* nobody else's chatter while you talk to someone: it landed on top of the choices */
+      body.talking .balloon { opacity: 0; transition: none; }
+
+      /* conversations (src/story/dialogue.js): a comic panel along the bottom. Everything in it is sized in em of
+         --dlg, the page's type: about 2.9 % of the screen's height (21 px at 720, 23 at the Deck's 800, 31 at 1080,
+         42 at 1440), never under 17 px (the Retroid's 410), and the panel 46 em wide (about 64 letters a line);
+         a phone held upright takes it from the width (issue #147: bigger words, read at a glance) */
+      #dialogue {
+        --dlg: calc(clamp(17px, 2.9vh, 46px) * var(--ts, 1) * var(--fit, 1));
+        position: fixed; left: 50%; bottom: calc(clamp(18px, 3.6vh, 60px) + var(--safe-bottom)); z-index: 75; width: min(46em, calc(100vw - 32px));
+        transform: translate(-50%, 24px); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.2);
+        font: var(--dlg)/1.4 var(--face); color: #f7ecd2;
+      }
+      #dialogue.open { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+      #dialogue .dlg-panel {
+        position: relative; background: rgba(22, 29, 29, .97); border: 1.5px solid #d9b575; border-radius: .55em; box-shadow: 0 2px 5px #0005; padding: 1.9em .85em .65em 4.15em; min-height: 4em; cursor: pointer;
+      }
+      /* the portrait at the panel's top-left corner, over its edge */
+      #dialogue .dlg-who { position: absolute; left: .75em; top: .75em; }
+      #dialogue .dlg-chip {
+        width: 2.7em; height: 2.7em; border: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+        box-shadow: none; transform: none; background: #d8a24a;
+      }
+      #dialogue .dlg-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      #dialogue .dlg-chip img[hidden] { display: none; }
+      #dialogue .dlg-chip img:not([hidden]) + span { display: none; }
+      #dialogue .dlg-chip span { font-size: 2.1em; font-weight: bold; color: #fffaf0; text-shadow: 2px 2px 0 #2b211f; }
+      /* who is speaking: their name in plain ink on the paper's first line, beside the portrait (issue #208: no black
+         caption box, nothing slanted, no subtitle under or after it) */
+      #dialogue .dlg-tag { position: absolute; left: 4.15em; right: .85em; top: .6em; color: #edbc76; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #dialogue .dlg-name { font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; font-size: .8em; line-height: 1.3; }
+      #dialogue .dlg-text { margin: 0 0 .45em; min-height: 1.4em; display: grid; }
+      /* the node's longest page laid out unseen under the one shown: the panel keeps its size as the pages turn (issue #60) */
+      #dialogue .dlg-text > .dlg-ghost, #dialogue .dlg-text > .dlg-live { grid-area: 1 / 1; }
+      #dialogue .dlg-text > .dlg-ghost { visibility: hidden; }
+      /* the translator's only trace: a foreign speaker's page fades in once as it comes (no letters typed, no script turning) */
+      #dialogue .dlg-text.heard > .dlg-live { animation: dlg-heard 0.3s ease-out; }
+      @keyframes dlg-heard { from { opacity: 0.2; } }
+      /* the answers' room, kept on the page before them: they come up in place */
+      #dialogue .dlg-choices.waiting { visibility: hidden; pointer-events: none; }
+      #dialogue .dlg-text.player { font-style: italic; color: #e0e8ed; }
+      /* *highlights*: the places to go, the things to do (in the panel, the choices and the balloons) */
+      #dialogue .dlg-text em, #dialogue .dlg-choices em, .balloon em { font-style: normal; font-weight: bold; color: #b23a2c; background: #f2c54b4d; padding: 0 2px; border-radius: 2px; }
+      /* the key phrase, "something of value" (src/story/key-phrase.js): the charge's gold and its ✦, wherever it is said */
+      #dialogue .dlg-text em.value, #dialogue .dlg-choices em.value, .balloon em.value { font-style: normal; font-weight: bold; color: #8a5a10; background: none; border-bottom: 2px solid #e2b552; padding: 0; white-space: nowrap; }
+      #dialogue .dlg-text em.value::before, #dialogue .dlg-choices em.value::before, .balloon em.value::before { content: '✦'; color: #d9a43a; font-size: 0.8em; margin-right: 3px; }
+      #dialogue .dlg-text em.quote, .balloon em.quote { font-weight: normal; color: inherit; background: #f2c54b55; }   /* a quoted letter or recording */
+      /* the next press turns the page: a small pointer in the corner */
+      #dialogue .dlg-more { display: none; position: absolute; right: 1em; bottom: 0.7em; width: 0; height: 0;
+        border: 0.42em solid transparent; border-top: 0.55em solid #edbc76; border-bottom: 0; animation: dlg-more 1s ease-in-out infinite; }
+      #dialogue.more .dlg-more { display: block; }
+      /* with a pad in hand, the button that turns it too, on the panel's bottom edge as the name sits on its top (issue #150) */
+      #dialogue .dlg-next { display: none; position: absolute; right: .9em; bottom: .55em; transform: none; line-height: 0; }
+      body.controller #dialogue.more .dlg-next { display: inline-flex; align-items: center; gap: .4em; line-height: 1.4; font-size: .8em; color: #f7ecd2; }
+      body.controller #dialogue.more .dlg-more { display: none; }
+      #dialogue .dlg-next .key { font-size: 0.8em; min-width: 1.8em; height: 1.8em; box-shadow: none; }
+      @keyframes dlg-more { 50% { transform: translateY(3px); } }
+      #dialogue .makers-mark, .balloon .makers-mark { width: 1.6em; height: 1.05em; vertical-align: -0.12em; fill: #3aa6a8; stroke: #3aa6a8; margin: 0 2px; }
+      /* the answers: no boxes, only their words on the paper with a red mark beside each; the one the pad, the mouse or
+         a finger is on in full ink, a red ink line under it (issue #147: lighter than the boxed buttons they were) */
+      #dialogue .dlg-choices { display: flex; flex-direction: column; gap: 0.15em; }
+      /* an answer: its mark in a column of its own, its words beside it (they wrap beside the mark, never under or over it) */
+      #dialogue .dlg-choices button {
+        display: flex; align-items: flex-start; gap: 0.55em; width: 100%; box-sizing: border-box; margin: 0;
+        text-align: left; font: inherit; font-size: 0.95em; line-height: 1.45; color: #f7ecd2; background: none; border: 0; border-radius: 0; padding: 0.12em 0; cursor: pointer;
+        box-shadow: none; -webkit-tap-highlight-color: transparent;
+      }
+      #dialogue .dlg-choices button:hover, #dialogue .dlg-choices button:focus { color: #edbc76; outline: none; }
+      #dialogue .dlg-choices button:hover .dlg-say, #dialogue .dlg-choices button:focus .dlg-say {
+        text-decoration: none;
+      }
+      #dialogue .dlg-say { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+      /* the mark's column: one line tall, its marks stacked in one cell (src/story/dialogue.js choiceHtml) */
+      #dialogue .dlg-key { flex: 0 0 auto; display: grid; place-items: center; min-width: 1.1em; height: 1.45em; color: #edbc76; font-weight: bold; }
+      #dialogue .dlg-key > * { grid-area: 1 / 1; }
+      #dialogue .dlg-key .key { font-size: 0.82em; min-width: 1.8em; height: 1.8em; }
+      /* the keyboard: the number to press; a touch screen: a plain mark */
+      #dialogue .dlg-mark, #dialogue .dlg-key .key { display: none; }
+      #dialogue button:focus .dlg-mark, #dialogue button:hover .dlg-mark { display: block; }
+      #dialogue button:focus .dlg-num, #dialogue button:hover .dlg-num { visibility: hidden; }
+      #dialogue .dlg-choices button:disabled { opacity: .45; cursor: default; }
+      body.touch #dialogue .dlg-num { display: none; }
+      body.touch #dialogue .dlg-mark { display: block; visibility: hidden; }
+      /* a controller: the confirm button's badge on the answer it would pick, a mark on the others */
+      body.controller #dialogue .dlg-num { display: none; }
+      body.controller #dialogue .dlg-mark { display: block; visibility: hidden; }
+      #dialogue .dlg-confirm { display: none; }
+      body.controller #dialogue button:focus .dlg-confirm { display: inline-flex; position: absolute; right: .85em; bottom: .65em; align-items: center; gap: .4em; font-size: .8em; line-height: 1.4; color: #f7ecd2; }
+      body.controller #dialogue .dlg-confirm .key { display: inline-flex; visibility: visible; font-size: 1em; }
+      body.controller #dialogue .dlg-choices button:last-child { padding-right: 6.5em; }
+      #dialogue .dlg-confirm .key, #dialogue .dlg-next .key { background: #f7ecd2; color: #18201f; border: 1px solid #d9b575; box-shadow: none; }
+      html.speech-solid body.controller #dialogue button:focus .dlg-confirm, html.speech-solid body.controller #dialogue.more .dlg-next { color: #000; }
+      html.speech-solid #dialogue .dlg-confirm .key, html.speech-solid #dialogue .dlg-next .key { background: #fff; color: #000; border-color: #000; }
+      body.controller #dialogue button:focus .dlg-mark, body.touch #dialogue button:focus .dlg-mark, body.touch #dialogue button:hover .dlg-mark { visibility: visible; }
+      body.controller #dialogue.more .dlg-panel { padding-bottom: 1.9em; }
+      @media (max-width: 600px) {
+        body.controller #dialogue .dlg-panel { padding-bottom: 1.9em; }
+        body.controller #dialogue .dlg-choices button:last-child { padding-right: 0; }
+      }
+      /* words in a speaker's own script (src/story/scripts.js; only the tongues page draws them now: tools/tongues.html) */
+      #dialogue svg.tg { pointer-events: none; }
+      /* a short screen (the Retroid's 410, a phone on its side): the lines a little closer, the panel lower */
+      @media (max-height: 480px) {
+        #dialogue { line-height: 1.36; bottom: calc(10px + var(--safe-bottom)); }
+        #dialogue .dlg-panel { padding-top: 1.8em; padding-bottom: .6em; }
+        #dialogue .dlg-tag { top: .5em; }
+        #dialogue .dlg-choices button { line-height: 1.36; padding: 0.08em 0; }
+        #dialogue .dlg-key { height: 1.36em; }
+      }
+      /* a phone held upright: the type from the screen's width (about 32 letters a line), the portrait over the words */
+      @media (max-width: 600px) {
+        #dialogue { --dlg: calc(clamp(15px, 4.5vw, 22px) * var(--ts, 1) * var(--fit, 1)); bottom: calc(150px + var(--safe-bottom)); }
+        #dialogue .dlg-panel { padding: 3.6em .75em .65em; }
+        #dialogue .dlg-chip { width: 2.4em; height: 2.4em; }
+        #dialogue .dlg-who { top: .6em; left: .75em; }
+        #dialogue .dlg-tag { left: 3.75em; right: .75em; top: 1.05em; }
+      }
+      /* the prompt over whoever (or whatever) the use button would use: a round button badge and the action */
+      #prompt {
+        position: fixed; left: 0; top: 0; z-index: 39; will-change: transform; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+        font: 500 var(--type-s) var(--face); color: var(--hint-ink); background: var(--hint-bg); border: 0; padding: 0.25em 0.8em 0.25em 0.3em; white-space: nowrap;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); border-radius: 1.2em; display: flex; align-items: center; gap: 0.5em;   /* (the hints' dark strip, issue #306) */
+      }
+      #prompt.show { opacity: 1; }
+      /* hints subtle or off (src/hint-level.js): the button alone, a small quiet glyph, no words */
+      #prompt.glyph { background: none; border: 0; box-shadow: none; padding: 0; }
+      #prompt.glyph .key { font-size: calc(var(--type-key) * 1.15); }   /* (the button alone: the one thing over them) */
+      #prompt.glyph.show, #cue.glyph.show { opacity: 0.8; }
+      #prompt.glyph .key, #cue.glyph .key { box-shadow: 0 0 0 1.5px #fffaf0, 1.5px 1.5px 0 1.5px rgba(43, 33, 31, 0.35); }
+      #cue.glyph { background: none; border: 0; box-shadow: none; padding: 0; }
+      /* a button, wherever a prompt names one: a small ink circle (a pill for the two-glyph "X / □" names) */
+      .key {
+        display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.75em; height: 1.75em; padding: 0 0.45em;
+        border-radius: 999px; background: #2b211f; color: #fffaf0; font-weight: bold; font-size: var(--type-key, 0.95em); line-height: 1; vertical-align: middle;
+      }
+      /* a {key:verb} in a line (src/prompt-keys.js keyText): the player's own key or button, in the line's own type, bold */
+      kbd.kp { font: inherit; font-weight: bold; white-space: nowrap; }
+      /* the father's charge (src/story/charge.js): its own gold tag on the objective line */
+      /* (a big screen needs no step up of its own: the prompt and the cue are --type-s, from the screen's height) */
+      /* in a conversation only the panel speaks: no prompts, no button lists */
+      body.talking .balloon, body.talking #prompt, body.talking #controller-hint, body.talking #gear { visibility: hidden; }
+      /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
+      body.talking #touch { visibility: hidden; }
+      /* sat on a bench (src/benches.js): the HUD fades away while he takes in the view (the touch stick stays, faint: a push stands him up) */
+      body.seated #health, body.seated #keys, body.seated #stamina, body.seated #tool, body.seated #gear, body.seated #cue, body.seated #prompt,
+      body.seated .balloon, body.seated #foe-lock { opacity: 0 !important; transition: opacity 1.2s ease !important; }
+      body.seated #touch { opacity: 0.25; transition: opacity 1.2s ease; }
+      #touch .b-use.talk { font-size: calc(13px * var(--tk, 1)) !important; }   /* (over the inline size: src/touch-layout.js) */
+      /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
+
+      /* a notice: one short line on a dark strip, cream on ink (issue #221: the translucent cream paper was hard to read
+         over a bright world, too wide and too wordy; issue #306: every hint the same strip, at the top); src/ship/cinema.js
+         places it clear of the hearts, paces it (src/notice-pace.js) and stacks it with the cue, the scenes' hint and the
+         objective card, which look the same */
+      #toast {
+        position: fixed; left: 50%; top: var(--hint-top); transform: translateX(-50%); z-index: 60; padding: 0.3em 0.95em 0.35em;
+        font: 500 var(--type-s)/1.35 var(--face); letter-spacing: 0.01em; color: var(--hint-ink); background: var(--hint-bg);
+        border: 0; border-radius: var(--hint-radius); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); opacity: 0; pointer-events: none; text-wrap: balance;
+      }
+      #toast kbd.kp { color: var(--hint-accent); }   /* (a button named in it: the player's own, in gold) */
+      /* a quest's start: one short line, its mark and its title (the step after it with hints full), plainly a quest: the
+         gold diamond for a main one (issue #72: it was a head, the title and the step on three lines) */
+      #toast.quest { padding: 0.35em 1.2em 0.45em; white-space: nowrap; }
+      #toast.quest span { display: inline; }
+      #toast.quest .qk { margin-right: 0.5em; color: var(--hint-accent); font-size: 1.05em; }
+      #toast.quest .qk.errand { color: #d9c9a3; }
+      #toast.quest .qt { font: italic 500 1.2em/1.3 var(--face); letter-spacing: 0.03em; }
+      #toast.quest .qs { font-size: 1em; opacity: 0.85; }
+      #toast.quest .qs::before { content: '·'; margin: 0 0.55em; opacity: 0.7; }
+      #toast.show { animation: toast 4.5s forwards; }
+      /* the toast is placed in the stack of things written on the screen (src/ship/cinema.js layoutCinema):
+         one line where it can, centred, and over the letterbox's frame during a scene, below its top bar */
+      #toast { width: max-content; max-width: min(32em, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
+      body.cine-on #toast { z-index: 8050; }
+      /* a phone on its side: the buttons fill the right, so a notice wraps narrower and slides left of them (src/ship/cinema.js) */
+      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(32em, 60vw); --enamel-width-cap: min(32em, 60vw); } }
+      @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+
+      #page {
+        position: fixed; inset: 0; z-index: 80; display: none; place-items: center;
+        background: rgba(43, 33, 31, 0.55); cursor: pointer;
+      }
+      #page.open { display: grid; animation: pagein 0.5s ease-out; }
+      @keyframes pagein { from { opacity: 0; transform: scale(0.97); } }
+      #page .sheet {
+        width: min(960px, 92vw, calc((100vh - 110px) / 0.8)); padding: 22px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 8px 8px 0 #2b211f;
+        display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; transform: none; box-sizing: border-box;
+      }
+      #page .p { min-width: 0; position: relative; border: 3px solid #2b211f; background: #efe3c6; overflow: hidden; }
+      #page .p img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      #page .p1 { grid-column: 1 / 3; aspect-ratio: 900 / 380; }
+      #page .p2 { aspect-ratio: 440 / 300; transform: none; }
+      #page .p3 { aspect-ratio: 440 / 300; transform: none; }
+      #page .cap {
+        position: absolute; left: 12px; top: 12px; max-width: 46%; padding: 7px 10px; background: #fff6dc;
+        border: 2px solid #2b211f; font: var(--type-s)/1.4 var(--face); color: #2b211f;
+      }
+      #page .cap b { letter-spacing: 0.12em; }
+      #page .hint { grid-column: 1 / 3; text-align: right; font: calc(var(--type) * 1.15)/1 var(--face); color: #c8483a; margin: -6px 2px -8px 0; }
+
+      @media (max-width: 600px) {
+        #page .sheet { width: 92vw; padding: 12px; gap: 8px; max-height: calc(100dvh - 32px); overflow: auto; }
+        #page .p1 { aspect-ratio: auto; }
+        #page .p1 img { height: auto; aspect-ratio: 900 / 380; }
+        #page .cap { position: static; max-width: none; margin: 8px; }
+      }
+
+      /* The canvas fills the screen; interactive UI stays inside iOS safe areas. */
+      #gear { right: calc(14px + var(--safe-right)); bottom: calc(14px + var(--safe-bottom)); }
+      /* the frame-time readout (when asked for: F, the settings, ?fps=1) sits top right */
+      #fps { right: calc(14px + var(--safe-right)); top: calc(14px + var(--safe-top)); bottom: auto; }
+      body.touch #gear { top: calc(12px + var(--safe-top)); bottom: auto; }
+      body.touch #fps { top: auto; bottom: calc(14px + var(--safe-bottom)); left: calc(16px + var(--safe-left)); right: auto; }
+      #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
+      #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
+      @media (display-mode: standalone) { .install-tip { display: none; } }
+      /* photo mode's buttons, a pad in hand: a hint like the others (issue #306) */
+      #controller-hint { display: none; position: fixed; z-index: 1000; top: var(--hint-top); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 0.3em 0.95em 0.35em; color: var(--hint-ink); background: var(--hint-bg); border: 0; border-radius: var(--hint-radius); font: 500 var(--type-s) var(--face); pointer-events: none; }
+      body.controller.controller-hint #controller-hint { display: block; }
+      /* holding a controller (a Retroid, a pad on a phone): no buttons on the screen at all */
+      body.controller #touch, body.controller #gear { display: none; }
+      body.controller :focus { outline: 3px solid #277e86; outline-offset: 4px; }
+      /* the traveller's tool: crosshair + mode while aiming */
+      #tool { position: fixed; left: 50%; top: 50%; z-index: 30; pointer-events: none; transform: translate(-50%, -50%);
+        opacity: 0; visibility: hidden; transition: opacity 0.4s, visibility 0s 0.4s; }
+      body.aiming #tool, body.tool-gauge #tool { opacity: 1; visibility: visible; transition: opacity 0.15s; }
+      body:not(.aiming) #tool .cross { visibility: hidden; }
+      body.talking #tool, body.cine-on #tool { visibility: hidden; }   /* (a cinematic: the jar's gauge waits too) */
+      #tool .cross { position: relative; width: 24px; height: 24px; border: 2px solid #2b211f; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(247, 236, 210, 0.75), inset 0 0 0 1.5px rgba(247, 236, 210, 0.6); transition: transform 0.12s; }
+      #tool .cross::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px; border-radius: 50%; background: #2b211f; }
+      #tool .cross i { position: absolute; background: #2b211f; box-shadow: 0 0 0 1px rgba(247, 236, 210, 0.7); }
+      #tool .cross i:nth-child(1) { left: 50%; top: -11px; width: 2px; height: 7px; margin-left: -1px; }
+      #tool .cross i:nth-child(2) { left: 50%; bottom: -11px; width: 2px; height: 7px; margin-left: -1px; }
+      #tool .cross i:nth-child(3) { top: 50%; left: -11px; height: 2px; width: 7px; margin-top: -1px; }
+      #tool .cross i:nth-child(4) { top: 50%; right: -11px; height: 2px; width: 7px; margin-top: -1px; }
+      #tool.fluid .cross::after { background: #966ede; width: 5px; height: 5px; margin: -2.5px; }
+      #tool.empty .cross { border-style: dashed; opacity: 0.55; }
+      #tool.lock .cross { transform: scale(0.8) rotate(45deg); border-color: #c8483a; border-style: solid; }
+      #tool.lock .cross i { background: #c8483a; }
+      #tool.wait .cross { opacity: 0.45; }
+      #tool .cross.hit { animation: toolhit 0.3s ease-out; }
+      #tool .cross.empty { animation: toolempty 0.3s; }
+      @keyframes toolhit { 0% { transform: scale(1.9); border-color: #c8483a; } 100% { transform: scale(1); } }
+      @keyframes toolempty { 0%, 100% { translate: 0; } 30% { translate: -3px; } 70% { translate: 3px; } }
+      #tool .mode { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px;
+        font: calc(var(--type-s) * 0.9)/1.5 var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
+      #tool .mode b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; }
+      #touch .b-aim.on { background: #9fd6e8; }
+      body:not(.combat) #touch .b-lock { display: none; }   /* (only with a foe near: src/foes.js) */
+      body:not(.modes) #touch .b-mode { display: none; }
+      /* the sword and the guard not found yet (v1.44: main.js armTool) */
+      body.no-sword #touch .b-blade, body.no-shield #touch .b-guard { display: none; }
+      /* no backpack yet: no tool buttons, no tool hints (ui.js ToolHud sets .no-tool) */
+      body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade, body.no-tool #touch .b-guard, body.no-tool #touch .b-evade, body.no-tool #touch .b-lock { display: none; }
+      /* the gun modes: the label and the crosshair's dot take the mode's colour */
+      body.modeflash #tool { opacity: 1; visibility: visible; transition: opacity 0.15s; }
+      body.modeflash:not(.aiming) #tool .mode { animation: modeflash 1.6s ease-out forwards; }
+      @keyframes modeflash { 0% { transform: translateX(-50%) scale(1.35); } 15% { transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+      #tool.m-stun .mode b { color: #3d74c4; }
+      #tool.m-fire .mode b { color: #cf4f2c; }
+      #tool.m-stun .cross::after { background: #7fb6e6; }
+      #tool.m-fire .cross::after { background: #ef7a3c; }
+      #tool.m-push .mode b { color: #3d7fa8; }
+      #tool.m-push .cross { transform: scale(1.35); }
+      #tool.m-bloom .mode b { color: #3f8a46; }
+      #tool.m-bloom .cross::after { background: #e58aa0; }
+      #touch .b-mode { color: #2b211f; }
+
+      /* accessibility (src/ui.js applyAccess, docs/systems/ui.md "Accessibility"):
+         a solid, plain background behind speech: no ruled paper, darker ink, a heavier frame */
+      html.speech-solid #dialogue .dlg-panel { background: #ffffff; background-image: none; color: #000000; border-width: 3px; }
+      html.speech-solid #dialogue .dlg-tag { color: #000; }
+      html.speech-solid #dialogue .dlg-panel { border-color: #000; box-shadow: none; }
+      html.speech-solid #dialogue .dlg-key { color: #000; }
+      #dialogue .dlg-text em, #dialogue .dlg-choices em, .balloon em { color: #edbc76; background: none; }
+      #dialogue .dlg-text em.value, #dialogue .dlg-choices em.value, .balloon em.value { color: var(--en-gold); border-bottom-color: var(--en-brass); }   /* (the key phrase on the dark panel: issue #687) */
+      html.speech-solid #dialogue .dlg-text em.value, html.speech-solid #dialogue .dlg-choices em.value, html.speech-solid .balloon em.value { color: #704000; }
+      html.speech-solid #dialogue .dlg-text em, html.speech-solid #dialogue .dlg-choices em { color: #704000; }
+      html.speech-solid #dialogue .dlg-text.player { color: #1c2440; }
+      html.speech-solid #dialogue .dlg-choices button { color: #000000; }
+      html.speech-solid .balloon { background: #ffffff; color: #000000; border-color: #000000; border-width: 2.5px; box-shadow: none; }
+      html.speech-solid .balloon::after { border-top-color: #000000; }
+      html.speech-solid .balloon em { color: #704000; }
+      html.speech-solid #restart .sheet { background: #000000; color: #ffffff; border-color: #ffffff; }
+      html.speech-solid #cue, html.speech-solid #prompt:not(.glyph), html.speech-solid #photo, html.speech-solid #controller-hint { background: #000000; color: #ffffff; }
+      html.speech-solid #toast, html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
+      html.speech-solid #cue.place span { background: #ffffff; color: #000000; padding: 2px 8px; }
+
+      /* Approved enamel hint family: an inset cream frame and turquoise tab; no new advice. */
+      #cue:not(.glyph):not(.place), #toast, #prompt:not(.glyph), #photo, #controller-hint, #cine .hint, #objective .t {
+        border-radius: var(--hint-radius); box-shadow: 0 2px 4px rgba(0,0,0,.18); overflow-wrap: anywhere;
+      }
+      #cue:not(.glyph):not(.place)::before, #toast::before, #prompt:not(.glyph)::before, #photo::before, #controller-hint::before, #cine .hint::before, #objective .t::after {
+        content: ''; position: absolute; inset: 3px; border: 1px solid rgba(247,236,210,.65); border-radius: 4px; pointer-events: none;
+      }
+      #cue:not(.glyph):not(.place)::after, #toast::after, #prompt:not(.glyph)::after, #photo::after, #controller-hint::after, #cine .hint::after {
+        content: ''; position: absolute; left: -3px; top: 50%; width: 4px; height: 14px; transform: translateY(-50%); background: var(--hint-accent); border-radius: 2px; pointer-events: none;
+      }
+      #cue:not(.glyph):not(.place) { padding: .5em 1.1em; }
+      #cue.quest .goal { font-style: normal; font-size: .75em; opacity: .85; }
+      #cue.quest .step { font-weight: 600; }
+      #toast { padding: .65em 1.2em; }
+      #toast.quest { padding: .65em 1.35em .75em; white-space: normal; }
+      #toast.quest .qh { display: block; font: 500 .75em/1.3 var(--face); letter-spacing: .05em; margin-bottom: .2em; opacity: .85; }
+      #toast.quest .qt { font: 600 1.15em/1.35 var(--face); letter-spacing: 0; }
+      #toast.quest .qk { color: var(--hint-accent); }
+      /* Enamel C: a separate instrument column, left-aligned copy, and a small brass rivet. */
+      #cue.quest:not(.glyph):not(.place), #toast.quest {
+        text-align: left; min-width: min(19em, var(--enamel-width-cap, calc(100vw - 32px))); padding: .8em 1.7em .8em 4.6em;
+        background-image: radial-gradient(circle at calc(100% - 12px) 12px, #ad9263 0 3px, #2b211f 3px 4px, transparent 4px);
+      }
+      #cue.quest .qi, #toast.quest .qk {
+        display: flex; position: absolute; left: .8em; top: .8em; bottom: .8em; width: 2.5em;
+        align-items: center; justify-content: center; border-right: 1px solid rgba(247,236,210,.55);
+        padding-right: .65em; box-sizing: border-box; margin: 0; color: var(--hint-ink); font-size: 1em;
+      }
+      #cue.quest .qcopy, #toast.quest .qcopy { display: block; min-width: 0; }
+      #toast.quest .qh, #cue.quest .goal { display: block; font-size: .85em; letter-spacing: .01em; line-height: 1.35; margin-bottom: .25em; }
+      #toast.quest .qt, #cue.quest .step { display: block; font-size: 1.12em; line-height: 1.4; font-weight: 500; }
+      #toast.quest .qs { display: block; margin-top: .25em; }
+      #toast.quest .qs::before { content: none; }
+      #cue.has-key:not(.glyph):not(.place) { display: flex; align-items: center; gap: .9em; text-align: left; padding: .8em 1.2em; }
+      #cue.has-key .key { flex-shrink: 0; margin: 0; }
+      #cue.has-key .hint-copy { border-left: 1px solid rgba(247,236,210,.55); padding-left: .9em; min-width: 0; }
+      html.speech-solid #cue.quest:not(.glyph):not(.place), html.speech-solid #toast.quest { background-image: none; }
+      html.speech-solid #cue .qi, html.speech-solid #toast .qk, html.speech-solid #cue .hint-copy { border-color: transparent; color: #fff; }
+      #prompt:not(.glyph) { padding: .8em 1.2em .8em .9em; white-space: normal; max-width: calc(100vw - 32px); box-sizing: border-box; gap: .75em; }
+      #prompt:not(.glyph) .key { flex-shrink: 0; }
+      #prompt:not(.glyph) > span:last-child { min-width: 0; border-left: 1px solid rgba(247,236,210,.55); padding-left: .9em; }
+      html.speech-solid #prompt:not(.glyph) > span:last-child { border-color: transparent; }
+      #photo, #controller-hint { padding: .6em 1.1em; max-width: calc(100vw - 32px); box-sizing: border-box; white-space: normal; }
+      #objective .t { position: relative; }
+      html.speech-solid #cue::before, html.speech-solid #cue::after, html.speech-solid #toast::before, html.speech-solid #toast::after,
+      html.speech-solid #prompt::before, html.speech-solid #prompt::after, html.speech-solid #photo::before, html.speech-solid #photo::after,
+      html.speech-solid #controller-hint::before, html.speech-solid #controller-hint::after, html.speech-solid #cine .hint::before, html.speech-solid #cine .hint::after, html.speech-solid #objective .t::after { display: none; }
+      html.speech-solid #toast.quest .qk { color: #ffffff; }
+      /* reduced motion: the panels and pages arrive without sliding, nothing blinks */
+      html.reduce-motion #dialogue { transform: translate(-50%, 0); transition: opacity 0.25s; }
+      html.reduce-motion #page.open, html.reduce-motion #dialogue .dlg-more, html.reduce-motion #dialogue .dlg-text.heard > .dlg-live { animation: none; }
+      /* not by colour alone: low health is hatched as well as red and pulsing, winded stamina dashed as well as red */
+      #health .h.low .hf { stroke: #2b211f; stroke-width: 0.8; stroke-dasharray: 1.5 1.5; }
+      #stamina.winded::after { content: '!'; position: absolute; left: 100%; top: -4px; margin-left: 1px; font: 900 15px/1 var(--face-title); color: #c8483a; text-shadow: 0 0 1px #161717, 0 0 1px #161717, 0 1px 2px rgba(0, 0, 0, 0.4); }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div class="corner">
+        <div class="pen" aria-hidden="true"></div>
+        <div class="col">
+          <div class="msg" data-t="load.word">Loading</div>
+          <div class="bar" aria-hidden="true"><i></i></div>
+        </div>
+      </div>
+    </div>
+    <script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>
+    <div id="journal"></div>
+    <div id="page"></div>
+    <div id="toast"></div>
+    <div id="dialogue" class="pad-raw"></div>
+    <div id="prompt"></div>
+    <div id="settings"></div>
+    <div id="touch"></div>
+    <div id="tool"></div>
+    <button id="gear" title="Menu (O)" aria-label="Menu" data-t-aria="menu.gear">⚙</button>
+    <div id="fps"></div>
+    <div id="photo" data-t="hint.photo">PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · H panel · ENTER save PNG · P exit</div>
+    <div id="picker" role="dialog" aria-label="Debug menu">
+      <header>
+        <h1>HIRAETH <span>· Debug</span></h1>
+        <span class="tools"><em class="hint"></em><button class="close">close ✕</button></span>
+      </header>
+    </div>
+    <div id="cue" aria-live="polite"></div>
+    <div id="health" role="group" aria-label="Hearts" data-t-aria="hud.hearts"><div class="row"><span class="hearts"></span><button type="button" class="potion" aria-label="Drink a potion" data-t-aria="hud.potion"><svg viewBox="0 0 14 18" aria-hidden="true"><path d="M5 1.2h4v1.6H5z" fill="#b07a45" stroke="#2b211f" stroke-width="1.2"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="#f7ecd2"/><path d="M1.4 10.6c1.6-0.9 3.4-0.2 5.6 0.2s3.9-0.2 5.6-0.7c0.3 3.4-2.4 6.1-5.6 6.1s-5.9-2.4-5.6-5.6z" fill="#d9503f"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="none" stroke="#2b211f" stroke-width="1.5" stroke-linejoin="round"/><path d="M3.6 9.6c-0.6 0.8-0.8 1.7-0.6 2.6" fill="none" stroke="#fff4dc" stroke-width="1.1" stroke-linecap="round"/></svg><b>∞</b></button><span class="chimes none" role="img" aria-label="Chimes" data-t-aria="hud.chimes"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 1.4L10.6 2.9L12.8 8.5L10.7 14.4L5.9 13.2L3.4 7.1Z" fill="#63d3e4"/><path d="M6.2 1.4L10.6 2.9L8.7 7.5L4.8 6.3Z" fill="#a9eef4"/><path d="M6.4 9.7L10.5 8.9L9.5 11.9L6.7 11.5Z" fill="#b9a7e8"/><path d="M8.7 7.5L10.7 14.4M8.7 7.5L12.8 8.5M4.8 6.3L5.9 13.2" fill="none" stroke="#2b211f" stroke-width="0.7" stroke-linecap="round"/><path d="M6.2 1.4L10.6 2.9L12.8 8.5L10.7 14.4L5.9 13.2L3.4 7.1Z" fill="none" stroke="#2b211f" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.6 3.1l1.9 0.6" fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/></svg><b>0</b></span></div><div class="magic"><i></i><u></u></div></div>
+    <div id="keys" role="img" aria-label="Small keys"><span class="small none"></span><span class="big none"></span></div>
+    <div id="stamina" aria-hidden="true"></div>
+    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button"><span class="glyph" data-glyph="ok" data-key="Enter" aria-hidden="true"></span><span class="lbl" data-t="restart.button">Restart</span></button></div></div>
+    <script type="module" src="./arena-bootstrap.js"></script>
+  </body>
+</html>

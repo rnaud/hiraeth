@@ -354,6 +354,12 @@ is already visible), the hound pair, the wood cutter pair, and the mummer pair o
 lands as its own reviewable commit with its pictures; the winner replaces the live body only after the author has
 seen the side-by-side.
 
+### Phase 2a results (shellback)
+
+The harness and the shellback pair are in `references/enemy-redesign-2026-10-30/trials/` (its README: the trial page,
+the scripts, the pictures and the comparison table). Both new bodies cut the crab's draws from +99 to +15 a body on
+High (six: +594 to +90); Tripo used 30 credits. Neither is in the game until the author picks one.
+
 ## 5. Decisions for the author
 
 1. **Completed:** all 45 selected originals are archived in the folders above; no download action remains.

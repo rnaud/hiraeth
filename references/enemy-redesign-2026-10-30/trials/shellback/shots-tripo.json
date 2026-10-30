@@ -1,0 +1,65 @@
+{
+ "quality": "high",
+ "variant": "tripo",
+ "foes": {
+  "crab@arzach2": {
+   "info": {
+    "kind": "crab",
+    "skin": "arzach2",
+    "atk": "snap",
+    "wind": 0.75,
+    "strike": 0.2,
+    "recover": 1.4,
+    "size": [
+     2.81,
+     1.57,
+     2.48
+    ],
+    "speed": 3.2,
+    "inventory": [
+     {
+      "meshes": 7,
+      "skinned": 1,
+      "triangles": 14052,
+      "materials": 2,
+      "textures": 1,
+      "textureMB": 5.33
+     }
+    ]
+   },
+   "built": [
+    "tripo"
+   ],
+   "strips": {
+    "hurt": {
+     "hp": 3,
+     "state": "idle",
+     "reel": null,
+     "alive": true,
+     "rag": false,
+     "dying": false
+    },
+    "death": {
+     "hp": -46.5,
+     "state": "dead",
+     "reel": "broken",
+     "alive": false,
+     "rag": false,
+     "dying": true
+    }
+   }
+  }
+ },
+ "mute": {
+  "muted": true,
+  "master": 0,
+  "ctxGain": 0
+ },
+ "trial": [
+  "crab",
+  "hound",
+  "brute",
+  "mummer"
+ ],
+ "errors": []
+}

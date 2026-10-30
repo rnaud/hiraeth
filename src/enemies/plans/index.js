@@ -69,9 +69,15 @@ const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, trip
   sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel };
 
+/**
+ * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another
+ * builder in for an archetype's while it compares them (`TRIAL_BUILDERS.crab = shellbackModel`). The game never sets one.
+ */
+export const TRIAL_BUILDERS = {};
+
 /** The body of a built archetype's kind in a world's skin (its stronger tier's: `tier`), or null (not one: an old kind draws itself). */
 export function archetypeModel(kind, world, tier = 0) {
   const a = archetypeOfKind(kind);
   if (!a || ARCHETYPES[a].status !== 'built' || !BUILDERS[a]) return null;
-  return BUILDERS[a](skinOf(a, world, tier));
+  return (TRIAL_BUILDERS[a] ?? BUILDERS[a])(skinOf(a, world, tier));
 }
