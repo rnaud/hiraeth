@@ -1,6 +1,6 @@
 {
-  "recorded": "2026-10-29",
-  "sha": "1598bafc4",
+  "recorded": "2026-10-30",
+  "sha": "fb2bb5edf",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -7417,6 +7417,121 @@
             0.4,
             0.3,
             128.6
+          ],
+          "late": false
+        }
+      ]
+    },
+    "moment-desert.font": {
+      "beats": [
+        {
+          "beat": "start",
+          "hud": {
+            "tool": true,
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": true
+            }
+          },
+          "menu": null,
+          "playing": {
+            "what": "moment:desert.font",
+            "stage": null
+          },
+          "objects": {
+            "ink": 1482,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "mote": 2
+          },
+          "cam": [
+            86.8,
+            2407,
+            -207.8,
+            51.7
+          ],
+          "player": [
+            75.2,
+            2400,
+            -205.7
+          ],
+          "late": false
+        },
+        {
+          "beat": "mid",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": true
+            }
+          },
+          "menu": null,
+          "playing": {
+            "what": "moment:desert.font",
+            "stage": null
+          },
+          "objects": {
+            "ink": 1515,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 2
+          },
+          "cam": [
+            73.8,
+            2400.6,
+            -209.9,
+            42.9
+          ],
+          "player": [
+            75.2,
+            2400,
+            -205.7
+          ],
+          "late": false
+        },
+        {
+          "beat": "late",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": true
+            }
+          },
+          "menu": null,
+          "playing": {
+            "what": "moment:desert.font",
+            "stage": null
+          },
+          "objects": {
+            "ink": 1544,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 2,
+            "mote": 2
+          },
+          "cam": [
+            73.9,
+            2401.6,
+            -206.4,
+            35.6
+          ],
+          "player": [
+            75.2,
+            2400,
+            -205.7
           ],
           "late": false
         }
