@@ -159,3 +159,70 @@ reads more clearly at play distance: a clean snout and round yellow eyes, flat c
 is what the house ink pass is built for; the Tripo texture carries its own baked hatching and noise, so it prints
 busier and darker than everything round it, and its face is muddier from the front. Worth pursuing only with a
 cleaner flat-colour texture (512–1024², no baked lines) and a fitted grip; not a drop-in replacement.
+
+## Flat Tripo: the atlas dropped (2026-10-29)
+
+The author asked whether the texture could be simplified enough to remove the hatching, so that the Tripo grunt is surfaced like the
+procedural one. This is done offline and reproducibly by `flatten-tripo.mjs` (input `tripo-rigged.glb`, output `tripo-flat.glb`;
+`--preview <folder>` writes software renders of the sampled colour beside the zones):
+
+- **No texture at all.** Each triangle is sampled once from the atlas (5 px median filter, then the median of seven points
+  inside it). The sample is snapped in Lab space to seeds, taken from the atlas's own colours, for the procedural grunt's zones:
+  skin, cloth, leather, iron, bone, ink and eye. Where colour alone is ambiguous, the body's layout decides. Tripo paints the
+  loincloth, tusks and claws the same tan, so tan on the hips is cloth and tan elsewhere is bone; eyes are allowed only in the
+  face. Four passes of majority smoothing and an island cleanup remove the hatching's flecks. The eyes are made round: every
+  front-facing triangle within 3.4 cm of each detected pupil becomes eye, and within 1.5 cm becomes ink (the procedural
+  grunt's sizes). Snout and belly triangles that Tripo painted paler keep a slight skin2 tint in the vertex colour.
+- **The game's own materials.** There is one primitive per zone, all sharing one vertex set and one index buffer. At run time
+  `arena-model.js` gives each zone the procedural grunt's own material (found by its palette colour). That makes its surface
+  patterns, gloss, shading and ink lines the same, and the eyes use the procedural grunt's own flashing material (orange in
+  the wind-up, blue when stunned). The skeleton and mesh are scaled to metres (1.3 m) in the file, so the bind-space patterns
+  print at the procedural scale. Normals are softened by three passes of neighbour averaging, so the house shading forms
+  broader shapes; `SMOOTH=0` keeps Tripo's normals. Zones: 25,314 skin, 2,818 cloth, 1,241 leather, 522 iron, 613 bone,
+  160 ink and 545 eye triangles.
+
+The Arena trial's selector has two new choices: **Tripo flat · procedural materials** and **Side by side · current | Tripo | flat**.
+With `MODE=side3`, the capture and sheet scripts produce the trio and two closer face shots. With `BENCH=1`, the capture
+script runs the page's matched benchmark headless instead:
+
+```sh
+MODE=side3 PORT=5448 node references/enemy-archetypes/grunt/tripo-trial/side-by-side-capture.mjs <scratch folder>
+MODE=side3 node references/enemy-archetypes/grunt/tripo-trial/side-by-side-sheet.mjs <scratch folder>
+BENCH=1 PORT=5448 node references/enemy-archetypes/grunt/tripo-trial/side-by-side-capture.mjs <scratch folder>
+```
+
+The sheets are `review/trio-poses.jpg`, `review/trio-turnaround.jpg` and `review/trio-faces.jpg`. They were captured on
+040d584c8 plus this change in headless Chrome (muted, review mute checked), High preset, 1280×720, Apple M4 Pro / ANGLE Metal.
+These are after-only pictures of three trial models, not a game change.
+
+| Per foe (page inventory, main pass) | Procedural | Tripo textured | Tripo flat |
+|---|---:|---:|---:|
+| Triangles | 10,234 | 31,213 | 31,213 |
+| Vertices | 30,060 | 33,495 | 33,495 |
+| Body draws | 8 | 1 | 7 (+2 trial club for both Tripo) |
+| Bones | 27 | 54 | 54 (one shared skeleton) |
+| Geometry bytes | 2,034,624 | 2,250,276 | 2,384,256 |
+| Texture GPU memory | none | 2048² ≈ 21.33 MiB | **none** |
+| GLB | procedural | 3,000,368 B | 2,412,340 B |
+
+Headless benchmark (`arena-performance-flat.json`, two rounds in reversed order, means of each round's median). Frames
+were vsync-bound at 16.7 ms throughout, so frame time says nothing here:
+
+| Foes | CPU ms cur / Tripo / flat | GPU ms cur / Tripo / flat | Scene draws cur / Tripo / flat |
+|---:|---:|---:|---:|
+| 1 | 2.30 / 2.25 / 2.25 | 7.55 / 7.27 / 7.11 | 99 / 84 / 102 |
+| 6 | 2.85 / 2.85 / 3.20 | 7.21 / 7.18 / 7.99 | 219 / 129 / 237 |
+| 12 | 3.50 / 4.00 / 4.55 | 7.88 / 7.69 / 7.34 | 363 / 183 / 399 |
+
+GPU times swing by about ±2 ms between rounds (8.4–10.2 ms in round one, 4.6–6.9 ms in round two, for every model). That is
+more than any difference between models, so read them as "no measurable GPU change". The flat body costs per-zone draws:
+about 3 more per foe than the procedural grunt across all passes, and about 1 ms more CPU at 12 foes. It frees the atlas's
+21 MiB.
+
+**Reading the pictures.** The flat Tripo grunt now prints in the procedural grunt's colours and weight: the same tomato
+red, khaki loincloth, brown strap, ivory tusks and claws, and round yellow eyes that flash in the wind-up like the
+procedural one's. The textured version's baked hatching, specks and dark mottling are gone. What remains busier than the
+procedural grunt is the geometry, not the texture. The scan-like scalp bumps, brow and folds break the house shading into
+more small shadow shapes and creases than the procedural spheres do, and the snout has no inked nostrils. The procedural
+face still reads more clearly at play distance (big snout, black nostrils, bigger eyes); the flat Tripo is closer to the
+sheet's silhouette. The rig limits above (overhead shoulders, club grip) are unchanged.

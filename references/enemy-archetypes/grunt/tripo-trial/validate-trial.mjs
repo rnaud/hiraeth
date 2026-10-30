@@ -17,3 +17,17 @@ for(const file of ['rigged.glb','tripo-rigged.glb','custom-rigged.glb']){
   console.log(`${file}: ${skin.joints} joints, normalized weights, valid indices and consistent rest binding`);
 }
 console.log('Custom source geometry / UV / normal / texture bytes unchanged.');
+// The flat export (flatten-tripo.mjs): no texture, the procedural grunt's zones, 1.3 m tall, and reproducible byte for byte.
+{
+  const flat=read('tripo-flat.glb'),zones=flat.json.meshes[0].primitives.map(p=>p.extras.zone);
+  assert.ok(!flat.json.images&&!flat.json.textures,'Flat export carries no texture');
+  assert.deepEqual(zones,['skin','cloth','leather','iron','bone','ink','eye'],'Flat export has every procedural zone, in order');
+  assert.ok(flat.json.meshes[0].primitives.every(p=>!p.attributes.TEXCOORD_0&&p.attributes.COLOR_0!=null),'Flat zones: vertex colours, no UVs');
+  const pos=flat.json.accessors[flat.json.meshes[0].primitives[0].attributes.POSITION];assert.ok(Math.abs(pos.max[1]-pos.min[1]-1.3)<1e-4,'Flat export is 1.3 m tall in its own frame');
+  const report=JSON.parse(execFileSync(process.execPath,[dir+'audit.mjs',dir+'tripo-flat.glb'],{encoding:'utf8'}));
+  assert.equal(report.triangles,31213);const skin=report.skins[0];assert.equal(skin.joints,54);assert.equal(skin.invalidWeights,0);assert.equal(skin.invalidJointIndices,0);
+  assert.ok(skin.maxWeightError<1e-5);assert.ok(skin.bindMatrixConsistencyError<1e-5);
+  const tmp=fs.mkdtempSync((process.env.TMPDIR??'/tmp/')+'tripo-flat-');
+  try{execFileSync(process.execPath,[dir+'flatten-tripo.mjs',dir+'tripo-rigged.glb',tmp+'/again.glb']);assert.ok(fs.readFileSync(tmp+'/again.glb').equals(fs.readFileSync(dir+'tripo-flat.glb')),'flatten-tripo.mjs reproduces tripo-flat.glb')}finally{fs.rmSync(tmp,{recursive:true,force:true})}
+  console.log(`tripo-flat.glb: zones ${zones.join(', ')}; no texture; 54 joints, consistent binding; reproduced byte for byte`);
+}

@@ -2,9 +2,11 @@
 // Usage (from the repository, Vite already serving it on PORT, default 5448; never 5173):
 //   node references/enemy-archetypes/grunt/tripo-trial/side-by-side-capture.mjs <scratch folder>
 // Headless Chrome with --mute-audio; the page's own review mute is checked before any capture.
+// MODE=side3: the trio, procedural | Tripo textured | Tripo flat (flatten-tripo.mjs), framed wider.
 import { spawn } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+const BENCH = !!process.env.BENCH, MODE = process.env.MODE ?? 'side', N = MODE === 'side3' ? 3 : 2, DIST = MODE === 'side3' ? 4.6 : 3.6;
 const DIR = process.argv[2]; if (!DIR) throw new Error('usage: side-by-side-capture.mjs <scratch folder>');
 const OUT = join(DIR, 'shots'); mkdirSync(OUT, { recursive: true });
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', CDP = 5449, URL = `http://127.0.0.1:${process.env.PORT ?? 5448}/references/enemy-archetypes/grunt/tripo-trial/arena.html`;
@@ -30,26 +32,44 @@ try {
   if (!(await ev('!!window.__gruntTrial'))) throw new Error('trial did not load: ' + errors.join(' | '));
   const audio = await ev('({muted:sound.muted,level:sound.masterLevel(),gain:sound.master?.gain.value??null})');
   if (!audio.muted || audio.level !== 0) throw new Error('not muted ' + JSON.stringify(audio));
-  await ev(`(()=>{const G=window.__gruntTrial;window.__stepDt=()=>1/60;for(const e of document.body.children)if(!e.querySelector?.('canvas')&&e.tagName!=='CANVAS')e.style.visibility='hidden';G.set('trial-asset','side');G.set('trial-mode','idle');G.spawn(2);return true})()`);
+  // BENCH=1: the page's own matched benchmark instead of the pictures (Measure 0 / 1 / 6 / 12, two rounds, every model).
+  if (BENCH) {
+    await ev(`(()=>{document.getElementById('trial-bench').click();return true})()`);
+    for (let i = 0; i < 2400 && !(await ev(`/complete/.test(document.getElementById('trial-status').textContent)`)); i++) await sleep(250);
+    const data = await ev(`JSON.parse(document.getElementById('trial-report').dataset.result)`);
+    writeFileSync(join(OUT, 'bench.json'), JSON.stringify(data, null, 1));
+    console.log(JSON.stringify(data.records.map((r) => [r.round, r.model, r.count, r.cpuMedianMs, r.gpuMedianMs, r.gpuSamples, r.drawCalls, r.submittedTriangles, r.frameMedianMs])));
+  }
+  await ev(`(()=>{const G=window.__gruntTrial;window.__stepDt=()=>1/60;for(const e of document.body.children)if(!e.querySelector?.('canvas')&&e.tagName!=='CANVAS')e.style.visibility='hidden';G.set('trial-asset','${MODE}');G.set('trial-mode','idle');G.spawn(${N});return true})()`);
   const club = await ev(`(()=>{const a=window.__gruntTrial.pack()[0].def.attacks.find(a=>a.id==='club');return {wind:a.wind,strike:a.strike??.3,recover:a.recover??window.__gruntTrial.pack()[0].def.recover}})()`);
   const poses = [
     ['idle', 'idle', 2.0], ['walk-a', 'walk', 2.2], ['walk-b', 'walk', 2.45],
     ['club-wind', 'attack', club.wind * 0.9], ['club-strike', 'attack', club.wind + club.strike * 0.6], ['club-recover', 'attack', club.wind + club.strike + club.recover * 0.3],
   ];
   const views = [['front', 0], ['threeq', -0.6], ['side', -1.5708], ['back', 3.1416]];
-  const report = { audio, club, errors, shots: [] };
-  for (const [name, mode, t] of poses) for (const [vn, yaw] of views) {
+  // (the trio's faces, closer: idle, and the wind-up's eye flash)
+  const faces = MODE === 'side3' ? [['face-idle', 'idle', 2.0], ['face-wind', 'attack', club.wind * 0.9]] : [];
+  const report = { mode: MODE, audio, club, errors, shots: [] };
+  for (const [name, mode, t] of BENCH ? [] : poses) for (const [vn, yaw] of views) {
     if (mode === 'walk' && vn !== 'front') continue;
-    await ev(`(()=>{const G=window.__gruntTrial;G.turn(${yaw});G.set('trial-mode','${mode}');G.spawn(2);G.pairView(0,3.6);G.setTime(0);G.runTo(${t});return true})()`);
+    await ev(`(()=>{const G=window.__gruntTrial;G.turn(${yaw});G.set('trial-mode','${mode}');G.spawn(${N});G.pairView(0,${DIST});G.setTime(0);G.runTo(${t});return true})()`);
     for (let i = 0; i < 400 && !(await ev('window.__gruntTrial.time()>=' + t)); i++) await sleep(50);
     await sleep(500);
-    const st = await ev(`window.__gruntTrial.pack().map(f=>({state:f.state,k:+f.k.toFixed(3),heading:+f.heading.toFixed(3),tripo:f.tripoTrial?.root.visible}))`);
+    const st = await ev(`window.__gruntTrial.pack().map(f=>({state:f.state,k:+f.k.toFixed(3),heading:+f.heading.toFixed(3),tripo:f.tripoTrial?.root.visible,file:f.tripoTrial?.file}))`);
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     const file = join(OUT, `${name}-${vn}.png`); writeFileSync(file, Buffer.from(shot.data, 'base64'));
     report.shots.push({ file, pose: name, view: vn, time: t, state: st });
   }
+  for (const [name, mode, t] of BENCH ? [] : faces) {
+    await ev(`(()=>{const G=window.__gruntTrial;G.turn(0);G.set('trial-mode','${mode}');G.spawn(${N});G.pairView(0,2.6,1.0);G.setTime(0);G.runTo(${t});return true})()`);
+    for (let i = 0; i < 400 && !(await ev('window.__gruntTrial.time()>=' + t)); i++) await sleep(50);
+    await sleep(500);
+    const shot = await send('Page.captureScreenshot', { format: 'png' });
+    const file = join(OUT, `${name}-front.png`); writeFileSync(file, Buffer.from(shot.data, 'base64'));
+    report.shots.push({ file, pose: name, view: 'front', time: t });
+  }
   // per-model inventory as the page measures it (main pass, one foe)
-  report.inventory = await ev(`(()=>{window.__gruntTrial.show();const d=JSON.parse(document.getElementById('trial-report').dataset.result);return {procedural:d.baselineInventory,tripo:d.generatedInventory}})()`);
+  report.inventory = await ev(`(()=>{window.__gruntTrial.show();const d=JSON.parse(document.getElementById('trial-report').dataset.result);return {procedural:d.baselineInventory,tripo:d.generatedInventory,flat:d.flatInventory}})()`);
   report.errors = errors;
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 1));
   console.log(JSON.stringify({ shots: report.shots.length, audio, inventory: report.inventory, errors: errors.slice(0, 5) }, null, 1));
