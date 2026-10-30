@@ -24,6 +24,7 @@ import { MARKET_NIGHT } from './market-night-kit.js';
 import { TRAIN_NIGHT, TRAIN_LOOK } from './overnight-train-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
+import { travelSearch } from '../world-travel.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -237,7 +238,7 @@ export const WORLD_LOOKS = {
 
 const pageParams = () => (typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams());
 const pageSearch = () => (typeof location !== 'undefined' ? location.search : '');
-const pageGo = (search) => { if (typeof location !== 'undefined') location.assign(search); };
+const pageGo = (search) => { if (typeof location !== 'undefined') travelSearch(search); };
 
 /**
  * One world's views, built (built in steps, src/load-steps.js: the game's load gives the main thread back

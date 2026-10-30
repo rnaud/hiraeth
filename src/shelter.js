@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { owned } from './world-scope.js';
 
 // Shelter: the weather stays outdoors. Rain (and the blown sand of a storm) is
 // drawn over the whole frame by the post pass (src/post.js), so on its own it
@@ -18,7 +19,7 @@ const INDOORS = new Set();
 /** Register an interior: `test(point)` says whether a world point is inside it. Returns an unregister function. */
 export function addIndoors(test) {
   INDOORS.add(test);
-  return () => INDOORS.delete(test);
+  return owned(() => INDOORS.delete(test));
 }
 
 /** Is this world point inside any registered interior? */

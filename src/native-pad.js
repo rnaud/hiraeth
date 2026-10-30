@@ -36,6 +36,7 @@ import { installPadMaps, eightBitDoLetters } from './pad-maps.js';
 import { padRename, keyRename, onControlPrefs } from './remap.js';
 import { onLanguage } from './i18n.js';
 import { onXbox } from './xbox.js';
+import { owned } from './world-scope.js';
 
 let native = null;
 
@@ -280,7 +281,7 @@ export function promptText(text, { layout: lay = layout, faces = labelFaces, fam
 export const labelState = () => ({ layout, faces: labelFaces, family: labelFamily });
 const labelHooks = new Set();
 /** Called whenever the page's labels are worked out again (a pad connected or gone, the setting, a language). */
-export const onLabels = (fn) => { labelHooks.add(fn); return () => labelHooks.delete(fn); };
+export const onLabels = (fn) => { labelHooks.add(fn); return owned(() => labelHooks.delete(fn)); };
 
 let observer = null, layout = 'standard';
 const source = new WeakMap();   // text node → [its text as the game wrote it, what we made of it]

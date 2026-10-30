@@ -16,6 +16,7 @@
 
 import { KEYS, PAD_VERBS, PAD_BUTTONS, BUTTON_NAME } from './bindings.js';
 import { t, language } from './i18n.js';
+import { owned } from './world-scope.js';
 
 export const RUN_MODES = ['auto', 'hold', 'toggle'];   // auto: the pad's L3 runs until the stick is let go (the keyboard holds)
 export const GUARD_MODES = ['hold', 'toggle'];
@@ -88,7 +89,7 @@ export function setControlPrefs(p = {}) {
 }
 export const controlPrefs = () => prefs;
 /** Told whenever the controls change (native-pad.js renames the prompts). Returns a function that stops it. */
-export function onControlPrefs(f) { listeners.add(f); return () => listeners.delete(f); }
+export function onControlPrefs(f) { listeners.add(f); return owned(() => listeners.delete(f)); }
 
 // ------------------------------------------------------------------ the keyboard
 

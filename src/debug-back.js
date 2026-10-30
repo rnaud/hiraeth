@@ -80,6 +80,7 @@ export function installDebugBack({ win = globalThis.window, keys = true, pad = t
   const holder = doc.createElement('div');
   holder.innerHTML = debugBackHtml(href);
   const button = holder.firstElementChild;
+  button.dataset.lasting = '';   // (the page's: kept when another world is swapped in, src/world-scope.js restorePage)
   doc.body.appendChild(button);
   doc.body.classList.add('has-debug-back');
   // (the glyph and the arrow follow what is in hand: a pad's B, the keys' Esc, a finger's arrow)

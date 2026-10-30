@@ -9,6 +9,7 @@ import { heightFn } from './world.js';
 import { basinHeight } from './desert-vistas.js';
 import { SITES, POLE_LINE, STORY, DRY_WASH, SAND_RIVER, SALT_PAN } from './desert-sites.js';
 import { channel, pan } from './desert-ground.js';
+import { owned } from './world-scope.js';
 
 // The structures of the desert reference pages (references/levels/The Desert/environment/IMG_3772-3775),
 // built as destinations across the three regions:
@@ -232,6 +233,7 @@ export function buildDesertLandmarks(scene, terrain) {
   const out = {};
   const ground = (s, r) => terrain.baseAt(s.x, s.z, r);
   Kit.terrain = terrain;
+  owned(() => { if (Kit.terrain === terrain) Kit.terrain = null; });   // (this world's ground let go with it: issue #790)
 
   // ---------------------------------------------------------- the sunken leviathan
   // Lying on its side in a dune: the spine along the sand, the ribs arching

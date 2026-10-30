@@ -3,6 +3,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { makeMaterial } from '../materials.js';
 import { textGeometry } from './sign-text.js';
 import { Q, QUESTS, PEOPLE, THINGS, ITEMS } from './night-train-data.js';
+import { travelSearch } from '../world-travel.js';
 
 // The night mail, alive (night-train-data.js has the words; docs/story-bible.md "The night mail").
 //
@@ -26,7 +27,7 @@ export function travel(ctx, href, delay = 0.9) {
   const { ship, game } = ctx;
   game.emit?.('travel:page', { href });
   ship?.cinema?.fade?.(1, false, Math.max(0.2, delay - 0.2));
-  const go = () => { try { globalThis.location.search = href; } catch { /* (node: no page) */ } };
+  const go = () => { try { if (globalThis.location) travelSearch(href); } catch { /* (node: no page) */ } };
   if (typeof setTimeout === 'function') setTimeout(go, delay * 1000); else go();
 }
 

@@ -37,7 +37,9 @@ import { installXbox } from './xbox.js';
 import { cameFromDebug, installDebugBack } from './debug-back.js';
 import { paintTitle } from './title-paint.js';
 import { createHold } from './title-hold.js';
+import { markPage, persist } from './world-scope.js';
 
+markPage(document);   // (index.html's own elements, noted before anything adds its: put back between worlds, src/world-travel.js)
 installXbox();        // (the Xbox app only: the TV's safe area, the Back button; a no-op elsewhere: src/xbox.js)
 // the title's drawing and name on the screen before anything else runs (the menu and the game follow)
 const titled = opensTitle(location.search) && new URLSearchParams(location.search).get('worlds') !== '1';
@@ -84,7 +86,8 @@ if (worldsOnly) {
 } else if (new URLSearchParams(location.search).has('start')) history.replaceState(null, '', location.pathname);   // (a reload goes back to the title)
 // (the game already running, from behind the title; else it loads now)
 if (!worldsOnly && !chosen?.behind) await import('./main.js');
-if (fromDebugMenu) installDebugBack({ keys: false, pad: false, fade: true });
+// (the page's, not the first world's: it stays when another world is swapped in, src/world-travel.js)
+if (fromDebugMenu) persist(() => installDebugBack({ keys: false, pad: false, fade: true }));
 
 if (new URLSearchParams(location.search).has('cinematicReview')) {
   const { startReview } = await import('./cinematics-page/runtime.js');

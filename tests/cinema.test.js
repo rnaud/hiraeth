@@ -142,8 +142,10 @@ test('heading to space opens on the night’s ink, not a white page (playtest 20
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(html.includes(`#loading.space { background: ${WARP.space};`));
   assert.ok(html.includes("<script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>"));
+  // (a world swapped in, issue #790: the same test on the loading page put back)
+  assert.ok(readFileSync(new URL('../src/world-travel.js', import.meta.url), 'utf8').includes("export const spaceLoading = (search) => /[?&](via=ship|game=pirates)(&|$)/.test(search);"));
   const ship = readFileSync(new URL('../src/ship/ship.js', import.meta.url), 'utf8');
-  assert.ok(ship.includes('location.search = this.departure?.(to) ?? `?level=${to}&via=ship`'), 'the take-off still arrives ?via=ship (or by way of the pirates: src/ambush.js arrivalHref)');
+  assert.ok(ship.includes('travelSearch(this.departure?.(to) ?? `?level=${to}&via=ship`)'), 'the take-off still arrives ?via=ship (or by way of the pirates: src/ambush.js arrivalHref)');
 });
 
 test('Plumb lines keep their full reading turn, defer to dialogue, and clear together on scene exit', async () => {

@@ -314,8 +314,12 @@ export class Sound {
     else g.setTargetAtTime(this.masterLevel(), t, 0.15);
   }
 
-  /** Start the sound (on a press, or before one where allowed). adopt: a running context already made (Sound.probe). */
-  start(adopt = null) {
+  /**
+   * Start the sound (on a press, or before one where allowed). adopt: a running context already made (Sound.probe), or
+   * the last world's (a world swapped in place, issue #790: src/world-travel.js), kept open: fadeIn (s) brings this
+   * world's master up from silence as the last one's goes down (release), the music crossfading.
+   */
+  start(adopt = null, { fadeIn = 0 } = {}) {
     // nothing starts or resumes while away (a press, a pad reconnecting, the frame loop): on return instead
     if (this.guard?.away()) {
       adopt?.close?.();
@@ -328,6 +332,7 @@ export class Sound {
     const ctx = (this.ctx = adopt ?? new AC());
     this.master = ctx.createGain();
     this.master.gain.value = this.masterLevel();
+    if (fadeIn > 0) { this.master.gain.setValueAtTime(0, ctx.currentTime); this.master.gain.setTargetAtTime(this.masterLevel(), ctx.currentTime, fadeIn / 3); }
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18;
     this.master.connect(comp).connect(ctx.destination);
@@ -733,6 +738,40 @@ export class Sound {
     g.gain.linearRampToValueAtTime(0, t + dur + 2.5);
   }
 
+  /**
+   * The world is swapped for another in this page (issue #790, src/world-travel.js): its context handed on, still
+   * running and allowed to play, so the next world needs no press to be heard. Its score goes on meanwhile (the
+   * loading page) until the next world's sound has started on that context: then `release` fades this one out.
+   * Null when there is no context to hand on (never started: the next one starts as a page's would).
+   */
+  handOver() {
+    if (!this.ctx || this._disposed || this.ctx.state === 'closed') { this.dispose(); return null; }
+    this._unlisten?.();
+    this._listening = false;
+    this._handedOver = true;
+    // (the world's timers were let go with it: the score's beat set going again, outside any world)
+    clearInterval(this.scheduler);
+    if (this.score && !this.scoreOff) this.scheduler = setInterval(() => this.schedule(), 100);
+    let released = false;
+    return { ctx: this.ctx, sound: this, release: (fade = 1.5) => { if (!released) { released = true; this.release(fade); } } };
+  }
+
+  /** Let go of this sound but not its context (handOver's): fade out over `fade` s, stop its loops, disconnect. */
+  release(fade = 1.5) {
+    const ctx = this.ctx;
+    this.ctx = null;   // (dispose below then leaves the context open)
+    this.dispose();
+    if (!ctx || ctx.state === 'closed') return;
+    const master = this.master, t = ctx.currentTime;
+    try { master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(0, t + fade); } catch { /* gone */ }
+    setTimeout(() => {
+      for (const l of Object.values(this.layers ?? {})) { try { l.src?.stop(); } catch { /* stopped */ } }
+      for (const o of [this.engine?.osc, ...(this.hum?.osc ?? [])]) { try { o?.stop(); } catch { /* stopped */ } }
+      try { this.musicOwner?.dispose?.(); } catch { /* gone */ }
+      try { master.disconnect(); } catch { /* gone */ }
+    }, fade * 1000 + 100);
+  }
+
   /** Stop for good (the title screen's sound, handing over to the game's): fade out, then close. */
   dispose() {
     this.sfxTrace?.dispose();
@@ -829,7 +868,7 @@ export class Sound {
     const g = ctx.createGain(); g.gain.value = 0;
     src.connect(f).connect(g).connect(this.fx);
     src.start();
-    return { f, g };
+    return { f, g, src };
   }
 
   set(layer, gain, freq) {

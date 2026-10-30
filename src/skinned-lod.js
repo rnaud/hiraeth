@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import { pack, unpack, pickLevel, triCount, levelBuilder } from './lod.js';
+import { owned } from './world-scope.js';
 
 // Levels of detail for the people's skinned bodies (~12.5 k triangles each, the costume pieces on
 // top). A body far off draws a simplified copy of each skinned mesh: the same vertex clustering as
@@ -119,7 +120,7 @@ export class SkinnedLod {
 const BODIES = new Set();
 const cameraWorld = new Vector3(), rootWorld = new Vector3(), rootScale = new Vector3();
 export const skinnedLods = {
-  add(lod) { BODIES.add(lod); return lod; },
+  add(lod) { BODIES.add(lod); owned(() => BODIES.delete(lod)); return lod; },
   remove(lod) { BODIES.delete(lod); },
   /** Before rendering (main.js renderFrame): each shown body's level for this camera. */
   update(camera, pxPerRad, px) {

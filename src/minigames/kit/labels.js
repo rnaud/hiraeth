@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import { screen } from '../../platform.js';
 
 import { styleText } from '../../ui-style-registry.js';   // (issue #687)
+import { owned } from '../../world-scope.js';
 
 const _p = new THREE.Vector3();
 
@@ -43,7 +44,7 @@ export class WorldLabels {
     this.camera = camera;
     this.pops = [];
     this.items = new Set();
-    LIVE.add(this);
+    LIVE.add(this); owned(() => LIVE.delete(this));
     if (typeof document === 'undefined') { this.el = null; return; }
     if (!document.getElementById('mg-words-css')) document.head.appendChild(Object.assign(document.createElement('style'), { id: 'mg-words-css', textContent: styleText('mg-words-css') }));
     this.el = document.body.appendChild(Object.assign(document.createElement('div'), { id: 'mg-words' }));

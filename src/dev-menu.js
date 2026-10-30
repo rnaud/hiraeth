@@ -21,6 +21,7 @@ import { items, ITEMS } from './items.js';
 import { devTabs, DevNav, tabWindow } from './world-debug.js';
 import { glyph } from './pad-glyphs.js';
 import { shipSetting } from './ship/selection.js';
+import { travelSearch } from './world-travel.js';
 
 /** The story's big switches on the Story tab: [flag, label]. */
 export const STORY_FLAGS = [['prologue.done', 'Prologue done'], ['ship.powered', 'Ship powered'], ['desert.bike.found', 'Hoverbike found'], ['desert.tree.lit', 'Qanat’s tree lit'], ['tool.empty', 'Battery empty']];
@@ -134,7 +135,7 @@ export class DevMenu {
     this.g.set(`world.${this.levelId}.done`, true);
     if (!any) this.story?.complete?.();
   }
-  travel(id) { if (this.onTravel) this.onTravel(id); else if (typeof location !== 'undefined') location.search = `?level=${id}`; }
+  travel(id) { if (this.onTravel) this.onTravel(id); else if (typeof location !== 'undefined') travelSearch(`?level=${id}`); }
 
   // ------------------------------------------------------------------ the page
   /** The keyboard (capture: before the game's own keys see it). */

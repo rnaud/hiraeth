@@ -1,5 +1,6 @@
 import { keyText } from './prompt-keys.js';
 import { game } from './game-state.js';
+import { owned } from './world-scope.js';
 
 // The traveller's items: what they have found (in boxes, through quests) and
 // can use. He starts with nothing in his hands (v1.44): the fluid sword and the shield's guard (src/fluid-blade.js) are
@@ -370,7 +371,7 @@ export const items = {
     return true;
   },
   owned() { return Object.keys(ITEMS).filter((id) => this.has(id)); },
-  on(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+  on(fn) { listeners.add(fn); return owned(() => listeners.delete(fn)); },
 };
 
 const keys = (t) => keyText(esc(t), { html: true, teach: true });   // (a {key:verb}: the player's own key or button)

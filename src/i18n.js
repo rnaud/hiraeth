@@ -12,6 +12,7 @@
 
 import { EN } from './i18n/en.js';
 import { FR } from './i18n/fr.js';
+import { owned } from './world-scope.js';
 
 export const LANGUAGES = {
   en: { name: 'English', table: EN },
@@ -37,7 +38,7 @@ export function setLanguage(l) {
 }
 export const language = () => lang;
 /** Told when the language changes. Returns a function that stops it. */
-export function onLanguage(f) { listeners.add(f); return () => listeners.delete(f); }
+export function onLanguage(f) { listeners.add(f); return owned(() => listeners.delete(f)); }
 
 /**
  * The page's own words (index.html): every [data-t] element's text, and [data-t-aria] / [data-t-title] its

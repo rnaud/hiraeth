@@ -156,7 +156,7 @@ test('the guard is in place before any sound: the title screen and a loading wor
   // (and a world that loads while away asks whether sound may start only on return: Chrome's probe would be suspended)
   assert.match(src('audio.js'), /this\.guard = audioGuard\(window\);[\s\S]*if \(autoStart\) this\.startIfAllowed\(\);/);
   assert.match(src('audio.js'), /startIfAllowed\(\) \{\s*this\.guard\.whenBack\(\(\) => \{\s*if \(this\._disposed \|\| this\.ctx\) return;[\s\S]*?const ok = Sound\.probe\(window\);\s*if \(ok\) this\.start\(/);
-  assert.match(src('audio.js'), /start\(adopt = null\) \{\s*\/\/[^\n]*\n\s*if \(this\.guard\?\.away\(\)\)/);
+  assert.match(src('audio.js'), /start\(adopt = null, \{ fadeIn = 0 \} = \{\}\) \{\s*\/\/[^\n]*\n\s*if \(this\.guard\?\.away\(\)\)/);
   assert.match(src('story/arzach2.js'), /audioAway\(\)\) return false;/, 'the bell\'s own context');
 });
 

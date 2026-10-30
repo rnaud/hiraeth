@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { addIndoors } from './shelter.js';
+import { owned } from './world-scope.js';
 
 // Small inked interiors. Rooms are real geometry (walls with door and window
 // openings, so the sun's shadow map throws light patches through them), with
@@ -110,7 +111,9 @@ export function buildRoom(scene, {
   scene.add(grp);
   grp.updateMatrixWorld(true);
   grp.userData.tight = true;   // the camera's tight-space mode (src/player.js CameraRig)
-  ROOMS.push({ group: grp, inv: grp.matrixWorld.clone().invert(), w, d, h });
+  const room = { group: grp, inv: grp.matrixWorld.clone().invert(), w, d, h };
+  ROOMS.push(room);
+  owned(() => { const i = ROOMS.indexOf(room); if (i >= 0) ROOMS.splice(i, 1); });   // (its level's scene is let go whole: the parent stays)
   const wp = (x, y, z) => grp.localToWorld(new THREE.Vector3(x, y, z));
   const lp = wp(0, h - 0.6, 0);
   return {

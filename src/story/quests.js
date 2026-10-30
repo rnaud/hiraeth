@@ -96,7 +96,9 @@ export class Quests {
   }
 
   define(def) {
-    def.stages = def.stages.map((s) => ({ ...s }));
+    // (a copy: the world's story hangs its own onDone and the rest on it, and the data module's object outlives the
+    // world, so would hold it after it is let go: issue #790)
+    def = { ...def, stages: def.stages.map((s) => ({ ...s })) };
     this.defs.set(def.id, def);
     return def;
   }

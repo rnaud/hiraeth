@@ -11,6 +11,7 @@ import { registerInteractable, PRIORITY } from '../../interact.js';
 import { gameById, gameHref } from './registry.js';
 import { FACE, TITLE_FACE } from '../../typefaces.js';
 import { queueHost, hostOf } from './hosts.js';
+import { travel } from '../../world-travel.js';
 
 // ------------------------------------------------------------------ the arcade sign
 /** The sign's model: a stone post, a slanted board with the game's glyph glowing, a lamp on top. */
@@ -97,7 +98,7 @@ export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate 
   const lit = D && world.thresholds ? world.thresholds.addDoor({ ...D, at: object.localToWorld(D.at.clone()), yaw: heading }) : null;
   const light = new THREE.Vector4(at.x, at.y + 2.7, at.z, 5);
   world.lights?.push(light);
-  const go = world.go ?? ((href) => { location.href = href; });
+  const go = world.go ?? ((href) => { travel(href); });
   // (hosted: the person beside it offers the game, the sign is only its sign)
   if (host && queueHost({ id: gameId, name: def.name, at: at.clone(), heading, play: () => go(gameHref(gameId, world.levelId)) })) {
     return { object, remove() { lit?.remove(); object.removeFromParent(); const i = world.lights?.indexOf(light) ?? -1; if (i >= 0) world.lights.splice(i, 1); } };

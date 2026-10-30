@@ -67,6 +67,7 @@
 
 import { slotStorage } from './save-slots.js';
 import { migrateFlags, MIGRATED, RES_VERSION } from './save-migrate.js';
+import { owned } from './world-scope.js';
 
 const KEY = 'hiraeth.game.v1';   // per save slot (src/save-slots.js)
 
@@ -97,7 +98,7 @@ class GameState {
     let set = this.listeners.get(event);
     if (!set) this.listeners.set(event, (set = new Set()));
     set.add(fn);
-    return () => set.delete(fn);
+    return owned(() => set.delete(fn));
   }
   emit(event, payload) { for (const fn of [...(this.listeners.get(event) ?? [])]) fn(payload); }
   keepsakes() { return this.data.keepsakes; }

@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.38 — 2026-10-29
+
+- Going to another world no longer reloads the game. Fly your ship, ride on to the next stop or pick a world in the Debug menu, and the next world is built in place: the music keeps playing over the loading page and fades into the new world’s, and in a browser the new world is heard straight away instead of staying silent until you press a button.
+
 ## v2.37 — 2026-10-29
 
 - The little glyph-stone checkpoints are gone from every temple. Fall into a pit or get knocked out in a temple and you come back in the same room, at the doorway you last came in by, facing into the room, with everything you did there left as it was. A pit still only costs you a quarter of a heart.

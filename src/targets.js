@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { owned } from './world-scope.js';
 
 // Things the player's fluid tool can hit: wildlife, people, switches, reactive
 // scenery. Anything can register; the tool asks for the nearest hit along a
@@ -30,7 +31,7 @@ const _oc = new THREE.Vector3();
 export function registerTarget(t) {
   const entry = { radius: 0.5, enabled: () => true, ...t };
   targets.add(entry);
-  return () => targets.delete(entry);
+  return owned(() => targets.delete(entry));
 }
 
 /** Nearest registered target hit by a ray, within maxDist. Returns { target, distance, point } or null. */

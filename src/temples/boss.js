@@ -6,6 +6,7 @@ import { HIT, strikeDamage, heartsOf, quarters, DAMAGE } from '../resources.js';
 import { TELL, groundMark, poseK, POSE_DONE, markRadius } from '../telegraph.js';
 import { GroundWarnings } from '../ground-warnings.js';
 import { SecondOrder } from '../motion-kit/spring.js';
+import { owned } from '../world-scope.js';
 
 // The thing at the heart of every temple. The makers were gentle: what waits
 // in their temples was left to keep them. Two kinds:
@@ -478,7 +479,7 @@ export class Guardian {
       }));
     }
     this.place();
-    GUARDIANS_LIVE.add(this);
+    GUARDIANS_LIVE.add(this); owned(() => GUARDIANS_LIVE.delete(this));
   }
 
   get phaseIndex() { const P = this.def.phases; for (let i = 0; i < P.length; i++) if (this.meter < P[i].to - 1e-6) return i; return P.length; }

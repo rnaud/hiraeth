@@ -27,7 +27,7 @@ export const PLUMBING = {
   prepareEffects: 'strict assigned recording preparation without playback', listenForInput: 'gesture activation registration',
   assignedEffect: 'assigned recording ownership without substitution', assignedVoice: 'assigned voice ownership without substitution',
   constructor: 'the engine', startIfAllowed: 'the engine', masterLevel: 'the engine', _away: 'the engine', start: 'the engine',
-  dispose: 'the engine', levels: 'the meters', toggleMute: 'the mute', setVolumes: 'the volumes', setVoices: 'the voice volume',
+  dispose: 'the engine', handOver: 'a world swapped in place: the context carried over (issue #790)', release: 'a world swapped in place: the last sound faded out', levels: 'the meters', toggleMute: 'the mute', setVolumes: 'the volumes', setVoices: 'the voice volume',
   prologueTheme: 'recorded prologue phase controller',
   musicLane: 'one music at a time (src/music-owner.js)', musicWants: 'one music at a time', musicOwnerUpdate: 'one music at a time', musicHold: 'one music at a time', musicTake: 'one music at a time',
   setMusicMode: 'Settings > Music', musicCue: 'the moments (src/music-moments.js)', musicMomentsUpdate: 'the moments',

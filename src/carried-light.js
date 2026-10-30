@@ -10,6 +10,7 @@
 //
 // Module-wide, as the targets are (src/targets.js): what registers lets go in its dispose().
 
+import { owned } from './world-scope.js';
 const LIGHTS = new Set();
 
 /** How far a lit place's light reaches a bubble (m), and how near a dark lamp a glowing bubble must burst (m). */
@@ -19,7 +20,7 @@ export const CARRY = { radius: 2.6, reach: 2.8 };
 export function registerLight(l) {
   const e = { radius: CARRY.radius, enabled: () => true, ...l };
   LIGHTS.add(e);
-  return () => LIGHTS.delete(e);
+  return owned(() => LIGHTS.delete(e));
 }
 
 /** The lit place whose light reaches `p` (its reach, enabled now), or null. */
@@ -37,7 +38,7 @@ const DRINKERS = new Set();
 export function registerDrinker(d) {
   const e = { radius: 1.2, enabled: () => true, ...d };
   DRINKERS.add(e);
-  return () => DRINKERS.delete(e);
+  return owned(() => DRINKERS.delete(e));
 }
 /** The drinker a glowing bubble at `p` (radius r) touches now, or null. */
 export function drinkerAt(p, r = 0, list = DRINKERS) {

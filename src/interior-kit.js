@@ -5,6 +5,7 @@ import { buildRoom, portalPair } from './interiors.js';
 import { textGeometry } from './story/sign-text.js';
 import { crystalGeometry } from './chimes.js';
 import { FACE, TITLE_FACE } from './typefaces.js';
+import { owned } from './world-scope.js';
 
 // The interior kit (docs/systems/interiors.md): a building you walk into and play inside. One call gives a
 // door in the world (a shopfront: a plastered house with its door, an awning, a name board over the door and
@@ -248,5 +249,6 @@ export function buildInterior(scene, { id, label = 'the shop', doorLabel = 'door
     local: (x, y, z) => built.group.localToWorld(new THREE.Vector3(x, y, z)),
   };
   INTERIORS.push(it);
+  owned(() => { const i = INTERIORS.indexOf(it); if (i >= 0) INTERIORS.splice(i, 1); });   // (its level's scene is let go whole: the parent stays)
   return it;
 }

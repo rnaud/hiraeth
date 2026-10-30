@@ -1,5 +1,6 @@
 import { BINDINGS } from './bindings.js';
 import { STANDARD_NAMES, BINDING_KEYS, rawGamepads, pickProfile, parsePadId, hatDirection } from './pad-maps.js';
+import { owned } from './world-scope.js';
 
 // The input display (docs/systems/controls.md, "The input display"): a small ink drawing of a pad in the
 // lower right that lights each button as it is pressed, shows both sticks and the triggers' travel, and a
@@ -73,7 +74,7 @@ class InputDisplay {
   bind({ context, index } = {}) { if (context) this.ctx = context; if (index) this.index = index; return this; }
   set(on) { on = !!on; if (on === this.on) return; this.on = on; if (this.el) this.el.hidden = !on; this.prev = null; for (const f of listeners) f(on); }
   toggle() { this.set(!this.on); return this.on; }
-  listen(f) { listeners.add(f); return () => listeners.delete(f); }
+  listen(f) { listeners.add(f); return owned(() => listeners.delete(f)); }
 
   build() {
     if (typeof document === 'undefined' || !document.body) return false;

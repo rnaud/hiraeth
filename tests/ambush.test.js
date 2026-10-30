@@ -73,7 +73,7 @@ test('every line said on the way carries a tone; the pirates come for the hull, 
 
 test('the wiring: the ship asks main.js where a take-off goes; the fight\'s page marks the trip; the setting', () => {
   const ship = read('src/ship/ship.js'), main = read('src/main.js'), ui = read('src/ui.js'), host = read('src/host/game-host.js');
-  assert.match(ship, /location\.search = this\.departure\?\.\(to\) \?\? `\?level=\$\{to\}&via=ship`/);
+  assert.match(ship, /travelSearch\(this\.departure\?\.\(to\) \?\? `\?level=\$\{to\}&via=ship`\)/);   // (swapped in place, not a page load: issue #790)
   // (the one game setup's wireAmbush, both hosts': src/host/game-host.js, issue #435; tests/game-host.test.js plays it)
   assert.match(host, /departure: \(to\) => \(ambushDue\(\{ to, flag: \(k\) => game\.flag\(k\), seen, settings \}\) \? ambushHref\(to, levelId\) : null\)/);
   assert.match(main, /departure: ambush\.departure/);

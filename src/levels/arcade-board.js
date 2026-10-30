@@ -12,6 +12,7 @@
 
 import { gameHref } from '../minigames/index.js';
 import { ARCADE } from '../minigames/kit/arcade.js';
+import { travel } from '../world-travel.js';
 
 const CSS = `
   #arcade-board-btn { position: fixed; left: calc(14px + var(--safe-left, env(safe-area-inset-left, 0px))); top: calc(14px + var(--safe-top, env(safe-area-inset-top, 0px))); z-index: 6;
@@ -58,7 +59,7 @@ export class ArcadeBoard {
    * @param o.best   (game) => its best as text, or ''
    * @param o.go     (href) => void: open a game's page
    */
-  constructor({ games, best = () => '', go = (href) => { location.href = href; }, win = globalThis.window, doc = globalThis.document }) {
+  constructor({ games, best = () => '', go = (href) => { travel(href); }, win = globalThis.window, doc = globalThis.document }) {
     Object.assign(this, { games, best, go, win, doc });
     this.words = ARCADE_BOARD;
     this.open = false;

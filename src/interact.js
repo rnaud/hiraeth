@@ -32,6 +32,7 @@
 // comes first).
 
 import * as THREE from 'three';
+import { owned } from './world-scope.js';
 
 export const PRIORITY = {
   ship: 40,       // hatch and cockpit console, when at or inside the ship
@@ -46,7 +47,7 @@ const entries = new Set();
 export function registerInteractable(o) {
   const e = { priority: PRIORITY.use, range: 3, enabled: () => true, distance: () => Infinity, prompt: 'use', ...o };
   entries.add(e);
-  return () => entries.delete(e);
+  return owned(() => entries.delete(e));
 }
 
 export function clearInteractables() { entries.clear(); }

@@ -1043,6 +1043,8 @@ const readers = {
   'world-picker.css': () => readFileSync(new URL('../../src/world-picker.css', import.meta.url), 'utf8'),
   'world-picker.js': () => readFileSync(new URL('../../src/world-picker.js', import.meta.url), 'utf8'),
   'world-read.js': () => readFileSync(new URL('../../src/world-read.js', import.meta.url), 'utf8'),
+  'world-scope.js': () => readFileSync(new URL('../../src/world-scope.js', import.meta.url), 'utf8'),
+  'world-travel.js': () => readFileSync(new URL('../../src/world-travel.js', import.meta.url), 'utf8'),
   'world.js': () => readFileSync(new URL('../../src/world.js', import.meta.url), 'utf8'),
   'xbox.js': () => readFileSync(new URL('../../src/xbox.js', import.meta.url), 'utf8'),
 };

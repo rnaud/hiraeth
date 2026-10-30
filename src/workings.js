@@ -13,13 +13,14 @@
 //   gust     { contains(p), dir (unit Vector3, world), push (m/s), blowing() → bool, sheltered?(p) → bool }
 //   swing    { contains(p), center (Vector3), radius, moving() → bool, push(p, out) → Vector3 (the way it knocks) }
 
+import { owned } from './world-scope.js';
 const list = new Set();
 
 /** Add a working; returns its remover. */
 export function registerWorking(w) {
   if (!w || typeof w.contains !== 'function') throw new Error('a working needs contains(pos)');
   list.add(w);
-  return () => list.delete(w);
+  return owned(() => list.delete(w));
 }
 
 /** The workings whose volume holds `pos` (a body's feet), optionally of one kind. */

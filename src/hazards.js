@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { owned } from './world-scope.js';
 
 // Things that hurt while you touch them: the burning tree's flame, cactus spines, and anything
 // else a world registers. Each is a simple volume with a kind and a damage rate (hearts a second).
@@ -20,7 +21,7 @@ const list = [];
 /** Add a hazard: { kind, dps, test(pos) -> bool, push?(pos, out) -> Vector3 | null }. Returns a remover. */
 export function registerHazard(h) {
   list.push(h);
-  return () => { const i = list.indexOf(h); if (i >= 0) list.splice(i, 1); };
+  return owned(() => { const i = list.indexOf(h); if (i >= 0) list.splice(i, 1); });
 }
 export const clearHazards = () => { list.length = 0; };
 export const hazardCount = () => list.length;

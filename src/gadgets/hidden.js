@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { textGeometry, glyphGeometry } from '../story/sign-text.js';
+import { owned } from '../world-scope.js';
 
 // Hidden things only the seeing lens shows (docs/systems/gadgets.md, "The seeing lens"). A world tags what it
 // hides with `revealable(object, o)` while it builds (the object is kept out of the baked collision and
@@ -41,6 +42,7 @@ export function revealable(object, { solidWhenSeen = false, illusion = false, id
   const e = { object, solidWhenSeen, illusion, id, message, mark, range, kind: kind ?? (solidWhenSeen ? 'path' : illusion ? 'illusion' : message ? 'writing' : 'sight'), handle: null, solid: false, shown: illusion, k: 0 };
   object.userData.revealable = e;
   HIDDEN.push(e);
+  owned(() => { const i = HIDDEN.indexOf(e); if (i >= 0) HIDDEN.splice(i, 1); });   // (let go with the world it was made in: issue #790)
   return e;
 }
 

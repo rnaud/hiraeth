@@ -30,6 +30,7 @@ import { glyph, glyphRole } from '../../pad-glyphs.js';
 import { stripTone } from '../../story/tone.js';
 import { screen } from '../../platform.js';
 import { COUNT, FINISH_WAIT, countNumeral, controlsFor, hintRow, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions, promptRole, promptKey, PROMPT_KEYS } from './flow.js';
+import { travel } from '../../world-travel.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -257,7 +258,7 @@ export class MinigameRunner {
   go(href) {
     if (this.ended) return;
     this.end();
-    (this.host.navigate ?? ((href) => { location.href = href; }))(href);
+    (this.host.navigate ?? ((href) => { travel(href); }))(href);
   }
   /** The link `step` away (-1 the previous game, +1 the next: [ and ], LB / RB on a card), or one by its id. */
   link(q) { return (this.host.links?.extra ?? []).find((l) => (typeof q === 'number' ? l.step === q : l.id === q)) ?? null; }

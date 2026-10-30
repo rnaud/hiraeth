@@ -174,10 +174,14 @@ export const GAPS = {
     { keys: ['src/native-app.js', 'src/update-panel.js'], count: { 'src/native-app.js': 2, 'src/update-panel.js': 1 }, what: 'the Android app\'s shell and the web\'s update panel', status: 'web-only', why: 'the web build\'s (Capacitor); the Unity players update through BridgeUpdates and their Updates page' },
     { keys: ['src/pad-glyphs.js'], count: { 'src/pad-glyphs.js': 1 }, what: 'the pad glyphs\' style sheet', status: 'web-only', why: 'CSS for the page\'s glyphs; BridgeHud draws its own, BridgeMenu.Glyphs.cs the menus\' from padGlyphs\'s labels (issue #517)' },
     { keys: ['src/world-picker.js'], count: { 'src/world-picker.js': 12 }, what: 'the world picker (?level)', status: 'web-only', why: 'the page\'s list of worlds; the engines choose by -level and the Worlds page' },
+    { keys: ['src/world-scope.js', 'src/world-travel.js'], count: { 'src/world-scope.js': 2, 'src/world-travel.js': 1 }, what: 'a world swapped in place in the page (issue #790): index.html\'s elements put back, the loading page\'s look, world links caught', status: 'web-only', why: 'the page\'s own elements between worlds; the Unity bridge restarts its engine and reloads its scene for another world (BridgeRunner.RebootNow), with no page to keep' },
   ],
 
   // ------------------------------------------------------------------ host wiring: main.js against engine/game.js (also #427's list)
   host: [
+    { keys: ['import:src/world-travel.js#startWorlds', 'import:src/world-travel.js#worldReady', 'import:src/world-travel.js#takeCarriedSound', 'import:src/world-travel.js#travel', 'import:src/world-travel.js#travelSearch', 'import:src/world-scope.js#scopeDispatcher', 'fn:runWorld', 'fn:seedDebugWorld'],
+      what: 'another world swapped in place, the sound\'s context carried over (issue #790, docs/systems/world-swap.md)', status: 'web-only',
+      why: 'a browser keeps a new page silent until a press, which the swap avoids; the Unity bridge has no page and no such rule: its flights restart the script engine and reload the scene (engine/unity/game.js flyTo, BridgeRunner.RebootNow), its sound starting by itself' },
     { keys: ['import:src/analytics/start-web.js#startWebAnalytics'], what: 'optional gameplay statistics', status: 'handled', where: 'engine/unity/game.js uses the same trackSession/event vocabulary through BridgeAnalytics and the shared Hiraeth HTTPS collector; older players omit collection safely' },
     { keys: ['import:src/effect-loading.js#prepareSoundWithRetry'], what: 'strict recording preparation and recoverable loading failure', status: 'handled', where: 'engine/game.js awaits Sound.prepareEffects before building the world; engine/unity/game.js presents EngineMenus.showSoundLoadFailure and retries the complete load with retryEffects' },
     // gaps

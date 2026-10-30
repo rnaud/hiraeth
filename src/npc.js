@@ -28,6 +28,7 @@ import { Locomotion, gaitFeet, gaitStyle, poseStyle, walkFor } from './locomotio
 import { SkinnedLod, skinnedLods } from './skinned-lod.js';
 import { runSteps } from './load-steps.js';
 import { CircleGrid } from './plant-ground.js';
+import { owned } from './world-scope.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn to you when you come close, then say a line in a comic speech
@@ -78,7 +79,7 @@ let poseSeq = 0;   // (each person's posing frames offset from the others')
  */
 export const SHIP_CALM = { hull: 18, ramp: 16, idle: 0.55, walk: 0.7, pause: 3 };
 let calmZones = [];
-export function setCalmZones(zones = []) { calmZones = zones.filter(Boolean); }
+export function setCalmZones(zones = []) { calmZones = zones.filter(Boolean); owned(() => { calmZones = []; }); }
 /** Whether a point is in a calm zone ({ x, z, r }). */
 export function inCalm(p, zones = calmZones) { return zones.some((c) => (p.x - c.x) ** 2 + (p.z - c.z) ** 2 < c.r * c.r); }
 /** The ship's calm zones: the hull and the ramp's foot (pass ship.restPos and ship.rampFoot). */

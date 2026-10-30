@@ -159,6 +159,9 @@ import { setRumbleSettings } from './rumble.js';
 import { interiorAt } from './interior-kit.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from './world-map.js';
 import { houseHere, houseView } from './house-map.js';
+import { startWorlds, worldReady, takeCarriedSound, travel, travelSearch } from './world-travel.js';
+import { scopeDispatcher } from './world-scope.js';
+import { wallOpenings } from './wall-openings.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -169,6 +172,12 @@ installMatrixCache();
 watchSceneEdits();
 // (and three's Skeleton.update from the bones' element arrays, the same numbers: src/skeleton-update.js)
 installSkeletonUpdate();
+// (the renderer's 'dispose' listeners on three's objects a module keeps across worlds let go with each world: issue #790)
+scopeDispatcher(THREE.EventDispatcher.prototype);
+
+// One world, built from the page's address and played (issue #790): going to another world runs this again in the
+// same page after the last one is let go (src/world-travel.js, docs/systems/world-swap.md), the sound carried over.
+async function runWorld() {
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -188,6 +197,7 @@ const loadWatch = loadWatchdog(() => (loadStep ? `${lastMsg} / ${loadStep}` : la
 // await slice() as often as you like; a world's own build yields from inside itself)
 // (loading behind the title, src/title-hold.js: the build stands aside while the player presses, so the menu answers first)
 const titleHold = window.__titleHold ?? null;
+window.__titleHold = null;   // (the first world only: a world swapped in later does not wait for the title)
 const slice = titleHold ? gatedSlicer({ busy: () => titleHold.busy() }) : slicer();
 // (a stage's steps timed too, logged as one line: the load's breakdown, docs/systems/performance.md "Where a load goes")
 const loadSteps = [];
@@ -360,6 +370,9 @@ const caravan = await loadPlayableCaravan(import.meta.env.BASE_URL).catch(error 
 setStep('world');
 // (distant detail on: the sand drifts' collision is cut into pieces made after the world is built, src/late-collision.js)
 const deferOn = query.get('defer') !== '0';
+// (one world at a time in the page, as in an engine's VM: the last one's drift pieces and wall openings let go first)
+DRIFT_FITS.pending.length = 0;
+wallOpenings.reset();
 DRIFT_FITS.later = deferOn;
 const level = meta.build ? await runStepsAsync(meta.build(scene, { caravan }), slice) : meta.create(scene, { caravan });
 DRIFT_FITS.later = false;
@@ -685,7 +698,10 @@ await slice();
 setStep('sound, tool');
 // (behind the title, the game's sound waits for its first frame: the title's music plays meanwhile)
 sound.listenForInput();
-if (!titleHold) sound.startIfAllowed();
+// (a world swapped in: the last world's context, still allowed to play, its music crossfading into this one's)
+const carried = takeCarriedSound();
+if (carried && !sound.guard?.away()) { sound.start(carried.ctx, { fadeIn: 1.5 }); carried.release(1.5); }
+else { carried?.release(0.3); if (!titleHold) sound.startIfAllowed(); }
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)
@@ -780,7 +796,7 @@ let balloonAt = -1e9;   // (when a balloon last showed: a lesson on the cue wait
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 // (a helping game the world plays here, kit/here.js, issue #789: no page and no loading screen between; any other, its page)
-const storyRt = createStory({ playGame: (href) => { if (!helperHereRt?.play(href)) location.href = href; }, levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
+const storyRt = createStory({ playGame: (href) => { if (!helperHereRt?.play(href)) travel(href); }, levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout?.out ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
@@ -1076,7 +1092,7 @@ function setTraveller(on, outfit = travellerV2.dress?.wardrobe.worn?.id ?? trave
   travellerSetting.set(on, outfit);
   const q = new URLSearchParams(location.search);
   q.delete('traveller'); q.delete('outfit');   // (the address would win over the switch)
-  location.search = q.toString();
+  travelSearch(q.toString());
 }
 // (the captured starts, stops and turns over the loops: src/loco-moves.js)
 const devMoves = { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; } };
@@ -1285,7 +1301,7 @@ const params = {
 const gui = new GUI({ title: 'Hiraeth shader' });
 gui.add(params, 'preset', Object.keys(PRESETS)).name('style preset').onChange(applyPreset);
 gui.add({ level: levelId }, 'level', Object.fromEntries(LEVELS.map((l) => [l.title, l.id])))
-  .name('level').onChange((v) => { location.search = '?level=' + v; });
+  .name('level').onChange((v) => { travelSearch('?level=' + v); });
 gui.add(params, 'debug', DEBUG_VIEWS).name('view');
 
 const fLines = gui.addFolder('Ink lines');
@@ -1513,7 +1529,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') { if (debugMenu.search.value) debugMenu.filter(debugMenu.search.value = ''); else showPicker(false); return; }
   if (e.code === 'PageDown' || e.code === 'PageUp') { e.preventDefault(); debugMenu.jump(e.code === 'PageDown' ? 1 : -1); return; }
   const n = Number(e.key), list = debugMenu.numbered;   // (the worlds as the menu numbers them)
-  if (e.key !== ' ' && n >= 1 && n <= Math.min(9, list.length) && (!list[n - 1].hidden || completed())) location.search = pickHref(list[n - 1].id);
+  if (e.key !== ' ' && n >= 1 && n <= Math.min(9, list.length) && (!list[n - 1].hidden || completed())) travelSearch(pickHref(list[n - 1].id));
 });
 // a letter typed on the open Debug menu starts its filter, before the game's own keys see it (C, P, Q…)
 window.addEventListener('keydown', (e) => {
@@ -1592,7 +1608,7 @@ function worldTeleport(point) {
 }
 /** Play a cinematic of this world (src/cinematics-page/runtime.js stageCinematic), then back where you stood. */
 function worldFilm(entry) {
-  if (entry.how === 'reload') { location.search = `?level=${levelId}&via=ship`; return; }
+  if (entry.how === 'reload') { travelSearch(`?level=${levelId}&via=ship`); return; }
   if (entry.how === 'page') { location.href = `cinematics.html#${encodeURIComponent(entry.id)}`; return; }
   const back = { pos: player.pos.clone(), up: player.frame.up.clone(), fwd: player.frame.fwd.clone(), heading: player.heading, yaw: rig.yaw };
   const playing = () => storyRt.moments.playing || ship.playing || boxes.busy();
@@ -2771,7 +2787,7 @@ if (minigameDef) {
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings, chimes,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open,
-    navigate: (href) => { helper?.left(); transit?.left(); flushPlay(); location.href = href; },
+    navigate: (href) => { helper?.left(); transit?.left(); flushPlay(); travel(href); },
     // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
     onResult: (r) => { helper?.onResult(r); transit?.onResult(r); },
       completionHref: r => helper?.completionHref(r), recoveryHref: () => helper?.recoveryHref(),
@@ -2849,6 +2865,16 @@ requestAnimationFrame((t) => {
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
+  // (playing: what the next world swapped in lets go of, src/world-travel.js)
+  worldReady({ levelId, sound, teardown: () => {
+    try { if (minigame && !minigame.ended) minigame.end(); } catch (e) { console.warn(e); }
+    lod?.dispose?.();
+    // (the GPU's memory of this world let go at once: its context lost, the next world draws on a new canvas)
+    renderer.setAnimationLoop(null);
+    renderer.dispose();
+    renderer.forceContextLoss();
+    renderer.domElement.remove();
+  } });
   ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (minigame) return; if (playHomecoming) journal.markSeen(levelId); else story.start({ quiet: !!playPrologue }); } });   // the homecoming is its own page
   if (changelog.fresh && !minigameDef) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · what's new is in the settings`), 4000); }   // after an update: point at what changed, once (not again on the next world; no key: a handheld has none)
 });
@@ -2891,3 +2917,16 @@ if(query.get('characterReview')==='b3'){
  const {startCharacterReview}=await import('./character-review.js');
  startCharacterReview({player,sound,rig,input});
 }
+}
+
+// (a route world picked in the Debug menu while playing: its debug save written first, as src/boot.js does for the
+// page's first world: src/debug-save.js)
+async function seedDebugWorld(win) {
+  const q = new URLSearchParams(win.location.search);
+  const { seedDebugSave, DEBUG_PARAM, SLOT_PARAM } = await import('./debug-save.js');
+  seedDebugSave(q.get('level'), { state: game, slot: q.get(SLOT_PARAM), legacyLanding: q.get('debuglanding') === 'legacy' });
+  q.delete(DEBUG_PARAM); q.delete(SLOT_PARAM); q.delete('debuglanding');
+  win.history.replaceState(null, '', `${win.location.pathname}?${q}`);
+}
+
+await startWorlds(runWorld, { prepare: seedDebugWorld });

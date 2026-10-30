@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { VERTEX_UNIFORMS } from './vertex-material.js';
+import { owned } from './world-scope.js';
 
 // ---------------------------------------------------------------------------
 // The world's still meshes drawn by a few batches (docs/systems/xbox.md, "Towards 60 on the Xbox").
@@ -212,6 +213,16 @@ function holdsValue(v) {
   return holdsNum(NaN);
 }
 
+/** A uniform's value made an accessor that marks its watches when set; their set (outside any watch: the accessor
+ *  outlives the world that made it, on a cached material's uniform, and must not hold that world's watch: issue #790). */
+function watchUniform(u, value) {
+  let v = value;
+  const ws = new Set();
+  Object.defineProperty(u, 'value', { get: () => v, set: (x) => { if (x !== v) for (const w of ws) w.dirty = true; v = x; }, enumerable: true, configurable: true });
+  Object.defineProperty(u, '__watches', { value: ws, enumerable: false, configurable: true, writable: true });
+  return ws;
+}
+
 /** Watches what of a material a batch copied: its non-shared uniforms and its varying values. */
 class Watch {
   constructor(m, shared) {
@@ -227,13 +238,13 @@ class Watch {
   listen() {
     for (const k of this.keys) {
       const u = this.m.uniforms[k];
-      if (u?.__watches) { u.__watches.add(this); continue; }
+      // (a uniform shared across worlds, a cached material's: this world's watch taken off with it, issue #790)
+      if (u?.__watches) { const ws = u.__watches; ws.add(this); owned(() => ws.delete(this)); continue; }
       const d = u && Object.getOwnPropertyDescriptor(u, 'value');
       if (!d || !('value' in d) || (d.value !== null && typeof d.value === 'object')) continue;
-      let v = d.value;
-      const ws = u.__watches = new Set([this]);
-      Object.defineProperty(u, 'value', { get: () => v, set: (x) => { if (x !== v) for (const w of ws) w.dirty = true; v = x; }, enumerable: true, configurable: true });
-      Object.defineProperty(u, '__watches', { enumerable: false });
+      const ws = watchUniform(u, d.value);
+      ws.add(this);
+      owned(() => ws.delete(this));
     }
   }
   snap(keys) { const out = []; for (const k of keys) numbersOf(this.m.uniforms[k]?.value, out); return Float64Array.from(out); }

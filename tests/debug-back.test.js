@@ -54,5 +54,5 @@ test('opened from the Debug menu: its list, a debug page, or ?from=debug', () =>
 test('a world opened from the Debug menu gets the button too (B and Esc stay the game\'s)', () => {
   const boot = readFileSync(new URL('../src/boot.js', import.meta.url), 'utf8');
   assert.match(boot, /has\('debugsave'\) \|\| cameFromDebug\(document\.referrer, location\.search\)/);
-  assert.match(boot, /if \(fromDebugMenu\) installDebugBack\(\{ keys: false, pad: false, fade: true \}\)/);
+  assert.match(boot, /if \(fromDebugMenu\) persist\(\(\) => installDebugBack\(\{ keys: false, pad: false, fade: true \}\)\)/);   // (the page's: kept across worlds, issue #790)
 });

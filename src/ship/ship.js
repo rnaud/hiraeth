@@ -38,6 +38,7 @@ export const AUTO_WALK = stickForMovementScale(0.35 + 0.65 * 0.06);
 /** How long the autopilot walks before it gives up (s of the game's time, at any frame rate). */
 export const AUTO_GIVE_UP = 30;
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
+import { travelSearch } from '../world-travel.js';
 
 // The traveller's ship: the angular family ship, home between worlds (src/ship/hull.js, docs/systems/ship.md).
 //
@@ -718,7 +719,7 @@ export class Ship {
       to, title: this.levels.find((l) => l.id === to)?.title ?? to,
       // (the first flight to a world never visited goes by way of the chime-pirates: main.js departure, src/ambush.js)
       // (an engine has no page to send to the next world: `go` starts it again there, engine/game.js)
-      onDone: () => { game.set('ship.launched', true); if (this.go) this.go(to); else location.search = this.departure?.(to) ?? `?level=${to}&via=ship`; },
+      onDone: () => { game.set('ship.launched', true); if (this.go) this.go(to); else travelSearch(this.departure?.(to) ?? `?level=${to}&via=ship`); },
     });
     this.cinematic.start();
   }

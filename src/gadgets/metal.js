@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { owned } from '../world-scope.js';
 
 // What the magnet glove (src/gadgets/magnet.js) takes for metal (docs/systems/gadgets.md, "The magnet
 // glove"). Loose metal is the gadgets' world's own (a Prop with `metal`: the metal crates) and the makers'
@@ -55,7 +56,7 @@ const IRON = new Set();
 export function registerIron(x) {
   const e = { r: 1, enabled: () => true, ...x };
   IRON.add(e);
-  return () => IRON.delete(e);
+  return owned(() => IRON.delete(e));
 }
 /** The loose iron the glove may take now. */
 export const irons = () => [...IRON].filter((x) => x.enabled());

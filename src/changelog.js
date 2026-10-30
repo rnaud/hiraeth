@@ -9,6 +9,14 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.38', date: '2026-10-29',
+    items: [
+      // going between worlds (#790)
+      { text: 'Going to another world no longer reloads the game. Fly your ship, ride on to the next stop or pick a world in the Debug menu, and the next world is built in place: the music keeps playing over the loading page and fades into the new world’s, and in a browser the new world is heard straight away instead of staying silent until you press a button.',
+        see: 'With the sound on, fly from one world to another: the music carries on through the take-off and the loading page and crossfades into the new world’s music as you arrive, with no press needed to hear it. The same when you open a world from Debug → Worlds.' },
+    ],
+  },
+  {
     v: '2.37', date: '2026-10-29',
     items: [
       // the ship (#775, #776)

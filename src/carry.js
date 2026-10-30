@@ -3,6 +3,7 @@ import { registerInteractable, PRIORITY } from './interact.js';
 import { screen } from './platform.js';
 import { game as sharedGame } from './game-state.js';
 import { t as tr } from './i18n.js';
+import { owned, persist } from './world-scope.js';
 
 // Carrying small things in both hands (issue #337, the author: "I should be able to pick up and put down small objects,
 // that should be put to use for puzzles. Like grab a box from afar with the grappling hook, then put it down on a switch
@@ -64,13 +65,14 @@ function ensureEntries() {
   if (entries) return;
   entries = true;
   const tag = new THREE.Vector3();
-  registerInteractable({
+  // (the put-down entry is the page's, made once: not let go with the world it was first made in, issue #790)
+  persist(() => registerInteractable({
     id: 'carry.put', priority: PRIORITY.use + 2, range: 1, gesture: null, offscreenUse: true,
     distance: (p) => (p?.carrying ? 0 : Infinity),
     prompt: () => { const snap = carrier?.carrying ? putSpot(carrier)?.snap : null; return snap ? `set it on the ${snap.name ?? 'plate'}` : 'put it down'; },
     at: () => (carrier?.carrying?.thing?.pos ? tag.copy(carrier.carrying.thing.pos).addScaledVector(upOf(carrier), (carrier.carrying.thing.h ?? 0.4) + 0.25) : null),
     use: (p) => { if (!putDown(p)) dropCarried(p, { gently: true }); },
-  });
+  }));
 }
 
 /** A loose thing that may be carried: the use button near it picks it up. Returns off(). */
@@ -94,11 +96,11 @@ export function registerCarryable(t) {
     },
     use: (p) => pickUp(p, t),
   });
-  return () => { off(); things.delete(t); if (t.held === IN_HANDS && carrier?.carrying?.thing === t) dropCarried(carrier); };
+  return owned(() => { off(); things.delete(t); if (t.held === IN_HANDS && carrier?.carrying?.thing === t) dropCarried(carrier); });
 }
 
 /** A place a thing is set on when put down near it: { pos (its top's middle, world), r, name, accepts?(thing), taken?() }. */
-export function registerSnap(s) { snaps.add(s); return () => snaps.delete(s); }
+export function registerSnap(s) { snaps.add(s); return owned(() => snaps.delete(s)); }
 
 /** Where the carried thing's middle is held: in front of his chest. */
 export function holdPoint(p, t = p.carrying?.thing, out = new THREE.Vector3()) {

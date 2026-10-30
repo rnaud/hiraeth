@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { TRAVELLER_LOD, lodInput, simplifyLevels, pickTravellerLevel } from './traveller-lod-core.js';
+import { persist } from '../world-scope.js';
 
 // The traveller's levels of detail (traveller-lod-core.js says what a level is and when it's drawn).
 // Built after he is made, off the main thread; until they are ready, and wherever there's no worker
@@ -138,7 +139,8 @@ let worker = null, nextId = 1;
 const jobs = new Map();
 function levelsInWorker(input) {
   if (!worker) {
-    worker = new Worker(new URL('./traveller-lod-worker.js', import.meta.url), { type: 'module' });
+    // (the page's, not a world's: a level asked for in one world may be answered in the next, issue #790)
+    worker = persist(() => new Worker(new URL('./traveller-lod-worker.js', import.meta.url), { type: 'module' }));
     worker.onmessage = ({ data }) => {
       const job = jobs.get(data.id); jobs.delete(data.id); job?.(data.levels);
       if (!jobs.size) { worker?.terminate(); worker = null; }   // (made again if a level is asked for later)

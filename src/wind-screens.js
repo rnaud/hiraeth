@@ -5,12 +5,13 @@
 //   const off = addScreen({ a, b, bottom, top })   a segment of wall on the ground (a, b: its ends; y range)
 //   screened(pos, dir, reach)                       is something at pos sheltered from wind blowing along dir?
 
+import { owned } from './world-scope.js';
 const SCREENS = new Set();
 
 /** A wall segment from a to b (world points; only x, z used), standing from `bottom` to `top`. Returns its remover. */
 export function addScreen(s) {
   SCREENS.add(s);
-  return () => SCREENS.delete(s);
+  return owned(() => SCREENS.delete(s));
 }
 
 export const screenCount = () => SCREENS.size;

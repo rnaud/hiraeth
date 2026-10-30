@@ -6,6 +6,7 @@ import { allTargets } from './targets.js';
 import { bodyBoxes } from './foe-body.js';
 import { BOMB } from './gadgets/bomb.js';
 import { GUARDIANS_LIVE } from './temples/boss.js';
+import { owned } from './world-scope.js';
 
 // The hitbox overlay's shapes (docs/systems/foes.md, "Hitboxes"): what the fight tests, read from the same
 // data the combat code reads, as plain shapes that src/hitbox-overlay.js draws (and the tests check).
@@ -57,12 +58,12 @@ export const hitboxes = {
   on: false,
   set(on) { on = !!on; if (on === this.on) return; this.on = on; for (const f of listeners) f(on); },
   toggle() { this.set(!this.on); return this.on; },
-  listen(f) { listeners.add(f); return () => listeners.delete(f); },
+  listen(f) { listeners.add(f); return owned(() => listeners.delete(f)); },
 };
 
 const sources = new Set();
 /** Another system's shapes: fn(out, ctx) pushes its own (the same kinds). Returns the way to take it back. */
-export function registerHitboxes(fn) { sources.add(fn); return () => sources.delete(fn); }
+export function registerHitboxes(fn) { sources.add(fn); return owned(() => sources.delete(fn)); }
 
 const v3 = (p) => new THREE.Vector3(p.x, p.y, p.z);
 const flatHeading = (d) => Math.atan2(d.x, d.z);
