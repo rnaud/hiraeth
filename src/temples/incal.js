@@ -198,12 +198,12 @@ export const LOGIC = {
   id: 'incal', entry: 'threshold', gadget: 'fan',
   // (each room's kind, issue #336: src/foes.js puts machines only in the combat room, the Ash Store)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, turning: { checkpoint: true, kind: 'puzzle' }, climb: { checkpoint: true, kind: 'puzzle' },
-    store: { checkpoint: true, kind: 'combat' }, vane: { checkpoint: true, kind: 'passage' }, vaneFar: { kind: 'puzzle' }, jets: { checkpoint: true, kind: 'chest' },
-    gallery: { checkpoint: true, kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, crown: { checkpoint: true, kind: 'puzzle' },
-    ledge: { checkpoint: true, kind: 'passage' }, flue: { checkpoint: true, kind: 'passage' }, warden: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { kind: 'passage' }, turning: { kind: 'puzzle' }, climb: { kind: 'puzzle' },
+    store: { kind: 'combat' }, vane: { kind: 'passage' }, vaneFar: { kind: 'puzzle' }, jets: { kind: 'chest' },
+    gallery: { kind: 'puzzle' }, loft: { kind: 'puzzle' }, crown: { kind: 'puzzle' },
+    ledge: { kind: 'passage' }, flue: { kind: 'passage' }, warden: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
     // (issue #660) the Wind Clock off the gallery, and the far ledge over its chasm: a side room, for a reward
-    clock: { checkpoint: true, kind: 'puzzle' }, clockFar: { kind: 'passage' },
+    clock: { kind: 'puzzle' }, clockFar: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'turning' },
@@ -1249,7 +1249,7 @@ export const INCAL_TEMPLE = {
   startsOnArrival: () => !items.has('fan'),
   arrivalLine: 'The makers left something for this city in their tower on the rim, round from the ship: the fan that kept the shaft breathing.',
   used: upUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Far below, by the Upward Shrine, the shaft begins to breathe again.', 'resolved.out'); },
   /** (issue #562) The breath back: the hall's four great vanes turn for good once the warden is stopped (rt.calmK: its ending spins them up in its own panel). */
   onCalm(rt, k) { if (k > 0) for (const v of rt.hallVanes ?? []) { v.left = Math.max(v.left, 0.4 + 2.6 * k); v.warned = true; } },

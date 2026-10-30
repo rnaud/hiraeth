@@ -40,6 +40,9 @@ export const CHANGELOG = [
       // the walkthrough (#777)
       { text: 'A walkthrough of the whole game is on the site: from a new game to the true ending, each world’s main quest and every temple step by step, with the buttons to press. Every step is one the game is played through by a test each day, in the same order, and the page marks each step with how the last day’s run went.',
         see: 'Open Debug → Pages → Walkthrough (walkthrough.html on the site) and follow a world or a temple step by step; under each step, the test that plays it.' },
+      // the temples (#783)
+      { text: 'The little glyph-stone checkpoints are gone from every temple. Fall into a pit or get knocked out in a temple and you come back in the same room, at the doorway you last came in by, facing into the room, with everything you did there left as it was. A pit still only costs you a quarter of a heart.',
+        see: 'In any temple, walk into a room with a pit and jump in: you climb back out at the doorway you came in by, facing into the room. Get knocked out there and you wake at the same doorway.' },
     ],
   },
   {

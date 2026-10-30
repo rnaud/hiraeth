@@ -113,12 +113,12 @@ export const LOGIC = {
   id: 'arzach', entry: 'threshold', gadget: 'glider',
   // (v1.77, issue #336: each room tagged with its kind, docs/design/temple-redesign.md; the Moult is the house's one fight)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, gusts: { checkpoint: true, kind: 'puzzle' }, well: { checkpoint: true, kind: 'puzzle' },
+    threshold: { kind: 'passage' }, gusts: { kind: 'puzzle' }, well: { kind: 'puzzle' },
     // (v1.83, issue #407: the Feather Gallery round the well 16 m up, the great hall's middle floor; the Fledgery off it)
-    gallery: { checkpoint: true, kind: 'passage' }, fledge: { checkpoint: true, kind: 'puzzle' },
-    wings: { checkpoint: true, kind: 'chest' }, top: { checkpoint: true, kind: 'puzzle' }, moult: { checkpoint: true, kind: 'combat' },
-    eyrie: { checkpoint: true, kind: 'puzzle' }, eyrieKey: { kind: 'passage' }, gulf: { checkpoint: true, kind: 'passage' }, perch: { checkpoint: true, kind: 'puzzle' },
-    gulfFar: { checkpoint: true, kind: 'passage' }, gulfWay: { kind: 'passage' }, roost: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    gallery: { kind: 'passage' }, fledge: { kind: 'puzzle' },
+    wings: { kind: 'chest' }, top: { kind: 'puzzle' }, moult: { kind: 'combat' },
+    eyrie: { kind: 'puzzle' }, eyrieKey: { kind: 'passage' }, gulf: { kind: 'passage' }, perch: { kind: 'puzzle' },
+    gulfFar: { kind: 'passage' }, gulfWay: { kind: 'passage' }, roost: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'gusts' },
@@ -880,7 +880,7 @@ export const ARZACH_TEMPLE = {
   skin: aerieSkin,
   local: { person: 'lark', out: 16, side: 7 },
   enterLine: 'Inside the Aerie it is bright and white and the wind never stops. Far overhead, something heavy shifts its feathers.',
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   // the wings come first: Vael's tower is climbed on the wind with them, so the quest starts when you land without them
   startsOnArrival: () => !items.has('glider'),
   arrivalLine: 'The makers left a pair of wings in Vael: in the Aerie, the white house on the plain west of the landing.',

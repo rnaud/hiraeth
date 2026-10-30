@@ -205,10 +205,10 @@ export const LOGIC = {
   // v1.83, issue #418: `well` the Great Well's floor, `landing` its gallery, `top` its high balcony; `gallery` and
   // `galleryFar` the Gallery of Voices' landings as before, so a save's last mark holds)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, dishes: { checkpoint: true, kind: 'puzzle' }, dishesFar: { kind: 'puzzle' }, well: { checkpoint: true, kind: 'passage' },
-    store: { checkpoint: true, kind: 'combat' }, tune: { checkpoint: true, kind: 'puzzle' }, landing: { checkpoint: true, kind: 'passage' }, top: { checkpoint: true, kind: 'passage' },
-    shell: { checkpoint: true, kind: 'puzzle' }, listen: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' }, galleryFar: { checkpoint: true, kind: 'puzzle' },
-    choir: { checkpoint: true, kind: 'puzzle' }, bellows: { checkpoint: true, kind: 'puzzle' }, crown: { kind: 'passage' },
+    threshold: { kind: 'passage' }, dishes: { kind: 'puzzle' }, dishesFar: { kind: 'puzzle' }, well: { kind: 'passage' },
+    store: { kind: 'combat' }, tune: { kind: 'puzzle' }, landing: { kind: 'passage' }, top: { kind: 'passage' },
+    shell: { kind: 'puzzle' }, listen: { kind: 'puzzle' }, gallery: { kind: 'puzzle' }, galleryFar: { kind: 'puzzle' },
+    choir: { kind: 'puzzle' }, bellows: { kind: 'puzzle' }, crown: { kind: 'passage' },
     hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
@@ -1284,7 +1284,7 @@ export const BAZAAR_TEMPLE = {
   skin: undertowerSkin,
   local: { person: 'hobb', out: 6, side: 6 },
   enterLine: 'Under the silent tower it is cold and dry and very old. Somewhere far overhead, a voice says one word, and waits, and says it again.',
-  pitLine: 'You climb back up out of the cables, to the last glyph stone.',
+  pitLine: 'You climb back up out of the cables, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Up in the square, the silent tower’s crown is lit. At night it speaks.', 'resolved.out'); },
   // (issue #418) a blast in the house is a sound: its boom, a note the hourglass's sand keeps (and the Choir's black horn
   // wants played back). The First Sign cries its word (a note the sand keeps); when it listens, its word played back

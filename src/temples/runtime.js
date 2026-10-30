@@ -15,9 +15,14 @@ import { FINALE, keeperBox } from './finale.js';
 import { pitVoid, PIT_VOID } from '../pit-void.js';
 
 // One temple, alive: its rooms (built by the world's layout with the kit and
-// the pieces), its logic (saved in the save slot's flags), its marks
-// (checkpoints) and pits, its way in and out, its guardian, and the change
-// it makes to the world once the guardian is resolved.
+// the pieces), its logic (saved in the save slot's flags), its rooms' anchors
+// (marks) and pits, its way in and out, its guardian, and the change it makes
+// to the world once the guardian is resolved.
+//
+// Coming back (issue #783, the author: "If I die or drop into a pit just bring me back in the same room"): knocked out
+// or fallen into a pit, the traveller is back at the doorway he last came into that room by (the first room's: the
+// house's entrance), on its floor, facing into the room; nothing in the room is put back (what is carried stays in his
+// hands from a pit; a weight dropped where it is lost goes home by itself, pieces.js Weight). See comeBack().
 //
 //   const rt = new TempleRuntime({ scene, level, def });   (index.js attachTemple, at level build)
 //   rt.init(physics)          doors, brambles and bridges become solid
@@ -28,11 +33,16 @@ import { pitVoid, PIT_VOID } from '../pit-void.js';
 //   rt.gadgetSite             where the chest stands (src/boxes/placements.js reads it)
 //
 // Flags (src/game-state.js, per save slot): temple.<id>.entered (you went in), .checkpoint (the room
-// of the last mark), .gadget (the chest here was opened), .boss = 'done' (the guardian resolved),
+// last walked into: where you come back to after a load, at its anchor), .gadget (the chest here was opened), .boss = 'done' (the guardian resolved),
 // .done (the world has changed), .been.<room> (stood in: the house's map, src/house-map.js), and the logic's own:
 // .open.<door>, .lit.<id>, .drum.<id>, .found.<id> (a key, a coffer, the map's chest).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const UP_ = V(0, 1, 0), _up = V(), _push = V();
+/** Coming back into a room (issue #783): settle, the seconds on your feet in a room before where you stand is its doorway's spot. */
+export const ENTRY = { settle: 0.3 };
+/** What a fall into a pit says, the first time (a house's own: def.pitLine). */
+export const PIT_LINE = 'You climb back up, at the doorway you came in by.';
 // (the pieces the house's map reads by kind, by their names: a built game's classes have other names)
 const CLASS = new Map([[Mark, 'Mark'], [Platform, 'Platform'], [Updraft, 'Updraft']]);
 /** The foes of a room still standing (src/foes.js placeMachinesIn: rt.machines, each with its room). */
@@ -110,7 +120,7 @@ export class TempleRuntime {
     this.kit.noClimb = true;   // (no wall inside is climbed but the climbs its layout marks: K.climbable, issue #115)
     this.pieces = []; this.byId = new Map(); this.marks = []; this.pits = []; this.portals = [];
     this.placed = [];   // ({ cls, o }: every piece as its layout placed it, the house's map reads them: house-plan.js)
-    this.checkpoint = null;
+    this.entries = new Map();   // room -> { spot, heading }: where you came into it last (issue #783, watchEntry)
     this.told = new Set();
     this.time = 0;
     // the rooms (in the house's skin, if it wears one: its surfaces, its dressing, src/temples/skins/; issue #342)
@@ -188,6 +198,7 @@ export class TempleRuntime {
   /** The story hook: who plays, what they hear, where the words go. */
   connect({ player, sound = null, toast = () => {}, quests = null, fade = null, isNight = null }) {
     this.player = player; this.sound = sound; this.toast = toast; this.quests = quests;
+    this.entries.clear(); this.lastRoom = this.room = this.footRoom = this.entering = this.waking = undefined;   // (a new traveller: no doorway known yet)
     this.isNight = isNight ?? (() => false);   // (a world change that keeps the night: the Signal Market's tower)
     this.fadeFn = fade;
     if (typeof window !== 'undefined') (window.temples ??= {})[this.id] = this;
@@ -204,8 +215,6 @@ export class TempleRuntime {
       // a second chest (a `find`: the Givers' guard)
       for (const [el, e] of Object.entries(this.def.logic.elements)) if (e.type === 'find' && e.box === id && this.logic.find(el)) this.game.emit('temple:find', { id: this.id, el });
     }));
-    const cp = this.game.flag(`temple.${this.id}.checkpoint`);
-    if (cp) this.checkpoint = this.marks.find((m) => m.room === cp) ?? null;
     this.def.onConnect?.(this);
   }
 
@@ -235,21 +244,127 @@ export class TempleRuntime {
     return l.x > B.min.x - 30 && l.x < B.max.x + 30 && l.z > B.min.z - 30 && l.z < B.max.z + 30 && l.y < B.min.y && l.y > B.min.y - 400;
   }
 
-  setCheckpoint(mark) {
-    this.checkpoint = mark;
-    this.game.set(`temple.${this.id}.checkpoint`, mark.room);
-    this.sound?.chime?.();
+  /** The room last walked into (the save's: temple.<id>.checkpoint), as its anchor (a mark) or { room }; null for none. */
+  get checkpoint() {
+    const room = this.game.flag(`temple.${this.id}.checkpoint`);
+    return room ? this.marks.find((m) => m.room === room) ?? { room } : null;
   }
-  /** Back at the last mark (a fall into a pit; waking after a knockout). */
-  toCheckpoint({ hurt = 0 } = {}) {
-    const P = this.player, m = this.checkpoint ?? this.marks[0];
-    if (!P || !m) return;
+  set checkpoint(m) { this.game.set(`temple.${this.id}.checkpoint`, m?.room ?? null); }
+  setCheckpoint(m) { this.checkpoint = m; }
+
+  /**
+   * Where a room has you back when the house does not know the doorway you came in by (a save loaded in it): the
+   * entrance for the first room, else its anchor (the spot by its mark), else a floor near its middle, else the room
+   * before it on the way in. { spot, heading, room } (world), or null.
+   */
+  anchorOf(room, seen = new Set()) {
+    if (!room || seen.has(room)) return null;
+    seen.add(room);
+    const def = this.def.logic;
+    if (room === def.entry && this.arrival) return { spot: this.arrival.pos.clone(), heading: this.arrival.heading, room };
+    const m = this.marks.find((k) => k.room === room);
+    if (m) return { spot: m.spot.clone(), heading: m.heading, room };
+    const near = this.floorNear(room);
+    if (near) return near;
+    // (the room before it, walking in from the entrance: a link's other end)
+    const back = def.links.filter((l) => (l.b === room && !seen.has(l.a)) || (l.a === room && !l.oneWay && !seen.has(l.b))).map((l) => (l.b === room ? l.a : l.b));
+    for (const r of back) { const c = this.anchorOf(r, seen); if (c) return c; }
+    return null;
+  }
+  /** A floor near a room's middle (the house's map's place for it) that is that room's, with head room, out of the pits. */
+  floorNear(room) {
+    if (!this.physics?.groundAt) return null;
+    const plan = this.housePlan(), K = this.kit, at = plan.rooms.find((r) => r.id === room)?.pos;
+    if (!at) return null;
+    const mid = K.world(...at);
+    for (let r = 0; r <= 8; r++) for (let i = 0, n = Math.max(1, r * 6); i < n; i++) {
+      const a = (i / n) * Math.PI * 2, w = K.world(at[0] + Math.cos(a) * r, at[1], at[2] + Math.sin(a) * r);
+      const g = this.physics.groundAt(w.x, w.y + 2, w.z, 5);
+      if (!Number.isFinite(g)) continue;
+      const q = V(w.x, g, w.z), lq = K.local(q);
+      if (!this.standable(q) || this.inDoor(q) || roomAt(plan, [lq.x, lq.y, lq.z]) !== room) continue;
+      return { spot: q, heading: r ? Math.atan2(mid.x - q.x, mid.z - q.z) : 0, room };
+    }
+    return null;
+  }
+  /** A floor to stand on now (issue #783): solid under it, head room over it, not over a pit, inside the house. */
+  standable(q) {
+    const ph = this.physics;
+    if (!q || !this.inside(q) || this.pits.some((pit) => pit.contains(q) || pit.contains(_up.copy(q).addScaledVector(UP_, -1)))) return false;
+    if (!ph?.groundAt) return true;
+    const g = ph.groundAt(q.x, q.y + 1, q.z, 2);
+    if (!Number.isFinite(g) || Math.abs(g - q.y) > 0.45) return false;
+    if (ph.rayDistance && ph.rayDistance(_up.set(q.x, g + 0.3, q.z), UP_, 2) < 1.7) return false;
+    // (room for his body: no wall it would be pushed out of, src/player.js RADIUS less a little)
+    const push = ph.pushCapsule?.(_up.set(q.x, g, q.z), 0.4, 0.65, 1.8, _push);
+    return !(push && push.length() > 0.15);
+  }
+  /** Within a stride of a door's slab (where one would shut on you). */
+  inDoor(q) {
+    for (const p of this.pieces) if (p.slab && p.group && Math.hypot(p.group.position.x - q.x, p.group.position.z - q.z) < 1.3 && Math.abs(p.group.position.y - q.y) < 3) return true;
+    return false;
+  }
+  /** Inside the ring that wakes the guardian (boss.js: its arena less 1.5 m), with a stride to spare. */
+  inWakeRing(q) {
+    const A = this.guardian?.arena;
+    return !!A?.center && Math.hypot(q.x - A.center.x, q.z - A.center.z) < A.r - 0.5 && Math.abs(q.y - A.y) < 6;
+  }
+  /**
+   * Where you come back to in `room` (issue #783: the room you were in): the doorway you last came into it by, if its
+   * floor is still there (a bridge sunk since, a door shut on it: not), else its anchor (anchorOf). The guardian's hall
+   * only at a doorway outside the ring that wakes it, else the room before it, as with the old checkpoints.
+   */
+  comeBack(room = this.footRoom ?? this.room) {
+    const def = this.def.logic;
+    room ??= this.game.flag(`temple.${this.id}.checkpoint`) ?? def.entry;
+    const tries = [this.entries.get(room)];
+    if (def.rooms[room]?.boss) tries.push(this.entries.get(this.bossFrom), this.anchorOf(this.bossFrom), this.marks.find((m) => !this.inWakeRing(m.spot) && m.spot.distanceTo(this.guardian?.arena?.center ?? m.spot) < 40));
+    else tries.push(this.anchorOf(room));
+    // (an anchor is where a checkpoint stood, a door or not: only a doorway walked through is kept from a door's swing)
+    for (const c of tries) if (c?.spot && this.standable(c.spot) && (!c.walked || !this.inDoor(c.spot)) && !(def.rooms[room]?.boss && this.inWakeRing(c.spot))) return { room: c.room ?? room, spot: c.spot.clone(), heading: c.heading };
+    const a = this.anchorOf(def.entry);
+    return a ? { ...a, spot: a.spot.clone() } : null;
+  }
+  /**
+   * Per frame inside (issue #783): a room walked into (trackRooms' room changed) is remembered by where you first stand
+   * in it a moment, on its own floor (not a moving one, a pit's lip or a doorway a door shuts on), facing the way you
+   * came in; the room is the save's too (its checkpoint flag). Not the room a save is loaded in (main.js `loaded`).
+   */
+  watchEntry(dt, P) {
+    if (this.room !== this.lastRoom) {
+      const from = this.lastRoom, R = this.def.logic.rooms;
+      this.lastRoom = this.room;
+      if (this.room && R[this.room]?.boss && from && !R[from]?.boss) this.bossFrom = from;
+      // (the room a save is loaded in is not walked into: its anchor holds until you go through a doorway)
+      this.entering = this.room && (from !== undefined || !this.wasLoaded) ? { room: this.room, t: 0, from: P.pos.clone() } : null;
+      if (from === undefined) this.wasLoaded = false;
+    }
+    if (P.onGround && this.room) this.footRoom = this.room;   // (the room you last stood in: a fall's, not the one it fell past)
+    const E = this.entering;
+    if (!E) return;
+    const still = P.onGround && !P.dead && !P.down && !P.climbing && !P.swim && !P._carriedBy && !P.ride;
+    E.t = still ? E.t + dt : 0;
+    if (E.t < ENTRY.settle || !this.standable(P.pos) || this.inDoor(P.pos) || (this.def.logic.rooms[E.room]?.boss && this.inWakeRing(P.pos))) return;
+    const dx = P.pos.x - E.from.x, dz = P.pos.z - E.from.z;
+    const heading = Math.hypot(dx, dz) > 0.6 ? Math.atan2(dx, dz) : P.heading ?? 0;
+    this.entries.set(E.room, { spot: P.pos.clone(), heading, room: E.room, walked: true });
+    this.entering = null;
+    if (this.game.flag(`temple.${this.id}.checkpoint`) !== E.room) this.game.set(`temple.${this.id}.checkpoint`, E.room);
+  }
+  /** Back in the room you were in (a fall into a pit; a save from before a house was remade). hurt: hearts, sparing. */
+  toComeBack({ hurt = 0, room } = {}) {
+    const P = this.player, c = this.comeBack(room);
+    if (!P || !c) return null;
     this.fade(1, 0.05);
     setTimeout(() => this.fade(0, 0.8), 160);
-    P.teleport?.(m.spot.clone(), V(0, 1, 0), V(0, 0, 1));
-    P.heading = m.heading;
+    P.teleport?.(c.spot.clone(), V(0, 1, 0), V(0, 0, 1));
+    P.heading = c.heading;
+    this.entering = null;
     if (hurt) P.hurt?.(sparing(heartsOf(P), hurt), 'fall');   // (hearts; never the last quarter)
+    return c;
   }
+  /** A save from before its house was remade: to the room it was last in, at its anchor. */
+  toCheckpoint(o = {}) { return this.toComeBack({ room: this.game.flag(`temple.${this.id}.checkpoint`) ?? undefined, ...o }); }
 
   /** The house's plan for its map (src/temples/house-plan.js: read once from what its layout built, in local metres). */
   housePlan() {
@@ -294,7 +409,8 @@ export class TempleRuntime {
     if (!left.length || roomsPast(def, ok(left), open).has(room)) return { granted };
     // else: the last mark if the way out is open from it, else the entrance's
     const reach = roomsPast(def, ok(left), open);
-    const m = (this.checkpoint && reach.has(this.checkpoint.room) ? this.checkpoint : null) ?? this.marks.find((k) => k.room === def.entry) ?? this.marks.find((k) => reach.has(k.room));
+    const cp = this.checkpoint;
+    const m = (cp?.spot && reach.has(cp.room) ? cp : null) ?? this.marks.find((k) => k.room === def.entry) ?? this.marks.find((k) => reach.has(k.room));
     if (m) { this.setCheckpoint(m); P.teleport?.(m.spot.clone(), V(0, 1, 0), V(0, 0, 1)); P.heading = m.heading; }
     else if (this.arrival) { P.teleport?.(this.arrival.pos.clone(), V(0, 1, 0), V(0, 0, 1)); P.heading = this.arrival.heading; }
     return { granted, moved: m?.room ?? 'arrival' };
@@ -347,8 +463,9 @@ export class TempleRuntime {
     // temples, and a house's rooms changed under old saves): never stranded. Past the chest (or the find), the gadget is
     // the save's; else back to the last mark it can reach, or the entrance's
     // (main.js sets `loaded` when it puts the traveller where a save left him: only then, once)
-    if (P?.pos && this.loaded) { this.loaded = false; if (inside) this.unstrand(); }
-    if (inside) this.trackRooms(dt, P.pos);
+    if (P?.pos && this.loaded) { this.loaded = false; this.wasLoaded = true; this.lastRoom = undefined; this.entries.clear(); if (inside) this.unstrand(); }
+    if (inside) { this.trackRooms(dt, P.pos); if (!P.dead) this.watchEntry(dt, P); }
+    else if (P?.pos && !this.below(P.pos)) this.lastRoom = this.room = this.footRoom = undefined;
     this.def.onUpdate?.(this, dt, t);
     this.updateArenas(dt);
     this.applyDoors();
@@ -364,12 +481,17 @@ export class TempleRuntime {
         if (this.def.arenaDoor) { this.logic.force(this.def.arenaDoor, null); this.applyDoors(); }
       }
     }
-    // knocked out anywhere inside: wake at the last mark (restart() goes back to lastSafe)
-    if (P?.dead && inside) { const m = this.checkpoint ?? this.marks[0]; if (m) P.lastSafe.copy(m.spot); }
-    // fell out of the temple altogether (it hangs far over the world): back to the last mark
-    if (P && !P.dead && !inside && this.below(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); }
-    // fell into a pit
-    if (P && !P.dead && inside) for (const pit of this.pits) if (pit.contains(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); break; }
+    // knocked out anywhere inside: wake in the room you were in, at the doorway you came into it by (restart() goes back
+    // to lastSafe), facing into it (issue #783)
+    if (P?.dead && (inside || (this.room && this.below(P.pos)))) {
+      this.waking ??= this.comeBack();
+      if (this.waking) P.lastSafe.copy(this.waking.spot);
+    } else if (this.waking && P) { if (P.pos.distanceTo(this.waking.spot) < 1) P.heading = this.waking.heading; this.waking = null; this.entering = null; }
+    // fell out of the temple altogether (it hangs far over the world), or into a pit: back in the room you were in
+    if (P?.pos && !P.dead && ((!inside && this.below(P.pos)) || (inside && this.pits.some((pit) => pit.contains(P.pos))))) {
+      this.toComeBack({ hurt: DAMAGE.graze });
+      this.notice(this.def.pitLine ?? PIT_LINE, 'pit');
+    }
     this.change?.update?.(dt, t);
     // what the guardian's waking changes in its hall, as far as it has come (def.onCalm: the house's own; its ending holds
     // it back for its panel, calmK), then its ending's panel on the house (src/temples/finale.js)

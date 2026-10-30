@@ -1,7 +1,7 @@
 // Issue #375 in the engines: a save loaded inside a temple past a gadget gate without its gadget is never stranded
 // (src/temples/runtime.js unstrand; engine/game.js marks the load as main.js does). In the engine bundle the Unity version
 // runs (engine/game.js in a bare V8 context): a save standing past the Warden's Well's Vane Room chasm without the bridge
-// pen wakes on the near side, at a glyph stone; one that had found the pen keeps it and its place.
+// pen wakes on the near side, at a room's anchor or the entrance; one that had found the pen keeps it and its place.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
@@ -39,7 +39,7 @@ test('a save past the Vane Room’s chasm without the pen wakes on the near side
   assert.equal(rt.items.has('bridge'), false, 'no pen given: it was never found');
   const now = rt.roomNear(P.pos);
   assert.notEqual(now, 'vaneFar', `moved off the far side (${now})`);
-  assert.ok(rt.marks.some((m) => m.spot.distanceTo(P.pos) < 0.8), 'at a glyph stone');
+  assert.ok(rt.marks.some((m) => m.spot.distanceTo(P.pos) < 0.8) || P.pos.distanceTo(rt.arrival.pos) < 0.8, 'at a room\'s anchor or the house\'s entrance (issue #783: no glyph stones)');
   g.dispose?.();
 
   // the pen found before (its chest opened): his own, and he stays

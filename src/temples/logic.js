@@ -19,7 +19,7 @@ import { meetsWith } from '../resources.js';
 //
 // The definition (src/temples/<world>.js, `logic`):
 //   { id, entry: 'room', gadget: 'fire',
-//     rooms: { id: { checkpoint?: true, boss?: true } },
+//     rooms: { id: { boss?: true, kind? } },
 //     links: [{ a, b, door?: id, needs?: ['jetpack'] }],        rooms you walk between (both ways)
 //     elements: { id: { type, room, needs?: [items], ... } } }
 //   types: plate · drum { plate, plateAt?, stops?, needs? (an iron moon: the tongs; a ball only a tether reaches), roll? (rolls) } · brazier · bramble · switch · bell · gadget { item } · boss

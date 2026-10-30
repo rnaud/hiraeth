@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
 import { templeOf } from '../src/temples/attachment.js';
-import { MARK } from '../src/temples/pieces.js';
 import { createArzach } from '../src/levels/arzach.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -11,7 +10,7 @@ import { game } from '../src/game-state.js';
 import { HALL } from '../src/temples/arzach.js';
 
 // The Aerie's Hall of Winds (#216): behind anything solid the wind can't reach you (it used to only behind the screens'
-// narrow shelter boxes), and its streaks stop there; the marks (the glyph stones) say what they are.
+// narrow shelter boxes), and its streaks stop there.
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
 const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
@@ -51,24 +50,4 @@ test('the Aerie (#216): a gust passes you by in the lee of a screen or the far w
   assert.ok(calm > all * 0.08 && calm < all * 0.6, `some of the hall is in a lee, not all (${calm} of ${all} samples)`);
   const low = gust.streaks.filter((s) => s.y < 2.5).length;
   assert.ok(low >= gust.streaks.length / 3, `many streaks at a body’s height (${low})`);
-});
-
-test('the Aerie (#216): the mark stone at the threshold wakes with a flare, and the first says what it is, once', () => {
-  game.reset();
-  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
-  const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
-  let t = 0;
-  const frame = () => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, {}, 0); };
-  const mark = rt.marks.find((m) => m.room === 'threshold');
-  P.teleport(mark.spot.clone(), V(0, 1, 0), V(0, 0, 1));
-  for (let i = 0; i < 10; i++) frame();
-  assert.equal(rt.checkpoint, mark, 'the mark holds your place');
-  assert.ok(notes.includes(MARK.line), 'and says so');
-  assert.ok(mark.flare > 0.5, 'its glyph flares');
-  const hall = rt.marks.find((m) => m.room === 'gusts');
-  P.teleport(hall.spot.clone(), V(0, 1, 0), V(0, 0, 1));
-  for (let i = 0; i < 10; i++) frame();
-  assert.equal(rt.checkpoint, hall);
-  assert.equal(notes.filter((n) => n === MARK.line).length, 1, 'only the first one says it');
 });

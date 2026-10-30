@@ -118,12 +118,12 @@ export const LOGIC = {
   // Hall's id, `pistons`, its gallery `gallery`; the Crank Hall `weight`, the Crank Passage `crank`; the Boiler Room the
   // one fight, its keeper the mini-boss)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, pistons: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'passage' },
-    boiler: { checkpoint: true, kind: 'combat' }, cell: { checkpoint: true, kind: 'puzzle' }, gov: { checkpoint: true, kind: 'puzzle' },
-    weight: { checkpoint: true, kind: 'puzzle' }, crank: { checkpoint: true, kind: 'puzzle' }, furnace: { checkpoint: true, kind: 'puzzle' },
-    furnaceFar: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { kind: 'passage' }, pistons: { kind: 'puzzle' }, gallery: { kind: 'passage' },
+    boiler: { kind: 'combat' }, cell: { kind: 'puzzle' }, gov: { kind: 'puzzle' },
+    weight: { kind: 'puzzle' }, crank: { kind: 'puzzle' }, furnace: { kind: 'puzzle' },
+    furnaceFar: { kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
     // (issue #660) the Fuse Room north off the Governor Room, and its vault: a side room, for a reward
-    fuse: { checkpoint: true, kind: 'puzzle' }, fuseIn: { kind: 'passage' },
+    fuse: { kind: 'puzzle' }, fuseIn: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'pistons' },
@@ -1054,7 +1054,7 @@ export const BURIED_TEMPLE = {
   skin: engineHouseSkin,
   local: { person: 'brann', out: 8, side: 5 },
   enterLine: 'Inside the Engine-House it is warm, and everything smells of oil. Something far ahead is grinding, stuck.',
-  pitLine: 'You climb back out of the furnace pit, to the last glyph stone.',
+  pitLine: 'You climb back out of the furnace pit, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Outside, the machine’s old pipe-cart has begun to ride the canyon again.', 'resolved.out'); },
   onLit(rt, id) { if (id === 's1' && !rt.logic.drumOn('ball0', 'pY')) rt.notice('The valve hisses; the engine doesn’t turn. A stone ball jams its crank.', 'valve.jammed'); },
   // the warden's four vents: each a target while it faces out, open; all four inside a breath is a hit. From its second

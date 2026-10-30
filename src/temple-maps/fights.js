@@ -76,7 +76,7 @@ export function fightMap(def, seed) {
   gaps.forEach((g, i) => shapes.push({ kind: 'gate', x0: g.x[0], x1: g.x[1], z0: g.z[0], z1: g.z[1], floor: 'f0', link: `L${i}` }));
 
   // ---- the rooms, the gates between them, what is in each
-  const out = rooms.map((r, i) => ({ id: r.id, name: r.name, pos: mid(r).map(round1), floor: 'f0', kind: 'combat', stage: i, entry: i === 0, boss: i === rooms.length - 1, checkpoint: false }));
+  const out = rooms.map((r, i) => ({ id: r.id, name: r.name, pos: mid(r).map(round1), floor: 'f0', kind: 'combat', stage: i, entry: i === 0, boss: i === rooms.length - 1 }));
   const links = doors.map((d, i) => {
     const g = gaps[i], way = [(g.x[0] + g.x[1]) / 2, 0, (g.z[0] + g.z[1]) / 2].map(round1), a = rooms[d.from], b = rooms[d.to];
     return { id: `L${i}`, a: a.id, b: b.id, door: `gate-${a.id}`, type: 'gate', oneWay: false, needs: [], way, floor: 'f0', label: `the gate sinks once the ${a.name.replace(/^The /, '').toLowerCase()} is cleared`,

@@ -148,10 +148,10 @@ export const LOGIC = {
   // Bell Chamber holds the hook and its try; the Bell Porch past its open way is a room of its own since v1.77. Since v1.83
   // (issue #408) `stair` is the Great Belfry's floor and `landing` its gallery: the ids kept, so a save's last mark holds)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, stones: { checkpoint: true, kind: 'passage' }, storeW: { kind: 'combat' }, storeE: { kind: 'puzzle' },
-    stair: { checkpoint: true, kind: 'puzzle' }, landing: { kind: 'passage' }, bell: { checkpoint: true, kind: 'puzzle' }, porch: { checkpoint: true, kind: 'puzzle' },
-    echoes: { checkpoint: true, kind: 'puzzle' }, echoesFar: { checkpoint: true, kind: 'puzzle' }, ringers: { checkpoint: true, kind: 'passage' },
-    ante: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { kind: 'passage' }, stones: { kind: 'passage' }, storeW: { kind: 'combat' }, storeE: { kind: 'puzzle' },
+    stair: { kind: 'puzzle' }, landing: { kind: 'passage' }, bell: { kind: 'puzzle' }, porch: { kind: 'puzzle' },
+    echoes: { kind: 'puzzle' }, echoesFar: { kind: 'puzzle' }, ringers: { kind: 'passage' },
+    ante: { kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'stones' },
@@ -1030,7 +1030,7 @@ export const ARZACH2_TEMPLE = {
   skin: foundersBelfrySkin,
   local: { person: 'ysel', out: 29, side: 3.5 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the belfry the air is still and white, and somewhere above, something huge is crying.',
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Far below, the stones that fell up round the belfry begin to come down.', 'resolved.out'); },
   onUpdate(rt) {
     // (a save that stood in the old rooms: to the last mark, once)

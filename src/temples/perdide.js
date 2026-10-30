@@ -173,12 +173,12 @@ export const LOGIC = {
   // (each room tagged with its kind, issue #336: since v1.83, issue #409, the house has no fight: src/foes.js places machines
   // only in a fight's room, scripts/temple-design/rules.mjs, tests/temple-rules.test.js)
   rooms: {
-    threshold: { checkpoint: true, kind: 'puzzle' }, choir: { checkpoint: true, kind: 'puzzle' }, well: { checkpoint: true, kind: 'puzzle' },
-    stilling: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' },
-    galleryFar: { checkpoint: true, kind: 'passage' }, balcony: { checkpoint: true, kind: 'puzzle' },
+    threshold: { kind: 'puzzle' }, choir: { kind: 'puzzle' }, well: { kind: 'puzzle' },
+    stilling: { kind: 'puzzle' }, gallery: { kind: 'puzzle' },
+    galleryFar: { kind: 'passage' }, balcony: { kind: 'puzzle' },
     hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
     // (issue #660) the Quick Room off the Choir's floor, and its vault: a side room, for a reward
-    quick: { checkpoint: true, kind: 'puzzle' }, quickIn: { kind: 'passage' },
+    quick: { kind: 'puzzle' }, quickIn: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'choir', door: 'd0' },           // the first note, sung at the door, opens it onto the great hall
@@ -926,7 +926,7 @@ export const PERDIDE_TEMPLE = {
   skin: hushHouseSkin,
   local: { person: 'teasel', out: 9, side: 6 },
   enterLine: 'Inside the Hush-House it is green and cool, and the crystals hum, each its own note. Somewhere ahead, something snaps.',
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Out on the swamp, at the foot of every snapping plant, flowers open.', 'resolved.out'); },
   /**
    * (issue #562) Asleep, she no longer hears them: the three crystals thaw and swing again, all three in time, humming

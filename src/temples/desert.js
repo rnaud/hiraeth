@@ -147,10 +147,10 @@ export const LOGIC = {
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, flame: { checkpoint: true, kind: 'puzzle' },
-    channel: { checkpoint: true, kind: 'puzzle' }, balcony: { checkpoint: true, kind: 'puzzle' }, machines: { checkpoint: true, kind: 'combat' },
-    fires: { checkpoint: true, kind: 'puzzle' }, firesFar: { kind: 'chest' }, wing: { checkpoint: true, kind: 'puzzle' },
-    ante: { checkpoint: true, kind: 'passage' }, cistern: { boss: true, kind: 'guardian' }, spring: { checkpoint: true, kind: 'puzzle' },
+    threshold: { kind: 'passage' }, hall: { kind: 'puzzle' }, flame: { kind: 'puzzle' },
+    channel: { kind: 'puzzle' }, balcony: { kind: 'puzzle' }, machines: { kind: 'combat' },
+    fires: { kind: 'puzzle' }, firesFar: { kind: 'chest' }, wing: { kind: 'puzzle' },
+    ante: { kind: 'passage' }, cistern: { boss: true, kind: 'guardian' }, spring: { kind: 'puzzle' },
   },
   links: [
     { a: 'threshold', b: 'hall' },
@@ -985,7 +985,7 @@ export const DESERT_TEMPLE = {
   skin: roseHouseSkin,
   layout, exterior, change,
   enterLine: 'Cool air, and the smell of old water. The Rose House is dark inside, and very large.',
-  pitLine: 'You climb back out of the sand, to the last glyph stone.',
+  pitLine: 'You climb back out of the sand, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Water. Above, it is already running out of the house toward Qanat.', 'resolved.out'); },
   // the braziers round the cistern calm it, a fifth each (two end its first phase): lit before it woke, or before a knockout, they still count
   onLit(rt, id) { if (RIM.includes(id)) syncLight(rt.guardian); },

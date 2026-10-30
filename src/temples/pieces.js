@@ -68,8 +68,8 @@ import { beamStop } from '../beam-stop.js';
 //   MapChest a little makers' chest like a key's, the house's map in it (issue #405): opened, the Start menu's House map
 //            shows every room (src/house-map.js); its element { type: 'map', room }, nothing waits on it
 //   Coffer   a little brass-bound coffer in an optional room: open it (interact) for a purse of chimes
-//   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
-//   Pit      a volume below a chasm: fall in and you are back at the room's mark
+//   Mark     a room's anchor, nothing drawn: where the room is (its map, its machines) and a spot to come back to in it
+//   Pit      a volume below a chasm: fall in and you are back at the doorway you came into its room by
 //   Weight   a block of the house's stone small enough to carry (src/carry.js): set on a plate, it holds it down
 //
 // Any of Door, Switch and Bridge can be `hidden`: only the seeing lens shows it (src/gadgets/lens.js, issue #377; the glyph
@@ -92,7 +92,7 @@ const ease = (k) => k * k * (3 - 2 * k);
 const unmetOf = (o) => (typeof o.unmet === 'function' ? o.unmet() : o.unmet);
 // (a shut door, a bramble, a gate: never taken hold of to climb, as the house's walls are not: issue #115)
 const NO_CLIMB = { noClimb: true };
-const _dl = new THREE.Vector3(), _dn = new THREE.Vector3(), _mk = new THREE.Vector3(), _mk2 = new THREE.Vector3();
+const _dl = new THREE.Vector3(), _dn = new THREE.Vector3(), _mk = new THREE.Vector3();
 // (a hidden piece named by an item, hidden: 'lantern', shows while that is carried; `hidden: true` is the seeing lens's)
 /** (issue #377) The seeing lens raised now (src/gadgets/hidden.js LENS_VIEW), and `at` in its view (any at: null). */
 export const lensUp = (rt, at = null) => rt.logic.has('monocle') && lensSees(at ?? rt.player?.pos ?? null, at ? {} : { range: Infinity, cone: Math.PI });
@@ -3566,54 +3566,27 @@ export class Coffer {
   dispose() { this.off?.(); }
 }
 
-/** A mark's waking: its glyph flares for `flare` s; the first mark of all says what it is (once a save: the `told` flag). */
-export const MARK = { flare: 0.9, told: 'temple.markTold', line: 'The glyph stone wakes: it holds your place. Fall, and you come back to it.' };
+/**
+ * A room's anchor (issue #783: the glyph-stone checkpoints are gone, nothing is drawn or woken here). Where its layout
+ * placed a room's mark still says where the room is: the house's map reads it (house-plan.js roomPlaces), its machines
+ * stand round it (src/foes.js placeMachinesIn, `foes`), and it is where you come back to in that room when the house
+ * does not know the doorway you came in by (a save loaded mid-room: runtime.js comeBack). o: { room, at, yaw, foes }
+ */
 export class Mark {
-  /**
-   * A checkpoint: a glyph stone. o: { room, at, yaw, foes } (foes: where its room's machines stand, local, the middle of
-   * a fight's room, src/foes.js placeMachinesIn; left out, round the stone, as before: issue #336)
-   */
   constructor(rt, o) {
     this.rt = rt; this.room = o.room;
-    const K = rt.kit, M = rt.M;
+    const K = rt.kit;
     this.pos = K.world(...o.at);
     this.heading = K.heading(o.yaw ?? 0);
     this.foes = o.foes ? K.world(...o.foes) : null;
-    this.group = new THREE.Group();
-    this.group.position.copy(this.pos);
-    this.group.rotation.y = this.heading;
-    rt.root.add(this.group);
-    this.group.add(mesh([lathe([[0.55, 0], [0.55, 0.15], [0.42, 0.3], [0.38, 1.2], [0.5, 1.35], [0.02, 1.5]], 10)], M.trimMat));
-    this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.1, flat: true });
-    this.group.add(mesh([T(glyphGeometry(0.62, 0.05), [0, 0.85, 0.4])], this.glow));
-    noCollide(this.group);
+    // (the floor in front of where the stone stood: tests/temples.test.js checks every one is a floor with head room)
     this.spot = this.pos.clone().add(V(Math.sin(this.heading) * 1.6, 0.05, Math.cos(this.heading) * 1.6));
   }
-  /** Nothing between you and the stone (a shut door: a mark is never taken through one, v1.48: the great lock's). */
-  inReach(p) {
-    const ph = this.rt.physics;
-    if (!ph?.rayDistance) return true;
-    const from = _mk.copy(p.pos).addScaledVector(UP, 1.1), to = _mk2.copy(this.pos).addScaledVector(UP, 1.1);
-    const d = from.distanceTo(to);
-    return d < 0.3 || ph.rayDistance(from, to.sub(from).normalize(), d) >= d - 0.35;
-  }
-  update(dt, t) {
-    const p = this.rt.player;
-    if (p && p.onGround && p.pos.distanceTo(this.pos) < 4 && this.rt.checkpoint?.room !== this.room && this.inReach(p)) {
-      this.rt.setCheckpoint(this);
-      // (it wakes with a flare of its glyph, and the first one says what it is: issue #216, a stone nobody could read)
-      this.flare = 1;
-      const G = this.rt.game;
-      if (G && !G.flag?.(MARK.told)) { G.set?.(MARK.told, true); this.rt.notice?.(MARK.line); }
-    }
-    this.flare = Math.max(0, (this.flare ?? 0) - dt / MARK.flare);
-    const on = this.rt.checkpoint === this;
-    this.glow.uniforms.uGlow.value = (on ? 0.75 + 0.2 * Math.sin(t * 2) : 0.12) + 1.2 * this.flare * this.flare;
-  }
+  update() {}
 }
 
 /**
- * Fall below a chasm's lip and you are back at the room's mark. o: { room, min: [x, y, z], max } (local); `own`: what
+ * Fall below a chasm's lip and you are back at the doorway you came into the room by (runtime.js comeBack). o: { room, min: [x, y, z], max } (local); `own`: what
  * already says it is deadly (molten iron), so it takes no dark of its own (runtime.js: every other pit fills with the
  * dark from below, src/pit-void.js, issue #312).
  */

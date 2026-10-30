@@ -117,10 +117,10 @@ export const LOGIC = {
   // tests/temple-rules.test.js. The Palm House's floor holds the bloom (issue #477; the Seed Chamber did). Since v1.83, issue #411, `potting` is the Palm
   // House's floor and `landing` its gallery: the ids kept, so a save's last mark holds; the Glass Stair is gone into it)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, potting: { checkpoint: true, kind: 'puzzle' }, shade: { checkpoint: true, kind: 'combat' }, frame: { checkpoint: true, kind: 'puzzle' },
-    landing: { checkpoint: true, kind: 'puzzle' }, seed: { checkpoint: true, kind: 'puzzle' }, bud: { checkpoint: true, kind: 'puzzle' },
-    gulf: { checkpoint: true, kind: 'puzzle' }, gulfFar: { checkpoint: true, kind: 'puzzle' }, vault: { checkpoint: true, kind: 'puzzle' }, vaultTop: { kind: 'passage' },
-    ante: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { kind: 'passage' }, potting: { kind: 'puzzle' }, shade: { kind: 'combat' }, frame: { kind: 'puzzle' },
+    landing: { kind: 'puzzle' }, seed: { kind: 'puzzle' }, bud: { kind: 'puzzle' },
+    gulf: { kind: 'puzzle' }, gulfFar: { kind: 'puzzle' }, vault: { kind: 'puzzle' }, vaultTop: { kind: 'passage' },
+    ante: { kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'potting' },
@@ -1185,7 +1185,7 @@ export const EDENA_TEMPLE = {
   layout, exterior, change,
   local: { person: 'sorrel', out: 15, side: 6 },
   enterLine: 'Inside the Greenhouse it is warm and green-lit and smells of earth, and nothing grows. Every pot holds a dead stick.',
-  pitLine: 'You climb back out of the green dark, to the last glyph stone.',
+  pitLine: 'You climb back out of the green dark, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Outside, the white ruins all over the garden are flowering.', 'resolved.out'); },
   /** (issue #562) The Gardener asleep, the builders' water runs back into its four beds: it wells up round each bloom, out to the bed's lip (rt.calmK: its ending lets it in over its own panel). */
   onCalm(rt, k, dt, t) {

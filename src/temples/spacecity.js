@@ -238,13 +238,13 @@ export const LOGIC = {
   // last mark holds), `float` the moored room, `moor` the gallery's east half, `moorW` its west half, `west` and `westS` the
   // west landings, `locker` the Chain Locker; the Cable Walk, the Balance and the Drift's far landing gone into the hall)
   rooms: {
-    stage: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, winch: { checkpoint: true, kind: 'puzzle' },
-    stair: { checkpoint: true, kind: 'passage' }, stairTop: { kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, drift: { checkpoint: true, kind: 'puzzle' },
-    moor: { checkpoint: true, kind: 'puzzle' }, moorW: { checkpoint: true, kind: 'puzzle' },
-    store: { checkpoint: true, kind: 'combat' }, perch: { kind: 'puzzle' }, locker: { checkpoint: true, kind: 'puzzle' },
-    west: { checkpoint: true, kind: 'puzzle' }, westS: { checkpoint: true, kind: 'passage' },
-    hold: { checkpoint: true, kind: 'puzzle' },
-    ante: { checkpoint: true, kind: 'passage' }, arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    stage: { kind: 'passage' }, hall: { kind: 'puzzle' }, winch: { kind: 'puzzle' },
+    stair: { kind: 'passage' }, stairTop: { kind: 'puzzle' }, loft: { kind: 'puzzle' }, drift: { kind: 'puzzle' },
+    moor: { kind: 'puzzle' }, moorW: { kind: 'puzzle' },
+    store: { kind: 'combat' }, perch: { kind: 'puzzle' }, locker: { kind: 'puzzle' },
+    west: { kind: 'puzzle' }, westS: { kind: 'passage' },
+    hold: { kind: 'puzzle' },
+    ante: { kind: 'passage' }, arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'stage', b: 'hall' },
@@ -1513,7 +1513,7 @@ export const SPACECITY_TEMPLE = {
   skin: mooringHouseSkin,
   local: { person: 'joss', out: 7, side: 6 },
   enterLine: 'Inside the Mooring-House the floors stop short over nothing, and under them the stars go on. Somewhere behind iron bars, cable pays out with a long creak.',
-  pitLine: 'You catch a hanging cable and haul yourself back up to the last glyph stone.',
+  pitLine: 'You catch a hanging cable and haul yourself back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Over the city every cable draws taut, and its lamps light one by one.', 'resolved.out'); },
   // the loft's try: its ring brings a lamp down on its cord (and nothing else)
   onLit(rt, id) {

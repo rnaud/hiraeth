@@ -217,9 +217,9 @@ export const LOGIC = {
   // Lantern Chamber a puzzle room: the chest in its middle, the ledge door's lamp beside it. Since v1.83 (issue #410)
   // `pools` is the Lamp Hall's floor and `hallUp` its gallery)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, pools: { checkpoint: true, kind: 'puzzle' }, loft: { kind: 'puzzle' }, hallUp: { checkpoint: true, kind: 'puzzle' },
-    roots: { checkpoint: true, kind: 'puzzle' }, lantern: { checkpoint: true, kind: 'puzzle' }, kennel: { checkpoint: true, kind: 'combat' },
-    gallery: { checkpoint: true, kind: 'passage' }, galleryFar: { checkpoint: true, kind: 'puzzle' }, wick: { checkpoint: true, kind: 'puzzle' }, wickKey: { kind: 'passage' },
+    threshold: { kind: 'passage' }, pools: { kind: 'puzzle' }, loft: { kind: 'puzzle' }, hallUp: { kind: 'puzzle' },
+    roots: { kind: 'puzzle' }, lantern: { kind: 'puzzle' }, kennel: { kind: 'combat' },
+    gallery: { kind: 'passage' }, galleryFar: { kind: 'puzzle' }, wick: { kind: 'puzzle' }, wickKey: { kind: 'passage' },
     lamp: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
@@ -1116,7 +1116,7 @@ export const PERDIDE2_TEMPLE = {
   skin: (rt) => lampHouseSkin(rt, { rooms: ROOMS }),
   local: { person: 'briony', out: 33, side: 2 },
   enterLine: 'Inside the Lamp-House it is very dark, and it smells of moss and old oil. Somewhere above, wings.',
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Out over the wood, the Lamp-House’s lamp catches and its beam turns.', 'resolved.out'); },
   // the Lampless drinks light: a bubble's carried to it while it hangs low, searching (below); or a pool lit earlier lures
   // it down to drink there (its last phase: a bubble from afar, or a pool while you stand back)

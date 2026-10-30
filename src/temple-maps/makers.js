@@ -149,7 +149,7 @@ export function makersMap(id, { built = null, sight = true } = {}) {
   const shapes = onFloors(plan, floors, pieces);
 
   // ---- the rooms
-  const rooms = g.rooms.map((r) => ({ id: r, name: roomName(r), pos: r3(at[r]), floor: floorAt(floors, at[r][1]), kind: logic.rooms[r].kind ?? null, boss: !!logic.rooms[r].boss, checkpoint: !!logic.rooms[r].checkpoint, entry: r === logic.entry }));
+  const rooms = g.rooms.map((r) => ({ id: r, name: roomName(r), pos: r3(at[r]), floor: floorAt(floors, at[r][1]), kind: logic.rooms[r].kind ?? null, boss: !!logic.rooms[r].boss, entry: r === logic.entry }));
 
   // ---- the links and their locks
   const lockOf = new Map(g.locks.map((l) => [l.id, l]));

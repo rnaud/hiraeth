@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v2.37 — 2026-10-29
 
+- The little glyph-stone checkpoints are gone from every temple. Fall into a pit or get knocked out in a temple and you come back in the same room, at the doorway you last came in by, facing into the room, with everything you did there left as it was. A pit still only costs you a quarter of a heart.
 - A walkthrough of the whole game is on the site: from a new game to the true ending, each world’s main quest and every temple step by step, with the buttons to press. Every step is one the game is played through by a test each day, in the same order, and the page marks each step with how the last day’s run went.
 - Going through the last door to the Keeper in the Rose House now takes you straight into its channel game, with no loading screen, and winning or leaving the game brings you straight back into the house, again with no loading screen.
 - The Keeper’s channel game under the Rose House is now against the clock: five minutes for all three floods, counting down at the top right, with a call at one minute, thirty seconds and ten seconds left. Out of time, the game is lost; try again and the same channels are waiting. Clicking the left stick to run no longer opens the valve: only RT / R2 (Shift on a keyboard) does.

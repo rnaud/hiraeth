@@ -32,7 +32,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   but not behind its screens), `BellEar` (a bell rung near it: `struck`, a bell struck only, a clapper's blow or
   a `HookBell`, the pull-ring the grappling hook rings), `Platform` (a riding disc, a dynamic solid you stand
   on), `Bridge` (stones rise out of a chasm; `from: 'grow'`: a vine bridge that
-  grows out from its near end), `Mark` (a checkpoint), `Pit`; and for the last
+  grows out from its near end), `Mark` (a room's anchor, nothing drawn: below, "Coming back in the same room"), `Pit`; and for the last
   three temples `Seed` (a husk in a stone ring that only a bloom glob wakes),
   `Bud` (a flower-door: a great bud over a doorway, petals hinged round its rim,
   that a bloom glob opens; it can be held shut behind you as an arena's door),
@@ -70,7 +70,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   "A second verb"). **`guardians.js`**: the Keeper's and the warden's bodies.
 - **`runtime.js`**: one temple alive: builds the rooms (the world's `layout`),
   the building outside (`exterior`) with its doorway in and the ways out
-  (portals), marks and pits (and a net under the whole temple), the chest's site
+  (portals), the rooms' anchors and pits (and a net under the whole temple), where you come back to in a room
+  (below, "Coming back in the same room"), the chest's site
   (the box system places it: `PLACEMENTS` entries with `temple`), the guardian
   and its meter on screen, and the world change (`change`: `set(on)`, `update`).
   Once the guardian is resolved the house's ending is filmed (`finale.js`: docs/systems/cinematics.md, "A temple's
@@ -221,6 +222,42 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   stone is out of the throat on the high balcony (`tail`: `not` on `drumOn`, a state that changes back), and the
   column beside the perch once the perch's stone is out of its own (`rise`). The Roost's two vents share one stone
   (`ROOST`).
+- **Coming back in the same room** (issue #783, the author: "Remove all the tiny checkpoint pillars in temples. If I
+  die or drop into a pit just bring me back in the same room."). The glyph stones are gone from every house (178 of
+  them: the Rose House 11, the Warden's Well 13, the Founders' Belfry 10, the Footprint 12, the Engine-House 12,
+  the Lamp-House 10, the Hush-House 9, the Aerie 13, the Clock-House 14, the Builders' Greenhouse 12, the Undertower
+  15, the Mooring-House 15, the Casting-House 12, the Whale-House 10): nothing drawn, nothing woken, no chime,
+  no "the glyph stone wakes" line. A layout's `Mark` stays as a room's anchor only (`pieces.js` `Mark`: `room`, `pos`,
+  `heading`, `foes`, `spot`): the house's map places its rooms by it (`house-plan.js roomPlaces`), the machines stand
+  round it (`src/foes.js placeMachinesIn`, by its order), and it is a floor to come back to (below). The rule
+  (`runtime.js`):
+  - **A room walked into is remembered by its doorway** (`watchEntry`): when `trackRooms`' room changes, the first
+    spot in the new room where the traveller has stood on its own floor for `ENTRY.settle` (0.3 s) is that room's
+    (`rt.entries`), facing the way he came in (from where the room changed to there; else his own heading): not on a
+    moving floor (a disc, a carrier), not climbing, swimming or riding, not over a pit, not within a stride of a
+    door's slab (`inDoor`), and in the guardian's hall only outside the ring that wakes it (`inWakeRing`). The room
+    is the save's too: `temple.<id>.checkpoint` holds the room last walked into (as it held the last stone's room,
+    so old saves keep their place and `migrate.js`'s `checkpoint=<room>` conditions still read).
+  - **A fall into a pit** (or out of the house altogether, `below`) costs a graze as before (`DAMAGE.graze`,
+    `sparing`: never the last quarter) and puts him back at the doorway of the room he last stood in (`footRoom`,
+    not one a fall went past), facing in (`toComeBack`). **A knock-out** wakes him there too: the spot is taken
+    once, as he goes down (`waking`), into `lastSafe` for `restart()`, and he is turned to face in when he is up.
+  - **Nothing in the room is put back**: doors, plates, lit things, balls stay as they are. Something carried stays
+    in his hands out of a pit; dropped by a knock-out it lies where it fell, and a `Weight` lost in a pit or out of
+    its zone goes home by itself (`Weight.lost`), so the room stays solvable.
+  - **When the doorway is not known** (a save loaded in the room: main.js `loaded`, whose room is not taken as walked
+    into; a doorway whose floor has gone since, a bridge sunk: `standable` asks the floor again), `comeBack` uses the
+    room's anchor (`anchorOf`): the house's entrance for the first room, else the spot by its `Mark`, else a floor
+    found round its middle on the map's plan (`floorNear`), else the room before it on the way in. The guardian's
+    hall falls back to the room before it (`bossFrom`), as the old checkpoints did; the guardian is put back to its
+    phase's start on a knock-out as before.
+  - The pit lines say where you are (`PIT_LINE`, and each house's own `pitLine`: "…, at the doorway you came in by").
+  - Old saves: `temple.markTold` is no longer read; `temple.<id>.checkpoint` is read as the room to come back to after
+    a load. The rooms' `checkpoint: true` in the houses' logic is gone (it was only drawn on the Temple maps page).
+  Tests: `tests/temple-respawn.test.js` (every room of every house, walked from its entrance, has a place to come
+  back to on a floor with head room, no wall pushing the body out and no pit under it; a doorway walked through, then
+  a pit and a knock-out, in the Rose House, the Aerie, the Clock-House and the Casting-House, facing in and nothing
+  put back; a doorway whose floor went; saves from the days of the stones).
 - **The lee, and the marks read** (issue #216, the author: "If I'm behind a wall I shouldn't get pushed by the wind
   in the Aerie. Also not sure what the device at the entrance with the maker's sign is."). The Hall of Winds' shelter
   boxes were narrower than its screens and only 2 m deep, and behind the far wall there were none: 3 m behind a
@@ -228,9 +265,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   that close upwind of you, at your chest (one ray against the wind, `Gust.lee`; the foes' working asks it too): a
   screen, a wall, the stone. Its streaks show it: half of them low at a body's height (`floor`, `streaks` 64), and a
   streak whose leading end is in a lee (its lane sampled every 0.5 m once, `leeLanes`) is not drawn. The "device"
-  was a `Mark`, the checkpoint glyph stone every temple has: it lit silently. Now its glyph flares as it wakes, and
-  the first one of a save says what it is (`MARK.line`, once: the `temple.markTold` flag). Tests:
-  `tests/aerie-lee.test.js`.
+  was a `Mark`, the checkpoint glyph stone every temple had; since issue #783 there are none (below, "Coming back in
+  the same room"). Tests: `tests/aerie-lee.test.js`.
 - **The tower breathes through its vanes** (the Warden's Well, from the v1.19 audit; the tower was built to keep the
   shaft breathing, and the breath turned its machines). A `Vane` is one of the makers' bellows, in a floor (facing
   up) or on a wall (`wall`, `yaw`): its element (type `vane`, logic.js: held like a held bell, lit only while it

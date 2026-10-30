@@ -205,14 +205,14 @@ WING.loft = { x0: WING.strike.x - 15, x1: WING.strike.x - 7, z0: WING.strike.z -
 export const LOGIC = {
   id: 'garage', entry: 'threshold', gadget: 'boomerang',
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, esc: { checkpoint: true, kind: 'puzzle' }, escFar: { kind: 'puzzle' },
-    well: { checkpoint: true, kind: 'puzzle' }, pend: { checkpoint: true, kind: 'combat' }, springs: { checkpoint: true, kind: 'puzzle' },
+    threshold: { kind: 'passage' }, esc: { kind: 'puzzle' }, escFar: { kind: 'puzzle' },
+    well: { kind: 'puzzle' }, pend: { kind: 'combat' }, springs: { kind: 'puzzle' },
     // (v1.83, issue #414) the docks high on the great hall's walls, where the stair's arm meets them, and the Striking
     // Room's loft
-    hourTwo: { checkpoint: true, kind: 'passage' }, hourFour: { checkpoint: true, kind: 'passage' }, hourSix: { checkpoint: true, kind: 'passage' },
-    strikeLoft: { checkpoint: true, kind: 'passage' },
-    coil: { checkpoint: true, kind: 'chest' }, wind: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' },
-    mainspring: { checkpoint: true, kind: 'puzzle' }, cupboard: { kind: 'passage' }, galleryFar: { kind: 'passage' },
+    hourTwo: { kind: 'passage' }, hourFour: { kind: 'passage' }, hourSix: { kind: 'passage' },
+    strikeLoft: { kind: 'passage' },
+    coil: { kind: 'chest' }, wind: { kind: 'puzzle' }, gallery: { kind: 'puzzle' },
+    mainspring: { kind: 'puzzle' }, cupboard: { kind: 'passage' }, galleryFar: { kind: 'passage' },
     hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
@@ -1244,7 +1244,7 @@ export const GARAGE_TEMPLE = {
   skin: clockHouseSkin,   // (issue #342: its futuristic look inside, src/temples/skins/clock-house.js)
   local: { person: 'wim', out: 7, side: 6 },
   enterLine: 'Inside the Clock-House everything ticks, but out of step, like a room full of clocks that have quarrelled.',
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Out in the dunes, the clock over the Clock-House’s door keeps time.', 'resolved.out'); },
   /**
    * (issue #562) The Foreman set right, the workshop's stopped clocks start again: their minute hands race round twice and

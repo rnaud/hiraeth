@@ -184,9 +184,9 @@ export const LOGIC = {
   // #412, `hall` is the Sounding Hall's quays and its deep floor, `dais` the dais across the Sound, `gallery` the shelf, the
   // High Walk and the gallery over the dais: the old ids kept, so a save's last mark holds)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, dais: { checkpoint: true, kind: 'passage' },
-    pools: { checkpoint: true, kind: 'puzzle' }, shells: { checkpoint: true, kind: 'puzzle' }, horn: { checkpoint: true, kind: 'puzzle' }, tank: { checkpoint: true, kind: 'puzzle' },
-    gallery: { checkpoint: true, kind: 'puzzle' }, store: { checkpoint: true, kind: 'combat' }, ante: { checkpoint: true, kind: 'passage' },
+    threshold: { kind: 'passage' }, hall: { kind: 'puzzle' }, dais: { kind: 'passage' },
+    pools: { kind: 'puzzle' }, shells: { kind: 'puzzle' }, horn: { kind: 'puzzle' }, tank: { kind: 'puzzle' },
+    gallery: { kind: 'puzzle' }, store: { kind: 'combat' }, ante: { kind: 'passage' },
     arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
@@ -1035,7 +1035,7 @@ export const UNDERWATER_TEMPLE = {
   skin: whaleHouseSkin,   // (its look inside: src/temples/skins/whale-house.js, issue #342)
   local: { person: 'achille', out: 7, side: 1.2 },
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
-  pitLine: 'You climb back up, to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('The whales are coming back. The way out comes up in the divers’ court.', 'resolved.out'); },
   /** (issue #562) The tide in: the sea wells up out of the Listener's pool and spreads over its hall's floor (rt.calmK: its ending lets it in over its own panel). */
   onCalm(rt, k) {

@@ -181,11 +181,11 @@ export const LOGIC = {
   // its gallery, `keepers` the short passage between the east gate and the keepers' door, `scalesWay` the far gate's
   // passage down to the Weighing Hall: the old ids kept, so a save's last mark holds)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, floor: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'passage' },
-    moulds: { checkpoint: true, kind: 'puzzle' }, sand: { checkpoint: true, kind: 'combat' },
-    stair: { checkpoint: true, kind: 'passage' }, landing: { checkpoint: true, kind: 'puzzle' }, tongs: { checkpoint: true, kind: 'puzzle' }, furnace: { checkpoint: true, kind: 'puzzle' },
-    furnaceFar: { kind: 'passage' }, scalesWay: { kind: 'passage' }, scales: { checkpoint: true, kind: 'puzzle' }, keepers: { kind: 'passage' },
-    ante: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { kind: 'passage' }, floor: { kind: 'puzzle' }, gallery: { kind: 'passage' },
+    moulds: { kind: 'puzzle' }, sand: { kind: 'combat' },
+    stair: { kind: 'passage' }, landing: { kind: 'puzzle' }, tongs: { kind: 'puzzle' }, furnace: { kind: 'puzzle' },
+    furnaceFar: { kind: 'passage' }, scalesWay: { kind: 'passage' }, scales: { kind: 'puzzle' }, keepers: { kind: 'passage' },
+    ante: { kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'floor' },
@@ -1202,7 +1202,7 @@ export const MOONFOUNDRY_TEMPLE = {
   skin: castingHouseSkin,
   local: { person: 'ilse', out: 8, side: 6 },
   enterLine: 'Inside the Casting-House the air is hot and smells of iron. Ahead, a great crucible pours into the floor.',
-  pitLine: 'You climb back out of the channel, to the last glyph stone.',
+  pitLine: 'You climb back out of the channel, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Outside, a whole small moon is lifted out and hung from the jib.', 'resolved.out'); },
   /**
    * (issue #562) One moon cast: the iron moon in the cradle takes the Founder's last pour, glows white-hot from within and

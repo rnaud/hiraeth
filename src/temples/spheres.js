@@ -142,11 +142,11 @@ export const LOGIC = {
   // The rim and F2's balcony are puzzle rooms: the great lift is worked there; so is the spiral, `helix`: the Lodge's eye
   // is seen from it, under the rim's pier)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, rim: { checkpoint: true, kind: 'puzzle' }, spheres: { checkpoint: true, kind: 'puzzle' },
-    bal1: { checkpoint: true, kind: 'passage' }, bal1e: { kind: 'passage' }, pool: { checkpoint: true, kind: 'puzzle' }, poolFar: { kind: 'passage' },
-    sounding: { checkpoint: true, kind: 'puzzle' }, bal2: { checkpoint: true, kind: 'puzzle' }, lens: { checkpoint: true, kind: 'puzzle' },
-    unseen: { checkpoint: true, kind: 'puzzle' }, unseenFar: { kind: 'puzzle' }, vault: { kind: 'passage' }, lodge: { checkpoint: true, kind: 'combat' },
-    bal3: { checkpoint: true, kind: 'passage' }, helix: { kind: 'puzzle' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { kind: 'passage' }, rim: { kind: 'puzzle' }, spheres: { kind: 'puzzle' },
+    bal1: { kind: 'passage' }, bal1e: { kind: 'passage' }, pool: { kind: 'puzzle' }, poolFar: { kind: 'passage' },
+    sounding: { kind: 'puzzle' }, bal2: { kind: 'puzzle' }, lens: { kind: 'puzzle' },
+    unseen: { kind: 'puzzle' }, unseenFar: { kind: 'puzzle' }, vault: { kind: 'passage' }, lodge: { kind: 'combat' },
+    bal3: { kind: 'passage' }, helix: { kind: 'puzzle' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'rim' },
@@ -1057,7 +1057,7 @@ export const SPHERES_TEMPLE = {
   skin: footprintSkin,   // (its look inside: src/temples/skins/footprint.js, issue #342)
   local: { person: 'tessa', out: 12, side: 7 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the heel it is white and round and very quiet, the kind of quiet a sphere keeps.',
-  pitLine: 'You climb back up to the last glyph stone.',
+  pitLine: 'You climb back up, at the doorway you came in by.',
   onResolved(rt) { rt.notice('Outside, the Footprint fills, and every sphere wears a ring of light.', 'resolved.out'); },
   // the Echo sings a note (one of the three spheres) whenever it opens
   onConnect(rt) {
