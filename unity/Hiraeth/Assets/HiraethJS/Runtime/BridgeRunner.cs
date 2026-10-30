@@ -1236,7 +1236,15 @@ namespace Hiraeth.Bridge
             bool relaid = Application.isEditor && hud && (Screen.width != w || Screen.height != h);
             if (relaid) hud.Relayout();
             Canvas.ForceUpdateCanvases();
+            // (in the editor's batch runs nothing is drawn before the first shot, so its render compiles every shader variant the
+            // world uses that Library/ShaderCache lacks, synchronously: minutes on a new or cloned Library, no line in the log
+            // meanwhile, read once as a hang in the ink feature (issue #798). Said before and timed; a player's are built in.)
+            bool firstPicture = Application.isEditor && shots == 0;
+            if (firstPicture) Debug.Log($"Hiraeth bridge: the first picture ({Path.GetFileName(path)}): the shader variants missing from Library/ShaderCache compile now, the editor busy until they are (minutes on a new Library; not a hang)");
+            var firstAt = System.Diagnostics.Stopwatch.StartNew();
             scene.DrawCrowds(); cam.Render();
+            if (firstPicture) Debug.Log($"Hiraeth bridge: the first picture drawn in {firstAt.Elapsed.TotalSeconds:0.0} s");
+            shots++;
             Canvas.ForceUpdateCanvases();
             scene.DrawCrowds(); cam.Render();
             scene.DrawCrowds(); cam.Render();
@@ -1267,6 +1275,7 @@ namespace Hiraeth.Bridge
             { rebuilt = true; ua.rendererDataList[0].SetDirty(); }
         }
         bool rebuilt;
+        int shots;
 
         /// <summary>The script asks to start again (BridgeHost.Reboot): done at the next frame's start, its frame waited for.</summary>
         public void Reboot(string json)

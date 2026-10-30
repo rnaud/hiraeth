@@ -18,6 +18,8 @@ namespace Hiraeth.EditorTools
     public static class BridgeBatch
     {
         public const string ScenePath = "Assets/HiraethJS/BridgeDesert.unity";
+        /// <summary>A gap between two editor ticks longer than this (s) is the editor busy, not the script stuck (Run's limit).</summary>
+        const double BusyTick = 20;
 
         static string Arg(string name, string fallback = null)
         {
@@ -47,7 +49,18 @@ namespace Hiraeth.EditorTools
             BridgeRunner.OnExit = code => EditorApplication.Exit(code);
             double started = EditorApplication.timeSinceStartup;
             int limit = int.Parse(Arg("-limit", "600"));
-            EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > limit) { Debug.LogError("Hiraeth bridge: timed out"); EditorApplication.Exit(4); } };
+            // (the limit is for a stuck script, which leaves the editor ticking: a tick that came late, the editor's main thread busy
+            // for that long in one frame, moves the limit on by its wait. A batch run draws its first picture at its first shot, and
+            // Unity compiles there the shader variants not yet in Library/ShaderCache, synchronously: minutes each for the Surface
+            // shader's on a loaded Mac. Read as a hang in a render, the run was killed, or it timed out once the picture was saved,
+            // its plan's last steps not run: issue #798)
+            double lastTick = started;
+            EditorApplication.update += () =>
+            {
+                double now = EditorApplication.timeSinceStartup, gap = now - lastTick; lastTick = now;
+                if (gap > BusyTick) { started += gap; Debug.Log($"Hiraeth bridge: the editor was busy {gap:0} s in one frame (shader variants compiled for a first picture?): the time limit moved on by it"); }
+                if (now - started > limit) { Debug.LogError("Hiraeth bridge: timed out"); EditorApplication.Exit(4); }
+            };
             EditorApplication.EnterPlaymode();
         }
 
