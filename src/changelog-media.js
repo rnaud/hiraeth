@@ -1448,6 +1448,12 @@ const FROM788 = 'Hand-made (no `view`): muted headless Chrome (--mute-audio, hir
 
 export const CHANGELOG_MEDIA = {
   '2.37': [
+  // (issue #783: the Rose House where two of its glyph stones stood, at the change's commit and its parent, the camera pinned)
+  { match: 'The little glyph-stone checkpoints are gone from every temple', tags: ['temples'], shots: [
+    { name: 'stones783-threshold', title: 'The way in', caption: 'The Rose House just inside its door: before, the glyph stone of the first room on its round foot by the wall; after, the floor bare, the way in clear', commit: '17585064c',
+      from: 'scripts/changelog-shots.mjs, muted headless Chrome on this branch at 17585064c and its parent, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned; the traveller set by the house’s entrance',
+      view: { level: 'desert', save: SAVE729_HOUSE, hour: 10, fov: 60, wait: 4000, player: [150, 2400.1, -246], heading: -1.57, eye: [153, 2402.5, -249], target: [144, 2400.9, -243.5] } },
+  ], see: 'In any temple, walk into a room with a pit and jump in: you climb back out at the doorway you came in by, facing into the room. Get knocked out there and you wake at the same doorway.' },
   { match: 'The Keeper’s channel game under the Rose House is now against the clock', shots: [
     { name: 'keeper788-timer', caption: 'The Keeper’s channel court 24 s into a run: before, no clock, only the score’s box; after, the time left counting down from 5:00 in its own box at the top right, over the plan’s box', from: FROM788 },
   ] },
