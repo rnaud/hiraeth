@@ -217,7 +217,7 @@ the mirrored scene at once (its OnDestroy frees its buffers and the capes' stati
 the shadows' caster lists forgotten; the script's threads, BridgeAudio, BridgeMusic (its voices go on playing: a
 clip decoded once is kept for a world that asks again), the HUD and the menus stay. The loading screen comes up for the
 build as from the title; a flight's warp, still drawn by the same HUD, keeps it away and goes on over the build until
-the new world's first state fades it, as the web's `#loading.space`. engine/mirror.js keeps a skeleton's id per mirror
+the new world's first state fades it, as it did carried over the reboot (the web's loading screen is black for a flight too since #791). engine/mirror.js keeps a skeleton's id per mirror
 and forgets what a last mirror noted on a material a module keeps (its live values, vein and bed pictures), since each
 world's mirror counts from 1 in its own scene. A swap that fails to build starts the engine again on the trip (as the
 web loads the page); an older player without `SwapWorld` (a newer script over the air) reboots as before. `-trip
