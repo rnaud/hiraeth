@@ -25,6 +25,8 @@ export const CHANGELOG = [
         see: 'In the Rose House, roll the burning ball into the bowl in the Hall of the Flame, then go through the doorway beside it, walk into the dry pool and pull the lever (X / □).' },
       { text: 'Doors bearing the makers’ mark open only once your battery has been filled. In the Rose House the door from the Hall of the Flame to the Dry Channel now waits for your full battery instead of the lit bowl. A battery you had already filled stays full, the font’s pool is full for you, and doors you had opened stay open.',
         see: 'In the Rose House, light the bowl in the Hall of the Flame: the door on to the Dry Channel stays shut and its lamp dark until you pull the font’s lever; then it sinks open.' },
+      // the loading screen (#791)
+      'Loading screens are quieter: the screen is black, and only a small turning circle, the word “Loading” and a thin bar that fills as the world is built sit in the bottom-right corner. The lines naming each step are gone. If something fails to load, its message still shows there in full. With reduced motion on, the circle gently pulses instead of turning.',
     ],
   },
   {

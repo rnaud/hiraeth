@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { LOAD_PLAN, LOAD_WHY, loadShare, loadProgress, stageIndex } from '../src/load-page.js';
+import { LOAD_PLAN, LOAD_WHY, LOAD_WORD, loadShare, loadProgress, loadWords, stageIndex } from '../src/load-page.js';
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
@@ -64,7 +64,7 @@ test('why: each line short, lower case, for a step of the plan; kept until anoth
 test('the page has the bar and the line, and main.js drives them; the engines tell the same steps', () => {
   const html = read('index.html'), main = read('src/main.js'), engine = read('engine/game.js');
   assert.match(html, /<div class="bar"[^>]*><i><\/i><\/div>/);
-  assert.match(html, /<div class="why"><\/div>/);
+  assert.doesNotMatch(html, /class="why"/, 'no why line under it any more (issue #791)');
   assert.ok(main.includes('progress.step(name)') && main.includes('progress.stage(msg)'));
   const seq = sequence(engine, /\bstage\([`'"]([a-z]+)/, /\bstep\('([^']+)'\)/);
   let stage = -1, p = -1;
@@ -75,4 +75,52 @@ test('the page has the bar and the line, and main.js drives them; the engines te
     assert.ok(q > p, `engine: ${v} moves the bar on`); p = q;
   }
   assert.ok(engine.includes('onLoad?.(o)') && engine.includes('onStage?.(text)'), 'onLoad gets { line, why, p }; onStage the line once a stage');
+});
+
+// issue #791: black, the circle and the bar in the bottom-right corner, the one word "Loading"; a failure still readable
+test('the loading screen says "Loading" alone: no stage line, no why line, not even for the sound effects', () => {
+  const html = read('index.html'), main = read('src/main.js');
+  const block = html.slice(html.indexOf('<div id="loading">'), html.indexOf('<script>', html.indexOf('<div id="loading">')));
+  assert.match(block, /<div class="msg" data-t="load\.word">Loading<\/div>/);
+  assert.equal(block.replace(/<[^>]+>/g, '').trim(), 'Loading', 'the only words on it');
+  assert.match(block, /<div class="pen" aria-hidden="true"><\/div>/, 'the turning circle');
+  assert.match(block, /<div class="bar" aria-hidden="true"><i><\/i><\/div>/, 'the bar');
+  // black, in the corner, the circle turning or (reduced motion) pulsing
+  assert.match(html, /#loading \{[^}]*background: #000;/);
+  assert.match(html, /#loading \.corner \{[^}]*position: absolute; right: [^;]+; bottom: [^;]+;/);
+  assert.match(html, /#loading \.pen \{[^}]*animation: spin /);
+  assert.match(html, /@media \(prefers-reduced-motion: reduce\) \{ #loading \.pen \{ animation: load-pulse /);
+  assert.match(html, /html\.reduce-motion #loading \.pen \{ animation: load-pulse /);
+  // main.js no longer writes a stage's line or the effects' count into it; the bar still follows the steps
+  assert.ok(!/loadMsg\.textContent = msg/.test(main), 'no stage line');
+  assert.ok(!/Loading sound effects/.test(main), 'no sound effects count');
+  assert.ok(!/#loading \.why/.test(main), 'no why line');
+  assert.match(main, /loadBar\.style\.transform = `scaleX\(\$\{p\.toFixed\(3\)\}\)`/);
+  // a failure's line still goes in its place, as an alert, and is drawn whole
+  assert.match(main, /loadMsg\.textContent = 'The ship could not be loaded\. Reload to try again\.'; loadMsg\.setAttribute\('role', 'alert'\)/);
+  assert.match(html, /#loading \.msg\[role="alert"\] \{ white-space: normal;/);
+  assert.equal(read('src/i18n/en.js').match(/'load\.word': '([^']+)'/)?.[1], LOAD_WORD);
+});
+
+test('the bar still moves with the load as the screen says only "Loading"', () => {
+  const seen = [];
+  const pr = loadProgress((s) => seen.push(s.p));
+  pr.stage('sketching the desert…'); pr.step('world'); pr.step('openings');
+  pr.stage('inking the collisions…'); pr.step('bake'); pr.step('ship');
+  pr.stage('waking the people…'); pr.step('traveller'); pr.step('story');
+  pr.stage('mixing the inks…'); pr.step('surfaces'); pr.step('passage');
+  pr.stage('ready');
+  for (let i = 1; i < seen.length; i++) assert.ok(seen[i] >= seen[i - 1], `never back at ${i}`);
+  assert.ok(new Set(seen).size >= 8, `it moves: ${seen.map((p) => p.toFixed(2)).join(' ')}`);
+  assert.equal(seen.at(-1), 1);
+});
+
+test('the title\'s waiting mark: "Loading" through the load, a failure\'s line as it is', () => {
+  for (const l of ['', null, 'ready', 'sketching the golden dunes…', 'inking the collisions…', 'waking the people…', 'mixing the inks…', 'Loading sound effects 3/40'])
+    assert.equal(loadWords(l), 'Loading', String(l));
+  assert.equal(loadWords('Sound effects couldn’t load.'), 'Sound effects couldn’t load.');
+  assert.equal(loadWords('The ship could not be loaded. Reload to try again.'), 'The ship could not be loaded. Reload to try again.');
+  const title = read('src/title.js'), css = read('src/menus.css');
+  assert.match(title, /what\.textContent = loadWords\(hold\.stage\)/);
+  assert.match(css, /#title \.starting \{ position: absolute; right: [^;]+; bottom: [^;]+;/);
 });

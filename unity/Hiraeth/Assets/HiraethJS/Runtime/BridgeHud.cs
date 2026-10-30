@@ -51,7 +51,7 @@ namespace Hiraeth.Bridge
         /// letters, at the top centre; the cue first, the toast under it. With the plain speech background (the page's
         /// .speech-solid, issue #346): black and white, the conversation's panel plain white with black words.</summary>
         static readonly Color HintBg0 = new Color(22 / 255f, 23 / 255f, 23 / 255f, 0.96f), HintInk0 = Ui.Hex("#f7ecd2");
-        bool solid, showFps;
+        bool solid, showFps, still;   // (still: reduced motion, the loading screen's circle pulsing instead of turning)
         Color HintBg => solid ? Color.black : HintBg0;
         Color HintInk => solid ? Color.white : HintInk0;
         const float HintTop = 12, HintGap = 8;
@@ -427,6 +427,7 @@ namespace Hiraeth.Bridge
             ts = Mathf.Clamp(acc?.F("ts", 1) ?? 1, 0.6f, 2f);
             solid = acc != null && acc.Get("solid") is bool so && so;
             showFps = acc != null && acc.Get("fps") is bool fp && fp;
+            still = acc != null && acc.Get("still") is bool st && st;
             DrawFps();
             var d = state.O("dialogue");
             var cine = state.O("cine");

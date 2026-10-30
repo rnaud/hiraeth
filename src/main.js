@@ -179,13 +179,13 @@ scopeDispatcher(THREE.EventDispatcher.prototype);
 // same page after the last one is let go (src/world-travel.js, docs/systems/world-swap.md), the sound carried over.
 async function runWorld() {
 
-// Loading: each stage updates the inked loading screen, then yields a frame
-// so it can paint (its pen animation runs on the compositor meanwhile).
+// Loading: each stage moves the loading screen's bar, then yields a frame
+// so it can paint (its circle turns on the compositor meanwhile).
 const loadMsg = document.querySelector('#loading .msg');
-// (under it, why this part takes the time, and the bar moving with the steps: src/load-page.js, issue #506)
-const loadWhy = document.querySelector('#loading .why'), loadBar = document.querySelector('#loading .bar i');
-const progress = loadProgress(({ why, p }) => {
-  if (loadWhy && loadWhy.textContent !== why) loadWhy.textContent = why;
+// (it says "Loading" alone, the bar beside it moving with the steps: src/load-page.js, issues #506, #791; the stage
+// lines are kept for the log, the title's hold and the engines, not shown)
+const loadBar = document.querySelector('#loading .bar i');
+const progress = loadProgress(({ p }) => {
   if (loadBar) loadBar.style.transform = `scaleX(${p.toFixed(3)})`;
 });
 const tLoad = performance.now();
@@ -217,7 +217,6 @@ const stage = (msg) => {
   loadLog.push({ stage: lastMsg, ms: Math.round(ms), steps: loadSteps.map((s) => { const i = s.lastIndexOf(' '); return [s.slice(0, i), +s.slice(i + 1)]; }) });
   if (loadSteps.length) console.info(`load steps: ${lastMsg} ${loadSteps.splice(0).join(' · ')}`);
   tStage = performance.now(); lastMsg = msg; loadStep = '';
-  if (loadMsg) loadMsg.textContent = msg;
   progress.stage(msg);
   if (titleHold) titleHold.stage = msg;   // (the title's progress mark, while it waits for the load)
   // (a frame so the screen paints, or a moment if no frame comes: a window not shown may run none)
@@ -360,7 +359,6 @@ const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.met
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') || query.has('characterReview') || query.has('markReview') ? true : undefined, autoStart: false, listen: false });
 await prepareSoundWithRetry(sound, { message: loadMsg,
-  onProgress: ({completed,total}) => { if (loadMsg) loadMsg.textContent = `Loading sound effects ${completed}/${total}`; },
   onFailure: () => { if (titleHold) titleHold.stage = 'Sound effects couldn’t load.'; }, onBack: () => location.assign(import.meta.env.BASE_URL) });
 const caravan = await loadPlayableCaravan(import.meta.env.BASE_URL).catch(error => {
   loadWatch.stop();

@@ -372,7 +372,7 @@ export const FR = {
   'restart.label': 'Assommé',
   'toast.hitboxesOn': 'Zones de frappe affichées (F4, ou le menu de débogage du monde : L3 + R3).',
   'toast.hitboxesOff': 'Zones de frappe masquées.',
-  'load.sketching': 'le monde se dessine…',
+  'load.word': 'Chargement',
 
   // ---------------------------------------------------------------- le menu du jeu (View, J)
   'gm.gear': 'Équipement',

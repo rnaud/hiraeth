@@ -312,8 +312,8 @@ function begin(choice) {
  * the screen's state.
  */
 function access() {
-  const s = S?.settings ?? {}, state = { ts: TEXT_SIZES[s.textSize] ?? 1, solid: !!s.speechBg, fps: !!s.showFps };
-  return { state, key: `${state.ts}|${state.solid}|${state.fps}` };
+  const s = S?.settings ?? {}, state = { ts: TEXT_SIZES[s.textSize] ?? 1, solid: !!s.speechBg, fps: !!s.showFps, still: !!s.reduceMotion };
+  return { state, key: `${state.ts}|${state.solid}|${state.fps}|${state.still}` };
 }
 
 /** The menu's state to Unity (BridgeMenu.cs) when it changed. */

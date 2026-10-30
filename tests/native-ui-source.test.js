@@ -12,11 +12,18 @@ test('native loading renderer preserves progress, layering and host reset contra
   assert.match(hudLoad, /if \(world && !loadWorld\)/);
   assert.match(runner, /if \(yieldToLoad && BridgeHost\.WorldLoading\) \{ awaitYielded = true; return true; \}/, 'not waited out on the title as the build begins');
   assert.match(hudLoad, /overrideSorting = true/, 'over the title\'s canvas');
-  // the C# draws it: the bar's red fill as far as BridgeHost.LoadP (eased, never past it), the why line from LoadWhy;
+  // the C# draws it (issue #791): black, the bar's fill as far as BridgeHost.LoadP (eased, never past it), the one word
+  // "Loading" in the corner and no stage or why line; the circle pulses instead of turning with reduced motion;
   // BridgeHost keeps the furthest and empties both as a load begins
-  assert.match(hudLoad, /loadBarFill = Ui\.Rect\(loadBar, LoadNib/);
+  assert.match(hudLoad, /Ui\.Fill\(loadRoot, LoadBlack/);
+  assert.match(hudLoad, /LoadBlack = Color\.black/);
+  assert.match(hudLoad, /loadBarFill = Ui\.Rect\(loadBar, /);
   assert.match(hudLoad, /loadShown = Mathf\.Min\(p, /);
-  assert.match(hudLoad, /var why = BridgeHost\.LoadWhy/);
+  assert.match(hudLoad, /public const string LoadWord = "LOADING";/);
+  assert.match(hudLoad, /if \(loadMsg\.text != LoadWord\) loadMsg\.text = LoadWord;/);
+  assert.doesNotMatch(hudLoad, /loadMsg\.text = line|LoadWhy \?\?|sketching the world/, 'no stage line, no why line');
+  assert.match(hudLoad, /if \(still\)/);
+  assert.match(hudLoad, /float colR = W - CornerR, colB = H - CornerB;/, 'in the bottom-right corner');
   const hostCs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs', import.meta.url), 'utf8');
   assert.match(hostCs, /public static void LoadProgress\(double p, string why\)\s*\{\s*if \(p > LoadP\)/);
   assert.match(hostCs, /public static void Loading\(bool on\) \{ if \(on\) LoadReset\(\);/);
@@ -25,7 +32,7 @@ test('native loading renderer preserves progress, layering and host reset contra
 test('native accessibility and rumble settings reach their renderer and host', () => {
   // BridgeHud honours them: the words' size, the plain background, the readout (engine/unity/game.js access)
   const g = src('engine/unity/game.js'), hud = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
-  assert.match(g, /state = \{ ts: TEXT_SIZES\[s\.textSize\] \?\? 1, solid: !!s\.speechBg, fps: !!s\.showFps \}/);
+  assert.match(g, /state = \{ ts: TEXT_SIZES\[s\.textSize\] \?\? 1, solid: !!s\.speechBg, fps: !!s\.showFps, still: !!s\.reduceMotion \}/);
   assert.match(hud, /ts = Mathf\.Clamp\(acc\?\.F\("ts", 1\)/);
   assert.match(g, /playEffect\(kind, o = \{\}\) \{ host\.Rumble\(/, 'the pad\'s motors through BridgeHost.Rumble');
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs'), /g\.SetMotorSpeeds\(/);

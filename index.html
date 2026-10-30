@@ -222,28 +222,38 @@
       /* each button's place and size: src/touch-layout.js (ui.js TouchControls sets them, scaled to the screen's short side) */
       #touch .b-run.on { background: #f2c54b; }
       body.touch #gear { top: 14px; bottom: auto; }
+      /* the loading screen (issue #791): black, and in the bottom-right corner only a small turning circle, the word
+         "Loading" and a thin bar moving with the load's real steps (src/load-page.js); a failure's line is put in its
+         place (main.js), wider and brighter so it can be read */
       #loading {
-        position: fixed; inset: 0; z-index: 9000; display: grid; place-content: center; justify-items: center; gap: 18px;
-        font: var(--type-s) var(--face); color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
+        position: fixed; inset: 0; z-index: 9000; background: #000; color: #e9e4d8; transition: opacity 0.8s;
+        font: var(--type-s) var(--face);
       }
       #loading.done { opacity: 0; pointer-events: none; }
-      /* arriving from the ship's jump (?via=ship), or the chime-pirates on the way (?game=pirates): the warp's space ink, not the paper (src/ship/cinema.js WARP) */
+      /* arriving from the ship's jump (?via=ship), or the chime-pirates on the way (?game=pirates): the warp's space ink, not black (src/ship/cinema.js WARP) */
       #loading.space { background: #151a2b; color: #f7ecd2; }
-      #loading.space .ring { stroke: #f7ecd2; }
-      #loading.space .nib { stroke: #f7ecd2; }
+      #loading .corner {
+        position: absolute; right: calc(28px + var(--safe-right, env(safe-area-inset-right, 0px))); bottom: calc(24px + var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
+        display: flex; align-items: center; gap: 10px; opacity: 0.78;
+      }
       /* transform animations run on the compositor, so they keep moving while the world is built: on an HTML
-         box of its own (will-change: its own layer from the start; a transform on an SVG root is not
-         run off the main thread by every engine), the drawing inside it static */
-      #loading .pen { width: 96px; height: 96px; animation: spin 2.4s linear infinite; will-change: transform; }
-      #loading .pen svg { display: block; width: 100%; height: 100%; }
-      #loading .ring { fill: none; stroke: #2b211f; stroke-width: 2.2; stroke-dasharray: 18 9; }
-      #loading .r2 { stroke-dasharray: 4 7; opacity: 0.6; }
-      #loading .nib { fill: #c8483a; stroke: #2b211f; stroke-width: 2; }
-      /* the bar under the line (src/load-page.js, issue #506): an inked rule filled with the nib's red as the steps go
-         (a transform, so it moves on the compositor too); under it, smaller, why this part takes the time */
-      #loading .bar { width: 180px; height: 7px; margin-top: -6px; border: 1.6px solid currentColor; border-radius: 4px; overflow: hidden; }
-      #loading .bar i { display: block; width: 100%; height: 100%; background: #c8483a; transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease-out; }
-      #loading .why { margin-top: -8px; min-height: 1.4em; max-width: min(30em, 86vw); text-align: center; font-size: 0.85em; opacity: 0.72; }
+         box of its own (will-change: its own layer from the start) */
+      #loading .pen {
+        flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%;
+        border: 2px solid currentColor; border-right-color: transparent; animation: spin 1s linear infinite; will-change: transform;
+      }
+      #loading .col { display: grid; gap: 5px; justify-items: end; }
+      #loading .msg { font-size: 0.82em; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+      #loading .bar { width: 96px; height: 2px; background: rgba(233, 228, 216, 0.18); overflow: hidden; }
+      #loading .bar i { display: block; width: 100%; height: 100%; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease-out; }
+      /* a failure (main.js gives the line role="alert"): the whole line, readable, alone (no circle, no bar) */
+      #loading .corner:has(.msg[role="alert"]) { opacity: 1; }
+      #loading .msg[role="alert"] { white-space: normal; max-width: min(26em, 80vw); text-align: right; text-transform: none; letter-spacing: 0.02em; font-size: 1em; line-height: 1.35; }
+      #loading .corner:has(.msg[role="alert"]) :is(.pen, .bar) { display: none; }
+      /* reduced motion (the system's, or the setting's .reduce-motion on the root): the circle pulses instead of turning */
+      @media (prefers-reduced-motion: reduce) { #loading .pen { animation: load-pulse 1.6s ease-in-out infinite alternate; border-right-color: currentColor; } }
+      html.reduce-motion #loading .pen { animation: load-pulse 1.6s ease-in-out infinite alternate; border-right-color: currentColor; }
+      @keyframes load-pulse { from { opacity: 0.25; } to { opacity: 1; } }
       @keyframes spin { to { transform: rotate(360deg); } }
 
       /* what people say in passing: the conversation's dark panel (issue #687, src/hud-look.js), its tail in the brass */
@@ -603,14 +613,13 @@
   </head>
   <body>
     <div id="loading">
-      <div class="pen"><svg viewBox="0 0 120 120" aria-hidden="true">
-        <circle class="ring" cx="60" cy="60" r="44" />
-        <circle class="ring r2" cx="60" cy="60" r="30" />
-        <path class="nib" d="M60 14 L66 34 L60 40 L54 34 Z" />
-      </svg></div>
-      <div class="msg" data-t="load.sketching">sketching the world…</div>
-      <div class="bar" aria-hidden="true"><i></i></div>
-      <div class="why"></div>
+      <div class="corner">
+        <div class="pen" aria-hidden="true"></div>
+        <div class="col">
+          <div class="msg" data-t="load.word">Loading</div>
+          <div class="bar" aria-hidden="true"><i></i></div>
+        </div>
+      </div>
     </div>
     <script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>
     <div id="journal"></div>

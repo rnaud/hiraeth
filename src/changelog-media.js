@@ -1456,6 +1456,8 @@ const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack
   ...(full ? { 'desert.battery.charged': true, 'temple.desert.found.font': true, 'temple.desert.open.d1': true } : {}) }, keepsakes: [] });
 const FONT784_VIEW = (full, eye, target) => ({ level: 'desert', player: [75.2, 2400.1, -205.7], heading: -1.5708, eye, target, fov: 55, save: FONT784_SAVE(full), wait: 4000 });
 const FROM784 = 'Hand-made (no `view`): frames of the film (desert.font) from the cinematics QC script (scripts/cinematics-qc.mjs: muted headless Chrome, --mute-audio and the game muted before load, its own Vite on port 5412, High, a 1280 × 720 viewport, frames kept at 960 × 540), staged as the review page stages it (the Rose House’s bowl lit, the battery dry, at the lever), on this branch’s working tree just before 8faff5c4b (the same film), 29 October 2026. After only: the room is new.';
+/** (v2.38, issue #791: the loading screen) */
+const FROM791 = 'Hand-made (no `view`): a script of mine (scratch, on scripts/changelog-shots.mjs serve/chrome) drove muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load) on the GPU at 1280 × 720, High, 29 October 2026, against git archive of 4f0e7c7f9 (before) and this branch (after), each on its own Vite server (port 5462); ?level=desert loaded and the loading screen photographed once its bar passed 75 %. The failure and the title’s mark are not natural failures or waits: the script set the ship’s failure line with its alert role, and showed the title’s waiting mark, as the game does. WebP by cwebp.';
 
 export const CHANGELOG_MEDIA = {
   '2.38': [
@@ -1479,6 +1481,14 @@ export const CHANGELOG_MEDIA = {
     { name: 'font784-mark', title: 'The mark', only: 'after', caption: 'The film, 7.5 s in: the lens tilted up past him to the makers’ mark on the far wall as it lights', from: FROM784 },
     { name: 'font784-full', title: 'Full', only: 'after', caption: 'After: the pool full of the fluid, the makers’ mark over it lit, from beside the pool', commit: '8faff5c4b', view: FONT784_VIEW(true, [86, 2402.4, -204.4], [60, 2405.2, -205.7]) },
   ] },
+  // (issue #791: the loading screen mid-load in the Desert, the branch's parent 4f0e7c7f9 and the change)
+  { match: 'Loading screens are quieter', tags: ['menus'], shots: [
+    { name: 'loading791-screen', title: 'Loading', caption: 'The Desert loading, the bar most of the way: before, the paper with the turning pen, the stage’s line (“mixing the inks…”) and why it takes the time under the bar; after, black, and only the small circle, “Loading” and the thin bar in the bottom-right corner', from: FROM791 },
+    { name: 'loading791-corner', only: 'after', title: 'The corner', caption: 'The bottom-right corner of the same picture, three times as large: the turning circle, the word and the bar filled as far as the load has come', from: FROM791 },
+    { name: 'loading791-failure', only: 'after', title: 'A failure', caption: 'When the ship can’t be loaded, its message takes the corner’s place in full, the circle and the bar gone (the message put in by the capture script exactly as the game does on that failure)', from: FROM791 },
+    { name: 'loading791-title', only: 'after', title: 'From the title', caption: 'A save chosen on the title while the world is still being built behind it: the same quiet mark, a small circle and “Loading”, bottom right over the title picture (shown by the capture script as the title does while it waits)', from: FROM791 },
+    { name: 'loading791-unity', only: 'after', title: 'Unity', caption: 'The Unity version loading the Desert from the title’s Debug row, as its build mixes the inks: the same black, circle, word and bar in the bottom-right corner', from: 'Unity editor batch mode, muted (scripts/unity-js-run.sh -mute -title-go 60 -loading-shot-at sketching,inking,waking,mixing), this branch, 29 October 2026; its own -loading-shot at the “mixing” stage, 1280 × 720. Unity’s UI text has no letter spacing, so its word sits a little tighter than the page’s. WebP by cwebp.' },
+  ], see: 'Start the game or travel to another world: the screen goes black with a small circle turning beside the word Loading in the bottom-right corner, and the bar under it fills as the world is built. Turn on Reduce motion in the settings and the circle pulses instead.' },
   ],
   '2.37': [
   // (issue #783: the Rose House where two of its glyph stones stood, at the change's commit and its parent, the camera pinned)

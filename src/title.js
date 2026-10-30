@@ -35,6 +35,7 @@ import { startThemeDownload } from './music-store.js';
 import { THEME_FILES } from './soundtracks.js';
 import { VERSION } from './version.js';
 import { buildLabel } from './build-label.js';
+import { loadWords } from './load-page.js';
 
 import { devMode, toggleDevMode } from './dev-gate.js';
 import { padConfirm } from './menu-pad.js';
@@ -332,7 +333,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         store.commitWrites();
         const hold = behind.hold;
         const mark = root.querySelector('.starting'), what = mark.querySelector('.what');
-        const tick = () => { what.textContent = hold.stage || ''; };
+        const tick = () => { what.textContent = loadWords(hold.stage); };   // ("Loading", or a failure's line: issue #791)
         let timer = 0;
         if (!hold.isArrived) { root.classList.add('waiting'); mark.hidden = false; tick(); timer = setInterval(tick, 250); }
         hold.onFail(() => { clearInterval(timer); fade(freshPage); });

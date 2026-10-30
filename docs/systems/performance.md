@@ -6122,6 +6122,22 @@ this part takes the time (`LOAD_WHY`: "teaching the graphics card this world's l
 engines tell the same: engine/game.js `onLoad({ line, why, p })` at its stages and steps (`onStage` still once a
 stage). Unity's `BridgeHud.Loading` (#510) draws the line; the bar and the why line are for it to draw from `onLoad`
 (engine/unity/game.js to hand it to the host beside `host.LoadStage`). Tests: `tests/load-page.test.js`.
+
+**The quiet loading screen** (#791, 2026-10-29). The author: "make the loading screens black with the rotating circle
+and the progress bars in the bottom right so it feels more subtle (and just say loading)". `#loading` (index.html) is
+black now, and its `.corner`, bottom right, holds only a 14 px turning ring (`.pen`, a CSS border with a quarter open,
+still a compositor transform), the word "Loading" (`.msg`, `load.word`) and a 96 × 2 px bar (`.bar i`, the same
+`loadProgress` share, scaled on the compositor). main.js no longer writes the stages' lines, the sound effects' count
+or the why line into it: the stages still go to the log, `__loadLog`, the title's hold and the engines' `onStage` /
+`onLoad`, unshown. A failure (the ship's "could not be loaded", `role="alert"`) takes the corner whole, readable, the
+ring and bar hidden; the sound effects' failure stays its own dialog (src/effect-loading.js). Reduced motion (the
+system's, or the setting's `html.reduce-motion`): the ring pulses (`load-pulse`) instead of turning. The flight's
+arrival (`#loading.space`) keeps the warp's navy so the jump carries over. The title's waiting mark (a save chosen
+while the world builds behind it: src/title.js `.starting`) is the same in miniature, bottom right, and says
+`loadWords(hold.stage)`: "Loading", or a failure's line as it is. Unity's `BridgeHud.Loading` draws the same corner
+(black, `LoadWord`, the ring pulsing on the settings' `still`, sent with `access`). Android's native splash
+(`res/drawable/splash.png`, before the web view starts) is the installer's and unchanged. Tests:
+`tests/load-page.test.js`, `tests/native-ui-source.test.js`.
 ## Shadows every frame (#492, 2026-10-19)
 
 The author: shadows at half rate look odd. **The near shadow map is redrawn every frame on every preset now**, web and

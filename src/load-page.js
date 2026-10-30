@@ -7,6 +7,18 @@
 // loading page", the desert's and a fight temple's runs). It moves when a step begins, never back; a step a world
 // doesn't have is passed over. A step's line is kept until another step has one of its own.
 
+// What it says (issue #791): "Loading" alone, small in the corner of a black screen, the bar beside it; the stages' lines
+// and the why lines below still go to the log, the title's hold and the engines, but are not shown. A line that is no
+// stage of the load (a failure: "Sound effects couldn’t load.") is shown whole, so it can be read.
+export const LOAD_WORD = 'Loading';
+
+/** The words the loading mark shows for the load's last line: "Loading" while it goes, a failure's line as it is. */
+export function loadWords(line) {
+  const l = String(line ?? '').trim();
+  if (!l || l === 'ready' || stageIndex(l) >= 0 || /^loading\b/i.test(l)) return LOAD_WORD;
+  return l;
+}
+
 /** The four stages (main.js stage()), in order: the start of each stage's line, and the steps it runs, [name, weight]. */
 export const LOAD_PLAN = [
   { stage: 'sketching', steps: [['world', 900], ['openings', 15]] },

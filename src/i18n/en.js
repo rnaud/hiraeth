@@ -373,7 +373,7 @@ export const EN = {
   'restart.label': 'Knocked out',
   'toast.hitboxesOn': 'Hitboxes shown (F4, or the dev menu: L3 + R3).',
   'toast.hitboxesOff': 'Hitboxes hidden.',
-  'load.sketching': 'sketching the world…',
+  'load.word': 'Loading',
 
   // ---------------------------------------------------------------- the game menu (View, J)
   'gm.gear': 'Gear',

@@ -2757,6 +2757,10 @@ not the whole geometry a frame), and draw their colours.
   never past where the load is) and the why line, 0.72 opaque, the pen, line, bar and why line centred together as the
   page's grid. `-loading-shot-at sketching,inking,waking,mixing` photographs each of those stages (`<file>-<stage>.png`).
   Test: tests/engine-unity.test.js (the progress sent after the screen went up, never back, full before it fades).
+- **The quiet loading screen** (#791, after the page's). Black, and in the bottom-right corner only the turning ring, the
+  word "LOADING" (`LoadWord`) and a 96 × 2 bar filled to `BridgeHost.LoadP` (eased as before, never past it); no stage
+  line, no why line (`LoadLine` still read for `-loading-shot-at`). With the settings' reduced motion (`access.still`,
+  engine/unity/game.js) the ring is whole and pulses instead. Test: tests/native-ui-source.test.js.
 
 ## The hold, Anselm's shop and the opening, web against Unity (2026-10-19, issue #264)
 
