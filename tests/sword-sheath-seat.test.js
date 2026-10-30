@@ -19,6 +19,13 @@ const { holdStance } = await import('../src/title-world.js');
 const { traveller, course, CAM_PLUS_Z } = await import('./gait-sim.js');
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
+// (a clock of the test's own: the robe's skirt swing steps on performance.now, src/characters/outfits.js attachSwing, so on
+// the wall clock each step was as long as the last pose's measuring had taken, and where it swung to went with the
+// machine's load (a ~25 ms step from the glide into the roll put its back fold 3.6 cm into the frog): here every pose is
+// one frame of 1/60 s, as in the game at 60 fps)
+let clock = 0;
+performance.now = () => clock;
+const tick = () => { clock += dt * 1000; };
 const DIR = 'data/characters/traveller-v2/';
 const manifest = JSON.parse(readFileSync(DIR + 'manifest.json', 'utf8'));
 const list = JSON.parse(readFileSync(DIR + 'outfits.json', 'utf8'));
@@ -42,7 +49,7 @@ async function outfitSources(id) {
 async function wearer(outfit = null) {
   const p = await traveller(course({ ramp: false, stairs: false }), v(0, 0, -60), { body: 'b3' });
   if (outfit) dressTravellerV2(p.character, await outfitSources(outfit), { cloth: false });
-  for (let i = 0; i < 5; i++) p.update(dt, {}, CAM_PLUS_Z);
+  for (let i = 0; i < 5; i++) { tick(); p.update(dt, {}, CAM_PLUS_Z); }
   return p;
 }
 
@@ -69,9 +76,9 @@ function sheathShape(outfit) {
 /** The 22 poses of tests/battery-hip.test.js, each a [label, pose(), look] list (look: measure after it). */
 function poses(p) {
   const H = p.humanoid, a = p.animator, lib = a.lib, out = [];
-  const gait = (label, input, frames, setup) => {
+  const gait = (label, input, frames, setup, look = (i) => i % 6 === 5) => {
     out.push([label, () => { p.talking = false; p.pos.set(0, p.physics.groundAt(0, 5, -60), -60); p.vel.set(0, 0, 0); setup?.(); }, false]);
-    for (let i = 0; i < frames; i++) out.push([label, () => p.update(dt, input, CAM_PLUS_Z), i % 6 === 5]);
+    for (let i = 0; i < frames; i++) out.push([label, () => p.update(dt, input, CAM_PLUS_Z), look(i)]);
   };
   const clip = (name, u, after) => () => {
     const c = lib.all.find((k) => k.name === name);
@@ -91,7 +98,11 @@ function poses(p) {
   for (let i = 0; i < 8; i++) out.push(['swimming (crawl)', () => { p.swim = { k: 1, crawl: 1, ph: i / 8, pitch: 1.4, roll: 0, vy: 0, hs: 1 }; p.animate(dt, 0); still(); p.swim = null; }, true]);
   for (let i = 0; i < 4; i++) out.push(['swimming (breaststroke)', () => { p.swim = { k: 1, crawl: 0, ph: i / 4, pitch: 1.4, roll: 0, vy: 0, hs: 1 }; p.animate(dt, 0); still(); p.swim = null; }, true]);
   out.push(['gliding', () => { p.gliding = true; p.onGround = false; p.animate(dt, 0); still(); p.wingK = 1; p.spreadArms?.(); p.gliding = false; p.onGround = true; p.wingK = 0; }, true]);
-  for (let i = 1; i < 8; i++) out.push(['the dodge roll', () => { p.combatMotion = { dir: v(0, 0, 1), speed: 0, scale: 0, evade: i / 8, roll: i / 8 }; p.onGround = true; p.animate(dt, 0); still(); p.combatMotion = null; }, true]);
+  // (the roll from his feet, frame by frame as in the game, looked at i/8 s into it: not one frame on from the glide, which
+  // left the robe's swing a step from a pose he never rolls out of)
+  gait('the dodge roll', {}, 30, null, () => false);
+  const rolled = (s) => () => { p.combatMotion = { dir: v(0, 0, 1), speed: 0, scale: 0, evade: s, roll: s }; p.onGround = true; p.animate(dt, 0); still(); p.combatMotion = null; };
+  for (let k = 1; k <= 53; k++) out.push(['the dodge roll', rolled(k * dt), [1, 2, 3, 4, 5, 6, 7].some((i) => Math.round(i * 7.5) === k)]);
   return out;
 }
 
@@ -113,7 +124,7 @@ function measure(p, outfit, { only = null } = {}) {
   const res = new Map(), w = v();
   for (const [label, pose, look] of poses(p)) {
     if (only && !only.includes(label)) continue;
-    pose();
+    tick(); pose();
     if (!look) continue;
     p.object.updateMatrixWorld(true); C.updateWorldMatrix(true, false);
     const inv = C.matrixWorld.clone().invert();
