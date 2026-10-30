@@ -72,6 +72,92 @@ export function closeInSpeed(d, radius, time, M = MAGNET) {
 export const closeInTime = (sample, M = MAGNET) => sample.wind + sample.active * M.arrive;
 
 /**
+ * The combo's step-in (issue #780, the author: "The triple attack combo still feels bad. Check how botw handles it, I think
+ * every move should move you toward" the foe; docs/systems/foes.md "The combo's step-in"). Every one of the three
+ * cuts carries him toward its target, as Breath of the Wild's do: the foe locked on first, else the nearest in a cone of
+ * `cone` rad either side of the stick (or of his facing, the stick let go), within BLADE.lock; else straight on along the
+ * stick (or his facing) by `free[n]` m. To a foe he closes the gap to `ideal` m off its body (under the blade)
+ * by at most `max[n]` m a cut, and stops there: never through it or into it. (`ideal` 0.85, nearer than MAGNET's 1.05: from
+ * 1.05 a cut at a fencer's raised shield passed short of it in the engines' game, tests/engine-rebound.test.js.) The step is spread over the cut's wind-up
+ * and the first of its blade (closeInTime), by the clip's own footwork: `planted` of a share while both feet are down,
+ * a whole share while one is up (the body carried over the foot that holds), eased in and out (no jolt at its ends);
+ * no faster than `fastest` m/s. A wall stops it as walking does; ground falling away more than `drop` m (`ahead` m
+ * past the step's end) stops it short (stepTo). The stick re-aims each cut as it starts.
+ * Before (scripts/combo-step.mjs): a foe in reach got 0.22-0.26 m a cut (a constant 1.7 m/s through the blade,
+ * walked into a foe 0.3 m off), one 1.8-2.5 m off a 1.4-2.4 m lurch on the first cut and none after, one 3.2 m off none on
+ * the first (a miss) and 3.1 m on the second; with nothing in reach, 0.22 m.
+ */
+export const COMBO_STEP = { free: [0.5, 0.4, 0.5], max: [1.2, 0.6, 2.4], ideal: 0.85, cone: 1.05, planted: 0.25, fastest: 14, keep: 4, past: 0.6, drop: 0.55, ahead: 0.35, samples: 24 };
+/** How far (m) the `n`th cut steps: toward a foe `gap` m off its body (null: none, a free step), at most `max`, to stand `ideal` off it. */
+export function stepLength(n, gap, M = COMBO_STEP) {
+  const i = Math.min(Math.max(n, 0), 2);
+  if (gap == null) return M.free[i];
+  return THREE.MathUtils.clamp(gap - M.ideal, 0, M.max[i]);
+}
+/**
+ * The step's profile through its window of `time` s: the share of it taken by each elapsed time, cumulative, 0..1 over
+ * `samples` + 1 points. `lifted(e)`: how far a foot is off the ground at `e` s (0..1: the clip's contacts; null, the
+ * arc's swing: none). Eased in and out by sin² so its speed starts and ends at 0.
+ */
+export function stepProfile(time, lifted = null, M = COMBO_STEP) {
+  const N = M.samples, W = new Float32Array(N + 1);
+  let acc = 0;
+  for (let i = 1; i <= N; i++) {
+    const u = (i - 0.5) / N, env = Math.sin(Math.PI * u) ** 2;
+    const l = lifted ? THREE.MathUtils.clamp(lifted(u * time), 0, 1) : 0;
+    acc += env * (M.planted + (1 - M.planted) * l);
+    W[i] = acc;
+  }
+  for (let i = 1; i <= N; i++) W[i] = acc > 0 ? W[i] / acc : i / N;
+  return W;
+}
+/** The profile `W` (stepProfile) read at `u` (0..1 of its window). */
+export function profileAt(W, u) {
+  const N = W.length - 1, x = THREE.MathUtils.clamp(u, 0, 1) * N, i = Math.min(Math.floor(x), N - 1);
+  return THREE.MathUtils.lerp(W[i], W[i + 1], x - i);
+}
+/**
+ * How far (m) along `dir` from `pos` a step may go of `want` m before the ground falls away (more than `drop` m under his
+ * feet, or none at all, `ahead` m past where it would stop): a step never carries him off a ledge. Without a ground test
+ * (`physics.heightAbove`), all of it.
+ */
+export function stepTo(physics, pos, dir, want, U, M = COMBO_STEP) {
+  if (!(want > 0) || !physics?.heightAbove) return Math.max(0, want ?? 0);
+  const mover = physics.groundMover, kind = physics.groundKind, base = physics.groundBase;
+  const at = _st, n = Math.max(1, Math.ceil((want + M.ahead) / 0.25));
+  let ok = want;
+  for (let i = 1; i <= n; i++) {
+    const s = ((want + M.ahead) * i) / n;
+    at.copy(pos).addScaledVector(dir, s);
+    const h = physics.heightAbove(at, U, 0.6);
+    if (!Number.isFinite(h) || h > M.drop) { ok = Math.max(0, Math.min(want, s - M.ahead)); break; }
+  }
+  physics.groundMover = mover; physics.groundKind = kind; physics.groundBase = base;
+  return ok;
+}
+/**
+ * The target a combo cut steps to (COMBO_STEP): the locked one; else the nearest within `range` m in the cone round `aim`
+ * (the stick's way, or his facing); else, with the stick let go (`stick` false), the nearest within `range` anywhere (the
+ * soft lock, as before); else none.
+ */
+export function stepTarget(from, aim, { range = BLADE.lock, targets = allTargets(), locked = null, stick = false, cone = COMBO_STEP.cone } = {}) {
+  if (locked?.enabled()) return locked;
+  let best = null, bd = Infinity, any = null, ad = Infinity;
+  const cos = Math.cos(cone);
+  for (const t of targets) {
+    if (!t.lock || !t.enabled()) continue;
+    const p = t.position(), dx = p.x - from.x, dz = p.z - from.z, d = Math.hypot(dx, dz);
+    if (!(d < (t.lockRange ?? range))) continue;
+    if (d < ad) { ad = d; any = t; }
+    const al = Math.hypot(aim.x, aim.z);
+    const inCone = d < 1e-3 || al < 1e-6 || (dx * aim.x + dz * aim.z) / (d * al) >= cos;
+    if (inCone && d < bd) { bd = d; best = t; }
+  }
+  return best ?? (stick ? null : any);
+}
+const _st = new THREE.Vector3(), _sa = new THREE.Vector3(), _sb = new THREE.Vector3(), _sc = { l: 1, r: 1 };
+
+/**
  * The soft aim (v1.35): the swing's plane tilts toward its target's body, so a low foe gets a lower arc and one hovering a
  * raised one, within `down` / `up` rad; the swing's way (its turn) is as before. `natural`: how high (m over the feet)
  * each swing's blade crosses in front of him at `at` m (measured from the clips: scripts/combat-reach.mjs); the blade is
@@ -994,6 +1080,18 @@ export class FluidBlade {
         const S = this.sample, rec = this.phase === 'recover' ? THREE.MathUtils.clamp((this.t * this.dur - S.wind - S.active) / Math.max(1e-3, this.dur - S.wind - S.active), 0, 1) : 0;
         p.combatMotion = { dir: this.runDir, speed: (this.runSpeed ?? 0) * (1 - rec) ** RUN_CUT.ease, scale: 0.1, dash: true };
       }
+      // (the combo's cuts: the step-in through its window, its share of what is left for this frame's span, COMBO_STEP)
+      else if (this.step) {
+        const P = this.step, e = this.t * this.dur, u0 = e / P.time, w0 = profileAt(P.W, u0), w1 = profileAt(P.W, (e + dt) / P.time);
+        const M = this.stepSpec ?? COMBO_STEP;
+        // (after its window, through the rest of the cut: kept up with a foe backing off, no faster than `keep`)
+        const go = P.left <= 1e-4 ? 0 : u0 < 1 && w0 < 1 - 1e-6 ? Math.min(P.left * (w1 - w0) / (1 - w0), M.fastest * dt) : this.phase === 'strike' && !P.free && !(this.track && this.hitTargets.has(this.track)) ? Math.min(P.left, M.keep * dt) : 0;   // (not once it has landed: never after a foe the blow knocked back)
+        P.left -= go; P.moved += go;
+        // (planted through the cut once the step is done, and stopped dead as the follow-through begins: no coasting on into the foe)
+        const halt = this.phase === 'recover' && !P.halted;
+        if (halt) P.halted = true;
+        p.combatMotion = this.phase !== 'recover' || halt ? { dir: this.dir, speed: go / Math.max(dt, 1e-4), scale: 0, step: true } : { dir: this.dir, speed: 0, scale: 0.45 };
+      }
       else p.combatMotion = { dir: this.dir, speed: Math.max(active ? (this.special === LUNGE ? 7 : 1.7) : 0, pull), scale: this.phase === 'recover' ? 0.45 : 0.15 };
     }
     // in a fight the blade stays in the fist (a while after, and all the time locked on), then is put away
@@ -1051,8 +1149,12 @@ export class FluidBlade {
     if (this.special === RUN_CUT) { T.sound?.fluidDash?.(); this.runSpeed = THREE.MathUtils.clamp(hs, 0, RUN_CUT.carry); }   // (the rush of the run carried into it)
     this.hitAt = (this.sample.wind + this.sample.active * 0.45) / this.dur;
     // the swing's way: toward the nearest foe in reach, else where the traveller faces
-    const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
-    if (foe) this.dir.subVectors(foe.position(), p.pos); else p.frame.dir(p.heading, this.dir);
+    // (the combo's cuts on the ground, COMBO_STEP: the locked foe, else the nearest in the stick's cone, else along the stick)
+    const plain = !force && !air && !!p.onGround && (this.special == null || this.special === WHIRL);
+    const stick = plain && !p.lockOn && p._moveDir?.lengthSq() > 0.01 ? p._moveDir : null;
+    const aimWay = stick ? _sa.copy(stick) : p.frame.dir(p.heading, _sa);
+    const foe = plain ? stepTarget(p.pos, aimWay, { locked: T.lockOn?.() ?? null, stick: !!stick }) : lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
+    if (foe) this.dir.subVectors(foe.position(), p.pos); else this.dir.copy(plain ? aimWay : p.frame.dir(p.heading, _sa));
     this.dir.addScaledVector(U, -this.dir.dot(U));
     // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself); one hovering
     // over you: a rising cut, up to it
@@ -1062,6 +1164,18 @@ export class FluidBlade {
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
     this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && this.special !== RUN_CUT && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js; the generous cut: only to bring it under the crescent)
     this.closeLeft = this.closeIn * pullT;
+    // the combo's step-in (COMBO_STEP): every cut carries him toward its target, or on along the stick; it takes the pull's place
+    this.step = null;
+    if (plain && !rise) {
+      const M = this.stepSpec = { ...COMBO_STEP, ...(flurryLeft() > 0 ? { max: COMBO_STEP.max.map((m) => Math.max(m, FLURRY.reach)) } : {}), ...(wideSweep(this.wide, n, this.special) ? { ideal: this.wide.pull } : {}) };
+      const way = _sb.copy(this.dir);
+      if (way.lengthSq() > 1e-8) way.normalize(); else p.frame.dir(p.heading, way);
+      const want = stepLength(n, foe ? flat - (foe.reach ?? foe.radius ?? 0.6) : null, M);
+      const clip = this.move && A?.moveContact ? A.moveClip(S.clip) : null;
+      const lifted = clip ? (e) => { const c = A.moveContact(clip, attackSample(S, e).t, _sc); return 1 - Math.min(c.l, c.r); } : null;
+      this.step = { W: stepProfile(pullT, lifted, M), time: pullT, left: stepTo(p.physics, p.pos, way, want, U, M), moved: 0, free: !foe };
+      this.closeIn = 0; this.closeLeft = this.step.left;
+    }
     // (kept to its foe through the wind-up and the pull, TRACK: the plain swings, the whirl, the riposte; not rising, in the air or the carried specials)
     this.trackHop = !!foe?.foe?.hopBack;
     this.track = foe && !rise && p.onGround && !air && ![LUNGE, DASH, RUN_CUT, AIR].includes(this.special) ? foe : null;
@@ -1112,13 +1226,21 @@ export class FluidBlade {
   follow(p) {
     const T = this.track;
     if (!T || !TRACK.from.includes(this.phase) || this.charging) return;
-    const pullT = closeInTime(this.sample), el = this.t * this.dur, left = pullT - el;
+    const pullT = closeInTime(this.sample), el = this.t * this.dur, left = (this.step ? this.sample.wind + this.sample.active : pullT) - el;   // (the step-in keeps to it through the whole cut: a foe backing off is followed, COMBO_STEP.keep)
     if (left <= 1e-3 || !(T.enabled?.() ?? true)) { if (left <= 1e-3) this.track = null; return; }
     const U = p.frame.up;
     _a.subVectors(T.position(), p.pos); _a.addScaledVector(U, -_a.dot(U));
     const flat = _a.length();
     if (flat > 1e-3) this.dir.copy(_a).divideScalar(flat);
     if (T.foe?.hopBack || this.trackHop) { this.trackHop = true; return; }   // (hopped back out of it on purpose: let it go)
+    if (this.step) {
+      // (the step-in taken again from where the foe is now: what is left of this cut's most, to stand off it, never past it)
+      const M = this.stepSpec ?? COMBO_STEP, i = Math.min(Math.max(this.n, 0), 2);
+      const after = this.t * this.dur > this.step.time ? M.past ?? 0 : 0;   // (after its window, kept up with a foe backing off by up to `past` m more)
+      const want = Math.min(stepLength(this.n, flat - (T.reach ?? T.radius ?? 0.6), { ...M, max: M.max.map((m) => m + after) }), Math.max(0, M.max[i] + after - this.step.moved));
+      this.step.left = stepTo(p.physics, p.pos, this.dir, want, U, M);
+      return;
+    }
     this.closeIn = closeInSpeed(flat, T.reach ?? T.radius ?? 0.6, left, this.trackSpec ?? MAGNET);
     this.closeLeft = this.closeIn * left;
   }
@@ -1126,7 +1248,7 @@ export class FluidBlade {
   /** The charge let go (CHARGE): the clip's own swing from the cocked pose, full or not. */
   release() {
     const p = this.tool.player;
-    this.chargeFull = !!this.charging?.full; this.charging = null;
+    this.chargeFull = !!this.charging?.full; this.charging = null; this.step = null;
     rumblePlay('charged', { full: this.chargeFull });   // (src/rumble.js)
     this.special = CHARGE; this.spec = CHARGE; this.move = p?.animator?.moveClip?.(CHARGE.clip) ? CHARGE : null;
     this.t = 0; this.released = false; this.hit = false; this.hitTargets.clear(); this.previousBlade = null; this.contactT = null;
@@ -1368,7 +1490,7 @@ export class FluidBlade {
     }
   }
 
-  stop() { this.track = null; this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
+  stop() { this.track = null; this.step = null; this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
 
   fade(dt) { this.lit += (0 - this.lit) * (1 - Math.exp(-12 * dt)); this.place(dt); }
 

@@ -1768,7 +1768,7 @@ export class Player {
       tv.addScaledVector(want.sub(tv), a);
       if (this.onGround && this.combatMotion) {
         const C = this.combatMotion;
-        if (C.evade || C.dash) tv.copy(C.dir).multiplyScalar(C.speed);   // (the evade, the dash cut: carried at their own speed)
+        if (C.evade || C.dash || C.step) tv.copy(C.dir).multiplyScalar(C.speed);   // (the evade, the dash cut, a combo cut's step-in: carried at their own speed)
         else tv.addScaledVector(C.dir, C.speed * a);
       }
       this.orbitLock(dt, tv, U);
@@ -2943,7 +2943,10 @@ export class Player {
     // starts, stops and turns (src/locomotion.js): the lean into a change of speed, the bank into a
     // curve, the head and chest turned to where you steer before the hips get there
     const U = this.frame.up, fwd = this.frame.dir(this.heading, _g1);
-    const vf = this.vel.dot(fwd);
+    // (a combo cut's step-in, src/fluid-blade.js COMBO_STEP: the clip carries the body through it, so no lean into its
+    // speed nor dip as it stops: the lean reads the speed it had as the step began, until a moment after it ends)
+    this._stepHold = this.combatMotion?.step ? 0.2 : Math.max(0, (this._stepHold ?? 0) - dt);
+    const vf = this._stepHold > 0 && this.loco ? this.loco.vf : this.vel.dot(fwd);
     const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim && !this.lockOn ? this.frame.headingOf(this._moveDir) : null;   // (locked on: the chest stays on the foe)
     (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim, gait: A.gaitW });
     this.loco.pose(c);

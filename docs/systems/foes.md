@@ -13,6 +13,49 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The cut's pull** (`MAGNET`, `closeInSpeed`, v0.96): a swing begun with its target (the lock, else the soft lock)
   a little out of reach steps you in through the wind-up and cut, to stand `MAGNET.ideal` (1.05 m since v1.35; 1.2 before) off its body, up
   to `MAGNET.max` (2.2 m) of ground; in reach, or further, nothing. Not the lunge (it carries you itself) nor in the air.
+  Since v2.37 the combo's three cuts on the ground step in their own way (below); the pull is left to the charged cut
+  and the riposte.
+- **The combo's step-in** (`COMBO_STEP`, v2.37, issue #780, the author: "The triple attack combo still feels bad. Check
+  how botw handles it, I think every move should move you toward" the foe). Every one of the three cuts carries him
+  toward its target. **Target:** the foe locked on; else the nearest in a cone of 1.05 rad (60°) either side of the
+  stick, or of his facing with the stick let go, within `BLADE.lock` (6 m); with the stick let go and none in the cone,
+  the nearest anywhere (the soft lock, as before); with the stick pushed and none in its cone, none (`stepTarget`).
+  **How far:** to a foe, the gap to `ideal` (0.85 m off its body's front, `target.reach`: under the blade; MAGNET's 1.05
+  left a cut at a fencer's raised shield short of it in the engines' game, `tests/engine-rebound.test.js`) and no more, at most
+  `max` 1.2 / 0.6 / 2.4 m a cut (the third's long coil carries the big step, and has to: the second cut shoves a grunt
+  1.5–2 m); already in reach, none: never through the foe or into it (`stepLength`). With no target, a step on along
+  the stick (or his facing) of `free` 0.5 / 0.4 / 0.5 m, so the stick re-aims each cut as it starts. **When:** spread
+  over the wind-up and the first 30 % of the cut (`closeInTime`), by the clip's own footwork (a quarter share while
+  both feet are down, a whole share while one is up: the body carried over the foot that holds, `stepProfile`), eased
+  in and out by sin², no faster than 14 m/s; the velocity is set, not added, so he travels exactly that far and stops
+  dead as the follow-through begins (no coasting into the foe). Through the rest of the cut a foe backing off is
+  followed at up to `keep` 4 m/s, `past` 0.6 m more, until the blow lands (never after a foe the blow knocked back).
+  **Ground:** walls stop it as walking does; ground falling more than `drop` 0.55 m (or none) within `ahead` 0.35 m
+  past the step's end stops it short (`stepTo`): never off a ledge. Not the specials (the lunge, the run's cut, the
+  dash cut, the riposte, the charged cut, the air combo), nor a rising cut.
+  Before (`node scripts/combo-step.mjs`, a grunt standing still, its mind off): a foe in reach got a constant
+  0.22–0.26 m a cut (1.7 m/s through the blade), so a grunt 0.3–2.5 m off was walked into (0.04–0.45 m inside its body
+  by the third); one 1.8–2.5 m off got the whole gap in one 1.4–2.4 m lurch on the first cut and nothing after; one
+  3.2 m off nothing on the first (a miss) and a 3.3 m lurch on the second (62 cm of foot slide); none near, 0.22 m.
+  After: 0.3 m off, no steps (in reach) and no closer; 0.8–2.5 m, 0.09–1.33 m on the first, the rest on the next,
+  each cut ending 0.85 m off its body's front; 3.2 / 4 m, 1.6 + 0.6 + 0.3 / 1.6 + 1.0 + 0.7 m (the first misses, as
+  before; the other two land); foot slide 1.8–6.3 cm (2.4–62 before), a held foot's drift 4.6–18 cm (4.0–17 before: the clips'
+  own), the same pops and jolts; none near, 0.5 / 0.4 / 0.5 m. Through the step the body's lean into a change of speed
+  is held (`Player._stepHold`), so the cut is not tipped into a dive by the step's speed. With the foes' minds on
+  (`tests/combo-third.test.js`: a blot, a grunt and a hulk from 1.2 to 2.5 m, locked on and not) all 24 combos land
+  all three cuts; the fight temples' masher (`fight-temples.mjs --bot masher`, desert / arzach / bazaar) clears in
+  156 / 188 / 159 s (149 / 184 / 161 before) for 2.25 / 3.5 / 26.5 hearts (2.5 / 6.25 / 26): the balance as it was. `tests/combo-step.test.js`.
+  **What Breath of the Wild does** (the research, 2026-10-29; no frame data is published, so the distances are read
+  off play, not data-mined): every swing of a one-handed string carries Link a short step forward, the string's last,
+  heaviest blow the longest; with the target locked (ZL, "Focus") every attack is aimed at that foe
+  ([Zeldapedia, Z-targeting](https://zelda-archive.fandom.com/wiki/Z-targeting)), and without it he turns to a foe
+  roughly ahead of him; the stick steers each swing as it starts, and the step stops at the foe's body rather than
+  pushing into it. The general technique, "attack magnetism" or motion warping: a target found in a cone or a sphere,
+  the attacker carried to a set distance off it inside a window of the swing, the window chosen so the feet don't slide
+  ([Game Creator, melee motion](https://docs.gamecreator.io/melee/skills/motion/): the attacker kept 1.5 units off;
+  [Signals and Light, how enemy melee works](https://signalsandlight.substack.com/p/how-does-enemy-ranged-and-melee-combat):
+  clean sections of the animation where translation can be changed "so the attacker stays in hitbox range" and
+  without foot sliding; [the UE5 motion-warping attack magnet](https://www.quodsoler.com/blog/motion-warping-character-attacks-using-blueprints-no-c-required)).
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.16/0.13/0.18 s for the first,
   0.18/0.14/0.19 for the second, 0.42/0.15/0.36 for the heavy third since v2.31 (0.32/0.16/0.27 before); v1.41, the author: "speed up the main
