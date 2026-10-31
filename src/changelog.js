@@ -90,6 +90,9 @@ export const CHANGELOG = [
       // the dune worm (#800)
       { text: 'The mound worm has a new body, drawn from its new design: the dune worm, a fat segmented grub, ochre over a cream belly, with a pale crown on its head, a round turquoise mouth and two small black eyes. When it bursts out of the sand it stands tall out of its hole and turns its head to watch you; it rears back to spit stones and leans over you, its teeth whirling, before it dives. Under the sand it still moves as a trail of mounds with a fin. In each world it keeps its colours and dress: the Buried Machine\u2019s slate-violet drill grub with the drill on its crown, the Glass Dunes\u2019 glass worm with its crystal crest. It fights exactly as before.',
         see: 'Land in the Desert and stand on a wandering mound, or open the Arena and pick the mound worm from the foe list (D-pad ↓, K). When it comes up, walk round it: its head turns to follow you.' },
+      // the reed knot (#800)
+      { text: 'The root knot has a new body, drawn from its new design: the reed knot, a broad mauve mushroom cap tipped over a sage-green bulb with two pale slit eyes, standing on five long orange legs with big flat feet. Its eyes follow you and its cap turns to keep you in view; it still tips its cap back to fling its spore pod, rises up with its cap shaking to throw its seeds, and droops and sinks when it falls. In each world it keeps its colours: the deep teal cap and glowing gills of Lorn II\u2019s root crawler, Viridel\u2019s clipped green topiary knot, the White Mangrove\u2019s pale knot, the Waterfall\u2019s dark weed knot. It fights exactly as before, and a group of them is far lighter for your device to draw.',
+        see: 'Land in Lorn and find a reed knot among the mushrooms, or open the Arena and pick the root knot from the foe list (D-pad ↓, K). Step out of its mark as its cap tips back.' },
     ],
   },
   {

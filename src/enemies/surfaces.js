@@ -413,6 +413,9 @@ Object.assign(SURFACES, {
       gill: { stripes: { color: 'gill*0.7', axis: 4, period: 0.045, width: 0.3, ink: 0.35 }, glow: { color: 'gill', amount: 0.55, rim: 0.3, core: 1.2, pulse: 1.1, emit: 0.7 } },
     },
     edena: { cap: { spots: null, spots2: null, scales: { color: 'cap*0.8', size: 0.12, ink: 0.3, tone: 0.08, amount: 0.3 } } },
+    // (the home skin, the approved #800 reference's: a plain mauve cap, the sage bulb going dark green round its eyes)
+    perdide: { cap: { spots: null, spots2: null, mottle: { color: 'cap*0.9', scale: 0.4, amount: 0.25, soft: 0.25, strength: 0.4 } },
+      bulb: { stripes: null, spots2: null, mottle: { color: 'bulb2', scale: 0.3, amount: 0.25, soft: 0.2, strength: 0.35 }, fade: { color: 'bulb*0.6', axis: 1, from: 2.0, to: 2.3 } } },
     waterfall: { cap: { gloss: { size: 0.018, sky: 0.5, amount: 0.6 } }, bulb: { gloss: { size: 0.02, sky: 0.5, amount: 0.6 } } },
   },
 });

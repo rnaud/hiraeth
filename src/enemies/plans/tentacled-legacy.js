@@ -4,6 +4,9 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tubeGeometry, many, pivot, pair, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy root knot (kept, issue #800): the game's root knot until the Tripo body (plans/rootknot-tripo.js) took its place; it
+// stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 12, the tentacled (docs/systems/procedural-animation.md §4): the root knot (docs/design/enemy-roster.md,
 // archetype 8), drawn to its sheets (references/enemy-archetypes/rootknot/: sheet-1 Lorn's reed knot, sheet-2 Lorn II's
 // root crawler). A mushroom 3.2 m tall: a broad conical cap over a ribbed bulb, two small pale eyes under the rim, a
@@ -31,7 +34,7 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _m = new THREE.Matrix4
 /** The share of a lob's wind-up after which what it throws is in the air (the pod, the seeds), onto its mark at the end. */
 export const THROW = 0.66;
 
-export function rootknotModel(skin) {
+export function rootknotLegacyModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('rootknot', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

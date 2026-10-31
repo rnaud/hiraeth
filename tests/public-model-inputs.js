@@ -23,6 +23,7 @@ const READERS = {
   "enemies/crawler/body.glb": () => readFileSync(new URL("../public/enemies/crawler/body.glb", import.meta.url)),
   "enemies/blot/body.glb": () => readFileSync(new URL("../public/enemies/blot/body.glb", import.meta.url)),
   "enemies/worm/body.glb": () => readFileSync(new URL("../public/enemies/worm/body.glb", import.meta.url)),
+  "enemies/rootknot/body.glb": () => readFileSync(new URL("../public/enemies/rootknot/body.glb", import.meta.url)),
   "enemies/shellback/body.glb": () => readFileSync(new URL("../public/enemies/shellback/body.glb", import.meta.url)),
   "enemies/dunemummer/body.glb": () => readFileSync(new URL("../public/enemies/dunemummer/body.glb", import.meta.url)),
   "enemies/woodcutter/body.glb": () => readFileSync(new URL("../public/enemies/woodcutter/body.glb", import.meta.url)),

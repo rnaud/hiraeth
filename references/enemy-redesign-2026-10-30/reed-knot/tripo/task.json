@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family F",
+  "foe": "rootknot",
+  "source": "references/enemy-redesign-2026-10-30/reed-knot/0de92fb6-aa84-4252-b110-fd96a9913888-1.png",
+  "sourceSha256": "ee112fde6c5a032372b28bbf962930f8875ed57471ffb260bc63eef1c3c80672",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "6e112a46-9834-494e-84c8-f3e16f468dba",
+  "started": "2026-10-31T05:55:47.538Z",
+  "finished": "2026-10-31T05:58:09.600Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1005,
+  "balanceAfter": 945,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1332352,
+    "sha256": "1718787e01beaac3c1914f6e8df7effbe25f1dd2ffb52c5120abe5f4b2aba390",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 149743,
+    "sha256": "4b144d62b29f196c639d1dee5a4a697587515a41f337016d452e4555c119b709"
+  }
+}

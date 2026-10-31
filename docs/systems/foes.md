@@ -2383,7 +2383,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   Tripo's body, its wings beating on a `Wave` by speed; the signal moth's strips and chains kept in `signal-moth-legacy.js`), `cloud-jelly-tripo.js` (plan 11: the cloud jelly, Tripo's body on its own joints, its bell pulsing on a `Wave`
   that quickens as it winds up, each lantern a pendulum; the lantern jelly's threads and lanterns on verlet chains kept
   in `lantern-jelly-legacy.js`). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
-  `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
+  `tentacled.js` (since v2.39 `rootknot-tripo.js`, the legacy `tentacled-legacy.js`, #800); batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
   (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum); batch 5's:
   `humanoid.js` (plan 9: the shade's empty boots, on the humanoid rig's clips since #724, its cloak on lagging springs, its ribbons on
   verlet chains as continuous skinned strips), `roller.js` (plan 16: a rippling foot by distance, the roll locked to the
@@ -2999,7 +2999,7 @@ The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, d
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)
 and is the game's hound now (below).
 
-### Family F on Tripo bodies: the ink blot, the dune worm (v2.39, issue #800)
+### Family F on Tripo bodies: the ink blot, the dune worm, the reed knot (v2.39, issue #800)
 
 The creatures and spirits follow family A the same way (`references/enemy-redesign-2026-10-30/trials/familyF-tripo/`:
 `generate.mjs <foe>`, `prepare-<foe>.mjs` on family A's `prep-kit.mjs`, `shots.mjs` for working pictures, `bench-sum.mjs`
@@ -3030,6 +3030,17 @@ write-up and the numbers in `familyF-tripo/README.md`).
   hidden. The drill grub's drill and the glass worm's crest on the head. 7 drawn meshes up (the legacy's 23), 8 under.
   The Unity plan's `raise` may name its attack (`-fight worm` winds up the dive, up out of the sand). Tests:
   `tests/worm-tripo.test.js`.
+- **The reed knot** (`rootknot`): `src/enemies/plans/rootknot-tripo.js` `rootknotModel`, `public/enemies/rootknot/body.glb`
+  (298 KB, 12,000 triangles); the legacy root knot is `plans/tentacled-legacy.js` `rootknotLegacyModel`. Tripo drew five
+  legs (twice: the picture hides its sixth), as the legacy's five root-arms. Its parts meet at creases, so each triangle
+  takes its texels' majority, the lone ones folded into their neighbours': the cap, its underside the gills (its
+  triangles facing down), the bulb, the legs. Its rig is the many-legged family's: the tentacled plan's slow wave on the
+  mesh's five legs, each fitted to its measured hip, knee, ankle and foot (its centre line followed up from the foot)
+  as two segments (the plan's third left out), `SkinLegs` bones; the cap its own bone on the bulb's top, tipped back at
+  rest off the eyes (Tripo's cap hangs over the front), turning to follow you, tipping to fling the pod, shuddering,
+  drooping asleep; two pale slit eyes on the bulb slide toward the traveller. Its legs stay planted as it rises for the
+  seeds (lifted, as the legacy's front arms were, a long shin swung a pad through the ground). 5 drawn meshes. Tests:
+  `tests/rootknot-tripo.test.js`.
 
 ### The horned hound in the game (v2.38, issue #800, `src/enemies/plans/hound-tripo.js`)
 

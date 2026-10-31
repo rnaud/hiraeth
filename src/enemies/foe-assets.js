@@ -35,9 +35,10 @@ export const FOE_ASSETS = {
   tripod: { folder: 'enemies/tripod/', rig: 'landmarks.json' },
   drone: { folder: 'enemies/drone/', rig: 'landmarks.json' },
   crawler: { folder: 'enemies/crawler/', rig: 'landmarks.json' },
-  // (family F, #800: the blot, the worm)
+  // (family F, #800: the blot, the worm, the root knot)
   blot: { folder: 'enemies/blot/', rig: 'landmarks.json' },
   worm: { folder: 'enemies/worm/', rig: 'landmarks.json' },
+  rootknot: { folder: 'enemies/rootknot/', rig: 'landmarks.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -104,6 +105,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/blot/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/blot/landmarks.json', import.meta.url))]),
   worm: (host, fs) => (host ? [host.readFile('enemies/worm/body.glb'), host.readFile('enemies/worm/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/worm/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/worm/landmarks.json', import.meta.url))]),
+  rootknot: (host, fs) => (host ? [host.readFile('enemies/rootknot/body.glb'), host.readFile('enemies/rootknot/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/rootknot/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/rootknot/landmarks.json', import.meta.url))]),
 };
 function readNow(id) {
   try {

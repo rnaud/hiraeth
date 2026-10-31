@@ -94,7 +94,10 @@ export const SKINS = {
     // (sheet-1: a pale lilac cap with cream gills and a few pale warts, a reed-green bulb ribbed top to bottom with small
     // pale dots, ochre root-arms, lilac tendrils, two pale glowing eyes, violet shadows; sheet-2: a deep teal cap over
     // softly glowing turquoise gills, a red-brown bulb, dark bark-brown roots, brass spores drifting)
-    perdide: { name: 'reed knot', palette: { cap: '#c6b2d8', cap2: '#d8c8e6', gill: '#efe2c8', bulb: '#a4bea6', bulb2: '#bcd0bc', root: '#d8b468', root2: '#c09650', tendril: '#bca8d4', eye: '#fff4c8', dark: '#55466c', spore: '#e8d8f0' }, props: [] },
+    // (issue #800: the Tripo reed knot, src/enemies/plans/rootknot-tripo.js; its home skin the approved reference's colours,
+    // references/enemy-redesign-2026-10-30/reed-knot/0de92fb6-…-1.png: a mauve cap, its underside in its shade, a sage bulb,
+    // orange legs, pale slit eyes)
+    perdide: { name: 'reed knot', palette: { cap: '#b57f77', cap2: '#c4938b', gill: '#8e5f5a', bulb: '#88ac95', bulb2: '#9dbda8', root: '#f6bf78', root2: '#e0a35c', tendril: '#bca8d4', eye: '#f9f3c0', dark: '#55466c', spore: '#e8d8f0' }, props: [] },
     perdide2: { name: 'root crawler', palette: { cap: '#2f6f72', cap2: '#3f8486', gill: '#5fe8d8', bulb: '#a8473c', bulb2: '#bd5c4c', root: '#6a4a30', root2: '#553a24', tendril: '#9a4a3c', eye: '#7ff0e8', dark: '#2a1e18', spore: '#d8b048' }, props: ['glow', 'spores'], moves: ['puff'] },
     edena: { name: 'topiary knot', palette: { cap: '#6fa85c', cap2: '#88bf72', gill: '#d8e8a8', bulb: '#5a8a4a', bulb2: '#6f9f5c', root: '#8a6a48', root2: '#6a503a', tendril: '#4a7a3c', eye: '#f8f0c0', dark: '#2a3a24', spore: '#f0f4d0' }, props: ['clipped'] },
     mangrove: { name: 'mangrove knot', palette: { cap: '#d8d0c0', cap2: '#e8e2d4', gill: '#b8ab92', bulb: '#c8bfa8', bulb2: '#d8d0bc', root: '#efeae0', root2: '#d8d0c0', tendril: '#b8ab92', eye: '#9fe8d8', dark: '#5a5040', spore: '#f4f0e8' }, props: [] },

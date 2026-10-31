@@ -13,7 +13,7 @@ import { cloudJelly } from './cloud-jelly-tripo.js';
 import { toadModel } from './toad-tripo.js';
 import { heronModel } from './stilt.js';
 import { skitterModel } from './skitter-tripo.js';
-import { rootknotModel } from './tentacled.js';
+import { rootknotModel } from './rootknot-tripo.js';
 import { bruteModel } from './brute.js';
 import { droneModel } from './drone-tripo.js';
 import { legacyCartModel } from './tracked.js';
@@ -57,7 +57,8 @@ import { foeSource } from '../foe-assets.js';
 //   stilt.js      plan 7   the stilt heron (two stilts one at a time, an S-neck of segments)
 //   cloud-jelly-tripo.js plan 11  the cloud jelly (issue #800: Tripo's body, public/enemies/cloud-jelly/body.glb; the
 //                 lantern jelly it replaced, lantern-jelly-legacy.js, stands in where the body is not loaded)
-//   tentacled.js  plan 12  the root knot (five three-segment root-arms on FABRIK)
+//   rootknot-tripo.js plan 12  the root knot (issue #800: Tripo's reed knot, public/enemies/rootknot/body.glb, five legs on the
+//                 tentacled plan's slow wave, its cap its own bone; the legacy knot, tentacled-legacy.js, stands in where it is not loaded)
 //   lamp-moth-tripo.js plan 13  the lamp moth (issue #800: Tripo's body, public/enemies/lamp-moth/body.glb; the signal
 //                 moth it replaced, signal-moth-legacy.js, stands in where the body is not loaded)
 //   drone-tripo.js plan 13 the ring drone (issue #800: Tripo's spool drone, public/enemies/drone/body.glb, two plates and

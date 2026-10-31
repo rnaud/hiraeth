@@ -31,7 +31,7 @@ const planSources = {
   heron: readFileSync(new URL('../src/enemies/plans/stilt.js', import.meta.url), 'utf8'),
   // (the Tripo body, #800, and the legacy one standing in where it is not loaded)
   skitter: readFileSync(new URL('../src/enemies/plans/skitter-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/skitterers-legacy.js', import.meta.url), 'utf8'),
-  rootknot: readFileSync(new URL('../src/enemies/plans/tentacled.js', import.meta.url), 'utf8'),
+  rootknot: readFileSync(new URL('../src/enemies/plans/rootknot-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/tentacled-legacy.js', import.meta.url), 'utf8'),
   brute: readFileSync(new URL('../src/enemies/plans/brute.js', import.meta.url), 'utf8'),
   drone: readFileSync(new URL('../src/enemies/plans/drone-tripo.js', import.meta.url), 'utf8'),
   cart: readFileSync(new URL('../src/enemies/plans/tracked.js', import.meta.url), 'utf8'),

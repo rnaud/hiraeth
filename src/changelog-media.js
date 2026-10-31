@@ -1493,6 +1493,8 @@ const SOURCE800CRAWLER = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'l
 // (family F, #800: the creatures and spirits on Tripo bodies, hand-made pairs as family A's, the same script and camera before and after)
 const FROM800BLOT = (foe, before) => FROM800A(foe, before).replace('Vite on port 5478', 'Vite on port 5448').replace('30 October 2026', '31 October 2026');
 const FROM800WORM = (foe, before) => FROM800BLOT(foe, before);
+const FROM800ROOT = (foe, before) => FROM800BLOT(foe, before);
+const SOURCE800ROOT = (foe) => SOURCE800BLOT(foe);
 const SOURCE800BLOT = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, High and Handheld, the machine shared: load 5–12); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh, summed by familyF-tripo/bench-sum.mjs`;
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
@@ -1627,6 +1629,21 @@ export const CHANGELOG_MEDIA = {
     ] },
   ] },
   // (issue #800 family B: the storm ray on its Tripo body; hand-made pairs from the creatures gallery, one camera)
+  // (issue #800: the reed knot on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The root knot has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'rootknot800-lorn', title: 'Lorn', caption: 'A reed knot of Lorn, from a little to its left: before, a lilac warty cap over a ribbed green bulb, a skirt of tendrils, five spidery ochre root-arms with rootlet fans; after, the new body: a broad mauve cap over a sage bulb going dark green round its two pale slit eyes, five long orange legs on big flat feet', from: FROM800ROOT('one rootknot@perdide, idle 1.5 s, from a little to its left (yaw 0.6)', '68877f5cd'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/reed-knot/0de92fb6-aa84-4252-b110-fd96a9913888-1.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'rootknot800-lorn2', title: 'Lorn II', caption: 'The root crawler of Lorn II: before, the teal cap over a red bulb on dark root-arms; after, the new body in the same teal and red, its gills glowing turquoise under the cap, dark bark legs', from: FROM800ROOT('one rootknot@perdide2, idle 1.5 s (yaw 0.6)', '68877f5cd') },
+    { name: 'rootknot800-mangrove', title: 'The White Mangrove', caption: 'The mangrove knot: before, the pale warty cap on bone-white root-arms; after, the new body in the same pale greys, its legs bone white', from: FROM800ROOT('one rootknot@mangrove, idle 1.5 s (yaw 0.6)', '68877f5cd') },
+    { name: 'rootknot800-pod', title: 'The spore pod', caption: 'A reed knot at 60 % of its spore pod\u2019s wind-up: before, the cap tipped back over the fattening pod; after, the new cap tipped back the same way, the lilac pod swelling under its rim', from: FROM800ROOT('one rootknot@perdide, its pod held at 60 % of the wind-up (yaw 0.9)', '68877f5cd') },
+    { name: 'rootknot800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a reed knot beside the traveller: the same new body, its cap, bulb and legs drawn in their colours', from: 'Unity editor batch run (scripts/unity-js-run.sh f800knot2 -level arena -fight rootknot -mute), 31 October 2026, the Library cloned from the main checkout, the handoff\u2019s build lock held; its third picture (unity-rootknot-perdide): the game\u2019s follow camera; no picture on the body (each part one flat colour)' },
+  ], numbers: [
+    { title: 'Six root knots in Lorn: what they add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800ROOT('reed knots in Lorn'), rows: [
+      { where: 'draw calls, High', before: 426, after: 90 },
+      { where: 'draw calls, Handheld', before: 288, after: 60 },
+      { where: 'triangles, High (thousand, every pass)', before: 252.8, after: 221.0 },
+    ] },
+  ] },
   // (issue #800: the dune worm on its Tripo body; hand-made pairs, the same script and camera before and after)
   { match: 'The mound worm has a new body, drawn from its new design', tags: ['combat'], shots: [
     { name: 'worm800-desert', title: 'The Desert', caption: 'A dune worm up out of its hole at 30 % of its spit\u2019s wind-up, three-quarters from its front: before, a stack of fat gold rings with a round toothed mouth and a tall ivory sail on its back; after, the new body: a segmented ochre grub with a cream belly, a pale crown, a turquoise mouth and a black dot eye', from: FROM800WORM('one worm@desert, its spit held at 30 % of the wind-up (up out of the sand), three-quarters (yaw 0.75)', '3dea417c2'),

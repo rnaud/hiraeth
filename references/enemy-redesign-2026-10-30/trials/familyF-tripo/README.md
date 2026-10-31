@@ -85,3 +85,40 @@ the other three: 1,035 → 945 as the four finished). Home skin `desert` (the De
   steps on target). Unity: `-fight worm` winds up its dive, up out of the sand: the same body, pictured.
 - **Still off**: standing straight, it does not have the reference's S-curve; its belly reads grey in its own shade; a
   little of its bunched tail shows under the hole where no ground hides it (the gallery).
+
+## The reed knot (`rootknot`)
+
+Reference: `../../reed-knot/0de92fb6-aa84-4252-b110-fd96a9913888-1.png` (approved). Task `6e112a46-…`, 30 credits; a second
+try from the same picture (`reed-knot/tripo/again-1/`, task `8b23f8b0-…`, 30 credits, balance 945 → 915) to get the
+picture's six legs drew five again and was not used (its model not kept; its task record and preview are). Home skin
+`perdide` (Lorn's reed knot).
+
+- **What it is**: Tripo's 29k-triangle mushroom at the legacy knot's 3.2 m to the cap's top, cut to 12,000 triangles. Tripo
+  faced the picture's view: the export is turned 94° about y to centre its painted eyes on +z and moved so the bulb's
+  middle is over the origin. Five legs (the picture hides its sixth behind the bulb), at 0°, 60°, 123°, 184° and 242°
+  round its front: the gap at its front right is Tripo's. The cap, the bulb and the legs meet at creases, so each
+  triangle takes its texels' majority role, the lone ones folded into their neighbours' (four passes): no ragged seam;
+  the cap's underside (its triangles facing down: the rim a crease) is the gills. The painted slit eyes painted out.
+- **The rig** (many-legged: a custom skin on the game's legs): the tentacled plan's slow wave (the legacy's, one leg at a
+  time) on the mesh's five legs, each leg's centre line followed up from its foot by slabs of its texels: its foot,
+  ankle, knee (the line's furthest point from the hip–ankle chord) and hip; two segments a leg (the plan's root-arm tip
+  left out), `SkinLegs` bones in each bend plane, the pads on their foot bones, a little slack in the solve (1.12); the
+  legs eased into the bulb over their top centimetres. The cap its own bone on the bulb's top (the bulb's top eased onto
+  it), tipped back 0.3 rad at rest so its rim clears the eyes (Tripo's cap hangs over the front); it turns to follow you,
+  tips back for the pod and snaps forward to throw, shudders for the seeds and the puff, droops asleep. Two pale slit eyes
+  where the painted ones were slide toward the traveller. The legacy's spore pod and seeds under the rim, its lobs onto
+  their marks.
+- **Skins**: the home skin the reference's colours (a plain mauve cap, the sage bulb going dark green round its eyes);
+  the others keep their palettes and dress: the root crawler's glowing gills, the topiary knot's clipped cap, the
+  mangrove knot's pale greys, the weed knot's wet gloss. The legacy's tendril skirt is gone (the approved design has none).
+- **Measured**: bind round trip < 0.1 mm, every bone carrying vertices; its feet out of the ground through the seeds'
+  rise. Six knots in Lorn (two rounds each, alternating, load 12–24): draws +426 → +90 (High), +288 → +60 (Handheld);
+  triangles +253k → +221k (High); the script's time a frame +1.4 → +1.75 ms (High), +1.05 → +0.9 ms (Handheld), noisy at
+  that load. Arena warm-up: the run's four skins compile nothing at arrival (first frames 1.4–3.4 ms); the Waterfall's,
+  not in the run, compiles two programs brought in by hand, as the legacy's (184 ms there, 167 ms here). Defend: the pod
+  and the seeds guarded from 0.5 s and parried at 0.06–0.12 s (the baseline: the pod parried to 0.2 s and one evade at
+  0.35 s too early). Dodge: a back flip into the flurry. Sound unchanged (`roots`, the `tentacled` steps on target).
+  Unity: in one batch run the first knot set down (the home skin) was drawn high over its own shadow, its second skin
+  right; a second run with the skins the other way round drew both right, the home skin included: not reproduced.
+- **Still off**: five legs where the picture draws six, the gap at its front right; the bulb's dark band is a fade, not
+  the picture's sharp band; the first knot of that one Unity run drawn out of place (above).
