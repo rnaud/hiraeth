@@ -188,8 +188,15 @@ test('a shot douses a ball; one ball of its own in the air at a time', () => {
 
 test('its body (issue #440, its sheet): the petals open wide for the fireball; stunned low, nothing of it goes under the sand', () => {
   const { foes, f } = fight();
-  const box = new THREE.Box3(), size = new THREE.Vector3();
-  const width = () => { f.model.group.updateMatrixWorld(true); box.setFromObject(f.model.group); box.getSize(size); return Math.max(size.x, size.z); };
+  const box = new THREE.Box3(), size = new THREE.Vector3(), v = new THREE.Vector3();
+  // (its drawn box: a skinned body's vertices where its bones put them, #800's Tripo bud, whose bounds are its bones' boxes
+  // turned with them, a loose fit; the rest as they are)
+  const drawnBox = () => { f.model.group.updateMatrixWorld(true); box.makeEmpty();
+    f.model.group.traverse((o) => { if (!o.isMesh || !o.visible) return;
+      if (!o.isSkinnedMesh) { box.expandByObject(o); return; }
+      o.skeleton.update(); const P = o.geometry.attributes.position; for (const i of new Set(o.geometry.index.array)) box.expandByPoint(o.applyBoneTransform(i, v.fromBufferAttribute(P, i)).applyMatrix4(o.matrixWorld)); });
+    return box; };
+  const width = () => { drawnBox().getSize(size); return Math.max(size.x, size.z); };
   foes.update(DT);
   const rest = width();
   const t = run(foes, 20, () => f.state === 'wind' && f.atk?.id === 'fireball' && f.k > 0.8);
@@ -201,7 +208,7 @@ test('its body (issue #440, its sheet): the petals open wide for the fireball; s
   // stunned (its own fire back at it): down low, its cup and drips over the ground
   let lowest = Infinity;
   f.stunned = 3; f.state = 'chase'; f.atk = null;
-  run(foes, 2.5, () => { f.stunned = Math.max(f.stunned, 1); f.model.group.updateMatrixWorld(true); box.setFromObject(f.model.group); lowest = Math.min(lowest, box.min.y - f.pos.y); return false; });
+  run(foes, 2.5, () => { f.stunned = Math.max(f.stunned, 1); lowest = Math.min(lowest, drawnBox().min.y - f.pos.y); return false; });
   assert.ok(f.alt < 0.6, `it dropped low (${f.alt.toFixed(2)} m)`);
   assert.ok(lowest > -0.02, `nothing of it under the sand (lowest ${lowest.toFixed(2)} m)`);
   foes.dispose(); clearTargets();

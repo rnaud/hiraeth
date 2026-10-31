@@ -24,7 +24,7 @@ import { shadeModel } from './humanoid.js';
 import { legacyRollerModel } from './roller.js';
 import { tripoRollerModel } from './roller-tripo.js';
 import { marionetteModel } from './strings.js';
-import { wispModel } from './ember.js';
+import { wispModel } from './wisp-tripo.js';
 import { fencerModel } from './fencer.js';
 import { mummerModel, mummerKingModel } from './mummer.js';
 import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js';
@@ -79,7 +79,8 @@ import { foeSource } from '../foe-assets.js';
 //   blot-tripo.js plan 20  the ink blot (issue #800: Tripo's body, public/enemies/blot/body.glb, a drop that squashes and
 //                 stretches on two bones; the legacy blot, blob-legacy.js, stands in where the body is not loaded)
 //   strings.js    plan 21  the marionette (a puppet hung on four strings from a knot of smoke, a pendulum)
-//   ember.js      plan 22  the ember wisp (a stand-in: a shell in two lids round a glowing coal; issue #398)
+//   wisp-tripo.js plan 22  the ember wisp (issue #800: Tripo's cinder wisp, public/enemies/wisp/body.glb, four petals on hinges
+//                 round the game's coal; the legacy bud, ember-legacy.js, stands in where it is not loaded)
 //   fencer.js     plan 9   the makers' fencer (a machine's biped: sword and shield; issue #665)
 //   mummer.js     plan 23  the mummer and the mummer king (on the humanoid rig, src/enemies/humanoid-rig.js: clips; issue #724)
 //   monster.js    plans 25, 26, 30, 31  roster v4's grunt, hulk, prowler and warlord (on the humanoid rig; issue #726)

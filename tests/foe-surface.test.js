@@ -40,7 +40,7 @@ const planSources = {
   // (#800: the Tripo roller's own parts and its stand-in's, the steel snail's: legacyRollerModel)
   roller: readFileSync(new URL('../src/enemies/plans/roller-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/roller.js', import.meta.url), 'utf8'),
   marionette: readFileSync(new URL('../src/enemies/plans/strings.js', import.meta.url), 'utf8'),
-  wisp: readFileSync(new URL('../src/enemies/plans/ember.js', import.meta.url), 'utf8'),
+  wisp: readFileSync(new URL('../src/enemies/plans/wisp-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/ember-legacy.js', import.meta.url), 'utf8'),
   fencer: readFileSync(new URL('../src/enemies/plans/fencer.js', import.meta.url), 'utf8'),
   mummer: readFileSync(new URL('../src/enemies/plans/mummer.js', import.meta.url), 'utf8'),
   mummerking: readFileSync(new URL('../src/enemies/plans/mummer.js', import.meta.url), 'utf8'),

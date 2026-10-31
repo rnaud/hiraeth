@@ -122,3 +122,34 @@ picture's six legs drew five again and was not used (its model not kept; its tas
   right; a second run with the skins the other way round drew both right, the home skin included: not reproduced.
 - **Still off**: five legs where the picture draws six, the gap at its front right; the bulb's dark band is a fade, not
   the picture's sharp band; the first knot of that one Unity run drawn out of place (above).
+
+## The cinder wisp (`wisp`)
+
+Reference: `../../keep-wisp/885e3431-b1b8-4db6-ad7b-c772cd14d530-3.png` (approved). Task `fbbea7ea-…`, 30 credits (run with
+the other three). Home skin `moonfoundry` (the Moon Foundry's cinder wisp).
+
+- **What it is**: Tripo drew the picture's ground stain and the ember floating beside the bud as pieces of their own
+  (dropped: the largest piece kept). The bud alone, its axis over the origin, 1.3 m tall (the legacy's 1.15 m of petals
+  over its cup), cut to 14,391 triangles. Four petals (front, left, back, right: Tripo put one petal ahead, the eyes on it)
+  cut apart on the two vertical planes through their creases (each crease's azimuth where the petals part, high up; the
+  opposite pair on one plane), above the hinge ring at 0.47 m where they join; the darker cup under it. Tripo's orange
+  coal inside dropped; the game's own glowing coal (0.3 m) sits where it was. The painted eyes painted out.
+- **The rig** (rigid parts, the machines' route: a bud does not bend): each petal on its own hinge bone at the ring,
+  blended over 6 cm under and 10 cm over it so a tipped petal stays joined to the cup; the four petals one skinned mesh
+  (one material: four meshes at first, which drew more than the legacy's six; merged, the bench below), the cup another;
+  bound where the bud hangs (its foot 0.66 m under its middle, the hover's height, as the legacy's). The legacy's motion
+  and numbers (`EMBER`): the petals open like a flower for the fireball, the front furthest (1.45 rad, the sides 1.25; the legacy's
+  1.9 laid Tripo's broad petals flat), 2.2 m across (`tests/fireball.test.js` now measures the drawn vertices, not the bones' boxes), the coal swelling and rising out of the bud; clenched and shaking for the flare;
+  stunned, low, half open and dimmed. Two pale eyes on the front petal slide toward the traveller. The flyer death as
+  before.
+- **Skins**: the home skin the reference's colours (dark teal petals, a darker cup, an orange ember, pale eyes; its fire
+  kept); the marsh wisp keeps its lichen rosettes, its brass band and its marsh light; the corona wisp its black and violet
+  in its ring of white fire. The sheet-1 ring of light, gold edges and drips are gone (the approved design has none).
+- **Measured**: bind round trip < 0.1 mm; the front petal opened alone moves nothing of the back's. Six wisps at the Moon
+  Foundry (two rounds each, alternating): draws +85 → +70 (High), +60 → +48 (Handheld); triangles +107k → +265k (High);
+  the script's time a frame +0.8 → +0.6 ms (High), +0.4 → +0.2 ms (Handheld). Arena warm-up: its three skins compile
+  nothing at arrival (first frames 1.8–2.6 ms). Defend: its flare was not reached in the time given, as before; dodge: no
+  flurry in the time given (the baseline timed out too: it hovers out of reach). Sound unchanged (`ember`, the `ember`
+  hum on target). Unity: `-fight wisp` sets two down high over the traveller, one opening for its fireball: the same body.
+- **Still off**: 14k triangles is the most of the four (a hovering foe seen small: a lighter LOD would do); the coal shows
+  through a side crease when the bud clenches for the flare.

@@ -1494,7 +1494,9 @@ const SOURCE800CRAWLER = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'l
 const FROM800BLOT = (foe, before) => FROM800A(foe, before).replace('Vite on port 5478', 'Vite on port 5448').replace('30 October 2026', '31 October 2026');
 const FROM800WORM = (foe, before) => FROM800BLOT(foe, before);
 const FROM800ROOT = (foe, before) => FROM800BLOT(foe, before);
+const FROM800WISP = (foe, before) => FROM800BLOT(foe, before);
 const SOURCE800ROOT = (foe) => SOURCE800BLOT(foe);
+const SOURCE800WISP = (foe) => SOURCE800BLOT(foe);
 const SOURCE800BLOT = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, High and Handheld, the machine shared: load 5–12); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh, summed by familyF-tripo/bench-sum.mjs`;
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
@@ -1629,6 +1631,21 @@ export const CHANGELOG_MEDIA = {
     ] },
   ] },
   // (issue #800 family B: the storm ray on its Tripo body; hand-made pairs from the creatures gallery, one camera)
+  // (issue #800: the cinder wisp on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The ember wisp has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'wisp800-moonfoundry', title: 'The Moon Foundry', caption: 'A cinder wisp, from a little to its left: before, a pointed bud of glossy black petals edged in gold over a ring of light, three drips of ink hanging from it; after, the new body: a round bud of four broad dark-teal petals, the ember glowing through the slit between them and two pale eyes on its front petal', from: FROM800WISP('one wisp@moonfoundry, idle 1.5 s, from a little to its left (yaw 0.3)', '657c5d467'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/keep-wisp/885e3431-b1b8-4db6-ad7b-c772cd14d530-3.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'wisp800-fireball', title: 'The fireball', caption: 'At 80 % of the fireball\u2019s wind-up: before, the black petals spread wide round the swollen coal; after, the four teal petals opened like a flower, the ember risen out of them', from: FROM800WISP('one wisp@moonfoundry, its fireball held at 80 % of the wind-up (yaw 0.5)', '657c5d467') },
+    { name: 'wisp800-lorn2', title: 'Lorn II', caption: 'The marsh wisp of Lorn II: before, the mossy pointed bud with lichen, its brass band and drips; after, the new bud in the same moss with its lichen rosettes, the brass band round its waist, a pale-green marsh light inside', from: FROM800WISP('one wisp@perdide2, idle 1.5 s (yaw 0.3)', '657c5d467') },
+    { name: 'wisp800-eclipse', title: 'The Eclipse', caption: 'The corona wisp of the Eclipse: before, the black pointed bud in its ring of white fire; after, the new bud in the same black and violet, its ring of fire turning round it', from: FROM800WISP('one wisp@eclipse, idle 1.5 s (yaw 0.3)', '657c5d467') },
+    { name: 'wisp800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, two cinder wisps high over the traveller, one opening its petals for a fireball: the same new bodies', from: 'Unity editor batch run (scripts/unity-js-run.sh f800wisp -level arena -fight wisp -mute), 31 October 2026, the Library cloned from the main checkout, the handoff\u2019s build lock held; its second picture (unity-wisp-windup): the game\u2019s follow camera; no picture on the body (each part one flat colour)' },
+  ], numbers: [
+    { title: 'Six wisps at the Moon Foundry: what they add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800WISP('cinder wisps at the Moon Foundry'), rows: [
+      { where: 'draw calls, High', before: 85, after: 70 },
+      { where: 'draw calls, Handheld', before: 60, after: 48 },
+      { where: 'triangles, High (thousand, every pass)', before: 106.6, after: 264.6 },
+    ] },
+  ] },
   // (issue #800: the reed knot on its Tripo body; hand-made pairs, the same script and camera before and after)
   { match: 'The root knot has a new body, drawn from its new design', tags: ['combat'], shots: [
     { name: 'rootknot800-lorn', title: 'Lorn', caption: 'A reed knot of Lorn, from a little to its left: before, a lilac warty cap over a ribbed green bulb, a skirt of tendrils, five spidery ochre root-arms with rootlet fans; after, the new body: a broad mauve cap over a sage bulb going dark green round its two pale slit eyes, five long orange legs on big flat feet', from: FROM800ROOT('one rootknot@perdide, idle 1.5 s, from a little to its left (yaw 0.6)', '68877f5cd'),

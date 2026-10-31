@@ -12,7 +12,7 @@
 // - no texture and no UVs: the parts are flat colours (the trial's 1024² texture stays in the trial);
 // - the landmarks the rig is fitted to beside it, landmarks.json (src/enemies/foe-assets.js loads the two).
 //
-//   node scripts/tripo/ship-body.mjs <toad|centipede|skitter|tripod|drone|crawler|blot|worm|rootknot>     (deterministic: the same inputs write the same bytes)
+//   node scripts/tripo/ship-body.mjs <toad|centipede|skitter|tripod|drone|crawler|blot|worm|rootknot|wisp>     (deterministic: the same inputs write the same bytes)
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
@@ -23,10 +23,10 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 /** Each foe's shipped file (its concept's folder). */
 export const SHIPPED = { toad: 'public/enemies/bellows-toad/body.glb', centipede: 'public/enemies/centipede/body.glb', skitter: 'public/enemies/skitter/body.glb',
   tripod: 'public/enemies/tripod/body.glb', drone: 'public/enemies/drone/body.glb', crawler: 'public/enemies/crawler/body.glb',
-  blot: 'public/enemies/blot/body.glb', worm: 'public/enemies/worm/body.glb', rootknot: 'public/enemies/rootknot/body.glb' };
+  blot: 'public/enemies/blot/body.glb', worm: 'public/enemies/worm/body.glb', rootknot: 'public/enemies/rootknot/body.glb', wisp: 'public/enemies/wisp/body.glb' };
 /** Each foe's trial folder (its family's). */
 const FAMILY = { toad: 'familyA-tripo', centipede: 'familyA-tripo', skitter: 'familyA-tripo', tripod: 'familyE-tripo', drone: 'familyE-tripo', crawler: 'familyE-tripo',
-  blot: 'familyF-tripo', worm: 'familyF-tripo', rootknot: 'familyF-tripo' };
+  blot: 'familyF-tripo', worm: 'familyF-tripo', rootknot: 'familyF-tripo', wisp: 'familyF-tripo' };
 const foe = process.argv[2];
 if (!SHIPPED[foe]) throw new Error(`which foe: ${Object.keys(SHIPPED).join(' | ')}`);
 const TRIAL = join(ROOT, 'references/enemy-redesign-2026-10-30/trials', FAMILY[foe]);

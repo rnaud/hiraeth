@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family F",
+  "foe": "wisp",
+  "source": "references/enemy-redesign-2026-10-30/keep-wisp/885e3431-b1b8-4db6-ad7b-c772cd14d530-3.png",
+  "sourceSha256": "b7e030f3964f05a8058a2ba33ee2d8ca5aba13891b4c28b416a1f497caa5c393",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "fbbea7ea-566b-4e57-9301-030774836659",
+  "started": "2026-10-31T05:55:49.469Z",
+  "finished": "2026-10-31T05:58:28.794Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 975,
+  "balanceAfter": 945,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1334788,
+    "sha256": "854c6add3e599d832aab46c43f60d16ec49c21154416148a0074c6c556a885ed",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 174264,
+    "sha256": "591a5275bb95ea12af39e7f6a7b0fbd1c372320bbe3cde9d183088884679d88b"
+  }
+}

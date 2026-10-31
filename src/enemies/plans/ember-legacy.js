@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { materials, add, merged, tubeGeometry, skinBy, pivot, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy ember wisp (kept, issue #800): the game's ember wisp until the Tripo body (plans/wisp-tripo.js) took its place; it
+// stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 22, the ember bud: the ember wisp (issue #398; docs/design/fireball-foe.md), the bombardier, drawn to its picked
 // sheet (references/enemy-archetypes/wisp/sheet-1.jpg, issue #440): a false flower of light. Four curved petals of
 // glossy hardened ink closed into a pointed bud round a glowing coal (the coal showing at the slit where their tips part),
@@ -51,7 +54,7 @@ export function petalProfile(E = EMBER, n = 16) {
   return pts;
 }
 
-export function wispModel(skin) {
+export function wispLegacyModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('wisp', skin), E = EMBER;
   const g = new THREE.Group(); g.name = skin.name;
   // (built in build materials on the pivots that move them, then one skinned mesh a material: kit.js skinBy)

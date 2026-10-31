@@ -904,6 +904,7 @@
  "tests/wings-reach-2.test.js": 126.4,
  "tests/wings-reach-3.test.js": 82.5,
  "tests/wings-reach-4.test.js": 53.3,
+ "tests/wisp-tripo.test.js": 2.0,
  "tests/wood-kit.test.js": 0.5,
  "tests/world-constructor-contract.test.js": 0.6,
  "tests/world-debug-worlds.test.js": 24.9,

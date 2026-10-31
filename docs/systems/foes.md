@@ -1352,7 +1352,7 @@ The count is said every 5 ink.
 
 The roster's 22nd archetype (`wisp`, a spirit, the bombardier; docs/design/fireball-foe.md, with its lore and the prompts
 for its sheet) floats out of the blade's reach, 4.2 m up (`hover`), and backs off within 7 m (`keep`). Its body is its
-picked sheet-1 (src/enemies/plans/ember.js, `art: 'sheet-1'`, issue #440): four petals of glossy ink closed into a bud
+picked sheet-1 (src/enemies/plans/ember.js, since v2.39 the legacy `ember-legacy.js` under Tripo's cinder wisp, #800; `art: 'sheet-1'`, issue #440): four petals of glossy ink closed into a bud
 round a glowing coal, each hinged at the ring of light round its waist, a cup under the ring and three drips of ink, the
 petals, cup and drips one skinned mesh on their pivots (6 draws, the stand-in's clam 11). Its surface (surfaces.js):
 the petals' wet streaked gloss and a violet coming up from the cup, the coal mottled; the marsh wisp's lichen stars.
@@ -2999,7 +2999,7 @@ The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, d
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)
 and is the game's hound now (below).
 
-### Family F on Tripo bodies: the ink blot, the dune worm, the reed knot (v2.39, issue #800)
+### Family F on Tripo bodies: the ink blot, the dune worm, the reed knot, the cinder wisp (v2.39, issue #800)
 
 The creatures and spirits follow family A the same way (`references/enemy-redesign-2026-10-30/trials/familyF-tripo/`:
 `generate.mjs <foe>`, `prepare-<foe>.mjs` on family A's `prep-kit.mjs`, `shots.mjs` for working pictures, `bench-sum.mjs`
@@ -3041,6 +3041,18 @@ write-up and the numbers in `familyF-tripo/README.md`).
   drooping asleep; two pale slit eyes on the bulb slide toward the traveller. Its legs stay planted as it rises for the
   seeds (lifted, as the legacy's front arms were, a long shin swung a pad through the ground). 5 drawn meshes. Tests:
   `tests/rootknot-tripo.test.js`.
+- **The cinder wisp** (`wisp`): `src/enemies/plans/wisp-tripo.js` `wispModel`, `public/enemies/wisp/body.glb` (412 KB,
+  14,391 triangles); the legacy ember bud is `plans/ember-legacy.js` `wispLegacyModel` (with `EMBER`, the motion's numbers,
+  shared). The bud alone (Tripo's ground stain and loose ember dropped): four petals cut apart on the two vertical planes
+  through their measured creases above the hinge ring where they join, the darker cup under it; Tripo's orange coal
+  dropped, the game's glowing coal in its place (the ball thrown from it, `mouthAt`). Rigid parts: each petal on its own
+  hinge bone, blended across the ring so a tipped petal stays joined; the four petals one skinned mesh (one material), the
+  cup another; the mesh bound where the bud hangs (its foot 0.66 m under its middle, the hover height's). The legacy's
+  motion: the petals open like a flower for the fireball (front 1.45 rad, the sides 1.25, the back 0.95: 2.2 m across), the coal swelling
+  and rising out of the bud, the body tilting back and snapping forward; clenched and shaking for the flare; stunned, half
+  open and dimmed. Two pale eyes on the front petal slide toward the traveller. The marsh wisp's brass band and the corona
+  wisp's ring of fire kept; the sheet-1 ring of light, gold edges and drips gone (the approved design has none). Its
+  flyer death unchanged. 4 drawn meshes. Tests: `tests/wisp-tripo.test.js`.
 
 ### The horned hound in the game (v2.38, issue #800, `src/enemies/plans/hound-tripo.js`)
 
