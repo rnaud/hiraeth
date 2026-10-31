@@ -44,6 +44,8 @@ export const FOE_ASSETS = {
   mummerking: { folder: 'enemies/mummerking/', rig: 'skeleton.json' },
   sentinel: { folder: 'enemies/sentinel/', rig: 'skeleton.json' },
   hulk: { folder: 'enemies/hulk/', rig: 'skeleton.json' },
+  // (family H, #800: the two-legged foes on Tripo's biped rig, its weights in the file, its joints in skeleton.json)
+  prowler: { folder: 'enemies/prowler/', rig: 'skeleton.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -120,6 +122,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/sentinel/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/sentinel/skeleton.json', import.meta.url))]),
   hulk: (host, fs) => (host ? [host.readFile('enemies/hulk/body.glb'), host.readFile('enemies/hulk/skeleton.json')]
     : [fs.readFileSync(new URL('../../public/enemies/hulk/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/hulk/skeleton.json', import.meta.url))]),
+  prowler: (host, fs) => (host ? [host.readFile('enemies/prowler/body.glb'), host.readFile('enemies/prowler/skeleton.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/prowler/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/prowler/skeleton.json', import.meta.url))]),
 };
 function readNow(id) {
   try {

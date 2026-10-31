@@ -3619,7 +3619,8 @@ export class Foes {
     this.ragPhys ??= groundPhysics(this.env.ground, this.physics);
     // (a tail laid back over the ground it lies on, src/enemies/plans/monster.js TailSpring.keepUp: each frame it steps,
     // once the rig is laid and before its limbs are measured against the ground, stepFoeRagdoll)
-    if (M.tail?.keepUp) R.tailUp ??= () => { const gy = this.env.ground(R.rag.pelvis.x, R.rag.pelvis.y + 1, R.rag.pelvis.z) ?? f.pos.y; for (let k = 0; k < 4; k++) M.tail.keepUp(gy, 0.05, this.env.ground); };
+    // (and out of the walls round it, TailSpring.keepOut, #794: the pod stalker's thick tail lay through a wall it fell against)
+    if (M.tail?.keepUp) R.tailUp ??= () => { const gy = this.env.ground(R.rag.pelvis.x, R.rag.pelvis.y + 1, R.rag.pelvis.z) ?? f.pos.y; for (let k = 0; k < 4; k++) { M.tail.keepUp(gy, 0.05, this.env.ground); M.tail.keepOut?.(R.rag.walls, 0.05); } };
     stepFoeRagdoll(R, dt, this.ragPhys);
     dimEyes(M, Math.min(1, D.u));
     const land = R.rag.takeLanding();

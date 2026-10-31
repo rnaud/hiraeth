@@ -988,8 +988,8 @@ function makePlan(args) {
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@saltharbour', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('saltharbour'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@bazaar', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('bazaar'));
   }
-  for (const [fight, kind, home, other, atk] of [['toad', 'toad', 'perdide', 'incal'], ['centipede', 'centipede', 'buried', 'spheres'], ['skitter', 'skitter', 'desert', 'moonfoundry'], ['blot', 'blot', 'desert', 'garage'], ['worm', 'worm', 'desert', 'buried', 'dive'], ['rootknot', 'rootknot', 'perdide', 'perdide2', 'pod'], ['wisp', 'wisp', 'moonfoundry', 'perdide2', 'fireball'], ['tripod', 'tripod', 'incal', 'underwater'], ['drone', 'drone', 'incal', 'antennas'], ['crawler', 'crawler', 'desert', 'desert']]) if (fights.includes(fight)) {
-    // (-fight toad, issue #800: a family A, E or F foe on its Tripo body, public/enemies/<concept>/body.glb, its parts drawn by
+  for (const [fight, kind, home, other, atk] of [['toad', 'toad', 'perdide', 'incal'], ['centipede', 'centipede', 'buried', 'spheres'], ['skitter', 'skitter', 'desert', 'moonfoundry'], ['blot', 'blot', 'desert', 'garage'], ['worm', 'worm', 'desert', 'buried', 'dive'], ['rootknot', 'rootknot', 'perdide', 'perdide2', 'pod'], ['wisp', 'wisp', 'moonfoundry', 'perdide2', 'fireball'], ['tripod', 'tripod', 'incal', 'underwater'], ['drone', 'drone', 'incal', 'antennas'], ['crawler', 'crawler', 'desert', 'desert'], ['prowler', 'prowler', 'desert', 'desert']]) if (fights.includes(fight)) {
+    // (-fight toad, issue #800: a family A, E, F or H foe on its Tripo body, public/enemies/<concept>/body.glb, its parts drawn by
     // their materials (no picture): its home skin 4 m ahead and 2.4 m to the right, standing, then winding up its first
     // attack (or the one named: the worm's dive, up out of the sand); then another world's skin with its dress; the body each
     // wears is said in the log)
@@ -1798,7 +1798,7 @@ function playFrame(dt) {
       // (-fight shellback, -fight flyers: which body each foe wears, its drawn meshes and whether it is coloured by its vertices)
       for (const f of F.list.filter((x) => x.alive)) {
         let n = 0, tinted = 0; f.model?.group?.traverseVisible?.((o) => { if (o.isMesh) { n++; if (o.material?.vertexColors || o.geometry?.attributes?.color) tinted++; } });
-        console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : f.model?.toad || f.model?.tripo ? `the ${f.model.toad ?? f.model.tripo} body` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);
+        console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : f.model?.toad || f.model?.tripo ? `the ${f.model.toad ?? (typeof f.model.tripo === 'string' ? f.model.tripo : 'Tripo')} body` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);
       }
     } else if (step.what === 'houndlog') {
       // (-fight hounds, #800: each hound held solid (lit) or left to lie in wait; its body and how it is drawn)

@@ -322,7 +322,7 @@ export const PROC_POSES = {
 // ------------------------------------------------------------------ the driver
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _h = new THREE.Vector3(), _k = new THREE.Vector3();
-const _m4q = new THREE.Quaternion();
+const _m4q = new THREE.Quaternion(), _fe = new THREE.Euler();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3();
 let seed = 0;
 /** The next driver's clip phase (each driver starts its clips `seed` steps along): for a test that must not depend on how many came before (as the rigs' nextRigSeed). */
@@ -630,15 +630,22 @@ export class HumanoidDriver {
       }
       // where the ball goes: held (its height the clip's, on its slope), stepping (an arc to the clip's), let go (eased)
       let target = null;
+      // (a body whose drawn sole sits lower under its ankle than the clip's, J.ballOnGround: #800's Tripo bipeds, the
+      //  ball held on the ground, never under it as the clip's height would put it)
       if (S.at) target = _c.set(S.at.x, posed.y, S.at.z);
       else if (S.step) {
         const u = smooth(S.step.t / S.step.T);
         target = _c.lerpVectors(S.step.from, posed, u); target.y = posed.y + K.lift * L * Math.sin(Math.PI * Math.min(1, S.step.t / S.step.T));
       } else if (S.free) { target = _c.lerpVectors(S.free.from, posed, smooth(S.free.t / K.free)); target.y = posed.y; }
+      else if (J.ballOnGround && posed.y < groundY(posed)) target = _c.copy(posed);
+      if (target && J.ballOnGround) target.y = Math.max(target.y, groundY(target));
       if (target) target.add(_y.subVectors(ankle, posed));   // (the ankle where it must be for the ball to be there, the foot turned as the clip has it)
       if (!target || target.distanceToSquared(ankle) < 1e-8) return;
       const knee = J.knees[i];
       const footQ = foot.getWorldQuaternion(_q2).clone();
+      // (a broad flat foot held flat on the ground while it is planted, J.flatFeet of the way: the clip's roll and pitch of
+      //  the traveller's narrow foot dug a Tripo biped's wide pad's edge 3-6 cm into the ground, #800)
+      if (J.flatFeet && S.at) { _fe.setFromQuaternion(footQ, 'YXZ'); footQ.slerp(_q.setFromEuler(_fe.set(0, _fe.y, 0, 'YXZ')), J.flatFeet); }
       leg.getWorldPosition(_h); knee.getWorldPosition(_k);
       // (the knee bends the way the clip had it: the pole from the hip-ankle line out to the clip's knee)
       _y.lerpVectors(_h, ankle, 0.5); _z.subVectors(_k, _y);

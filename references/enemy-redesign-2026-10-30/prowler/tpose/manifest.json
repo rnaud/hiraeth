@@ -1,0 +1,55 @@
+{
+  "created": "2026-10-31",
+  "pickedBy": "agent (the author: \"you can do the t-pose yourself\"; #800, 2026-10-31)",
+  "why": "GPT Image 2 for both, one model so the views agree: a strict T-pose (both arms level, open hands with straight fingers, nothing held), legs straight, the design held (the cream muzzle and its mouth line, the dot eyes, the sage belly, the padded three-toed feet, the wrinkled wrists and ankles) and the tail straight back along the ground in all three views. Gemini's two drew heavier bodies nearer the approved mass but with the arms sloping down and the tail swung off to one side in front. The side view faces right; it is sent to Tripo mirrored as the left view.",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, two full-body views side by side on a plain light cream background: on the left the front view, on the right the back view, both the same size and standing on the same level line. The exact creature of the reference image, the pod stalker, with the same proportions, colours and details: one heavy rounded body with a big blunt rounded head running straight on from it with no neck; dusky mauve-brown skin with a few fine wrinkle lines; a wide smooth pale cream muzzle wrapping the lower front of the head with one thin black mouth line across it; two small round black dot eyes set high and wide on the head and nothing else on the face; a smooth sage-green belly from the throat down the chest to between the legs; a thick tapering tail behind it resting on the ground, its underside sage green; long heavy arms; broad hands with short thick blunt fingers; short thick legs on broad padded feet with three big rounded toes, wrinkled folds at the wrists and ankles. It stands upright in a strict T-pose: its back straight, both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open and empty with the fingers straight and apart; legs straight and a little apart, feet flat and pointing forward. The back view shows the smooth mauve-brown back and the back of the head, the tail running down to the ground behind the legs, the backs of the arms, hands and feet. Empty hands, nothing held, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body and tail in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: weapon, blade, stick, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-prowler-prompts.md#prowler-tpose",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/prowler/5d011893-58f1-4c33-a34d-ac8df1a99842-2.png"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-08-59-48-3b86",
+      "candidate": "openai/1",
+      "sha256": "d9dc85ed083daed8df80085174560faacfeb30d797d59ea95e4c45b4ce95ecb7",
+      "bytes": 83753,
+      "costUSD": 0.041,
+      "others": [
+        "gemini/1",
+        "gemini/2",
+        "openai/2"
+      ]
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, one full-body side view (left profile) on a plain light cream background. The exact creature of the reference image, the pod stalker, with the same proportions, colours and details: one heavy rounded body with a big blunt rounded head running straight on from it with no neck, the head carried forward of the chest; dusky mauve-brown skin with a few fine wrinkle lines; a wide smooth pale cream muzzle wrapping the lower front of the head with one thin black mouth line, seen in profile; one small round black dot eye high on the head; a smooth sage-green belly from the throat down the chest to between the legs; a thick tapering tail behind it curving down to rest on the ground, its underside sage green; long heavy arms; broad hands with short thick blunt fingers; short thick legs on broad padded feet with three big rounded toes, wrinkled folds at the wrists and ankles. It stands upright in a strict T-pose: its back straight, both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open and empty, so from the side the near arm points straight at the viewer and is seen end-on; legs straight and a little apart, feet flat and pointing forward. Show the depth of the heavy body, how far the head and muzzle stand forward and how long the tail reaches back along the ground. Empty hands, nothing held, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body and tail in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: weapon, blade, stick, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-prowler-prompts.md#prowler-tpose-side",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/prowler/5d011893-58f1-4c33-a34d-ac8df1a99842-2.png"
+      ],
+      "ar": "1:1",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-08-59-48-b720",
+      "candidate": "openai/1",
+      "sha256": "5787214648ba351bae539217a35d382e1de6c59909c21635b82dca07a99ff319",
+      "bytes": 102788,
+      "costUSD": 0.053,
+      "others": [
+        "gemini/1",
+        "gemini/2",
+        "openai/2"
+      ]
+    }
+  ]
+}

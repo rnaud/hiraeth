@@ -12,7 +12,7 @@ import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Foes } from '../src/foes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
-import { loftLimb, loftAlong, keyed, legacyHulkModel } from '../src/enemies/plans/monster.js';
+import { loftLimb, loftAlong, keyed, legacyHulkModel, legacyProwlerModel } from '../src/enemies/plans/monster.js';
 import { skinOf } from '../src/enemies/skins.js';
 import { libraryFrom } from '../src/animator.js';
 import { attachMotion } from '../src/motion-match.js';
@@ -79,7 +79,9 @@ test('the silhouettes: the warlord\'s ram horns show as big curls from the front
   assert.ok(hv.filter((p) => p.x > 0.22).length / hv.length > 0.6, 'out past its skull');
   w.dispose();
   // the prowler's head: from its nape to its snout, deep all along (before: 0.62 m long, the snout 0.06 m deep)
-  const p = archetypeModel('prowler', 'desert', 0);
+  // (the legacy lizard's lofted head: #800 made the game's prowler the pod stalker on its Tripo body, prowler-tripo.js,
+  //  tests/prowler-tripo.test.js; the lizard stands in while that loads)
+  const p = legacyProwlerModel(skinOf('prowler', 'desert', 0));
   const head = verts([...part(p, 'skin'), ...part(p, 'belly')]).filter((q) => q.y > 1.56), zs = head.map((q) => q.z), zmax = Math.max(...zs);
   const snout = head.filter((q) => q.z > zmax - 0.16 && q.z < zmax - 0.1).map((q) => q.y);
   assert.ok(zmax - Math.min(...zs) > 0.6, `a long head: ${(zmax - Math.min(...zs)).toFixed(2)} m`);

@@ -28,7 +28,8 @@ import { wispModel } from './wisp-tripo.js';
 import { fencerModel } from './fencer.js';
 import { mummerModel, legacyMummerKingModel } from './mummer.js';
 import { tripoMummerKingModel } from './mummer-king-tripo.js';
-import { gruntModel, legacyHulkModel, prowlerModel, warlordModel } from './monster.js';
+import { gruntModel, legacyHulkModel, legacyProwlerModel, warlordModel } from './monster.js';
+import { tripoProwlerModel } from './prowler-tripo.js';
 import { tripoHulkModel } from './hulk-tripo.js';
 import { legacySentinelModel } from './sentinel.js';
 import { tripoSentinelModel } from './sentinel-tripo.js';
@@ -91,6 +92,9 @@ import { foeSource } from '../foe-assets.js';
 //   monster.js    plans 25, 26, 30, 31  roster v4's grunt, old hulk, prowler and warlord (on the humanoid rig; issue #726)
 //   hulk-tripo.js plan 26  the hulk (#800: the approved root crusher, Tripo's rigged mesh on the humanoid clip rig,
 //                          plans/tripo-biped.js; monster.js legacyHulkModel, the slate-blue horned hulk, stands in while it loads)
+//   prowler-tripo.js plan 30  the prowler (#800: the pod stalker, Tripo's biped rig posed by the clips, its tail on five
+//                          bones of its own, src/enemies/foe-assets.js; monster.js legacyProwlerModel, the leaf-green
+//                          lizard, stands in while the body loads)
 //   droid.js               the makers' defunct droids' one material family (issue #726)
 //   sentinel.js   plan 27  the old sentinel (a slim droid duellist on the humanoid rig: blade and round shield)
 //   sentinel-tripo.js plan 27  the sentinel (#800: the approved cistern keeper, Tripo's rigged mesh on the humanoid clip
@@ -108,7 +112,7 @@ const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, 
   shade: shadeModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel,
   grunt: gruntModel,
   oracle: oracleModel, crawler: crawlerModel,
-  prowler: prowlerModel, warlord: warlordModel,
+  prowler: (skin) => { const src = foeSource('prowler'); return src ? tripoProwlerModel(skin, src) : legacyProwlerModel(skin); }, warlord: warlordModel,
   cart: (skin) => { const src = foeSource('cart'); return src ? tripoCartModel(skin, src) : legacyCartModel(skin); },
   bell: (skin) => { const src = foeSource('bell'); return src ? tripoBellModel(skin, src) : legacyBellModel(skin); },
   roller: (skin) => { const src = foeSource('roller'); return src ? tripoRollerModel(skin, src) : legacyRollerModel(skin); },

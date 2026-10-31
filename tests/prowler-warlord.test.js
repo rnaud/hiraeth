@@ -300,9 +300,15 @@ test('with the clips: the dart crouched, the tail swung out at knee height round
     const f = foes.add('prowler', v()); f.provoked = true; f.heading = 0; f.state = 'chase';
     const J = f.model.joints, tail = f.model.tail.segs;
     run(f, 40);
-    const stand = { head: W(f, J.head).y, hips: W(f, J.torso).y };
+    // (its head: the legacy lizard's head joint sat in its long neck; the pod stalker (#800) has none, Tripo's head joint
+    //  is at its shoulders' line, so its head is where its eyes are)
+    // (the eyes' middle in the face's frame, where the face is now: the eyes themselves may be drawn in a batch)
+    const face = f.model.group.getObjectByName('face'), eyeMid = f.model.tripo?.eyeMid;
+    const eyesAt = () => { f.model.group.updateMatrixWorld(true); return v(...eyeMid).applyMatrix4(face.matrixWorld); };
+    const stand = { head: f.model.tripo ? eyesAt().y : W(f, J.head).y, hips: W(f, J.torso).y };
     assert.ok(stand.head > 1.4 && stand.head < 1.75, `its head at ${stand.head.toFixed(2)} m`);
-    const tip = () => { const s = tail.at(-1); s.updateMatrixWorld(true); return v(0, 0, -PROWLER_TAIL.len).applyMatrix4(s.matrixWorld); };
+    // (its tip: the last segment's end, the body's own segment length: the pod stalker's, #800, are longer)
+    const tip = () => { const s = tail.at(-1); s.updateMatrixWorld(true); return v(0, 0, -(f.model.tail.len ?? PROWLER_TAIL.len)).applyMatrix4(s.matrixWorld); };
     assert.ok(tip().y > -0.01 && tip().y < 0.35 && tip().z < -0.6, `its tail down to the ground behind it (${tip().y.toFixed(2)}, ${tip().z.toFixed(2)})`);
     const wind = (id, k) => run(f, 20, () => { f.state = 'wind'; f.atk = atk(f, id); f.k = k; });
     wind('dart', HOLD_AT);

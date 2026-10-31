@@ -3250,6 +3250,32 @@ pair, as the mummers (`GROUP`, `GROUP_COST`); never the first pack (`FROM`). The
 off its blows, as the mummer's; guarded, its jab blocks from 0.5 s and parries at 0.06–0.12 s, an evade at 0.08–0.15 s swallows it.
 Unity: `-fight newfoes` sets one down 3.5 m ahead with the two wood cutters (its body said in the log: the Tripo one).
 
+### Family H on Tripo bodies: the two-legged foes (v2.39, issue #800)
+
+The roster's bipeds on Tripo's own biped rig posed directly by the clips, the dune mummer's way, each from T-pose sheets
+made in the reference lab from its approved image (picked by the agent: the author, "you can do the t-pose yourself").
+The assets are made in `references/enemy-redesign-2026-10-30/trials/familyH-tripo/` (`generate.mjs <foe>`,
+`prepare-<foe>.mjs` on the shared `prep-biped.mjs`: the game's frame **centred on the hips**, decimated by geometry,
+the parts' borders cut exactly on their lines so a flat vertex colour stops there, the painted eyes and marks measured
+and painted out) straight into `public/enemies/<id>/body.glb` and `skeleton.json`, loaded by `src/enemies/foe-assets.js`.
+The rig is `src/enemies/plans/biped-tripo.js` `tripoBiped`: humanoidSkeleton's joints stood on Tripo's, its 23 joints'
+weights folded onto them (a body's own joints after Tripo's onto the bones it gives), bound in the T-pose, let down to
+the rig's rest. The replaced builder stays under a legacy name, standing in while the body loads. Its write-up, the
+T-pose picks and why: the folder's `README.md`.
+
+- **The prowler** (`prowler`): the pod stalker, `src/enemies/plans/prowler-tripo.js` `tripoProwlerModel`,
+  `public/enemies/prowler/` (12,644 triangles); the legacy leaf-green lizard is `plans/monster.js` `legacyProwlerModel`.
+  A hunched mauve-brown body with a big blunt head, a cream muzzle, a sage belly and a thick tail on the ground, 1.9 m to
+  its crown upright, leaning forward on `PROWLER_STANCE`. Its tail on five joints added after Tripo's (measured from the
+  mesh), sprung by `TailSpring` as before (its rest the measured line, its drawn girth kept off the ground, `radius`,
+  and, lying in a ragdoll, out of the walls round it, `keepOut`); the blade through the right hand's measured centre; the
+  look on Tripo's head bone with its dot eyes sliding; the mouth line an ink line on the head. Its broad pads stand on
+  the ground with the clips through two opt-in rig flags (`src/enemies/humanoid-rig.js`): `J.flatFeet` (a planted foot
+  turned that much toward flat, against the clip's roll and pitch of the traveller's narrow foot) and `J.ballOnGround`
+  (the ball of the foot never under the ground), with `biped-tripo.js` `soles` (the pads stiff under 8 cm) and `soleUp`
+  (the body raised by its deepest sole corner under the ground). Three meshes. Its def, moves, windows, sounds and ragdoll are the
+  prowler's. Tests: `tests/prowler-tripo.test.js`.
+
 
 ## Tests
 

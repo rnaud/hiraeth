@@ -1489,6 +1489,10 @@ const FROM800DRONE = (foe, before) => FROM800TRIPOD(foe, before);
 const SOURCE800DRONE = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 5–16');
 // (issue #800, family E's crawler: the same hand-made pairs and bench as the tripod's, in the Arena: it is fielded nowhere else yet)
 const FROM800CRAWLER = (foe, before) => FROM800TRIPOD(foe, before);
+// (#800 family H: the prowler's pictures and numbers)
+const FROM800PROWLER = (foe, before) => `Hand-made (no \`view\`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/familyE-tripo/pair-shots.mjs, scripts/changelog-shots.mjs's own shoot with a \`foe\` view (the creatures gallery: the game's own body through Foes.look, alone, 3D only; Vite on port 5461, muted headless Chrome, --mute-audio), High, 1280 × 720; ${foe}; before: ${before} (an archive of it on the same port: the legacy lizard), after: this change, 31 October 2026`;
+const FROM800PROWLER_UNITY = 'Unity 6000.6.4f1 editor batch run, muted (scripts/unity-js-run.sh familyH-prowler -mute -level arena -fight prowler), 31 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; its first picture (unity-prowler-home): the game’s follow camera, a prowler 4 m ahead and to the right; the body drawn from its vertex colours (the engines decode no picture). After-only';
+const SOURCE800PROWLER = 'scripts/enemy-roster/bench.mjs --quality high|deck --pack six prowler@desert (and --pack none, the empty control of the same run), in the Arena, two rounds each, before (origin/main at 013023daa, the legacy lizard) and after alternating, the machine shared (load 3.8–13.4); the medians of 8 s of frames; renderer.info. The frame held at 16.7 ms (60 Hz) in every run; the GPU’s time moved by more than the difference between runs, so no claim on it. The body is a 539 KB download';
 const SOURCE800CRAWLER = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 13–23') + '; measured with its two ports a mesh of their own, folded into its joints’ since (one draw fewer each)';
 // (family F, #800: the creatures and spirits on Tripo bodies, hand-made pairs as family A's, the same script and camera before and after)
 const FROM800BLOT = (foe, before) => FROM800A(foe, before).replace('Vite on port 5478', 'Vite on port 5448').replace('30 October 2026', '31 October 2026');
@@ -1985,6 +1989,26 @@ export const CHANGELOG_MEDIA = {
     { title: 'Triangles six crawlers add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800CRAWLER('crawlers in the Arena'), rows: [
       { where: 'The Arena, High', before: 92.0, after: 210.1 },
       { where: 'The Arena, Handheld', before: 61.5, after: 140.3 },
+    ] },
+  ] },
+  // (issue #800, family H: the pod stalker on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The prowler has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'prowler800-desert', title: 'The prowler', caption: 'A prowler, three-quarters from its front: before, a lean leaf-green lizard on long bent legs with a crest of spines, yellow eyes and a steel shoulder guard; after, the pod stalker: a hunched mauve-brown body with a big blunt head, a cream muzzle, two small black eyes, a sage belly and a thick tail on the ground, its curved blade in its hand', from: FROM800PROWLER('one prowler@desert, idle 1.5 s, the three-quarter view', '013023daa'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/prowler/5d011893-58f1-4c33-a34d-ac8df1a99842-2.png', caption: 'The approved design the new body was made from (Tripo, from T-pose sheets drawn from this picture)' } },
+    { name: 'prowler800-tail', title: 'The tail sweep', caption: 'A prowler at 80 % of its tail sweep’s wind-up: before, the lizard turned side-on and sunk low, its thin tail drawn round behind it; after, the pod stalker turned and crouched the same way, its thick tail swung out level at knee height', from: FROM800PROWLER('one prowler@desert, its tail sweep held at 80 % of the wind-up, from its side (yaw 1.2)', '013023daa') },
+    { name: 'prowler800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a prowler ahead of the traveller: the same new body, drawn from its vertex colours', from: FROM800PROWLER_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six prowlers add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800PROWLER, rows: [
+      { where: 'The Arena, High', before: 126, after: 54 },
+      { where: 'The Arena, Steam Deck', before: 84, after: 34 },
+    ] },
+    { title: 'Script time six prowlers add to a frame', unit: 'ms', better: 'lower', device: DEVICE800, source: SOURCE800PROWLER, rows: [
+      { where: 'The Arena, High', before: 1.05, after: 0.7 },
+      { where: 'The Arena, Steam Deck', before: 1.0, after: 0.95 },
+    ] },
+    { title: 'Triangles six prowlers add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800PROWLER, rows: [
+      { where: 'The Arena, High', before: 155.5, after: 248.1 },
+      { where: 'The Arena, Steam Deck', before: 103.6, after: 164.2 },
     ] },
   ] },
   ],

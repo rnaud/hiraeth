@@ -295,11 +295,14 @@ export const SKINS = {
   hulk: {
     desert: { name: 'hulk', arena: true, palette: { skin: '#a2aed6', skin2: '#bcc6e4', crease: '#6e78a6', belly: '#bfcde8', horn: '#e4d9bf', hide: '#96754e', hide2: '#7f8a56', hide3: '#b89466', rope: '#c4a56c', wood: '#6f5034', wood2: '#8a6844', iron: '#4a4a50', bone: '#efe4c8', eye: '#f2e8c8', pupil: '#1b1418', ink: '#1b1418', flare: '#ffcf6a' }, props: [] },
   },
-  // sheet-1 (references/enemy-archetypes/prowler/sheet-1.jpg): smooth leaf-green scaly skin, a shade deeper on its back and
-  // paler on its flanks; a cream throat, chest, belly and tail underside; yellow eyes; a polished steel shoulder guard and
-  // blade, a brown leather strap and grip; pale claws; its spit a sour yellow-green.
+  // #800: the pod stalker (the approved image, references/enemy-redesign-2026-10-30/prowler/5d011893-...-2.png; its Tripo
+  // body plans/prowler-tripo.js): dusky mauve-brown skin, a cream muzzle, a sage belly from the throat down and under the
+  // tail, black dot eyes; the curved blade's polished steel and leather grip as before; its spit a sour yellow-green. The
+  // legacy lizard (monster.js legacyProwlerModel, standing in while the body loads) wears these too; its own sheet-1
+  // colours were leaf-green (skin #8fcd6c, skin2 #aadd88, crease #5e9a48), a cream belly (#f6efc4, #e2d9a8), yellow eyes
+  // (#f2c33c) and dark green ink (#16201a).
   prowler: {
-    desert: { name: 'prowler', arena: true, palette: { skin: '#8fcd6c', skin2: '#aadd88', crease: '#5e9a48', belly: '#f6efc4', belly2: '#e2d9a8', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#f2c33c', pupil: '#16201a', ink: '#16201a', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'prowler', arena: true, palette: { skin: '#926456', skin2: '#a6786a', crease: '#6c463c', belly: '#767957', belly2: '#8a8d6c', muzzle: '#dcc99b', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#16100e', pupil: '#16100e', ink: '#1a1210', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
   },
   // sheet-1 (references/enemy-archetypes/warlord/sheet-1.jpg): deep crimson skin, darker in its creases; a dark brown mane;
   // ridged tan ram horns; rough bronze, blotched darker; a wide dark leather belt and a brown loincloth; a dark glaive

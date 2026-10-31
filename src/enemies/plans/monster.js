@@ -28,6 +28,7 @@ import { Fist, fingerPivots, Wielder, SWORD_WRIST } from '../wield.js';
 // Draws: every part of a material one skinned mesh on the rig's joints (kit.js skinBy): eight (grunt) and nine (hulk).
 
 const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _w = new THREE.Vector3();
+const _kr = new THREE.Vector3(), _ks = new THREE.Vector3(), _kd = new THREE.Vector3(), _kc = new THREE.Vector3(), _kq = new THREE.Quaternion(), _kz = new THREE.Vector3(0, 0, -1);
 const smooth = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
 /** A cone of radius r, l long, its base at `at` and its point along dir (arrays): a claw, a spine. */
@@ -558,9 +559,11 @@ export function spinAngle(want, k, M) {
  * ground it stands on.
  */
 export class TailSpring {
-  constructor(segs, rest, { len, flat = null } = {}) {
+  constructor(segs, rest, { len, flat = null, radius = null } = {}) {
     const n = segs.length;
     this.segs = segs; this.rest = rest; this.len = len; this.flat = flat ?? rest.map((_, i) => [0.95, -0.45, -0.5][i] ?? 0);
+    // (how thick it is drawn at each segment's end, m: a thick tail kept that far off the ground and walls, #800's pod stalker)
+    this.radius = radius;
     this.yaw = segs.map((_, i) => new SecondOrder(3.2 - (2.0 * i) / n, 0.45, 0));
     this.pitch = segs.map((_, i, a) => new SecondOrder(3.6 - (2.0 * i) / n, 0.55, 0, rest[i]));
     this.t = 0; this.last = null;
@@ -588,18 +591,47 @@ export class TailSpring {
    */
   keepUp(floor, r = 0.04, at = null) {
     for (let i = 0; i < this.segs.length; i++) {
-      const s = this.segs[i];
+      const s = this.segs[i], ri = Math.max(r, this.radius?.[i + 1] ?? 0);
       s.updateMatrixWorld(true);
       _w.set(0, 0, -this.len).applyMatrix4(s.matrixWorld);
       const g = _w.y < floor + 0.6 ? at?.(_w.x, _w.y + 0.6, _w.z) : null;
-      const under = (g ?? floor) + r - _w.y;
+      const under = (g ?? floor) + ri - _w.y;
       if (under > 0) { s.rotation.x += Math.min(0.6, under / this.len); s.updateMatrixWorld(true); }
+    }
+  }
+  /**
+   * Keep its segments out of the walls round it (a ragdoll's, src/enemies/foe-ragdoll.js gatherWalls: { n, tris: [{ t,
+   * n, c }] }), root to tip: a segment whose end goes within its drawn radius of a wall's face (on the far side from the
+   * tail's root) turned about its own root back out of it. A struck-down prowler against a wall kept its tail in it (#794).
+   */
+  keepOut(W, r = 0.04) {
+    if (!W?.n) return;
+    const root = this.segs[0].getWorldPosition(_kr);
+    for (let i = 0; i < this.segs.length; i++) {
+      const s = this.segs[i], ri = Math.max(r, this.radius?.[i + 1] ?? 0);
+      s.updateMatrixWorld(true);
+      s.getWorldPosition(_ks);
+      _w.set(0, 0, -this.len).applyMatrix4(s.matrixWorld);
+      let moved = false;
+      for (let q = 0; q < W.n; q++) {
+        const T = W.tris[q], side = Math.sign(_kd.subVectors(root, T.c).dot(T.n)) || 1, d = _kd.subVectors(_w, T.c).dot(T.n) * side;
+        if (d >= ri) continue;
+        // (near this face: its closest point within reach of the end)
+        if (T.t.closestPointToPoint(_w, _kc).distanceTo(_w) > ri + Math.max(0, -d) + 0.05) continue;
+        _w.addScaledVector(T.n, side * (ri - d)); moved = true;
+      }
+      if (!moved) continue;
+      // (the segment's -z aimed at its end put back out, in its parent's frame)
+      s.parent.updateWorldMatrix(true, false);
+      _kd.subVectors(_w, _ks).normalize().applyQuaternion(s.parent.getWorldQuaternion(_kq).invert());
+      s.quaternion.setFromUnitVectors(_kz, _kd);
+      s.updateMatrixWorld(true);
     }
   }
 }
 
 /** A flat curved blade along +y from y0, `L` long and `w` wide at its belly, curving toward +z (its edge), `t` thick. */
-function curvedBlade(L, w, curve = 0.12, y0 = 0, t = 0.008, hook = false) {
+export function curvedBlade(L, w, curve = 0.12, y0 = 0, t = 0.008, hook = false) {
   const S = new THREE.Shape(), n = 10;
   // the back (spine) up one side, the edge down the other: a crescent, its point curving forward
   for (let i = 0; i <= n; i++) { const u = i / n, y = y0 + L * u, z = curve * L * u * u - w * 0.35 * Math.sin(Math.PI * u) * (1 - u * 0.5); if (i) S.lineTo(z, y); else S.moveTo(z, y); }
@@ -630,7 +662,9 @@ export function ramHorn(s, H = WARLORD_HORN) {
 
 // ------------------------------------------------------------------ the prowler
 
-// The prowler (`prowler`), to its picked sheet (references/enemy-archetypes/prowler/sheet-1.jpg): 1.8 m to its crest,
+// The legacy prowler (`legacyProwlerModel`: the game's prowler before #800 rebuilt it as the pod stalker on its Tripo body,
+// plans/prowler-tripo.js; kept as the stand-in while that body loads, and so its look can come back as a foe of its own),
+// to its picked sheet (references/enemy-archetypes/prowler/sheet-1.jpg): 1.8 m to its crest,
 // the traveller's height and a head. A lean leaf-green lizard on two long digitigrade legs: a long narrow head with a
 // crest of short spines and wide-set yellow eyes, a cream throat running down its chest and belly and under its tail; a
 // long tail to the ground and along it; thin arms with three long clawed fingers; one steel shoulder guard on its left
@@ -716,7 +750,7 @@ function bone(a, b, r, n = 8) {
   return new THREE.CapsuleGeometry(r, Math.max(0.001, l - r * 2), n > 6 ? 3 : 2, n).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())).translate(...A.add(B).multiplyScalar(0.5).toArray());
 }
 
-export function prowlerModel(skin) {
+export function legacyProwlerModel(skin) {
   const P = skin.palette, M = materials('prowler', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const rig = pivot(g, 0, 0, 0, 'rig');

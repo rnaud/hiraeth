@@ -102,6 +102,9 @@ export const CHANGELOG = [
       // the cinder wisp (#800)
       { text: 'The ember wisp has a new body, drawn from its new design: the cinder wisp, a flower bud of four broad dark-teal petals closed round a glowing ember, the ember showing through the slit between them, two pale eyes on its front petal that follow you. Before it throws its fireball its petals open like a flower and the ember rises out of them, swelling and brightening; before its flare the petals clench shut. In each world it keeps its colours and dress: Lorn II\u2019s marsh wisp with lichen on its mossy petals and its brass band, the Eclipse\u2019s black corona wisp in its ring of white fire. It fights exactly as before, and a group of wisps is lighter for your device to draw.',
         see: 'Land at the Moon Foundry and look up for a cinder wisp, or open the Arena and pick the ember wisp from the foe list (D-pad ↓, K). Watch its petals open before the fireball comes, and cut the ball as it reaches you.' },
+      // the pod stalker (#800, family H)
+      { text: 'The prowler has a new body, drawn from its new design: the pod stalker, a hunched mauve-brown creature with a big blunt head, a wide cream muzzle with a thin mouth line and two small black eyes, a sage-green belly, long heavy arms and a thick tail dragging on the ground behind it, on short legs with broad padded feet. It still holds its curved blade. It turns its head to watch you, and its eyes flash as it winds up. It fights exactly as before: it circles you, flips back out of your combo, darts in, swings its tail round at your knees and spits.',
+        see: 'Open the Arena and pick the prowler from the foe list (D-pad ↓, K). Walk round it: its head and eyes follow you. Let it wind up its tail sweep, and jump the tail.' },
     ],
   },
   {
