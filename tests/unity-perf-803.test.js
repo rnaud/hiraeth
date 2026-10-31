@@ -24,6 +24,14 @@ test('graphics jobs stay off on Android (measured: the Odin\'s GPU 0.6-3.9 ms sl
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs'), /if \(Flag\("-graphics-jobs"\)\)/);
 });
 
+test('LateUpdate\'s draws pass over the nodes with nothing of their own before asking Unity whether they are active', () => {
+  const r = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs');
+  const loop = r.match(/foreach \(var n in nodes\.Values\)\s*\{\s*(?:\/\/.*\n\s*)*if \(n\.puffs == null && n\.im == null\) continue;\s*\n\s*if \(!n\.go\.activeInHierarchy\) continue;/);
+  assert.ok(loop, 'the managed check first');
+  // (and the rest of the loop still draws only puffs and GPU instances: nothing else was skipped)
+  assert.match(r, /if \(n\.puffs != null && !Hidden\("puffs"\)\) n\.puffs\.Draw\(around\.center, 500\);\s*\n\s*if \(n\.im == null \|\| n\.rawN == 0 \|\| Hidden\("inst"\)\) continue;/);
+});
+
 test('the bench\'s -split times the C# apply by op and the frame\'s threads', () => {
   const r = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs');
   const host = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs');

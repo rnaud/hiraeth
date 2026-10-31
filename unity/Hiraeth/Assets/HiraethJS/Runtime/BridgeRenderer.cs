@@ -1551,6 +1551,9 @@ namespace Hiraeth.Bridge
             System.Array.Clear(Hiraeth.InstLod.Drawn, 0, Hiraeth.InstLod.Drawn.Length);
             foreach (var n in nodes.Values)
             {
+                // (most nodes have nothing of their own to draw here: passed over before the native activeInHierarchy, issue #803:
+                // 0.03-0.12 ms of the Odin 3's LateUpdate at the desert's and the City-Shaft's views)
+                if (n.puffs == null && n.im == null) continue;
                 if (!n.go.activeInHierarchy) continue;
                 if (n.puffs != null && !Hidden("puffs")) n.puffs.Draw(around.center, 500);
                 if (n.im == null || n.rawN == 0 || Hidden("inst")) continue;
