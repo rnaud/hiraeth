@@ -157,6 +157,8 @@ test('every archetype goes down its own way: 0.8-1.5 s, harmless and out of the 
  * stance and its sway draw on them, and left to them the slope's worst read 2.0-3.2 cm from one run to the next (the
  * crab, the brute at about half their defeat), failing pushes at random. Returns fn's result.
  */
+/** Math.random seeded afresh from a name (inside pinned). */
+function reseed(name) { let s = 12345; for (const c of name) s = (s * 31 + c.charCodeAt(0)) % 2147483647; s ||= 1; Math.random = () => ((s = (s * 16807) % 2147483647) / 2147483647); }
 function pinned(fn, seed = 12345) {
   const random = Math.random, now = performance.now;
   let s = seed, clock = 1000;
@@ -172,6 +174,8 @@ test('every archetype goes down on the ground, never through it, on flat ground 
     const { foes } = world({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
     for (const [id, A] of BUILT) {
       if (A.def.burrow) continue;   // (the worm lives under its sand, and goes back under it)
+      // (each foe on its own seed, by its name: one body's draws on the random numbers do not move the next one's defeat)
+      reseed(id);
       const R = DEFEATS[id], f = foes.add(A.kind, v(0, 0, 6));
       for (let i = 0; i < 12; i++) foes.update(DT);
       // (what was under the ground already as the blow fell, a fist on the sand or a body square on a slope, comes up
