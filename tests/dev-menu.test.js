@@ -200,6 +200,7 @@ test('the engines: the same tabs on the game menu\'s sheet (kind game, panel dev
   let v = m.view();
   assert.equal(v.kind, 'game');
   assert.equal(v.panel, 'dev');
+  assert.equal(v.heading, 'Dev menu', 'the enamel frame\'s heading its own, not the Journal\'s (issue #804)');
   assert.deepEqual(v.tabs.names, dev.tabs.slice(0, TAB_STRIP).map((t) => t.name));
   assert.equal(v.tabs.i, 0);
   assert.deepEqual(v.rows.map((r) => r[0].text), ['the ship', 'outside the Well-House']);

@@ -504,7 +504,7 @@ export const FR = {
   'title.continue': 'Continuer',
   'title.new': 'Nouvelle partie',
   'title.saves': 'Sauvegardes',
-  'title.savesHead': 'SAUVEGARDES',
+  'title.savesHead': 'Sauvegardes',
   'title.settings': 'Réglages',
   'title.news': 'Nouveautés',
   'title.debug': 'Débogage',

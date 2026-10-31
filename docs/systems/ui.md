@@ -1243,3 +1243,27 @@ inventory at 1280×720 (mouse) and 960×720 (touch) using the menu-pointer plans
 resolve control tokens in both the passive card and full view. Controller
 navigation is covered by the menu unit tests; no physical device was used. Actual running-game screenshots are registered in
 `src/changelog-media.js` under v2.39.
+
+### The title, the Debug menu and the dev menu in the enamel (issue #804)
+
+The same sheet covers the rest. `src/menu-enamel.css` keeps the palette at `:root` (`--menu-line`, `--menu-wash`,
+`--menu-enamel`, `--menu-danger`) and one rule each for the frame (a fine brass line, a dark gap, a fainter line,
+brass joins in the corners), the heading (✦ and the words over a brass rule) and an entry (the dark on a brass
+hairline; the one in hand washed in turquoise on an ivory line with a turquoise mark at its left). The title's
+entries and tool buttons (`#title .main-menu`), its Saves sheet (`.saves`, a ✦ Saves heading in `src/title.js`), its
+delete or replace question (`.confirm .card`), the Debug menu (`#picker`, a fixed frame round the scrolling page,
+`index.html`'s ✦ heading) and the dev menu (`#devmenu`, now built as the Journal is in `src/dev-menu.js`: its heading
+`DEV_HEADING`, the tab bar between the side buttons) are listed in those rules rather than copied. Delete and Replace
+take the warm red `--menu-danger`. The sheet loads after `src/world-picker.css` (`src/boot.js`). The title's painting,
+its name, the black wait while the game loads behind it (#791), its reduced-motion rules and the TV-safe insets are
+`src/menus.css`'s and unchanged. The title's rules for its name's header are now `#title .front > header`: as
+`#title header` they also caught the settings' enamel `.pause-heading` and threw HIRAETH over the settings' sidebar.
+
+Unity draws the same with `BridgeMenu.Enamel.cs`'s pieces: `EnamelFrame` (now also round the title's sheet and its
+question), `EnamelBox` and `EnamelMark` (a title entry, the question's two buttons), `EnamelHeading` and `TitleSheet`
+(the Saves / Settings sheet and its heading), `AskButtons`, `HideTitleEnamel`. `BridgeMenu.cs` `TitleEntry`, the
+title's `DrawTitle` sheet, `Entry` (on the title as in the Journal), `DrawSettings`' colours on the title and
+`DrawAsk` use them; the dev menu's rows take brass headings and a turquoise "on" (`DrawRows`, panel `dev`), and its
+view carries `heading: 'Dev menu'` (`engine/menus.js` `devView`) where the frame said "Journal". The title's headings
+come in their own case (`Saves`, `Settings`, `Updates`). Checked with `-title-tour` (engine-bridge.md) and
+`-devmenu`, muted, with an isolated `-store`, against the browser's pictures in `src/changelog-media.js` (v2.39).

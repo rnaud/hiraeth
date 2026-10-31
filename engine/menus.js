@@ -43,7 +43,7 @@ import { MUSIC_MODES, musicMode } from '../src/music-moments.js';
 import { HINT_LEVELS } from '../src/hint-level.js';
 import { DRONE_HINTS } from '../src/companion.js';
 import { tabWindow } from '../src/world-debug.js';
-import { TAB_STRIP, verb } from '../src/dev-menu.js';
+import { TAB_STRIP, DEV_HEADING, verb } from '../src/dev-menu.js';
 import { toggleDevMode } from '../src/dev-gate.js';
 import { drawHouseMap, HouseMapPage, HOUSE_MAP } from '../src/house-map.js';
 import { PixelCanvas } from './raster.js';
@@ -625,7 +625,7 @@ export class EngineMenus {
       ? { kind: 'head', text: `${r.label} · ${r.hint}`, sub: '', col: 0, span: 1, on: false }
       : { kind: 'dev', text: `${r.now ? '▸ ' : ''}${r.label}`, sub: r.hint ?? '', val: r.state !== undefined ? (r.state ? 'ON' : 'OFF') : r.tag ? String(r.tag).toUpperCase() : '', lit: !!r.state, col: 0, span: 1, on: i === n.row, pt: `dev:${i}` }]);
     if (tab?.note) rows.unshift([{ kind: 'head', text: tab.note, sub: '', col: 0, span: 1, on: false }]);
-    return { v: this.v, kind: 'game', panel: 'dev', tabs: { names: tabs.slice(a, b).map((t) => t.name), i: n.tab - a, edge: 0, from: a }, cols: [1], rows,
+    return { v: this.v, kind: 'game', heading: DEV_HEADING, panel: 'dev', tabs: { names: tabs.slice(a, b).map((t) => t.name), i: n.tab - a, edge: 0, from: a }, cols: [1], rows,
       empty: rows.length ? '' : tab?.empty ?? 'Nothing here.',
       strip: cur ? { name: cur.label, sub: `${tab.title} · ${n.tab + 1} / ${tabs.length}`, desc: cur.hint ?? '', act: verb(cur) } : { name: tab?.title ?? '', sub: `${n.tab + 1} / ${tabs.length}`, desc: tab?.line ?? '', act: '' },
       hint: 'LB / RB a tab · A / × choose · B / ○ close' };
@@ -1319,8 +1319,9 @@ export class EngineMenus {
         menu: { x: r(L.menu.list.left), y: r(L.menu.list.top), w: r(Math.max(L.menu.list.width, 220)), button: r(L.menu.button), gap: r(L.menu.gap), font: r(L.menu.font) } };
     };
     if (T.starting) return { ...base, rows: [], starting: this.note || '…', layout: lay(2), hint: '' };
-    if (T.screen === 'settings') return { ...base, head: t('title.settings').toUpperCase(), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ◀ ▶ adjust · B / ○ back' };
-    if (T.screen === 'updates') return { ...base, head: 'UPDATES', page: { rows: this.updatesRows(T.at) }, hint: 'A / × choose · B / ○ back' };
+    // (the headings in their own case, the enamel's as the page's: BridgeMenu.Enamel.cs TitleSheet, issue #804)
+    if (T.screen === 'settings') return { ...base, head: t('title.settings'), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ◀ ▶ adjust · B / ○ back' };
+    if (T.screen === 'updates') return { ...base, head: UPDATES_SIDE.label(), page: { rows: this.updatesRows(T.at) }, hint: 'A / × choose · B / ○ back' };
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1), pt: `row:${i}` }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = `${T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose'}${this.dev() ? ' · L3 + R3 debug off' : ''}`;

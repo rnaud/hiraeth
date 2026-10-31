@@ -76,9 +76,11 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
     calc(clamp(8px, 2vh, 24px) + var(--safe-bottom, env(safe-area-inset-bottom, 0px))) calc(16px + var(--safe-left, env(safe-area-inset-left, 0px)));
   box-sizing: border-box;
 }
-#title header { text-align: center; }
+/* (the name's header only: the title's settings have an enamel heading of their own, src/ui.js .pause-heading, which
+   these rules threw over the settings' sidebar until issue #804) */
+#title .front > header { text-align: center; }
 /* the name (src/title-logo.js), placed by src/title-layout.js: across the upper part, as on the covers */
-#title[data-screen="main"] header { position: absolute; left: 0; right: 0; top: var(--logo-top, 6vh); pointer-events: none; }
+#title[data-screen="main"] .front > header { position: absolute; left: 0; right: 0; top: var(--logo-top, 6vh); pointer-events: none; }
 #title .logo { display: block; width: var(--logo-w, min(86vw, 1100px)); height: auto; margin: 0 auto; overflow: visible; }
 #title .tag {
   display: inline-block; margin: clamp(2px, 1vh, 10px) 0 0; padding: 3px 10px; font-size: calc(clamp(11px, min(1.7vh, 3.3vw) * var(--ts, 1)), 15px); letter-spacing: 0.08em;
@@ -158,7 +160,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 @media (pointer: coarse) { #title:not(.pad) .hint { visibility: hidden; } }
 #title .version { position: absolute; right: calc(12px + var(--safe-right, env(safe-area-inset-right, 0px))); bottom: calc(8px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); margin: 0; padding: 1px 6px; font-size: calc(11px * var(--ts, 1)); opacity: 0.75; background: rgba(247, 236, 210, 0.7); }
 /* the save selector takes the room the name had */
-#title[data-screen="saves"] header { display: none; }
+#title[data-screen="saves"] .front > header { display: none; }
 #title[data-screen="saves"] .front { grid-template-rows: minmax(0, 1fr) auto; }
 @media (max-width: 520px) {
   #title .txt .top { flex-direction: column; align-items: flex-start; gap: 0; }

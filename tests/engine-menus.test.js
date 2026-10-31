@@ -134,6 +134,7 @@ test('the settings: a slider steps with left / right, a switch flips with A / ×
   m.navigate(0, 1); m.navigate(0, 1); m.action('confirm');   // Settings
   let v = m.view();
   assert.equal(v.screen, 'settings');
+  assert.equal(v.head, 'Settings', 'in its own case, the enamel heading\'s (issue #804)');
   // (the page's groups and order: a heading before each group, the rows under it; the jets' and the pirates' pitch not
   // shown before they are yours, as on the page)
   const shown = SETTINGS_ROWS.filter((r) => !r.when);
@@ -826,6 +827,67 @@ test('the Start menu\'s pages as the page draws them in Unity (issue #264): the 
   assert.ok(src('engine/game.js').includes(`'${hint}'`), hint);
   // -screen WxH: a Unity batch run on a screen of that shape (the sequences' 1280 × 720, the Retroid's 960 × 720)
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /Arg\("-screen"\)/);
+});
+
+test('Unity\'s title, Saves, Settings, the delete question and the dev menu in the Journal\'s enamel (issue #804)', () => {
+  const R = 'unity/Hiraeth/Assets/HiraethJS/Runtime/';
+  const menu = src(`${R}BridgeMenu.cs`), en = src(`${R}BridgeMenu.Enamel.cs`);
+  const body = (s, from, to) => s.slice(s.indexOf(from), s.indexOf(to, s.indexOf(from) + from.length));
+  // the shared pieces live in BridgeMenu.Enamel.cs: the frame, an entry's box, the mark, the heading
+  for (const f of ['void EnamelFrame(', 'static void EnamelBox(', 'static void EnamelMark(', 'static string EnamelHeading(', 'void TitleSheet(', 'void AskButtons(', 'void HideTitleEnamel(']) assert.ok(en.includes(f), f);
+  // the title's entries: the enamel's box and mark, the words in their own case, no paper, no vermilion shadow
+  const entry = body(menu, 'void TitleEntry(', 'void DrawTitle(');
+  assert.match(entry, /EnamelBox\(e\.box, on, over, EnTitle\)/);
+  assert.match(entry, /EnamelMark\(e\.mark, on, h\)/);
+  assert.doesNotMatch(entry, /#fbe8c4|#e27c5b|Ui\.Upper\(text\)/);
+  // Saves and Settings: the enamel sheet in its frame under its heading; the question in its own frame with its buttons
+  const title = body(menu, 'void DrawTitle(', '// (how far a list is scrolled');
+  assert.match(title, /TitleSheet\(sx, sy, sw, sh, state\.S\("head"\)\)/);
+  assert.doesNotMatch(title, /Head\(state\.S\("head"\)/);
+  const ask = body(menu, 'void DrawAsk(', 'void DrawSettings(');
+  assert.match(ask, /AskButtons\(by, bw, on\)/);
+  assert.match(ask, /EnamelFrame\(ref askFrame, ask\.rt, 0, 0, w, hh, rule\)/);
+  assert.match(menu, /ask = Ui\.Panel\(root, "ask", EnPanel/);
+  // an entry drawn on the title's sheet takes the enamel as the Journal's does; the frame is hidden off the title
+  assert.match(menu, /bool enamel = state\.S\("kind"\) == "game" \|\| state\.S\("kind"\) == "title";/);
+  assert.match(menu, /bool lined = boxed && \(state\.S\("kind"\) == "title" \|\| \(state\.S\("kind"\) == "game" && state\.S\("panel"\) == "dev"\)\);/);
+  // (Unity blends in linear light: the title's enamel nearly opaque, its sheet and question opaque)
+  assert.match(en, /EnTitle = Ui\.Hex\("#161d1d", \.985f\)/);
+  assert.match(en, /sheet\.SetFill\(EnPanel\)/);
+  assert.match(body(menu, 'void Draw()', 'void Sheet('), /HideTitleEnamel\(\);/);
+  // the dev menu's rows: brass headings and a turquoise "on", not the paper's red and ink on the dark
+  const dev = body(menu, 'if (panel == "dev")\n', 'continue;\n                        }');
+  assert.match(dev, /hc\.text\.color = EnBrass/);
+  assert.match(dev, /dc\.val\.color = B\(c, "lit"\) \? EnAccent : EnSoft/);
+  assert.doesNotMatch(dev, /#7a3a35|#2f7a55/);
+  // -title-tour photographs those screens in a batch run; its question is only ever put back (back), never answered
+  assert.match(src(`${R}BridgeArgs.cs`), /if \(Flag\("-title-tour"\)\) args\["titleTour"\] = true;/);
+  const game = src('engine/unity/game.js'), tour = body(game, 'export const TITLE_TOUR = [', '];');
+  assert.deepEqual([...tour.matchAll(/\['([a-z-]+)'/g)].map((x) => x[1]), ['main', 'saves', 'saves-debug', 'ask', 'settings']);
+  assert.doesNotMatch(tour.slice(tour.indexOf("['ask'")), /action\('confirm'\);[^\n]*'settings'\]|M\.title\.ask\.on = 1/);
+  assert.match(tour, /\['settings', \(M\) => \{ M\.action\('back'\); M\.action\('back'\);/);
+});
+
+test('the title tour\'s steps reach Saves, its Debug row, the delete question (kept) and Settings', () => {
+  const store = memStore([[1, 'bazaar'], [2, 'desert']]);   // (two saves, as the review store has them)
+  const m = new EngineMenus({ store, settings: settingsStub(), dev: () => true });
+  m.show('title');
+  m.title.i = m.titleRows().findIndex((r) => r.id === 'saves'); m.action('confirm');
+  assert.equal(m.view().screen, 'saves');
+  assert.equal(m.view().head, 'Saves');
+  m.title.i = m.titleRows().findIndex((r) => r.id === 'debug'); m.action('confirm');
+  assert.ok(m.titleRows().some((r) => r.world), 'the debug worlds listed');
+  const i = m.titleRows().findIndex((r) => r.del);
+  if (i >= 0) {
+    m.title.i = i; m.action('x');
+    assert.ok(m.view().ask, 'the question asked');
+    m.action('back');
+    assert.equal(m.view().ask, null);
+    assert.ok(!store.summary(m.titleRows()[i].slot).empty, 'kept');
+  }
+  m.action('back');
+  m.title.i = m.titleRows().findIndex((r) => r.id === 'settings'); m.action('confirm');
+  assert.equal(m.view().screen, 'settings');
 });
 
 test('Unity Journal reserves separate header, tabs, content and footer within its enamel frame', () => {

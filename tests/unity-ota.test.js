@@ -199,7 +199,7 @@ test('the Updates page: check, download with its progress, then the restart once
   m.action('confirm');
   let v = m.view();
   assert.equal(v.screen, 'updates');
-  assert.equal(v.head, 'UPDATES');
+  assert.equal(v.head, 'Updates', 'in its own case, under the enamel ✦ (issue #804)');
   const on = v.page.rows.find((r) => r.on);
   assert.equal(on.act, 'check', 'the cursor on the first button');
   assert.equal(v.page.rows[0].val, 'v1.80 · build 15000 (built in) · player 15000');

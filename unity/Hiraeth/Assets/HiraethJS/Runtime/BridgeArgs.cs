@@ -273,6 +273,9 @@ namespace Hiraeth.Bridge
             // (-title-go frames [-out dir]: on the title that long, then the debug save's desert chosen as its Debug row does, the
             // load after it photographed until the world plays: engine/unity/game.js titleGo, issue #510)
             if (Arg("-title-go") != null) args["titleGo"] = double.Parse(Arg("-title-go"), CultureInfo.InvariantCulture);
+            // (-title-tour: the title's screens photographed in turn, Saves, its Debug row, the delete question, Settings:
+            // engine/unity/game.js titleTour, issue #804)
+            if (Flag("-title-tour")) args["titleTour"] = true;
             // (-title-slot 2: -title-go continues that save as the title's Continue does, where it was left: issue #793)
             if (Arg("-title-slot") != null) args["titleSlot"] = Arg("-title-slot");
             // (-updates-page: the Start menu's Updates page photographed as it checks and downloads, with -updates: BridgeUpdates)

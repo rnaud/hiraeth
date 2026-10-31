@@ -26,7 +26,7 @@ namespace Hiraeth.Bridge
         Ui.Box sheet;
         Label logo, head, sub, version, hint, note, empty, meas;
         // a pool of entries (a row of the title, the sidebar, a page's control, a panel's cell), each a band, its words, a value and a slider
-        class Cell { public Ui.Box box; public Label text, sub, val; public Image bar, fill, mark, line; public RawImage pic; }
+        class Cell { public Ui.Box box; public Label text, sub, val; public Image bar, fill, mark, line, frame; public RawImage pic; }
         readonly List<Cell> cells = new();
         int used;
         // the Items panel's tiles (as the web's .slot: the picture on its paper in an ink frame, the name under it)
@@ -53,7 +53,7 @@ namespace Hiraeth.Bridge
         // low at the left as the web's (src/title-layout.js, the view's layout)
         RawImage titleArt, titleLogo; Ui.Box versionBox; Label line;
         static readonly Dictionary<string, Texture2D> titleTex = new();
-        class TitleButton { public Ui.Box box; public Label text, sub; public Image accent; }
+        class TitleButton { public Ui.Box box; public Label text, sub; public Image accent, mark; }
         readonly List<TitleButton> titleButtons = new();
         int titleUsed;
         // the game menu's tabs, the strip at the foot, a thing full screen, a question, the map's marks
@@ -136,13 +136,13 @@ namespace Hiraeth.Bridge
             dim = Ui.Fill(root, Dim, 0, "dim");
             titleArt = Ui.Node("title art", root).gameObject.AddComponent<RawImage>(); titleArt.raycastTarget = false;
             titleLogo = Ui.Node("title logo", root).gameObject.AddComponent<RawImage>(); titleLogo.raycastTarget = false;
-            versionBox = Ui.Panel(root, "version box", Ui.Hex("#f7ecd2", 0.7f), Ui.Ink, 0);
+            versionBox = Ui.Panel(root, "version box", Ui.Hex("#161d1d", 0.95f), Ui.Ink, 0, 0, 0, 2);   // (the page's #title .version in enamel, issue #804)
             sheet = Ui.Panel(root, "sheet", Ui.Page, Ui.Ink, 2.5f, 6, 6);
             logo = Ui.Label(root, "logo", Ui.Heavy, 76, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Space(logo, 0.18f);
             head = Ui.Label(root, "head", mono, 22, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             sub = Ui.Label(root, "sub", mono, Small, Muted);
-            version = Ui.Label(versionBox.rt, "version", mono, 11, Ui.Ink);
+            version = Ui.Label(versionBox.rt, "version", mono, 11, EnSoft);
             line = Ui.Label(root, "save line", mono, Small, Muted);
             hint = Ui.Label(root, "hint", mono, Small, Ui.Ink, TextAnchor.LowerRight);
             note = Ui.Label(root, "note", mono, Body, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Italic);
@@ -197,11 +197,13 @@ namespace Hiraeth.Bridge
             cardFacts = Ui.Label(card.rt, "facts", mono, Small, Ui.Ink, lineSpacing: 1.35f);
             cardUse = Ui.Label(card.rt, "use", mono, Body, Ui.Red, TextAnchor.UpperLeft, FontStyle.Bold);
             cardSteps = Ui.Label(card.rt, "steps", mono, Small, Muted, TextAnchor.LowerCenter);
-            ask = Ui.Panel(root, "ask", Ui.Paper, Ui.Ink, 2.5f, 6, 6);
-            askQ = Ui.Label(ask.rt, "q", mono, 22, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold);
-            askWhat = Ui.Label(ask.rt, "what", mono, Small, Muted, TextAnchor.UpperCenter, lineSpacing: 1.3f);
-            askNo = Ui.Label(ask.rt, "no", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
-            askYes = Ui.Label(ask.rt, "yes", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
+            // (the title's delete question, the page's #title .confirm .card: the enamel, its frame and buttons drawn in
+            // DrawAsk with BridgeMenu.Enamel.cs; issue #804)
+            ask = Ui.Panel(root, "ask", EnPanel, EnLine, 0, 0, 0, 3);
+            askQ = Ui.Label(ask.rt, "q", mono, 22, EnInk, TextAnchor.UpperLeft, FontStyle.Bold);
+            askWhat = Ui.Label(ask.rt, "what", mono, Small, EnSoft, TextAnchor.UpperLeft, lineSpacing: 1.3f);
+            askNo = Ui.Label(ask.rt, "no", mono, Body, EnInk, TextAnchor.MiddleCenter);
+            askYes = Ui.Label(ask.rt, "yes", mono, Body, EnDanger, TextAnchor.MiddleCenter);
             cardPic = Ui.Node("pic", card.rt).gameObject.AddComponent<RawImage>(); cardPic.raycastTarget = false;
             cardMark = Ui.Label(card.rt, "mark", Ui.Sans, 64, Ui.Teal, TextAnchor.MiddleCenter);
             BuildCard(Ui.Sans);   // (the page's face, as the rest of the menus since #423: src/minigames/kit/minigames.css)
@@ -250,11 +252,17 @@ namespace Hiraeth.Bridge
             if (c.pic) Show(c.pic, false);
             c.line.gameObject.SetActive(on);
             if (on) { Ui.Place(c.mark.rectTransform, 0, 4, 4, h - 8); Ui.Place(c.line.rectTransform, pad, 5 + ts.y + (hasSub ? 0 : 1), Mathf.Min(Ui.Measure(c.text, text ?? "").x, w - pad * 2), 2); }
-            if (state.S("kind") == "game") {
-                c.box.SetFill(on ? EnWash : EnPanel); c.box.SetShadow(0, 0);
-                c.text.color = dimmed ? EnSoft : EnInk; c.sub.color = EnSoft; c.val.color = EnBrass;
+            bool enamel = state.S("kind") == "game" || state.S("kind") == "title";
+            bool lined = boxed && (state.S("kind") == "title" || (state.S("kind") == "game" && state.S("panel") == "dev"));   // (the title's entries and the dev menu's rows)
+            c.bar.color = enamel ? Ui.Hex("#434641") : Ui.Hex("#2b211f", 0.25f); c.fill.color = enamel ? EnAccent : Ui.Ink;
+            if (enamel) {   // (the Journal's and dev menu's, the title's saves and settings: issue #804)
+                c.box.SetFill(on ? EnWash : boxed ? Ui.Hex("#000000", .08f) : EnPanel); c.box.SetShadow(0, 0);
+                c.text.color = dimmed ? EnSoft : EnInk; c.sub.color = EnSoft; c.val.color = state.S("kind") == "title" ? EnSoft : EnBrass;
                 c.mark.color = EnAccent; c.line.color = EnAccent;
             }
+            // (an entry on its brass hairline, the one in hand on an ivory one: the page's #title .slot .pick, #devmenu .dv-row)
+            if (lined && !c.frame) { c.frame = Ui.Fill(c.box.rt, EnLine, 0, "hairline"); c.frame.sprite = Ui.Frame(1, 2); c.frame.type = Image.Type.Sliced; c.frame.pixelsPerUnitMultiplier = 2; }
+            if (c.frame) { c.frame.enabled = lined; c.frame.color = on ? EnInk : EnLine; }
             return c;
         }
 
@@ -361,6 +369,7 @@ namespace Hiraeth.Bridge
             sub.color = kind == "game" ? EnBrass : Muted;
             HideGameFrame();   // (the journal's desk and tabs: BridgeMenu.Chrome.cs, drawn again by DrawGame)
             HideWardrobe();   // (the game menu's Wardrobe: BridgeMenu.Wardrobe.cs, drawn again by DrawGame)
+            HideTitleEnamel();   // (the title's frame, heading and marks: BridgeMenu.Enamel.cs, drawn again by DrawTitle)
             if (pauseRoot && kind != "start") pauseRoot.gameObject.SetActive(false);   // (the Start menu's own page: BridgeMenu.Pause.cs)
             if (nwRoot && kind != "start") nwRoot.gameObject.SetActive(false);
             if (gearChimes) Show(gearChimes, false);   // (the Items panel's wallet: DrawRows)   // (What's new's panel: BridgeMenu.Pause.cs DrawNews)
@@ -419,42 +428,41 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>
-        /// One of the title's entries as the web's (src/menus.css #title .main-menu button): paper, a thin ink line, a small
-        /// vermilion shadow, the words in small spaced capitals (what it continues under them); the pad's in vermilion with
-        /// the shadow in ink; the first (Continue, New game) marked by a vermilion edge at its left.
+        /// One of the title's entries as the web's (src/menu-enamel.css #title .main-menu button, issue #804): the enamel a
+        /// little open over the painting, a fine brass line, ivory words (what it continues under them, softer); the pad's a
+        /// shade lighter on an ivory line with the turquoise mark at its left; the first (Continue, New game) a brass edge.
         /// </summary>
         void TitleEntry(float x, float y, float w, float h, float font, string text, string under, bool on, bool primary, bool hover = false)
         {
             if (titleUsed >= titleButtons.Count)
             {
-                var b = new TitleButton { box = Ui.Panel(root, "title entry" + titleButtons.Count, Ui.Hex("#fbe8c4", 0.9f), Ui.Hex("#211a17"), 1.5f, 2, 2, 3, Ui.Hex("#e27c5b")) };
-                b.accent = Ui.Rect(b.box.rt, Ui.Hex("#e27c5b"), 0, "edge");
-                b.text = Ui.Label(b.box.rt, "text", Ui.Sans, 14, Ui.Hex("#211a17"), TextAnchor.UpperLeft, FontStyle.Bold);
-                Ui.Space(b.text, 0.14f);
-                b.sub = Ui.Label(b.box.rt, "sub", Ui.Sans, 11, Ui.Hex("#211a17", 0.78f), TextAnchor.UpperLeft);
+                var b = new TitleButton { box = Ui.Panel(root, "title entry" + titleButtons.Count, EnTitle, EnLine, 1, 0, 0, 3) };
+                b.accent = Ui.Rect(b.box.rt, EnBrass, 0, "edge");
+                b.mark = Ui.Rect(b.box.rt, EnAccent, 2, "mark");
+                b.text = Ui.Label(b.box.rt, "text", Ui.Sans, 14, EnInk, TextAnchor.UpperLeft, FontStyle.Bold);
+                Ui.Space(b.text, 0.06f);
+                b.sub = Ui.Label(b.box.rt, "sub", Ui.Sans, 11, EnSoft, TextAnchor.UpperLeft);
                 titleButtons.Add(b);
             }
             var e = titleButtons[titleUsed++];
             e.box.Show(true);
-            // (the mouse over one the pad isn't on: the page's :hover, a paler paper lifted a pixel on a wider shadow, #574)
+            // (the mouse over one the pad isn't on: the page's :hover, the enamel a shade lighter, #574)
             bool over = !on && hover;
-            float lift = on || over ? 1 : 0;
-            Ui.Place(e.box.rt, x - lift, y - lift, w, h);
-            e.box.SetFill(on ? Ui.Hex("#e27c5b") : over ? Ui.Hex("#fff4dc") : Ui.Hex("#fbe8c4", 0.9f));
-            e.box.shadow.color = on ? Ui.Hex("#211a17") : Ui.Hex("#e27c5b");
-            e.box.SetShadow(on || over ? 3 : 2, on || over ? 3 : 2);
+            Ui.Place(e.box.rt, x, y, w, h);
+            EnamelBox(e.box, on, over, EnTitle);
+            if (over) e.box.SetFill(EnLift);
+            EnamelMark(e.mark, on, h);
             Show(e.accent, primary);
-            if (primary) { e.accent.color = on ? Ui.Hex("#211a17") : Ui.Hex("#e27c5b"); Ui.Place(e.accent.rectTransform, 0, 0, 4, h); }
-            var ink = on ? Ui.Hex("#fffaf0") : Ui.Hex("#211a17");
+            if (primary) Ui.Place(e.accent.rectTransform, 0, 0, 3, h);
             int fs = Mathf.RoundToInt(font);
-            e.text.fontSize = fs; e.text.color = ink;
-            e.sub.fontSize = Mathf.Max(10, Mathf.RoundToInt(font * 0.72f)); e.sub.color = new Color(ink.r, ink.g, ink.b, 0.78f);
+            e.text.fontSize = fs; e.text.color = EnInk;
+            e.sub.fontSize = Mathf.Max(10, Mathf.RoundToInt(font * 0.72f)); e.sub.color = EnSoft;
             bool hasSub = !string.IsNullOrEmpty(under);
             float pad = font * 1.05f + (primary ? 4 : 0), th = fs * 1.25f, sh = hasSub ? e.sub.fontSize * 1.3f : 0, top = (h - th - sh) / 2;
             // the confirm glyph inside the entry the pad is on, at its right (src/title.js: glyph('ok', { focus: true }); issue #517)
             float gw = on ? GlyphHeight(font) + 8 : 0;
             if (on) PutGlyph(e.box.rt, "ok", w - 8 - GlyphHeight(font), h / 2, font);
-            e.text.text = Ui.Upper(text);
+            e.text.text = text ?? "";   // (in its own case, as the page's since #804)
             Ui.Place(e.text.rectTransform, pad, top, w - pad * 2 - gw, th);
             Show(e.sub, hasSub);
             if (hasSub) { e.sub.text = under; Ui.Place(e.sub.rectTransform, pad, top + th, w - pad * 2 - gw, sh); }
@@ -511,21 +519,22 @@ namespace Hiraeth.Bridge
                 DrawOffer(state.O("offer"));   // (a newer player is available: issue #805, BridgeMenu.Offer.cs)
                 return;
             }
-            // Saves and Settings: a sheet with its heading and its list
+            // Saves and Settings: the enamel sheet in its brass frame, its heading over a rule, its list (the page's
+            // #title .saves, src/menu-enamel.css; BridgeMenu.Enamel.cs TitleSheet, issue #804)
             float sw = Mathf.Min(820, W - 48), sx = W / 2 - sw / 2, sy = 34, sh = H - 34 - 54;
             Sheet(sx, sy, sw, sh, false);
             dim.color = Ui.Hex("#e9d9b3");   // (under the painted world when it shows: the sheet over it)
-            Head(state.S("head"), sx + 24, sy + 18, sw - 48);
+            TitleSheet(sx, sy, sw, sh, state.S("head"));
             // (Settings, and Updates in a player that updates its script: engine/menus.js, BridgeUpdates)
-            if (screen == "settings" || screen == "updates") { DrawSettings(state.O("page")?.L("rows"), sx + 24, sy + 60, sw - 48, sh - 76); return; }
+            if (screen == "settings" || screen == "updates") { DrawSettings(state.O("page")?.L("rows"), sx + 24, sy + 72, sw - 48, sh - 88); return; }
             var list = state.L("rows") ?? new List<object>();
-            float top = sy + 60, avail = sh - 76;
+            float top = sy + 72, avail = sh - 88;
             var hs = new List<float>();
             int onAt = 0;
             for (int i = 0; i < list.Count; i++)
             {
                 var r = list[i] as Dictionary<string, object>;
-                hs.Add(r.Has("note") && !string.IsNullOrEmpty(r.S("note")) ? 66 : !string.IsNullOrEmpty(r.S("sub2")) ? 62 : !string.IsNullOrEmpty(r.S("sub")) ? 50 : 38);
+                hs.Add(r.Has("note") && !string.IsNullOrEmpty(r.S("note")) ? 72 : !string.IsNullOrEmpty(r.S("sub2")) ? 70 : !string.IsNullOrEmpty(r.S("sub")) ? 54 : 40);   // (each line inside its hairline, issue #804)
                 if (B(r, "on")) onAt = i;
             }
             float y0 = Scroll(hs, onAt, avail);
@@ -539,8 +548,7 @@ namespace Hiraeth.Bridge
                     var under = string.Join("\n", new[] { r.S("sub"), r.S("sub2"), r.S("note") }.Where(s => !string.IsNullOrEmpty(s)));
                     var val = r.S("when") ?? "";
                     if (r.S("fold") is string fold && fold.Length > 0) val = (fold == "open" ? "▴ " : "▾ ") + (r.S("tag") ?? "");
-                    var cell = Entry(sx + 24, yy, sw - 48, h - 4, r.S("text"), under, val, B(r, "on"), size: B(r, "back") ? Small + 2 : Body, boxed: !B(r, "back"));
-                    Hit(cell.box.rt, r.S("pt"));
+                    var cell = Entry(sx + 24, yy, sw - 48, h - 4, r.S("text"), under, val, B(r, "on"), size: B(r, "back") ? Small + 2 : Body, boxed: !B(r, "back"));                    Hit(cell.box.rt, r.S("pt"));
                     // the buttons' glyphs (src/title.js, issue #517): Back's own before its word, the confirm one in the slot the pad is on
                     if (B(r, "back"))
                     {
@@ -784,23 +792,27 @@ namespace Hiraeth.Bridge
             DrawRows("foes", sx + 18, sy + 58, sw - 36, sh - 58 - 14);
         }
 
+        /// <summary>The title's question (delete a save, replace one with a debug save): the page's #title .confirm in enamel (issue #804).</summary>
         void DrawAsk(Dictionary<string, object> a)
         {
             ask.Show(true);
             ask.rt.SetAsLastSibling();
             float w = Mathf.Min(520, W - 60), x = W / 2 - w / 2;
-            var q = Ui.Set(askQ, a.S("q"), w - 40);
-            Ui.Place(askQ.rectTransform, 20, 20, w - 40, q.y);
+            var q = Ui.Set(askQ, a.S("q"), w - 48);
+            Ui.Place(askQ.rectTransform, 24, 20, w - 48, q.y);
+            float rule = 32 + q.y;   // (the heading's rule, the page's .confirm h3 border)
             var wt = string.Join("\n", new[] { a.S("what"), a.S("undone") }.Where(s => !string.IsNullOrEmpty(s)));
-            var ws = Ui.Set(askWhat, wt, w - 40);
-            Ui.Place(askWhat.rectTransform, 20, 26 + q.y, w - 40, ws.y);
-            float by = 40 + q.y + ws.y, bw = (w - 60) / 2;
+            var ws = Ui.Set(askWhat, wt, w - 48);
+            Ui.Place(askWhat.rectTransform, 24, rule + 12, w - 48, ws.y);
+            float by = rule + 28 + ws.y, bw = (w - 64) / 2;
             int on = a.I("on");
             askNo.text = a.S("no"); askYes.text = a.S("yes");
-            askNo.fontStyle = on == 0 ? FontStyle.Bold : FontStyle.Normal; askYes.fontStyle = on == 1 ? FontStyle.Bold : FontStyle.Normal;
-            askNo.color = on == 0 ? Ui.Ink : Muted; askYes.color = on == 1 ? Ui.Red : Muted;
-            Ui.Place(askNo.rectTransform, 20, by, bw, 36); Ui.Place(askYes.rectTransform, 40 + bw, by, bw, 36);
-            Ui.Place(ask.rt, x, H / 2 - (by + 56) / 2, w, by + 56);
+            askNo.fontStyle = askYes.fontStyle = FontStyle.Normal;
+            AskButtons(by, bw, on);
+            Ui.Place(askNo.rectTransform, 24, by + 1, bw, 36); Ui.Place(askYes.rectTransform, 40 + bw, by + 1, bw, 36);
+            float hh = by + 38 + 24;
+            Ui.Place(ask.rt, x, H / 2 - hh / 2, w, hh);
+            EnamelFrame(ref askFrame, ask.rt, 0, 0, w, hh, rule);
             Hit(askNo, "ask:0"); Hit(askYes, "ask:1");
         }
 
@@ -836,7 +848,8 @@ namespace Hiraeth.Bridge
                     var c = Entry(x, yy + (head ? 8 : 0), w, rh - 4 - (head ? 8 : 0), r.S("text"), B(r, "on") ? r.S("note") : null, r.S("val"), B(r, "on"), sl, rowPlain && !head ? Small : Body);
                     if (head) c.text.fontStyle = FontStyle.Bold;
                     // (a verb moved off its own button: its button in red, as the web marks it)
-                    c.val.color = B(r, "moved") ? Ui.Red : head ? Muted : Ui.Ink;
+                    c.val.color = state.S("kind") == "title" ? (B(r, "moved") ? EnAccent : head ? EnBrass : EnInk) : B(r, "moved") ? Ui.Red : head ? Muted : Ui.Ink;
+                    if (head && state.S("kind") == "title") c.text.color = EnBrass;
                     Hit(c.box.rt, r.S("pt"));
                     // (a slider: its track a target of its own, pressed and dragged for its value, as tall as the row for a finger)
                     if (sl >= 0) { float bw = Mathf.Min(160, w * 0.3f); HitPart(c.box.rt, new Rect(w - 14 - bw, 0, bw, rh - 4 - (head ? 8 : 0)), r.S("ptSlide")); }
@@ -1035,10 +1048,12 @@ namespace Hiraeth.Bridge
                         if (panel == "dev")
                         {
                             var dk = c.S("kind");
-                            if (dk == "head") { var hc = Entry(cx, yy + 4, cw, rh - 6, Ui.Upper(text), null, null, false, size: Small); hc.text.color = Ui.Hex("#7a3a35"); hc.text.fontStyle = FontStyle.Bold; continue; }
+                            // (the page's #devmenu rows in the Journal's enamel, src/menu-enamel.css: brass headings, a switch on
+                            // in turquoise, off in the soft ivory; issue #804, where they were the paper's red and ink on the dark)
+                            if (dk == "head") { var hc = Entry(cx, yy + 4, cw, rh - 6, Ui.Upper(text), null, null, false, size: Small); hc.text.color = EnBrass; hc.text.fontStyle = FontStyle.Bold; hc.box.SetFill(Color.clear); continue; }
                             var dc = Entry(cx, yy, cw, rh - 6, text, under, c.S("val"), B(c, "on"), size: Body, boxed: true);
                             dc.sub.fontSize = Small;
-                            dc.val.color = B(c, "lit") ? Ui.Hex("#2f7a55") : Ui.Ink;
+                            dc.val.color = B(c, "lit") ? EnAccent : EnSoft;
                             Hit(dc.box.rt, c.S("pt"));
                             continue;
                         }

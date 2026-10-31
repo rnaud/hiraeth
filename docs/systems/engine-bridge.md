@@ -2794,6 +2794,10 @@ not the whole geometry a frame), and draw their colours.
   now. `-title-go frames [-loading-shot file] -out dir` waits on the title, chooses the debug save's desert as its Debug row
   does and photographs the load (unity-title-go-*.png). Test: tests/engine-unity.test.js (the bundle: Loading on after the
   title's choice, before the build's first line, off after the world's first frame).
+  `-title-tour [-store file] -out dir` (issue #804) photographs the title's screens in turn (engine/unity/game.js
+  `TITLE_TOUR`, unity-title-tour-<k>-<name>.png): the main menu, Saves, Saves with its Debug row open, the delete question
+  over it (put back with Keep, never answered) and the title's Settings, then ends the run; with `-store` an isolated
+  review store, its saves the review's own (pair with `-mute` and `-title-art H1` to lay it beside the web's ?shot=H1).
 - **A conversation's answers** (#526): the page marks each answer (src/story/dialogue.js `choiceHtml`) with the keyboard's
   number, a › on a touch screen, and with a pad the confirm button's `.key` badge on the answer it would pick (› on the
   others); Unity wrote the number always. The screen's `dialogue` now carries `answerKey: { kind, key }` (prompt-keys.js

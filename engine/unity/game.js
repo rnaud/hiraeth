@@ -223,7 +223,34 @@ export function start(argsJson) {
   const sizes = String(args.titleShots ?? '').split(',').map((s) => s.split('x').map(Number)).filter(([w, h]) => w > 0 && h > 0);
   if (sizes.length && !args.boot) { S.titleShots = { sizes, k: 0, t: 0 }; host.ScreenAs?.(...sizes[0]); }
   if (args.titleGo && !args.boot) { S.titleGo = { at: Number(args.titleGo) || 60, t: 0, went: -1, ready: -1 }; host.ScreenAs?.(1280, 720); }
+  if (args.titleTour && !args.boot) { S.titleTour = { k: 0, t: 0 }; host.ScreenAs?.(1280, 720); }
   showMenu();
+}
+
+/**
+ * -title-tour [-store file] -out dir: the title's screens one after another, each photographed once settled
+ * (unity-title-tour-<k>-<name>.png): the main menu, Saves, Saves with its Debug row open, the delete question over it
+ * (never answered: it is put back with Keep), the title's Settings; then the run ends. Issue #804, the enamel title
+ * against the web's. With -store an isolated review store, the saves shown are the review's own.
+ */
+export const TITLE_TOUR = [
+  ['main', () => {}],
+  ['saves', (M) => { M.title.i = M.titleRows().findIndex((r) => r.id === 'saves'); M.action('confirm'); }],
+  ['saves-debug', (M) => { M.title.i = M.titleRows().findIndex((r) => r.id === 'debug'); M.action('confirm'); }],
+  ['ask', (M) => { const i = M.titleRows().findIndex((r) => r.del); if (i >= 0) { M.title.i = i; M.action('x'); } }],
+  ['settings', (M) => { M.action('back'); M.action('back'); M.title.i = M.titleRows().findIndex((r) => r.id === 'settings'); M.action('confirm'); }],
+];
+function titleTour() {
+  const T = S.titleTour, out = S.args.out;
+  T.t0 ??= now();
+  // (the first once the title's picture has streamed in and the start's loading screen is off it: 2.5 s at least)
+  if (++T.t < (T.k === 0 ? 60 : 20) || (T.k === 0 && now() - T.t0 < 2500)) return;
+  const [name] = TITLE_TOUR[T.k];
+  if (out) { const file = `${out}/unity-title-tour-${T.k}-${name}.png`; host.Shot(file); console.log(`[unity] saved ${file}`); }
+  T.t = 0;
+  if (++T.k < TITLE_TOUR.length) { TITLE_TOUR[T.k][1](S.menus); return; }
+  S.titleTour = null;
+  host.Exit(0);
 }
 
 /**
@@ -1431,6 +1458,7 @@ function playFrame(dt) {
     showMenu();
     if (S.titleShots) titleShots();
     if (S.titleGo) titleGo();
+    if (S.titleTour) titleTour();
     // (its timers too: the menu tune's scheduler; in a world engine/game.js runs them)
     if (S.titleSound) { page.tick(now()); pumpAudio(S.titleSound.ctx); }
     return;

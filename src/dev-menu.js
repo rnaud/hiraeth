@@ -27,6 +27,8 @@ import { travelSearch } from './world-travel.js';
 export const STORY_FLAGS = [['prologue.done', 'Prologue done'], ['ship.powered', 'Ship powered'], ['desert.bike.found', 'Hoverbike found'], ['desert.tree.lit', 'Qanat’s tree lit'], ['tool.empty', 'Battery empty']];
 /** How many tabs the strip shows round the open one (the engines' sheet has room for as many: BridgeMenu.cs DrawGame). */
 export const TAB_STRIP = 5;
+/** The dev menu's heading in its enamel frame (the engines' view carries it too: engine/menus.js devView). */
+export const DEV_HEADING = 'Dev menu';
 
 const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
@@ -49,13 +51,18 @@ export class DevMenu {
     const el = (this.el = doc.createElement('div'));
     el.id = 'devmenu';
     el.className = 'gamemenu';
+    // (the Journal's enamel frame, src/menu-enamel.css: a heading with the close, the tab bar between the side buttons,
+    // the sheet, the strip; issue #804)
     el.innerHTML = `<div class="gm pad-raw" role="dialog" aria-label="Dev menu">
-        <nav class="gm-tabs"></nav>
-        <button class="gm-close close" aria-label="Close the dev menu">${glyph('back', { key: 'Esc' })}✕</button>
-        <div class="gm-stage">
+        <header class="gm-heading"><span class="menu-emblem" aria-hidden="true">✦</span><h1>${DEV_HEADING}</h1>
+          <button class="gm-close close" aria-label="Close the dev menu">${glyph('back', { key: 'Esc' })}✕</button></header>
+        <div class="gm-tabbar">
           <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span>${glyph('lb', { key: 'Q' })}<span class="nm"></span></button>
-          <div class="gm-sheet"><div class="gm-body"></div></div>
+          <nav class="gm-tabs"></nav>
           <button class="gm-side next" data-go="1"><span class="arrow">▶</span>${glyph('rb', { key: 'E' })}<span class="nm"></span></button>
+        </div>
+        <div class="gm-stage">
+          <div class="gm-sheet"><div class="gm-body"></div></div>
         </div>
         <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span></div><div class="gm-keys"></div></footer>
       </div>`;

@@ -507,7 +507,7 @@ export const EN = {
   'title.continue': 'Continue',
   'title.new': 'New game',
   'title.saves': 'Saves',
-  'title.savesHead': 'SAVES',
+  'title.savesHead': 'Saves',
   'title.settings': 'Settings',
   'title.news': "What's new",
   'title.debug': 'Debug',

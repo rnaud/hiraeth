@@ -97,3 +97,35 @@ test('no keyboard-only "J to close" on a controller: every panel says how to clo
   const main = src('main.js'), close = main.slice(main.indexOf('const closeControllerMenu'), main.indexOf('const controller = new Controller'));
   assert.ok(close.indexOf('journal.open') < close.indexOf('storyRt.dialogue.open') && close.indexOf('journal.open') < close.indexOf('moments.playing'), 'the sketchbook before what is under it');
 });
+
+test('the title, its Saves, its delete question, the Debug menu and the dev menu share the Journal\'s enamel (issue #804)', () => {
+  const css = src('menu-enamel.css'), menus = src('menus.css'), boot = src('boot.js');
+  // one palette for every menu, at the root: the brass line, the turquoise wash, the enamel
+  assert.match(css, /:root \{[^}]*--menu-line:[^}]*--menu-wash:[^}]*--menu-enamel: #161d1d/);
+  // the frame (a fine brass line round the enamel) and its brass corner joins, shared, not copied
+  const frame = css.slice(0, css.indexOf('box-shadow: 0 0 0 5px var(--menu-enamel)'));
+  for (const s of ['#title .saves', '#title .confirm .card', ':is(#journal, #devmenu) .gm', '.fullmenu .pause']) assert.ok(frame.lastIndexOf(s) > frame.lastIndexOf('}'), `${s} in the shared frame`);
+  assert.match(css, /#title \.saves::after, #title \.confirm \.card::after, #picker\.open::after \{\s*content: ''/);
+  // the headings: the Journal's, the Start menu's, Saves' and the Debug menu's alike
+  assert.match(css, /\.fullmenu \.pause-heading, #title \.saves \.head \{/);
+  assert.match(css, /\.fullmenu \.pause-heading \.brand, #title \.saves h2, #picker h1 \{/);
+  assert.match(src('title.js'), /<div class="head"><span class="menu-emblem" aria-hidden="true">✦<\/span><h2 data-t="title\.savesHead">/);
+  assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /<h1><b class="menu-emblem" aria-hidden="true">✦<\/b>HIRAETH <span>· Debug<\/span><\/h1>/);
+  // the entries: the title's buttons and saves, the dev menu's rows and the Debug menu's cards on the one entry rule
+  assert.match(css, /\.gm-wardrobe \.line,\.dv-row\),\n#title :is\(\.slot \.pick, \.slot \.del, \.saves \.head button, \.confirm button, \.debug-saves \.dworld, \.debug-saves \.dinto\),\n#picker :is\(\.card, \.row, \.chip/);
+  // the dev menu in the Journal's frame: its heading and tab bar as the Journal's, every frame rule shared with it
+  const dev = src('dev-menu.js');
+  assert.match(dev, /<header class="gm-heading"><span class="menu-emblem" aria-hidden="true">✦<\/span><h1>\$\{DEV_HEADING\}<\/h1>/);
+  assert.ok(dev.indexOf('class="gm-tabbar"') < dev.indexOf('<nav class="gm-tabs">') && dev.indexOf('<nav class="gm-tabs">') < dev.indexOf('class="gm-stage"'), 'the tabs between the side buttons, over the sheet');
+  assert.doesNotMatch(css, /(^|[\s,])#journal[\s.:[]/m, 'no Journal-only frame rule the dev menu misses');
+  // the enamel loads after the menus' own sheets (the Debug menu's too), so it is the one that holds
+  assert.ok(boot.indexOf("import './world-picker.css'") < boot.indexOf("import './menu-enamel.css'"));
+  // the title's name only: its rules once threw the settings' enamel heading (a header too) over their sidebar
+  assert.match(menus, /#title\[data-screen="main"\] \.front > header \{ position: absolute;/);
+  assert.doesNotMatch(menus, /#title(\[data-screen="\w+"\])? header \{/);
+  // kept: the black wait while the game loads behind the title (#791), reduced motion, the TV's safe insets
+  assert.match(menus, /#title\.waiting::after \{ content: ''; position: absolute; inset: 0; z-index: 4; background: #000; \}/);
+  assert.match(menus, /html\.reduce-motion #title \.starting \.pen/);
+  assert.match(css, /margin: var\(--safe-top, 0px\) var\(--safe-right, 0px\) var\(--safe-bottom, 0px\) var\(--safe-left, 0px\)/);
+  assert.match(css, /#picker\.open::before \{[^}]*inset: calc\(6px \+ var\(--safe-top, 0px\)\)/);
+});

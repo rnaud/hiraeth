@@ -206,7 +206,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     root.querySelector('.front').insertAdjacentHTML('beforeend', `
         <nav class="screen main-menu" data-screen="main"></nav>
         <section class="screen saves" data-screen="saves" hidden>
-          <div class="head"><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back">${glyph('back', { key: 'Esc' })}<span data-t="title.back">${t('title.back')}</span></button></div>
+          <div class="head"><span class="menu-emblem" aria-hidden="true">✦</span><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back">${glyph('back', { key: 'Esc' })}<span data-t="title.back">${t('title.back')}</span></button></div>
           <ol class="slots"></ol>
         </section>
         <p class="version">v${VERSION}${buildLabel()}</p>

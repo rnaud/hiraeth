@@ -68,7 +68,9 @@ page in sections, each a heading with one line, in this order (`menuSections`):
 | **This build** | version, build number and commit (`__HIRAETH_BUILD__`, defined by `vite.config.js` `gitBuildInfo`; the Android / Deck app's build line in the app), dev server or build, and the debug save's note |
 
 Worlds are cards (picture, number, name, source, the save it opens in; `cardHtml`); everything else is a
-row (name, one line, a tag; `rowHtml`), the same paper, ink, offset shadow and red focus frame. The cards are
+row (name, one line, a tag; `rowHtml`), in the menus' enamel since v2.39 (issue #804, `src/menu-enamel.css`, loaded
+after `src/world-picker.css`): the dark page in a fine fixed brass frame, brass section heads, the cards and rows on
+brass hairlines, the one in hand on an ivory line with the turquoise mark at its left. The cards are
 numbered in the order shown (`pickOrder`): 1–9 open the route's first nine. The sticky header holds the title,
 the **filter** and close, and a chip a section (a click scrolls there; the one in view is lit).
 
@@ -92,8 +94,9 @@ settings button, CSS and DOM are gone). **L3 + R3** (both sticks, in either orde
 **`** (backquote) open it, the same again or B / Esc close it; on a touch screen the Debug menu's header has a
 **dev menu** button. The game is **paused** under it as under the other full-screen menus (`paused()`: the world
 stands, the menu music plays; one of `panels`, so it closes the Start menu, the game menu and What's new). It is
-drawn in the game menu's frame (`#devmenu.gamemenu` shares `src/game-menu.css` with `#journal`: the tab strip, the
-two side tabs naming the neighbours, the sheet, the strip at the foot with the row's words and what A / × does),
+drawn in the game menu's frame (`#devmenu.gamemenu` shares `src/game-menu.css` and, since v2.39, the Journal's enamel
+in `src/menu-enamel.css` with `#journal`: a "Dev menu" heading with the close, the tab bar between LB and RB, the
+sheet, the strip at the foot with the row's words and what A / × does; the engines' view carries the same `heading`),
 five tabs of the strip in sight round the open one (`tabWindow`, `TAB_STRIP`). LB / RB (Q / E, [ ], PgUp / PgDn,
 ← →, a click on a tab or a side tab) turn the tabs, round; the D-pad, the stick or ↑ ↓ go through the rows
 (`DevNav`: round, over the headings, each tab keeps its row); A / × (Enter, a click or a tap) does the row. Its
@@ -258,7 +261,7 @@ quests, boxes and temple waiting. Left out: the sketchbook's pictures (drawn as 
 quest things carried in a pack.
 
 **From the title's Saves screen** (v1.58, issue #203: "a debug saves option in the save menu that restarts the
-game at a specific level"): under the three saves, on dashed red paper and tagged DEBUG, "Debug: start at a
+game at a specific level"): under the three saves, in a dashed brass frame and tagged DEBUG, "Debug: start at a
 world" (`debugSavesHtml` in `src/title.js`; shown with the same gate as the Debug entries, `devMode`, so to every
 player while `ALWAYS_DEV` stays on). It is folded shut (v1.60, issue #227): one small "Debug" row under the
 saves, the only one of its buttons in the pad's rows (`savesRows`), until A / × or a click opens it (again folds
