@@ -2375,8 +2375,9 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   on a verlet chain (`src/motion-kit/chain.js`: the lizard's tail, the hound's smoke); a leg may lift on its own
   (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch). Batch 2 rides the kit's chains
   (phase 4, procedural-animation.md): `centipede.js` (plan 3: segments on the head's own path, `PathTrail`; 24 legs
-  stepping in a metachronal wave on distance, `src/motion-kit/wave-legs.js`), `burrower.js` (plan 15: the worm's
-  mounds on its path, its ring stack rising on a spring that dips first), `storm-ray-tripo.js` (plan 14: the storm ray,
+  stepping in a metachronal wave on distance, `src/motion-kit/wave-legs.js`), `worm-tripo.js` (plan 15: the worm's
+  mounds on its path, its body rising on a spring that dips first; Tripo's dune worm since v2.39, the legacy ring stack
+  `burrower-legacy.js`), `storm-ray-tripo.js` (plan 14: the storm ray,
   Tripo's body, its wings bent at their roots on a travelling `Wave`; the sky ray's strips and `FollowChain` tail kept in
   `sky-ray-legacy.js`), `lamp-moth-tripo.js` (plan 13: the lamp moth,
   Tripo's body, its wings beating on a `Wave` by speed; the signal moth's strips and chains kept in `signal-moth-legacy.js`), `cloud-jelly-tripo.js` (plan 11: the cloud jelly, Tripo's body on its own joints, its bell pulsing on a `Wave`
@@ -2998,7 +2999,7 @@ The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, d
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)
 and is the game's hound now (below).
 
-### Family F on Tripo bodies: the ink blot (v2.39, issue #800)
+### Family F on Tripo bodies: the ink blot, the dune worm (v2.39, issue #800)
 
 The creatures and spirits follow family A the same way (`references/enemy-redesign-2026-10-30/trials/familyF-tripo/`:
 `generate.mjs <foe>`, `prepare-<foe>.mjs` on family A's `prep-kit.mjs`, `shots.mjs` for working pictures, `bench-sum.mjs`
@@ -3017,6 +3018,18 @@ write-up and the numbers in `familyF-tripo/README.md`).
   floor-attached one was rejected). Every skin keeps its palette: its world's colour is its pool's rim and its belly
   (`belly`, skins.js; the Desert's the reference's tan), the Hangar's shavings on its surface. 5–6 drawn meshes standing
   (8 pooled), against the legacy's 30. Tests: `tests/blot-tripo.test.js`.
+- **The dune worm** (`worm`): `src/enemies/plans/worm-tripo.js` `wormModel`, `public/enemies/worm/body.glb` (338 KB,
+  13,368 triangles); the legacy ring stack is `plans/burrower-legacy.js` `wormLegacyModel`. Four parts by geometry (the
+  cream belly inside the edge fitted along its measured spine, on the head only its chin; the crown over a plane; the
+  turquoise mouth and its throat inside cylinders round the mouth's axis), the ochre body. Its rig is the long body's: a
+  chain of 16 bones along the measured spine (`familyF-tripo/spine.mjs`), each vertex shared by the two round its place,
+  the head its own bone at the end, turned to the traveller with its eyes and the ring of teeth in its mouth on it. Up, the
+  chain stands out of its hole as the legacy's rings did, bent by the burrower plan's pose and wave over its top 2.6 m, its
+  tail straight down in the sand and bunched up close under it (never far down through a floor); it swells and bunches to
+  spit, leans over to dive, the teeth spinning. Under, the legacy's mounds, fin and ripple on the head's path, the body
+  hidden. The drill grub's drill and the glass worm's crest on the head. 7 drawn meshes up (the legacy's 23), 8 under.
+  The Unity plan's `raise` may name its attack (`-fight worm` winds up the dive, up out of the sand). Tests:
+  `tests/worm-tripo.test.js`.
 
 ### The horned hound in the game (v2.38, issue #800, `src/enemies/plans/hound-tripo.js`)
 

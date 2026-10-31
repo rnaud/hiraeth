@@ -988,13 +988,14 @@ function makePlan(args) {
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@saltharbour', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('saltharbour'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@bazaar', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('bazaar'));
   }
-  for (const [fight, kind, home, other] of [['toad', 'toad', 'perdide', 'incal'], ['centipede', 'centipede', 'buried', 'spheres'], ['skitter', 'skitter', 'desert', 'moonfoundry'], ['blot', 'blot', 'desert', 'garage'], ['tripod', 'tripod', 'incal', 'underwater'], ['drone', 'drone', 'incal', 'antennas'], ['crawler', 'crawler', 'desert', 'desert']]) if (fights.includes(fight)) {
+  for (const [fight, kind, home, other, atk] of [['toad', 'toad', 'perdide', 'incal'], ['centipede', 'centipede', 'buried', 'spheres'], ['skitter', 'skitter', 'desert', 'moonfoundry'], ['blot', 'blot', 'desert', 'garage'], ['worm', 'worm', 'desert', 'buried', 'dive'], ['tripod', 'tripod', 'incal', 'underwater'], ['drone', 'drone', 'incal', 'antennas'], ['crawler', 'crawler', 'desert', 'desert']]) if (fights.includes(fight)) {
     // (-fight toad, issue #800: a family A, E or F foe on its Tripo body, public/enemies/<concept>/body.glb, its parts drawn by
     // their materials (no picture): its home skin 4 m ahead and 2.4 m to the right, standing, then winding up its first
-    // attack; then another world's skin with its dress; the body each wears is said in the log)
+    // attack (or the one named: the worm's dive, up out of the sand); then another world's skin with its dress; the body each
+    // wears is said in the log)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-${fight}-${name}.png` }] : []);
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: `${kind}@${home}`, dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('home'),
-      { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('windup'),
+      { kind: 'foe', what: 'raise', atk }, { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('windup'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: `${kind}@${other}`, dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot(other));
   }
   if (fights.includes('flyers')) {
@@ -1779,7 +1780,7 @@ function playFrame(dt) {
     } else if (step.what === 'raise') {
       // (-fight lockclose, issue #795: any foe's blow begun, the warlord's overhead if it has one, else its first blow)
       for (const f of F.list.filter((x) => x.alive)) {
-        const a = f.def.attacks.find((x) => x.id === 'overhead') ?? f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.throwsAlly);
+        const a = (step.atk && f.def.attacks.find((x) => x.id === step.atk)) ?? f.def.attacks.find((x) => x.id === 'overhead') ?? f.def.attacks.find((x) => !x.chain && (!x.weapon || x.weapon === f.weapon) && !x.throwsAlly);
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); console.log(`[unity] ${f.kind} winds up ${a.id}`); }
       }
     } else if (step.what === 'body') {

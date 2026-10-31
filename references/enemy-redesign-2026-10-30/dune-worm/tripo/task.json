@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family F",
+  "foe": "worm",
+  "source": "references/enemy-redesign-2026-10-30/dune-worm/ca727e90-9d58-49d2-a060-bbbd815e325f-3.png",
+  "sourceSha256": "ad9c27737d85be0e9e8b4b6f52c797b4577be2dc85875e093e33658d8286890f",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "4cea24a8-4b47-4ec2-832e-8ab9dd745057",
+  "started": "2026-10-31T05:55:45.482Z",
+  "finished": "2026-10-31T05:58:40.420Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1035,
+  "balanceAfter": 945,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1438824,
+    "sha256": "7a1c2d293420146716c0863abeec4cb488eebc008c052beaad4a9627f0538955",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 139083,
+    "sha256": "d12e5291b822bb04a8c624d7e542884ab5012a1254b784d18d985d10325a559c"
+  }
+}

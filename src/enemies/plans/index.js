@@ -6,7 +6,7 @@ import { houndModel } from './hound-tripo.js';
 import { tripodModel } from './tripod-tripo.js';
 import { blotModel } from './blot-tripo.js';
 import { centipedeModel } from './centipede-tripo.js';
-import { wormModel } from './burrower.js';
+import { wormModel } from './worm-tripo.js';
 import { stormRay } from './storm-ray-tripo.js';
 import { lampMoth } from './lamp-moth-tripo.js';
 import { cloudJelly } from './cloud-jelly-tripo.js';
@@ -64,7 +64,8 @@ import { foeSource } from '../foe-assets.js';
 //                 a core that looks at you, hovering; the legacy ring drone, hover-legacy.js, stands in where the body is not loaded)
 //   storm-ray-tripo.js plan 14  the storm ray (issue #800: Tripo's body, public/enemies/storm-ray/body.glb; the sky ray
 //                 it replaced, sky-ray-legacy.js, stands in where the body is not loaded)
-//   burrower.js   plan 15  the mound worm
+//   worm-tripo.js plan 15  the mound worm (issue #800: Tripo's dune worm, public/enemies/worm/body.glb, a chain of bones
+//                 along its spine standing out of its hole; the legacy worm, burrower-legacy.js, stands in where it is not loaded)
 //   roller-tripo.js plan 16  the pearl roller (#800: Tripo's snail, rigid parts, its foot rippling in three lengths, its
 //                          shell's spin locked to the ground; roller.js legacyRollerModel, the steel snail, stands in while it loads)
 //   cart-tripo.js plan 17  the crucible walker (#800: Tripo's mesh, rigid parts on four kit legs, src/enemies/foe-assets.js;

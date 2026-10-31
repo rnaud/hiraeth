@@ -6,6 +6,9 @@ import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, tube, pivot, pair, lerp, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy mound worm (kept, issue #800): the game's worm until the Tripo body (plans/worm-tripo.js) took its place; it
+// stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 15, the burrower (docs/systems/procedural-animation.md §4): the mound worm (docs/design/enemy-roster.md,
 // archetype 12), the ambusher. Under the ground, a moving mound with a dorsal fin and a wake of smaller mounds
 // behind it; up, a fat grub standing out of its hole like a stack of rings, a thick bulb of a head with a round
@@ -25,7 +28,7 @@ import { gazePart } from '../gaze.js';
 
 const _a = new THREE.Vector3(), _d = new THREE.Vector3(), _inv = new THREE.Matrix4();
 
-export function wormModel(skin) {
+export function wormLegacyModel(skin) {
   const PL = PLANS.burrower, P = skin.palette, props = new Set(skin.props), M = materials('worm', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const bodyM = M.mat('body', P.body, { color2: P.body2 }), ringM = M.mat('ring', P.ring), sandM = M.mat('sand', P.sand);

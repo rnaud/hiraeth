@@ -53,3 +53,35 @@ Reference: `../../blob/eb43fb37-f063-47ab-9a4f-212ba29d443b-2.png` (approved). T
   Sound unchanged: `ink` and the `blob` steps on target (0.0 dB off).
 - **Still off**: the pool's ragged rim is the legacy's (a jagged flat shape); the eyes are smaller than the legacy's big
   round ones (the reference's size); its pooled state is not in the changelog pictures (the gallery stands it up).
+
+## The dune worm (`worm`)
+
+Reference: `../../dune-worm/ca727e90-9d58-49d2-a060-bbbd815e325f-3.png` (approved). Task `4cea24a8-…`, 30 credits (run with
+the other three: 1,035 → 945 as the four finished). Home skin `desert` (the Desert's dune worm).
+
+- **What it is**: Tripo's 30k-triangle grub (drawn facing +z: kept), scaled so it is the legacy's metre thick (2.6 m to its
+  reared crown, 3.7 m along its spine), cut to 13,368 triangles. Its spine measured from the mesh (`spine.mjs`: a slab
+  across the body each 0.12 m from the tail's tip, its middle the next point). Four parts by geometry: the cream belly is
+  each point's angle round the spine from the inside of its curl under an edge fitted to the cream texels in 0.3 m bins
+  along the spine and smoothed (on the head only the chin under the mouth: Tripo creamed the face round the mouth), the
+  crown over a plane on the head, the turquoise mouth and its throat inside cylinders round the mouth's axis; the rest
+  the ochre body. The painted eye dots painted out.
+- **The rig** (the long body's, as family A's centipede): 16 bones along the spine (every second point), each vertex
+  shared by the two round its place on it; the head a bone of its own at the end (blended in over its last 0.55 m), turned
+  to the traveller (0.45 rad), the eyes, the teeth and the skin's drill or crest on it. Up, the chain stands out of the hole
+  as the legacy's ring stack did: the burrower plan's pose and wave bend its top 2.6 m, the tail stands straight down in
+  the sand, bunched up under −0.35 m (8 % of its depth, 0.55 of its girth: in the gallery a little of it shows under the
+  hole, in the worlds the ground hides it); it swells and bunches to spit, the mouth widening, and leans over to dive, the
+  teeth spinning. The reference's lying S-curve is not kept: it is a burrower, met standing out of its hole. Under, the
+  legacy's mounds, fin and ripple on the head's path, the body hidden.
+- **Skins**: the home skin the reference's colours; the drill grub (slate violet, a lavender belly, its drill) and the glass
+  worm (mint glass, its crest) keep theirs, each belly its fin's pale (`belly`). The legacy's ivory sail along its back is
+  gone (the approved design has none); the fin under the sand stays.
+- **Measured**: bind round trip < 0.1 mm, every bone carrying vertices. Up: 7 meshes drawn (the legacy's 23), 14k
+  triangles; under, 8 (mounds, fin, ripple). Six worms in the Desert, as they roam (under the sand): draws +147 → +143 (High),
+  +96 → +96 (Handheld), the same mounds; the script's time a frame not separable (−0.2 / +0.4 ms). Arena warm-up: the
+  three skins compile nothing at arrival (first frames 1.6–2.3 ms). Defend: erupt guarded from 0.5 s and parried at 0.12 s,
+  the dive parried at 0.06–0.12 s, as before. Dodge: a back flip into the flurry. Sound unchanged (`earth`, the `burrower`
+  steps on target). Unity: `-fight worm` winds up its dive, up out of the sand: the same body, pictured.
+- **Still off**: standing straight, it does not have the reference's S-curve; its belly reads grey in its own shade; a
+  little of its bunched tail shows under the hole where no ground hides it (the gallery).

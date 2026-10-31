@@ -87,6 +87,8 @@ export const SURFACES = {
       body: { mottle: { color: 'ring', scale: 0.25, amount: 0.35, soft: 0.15, strength: 0.6 }, ...SPECKS('ring*0.8', 0.5, 0.05) },
       ring: { mottle: { color: 'body', scale: 0.2, amount: 0.3, soft: 0.15, strength: 0.5 } },
       fin: { grain: { color: 'fin*0.88', spacing: 0.06, ink: 0.3, warp: 0.2, amount: 0.4 }, ...SPECKS('ring', 0.5, 0.06) },
+      // (#800, the Tripo body: its belly soft and pale, a faint mottle)
+      belly: { mottle: { color: 'belly*0.9', scale: 0.22, amount: 0.3, soft: 0.2, strength: 0.5 } },
     },
     buried: { body: { rust: { color: '#9a5a3a', color2: 'ring', amount: 0.18, amount2: 0.2, scale: 0.12, down: 0.2, pits: 0.5 } } },
     glassdunes: { body: { glow: { color: 'body2', amount: 0.35, rim: 0.5, core: 1.5, emit: 0.15 }, gloss: { size: 0.04, sky: 0.7 }, mottle: null, spots2: null } },

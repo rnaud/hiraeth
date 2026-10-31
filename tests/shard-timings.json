@@ -54,6 +54,7 @@
  "tests/blade-contact-outcomes.test.js": 0.3,
  "tests/blade-grip.test.js": 25.1,
  "tests/blade-shader.test.js": 1.6,
+ "tests/blot-tripo.test.js": 2.0,
  "tests/body-block.test.js": 0.5,
  "tests/body-shapes.test.js": 1.2,
  "tests/body-straps.test.js": 6.4,
@@ -910,6 +911,7 @@
  "tests/world-moments.test.js": 0.3,
  "tests/world-picker.test.js": 1.3,
  "tests/worlds-blurbs.test.js": 0.1,
+ "tests/worm-tripo.test.js": 2.5,
  "tests/xbox.test.js": 0.3,
  "tests/zfight-names.test.js": 0.2,
  "tests/zfight.test.js": 103

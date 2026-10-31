@@ -35,8 +35,9 @@ export const FOE_ASSETS = {
   tripod: { folder: 'enemies/tripod/', rig: 'landmarks.json' },
   drone: { folder: 'enemies/drone/', rig: 'landmarks.json' },
   crawler: { folder: 'enemies/crawler/', rig: 'landmarks.json' },
-  // (family F, #800: the blot)
+  // (family F, #800: the blot, the worm)
   blot: { folder: 'enemies/blot/', rig: 'landmarks.json' },
+  worm: { folder: 'enemies/worm/', rig: 'landmarks.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -101,6 +102,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/crawler/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/crawler/landmarks.json', import.meta.url))]),
   blot: (host, fs) => (host ? [host.readFile('enemies/blot/body.glb'), host.readFile('enemies/blot/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/blot/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/blot/landmarks.json', import.meta.url))]),
+  worm: (host, fs) => (host ? [host.readFile('enemies/worm/body.glb'), host.readFile('enemies/worm/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/worm/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/worm/landmarks.json', import.meta.url))]),
 };
 function readNow(id) {
   try {
