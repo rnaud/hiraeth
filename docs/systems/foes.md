@@ -2821,8 +2821,10 @@ slate crab of `plans/walker.js` is gone; the direct shellback (`plans/shellback.
 ### Family A on Tripo bodies: the bellows toad, the drill-head centipede (v2.39, issue #800)
 
 The ground creatures on legs follow the crab, each landed alone (`.claude/skills/enemy-rework/references/tripo-rebuild.md`).
-Their shared reader is `src/enemies/plans/tripo-body.js` (`tripoBody(file, label)`: the shipped GLB read without three's
-loader, a 30 s deadline in a browser, at once in the engines and Node; `rolesOf`, `boneBoxes`, `subset`). Their assets are
+Their bodies load through `src/enemies/foe-assets.js` (`FOE_ASSETS`, with the wood cutter's and the dune mummer's: the
+GLB and its `landmarks.json`, read at once in the engines and Node, fetched in a browser for the foes a world fields before
+their warm, all of them in the Arena and the gallery); `src/enemies/plans/tripo-body.js` holds the shared pieces
+(`boneBoxes`, `subset`, `surfaceNormal`, the trial GLB's reader for the tests). Their assets are
 made in `references/enemy-redesign-2026-10-30/trials/familyA-tripo/` (`generate.mjs <foe>`, `prepare-<foe>.mjs`, the
 shared steps in `prep-kit.mjs`: parts cut by geometry with `splitAlong`, one flat colour a part) and shipped by
 `scripts/tripo/ship-body.mjs <foe>`: no picture and no UVs, the triangles grouped by part (`landmarks.parts`), each part

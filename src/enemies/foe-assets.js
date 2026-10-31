@@ -21,6 +21,9 @@ import * as THREE from 'three';
 export const FOE_ASSETS = {
   woodcutter: { folder: 'enemies/woodcutter/', rig: 'landmarks.json' },
   dunemummer: { folder: 'enemies/dunemummer/', rig: 'skeleton.json' },
+  // (family A, #800: the toad and the centipede, their triangles grouped by part, scripts/tripo/ship-body.mjs)
+  toad: { folder: 'enemies/bellows-toad/', rig: 'landmarks.json' },
+  centipede: { folder: 'enemies/centipede/', rig: 'landmarks.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -59,6 +62,10 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/woodcutter/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/woodcutter/landmarks.json', import.meta.url))]),
   dunemummer: (host, fs) => (host ? [host.readFile('enemies/dunemummer/body.glb'), host.readFile('enemies/dunemummer/skeleton.json')]
     : [fs.readFileSync(new URL('../../public/enemies/dunemummer/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/dunemummer/skeleton.json', import.meta.url))]),
+  toad: (host, fs) => (host ? [host.readFile('enemies/bellows-toad/body.glb'), host.readFile('enemies/bellows-toad/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/bellows-toad/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/bellows-toad/landmarks.json', import.meta.url))]),
+  centipede: (host, fs) => (host ? [host.readFile('enemies/centipede/body.glb'), host.readFile('enemies/centipede/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/centipede/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/centipede/landmarks.json', import.meta.url))]),
 };
 function readNow(id) {
   try {

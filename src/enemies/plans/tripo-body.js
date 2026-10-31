@@ -1,17 +1,10 @@
 import * as THREE from 'three';
 
-// A shipped Tripo body of the #800 roster rebuild (public/enemies/<concept>/body.glb, written by scripts/tripo/ship-*.mjs):
-// one mesh, plain accessors (positions, normals, COLOR_0, 16-bit indices; UVs and a flat PNG texture where it has one),
-// its triangles grouped by part and the rig's landmarks in the mesh's extras. Read without three's loader. The family A foes (the toad, the centipede, the skitter) load theirs
-// through here; the shellback crab (shellback-tripo.js) keeps its own copy of the same reader.
-//
-// The engines (Unity) and Node read the file at once through the host or the file system on the first body built (no
-// picture: the vertex colours are drawn); a browser fetches it, decodes its texture, and the game awaits it before it
-// makes its foes (src/main.js, a deadline: LOAD_DEADLINE). Where it is not loaded, each foe's builder stands its legacy
-// body in.
-
-/** The load's deadline (ms): past it the foes are made with their legacy bodies (tests/load-awaits.test.js). */
-export const LOAD_DEADLINE = 30000;
+// The family A Tripo bodies' shared pieces (#800: the toad, the centipede, the skitter): their meshes are loaded by
+// src/enemies/foe-assets.js (public/enemies/<concept>/body.glb, its triangles grouped by part, COLOR_0 each part's flat
+// colour, and landmarks.json beside it, written by scripts/tripo/ship-body.mjs); here the trial's own GLB reader (a body's
+// asset with its landmarks in its extras, references/enemy-redesign-2026-10-30/trials/familyA-tripo/<foe>-lod.glb, for the
+// tests), the bones' boxes, a part's sub-geometry and a surface's normal.
 
 const TY = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array, 5121: Uint8Array }, CO = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
 /** A shipped GLB read: { geometry (position, normal, uv, color: COLOR_0's bytes, normalised), landmarks, image: { bytes, mime } | null, map: null }. */
@@ -30,50 +23,7 @@ export function parseTripoBody(bytes) {
   g.setAttribute('color', acc(p.attributes.COLOR_0));
   g.setIndex(acc(p.indices));
   const im = json.images?.[0];
-  return { geometry: g, landmarks: mesh.extras.landmarks, image: im ? { bytes: view(im.bufferView), mime: im.mimeType } : null, map: null };
-}
-
-/**
- * One shipped body's loader: { file, source() (null until loaded; the engines and Node read it on first use), load(base)
- * (once; resolves to the source or null), set(src) (a test's or a trial page's stand-in; null forgets it) }. `file` under
- * public/, `label` for the warning; `read(host, fs)` reads it at once where it can (the engines' host, or Node's files),
- * written in the foe's own module with its own constant, so the test selector sees which file it reads.
- */
-export function tripoBody(file, label, read) {
-  let source = null, pending = null, tried = false;
-  function readNow() {
-    try {
-      const host = globalThis.__HIRAETH_HOST__;
-      return read(host?.readFile ? host : null, host?.readFile ? null : globalThis.process?.getBuiltinModule?.('node:fs') ?? null) ?? null;
-    } catch (e) { /* not there: the legacy body stands in */ }
-    return null;
-  }
-  const get = () => { if (!source && !tried) { tried = true; const b = readNow(); if (b) source = parseTripoBody(b); } return source; };
-  return {
-    file,
-    source: get,
-    load(base = import.meta.env?.BASE_URL ?? '/') {
-      if (get()) return Promise.resolve(source);
-      if (typeof fetch !== 'function') return Promise.resolve(null);
-      // (a deadline, as the load's other assets have: a fetch that never answers leaves the legacy body standing in)
-      let timer = null;
-      const deadline = new Promise((resolve) => { timer = setTimeout(() => resolve(null), LOAD_DEADLINE); });
-      return pending ??= Promise.race([deadline, (async () => {
-        const r = await fetch(`${base}${file}`);
-        if (!r.ok || /text\/html/.test(r.headers.get('content-type') ?? '')) throw new Error(`no ${file} (${r.status})`);
-        const src = parseTripoBody(await r.arrayBuffer());
-        if (src.image && typeof createImageBitmap === 'function') {
-          const bmp = await createImageBitmap(new Blob([src.image.bytes], { type: src.image.mime }), { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
-          // (its texels are the printed colours the G-buffer takes; glTF's UVs: not flipped)
-          const map = new THREE.Texture(bmp); map.colorSpace = THREE.NoColorSpace; map.flipY = false; map.needsUpdate = true;
-          src.map = map;
-        }
-        return (source = src);
-      })()]).then((src) => { clearTimeout(timer); if (!src) { pending = null; console.warn(`the ${label} body did not load in time: its legacy body stands in`); } return src; },
-        (e) => { clearTimeout(timer); pending = null; console.warn(`the ${label} body did not load: its legacy body stands in`, e); return null; });
-    },
-    set(src) { source = src; tried = !!src; pending = null; },
-  };
+  return { geometry: g, landmarks: mesh.extras.landmarks ?? null, image: im ? { bytes: view(im.bufferView), mime: im.mimeType } : null, map: null };
 }
 
 // ---------------------------------------------------------------------------------------------- shared helpers

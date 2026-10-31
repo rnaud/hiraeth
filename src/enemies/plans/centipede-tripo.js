@@ -9,7 +9,8 @@ import { materials, add, pivot, ease, eyeColor, finish, merged } from './kit.js'
 import { gazePart } from '../gaze.js';
 import { bendFrame } from '../../characters/creature-legs.js';
 import { RENDER_FRAME } from '../../render-frame.js';
-import { tripoBody, boneBoxes, subset } from './tripo-body.js';
+import { boneBoxes, subset } from './tripo-body.js';
+import { foeSource } from '../foe-assets.js';
 import { centipedeLegacyModel } from './centipede-legacy.js';
 
 // The drill-head centipede (issue #800): the game's `centipede`, the ring centipede, everywhere it is fielded (the Buried
@@ -48,10 +49,8 @@ import { centipedeLegacyModel } from './centipede-legacy.js';
 
 /** The shipped body, under public/. */
 export const CENTIPEDE_BODY = 'enemies/centipede/body.glb';
-const LOADER = tripoBody(CENTIPEDE_BODY, 'drill-head centipede', (host, fs) => (host ? host.readFile(CENTIPEDE_BODY) : fs?.readFileSync(new URL(`../../../public/${CENTIPEDE_BODY}`, import.meta.url))));
-export const centipedeSource = LOADER.source;
-export const loadCentipedeBody = (base) => LOADER.load(base);
-export const setCentipedeSource = LOADER.set;
+/** The loaded body { geometry, landmarks } (src/enemies/foe-assets.js, as the toad's), or null. */
+export function centipedeSource() { const S = foeSource('centipede'); return S ? (S.centipede ??= { geometry: S.geometry, landmarks: S.rig, triangles: S.triangles }) : null; }
 
 /** The centipede's builder (src/enemies/plans/index.js): the Tripo body, or the legacy ring centipede where it is not loaded. */
 export function centipedeModel(skin) {

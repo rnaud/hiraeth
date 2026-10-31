@@ -32,7 +32,7 @@ test('the game\'s centipede is the Tripo drill-head centipede, from its shipped 
   assert.deepEqual(Array.from(SRC.geometry.attributes.position.array), Array.from(T.geometry.attributes.position.array));
   assert.deepEqual(Array.from(SRC.geometry.index.array), Array.from(T.geometry.index.array));
   assert.ok(SRC.geometry.index.array instanceof Uint16Array);
-  assert.equal(SRC.image, null, 'no picture');
+  assert.equal(SRC.geometry.attributes.uv, undefined, 'no picture (no UVs)');
   assert.deepEqual(SRC.landmarks, JSON.parse(readFileSync(new URL('../references/enemy-redesign-2026-10-30/trials/familyA-tripo/centipede-landmarks.json', import.meta.url), 'utf8')));
   assert.ok(readFileSync(new URL(`../public/${CENTIPEDE_BODY}`, import.meta.url)).length < 400 * 1024, 'under 400 KB');
   for (const id of Object.keys(SKINS.centipede)) { const M = centipedeLegacyModel(skinOf('centipede', id)); assert.equal(M.tripo, undefined); assert.ok(drawn(M.group) > 50); M.dispose(); }

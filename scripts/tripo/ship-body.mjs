@@ -1,14 +1,14 @@
 // A family A foe's shipped body (issue #800: the toad, the centipede, the skitter): its Tripo trial asset
 // (references/enemy-redesign-2026-10-30/trials/familyA-tripo/<foe>-lod.glb and <foe>-landmarks.json, made by
-// prepare-<foe>.mjs there from the untouched export) as the game's file, public/enemies/<concept>/body.glb, read by
-// src/enemies/plans/tripo-body.js:
+// prepare-<foe>.mjs there from the untouched export) as the game's files, public/enemies/<concept>/body.glb and
+// landmarks.json, read by src/enemies/foe-assets.js:
 //
 // - the same mesh, its triangles grouped by part (one flat colour a part: each part its own mesh in the game, coloured by
 //   its material, so no picture is needed), positions, normals and COLOR_0 (each part's flat colour: what the engines
 //   and the trial page can draw by);
 // - its indices as 16 bits;
 // - no texture and no UVs: the parts are flat colours (the trial's 1024² texture stays in the trial);
-// - the landmarks the rig is fitted to in the mesh's extras (one file to load).
+// - the landmarks the rig is fitted to beside it, landmarks.json (src/enemies/foe-assets.js loads the two).
 //
 //   node scripts/tripo/ship-body.mjs <toad|centipede|skitter>     (deterministic: the same inputs write the same bytes)
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -34,8 +34,10 @@ if (P.length / 3 > 65535) throw new Error('too many vertices for 16-bit indices'
 const I = Uint16Array.from(I32);
 const landmarks = JSON.parse(readFileSync(join(TRIAL, `${foe}-landmarks.json`), 'utf8'));
 const glb = writeGlb({ attrs: { POSITION: P, NORMAL: N, COLOR_0: COL }, indices: I, image: null, name: foe,
-  extras: { ...extras, source: `references/enemy-redesign-2026-10-30/trials/familyA-tripo/${foe}-lod.glb`, landmarks } });
+  extras: { ...extras, source: `references/enemy-redesign-2026-10-30/trials/familyA-tripo/${foe}-lod.glb` } });
 mkdirSync(join(ROOT, dirname(SHIPPED[foe])), { recursive: true });
 writeFileSync(join(ROOT, SHIPPED[foe]), glb);
+// (the rig's landmarks beside it: src/enemies/foe-assets.js reads the two)
+writeFileSync(join(ROOT, dirname(SHIPPED[foe]), 'landmarks.json'), JSON.stringify(landmarks) + '\n');
 const sha = createHash('sha256').update(glb).digest('hex').slice(0, 16);
 console.log(JSON.stringify({ file: SHIPPED[foe], bytes: glb.length, sha, vertices: P.length / 3, triangles: I.length / 3, parts: landmarks.parts }));

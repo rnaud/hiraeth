@@ -5,7 +5,8 @@ import { materials, add, rod, tube, pivot, pair, lerp, ease, eyeColor, finish, V
 import { gazePart } from '../gaze.js';
 import { SkinLegs, bendFrame } from '../../characters/creature-legs.js';
 import { RENDER_FRAME } from '../../render-frame.js';
-import { tripoBody, boneBoxes, subset, surfaceNormal } from './tripo-body.js';
+import { boneBoxes, subset, surfaceNormal } from './tripo-body.js';
+import { foeSource } from '../foe-assets.js';
 import { toadLegacyModel } from './hopper-legacy.js';
 
 // The bellows toad (issue #800): the game's `toad`, everywhere it is fielded (Lorn, the City-Shaft, the Waterfall, the
@@ -37,18 +38,16 @@ import { toadLegacyModel } from './hopper-legacy.js';
 //   volley  the same, fuller, three globs (the City-Shaft and the Waterfall)
 //   flop    a deep crouch, its legs shaking; then the leap, belly first, and a ring of shock as it lands
 // Its dress per world: the City-Shaft's brass valve and gauge with its pipe, the Waterfall's jet, Home's flower, set on the
-// mesh's measured back and head. Where the body is not loaded (a page that built a toad before loadToadBody finished, an
+// mesh's measured back and head. Where the body is not loaded (a page that built a toad before foe-assets.js loaded it, an
 // old player's files) the legacy toad stands in.
 
 /** The shipped body, under public/. */
 export const TOAD_BODY = 'enemies/bellows-toad/body.glb';
-const LOADER = tripoBody(TOAD_BODY, 'bellows toad', (host, fs) => (host ? host.readFile(TOAD_BODY) : fs?.readFileSync(new URL(`../../../public/${TOAD_BODY}`, import.meta.url))));
-/** The loaded body (null until loaded; the engines and Node read it on first use). */
-export const toadSource = LOADER.source;
-/** The body, loaded once; the game awaits it before it builds its foes (src/main.js). */
-export const loadToadBody = (base) => LOADER.load(base);
-/** Stand a source in (the trial page's, a test's), or null to forget it. */
-export const setToadSource = LOADER.set;
+/**
+ * The loaded body { geometry, landmarks } (src/enemies/foe-assets.js: body.glb and landmarks.json beside it, read at once in
+ * the engines and Node, fetched in a browser with the world's other foes' bodies before their warm), or null.
+ */
+export function toadSource() { const S = foeSource('toad'); return S ? (S.toad ??= { geometry: S.geometry, landmarks: S.rig, triangles: S.triangles }) : null; }
 
 /** The toad's builder (src/enemies/plans/index.js): the Tripo body, or the legacy toad where it is not loaded. */
 export function toadModel(skin) {

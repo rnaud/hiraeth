@@ -33,7 +33,8 @@ test('the game\'s toad is the Tripo bellows toad, from its shipped body, in ever
   assert.deepEqual(Array.from(SRC.geometry.attributes.position.array), Array.from(T.geometry.attributes.position.array));
   assert.deepEqual(Array.from(SRC.geometry.index.array), Array.from(T.geometry.index.array));
   assert.ok(SRC.geometry.index.array instanceof Uint16Array);
-  assert.equal(SRC.image, null, 'no picture: each part one flat colour');
+  assert.equal(SRC.geometry.attributes.uv, undefined, 'no picture: each part one flat colour (no UVs)');
+  assert.deepEqual(SRC.landmarks, JSON.parse(readFileSync(new URL('../public/enemies/bellows-toad/landmarks.json', import.meta.url), 'utf8')), 'its landmarks beside it');
   assert.deepEqual(SRC.landmarks, JSON.parse(readFileSync(new URL('../references/enemy-redesign-2026-10-30/trials/familyA-tripo/toad-landmarks.json', import.meta.url), 'utf8')));
   assert.ok(readFileSync(new URL(`../public/${TOAD_BODY}`, import.meta.url)).length < 400 * 1024, 'under 400 KB');
   // the legacy body still builds in every skin, its own way
