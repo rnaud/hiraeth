@@ -89,7 +89,8 @@ test('the cut\'s pull arrives as the cut begins, not as it ends', () => {
 test('bodyHits: a blade swept through a foe\'s drawn body hits it there; through the air beside it, nothing', () => {
   clearTargets();
   const P = { pos: v(0, 0, 40), vel: v(), heading: 0, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  // (its heading seeded: unseeded, the long shell lay side on to the blade one time in thirty, the hit at its far end)
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(7) });
   const f = foes.add('skitter', v(0, 0, 1.6));
   for (let i = 0; i < 10; i++) foes.look(f, 1 / 60);
   f.model.group.updateMatrixWorld(true);
