@@ -19,8 +19,9 @@ import { Fist, fingerPivots, Wielder, SWORD_WRIST } from '../wield.js';
 // Low on health, or shot through the mask, or caught by a charged cut or a riposte, the pot is knocked flying
 // (f.unmasked): it clutches its blank wet face, drops what it holds and scampers off.
 //
-// The mummer king (`mummerking`), to its sheet (references/enemy-archetypes/mummerking/sheet-1.jpg): 2.6 m, a pear of
-// junk: an oak barrel for a chest bound in rope and patched rag, short thick rag-bound legs on wide flat ink feet, long
+// The mummer king (`mummerking`), since #800 the approved redesign's Tripo body (plans/mummer-king-tripo.js); its old
+// body here (legacyMummerKingModel) stands in while that loads. The old one, to its sheet
+// (references/enemy-archetypes/mummerking/sheet-1.jpg): 2.6 m, a pear of junk: an oak barrel for a chest bound in rope and patched rag, short thick rag-bound legs on wide flat ink feet, long
 // heavy ink arms with big three-fingered hands, a green-copper cauldron for a mask with two white eyes, a cart wheel
 // for a crown with its spokes up, a brass horn slung on its back, and a door beam for a club.
 //
@@ -384,7 +385,11 @@ export const KING_HOLD = {
     } },
 };
 
-export function mummerKingModel(skin) {
+/**
+ * The junk king (#724), the game's mummer king until #800: kept as the stand-in while the approved one's Tripo body
+ * loads (plans/mummer-king-tripo.js), and so it can come back as a foe of its own.
+ */
+export function legacyMummerKingModel(skin) {
   const P = skin.palette, M = materials('mummerking', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const rig = pivot(g, 0, 0, 0, 'rig');

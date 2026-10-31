@@ -1545,6 +1545,16 @@ const SOURCE800R = 'scripts/enemy-roster/bench.mjs --level spheres --pack six pe
 const SOURCE800R_ARRIVE = 'scripts/enemy-roster/arrivals.mjs --quality high --kinds roller@garage,roller@spheres,roller@saltharbour,roller@spacecity,roller@mangrove --n 3, before (9ff845d25) and after: one long frame at the first arrival of the White Mangrove’s after, every other one frame; no new GPU program made at any arrival';
 const ROLLER_ARRIVALS = [{ where: 'High, typical', before: 16.8, after: 16.8 }, { where: 'High, worst', before: 16.8, after: 33.3 }];
 
+/** (v2.39, issue #800 family G: the mummer king, the sentinel and the hulk rebuilt; hand-made pairs, the same scripts and cameras before and after) */
+const FROM800G_HOW = 'Hand-made (no `view`, the commit to be rebased): muted headless Chrome (hiraeth.muted and every volume 0 before load, --mute-audio), High, 1280 × 720, 10:00, clear, 31 October 2026; before: origin/main at ab7001115 in a worktree of its own, after: this change (on the tree before its rebase onto bf2a91015, the bodies the same), the same script and camera on each. ';
+const FROM800MK = `${FROM800G_HOW}The Arena: scripts/enemy-roster/compare.mjs --separate mummerking (the creatures gallery, the body alone, three-quarters from its front). The Desert: references/enemy-redesign-2026-10-30/trials/world-shot.mjs mummerking desert (the world loaded as you land at its camp, its foes taken away, the king set down ahead, the camera off its front quarter); cwebp -q 72`;
+const FROM800SEN = `${FROM800G_HOW}scripts/enemy-roster/compare.mjs --separate sentinel (the creatures gallery, the body alone: three-quarters from its front; the cut at 80 % of its wind-up, from the front, cropped); cwebp -q 72`;
+const FROM800HULK = `${FROM800G_HOW}scripts/enemy-roster/compare.mjs --separate hulk (the creatures gallery, the body alone: three-quarters from its front; the stomp at 80 % of its wind-up, from the front, scaled down); cwebp -q 72`;
+const FROM800G_UNITY = 'Unity 6000.6.4f1 editor batch mode on macOS, muted (scripts/unity-js-run.sh humanoids -level arena -fight humanoids -mute), 31 October 2026, the Library and the Puerts packages cloned from the main checkout, the handoff’s build lock checked free (this agent’s sandbox kept it from writing the lock file in the shared checkout); the follow camera behind the traveller, the mummer king 6 m ahead set to the right, the sentinel 4 m and the hulk 9 m ahead, standing, winding up and striking, drawn by their vertex colours; the web’s pictures above are the same bodies. After-only';
+const DEVICE800G = 'Mac, Apple M-series, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
+const SOURCE800G = (kind) => `references/enemy-redesign-2026-10-30/trials/familyG-tripo/bench-g.mjs (scripts/enemy-roster/bench.mjs --pack six ${kind}@desert in the Arena, and the empty Arena, High and Deck, 6 s each, two rounds alternating before (origin/main at ab7001115) and after, each run started under load 25; the medians of the frames, renderer.info). The frame held at 16.7 ms (60 Hz) in every run; the CPU moved by as much between runs of one tree as between the trees, and the GPU's time is not separable at this load, so neither is claimed`;
+const SOURCE800G_ARRIVE = 'references/enemy-redesign-2026-10-30/trials/familyA-tripo/warm-check.mjs <kind> (High), before (origin/main at ab7001115) and after: after the Arena’s load, the kind brought in as a foe, the programs compiled at its arrival (renderer.info) and its arrival frames drawn by hand; no new program at any arrival';
+
 export const CHANGELOG_MEDIA = {
   '2.39': [
     { match: 'The Journal and Pause menus now match the HUD in the browser and Unity', shots: [
@@ -1821,6 +1831,20 @@ export const CHANGELOG_MEDIA = {
         { where: 'High: triangles, every pass (thousands)', before: 2148.7, after: 2266.6 },
       ] },
       { title: 'A pearl roller arriving in the Arena: the worst frame from its arrival to 2.5 s after', unit: 'ms', better: 'lower', device: DEVICE800C, source: SOURCE800R_ARRIVE, rows: ROLLER_ARRIVALS },
+    ] },
+    // (issue #800 family G: the mummer king on its Tripo body; hand-made pairs)
+    { match: 'The mummer king has its new body', tags: ['combat'], shots: [
+      { name: 'mk800-arena', title: 'The mummer king', size: [1280, 720], caption: 'The mummer king alone, three-quarters from its front: before, the junk king, an oak barrel in indigo rag with a green-copper cauldron for a mask, a cart-wheel crown and a door beam; after, the teal pear with its cream oval mask and two black eyes, three ochre crown rods, the terracotta belly patch and knee pads, huge cream gauntlets, cream boots and the paddle club, its brass horn on its back', from: FROM800MK,
+        reference: { sheet: 'references/enemy-redesign-2026-10-30/keep-mummerking/71c2e792-5ceb-40f7-966d-19b12c1b10a6-1.png', caption: 'The approved design the new body was made from (Tripo, from T-pose sheets drawn from this picture)' } },
+      { name: 'mk800-desert', title: 'The Desert', size: [1280, 720], caption: 'The mummer king at the mummers’ camp in the Desert: before, the junk king with its beam; after, the pear with its mask, crown rods and paddle, its eyes on the traveller', from: FROM800MK },
+      { name: 'mk800-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'The Unity version in the Arena: the mummer king to the right, with the sentinel and the hulk, the same bodies drawn by their colours', from: FROM800G_UNITY },
+    ], numbers: [
+      { title: 'What six mummer kings add to the Arena’s frame, standing in view', unit: '', better: 'lower', device: DEVICE800G, source: SOURCE800G('mummerking'), rows: [
+        { where: 'High: draw calls', before: 198, after: 54 },
+        { where: 'Deck: draw calls', before: 132, after: 36 },
+        { where: 'High: triangles, every pass (thousands)', before: 144.2, after: 267.5 },
+      ] },
+      { title: 'A mummer king arriving in the Arena: the worst frame of its arrival', unit: 'ms', better: 'lower', device: DEVICE800G, source: SOURCE800G_ARRIVE, rows: [{ where: 'High (no new program, before or after)', before: 7.7, after: 7.4 }] },
     ] },
     { match: 'A new foe, the wood cutter', shots: [
       { name: 'woodcutter-lorn', title: 'Lorn’s Deep Wood', only: 'after', size: [1280, 720], caption: 'The sawyer where it is placed, slumped mid-cut at the meadow’s edge in the Deep Wood, its saw in its right hand.', from: 'Actual running game, muted headless Chrome (scripts/changelog-shots.mjs shoot, --mute-audio, every volume 0) against this branch’s own Vite on port 5460, High, 1280 × 720, 10:00, clear, 30 October 2026, on the wood cutter’s commit (pictured on its tree over 29488bd4d, before the rebase onto a9b33fb98): the traveller set 14 m off, the foe calm, the camera pinned on it. After-only: a new foe has no before. The placed one, as the game puts it.' },

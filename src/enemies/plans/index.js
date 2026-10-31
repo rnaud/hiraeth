@@ -26,7 +26,8 @@ import { tripoRollerModel } from './roller-tripo.js';
 import { marionetteModel } from './strings.js';
 import { wispModel } from './wisp-tripo.js';
 import { fencerModel } from './fencer.js';
-import { mummerModel, mummerKingModel } from './mummer.js';
+import { mummerModel, legacyMummerKingModel } from './mummer.js';
+import { tripoMummerKingModel } from './mummer-king-tripo.js';
 import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js';
 import { sentinelModel } from './sentinel.js';
 import { oracleModel } from './oracle.js';
@@ -82,7 +83,9 @@ import { foeSource } from '../foe-assets.js';
 //   wisp-tripo.js plan 22  the ember wisp (issue #800: Tripo's cinder wisp, public/enemies/wisp/body.glb, four petals on hinges
 //                 round the game's coal; the legacy bud, ember-legacy.js, stands in where it is not loaded)
 //   fencer.js     plan 9   the makers' fencer (a machine's biped: sword and shield; issue #665)
-//   mummer.js     plan 23  the mummer and the mummer king (on the humanoid rig, src/enemies/humanoid-rig.js: clips; issue #724)
+//   mummer.js     plan 23  the mummer and the old mummer king (on the humanoid rig, src/enemies/humanoid-rig.js: clips; issue #724)
+//   mummer-king-tripo.js plan 24  the mummer king (#800: the approved redesign, Tripo's rigged mesh on the humanoid clip rig,
+//                          plans/tripo-biped.js; mummer.js legacyMummerKingModel, the junk king, stands in while it loads)
 //   monster.js    plans 25, 26, 30, 31  roster v4's grunt, hulk, prowler and warlord (on the humanoid rig; issue #726)
 //   droid.js               the makers' defunct droids' one material family (issue #726)
 //   sentinel.js   plan 27  the sentinel (a droid duellist on the humanoid rig: blade and round shield)
@@ -96,7 +99,7 @@ import { foeSource } from '../foe-assets.js';
 
 const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: stormRay, moth: lampMoth, jelly: cloudJelly,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel,
-  shade: shadeModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
+  shade: shadeModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel,
   grunt: gruntModel, hulk: hulkModel,
   sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel,
@@ -104,7 +107,8 @@ const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, 
   bell: (skin) => { const src = foeSource('bell'); return src ? tripoBellModel(skin, src) : legacyBellModel(skin); },
   roller: (skin) => { const src = foeSource('roller'); return src ? tripoRollerModel(skin, src) : legacyRollerModel(skin); },
   woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); },
-  dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); } };
+  dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); },
+  mummerking: (skin) => { const src = foeSource('mummerking'); return src ? tripoMummerKingModel(skin, src) : legacyMummerKingModel(skin); } };
 
 /**
  * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another

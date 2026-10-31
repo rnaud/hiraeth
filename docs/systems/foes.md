@@ -3186,6 +3186,36 @@ the spirit on the clapper's bone and a hook under it; the Signal Market's coins 
 from its sides. The spider-legged bell walker stays in plans/siege.js as `legacyBellModel`: it stands in while the mesh
 loads and can come back as a foe of its own. Unity: `-fight machines` pictures it with the crucible walker.
 
+### Family G: the mummer king (#800, `src/enemies/plans/tripo-biped.js`)
+
+The two-legged humanoids' approved redesigns are their bodies, each on Tripo's biped rig posed directly by the clips, never
+a hidden copy (`tripoBiped`: the humanoid rig's joints stood where Tripo put its joints, each limb the two sides' mean
+length so the IK, the two-handed grip and the stamp's lift reach as the rig's D says; Tripo's weights folded onto the rig's
+14 bones by each joint's `fold` in `skeleton.json`; bound in the T-pose, then let down to the rig's rest; the head's weights
+on the gaze node, so the head turns to the traveller). Options: `rigid` (a role carried whole on its hand or foot: a gauntlet,
+a fist, so it bends at its rim and its drawn box lies on the ground as the ragdoll lays it), `soles` (everything under that
+height whole on its foot: a broad foot stays flat on a slope), `neck` (the head's joint moved from Tripo's: the hulk's,
+toward its low head's middle, or its ragdoll's head trembled on a long lever). `gripAt` puts a grip at a hand's measured
+centre (no fingers to close: the haft through the mitten), marked `layApart` so the ragdoll lays the hand by its own box,
+not with the weapon that flies off (src/enemies/foe-ragdoll.js `layable`: opt-in, the other bodies lie as before).
+`roleColours` recolours a skin or the stronger tier from the asset's flat colours a part (the hex's sRGB bytes, as COLOR_0
+holds them). The assets come from the trial's shared `prepare.mjs` (references/enemy-redesign-2026-10-30/trials/familyG-tripo/,
+each foe's numbers in `foes.mjs`): the game's frame and height, centred on the hips, 12k triangles by geometry alone, the
+k-means clusters given roles by looking, repainted in the approved image's flat colours by part, the painted eyes or the
+visor measured, the joints' bind places (a rig of Tripo's v2.5 model renamed to the Mixamo names by where each joint is: the
+hulk's, its v1.0 rig having crossed its arms). The T-poses were made in the reference lab and picked by the agent with the
+author asleep (docs/design/enemy-tpose-prompts-family-g.md; each pick's reason in its `tpose/manifest.json` and the foe's
+README under the trials folder).
+
+- **The mummer king** (`plans/mummer-king-tripo.js`, `public/enemies/mummerking/`, 2.7 m): the teal pear, the cream mask as
+  the drawing's clean oval, two black eyes proud of it on the head bone, the crown rods on the head, the belly patch and knee
+  pads as discs laid on the mesh, the gauntlets whole on the hands, the paddle club held as the door beam was (`KING_HOLD`),
+  the horn slung on its back and brought to its mask for the call (`hornDeep`). The junk king: `legacyMummerKingModel`.
+
+Each draws 3 meshes (the body, its rigid parts in one skinned mesh, the eyes); six in the Arena add 54 draws on High (the
+old bodies 108–198). Unity: `-fight humanoids` (engine/unity/game.js) pictures the family standing, winding up and striking.
+Tests: `tests/mummer-king-tripo.test.js`.
+
 ### The dune mummer (#800, `src/enemies/plans/dune-mummer-tripo.js`, `public/enemies/dunemummer/`)
 
 The second of the rebuild's new foes: `ARCHETYPES.dunemummer` beside today's mummer (kept as it was, the author: "I also

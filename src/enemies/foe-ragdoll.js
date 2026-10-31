@@ -228,7 +228,11 @@ function layable(J, loose) {
   }
   // (a hand bends at the wrist, the mummer king's broad palms lifted it 14 cm; not laid again each frame, so turned from
   // how it was. A shield on its arm is let go with its weapon: Foes.looseGrips)
-  const fixed = (o, turns) => { const own = []; o.traverse((x) => own.push(x)); out.push({ o, turns, foot: false, base: o.quaternion.clone(), pts: corners(o, own), pick: 0 }); };
+  // (its own box without what a body marks `layApart` in its grip: the weapon flies as a piece of its own, and the mummer
+  //  king's paddle in its box, #800, turned its broad gauntlet 20 cm into the ground to keep the paddle's long end out of
+  //  it. Opt-in: the other bodies' hands lie as they always have)
+  const held = (o, own) => { own.push(o); for (const c of o.children) if (!c.userData.layApart) held(c, own); return own; };
+  const fixed = (o, turns) => { const own = held(o, []); out.push({ o, turns, foot: false, base: o.quaternion.clone(), pts: corners(o, own), pick: 0 }); };
   for (const h of J.hands) if (h) fixed(h, LAY.wrist);
   // (the hands before their fingers: a wrist's turn moves them)
   const first = (P) => (J.hands.includes(P.o) ? 0 : 1);

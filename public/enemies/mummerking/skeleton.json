@@ -1,0 +1,331 @@
+{
+ "frame": "game: +z ahead, +y up, metres, feet on y 0",
+ "source": "references/enemy-redesign-2026-10-30/keep-mummerking/tripo/rigged.glb",
+ "scale": 3.11732,
+ "height": 2.7,
+ "joints": [
+  {
+   "name": "Root",
+   "parent": null,
+   "at": [
+    0,
+    0,
+    -0.0239
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Hips",
+   "parent": "Root",
+   "at": [
+    0,
+    1.0462,
+    -0.0239
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Spine",
+   "parent": "Hips",
+   "at": [
+    -0.0007,
+    1.2063,
+    -0.0134
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Spine1",
+   "parent": "Spine",
+   "at": [
+    -0.0016,
+    1.4335,
+    0.0014
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Spine2",
+   "parent": "Spine1",
+   "at": [
+    -0.0026,
+    1.6607,
+    0.0162
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Neck",
+   "parent": "Spine2",
+   "at": [
+    -0.0035,
+    1.8877,
+    0.0309
+   ],
+   "fold": "head"
+  },
+  {
+   "name": "Head",
+   "parent": "Neck",
+   "at": [
+    -0.0038,
+    1.9622,
+    0.0358
+   ],
+   "fold": "head"
+  },
+  {
+   "name": "LeftShoulder",
+   "parent": "Spine2",
+   "at": [
+    -0.0031,
+    1.8876,
+    0.0309
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "LeftArm",
+   "parent": "LeftShoulder",
+   "at": [
+    0.4175,
+    1.8875,
+    0.0415
+   ],
+   "fold": "arm1"
+  },
+  {
+   "name": "LeftForeArm",
+   "parent": "LeftArm",
+   "at": [
+    0.8203,
+    1.776,
+    -0.031
+   ],
+   "fold": "elbow1"
+  },
+  {
+   "name": "LeftHand",
+   "parent": "LeftForeArm",
+   "at": [
+    1.1099,
+    1.7774,
+    -0.1405
+   ],
+   "fold": "hand1"
+  },
+  {
+   "name": "RightShoulder",
+   "parent": "Spine2",
+   "at": [
+    -0.0039,
+    1.8876,
+    0.0309
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "RightArm",
+   "parent": "RightShoulder",
+   "at": [
+    -0.4245,
+    1.8875,
+    0.0203
+   ],
+   "fold": "arm0"
+  },
+  {
+   "name": "RightForeArm",
+   "parent": "RightArm",
+   "at": [
+    -0.8061,
+    1.7774,
+    -0.0487
+   ],
+   "fold": "elbow0"
+  },
+  {
+   "name": "RightHand",
+   "parent": "RightForeArm",
+   "at": [
+    -1.117,
+    1.8042,
+    -0.1458
+   ],
+   "fold": "hand0"
+  },
+  {
+   "name": "LeftUpLeg",
+   "parent": "Hips",
+   "at": [
+    0.2828,
+    1.0592,
+    -0.015
+   ],
+   "fold": "leg1"
+  },
+  {
+   "name": "LeftLeg",
+   "parent": "LeftUpLeg",
+   "at": [
+    0.3393,
+    0.5915,
+    -0.0098
+   ],
+   "fold": "knee1"
+  },
+  {
+   "name": "LeftFoot",
+   "parent": "LeftLeg",
+   "at": [
+    0.3478,
+    0.0969,
+    -0.0563
+   ],
+   "fold": "foot1"
+  },
+  {
+   "name": "LeftToeBase",
+   "parent": "LeftFoot",
+   "at": [
+    0.3729,
+    0.0801,
+    0.0618
+   ],
+   "fold": "foot1"
+  },
+  {
+   "name": "RightUpLeg",
+   "parent": "Hips",
+   "at": [
+    -0.2828,
+    1.0324,
+    -0.0327
+   ],
+   "fold": "leg0"
+  },
+  {
+   "name": "RightLeg",
+   "parent": "RightUpLeg",
+   "at": [
+    -0.3251,
+    0.5915,
+    -0.031
+   ],
+   "fold": "knee0"
+  },
+  {
+   "name": "RightFoot",
+   "parent": "RightLeg",
+   "at": [
+    -0.3252,
+    0.0969,
+    -0.0944
+   ],
+   "fold": "foot0"
+  },
+  {
+   "name": "RightToeBase",
+   "parent": "RightFoot",
+   "at": [
+    -0.3507,
+    0.0886,
+    0.0383
+   ],
+   "fold": "foot0"
+  }
+ ],
+ "hands": {
+  "Left": {
+   "centre": [
+    1.3013,
+    1.7675,
+    -0.0575
+   ],
+   "min": [
+    1.0938,
+    1.6583,
+    -0.2655
+   ],
+   "max": [
+    1.5057,
+    1.9154,
+    0.1723
+   ],
+   "vertices": 647
+  },
+  "Right": {
+   "centre": [
+    -1.3344,
+    1.8212,
+    -0.058
+   ],
+   "min": [
+    -1.6117,
+    1.6819,
+    -0.2638
+   ],
+   "max": [
+    -1.1214,
+    1.9621,
+    0.1726
+   ],
+   "vertices": 806
+  }
+ },
+ "widen": null,
+ "widened": {
+  "Left": 0,
+  "Right": 0
+ },
+ "clusters": [
+  "#476456",
+  "#638373",
+  "#947753",
+  "#658475",
+  "#7c866f",
+  "#b97a3a",
+  "#b2a67a",
+  "#d4c089",
+  "#e7ce92",
+  "#e9d690"
+ ],
+ "palette": {
+  "body": "#728b7e",
+  "shin": "#4a6a5e",
+  "mask": "#dfd6a7",
+  "eye": "#dfd6a6",
+  "crown": "#c38337",
+  "patch": "#b96d4a",
+  "knee": "#b96e4b",
+  "glove": "#dfd7a7",
+  "boot": "#dfd6a8",
+  "cuff": "#a26a54"
+ },
+ "landmarks": {
+  "eyes": {
+   "left": {
+    "centre": [
+     0.1124,
+     2.1716,
+     0.3184
+    ],
+    "w": 0.0481,
+    "h": 0.0923,
+    "front": 0.3301,
+    "texels": 152
+   },
+   "right": {
+    "centre": [
+     -0.1319,
+     2.1741,
+     0.3182
+    ],
+    "w": 0.0472,
+    "h": 0.0916,
+    "front": 0.3301,
+    "texels": 126
+   }
+  }
+ }
+}

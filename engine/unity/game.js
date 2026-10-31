@@ -1065,6 +1065,17 @@ function makePlan(args) {
       { kind: 'foe', what: 'move', move: 'pour' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
       { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('blow'));
   }
+  if (fights.includes('humanoids')) {
+    // (-fight humanoids, issue #800 family G: the two-legged foes' Tripo bodies on Tripo's biped rig posed by the clips
+    // (src/enemies/plans/tripo-biped.js), loaded through the host (src/enemies/foe-assets.js): the mummer king 6 m ahead, set
+    // to the traveller's right, the sentinel 4 m ahead, the hulk 9 m; their bodies said in the log; standing, then each
+    // winding up (the king's smash, the sentinel's cut over its shoulder, the hulk's stomp), then the blows)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-humanoids-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'mummerking@desert', dist: 6, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['mummerking'] }, { kind: 'foe', what: 'sentinel@desert', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'hulk@desert', dist: 9, hp: 99, tier: 0 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bodies' }, ...shot('stand'),
+      { kind: 'foe', what: 'move', move: 'smash' }, { kind: 'foe', what: 'move', move: 'cut' }, { kind: 'foe', what: 'move', move: 'stomp' }, { kind: 'wait', frames: 45, secs: 0.8 }, ...shot('windup'),
+      { kind: 'wait', frames: 22, secs: 0.45 }, ...shot('blow'));
+  }
   if (fights.includes('bells')) {
     // (-fight bells, issue #800 family D: the bell walker's Tripo body: the Signal Market's sign automaton 7 m ahead, set to
     // the traveller's right, and the Salt Harbour's dock winch 11 m ahead; their bodies said in the log; standing, then

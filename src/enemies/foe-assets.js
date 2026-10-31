@@ -40,6 +40,8 @@ export const FOE_ASSETS = {
   worm: { folder: 'enemies/worm/', rig: 'landmarks.json' },
   rootknot: { folder: 'enemies/rootknot/', rig: 'landmarks.json' },
   wisp: { folder: 'enemies/wisp/', rig: 'landmarks.json' },
+  // (family G, #800: the two-legged humanoids on Tripo's biped rig, plans/tripo-biped.js)
+  mummerking: { folder: 'enemies/mummerking/', rig: 'skeleton.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -110,6 +112,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/rootknot/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/rootknot/landmarks.json', import.meta.url))]),
   wisp: (host, fs) => (host ? [host.readFile('enemies/wisp/body.glb'), host.readFile('enemies/wisp/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/wisp/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/wisp/landmarks.json', import.meta.url))]),
+  mummerking: (host, fs) => (host ? [host.readFile('enemies/mummerking/body.glb'), host.readFile('enemies/mummerking/skeleton.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/mummerking/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/mummerking/skeleton.json', import.meta.url))]),
 };
 function readNow(id) {
   try {
