@@ -123,9 +123,14 @@ test('no foe comes in inside the world: spots inside a solid are passed over (bu
 test('every built archetype in every one of its skins shows itself in every state too, calm or fighting (src/enemies/plans)', async () => {
   const { BUILT, ARCHETYPES } = await import('../src/enemies/archetypes.js');
   const { SKINS } = await import('../src/enemies/skins.js');
-  const failed = [], seen = new Set();
+  const { seeded } = await import('../src/motion-kit/gait.js'), { nextRigSeed } = await import('../src/motion-kit/rig.js');
+  const failed = [], seen = new Set(), random = Math.random;
+  let n = 0;
   for (const a of BUILT) for (const skin of Object.keys(SKINS[a])) for (const calm of [false, true]) {
     clearTargets();
+    // (each case on a seed of its own, not on how many foes and rigs came before it: a foe added to the roster shifted
+    //  every later one's draws, #800)
+    n++; Math.random = seeded(9000 + n * 13); nextRigSeed(9000 + n * 13);
     const P = player(v(0, 0, 0)), foes = world(P);
     foes.waveRest = 1e9;
     const f = foes.add(`${ARCHETYPES[a].kind}@${skin}`, v(0, 0, calm ? 14 : 8), { calm });
@@ -141,6 +146,7 @@ test('every built archetype in every one of its skins shows itself in every stat
     }
     foes.dispose();
   }
+  Math.random = random;
   clearTargets();
   assert.deepEqual(failed, []);
   for (const a of BUILT) assert.ok([...seen].some((t) => t.startsWith(`${a}@`) && t.includes(':wind:')), `${a} winds up an attack`);

@@ -117,6 +117,10 @@ export const FOE_VOICES = {
     hurt: [N('highpass', 2800, 0.18, 0.1, { rate: 1.4 }), R(420, CLAY, 0.22, 0.06), T('triangle', 260, 180, 0.1, 0.05)],
     burst: [N('bandpass', 900, 0.9, 0.16, { f1: 220, q: 0.9, rate: 0.6 }), N('highpass', 3200, 0.5, 0.08, { rate: 1.5 }), T('sine', 520, 120, 0.8, 0.06, { at: 0.1 })] },
   // ---- the camp tribe (issue #724): junk worn by ink
+  // (#800) the gourd mummer: its hollow gourd knocked and the ink in it sloshing; done, the gourd cracks and rolls
+  dunemummer: { family: 'gourd',
+    hurt: [R(420, CLAY, 0.22, 0.06), N('lowpass', 900, 0.1, 0.07, { rate: 0.6 })],
+    burst: [R(360, CLAY, 0.6, 0.07), N('lowpass', 600, 0.5, 0.12, { rate: 0.5, at: 0.08 }), C(3, 0.09, 900, 0.03, 0.06, { q: 2, at: 0.3 })] },
   mummer: { family: 'junk',    // its brass pot bonked and the stuffed sack thumped; done, the pot clanks down rolling and the ink splats
     hurt: [R(560, CLAY, 0.2, 0.06), N('lowpass', 900, 0.12, 0.12, { rate: 0.8, at: 0.02 })],
     burst: [R(520, CLAY, 0.5, 0.06), C(3, 0.12, 1500, 0.02, 0.08, { f1: 900, q: 3, at: 0.15 }), N('lowpass', 1000, 0.35, 0.16, { q: 0.7, rate: 0.5, at: 0.3 })] },

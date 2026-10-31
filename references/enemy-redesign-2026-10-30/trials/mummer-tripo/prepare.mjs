@@ -266,11 +266,11 @@ for (const side of ['Left', 'Right']) {
 }
 const skeleton = { frame: 'game: +z ahead, +y up, metres, feet on y 0', source: 'references/enemy-redesign-2026-10-30/keep-mummer/tripo/rigged.glb', scale: +S.toFixed(5), height: HEIGHT,
   joints, hands, widen: WIDEN, widened, clusters: C.map(hexOf), palette: REPAINT ? PALETTE : null };
-writeFileSync(join(HERE, 'skeleton.json'), JSON.stringify(skeleton, null, 1) + '\n');
+writeFileSync(join(HERE, '../../../../public/enemies/dunemummer/skeleton.json'), JSON.stringify(skeleton, null, 1) + '\n');
 
 const glb = writeGlb({ attrs: { POSITION: out.P, NORMAL: out.N, TEXCOORD_0: out.UV, COLOR_0: out.COL, JOINTS_0: out.J, WEIGHTS_0: out.W }, indices: I, image: png, name: 'dune mummer tripo lod',
   extras: { source: 'references/enemy-redesign-2026-10-30/keep-mummer/tripo/rigged.glb', tasks: { generation: '126e68e7-5536-4dc8-ac59-bad4f20e2977', rig: '34054a6c-90f3-417f-a3f8-d0b2bb7b0d09' }, triangles: I.length / 3, simplifyError: +err.toFixed(5), joints: joints.map((x) => x.name) } });
-writeFileSync(join(HERE, 'tripo-lod.glb'), glb);
+writeFileSync(join(HERE, '../../../../public/enemies/dunemummer/body.glb'), glb);   // (then its picture out: scripts/tripo/strip-picture.mjs)
 const sha = (x) => createHash('sha256').update(x).digest('hex').slice(0, 16);
 console.log(JSON.stringify({ source: { vertices: n0, triangles: I0.length / 3, texture: [srcTex.w, srcTex.h], joints: joints.length }, lod: { vertices: nv, triangles: I.length / 3, error: +err.toFixed(5), bytes: glb.length, sha: sha(glb) },
   texture: { size: TEX, clusters: skeleton.clusters, texels: area, pngBytes: png.length }, hands, widened, scale: S }));

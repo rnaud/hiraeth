@@ -40,7 +40,7 @@ export const MATTER = {
   jelly: 'flesh', moth: 'flesh', ray: 'flesh', worm: 'flesh', grunt: 'flesh', hulk: 'flesh', prowler: 'flesh', warlord: 'flesh',
   rootknot: 'plant',
   // spirits: ink, smoke, cloth and ember, and the junk the mummers wear
-  blot: 'spirit', shade: 'spirit', hound: 'spirit', marionette: 'spirit', wisp: 'spirit', mummer: 'spirit', mummerking: 'spirit',
+  blot: 'spirit', shade: 'spirit', hound: 'spirit', marionette: 'spirit', wisp: 'spirit', mummer: 'spirit', dunemummer: 'spirit', mummerking: 'spirit',
 };
 /** The kinds of matter that break into pieces (a stone body: none of the archetypes yet). */
 export const BREAKS = new Set(['machine', 'stone']);

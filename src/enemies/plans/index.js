@@ -30,6 +30,8 @@ import { oracleModel } from './oracle.js';
 import { crawlerModel } from './crawler.js';
 import { woodcutterModel } from './woodcutter.js';
 import { tripoWoodcutterModel } from './woodcutter-tripo.js';
+import { duneMummerModel } from './dune-mummer.js';
+import { tripoMummerModel } from './dune-mummer-tripo.js';
 import { foeSource } from '../foe-assets.js';
 
 // One body builder per body plan (docs/design/enemy-roster.md, "Build plan"): each exposes its joints to the
@@ -70,6 +72,8 @@ import { foeSource } from '../foe-assets.js';
 //   crawler.js    plan 29  the crawler (a knee-high droid dome on four legs, on the kit)
 //   woodcutter-tripo.js plan 8  the wood cutter (#800: Tripo's mesh on the brute's rig family, src/enemies/foe-assets.js;
 //                          woodcutter.js its direct body, standing in only while the mesh loads)
+//   dune-mummer-tripo.js plan 33  the dune mummer (#800: Tripo's rigged mesh on the humanoid clip rig; dune-mummer.js
+//                          its direct body, standing in only while the mesh loads)
 
 const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
@@ -77,7 +81,8 @@ const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, 
   grunt: gruntModel, hulk: hulkModel,
   sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel,
-  woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); } };
+  woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); },
+  dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); } };
 
 /**
  * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another

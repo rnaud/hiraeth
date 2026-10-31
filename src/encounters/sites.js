@@ -173,7 +173,8 @@ export const SITES = {
     { id: 'twitching-sand', kind: 'ambush', at: [515, 37.4, 288], heading: -0.51, foes: ['worm', 'worm'], sign: 'sand' },
     { id: 'skitter-nest', kind: 'nest', at: [263, 1.2, 309], heading: -1.18, foes: ['skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
     // (issue #769: a mummer of the troupe keeps this stash, where a stilt heron stood)
-    { id: 'mummer-hoard', kind: 'hoard', at: [354, 0.5, 456], heading: -3, foes: ['blot', 'mummer', 'blot'] },
+    // (issue #800: a gourd mummer keeps it with the mummer now, in a blot's place)
+    { id: 'mummer-hoard', kind: 'hoard', at: [354, 0.5, 456], heading: -3, foes: ['blot', 'mummer', 'dunemummer'] },
   ],
   arzach: [
     // (issue #769: a cliff crab by the fire, a storm ray circling on watch, where the herons were)
@@ -213,7 +214,8 @@ export const SITES = {
     { id: 'toad-nest', kind: 'nest', at: [360, 200, -105], heading: -0.85, foes: ['toad', 'toad', 'toad'] },
   ],
   glassdunes: [
-    { id: 'brute-fire', kind: 'camp', at: [175, 0.4, 62], heading: -1.32, foes: ['crab', 'crab', 'brute'], lookout: 'drone' },
+    // (issue #800: a bleached gourd mummer on the post, where a drone kept watch)
+    { id: 'brute-fire', kind: 'camp', at: [175, 0.4, 62], heading: -1.32, foes: ['crab', 'crab', 'brute'], lookout: 'dunemummer' },
     { id: 'twitching-sand', kind: 'ambush', at: [126, 1, 174], heading: -2.03, foes: ['worm', 'worm', 'worm'], sign: 'sand' },
     { id: 'shade-hoard', kind: 'hoard', at: [-84, 0, 209], heading: 1.88, foes: ['brute', 'shade'] },
     { id: 'crab-nest', kind: 'nest', at: [35, 1.2, 293], heading: -2.99, foes: ['crab', 'crab', 'crab', 'crab'] },

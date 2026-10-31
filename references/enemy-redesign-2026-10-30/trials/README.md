@@ -44,8 +44,8 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `gaze-one.mjs` | the same check for one variant or the row, the traveller to the foe's right front (the wood cutter's gaze pictures) |
 | `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its game asset (`public/enemies/woodcutter/`, since it landed): 2.4 m, decimated by geometry, cut into parts by geometry (Tripo's saw hand dropped), the texture repainted by part in the reference's colours with swatches, COLOR_0, landmarks (the cuts, the head's sphere, the visor, the disc) |
 | `mummer-tripo/generate.mjs`, `prepare.mjs` | the dune mummer's Tripo generation and rig (to `../keep-mummer/tripo/`) and its trial asset: 1.2 m, 12k LOD on Tripo's weights, the mittens widened, eight flat colours by part, COLOR_0, the skeleton (`--no-repaint --no-widen`: phase 2's asset) |
-| `mummer-tripo/model.js`, `node-source.mjs`, `closeups.mjs` | the Tripo mummer on the humanoid clip rig, Tripo's own skeleton posed directly; its source in node; the close rows (body, mask, mittens, the whack, clay) |
-| `mummer-tripo/archetype.js` | the dune mummer keyed as its own enemy, `dunemummer` (`duneMummerEntry()`: id, def, skins, weapons, sounds, places), not yet registered |
+| `../../../src/enemies/plans/dune-mummer-tripo.js`, `mummer-tripo/node-source.mjs`, `closeups.mjs` | the Tripo mummer on the humanoid clip rig (in the game since #800), Tripo's own skeleton posed directly; its source in node; the close rows (body, mask, mittens, the whack, clay) |
+| (`mummer-tripo/archetype.js`, gone) | the dune mummer keyed as its own enemy: registered since #800 as `ARCHETYPES.dunemummer` |
 | `../../../src/enemies/plans/woodcutter-tripo.js`, `woodcutter-tripo/source-node.mjs` | the Tripo wood cutter on the brute's rig family (the shared `woodcutterMotion`): rigid parts blended across the limbs' cuts, each world's own tool on the wrist, the head turning about its dome's centre; in the game since #800 (its asset in `public/enemies/woodcutter/`, loaded by `src/enemies/foe-assets.js`); its source in node for the motion audit |
 
 ## Shellback (`crab`), phase 2a and its fixes
@@ -389,6 +389,14 @@ docs/systems/foes.md, "The horned hound in the game". What the trial left open, 
 
 ## Dune mummer (`mummer` on the trial page; its own enemy `dunemummer` later), phase 2 and its fixes
 
+**In the game since 2026-10-30 (v2.39)** as its own enemy beside the mummer, called the gourd mummer in play:
+`ARCHETYPES.dunemummer` (written out from `duneMummerEntry()`, which went with `mummer-tripo/archetype.js`), its Tripo body
+`src/enemies/plans/dune-mummer-tripo.js` (moved from `mummer-tripo/model.js`) on `public/enemies/dunemummer/` (moved from
+this folder; `prepare.mjs` and `node-source.mjs` now use it there), every skin in its vertex colours, placed in the Desert and
+the Glass Dunes and in the Arena's run: docs/systems/foes.md, "The dune mummer". Its open items are done there: the mask
+broadened, the eye plugs pure black, the combat review's defend and dodge, Unity. The trial page still stands it in the
+mummer's slot (`foe=mummer`).
+
 The author picked **Tripo** for the dune mummer (2026-10-30), with its fixes first: the olive shade merged into one
 flat sage, broader mittens ([the fixes](#the-tripo-mummers-fixes)). Then a change of plan: **today's mummer (the
 pot-headed sack) stays in the game as it is, and the dune mummer becomes a new, separate enemy** with its own
@@ -534,7 +542,7 @@ author would rather not carry a texture for a foe this common, the direct one la
 mummer.** Landing it means registering `duneMummerEntry()` as its own archetype and skins, its body from the trial
 folder into `src/`, then its places in the worlds; the mummer stays as it is.
 
-### Not done (mummer)
+### Not done (mummer), as the trial left it (since landed: above)
 
 - Registering `dunemummer` (its archetype, skins, the asset moved into the game, a place in a world's roster), and its
   own changelog line with before/after pictures when it lands: the author's next step.

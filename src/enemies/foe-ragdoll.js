@@ -500,7 +500,8 @@ export function bodyShape(J, size, bulk = 1) {
     const b = j && own(j);
     if (!b) return;
     const r = reach(j, b);
-    R[i] = clamp(((foot ? r.x + r.y : r.x + r.z) / 2) * 0.9, R[i], 0.6, 2.6);
+    // (a body may draw its legs thicker than a person's 2.6 times: J.limbBulk, the dune mummer's tall rust boots, #800)
+    R[i] = clamp(((foot ? r.x + r.y : r.x + r.z) / 2) * 0.9, R[i], 0.6, J.limbBulk ?? 2.6);
   };
   for (const [k, side] of [[0, 'R'], [1, 'L']]) {
     limb(J.legs[k], RJ['hip' + side]); limb(J.knees[k], RJ['knee' + side]); limb(J.feet[k], RJ['foot' + side], true);

@@ -18,7 +18,7 @@ import { B3_HEIGHT, B3_JOINTS } from '../src/characters/traveller-b3-fit.js';
 /** The traveller: 1.75 m, his hips (the pelvis) at 0.955 m. */
 const TALL = B3_HEIGHT, HIP = B3_JOINTS.pelvis[1];
 /** The foes on two legs (the rest walk on more, crawl, roll, hover or swim under the sand). */
-const BIPEDS = ['mummer', 'mummerking', 'grunt', 'hulk', 'prowler', 'warlord', 'sentinel', 'fencer', 'shade', 'brute'];
+const BIPEDS = ['mummer', 'mummerking', 'grunt', 'hulk', 'prowler', 'warlord', 'sentinel', 'fencer', 'shade', 'brute', 'woodcutter', 'dunemummer'];
 /** Every foe in play: the built archetypes but the ones out of play (the Arena's and the gallery's only), and the temples' makers' machine. */
 const IN_PLAY = [...BUILT.filter((a) => !OUT_OF_PLAY.includes(a)).map((a) => ARCHETYPES[a].kind), 'machine'];
 
@@ -52,7 +52,7 @@ test('every biped in play stands at least as tall as the traveller, every other 
 });
 
 test('the grown ones: drawn GROWN times as built, their body with them; short as built, so the growth is what lifts them (#741)', () => {
-  assert.deepEqual(Object.keys(GROWN).sort(), ['crawler', 'grunt', 'mummer', 'skitter']);
+  assert.deepEqual(Object.keys(GROWN).sort(), ['crawler', 'dunemummer', 'grunt', 'mummer', 'skitter']);
   const { out, done } = standing(Object.keys(GROWN).map((a) => ARCHETYPES[a].kind));
   for (const [a, k] of Object.entries(GROWN)) {
     const A = ARCHETYPES[a], { top, f } = out[A.kind];

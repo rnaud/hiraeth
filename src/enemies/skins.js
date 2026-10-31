@@ -238,6 +238,14 @@ export const SKINS = {
     // (met only in the Arena until the mummers take their camps in the Glass Dunes: the roster v3's order, world by world)
     glassdunes: { name: 'bleached mummer', arena: true, palette: { sack: '#d8c8a3', patch: '#8fb1d2', patch2: '#e3ae4f', rag: '#c2ae86', rope: '#c09a62', brass: '#cbb062', verd: '#8a9a6a', ink: '#15121c', sheen: '#7a6ab8', wood: '#e2d7bd', iron: '#a7a196', eye: '#fbf6e8', flare: '#ffcf6a', rock: '#cbb898' }, props: ['tall'] },
   },
+  // (issue #800) the dune mummer, drawn to the rebuild's approved image (references/enemy-redesign-2026-10-30/keep-mummer/):
+  // its home skin wears the reference's own eight flat colours (sage gourd, cream mask, salmon patch, rust gauntlets and
+  // boots, sand toe caps: src/enemies/plans/dune-mummer-tripo.js); the Glass Dunes' is bleached like the mummer's twin
+  // there (a cream gourd, a sky patch, saffron gloves), from these palettes' roles
+  dunemummer: {
+    desert: { name: 'gourd mummer', palette: { sack: '#879d88', patch: '#c9806a', patch2: '#c46c3c', rag: '#dfb47c', rope: '#bd6438', brass: '#b8963f', verd: '#7d8e5a', ink: '#17131f', sheen: '#6a58a8', wood: '#f3e4ad', iron: '#8a8172', eye: '#fbf6e8', flare: '#ffcf6a', rock: '#c2a27a' }, props: [] },
+    glassdunes: { name: 'bleached gourd', palette: { sack: '#d8c8a3', patch: '#8fb1d2', patch2: '#e3ae4f', rag: '#c2ae86', rope: '#c09a62', brass: '#cbb062', verd: '#8a9a6a', ink: '#15121c', sheen: '#7a6ab8', wood: '#e2d7bd', iron: '#a7a196', eye: '#fbf6e8', flare: '#ffcf6a', rock: '#cbb898' }, props: ['tall'] },
+  },
   // sheet-1 (references/enemy-archetypes/mummerking/sheet-1.jpg) is the Desert's mummer king: a dark oak barrel with iron
   // hoops for a chest, rag in indigo, ochre and sand over it, a green-patina copper cauldron, a pale cart wheel crown, a
   // bright brass horn, glossy ink limbs, a door beam of weathered oak.

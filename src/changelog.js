@@ -33,8 +33,9 @@ export const CHANGELOG = [
           { where: 'Handheld, worst', before: 16.8, after: 16.8 },
           { where: 'new GPU programs made at an arrival', before: 0, after: 0 },
         ], source: 'scripts/enemy-roster/arrivals.mjs, before at 192711a63: the new body is prepared with the rest while the Arena loads, so no hound arrives with anything left to build or compile' }] },
-      // a new foe (#800)
+      // the rebuild's new foes (#800)
       'A new foe, the wood cutter: a sage-green work robot half the furnace brute’s height, with a pale dome of a head, one visor slit that turns to watch you, and a toothed rust saw that spins up before it slams. It fights like a brute in a smaller body, so get round its side and jump the quake. One stands rusted mid-cut in Lorn’s Deep Wood, at the edge of the meadow north of the furnace brute; hedge cutters with shears walk Viridel’s gardens, and ladle hands with a clamp and a ladle work the Moon Foundry’s floor. The Arena brings it too.',
+      'Another new foe, the gourd mummer: a sage-green gourd that is head and body at once, with a broad cream mask, two black slits for eyes and big rust gloves and boots. It camps with the mummers and fights as they do, so knock its mask off and it runs, and guard its club to send it flying. Look for it in the Desert, keeping the mummers’ stash with one of them, and in the Glass Dunes, where bleached gourd mummers come in pairs and one keeps watch over the furnace walker’s camp. The Arena brings it too.',
     ],
   },
   {

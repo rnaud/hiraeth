@@ -761,6 +761,44 @@ export const ARCHETYPES = {
     }),
     note: 'Mummers: knock the mask off and they run. Guard a club and it flies.',
   },
+  // the dune mummer (issue #800, the author 2026-10-30: "I also liked the old mummer with the helmet, we should also keep
+  // both"): a new foe beside the mummer, not its replacement, drawn to the rebuild's approved image (a sage gourd that is
+  // head and body at once, a cream oval mask with two black slits, big rust gauntlets and boots). The mummer's kit of moves,
+  // windows, mask, weapons and disarm, copied (changing one leaves the other); its own sound (a hollow gourd's knock) and
+  // plan (its own steps). Its body is Tripo's (src/enemies/plans/dune-mummer-tripo.js, public/enemies/dunemummer/).
+  dunemummer: {
+    name: 'gourd mummer', family: 'spirit', plan: 'dunemummer', planNo: 33, role: 'camp skirmisher', tier: 1, ranged: true,
+    status: 'built', kind: 'dunemummer', was: [], sound: 'gourd', drop: 2, art: { reference: 'references/enemy-redesign-2026-10-30/keep-mummer/ad94a6b0-55ba-461e-9577-d745036565ae-1.png', skin: 'desert' },
+    manifestation: 'dressed-up ink: a hollow sage gourd stuffed with ink, a cream mask with two slits for a face, playing at keeping camp',
+    moves: ['its weapon’s blow (a club’s overhead whack, a spear’s jab, a bow’s volley)', 'rock (with nothing in its hands)'],
+    answers: ['knock the mask off (a headshot, a charged cut, a riposte)', 'guard the club: it flies out of its hands', 'shoot the archer', 'reach the lookout before its horn'],
+    idle: 'squats round a fire it does not need, rocking; keeps a stash or a lookout post for the camp',
+    def: S({
+      name: 'gourd mummer', hp: 2, hook: 'light', radius: 0.42, height: 1.1, speed: 3.4, sight: 17, giveUp: 34, reach: 16, clamber: true,
+      tone: '#c9973f', takes: { shoot: 1, fire: 1.5 },
+      calm: { mode: 'sit', provoke: 7, alarm: 14 },
+      weapons: { club: 3, spear: 2, bow: 1.5 },
+      mask: { below: 0.5, hits: 1 },
+      // its weapon knocked away (a parried or guarded blow): it lands `dist` m off; it runs for it and bends to pick it up
+      disarm: { dist: 2.8, fly: 0.5, pickup: 1.1 },
+      attacks: [
+        // both arms high, the club behind its mask, leaning back on its heels so its belly sticks out; a hop forward as it swings
+        { id: 'whack', name: 'overhead whack', weapon: 'club', armed: true, shape: 'cone', range: 2.1, angle: 0.75, damage: 0.5, wind: 0.75, strike: 0.3, contact: 0.55, lunge: 1.3, max: 2.2, weight: 2.5, dodge: 'side', onParry: 'disarm', guardDisarms: true,
+          tell: 'both arms go up, the club behind its mask; it leans back on its heels, belly out', counter: 'guard it and the club flies out of its hands; or step aside' },
+        // it plants its feet, draws the pole back under its arm, the pot tipped down along it; then the jab
+        { id: 'jab', name: 'spear jab', weapon: 'spear', armed: true, shape: 'lane', width: 0.8, range: 2.5, damage: 0.5, wind: 0.7, strike: 0.2, contact: 0.5, lunge: 0.6, max: 2.6, weight: 2.5, dodge: 'side', onParry: 'disarm',
+          tell: 'it plants its feet and draws the pole back under its arm, the pot tipped down along it', counter: 'parry it (the pole flies), or step inside its reach' },
+        // the bow held sideways, leaning back with the cord at its mask; a sharpened stick flies straight (no mark)
+        { id: 'volley', name: 'volley', weapon: 'bow', armed: true, shape: 'lane', width: 0.7, range: 16, damage: 0.5, wind: 0.95, strike: 0.2, contact: 0.6, track: 0.6, min: 5, max: 16, weight: 3, onParry: 'cut',
+          tell: 'it holds the bow sideways and leans back, the cord drawn to its mask', counter: 'guard the stick, shoot the archer, or close in' },
+        // with nothing in its hands: it squats, digs both hands in, lifts a rock over its mask; a lob, its mark shown
+        { id: 'rock', name: 'rock', unarmed: true, shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.3, damage: 0.5, wind: 0.85, min: 3, max: 14, weight: 2,
+          tell: 'it squats, digs both hands into the ground and lifts a rock over its mask', counter: 'walk out of the mark, or cut the rock back' },
+      ],
+      recover: 1.0, cool: [1.3, 2.4], hit: 0.35,
+    }),
+    note: 'Gourd mummers: knock off the mask and they run. Guard the club.',
+  },
   mummerking: {
     name: 'mummer king', family: 'spirit', plan: 'mummerking', planNo: 24, role: 'camp chief', tier: 3, ranged: true,
     status: 'built', kind: 'mummerking', was: [], sound: 'junk', drop: 8, art: 'sheet-1',
@@ -1042,7 +1080,7 @@ export const ARCHETYPES = {
  * centre, which still lies past its grown body (tests/foe-heights.test.js): the mummer and the grunt to 1.8 m (he is
  * 1.75), the skitter and the crawler to his hip (0.95 m).
  */
-export const GROWN = { mummer: 1.5, grunt: 1.45, skitter: 1.75, crawler: 1.5 };
+export const GROWN = { mummer: 1.5, dunemummer: 1.5, grunt: 1.45, skitter: 1.75, crawler: 1.5 };
 /** A def grown k times: its body's measures (m), not its senses, its speed or its attacks' reach. */
 export function grow(def, k) {
   for (const key of ['radius', 'height', 'hover']) if (Number.isFinite(def[key])) def[key] *= k;

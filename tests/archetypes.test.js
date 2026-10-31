@@ -36,10 +36,10 @@ function player(at = v(), o = {}) {
 const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
 // (issue #724: the humanoid foes on clips join the roster world by world, docs/design/enemy-roster-v3.md: the mummers
 // keep camp in the Desert first, the rest of their worlds and skins to come; until then they stand in fewer worlds)
-const ROLLING_OUT = new Set(['mummer', 'mummerking']);
+const ROLLING_OUT = new Set(['mummer', 'mummerking', 'dunemummer']);   // (the camp tribe, met where its camps are: the Desert, and the dune mummer the Glass Dunes too, #800)
 // (issue #726: roster v4's monsters, one skin in every world; staged at a site behind a flag until the rosters take them)
 const STAGED_V4 = new Set(['grunt', 'hulk', 'prowler', 'warlord']);
-const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'the quick one', 'the elite', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'mortar', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror', 'close heavy']);
+const ROUTE_ROLES = new Set(['droid duellist', 'droid caster', 'droid scout', 'camp rank and file', 'camp chief', 'rank and file', 'the heavy', 'the quick one', 'the elite', 'rusher', 'tank', 'swarm', 'trapper', 'lobber', 'flanker', 'reach', 'charger', 'grappler', 'support', 'disruptor', 'mortar', 'air striker', 'ambusher', 'sniper', 'area denier', 'siege', 'tether', 'heavy', 'duelist', 'stalker', 'puppeteer', 'bombardier', 'mirror', 'close heavy', 'camp skirmisher']);
 // (issue #726: roster v4's droids are met in the Arena alone until the world rosters take them, a later batch)
 const ARENA_ONLY = new Set(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].roster === 'v4'));
 // (issues #769, #772: the horn lizard, the stilt heron and the marionette out of the worlds on the route, src/foe-worlds.js)
@@ -49,10 +49,10 @@ const kin = (w) => Object.values(PARTS).find((p) => p.includes(w)) ?? [w];
 const worldOf = (w) => kin(w)[0];
 
 // ------------------------------------------------------------------------------------------- the tables
-test('the roster: 33 archetypes, 12 creatures, 10 machines, 7 spirits and 4 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
-  assert.equal(ARCHETYPE_IDS.length, 33);
+test('the roster: 34 archetypes, 12 creatures, 10 machines, 8 spirits and 4 monsters, each its own role, plan and answers; no two machines or spirits share a plan', () => {
+  assert.equal(ARCHETYPE_IDS.length, 34);
   const fam = (f) => ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].family === f);
-  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length, fam('monster').length], [12, 10, 7, 4]);
+  assert.deepEqual([fam('creature').length, fam('machine').length, fam('spirit').length, fam('monster').length], [12, 10, 8, 4]);
   assert.equal(new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].role)).size, ARCHETYPE_IDS.length, 'a job each');
   for (const a of ARCHETYPE_IDS) {
     const A = ARCHETYPES[a];
@@ -80,7 +80,7 @@ test('the roster: 33 archetypes, 12 creatures, 10 machines, 7 spirits and 4 mons
     const plans = fam(f).map((a) => ARCHETYPES[a].planNo + ARCHETYPES[a].plan);
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
-  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6, the fencer, the mummers and roster v4\'s monsters and droids, the wood cutter: all 33 are built');
+  assert.deepEqual(BUILT.sort(), [...ARCHETYPE_IDS].sort(), 'batches 1 to 6, the fencer, the mummers and roster v4\'s monsters and droids, the wood cutter and the dune mummer: all 34 are built');
   for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');

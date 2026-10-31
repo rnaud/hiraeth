@@ -2736,7 +2736,7 @@ a root knot's pack in Lorn II has root-edged blots round it rather than standing
 
 | World (part) | Stage | Lead | Packs (weights) | Sites (what changed) | Placed | Fight temple (light kinds) |
 |---|---|---|---|---|---|---|
-| Desert | 0 | blot | blot 4, worm 3, skitter 3, mummer 2 | the heron's hoard: a mummer and two blots (`mummer-hoard`) | lamp tripod (the cistern pump) | blots, skitters, worms; last wave a tripod and two mummers |
+| Desert | 0 | blot | blot 4, worm 3, skitter 3, mummer 2, dunemummer 1.5 (#800) | the heron's hoard: a mummer and a blot, and since #800 a gourd mummer (`mummer-hoard`) | lamp tripod (the cistern pump) | blots, skitters, worms; last wave a tripod and two mummers |
 | Vael (the plain) | 0 | ray | ray 4, blot 3, crab 2 (the sky stones' cliff crab: `skinFor` takes a part's sibling skin) | `plain-fire`: two blots and a crab, a storm ray on watch | | blots, rays, crabs; last wave a crab and two rays |
 | Vael II (the sky stones) | 1 | crab | crab 4, ray 3, jelly 2, blot 2 | unchanged | | (Vael's) |
 | Lorn | 1 | toad | toad 3.5, rootknot 3, skitter 3, blot 1.5 | `toad-fire`: a blot on watch | | toads, root knots, skitters, blots |
@@ -2744,7 +2744,7 @@ a root knot's pack in Lorn II has root-edged blots round it rather than standing
 | Viridel | 2 | moth | moth 4, rootknot 2, brute 1.5, woodcutter 1.5 (#800), blot 1 | `brute-beat`: a hedge cutter and a blot (#800) | | unchanged |
 | Underwater City | 2 | crab | crab 4, jelly 3, ray 2.5, tripod 2 | unchanged | | unchanged |
 | City-Shaft | 2 | tripod | tripod 4, toad 3.5, drone 2.5, shade 2.5, blot 1.5 | the lizards' fire: two blots and a toad (`blot-fire`) | | blots, drones, toads, tripods |
-| Glass Dunes | 3 (#796) | brute | brute 4, crab 3, ray 2, worm 2, drone 2, shade 1 | unchanged | | unchanged |
+| Glass Dunes | 3 (#796) | brute | brute 4, crab 3, ray 2, worm 2, drone 2, dunemummer 2 (#800), shade 1 | `brute-fire`: a bleached gourd mummer on the lookout's post (#800) | | unchanged |
 | Buried Machine | 3 | worm | worm 3.5, skitter 3.5, tripod 3, centipede 3, cart 2, blot 1 | `centipede-fire`: two centipedes and a blot; `cart-beat`: a cart and a mining tripod | | skitters, worms, blots, carts |
 | Moon Foundry | 3 | cart | cart 4, skitter 3.5, wisp 3, brute 2.5, woodcutter 2 (#800), fencer 1.5, blot 1 | `fencer-fire`: two blots and a fencer; `fencer-beat`: a fencer and a ladle hand (#800) | | skitters, blots, carts, wisps |
 | Garden of Spheres | 3 | roller | roller 4, centipede 4, hound 4 (late), shade 3.5, drone 1, jelly 1 | `hound-shadow`: a halo shade and two hounds | (the glass puppet gone) | last wave a pearl centipede and two hounds |
@@ -2890,6 +2890,33 @@ and the sweep block from 0.5 s and parry at 0.06–0.12 s, as the brute's; an ev
 earlier one carries you out of its shorter reach; the back flip and the side hop both start a flurry off its blows.
 Unity: `-fight newfoes` (engine/unity/game.js) sets two down in the Arena and pictures them standing, winding up and
 landing the slam.
+
+
+### The dune mummer (#800, `src/enemies/plans/dune-mummer-tripo.js`, `public/enemies/dunemummer/`)
+
+The second of the rebuild's new foes: `ARCHETYPES.dunemummer` beside today's mummer (kept as it was, the author: "I also
+liked the old mummer with the helmet, we should also keep both"). Its def is the mummer's, copied (its whack, jab, volley
+and rock, windows, weapons per spawn, the mask knocked off, the disarm; grown ×1.5 as the mummer, #741); its own plan
+`dunemummer` (its steps), its own sound family `gourd` (a lower hooting through its slits and a hollow knock; the voices'
+rule: at most two archetypes a family) and voice, fight and tier copied, death a spirit's: the gourd slumps and empties
+where it stands, no ragdoll (thrown, Tripo's tall boots lay 3 cm in the ground, deeper than the ragdoll's fit reaches).
+Players call it the **gourd mummer** (the mummer's Desert skin is already "dune mummer"): its skins are the Desert's
+**gourd mummer** (the reference's eight flat colours) and the Glass Dunes' **bleached gourd**.
+
+**Its body** is the trial's Tripo body, moved into the game: Tripo's own skeleton posed directly by the humanoid clip rig,
+its weights folded onto the rig's joints (the trials README). Its asset `public/enemies/dunemummer/body.glb` (the picture
+stripped) and `skeleton.json`, loaded by `src/enemies/foe-assets.js` as the wood cutter's; every skin in vertex colours.
+Fixed on the way in: the mask broadened (`MASK_WIDEN` 1.22 across its middle, `MASK_OUT` 8 mm out of the hood, in the
+source's own positions once, so the gourd's rim follows it: 0.27 m across), its eye plugs pure black, the body's
+geometry cut down to the vertices it draws (the mask's own were left on the face as it flew off).
+
+**Where** (delegated; within #796's stages): the Desert's packs (stage 0, weight 1.5 beside the mummers' 2, the mummer's
+numbers: as gentle) and the mummers' stash (`mummer-hoard`: a blot's place); the Glass Dunes' packs (stage 3, weight 2,
+pairs filling round the brutes: light foes, never a spike) and the lookout's post at `brute-fire` (a drone's place). A
+pair, as the mummers (`GROUP`, `GROUP_COST`); never the first pack (`FROM`). The Arena's run takes both skins. Combat check
+(`combat-review` dodge, defend with the traveller held 1.6 m before it): the back flip and the side hop start a flurry
+off its blows, as the mummer's; guarded, its jab blocks from 0.5 s and parries at 0.06–0.12 s, an evade at 0.08–0.15 s swallows it.
+Unity: `-fight newfoes` sets one down 3.5 m ahead with the two wood cutters (its body said in the log: the Tripo one).
 
 
 ## Tests

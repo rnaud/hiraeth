@@ -27,7 +27,8 @@ export const WORLDS = {
   // (issue #724: the mummers keep camp in the dunes, a pair of them now and then out walking; the blot still leads)
   // (issues #769, #772: the stilt heron, the horn lizard and the marionette out of the worlds, OUT_OF_PLAY below; each
   // world's other own foes fill their places)
-  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, skitter: 3, mummer: 2 }, placed: ['tripod'], sites: ['mummerking'] },
+  // (issue #800: the gourd mummers, the dune mummer, camp with them: the mummer's numbers, so the first world as gentle)
+  desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, skitter: 3, mummer: 2, dunemummer: 1.5 }, placed: ['tripod'], sites: ['mummerking'] },
   // (Vael's plain: the cliff crab of its sky stones in the heron's place, #769)
   arzach: { stage: 0, lead: 'ray', roster: { ray: 4, blot: 3, crab: 2 } },
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
@@ -46,7 +47,8 @@ export const WORLDS = {
   // and nomads, and the Clock-House's drones, which came with the house; its rooms the makers' machines and drones)
   // (issue #796, the author 2026-10-30: the late packs harder again. Each stage's stats come one world earlier: the
   // Glass Dunes on stage 3's (tougher, heavier blows, three strikers, tiers), the Floating City on the Market's stage 4)
-  glassdunes: { stage: 3, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
+  // (issue #800: the bleached gourd mummers, pairs filling the late packs: light ones among the brutes, never a spike)
+  glassdunes: { stage: 3, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1, dunemummer: 2 }, temple: ['machine', 'drone'] },
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, centipede: 3, skitter: 3.5, blot: 1 }, temple: ['machine', 'drone'] },
   // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
   // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
@@ -95,10 +97,10 @@ export const OUT_OF_PLAY = ['lizard', 'heron', 'marionette'];
 export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', temple: ['machine'], shade: 0, stage: 1 };
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
-export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2 };
+export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2, dunemummer: 2 };
 /** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
-export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2, mummer: 2 };
-export const FROM = { wisp: 1, skitter: 1, mummer: 1, mummerking: 3, machine: 2, brute: 1, woodcutter: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
+export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2, mummer: 2, dunemummer: 2 };
+export const FROM = { wisp: 1, skitter: 1, mummer: 1, dunemummer: 1, mummerking: 3, machine: 2, brute: 1, woodcutter: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
 /** A big lead takes this many of a pack's places. */
 export const COSTS = { mummerking: 2, machine: 2, brute: 2, woodcutter: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
 /** The places a kind takes in a pack: a group its group's, a big lead its own, else one. */

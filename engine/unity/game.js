@@ -990,12 +990,12 @@ function makePlan(args) {
   if (fights.includes('newfoes')) {
     // (-fight newfoes, issue #800: the enemy rebuild's new foes, each a Tripo body loaded through the host (src/enemies/
     // foe-assets.js): the wood cutter in its home skin 5 m ahead, set to the traveller's right, and in the Moon Foundry's
-    // 8 m ahead; their bodies said in the log; standing, then each winding up its slam (its arms over its head), then the
-    // blow landed (the saw and the clamp on the ground))
+    // 8 m ahead, the gourd mummer 3.5 m ahead; their bodies said in the log; standing, then each winding up its slam (its arms
+    // over its head; the mummer its club's whack), then the blow landed (the saw and the clamp on the ground))
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-newfoes-${name}.png` }] : []);
-    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'woodcutter@perdide2', dist: 5, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['woodcutter'] }, { kind: 'foe', what: 'woodcutter@moonfoundry', dist: 8, hp: 99, tier: 0 },
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'woodcutter@perdide2', dist: 5, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['woodcutter'] }, { kind: 'foe', what: 'woodcutter@moonfoundry', dist: 8, hp: 99, tier: 0 }, { kind: 'foe', what: 'dunemummer@desert', dist: 3.5, hp: 99, tier: 0 },
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bodies' }, ...shot('stand'),
-      { kind: 'foe', what: 'move', move: 'slam' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
+      { kind: 'foe', what: 'move', move: 'slam' }, { kind: 'foe', what: 'move', move: 'whack' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
       { kind: 'wait', frames: 22, secs: 0.45 }, ...shot('blow'));
   }
   if (fights.includes('monsters')) {

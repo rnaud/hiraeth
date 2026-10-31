@@ -29,7 +29,7 @@ export const SLOPE = {
     tripod: { follow: 1, upright: 0.6 }, cart: { follow: 1 }, bell: { follow: 1, upright: 0.5 }, brute: { follow: 1, upright: 0.5 }, woodcutter: { follow: 1, upright: 0.5 },
     blot: { follow: 1 }, shade: { follow: 1, upright: 0.3 }, fencer: { follow: 1, upright: 0.4 },
     // (the humanoids on clips stand upright and reach the slope with their feet: src/enemies/humanoid-rig.js PLANT)
-    mummer: { follow: 1, upright: 1 }, mummerking: { follow: 1, upright: 1 }, grunt: { follow: 1, upright: 1 }, hulk: { follow: 1, upright: 1 },
+    mummer: { follow: 1, upright: 1 }, dunemummer: { follow: 1, upright: 1 }, mummerking: { follow: 1, upright: 1 }, grunt: { follow: 1, upright: 1 }, hulk: { follow: 1, upright: 1 },
     sentinel: { follow: 1, upright: 1 }, crawler: { follow: 1 }, prowler: { follow: 1, upright: 1 }, warlord: { follow: 1, upright: 1 },   // (issue #726; the oracle hovers: level)
   },
 };

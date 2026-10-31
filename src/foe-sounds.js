@@ -172,6 +172,11 @@ export const FOE_CALLS = {
     cry: [N('bandpass', 400, 0.5, 0.1, { f1: 1200, q: 1, rate: 0.6 })],
     bark: [N('bandpass', 800, 0.15, 0.12, { q: 1, rate: 0.7 })],
     idle: [C(4, 0.08, 2800, 0.01, 0.05, { q: 2 }), N('lowpass', 500, 0.3, 0.05, { rate: 0.5 })] },
+  gourd: { ref: 1.1,     // (#800) the gourd mummer: a lower hooting through its slits, the hollow gourd knocking
+    alert: [G(300, 420, 0.14, 0.15, 'u', { wave: 'triangle' }), G(320, 450, 0.14, 0.15, 'u', { wave: 'triangle', at: 0.17 }), R(520, CLAY, 0.12, 0.03, { at: 0.06 })],
+    cry: [G(220, 400, 0.45, 0.16, 'o', { am: 10, depth: 0.5 })],
+    bark: [G(340, 250, 0.12, 0.16, 'o'), R(480, CLAY, 0.1, 0.03)],
+    idle: [G(270, 250, 0.12, 0.1, 'u', { wave: 'triangle' }), R(560, CLAY, 0.1, 0.02, { at: 0.15 })] },
   junk: { ref: 1.1,      // the mummers: a hooting chatter through the mask, the pot rattling
     alert: [G(380, 520, 0.14, 0.15, 'o', { wave: 'triangle' }), G(400, 560, 0.14, 0.15, 'o', { wave: 'triangle', at: 0.17 }), C(3, 0.05, 1600, 0.02, 0.06, { q: 3, at: 0.05 })],
     cry: [G(260, 480, 0.45, 0.16, 'a', { am: 12, depth: 0.5 })],
@@ -220,6 +225,7 @@ export const FOE_MOVES = {
   strings: { stride: 0.9, step: [C(1, 0, 1500, 0.02, 0.06, { q: 3 })] },
   ember: { period: 0.8, step: [C(2, 0.05, 3000, 0.01, 0.04, { q: 2 })] },
   mummer: { stride: 0.8, step: [N('lowpass', 700, 0.06, 0.08, { rate: 0.7 }), C(1, 0, 1700, 0.015, 0.03, { q: 3, at: 0.01 })] },
+  dunemummer: { stride: 0.8, step: [N('lowpass', 520, 0.07, 0.09, { rate: 0.6 }), R(700, CLAY, 0.05, 0.012, { at: 0.01 })] },   // (#800: the rust boots' soft thud, the gourd's knock)
   mummerking: { stride: 1.3, step: [N('lowpass', 250, 0.16, 0.2, { rate: 0.45 }), R(500, CLAY, 0.2, 0.02)] },
   monster: { stride: 0.9, ref: 1.3, step: [N('lowpass', 500, 0.07, 0.1, { rate: 0.7 })] },
   machine: { stride: 1.2, step: [N('lowpass', 260, 0.16, 0.18, { rate: 0.45 }), C(1, 0, 1100, 0.03, 0.06, { q: 3, at: 0.01 })] },   // the tripod's iron feet

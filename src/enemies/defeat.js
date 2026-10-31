@@ -65,6 +65,9 @@ export const DEFEATS = {
   marionette: { time: 1.3, land: { at: [0.15, 0.45], to: 0 }, slack: true, puff: 'ink' },
   // (issue #724: a mummer's sack slumps to the sand and empties)
   mummer: { time: 0.9, sag: { y: -0.3, at: [0, 0.4] }, squash: { sy: 0.35, sxz: 1.5, at: [0.3, 0.9] }, puff: 'ink' },
+  // (#800: the gourd mummer's gourd slumps and empties where it stands, a spirit's going (no ragdoll: Tripo's tall boots,
+  // thrown, lay 3 cm in the ground, deeper than the ragdoll's fit to its drawn limbs reaches)
+  dunemummer: { time: 0.9, ragdoll: false, sag: { y: -0.3, at: [0, 0.4] }, squash: { sy: 0.35, sxz: 1.5, at: [0.3, 0.9] }, puff: 'ink' },
   // humanoids on the rig ragdoll (issue #750); these are their falls past RAGDOLL.most: onto their knees, then over the way
   // the blow pushed them (forward when struck from behind, back when struck from the front)
   mummerking: { time: 1.4, sag: { y: -0.6, at: [0, 0.45] }, topple: { angle: 1.0, blow: true, at: [0.35, 0.95] }, puff: 'ink' },
@@ -82,7 +85,7 @@ export const DEATHS = {
   centipede: 'long', rootknot: 'plant', roller: 'shell', worm: 'burrower',
   jelly: 'flyer', moth: 'flyer', ray: 'flyer', drone: 'flyer', wisp: 'flyer', oracle: 'flyer',
   tripod: 'machine', cart: 'machine', bell: 'machine', brute: 'machine', woodcutter: 'machine', crawler: 'machine',
-  blot: 'spirit', shade: 'spirit', marionette: 'spirit', mummer: 'spirit',
+  blot: 'spirit', shade: 'spirit', marionette: 'spirit', mummer: 'spirit', dunemummer: 'spirit',
   grunt: 'humanoid', hulk: 'humanoid', prowler: 'humanoid', warlord: 'humanoid', sentinel: 'humanoid', fencer: 'humanoid', mummerking: 'humanoid',
 };
 

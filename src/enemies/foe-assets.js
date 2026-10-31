@@ -20,6 +20,7 @@ import * as THREE from 'three';
 
 export const FOE_ASSETS = {
   woodcutter: { folder: 'enemies/woodcutter/', rig: 'landmarks.json' },
+  dunemummer: { folder: 'enemies/dunemummer/', rig: 'skeleton.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -56,6 +57,8 @@ const made = (glb, rig) => ({ ...glbGeometry(glb), rig: JSON.parse(text(rig)) })
 const READ = {
   woodcutter: (host, fs) => (host ? [host.readFile('enemies/woodcutter/body.glb'), host.readFile('enemies/woodcutter/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/woodcutter/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/woodcutter/landmarks.json', import.meta.url))]),
+  dunemummer: (host, fs) => (host ? [host.readFile('enemies/dunemummer/body.glb'), host.readFile('enemies/dunemummer/skeleton.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/dunemummer/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/dunemummer/skeleton.json', import.meta.url))]),
 };
 function readNow(id) {
   try {

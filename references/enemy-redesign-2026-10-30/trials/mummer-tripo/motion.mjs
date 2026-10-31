@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { TRIAL_BUILDERS } from '../../../../src/enemies/plans/index.js';
 import { duneMummerModel } from '../../../../src/enemies/plans/dune-mummer.js';
-import { tripoMummerModel } from './model.js';
+import { tripoMummerModel } from '../../../../src/enemies/plans/dune-mummer-tripo.js';
 import { tripoMummerSource } from './node-source.mjs';
 import { loadClips, slideArena, measure, SCENARIOS, footRoots } from '../../../../scripts/motion-audit/foe-slide.mjs';
 import { footBall } from '../../../../src/enemies/humanoid-rig.js';

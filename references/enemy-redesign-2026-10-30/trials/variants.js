@@ -43,11 +43,13 @@ async function tripoHound() {
 }
 const BUILD = { crab: { direct: async () => shellbackModel, tripo: () => tripoBuilder('crab') } };
 BUILD.hound = { direct: async () => broadHoundModel, tripo: tripoHound };
-// the dune mummer (#800 phase 2): direct in src/enemies/plans/dune-mummer.js, Tripo in mummer-tripo/
+// the dune mummer (#800 phase 2; in the game since as its own enemy, `dunemummer`): direct in
+// src/enemies/plans/dune-mummer.js, Tripo in src/enemies/plans/dune-mummer-tripo.js on the game's asset; in the mummer's slot here
 BUILD.mummer = { direct: async () => duneMummerModel, tripo: async () => {
-  const { loadTripoMummer, tripoMummerModel } = await import('./mummer-tripo/model.js');
-  sources.mummer ??= await loadTripoMummer(`${here}mummer-tripo/`);
-  return (skin) => tripoMummerModel(skin, sources.mummer);
+  const [{ tripoMummerModel }, { loadFoeAssets, foeSource }] = await Promise.all([import('/src/enemies/plans/dune-mummer-tripo.js'), import('/src/enemies/foe-assets.js')]);
+  await loadFoeAssets(['dunemummer']);
+  sources.mummer ??= foeSource('dunemummer');
+  return (skin) => ({ ...tripoMummerModel(skin, sources.mummer), trial: 'tripo' });
 } };
 BUILD.brute = { direct: async () => woodcutterModel, tripo: () => tripoBuilder('brute') };
 
