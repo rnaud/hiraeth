@@ -1993,7 +1993,7 @@ Signal Market (stage 4), Normal, before → after, time to clear and hearts lost
 tests/foe-armour.test.js. Unity: `-fight armour` (engine/unity/game.js: a plated bell, three charged cuts, its banded
 tier).
 
-### The lamp tripod's light (v2.35, issue #756, `src/enemies/plans/piston.js` `SPOT`, `Foes.lampLight`)
+### The lamp tripod's light (v2.35, issue #756, `src/enemies/plans/piston-legacy.js` `SPOT`, `Foes.lampLight`)
 
 The author: "some lamp enemies feel like they have a cone of light but it's not real light? It's just a weird floating
 cone." The lamp tripod's searchlight was a solid, inked, glowing open cone 0.8-1.1 m long off its lens, lighting nothing (no
@@ -2934,6 +2934,38 @@ did. Its eyes are the painted ones' size and place, slid by the gaze. Skins reco
 and keep their dress: the cloud ray's mist, the scrap ray's patches and wire, the glass manta's facets, the porcelain
 ray's ribbons, the abyss ray's long tail and white ink. Drawn: 3 meshes a body against the sky ray's 60. Tests:
 `tests/storm-ray-tripo.test.js`.
+
+### Family E on Tripo bodies: the droids (v2.39, issue #800)
+
+The machines follow family A, each landed alone, on the machine family's rig (`.claude/skills/enemy-rework/references/
+tripo-rebuild.md` §3, the wood cutter's route): rigid parts cut by geometry at their joints, each vertex on its part's
+bone, blended across each cut so a bent joint stays closed; as it goes down the blends let go and it comes apart clean
+(`src/enemies/debris.js`). Their assets are made in `references/enemy-redesign-2026-10-30/trials/familyE-tripo/`
+(`generate.mjs <foe> [--seed N]`, `prepare-<foe>.mjs`, the shared steps in `prep-machine.mjs`: the pieces that are not
+the body dropped, the cuts with family A's `splitAlong`, the colour roles from the texels, **the skin's weights baked**
+into the file as JOINTS_0 / WEIGHTS_0 bytes) and shipped by `scripts/tripo/ship-body.mjs <foe>` into `public/enemies/<id>/`,
+loaded through `src/enemies/foe-assets.js` (`FOE_ASSETS`); the triangles grouped by colour role (`landmarks.parts`), each
+role its own skinned mesh on one skeleton, its material and painted surface by the role's name; the model's own parts
+(a lens, its shutter and valves, each world's dress) merged by `kit.js` `skinBy` into one more. The replaced builder
+stays, renamed `-legacy`, standing in where the body is not loaded.
+
+- **The inspection tripod** (`tripod`): `src/enemies/plans/tripod-tripo.js` `tripodModel`, `public/enemies/tripod/`
+  (411 KB, 13,113 triangles); the legacy lamp tripod is `plans/piston-legacy.js` `tripodLegacyModel` (`SPOT` stays
+  there, re-exported). Tripo's second take (seed 7: the first fused the hidden third leg into a tusk); its lamp head,
+  turned 107° off its legs' axis, turned back about its round neck in the prepare. 3.1 m to the top of its head, its lens
+  2.63 m up (the legacy's lamp 3.1 m): a cream camera of a head on a dark neck, a round hub, three legs (two in front,
+  one behind) of a dark hip ball, a sage bracket out to the knee, a cream shin (the one behind sage) and a domed foot.
+  The machine plan's wave gait on `SkinLegs` bones fitted to the mesh's joints, its poses small (the knees ride over the
+  hips: a body sunk on its legs folded the shins under the hub). The head is the lamp and
+  the eye: it yaws and tips a little on its neck in a servo's notches (`model.head`), turned to the traveller once it
+  has noticed him (`gaze: []` asks the foes for where he is, `src/enemies/gaze.js` `gazeAim`), and its light tips the
+  rest of the way down (`light`, `model.lamp` as before); the lens is the model's own disc (the eye material, the weak
+  point), four shutter leaves close round it in the beam's wind-up, the harpoon gun slides out under the hub, the stamp
+  lifts a front leg, six valves round the neck rattle for the vent, black steam from the back of the head. Armour: three
+  plates round the hub between the legs. The home skin (the City-Shaft's) wears the reference's colours, `limb` the sage
+  (the other skins' `limb` their own); the dress per world (an enamel strip pair, a drill, portholes, a key and bubbles,
+  gyroscope rings, a pump). Its defeat's sag is 0.55 m (the hub rides a metre up). 8 drawn meshes against the legacy's
+  127. Tests: `tests/tripod-tripo.test.js`.
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

@@ -71,7 +71,8 @@ export const SURFACES = {
       body: { rust: { color: 'rust', color2: 'accent', amount: 0.14, amount2: 0, scale: 0.12, down: 0.7, pits: 0.2 }, gloss: { size: 0.025, sky: 0.45, amount: 0.8 } },
       leg: { rust: { color: 'rust', color2: 'rust', amount: 0.2, amount2: 0, scale: 0.08, down: 0.4, pits: 0 } },
     },
-    incal: { body: { drips: { color: 'rust', width: 0.11, from: 0.2, length: 0.4, bulb: 0.3, amount: 0.55 }, rust: { color: 'rust', color2: 'accent', amount: 0.12, amount2: 0, scale: 0.1, down: 0.7, pits: 0.2 }, gloss: { size: 0.025, sky: 0.45, amount: 0.8 } } },
+    // (the home skin, the approved #800 reference's: flat cream and sage, a soft mottle and a little sheen only)
+    incal: { body: { rust: null, mottle: { color: 'body2', scale: 0.25, amount: 0.3, soft: 0.2, strength: 0.4 }, gloss: { size: 0.02, sky: 0.3, amount: 0.35 } }, leg: { rust: null, mottle: { color: 'limb*0.9', scale: 0.15, amount: 0.25, soft: 0.2, strength: 0.4 } } },
     underwater: { body: { mottle: { color: 'rust', scale: 0.14, amount: 0.45, soft: 0.1, detail: 0.6, strength: 0.7 }, rust: { color: 'rust*0.9', color2: 'accent+0.2', amount: 0.12, amount2: 0.12, scale: 0.12, down: 0.6, pits: 0.4 } } },
   },
   blot: {

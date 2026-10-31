@@ -75,6 +75,9 @@ export const CHANGELOG = [
           { where: 'the bellows toad, each a frame', before: 0.51, after: 0.06 },
           { where: 'the shellback crab, each a frame', before: 0.29, after: 0.06 },
         ], source: 'the test’s own sixteen deaths (tests/foe-hit-defeat.test.js, “many going down at once stay cheap”) timed frame by frame, and four of a kind for each kind, before at ab7001115; before the new bodies (9ff845d25) the sixteen took about 2.5 ms. Where each body lies is unchanged: its points within 4·10⁻¹⁵ m of before, every frame of every kind’s fall' }] },
+      // the inspection tripod (#800)
+      { text: 'The lamp tripod has a new body, drawn from its new design: a cream camera of a head with a deep orange lens, on a dark neck over a round hub, and three short legs, sage brackets and cream shins on domed feet, two in front and one behind. Its lens is its lamp and its eye: it turns its head on its neck to look at you, and when its light narrows its shutter closes round the lens before the bolt. Each world keeps its look: a drill under the lens in the Buried Machine, coral copper with portholes, a wind-up key and bubbles in the Underwater City, gyroscope rings round its head in the Fallen Ring, a pump handle and pipe on the Desert’s cistern pump. It fights exactly as before, its armour plates now bolted round its hub, and a pack of them is far lighter for your device to draw.',
+        see: 'Land in the City-Shaft and meet an inspection tripod, or open the Arena and pick the lamp tripod from the foe list (D-pad ↓, K). Walk round it: its head turns on its neck to keep its lens on you. Let it aim and watch the shutter close before the bolt flies.' },
     ],
   },
   {

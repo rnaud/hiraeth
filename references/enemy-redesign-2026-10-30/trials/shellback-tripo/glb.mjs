@@ -45,7 +45,7 @@ export function writeGlb({ attrs, indices, image, imageMime = 'image/png', name 
     const size = k === 'COLOR_0' && arr.length % 4 ? 3 : SIZES[k];
     const ct = arr instanceof Float32Array ? 5126 : arr instanceof Uint16Array ? 5123 : 5121;
     const count = arr.length / size, a = { bufferView: push(Buffer.from(arr.buffer, arr.byteOffset, arr.byteLength), 34962), componentType: ct, count, type: { 2: 'VEC2', 3: 'VEC3', 4: 'VEC4' }[size] };
-    if (k === 'COLOR_0' && ct !== 5126) a.normalized = true;
+    if ((k === 'COLOR_0' || k === 'WEIGHTS_0') && ct !== 5126) a.normalized = true;   // (a machine's weights as bytes, family E)
     if (k === 'POSITION') { const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity]; for (let i = 0; i < arr.length; i++) { mn[i % 3] = Math.min(mn[i % 3], arr[i]); mx[i % 3] = Math.max(mx[i % 3], arr[i]); } a.min = mn; a.max = mx; }
     accessors.push(a); attributes[k] = accessors.length - 1;
   }

@@ -18,6 +18,7 @@ const READERS = {
   "enemies/bellows-toad/body.glb": () => readFileSync(new URL("../public/enemies/bellows-toad/body.glb", import.meta.url)),
   "enemies/centipede/body.glb": () => readFileSync(new URL("../public/enemies/centipede/body.glb", import.meta.url)),
   "enemies/skitter/body.glb": () => readFileSync(new URL("../public/enemies/skitter/body.glb", import.meta.url)),
+  "enemies/tripod/body.glb": () => readFileSync(new URL("../public/enemies/tripod/body.glb", import.meta.url)),
   "enemies/shellback/body.glb": () => readFileSync(new URL("../public/enemies/shellback/body.glb", import.meta.url)),
   "enemies/dunemummer/body.glb": () => readFileSync(new URL("../public/enemies/dunemummer/body.glb", import.meta.url)),
   "enemies/woodcutter/body.glb": () => readFileSync(new URL("../public/enemies/woodcutter/body.glb", import.meta.url)),

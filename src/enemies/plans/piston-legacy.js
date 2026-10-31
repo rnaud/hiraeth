@@ -3,6 +3,9 @@ import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V, plate, shellPlate, shade, plateMat } from './kit.js';
 
+// The legacy lamp tripod (issue #800: the game's tripod is the Tripo inspection tripod, plans/tripod-tripo.js; this
+// builder is kept so its look can come back as a foe of its own, and stands in where the new body is not loaded).
+//
 // Plan 18, the piston-legged machine (docs/systems/procedural-animation.md §4): the lamp tripod
 // (docs/design/enemy-roster.md, archetype 13), drawn to its sheets (references/enemy-archetypes/tripod/: sheet-1 the
 // City-Shaft's inspection tripod, sheet-2 the Underwater City's diving bell). A lighthouse on stilts, 3.5 m, the
@@ -42,7 +45,7 @@ const EGG = [[0.001, 1.62], [0.3, 1.64], [0.5, 1.74], [0.6, 1.98], [0.6, 2.2], [
 /** The boiler's radius at height y (where its dress sits). */
 const radiusAt = (prof, y) => { for (let i = 1; i < prof.length; i++) if (prof[i].y >= y) { const a = prof[i - 1], b = prof[i]; return lerp(a.x, b.x, (y - a.y) / Math.max(1e-6, b.y - a.y)); } return 0.001; };
 
-export function tripodModel(skin) {
+export function tripodLegacyModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('tripod', skin);
   const g = new THREE.Group(), hull = pivot(g, 0, 0, 0, 'hull'); g.name = skin.name;
   const bodyM = M.mat('body', P.body, { color2: P.body2 }), brassM = M.mat('brass', P.brass, { metal: 'brass', color: P.brass }), darkM = M.mat('dark', P.dark, { flat: true });

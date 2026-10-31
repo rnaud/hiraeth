@@ -118,11 +118,12 @@ test('every archetype of the roster is batched: about half the draws, nothing dr
     if (own) assert.ok(mine <= 9, `${id}: ${mine} meshes drawn`);
     foes.remove(f);
   }
-  // (0.65 of the bodies that batch: 0.6 held while the old jelly, moth and ray, the roster's best batched, were among them;
-  // what keeps the draws down is the roster's budget below)
-  assert.ok(draws < parts * 0.65, `${draws} meshes drawn for ${parts} parts`);
-  // (the whole roster, one of each: 517 before #800's flyers were rebuilt; never more)
-  assert.ok(all <= 517, `${all} meshes drawn for the roster`);
+  // (0.7 of the bodies that batch: 0.6 held while the old jelly, moth and ray, the roster's best batched, were among them,
+  // 0.65 while the old lamp tripod was (127 parts batched into a few draws; #800's tripod is 8 meshes of its own); what
+  // keeps the draws down is the roster's budget below, lowered as each rebuilt body comes in)
+  assert.ok(draws < parts * 0.7, `${draws} meshes drawn for ${parts} parts`);
+  // (the whole roster, one of each: 517 before #800's flyers were rebuilt, 364 with its machines (family D's and the tripod); never more than 400)
+  assert.ok(all <= 400, `${all} meshes drawn for the roster`);
 });
 
 test('a batch of small parts is as small as one part for a shadow map\'s texel (shadows.js ShadowCuller)', () => {

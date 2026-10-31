@@ -138,11 +138,14 @@ export const SKINS = {
   tripod: {
     // (sheet-1: ivory enamel, polished brass, slate-blue bands and panels, pink rust; sheet-2: a riveted coral-copper
     // diving bell with a turquoise band and several portholes, buttery yellow lamp, cream legs, black bubbles rising)
-    incal: { name: 'inspection tripod', palette: { body: '#efe5cd', body2: '#f8f0dd', leg: '#ebe1c9', brass: '#c49a52', accent: '#7088a8', dark: '#3a3330', lamp: '#fff3cc', rust: '#d99a8c' }, props: ['enamel'] },
-    buried: { name: 'mining tripod', palette: { body: '#b8a58a', body2: '#cdbb9e', leg: '#c8b698', brass: '#8a5a3a', accent: '#b8603a', dark: '#2e2a28', lamp: '#ffd38a', rust: '#a0522d' }, props: ['drill'] },
-    underwater: { name: 'diving bell', palette: { body: '#d68e78', body2: '#e6a690', leg: '#ecdcc0', brass: '#c49a52', accent: '#6db2a8', dark: '#2a3036', lamp: '#ffe8a0', rust: '#b06a56' }, props: ['bell', 'portholes', 'key', 'bubbles'] },
-    fallenring: { name: 'gyroscope tripod', palette: { body: '#e8efe8', body2: '#f4f8f4', leg: '#e8efe8', brass: '#d8b048', accent: '#3f8f8a', dark: '#24302e', lamp: '#fff4b0', rust: '#7fb59a' }, props: ['gyro'] },
-    desert: { name: 'cistern pump', palette: { body: '#e9dfbb', body2: '#f2ead0', leg: '#e9dfbb', brass: '#b39464', accent: '#cfa2a7', dark: '#3a2f28', lamp: '#fff2c0', rust: '#c98d4f' }, props: ['pump'] },
+    // (the inspection tripod, issue #800: its home skin the approved reference's colours,
+    // references/enemy-redesign-2026-10-30/keep-tripod/9bb4fd97-…-0.png: a cream lamp head, neck hub and shins, sage
+    // brackets (`limb`), near-black joints, an orange lens; the other skins' `limb` is their accent, plans/tripod-tripo.js)
+    incal: { name: 'inspection tripod', palette: { body: '#eac9ae', body2: '#f2d6bd', leg: '#ebe1c9', limb: '#5f7560', brass: '#c49a52', accent: '#7088a8', dark: '#2c2f33', lamp: '#fff3cc', lens: '#d27f45', rust: '#d99a8c' }, props: ['enamel'] },
+    buried: { name: 'mining tripod', palette: { body: '#b8a58a', body2: '#cdbb9e', leg: '#c8b698', limb: '#8a5a3a', brass: '#8a5a3a', accent: '#b8603a', dark: '#2e2a28', lamp: '#ffd38a', rust: '#a0522d' }, props: ['drill'] },
+    underwater: { name: 'diving bell', palette: { body: '#d68e78', body2: '#e6a690', leg: '#ecdcc0', limb: '#6db2a8', brass: '#c49a52', accent: '#6db2a8', dark: '#2a3036', lamp: '#ffe8a0', rust: '#b06a56' }, props: ['bell', 'portholes', 'key', 'bubbles'] },
+    fallenring: { name: 'gyroscope tripod', palette: { body: '#e8efe8', body2: '#f4f8f4', leg: '#e8efe8', limb: '#3f8f8a', brass: '#d8b048', accent: '#3f8f8a', dark: '#24302e', lamp: '#fff4b0', rust: '#7fb59a' }, props: ['gyro'] },
+    desert: { name: 'cistern pump', palette: { body: '#e9dfbb', body2: '#f2ead0', leg: '#e9dfbb', limb: '#b39464', brass: '#b39464', accent: '#cfa2a7', dark: '#3a2f28', lamp: '#fff2c0', rust: '#c98d4f' }, props: ['pump'] },
   },
   cart: {
     // (sheet-1, the Hangar's: black-teal and gunmetal steel, patched khaki canvas covers, bronze bolts, a glowing orange lip,
@@ -361,7 +364,7 @@ export function skinOf(a, world, tier = 0) {
  * and lamps kept: TIER_LOOK.keep), banded (src/enemies/surfaces.js TIER_SURFACE paints the bands), its own materials
  * (`key`) and its own name ('banded …').
  */
-export const TIER_LOOK = { dark: 0.52, keep: /^(eye|glow|lamp|core|lip|brew|slag|fire|flame|light|spirit|eyes|seam|glint|flare|spore|spot|ward|line|ink)/ };
+export const TIER_LOOK = { dark: 0.52, keep: /^(eye|glow|lamp|lens|core|lip|brew|slag|fire|flame|light|spirit|eyes|seam|glint|flare|spore|spot|ward|line|ink)/ };
 export function tierSkin(s, own = null) {
   const dim = (hex) => { const n = parseInt(hex.slice(1), 16), k = TIER_LOOK.dark; const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((x) => Math.round(x * k)); return `#${c.map((x) => x.toString(16).padStart(2, '0')).join('')}`; };
   const palette = Object.fromEntries(Object.entries(s.palette).map(([k, v]) => [k, typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) && !TIER_LOOK.keep.test(k) ? dim(v) : v]));

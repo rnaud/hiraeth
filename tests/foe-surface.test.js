@@ -17,7 +17,7 @@ const planSources = {
   lizard: readFileSync(new URL('../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
   // (the hound's world surfaces are its direct fallback's, #800: the Tripo body wears its texture and vertex colours)
   hound: readFileSync(new URL('../src/enemies/plans/broad-hound.js', import.meta.url), 'utf8'),
-  tripod: readFileSync(new URL('../src/enemies/plans/piston.js', import.meta.url), 'utf8'),
+  tripod: readFileSync(new URL('../src/enemies/plans/tripod-tripo.js', import.meta.url), 'utf8'),
   blot: readFileSync(new URL('../src/enemies/plans/blob.js', import.meta.url), 'utf8'),
   // (the Tripo body, #800, and the legacy one standing in where it is not loaded)
   centipede: readFileSync(new URL('../src/enemies/plans/centipede-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/centipede-legacy.js', import.meta.url), 'utf8'),

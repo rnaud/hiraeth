@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family E",
+  "foe": "tripod",
+  "source": "references/enemy-redesign-2026-10-30/keep-tripod/9bb4fd97-30dd-471d-8ac0-c8da599468ee-0.png",
+  "sourceSha256": "d8474086b8789c6c610a9799fd61c05d323c30217313e795ec5082943151c4f3",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "225ad0dd-df22-4911-bf04-c7770fa0a9b6",
+  "started": "2026-10-31T04:37:46.300Z",
+  "finished": "2026-10-31T04:39:17.946Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1245,
+  "balanceAfter": 1155,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1455476,
+    "sha256": "f33ed7ba8cc14210b691507d1789160b6cba1f2acc5357af5c9e524b5b7b39fb",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 153036,
+    "sha256": "d160bc51723320330d5e2924f791967c29277fd491739858d1566538fadb4772"
+  }
+}

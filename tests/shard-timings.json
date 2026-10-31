@@ -800,6 +800,7 @@
  "tests/tripo-fit.test.js": 0.3,
  "tests/tripo-hands.test.js": 0.6,
  "tests/tripo-walk.test.js": 0.1,
+ "tests/tripod-tripo.test.js": 3.0,
  "tests/typefaces.test.js": 0.1,
  "tests/underside-world.test.js": 4.4,
  "tests/underside.test.js": 5.9,

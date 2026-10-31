@@ -1481,6 +1481,9 @@ const SOURCE800 = 'scripts/enemy-roster/bench.mjs --level <world> --pack six cra
 // (issue #800, family A: hand-made pairs through the creatures gallery, the same camera before and after)
 const FROM800A = (foe, before) => `Hand-made (no \`view\`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/familyA-tripo/pair-shots.mjs, scripts/changelog-shots.mjs's own shoot with a \`foe\` view (the creatures gallery: the game's own body through Foes.look, alone, 3D only; Vite on port 5478, muted headless Chrome, --mute-audio), High, 1280 × 720; ${foe}; before: ${before} (an archive of it on the same port), after: this change, 30 October 2026`;
 const SOURCE800A = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 15–22); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh`;
+// (issue #800, family E's tripod: hand-made pairs as family A's, the camera's zoom given: a tall old body and a squat new one in one frame)
+const FROM800TRIPOD = (foe, before) => `Hand-made (no \`view\`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/familyE-tripo/pair-shots.mjs, scripts/changelog-shots.mjs's own shoot with a \`foe\` view (the creatures gallery: the game's own body through Foes.look, alone, 3D only; Vite on port 5490, muted headless Chrome, --mute-audio), High, 1280 × 720; ${foe}; before: ${before} (an archive of it on the same port), after: this change, 31 October 2026`;
+const SOURCE800TRIPOD = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 6–16); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh`;
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
 const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
@@ -1800,6 +1803,27 @@ export const CHANGELOG_MEDIA = {
     { title: 'Triangles six toads add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800A('spore toads in Lorn'), rows: [
       { where: 'Lorn, High', before: 122.4, after: 250.3 },
       { where: 'Lorn, Handheld', before: 81.6, after: 166.9 },
+    ] },
+  ] },
+  // (issue #800: the inspection tripod on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The lamp tripod has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'tripod800-cityshaft', title: 'The City-Shaft', caption: 'An inspection tripod of the City-Shaft, three-quarters from its front: before, a riveted ivory boiler with slate bands and brass rings on three tall thin legs, a searchlight with a grid over its lens on a brass fork; after, the new body: a cream camera of a head with a deep orange lens on a dark neck, a round hub, three short legs of sage brackets and cream shins on domed feet', from: FROM800TRIPOD('one tripod@incal, idle 1.5 s, the three-quarter view (zoom 0.9)', '698441032'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/keep-tripod/9bb4fd97-30dd-471d-8ac0-c8da599468ee-0.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'tripod800-underwater', title: 'The Underwater City', caption: 'A diving bell of the Underwater City: before, the coral-copper egg with its turquoise band and portholes under the searchlight; after, the new body in the same coral copper with turquoise brackets, a porthole on the head’s side and its wind-up key on the hub', from: FROM800TRIPOD('one tripod@underwater, idle 1.5 s, the three-quarter view (zoom 0.9)', '698441032') },
+    { name: 'tripod800-beam', title: 'The beam', caption: 'An inspection tripod at 80 % of its beam’s wind-up: before, the searchlight’s shaft on you, the harpoon gun out under the boiler; after, the lens’s shaft on you as the shutter closes round it, the harpoon gun out under the hub', from: FROM800TRIPOD('one tripod@incal, its beam held at 80 % of the wind-up (zoom 0.8)', '698441032') },
+    { name: 'tripod800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, an inspection tripod beside the traveller winding up its beam: the same new body, its lens on him and its light’s shaft, black steam from the back of its head', from: 'Unity 6000.6.4f1 editor batch run, muted (scripts/unity-js-run.sh familyE-tripod -mute -level arena -fight tripod), 31 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; its second picture (unity-tripod-windup): the game’s follow camera; no picture on the body (each part one flat colour)' },
+  ], numbers: [
+    { title: 'Draw calls six tripods add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800TRIPOD('inspection tripods in the City-Shaft'), rows: [
+      { where: 'The City-Shaft, High', before: 932, after: 159 },
+      { where: 'The City-Shaft, Handheld', before: 625, after: 110 },
+    ] },
+    { title: 'Triangles six tripods add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800TRIPOD('inspection tripods in the City-Shaft'), rows: [
+      { where: 'The City-Shaft, High', before: 152.3, after: 251.5 },
+      { where: 'The City-Shaft, Handheld', before: 100.4, after: 167.8 },
+    ] },
+    { title: 'The script’s time a frame six tripods add', unit: 'ms', better: 'lower', device: DEVICE800, source: SOURCE800TRIPOD('inspection tripods in the City-Shaft') + '; the GPU time moved by more than the tripods either way between runs at this load, so no claim on it', rows: [
+      { where: 'The City-Shaft, High', before: 3.1, after: 0.8 },
+      { where: 'The City-Shaft, Handheld', before: 2.4, after: 1.0 },
     ] },
   ] },
   ],

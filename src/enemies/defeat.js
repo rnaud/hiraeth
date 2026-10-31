@@ -51,7 +51,8 @@ export const DEFEATS = {
   drone: { time: 1.1, land: { at: [0, 0.85] }, spin: 9, puff: 'vent' },
   wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, puff: 'ink' },
   // machines: their light goes out and they power down, sagging on their legs, upright or over forward
-  tripod: { time: 1.3, sag: { y: -0.95, at: [0.05, 0.6] }, topple: { angle: 0.45, at: [0.3, 0.9] }, puff: 'vent' },
+  // (#800: the inspection tripod's hub rides a metre up, not the old boiler's 1.6 m: a shorter sag, its head over forward)
+  tripod: { time: 1.3, sag: { y: -0.55, at: [0.05, 0.6] }, topple: { angle: 0.45, at: [0.3, 0.9] }, puff: 'vent' },
   // (#800: the crucible walker settles onto its four legs, its knees buckling, its feet kept where they stand: limp feet
   //  slid a shin under a slope's floor)
   cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, topple: { angle: 0.15, at: [0.2, 0.7] }, puff: 'vent', limp: false },

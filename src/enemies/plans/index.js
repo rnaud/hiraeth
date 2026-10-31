@@ -3,7 +3,7 @@ import { skinOf } from '../skins.js';
 import { shellbackCrab } from './shellback-tripo.js';
 import { lizardModel } from './quadruped.js';
 import { houndModel } from './hound-tripo.js';
-import { tripodModel } from './piston.js';
+import { tripodModel } from './tripod-tripo.js';
 import { blotModel } from './blob.js';
 import { centipedeModel } from './centipede-tripo.js';
 import { wormModel } from './burrower.js';
@@ -68,7 +68,9 @@ import { foeSource } from '../foe-assets.js';
 //                          shell's spin locked to the ground; roller.js legacyRollerModel, the steel snail, stands in while it loads)
 //   cart-tripo.js plan 17  the crucible walker (#800: Tripo's mesh, rigid parts on four kit legs, src/enemies/foe-assets.js;
 //                          tracked.js legacyCartModel, the welding cart on its tracks, stands in while the mesh loads)
-//   piston.js     plan 18  the lamp tripod
+//   tripod-tripo.js plan 18 the lamp tripod (issue #800: Tripo's inspection tripod, public/enemies/tripod/body.glb, three
+//                 legs on the machine plan, its lamp head on its neck; the legacy tripod, piston-legacy.js, stands in
+//                 where the body is not loaded)
 //   bell-tripo.js plan 19  the bell walker (#800: Tripo's mesh, rigid parts on four kit legs, the spirit the clapper;
 //                          siege.js legacyBellModel, the spider-legged bell, stands in while the mesh loads)
 //   blob.js       plan 20  the ink blot
