@@ -33,6 +33,6 @@ export const FOE_TRIM = {
     hide: { alert: -17.1, cry: -15.2, bark: -16.3, idle: -15.7, death: -13.2 },
     gourd: { alert: -25, cry: -16.6, bark: -16, idle: -19.9, death: -17.2 },
   },
-  moves: { walker: 5.8, skitterers: 8.7, centipede: 5.8, hopper: -15.9, quadruped: 1, stilt: 1.8, roller: -5.8, tentacled: -6.3, floater: -13.7, flyer: -4.6, glider: -9.8, burrower: -14, tracked: -1.1, siege: -10.9, hover: -5.5, brute: -15.8, woodcutter: -12.8, fencer: 0.6, blob: -4, humanoid: -6.6, strings: 7.9, ember: 6.4, mummer: -0.5, mummerking: -12.5, monster: -0.8, machine: -8.7, sentinel: -5.4, oracle: -7.3, crawler: 5.9, dunemummer: -4.3 },
+  moves: { walker: 5.8, skitterers: 8.7, centipede: 5.8, hopper: -15.9, quadruped: 1, stilt: 1.8, roller: -5.8, tentacled: -6.3, floater: -13.7, flyer: -4.6, glider: -9.8, burrower: -14, tracked: -1.1, crucible: -6.2, siege: -10.9, hover: -5.5, brute: -15.8, woodcutter: -12.8, fencer: 0.6, blob: -4, humanoid: -6.6, strings: 7.9, ember: 6.4, mummer: -0.5, mummerking: -12.5, monster: -0.8, machine: -8.7, sentinel: -5.4, oracle: -7.3, crawler: 5.9, dunemummer: -4.3 },
   blows: { swing: 5.6, 'swing-metal': 4.6, bite: -1.1, slam: -11.2, charge: 4.7, spit: -3.5, bolt: -6.4, bow: -6.1, blast: 2.2, lob: -2.7, cast: -2.6 },
 };

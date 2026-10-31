@@ -20,6 +20,7 @@ import * as THREE from 'three';
 
 export const FOE_ASSETS = {
   woodcutter: { folder: 'enemies/woodcutter/', rig: 'landmarks.json' },
+  cart: { folder: 'enemies/cart/', rig: 'landmarks.json' },
   dunemummer: { folder: 'enemies/dunemummer/', rig: 'skeleton.json' },
   // (family A, #800: the toad, the centipede and the skitter, their triangles grouped by part, scripts/tripo/ship-body.mjs)
   toad: { folder: 'enemies/bellows-toad/', rig: 'landmarks.json' },
@@ -70,6 +71,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/lamp-moth/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/lamp-moth/landmarks.json', import.meta.url))]),
   ray: (host, fs) => (host ? [host.readFile('enemies/storm-ray/body.glb'), host.readFile('enemies/storm-ray/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/storm-ray/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/storm-ray/landmarks.json', import.meta.url))]),
+  cart: (host, fs) => (host ? [host.readFile('enemies/cart/body.glb'), host.readFile('enemies/cart/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/cart/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/cart/landmarks.json', import.meta.url))]),
   dunemummer: (host, fs) => (host ? [host.readFile('enemies/dunemummer/body.glb'), host.readFile('enemies/dunemummer/skeleton.json')]
     : [fs.readFileSync(new URL('../../public/enemies/dunemummer/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/dunemummer/skeleton.json', import.meta.url))]),
   toad: (host, fs) => (host ? [host.readFile('enemies/bellows-toad/body.glb'), host.readFile('enemies/bellows-toad/landmarks.json')]

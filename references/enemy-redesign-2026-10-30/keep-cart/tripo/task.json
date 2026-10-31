@@ -1,0 +1,35 @@
+{
+  "issue": 800,
+  "phase": "family D",
+  "foe": "cart",
+  "source": "references/enemy-redesign-2026-10-30/keep-cart/13ed7341-1960-43e2-8f12-8b8481c2bd68-3.png",
+  "sourceSha256": "7e54dc2d2cb450855596ceb6283e3ec68a69250f70d0c6372acadb6bb433ac42",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "9d5f38fe-d4e4-4e25-83d2-24cee48106e3",
+  "started": "2026-10-31T03:00:59.579Z",
+  "finished": "2026-10-31T03:02:44.838Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1335,
+  "balanceAfter": 1305,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1382472,
+    "sha256": "b93a686f4fc09014462f06ab0e25946b16971f9f08b9ee88ecd3f4f8dfd8b949",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 231745
+  }
+}

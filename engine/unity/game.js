@@ -1054,6 +1054,16 @@ function makePlan(args) {
       { kind: 'foe', what: 'move', move: 'slam' }, { kind: 'foe', what: 'move', move: 'whack' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
       { kind: 'wait', frames: 22, secs: 0.45 }, ...shot('blow'));
   }
+  if (fights.includes('machines')) {
+    // (-fight machines, issue #800 family D: the rebuilt machines' Tripo bodies loaded through the host (src/enemies/
+    // foe-assets.js): the crucible walker in its home skin 5 m ahead and in the Buried Machine's 8 m ahead; their bodies said
+    // in the log; standing, then winding up the pour (the pot tipping its rim at you), then the slag poured)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-machines-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'cart@garage', dist: 5, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['cart'] }, { kind: 'foe', what: 'cart@buried', dist: 8, hp: 99, tier: 0 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bodies' }, ...shot('stand'),
+      { kind: 'foe', what: 'move', move: 'pour' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
+      { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('blow'));
+  }
   if (fights.includes('monsters')) {
     // (-fight monsters, issue #726: roster v4's grunt and hulk on the humanoid rig: a hulk 7 m ahead and a grunt with its club
     // 4.5 m ahead, standing; their rig said; each winds up its first blow (the grunt's club over its head, the hulk's smash),

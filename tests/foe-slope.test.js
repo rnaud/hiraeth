@@ -4,6 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import { nextRigSeed } from '../src/motion-kit/rig.js';
 import { Foes } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { GameState } from '../src/game-state.js';
@@ -151,7 +152,10 @@ test('the brute\'s hands and its saw stay over the ground in every skin, slumped
   //  shifted the brutes' twitches here, #800; the brutes then on a fresh seed)
   const foes = pinned(() => world(physicsOf(SLOPED)));
   pinned(() => {
-  for (const skin of ['perdide2', 'edena', 'glassdunes', 'waterfall', 'moonfoundry']) {
+  for (const [i, skin] of ['perdide2', 'edena', 'glassdunes', 'waterfall', 'moonfoundry'].entries()) {
+    // (each brute's rig on a seed of its own, the one it had before the crucible walker's legs made rigs ahead of it in
+    //  this file, #800: not on how many rigs the foes before it made)
+    nextRigSeed(37 + i);
     const f = foes.add(`brute@${skin}`, v(0, SLOPED(0, 6), 6));
     let saw = null;
     f.model.group.traverse((o) => { if (o.name === 'saw') saw = o; });

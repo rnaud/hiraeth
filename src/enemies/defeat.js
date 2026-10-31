@@ -52,7 +52,9 @@ export const DEFEATS = {
   wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, puff: 'ink' },
   // machines: their light goes out and they power down, sagging on their legs, upright or over forward
   tripod: { time: 1.3, sag: { y: -0.95, at: [0.05, 0.6] }, topple: { angle: 0.45, at: [0.3, 0.9] }, puff: 'vent' },
-  cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, topple: { angle: 0.15, at: [0.2, 0.7] }, puff: 'vent' },   // (it settles on its tracks, its crucible tipping forward)
+  // (#800: the crucible walker settles onto its four legs, its knees buckling, its feet kept where they stand: limp feet
+  //  slid a shin under a slope's floor)
+  cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, topple: { angle: 0.15, at: [0.2, 0.7] }, puff: 'vent', limp: false },
   bell: { time: 1.5, sag: { y: -1.3, at: [0.05, 0.6] }, topple: { angle: 0.4, at: [0.35, 0.95] }, puff: 'vent' },
   brute: { time: 1.5, sag: { y: -0.75, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
   // (#800: the wood cutter, half the brute's height: a shorter sag onto its knees, then over)

@@ -78,7 +78,7 @@ import { fromPattern } from './attacks.js';
 // batch 4 (v1.16), the machines:
 //   stout           light cuts never stagger it, even early in a wind-up (the furnace brute, the bell walker: heavy breakers)
 //   attack.wave     a quake or a ring of sound running out over the ground (jump it); wave.count: that many, wave.every s apart
-//   attack.leaveLife  s its slag stays (the cart's pour); jams: s a bomb on its tracks keeps it from turning (the cart)
+//   attack.leaveLife  s its slag stays (the cart's pour); jams: s a bomb on its legs keeps it from turning (the cart)
 //   attack.reverse  m it backs up through the wind-up (the cart's ram); attack.stall: s it stands stunned if a wall stops it
 //   attack.opens    s it sits open after the strike (the bell's drop: tipped toward you, the clapper in reach)
 //   clapper         only the clapper takes harm: a cut, a bomb glance off the bell unless it sits open or is stilled (the bell)
@@ -404,23 +404,23 @@ export const ARCHETYPES = {
     note: 'A lamp tripod: when its light narrows, take cover or guard the bolt.',
   },
   cart: {
-    name: 'crucible cart', family: 'machine', plan: 'tracked', planNo: 17, role: 'area denier', tier: 3, ranged: true,
-    status: 'built', kind: 'cart', was: ['slag walker'], sound: 'slag', drop: 8, art: { main: 'garage', alt: 'moonfoundry' },
-    possession: 'boiling over: ink froths over the crucible’s rim, a column of black smoke with two eyes',
-    moves: ['pour', 'ram', 'trail'], answers: ['a plain shot cools its crust (cuts ×2)', 'a bomb on its tracks (it can’t turn)', 'the combo from behind', 'a wall stalls its ram'],
-    idle: 'trundles its old route between the furnaces, pouring into moulds that are no longer there',
+    name: 'crucible cart', family: 'machine', plan: 'crucible', planNo: 17, role: 'area denier', tier: 3, ranged: true,
+    status: 'built', kind: 'cart', was: ['slag walker', 'welding cart'], sound: 'slag', drop: 8, art: { main: 'garage', alt: 'moonfoundry', reference: 'references/enemy-redesign-2026-10-30/keep-cart/13ed7341-1960-43e2-8f12-8b8481c2bd68-3.png', skin: 'garage' },
+    possession: 'boiling over: its brew froths at the rim, and its one eye slides round the pot to find you',
+    moves: ['pour', 'ram', 'trail'], answers: ['a plain shot cools its crust (cuts ×2)', 'a bomb on its legs (it can’t turn)', 'the combo from behind', 'a wall stalls its ram'],
+    idle: 'plods its old route between the furnaces, pouring into moulds that are no longer there',
     def: S({
       name: 'crucible cart', hp: 6, hook: 'heavy', radius: 1.1, height: 1.0, speed: 2.0, sight: 16, giveUp: 30, reach: 8, heavy: true, breaks: true,
       trail: { every: 1.5, r: 0.7, life: 3.5 }, douse: 4, jams: 5, tracks: true,
       tone: '#ff8a2e', sound: 'machine', takes: { shoot: 1, fire: 0 }, weak: { bomb: 1.5 },
       calm: { mode: 'trundle', provoke: 10, round: 6 },
       attacks: [
-        // the crucible tips toward you on its trunnions, the lip glowing; a cone of burning slag that stays a while
+        // it sits back on its hind legs and tips its rim toward you, the spout glowing; a cone of burning slag that stays a while
         { id: 'pour', name: 'pour', shape: 'cone', range: 4.6, angle: 0.55, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.4, leave: 'cone', leaveLife: 4, max: 4.6, weight: 2,
-          tell: 'its crucible tips toward you on its trunnions, the lip glowing and the smoke leaning the same way', counter: 'get behind it or to the side of the lip; the slag stays a while: keep off it' },
-        // it backs up, its tracks spinning in place and spitting gravel; then a charge along a line (a wall stalls it)
+          tell: 'it sinks onto its front legs and tips its rim toward you, the spout glowing and the brew rising', counter: 'get behind it or to the side of the lip; the slag stays a while: keep off it' },
+        // it backs up squatting, its feet scrabbling and spitting gravel; then a charge along a line (a wall stalls it)
         { id: 'ram', name: 'ram', shape: 'lane', width: 2.0, range: 8, damage: 0.75, knock: 5, wind: 1.3, strike: 0.9, contact: 0.05, lunge: 10, sweep: true, reverse: 1.2, stall: 1.8, min: 3, max: 8, weight: 1.3,
-          tell: 'it backs up, its tracks spinning in place and spitting gravel behind it', counter: 'evade out of its line; let it ram a wall and it stalls, open' },
+          tell: 'it backs up squatting low, its feet scrabbling and spitting gravel behind it', counter: 'evade out of its line; let it ram a wall and it stalls, open' },
       ],
       recover: 1.5, cool: [1.5, 2.5], hit: 0.5,
     }),

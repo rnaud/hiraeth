@@ -32,6 +32,8 @@ BY_KIND.brute = (() => { const w = woodcutterSource(); return { current: null, d
 BY_KIND.toad = { current: null, legacy: toadLegacyModel };
 BY_KIND.centipede = { current: null, legacy: centipedeLegacyModel };
 BY_KIND.skitter = { current: null, legacy: skitterLegacyModel };
+// (#800 family D: the crucible walker, the game's cart; its welding cart on tracks the legacy body, which has no legs to audit)
+BY_KIND.cart = { tripo: null };
 const VARIANTS = BY_KIND[id.split('@')[0]];
 // (two measures of a foot: the audit's own, the leg's lowest drawn point, and the kit's foot joint itself: a broad flat
 //  sole has no one lowest point, its lowest vertex hops heel to toe, which reads as slide; the Tripo legs are bones

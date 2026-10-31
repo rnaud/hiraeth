@@ -1,0 +1,12 @@
+import * as THREE from 'three';
+import { Foes } from '../../../../src/foes.js';
+import { GameState } from '../../../../src/game-state.js';
+const kind = process.argv[2] ?? 'cart@garage';
+const foes = new Foes({ level: { foes: { own: true } }, levelId: 'arena', scene: null, player: { pos: new THREE.Vector3(0, 0, 40), heading: Math.PI }, physics: { groundAt: () => 0 }, game: new GameState(null), rng: () => 0.01 });
+const f = foes.add(kind, new THREE.Vector3(), { tier: 0 }); f.heading = 0; f.provoked = true;
+for (let i = 0; i < 45; i++) foes.look(f, 1 / 30);
+const sm0 = (() => { let s = null; f.model.group.traverse((o) => { if (o.isSkinnedMesh) s = o; }); return s; })();
+console.log('top', new THREE.Box3().setFromObject(f.model.group).max.y.toFixed(2), 'skinned', !!sm0);
+foes.hurt(f, 'blade', new THREE.Vector3(-1, 0, 0), { damage: 99, source: 'charge', breaks: true });
+for (let i = 0; i < 40; i++) foes.update(1 / 30);
+console.log('dying', !!f.dying, 'same mesh geometry rigid?', (() => { const w = sm0.geometry.attributes.skinWeight; let soft = 0; for (let i = 0; i < w.count; i++) if (w.getX(i) < 1) soft++; return soft; })());

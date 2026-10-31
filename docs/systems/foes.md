@@ -3001,6 +3001,30 @@ Unity: `-fight newfoes` (engine/unity/game.js) sets two down in the Arena and pi
 landing the slam.
 
 
+### The crucible walker (#800, family D, `src/enemies/plans/cart-tripo.js`, `public/enemies/cart/`)
+
+The cart's approved redesign (references/enemy-redesign-2026-10-30/keep-cart/, "a four-legged crucible alternative to the
+welding cart") is the cart's body: the id, def, attacks and windows, skins, sounds and saves the cart's. Tripo task
+9d5f38fe-… (30 credits); the trial's `prepare.mjs` (references/enemy-redesign-2026-10-30/trials/cart-tripo/, on the shared
+steps of `trials/machine-tripo/prep.mjs`) makes its asset: 2 m to the rim, 12,000 triangles cut by geometry into the pot,
+its brew, its eye unit and each leg's thigh, shin and foot (a vertex two parts share copied, one a part), the reference's
+flat colours sampled into COLOR_0, and the weights in the GLB (JOINTS_0/WEIGHTS_0: each part on its own bone, blended
+5 cm across the knees and ankles and over the thigh's crease into the pot). The machine's rig is shared with the family's
+other bodies (`plans/tripo-rigid.js`: `RigidSkin` builds the one skinned mesh and appends the model's own pieces to it,
+`kitLegs` puts the motion kit's legs on the mesh's own, `boneBoxes`); its plan `crucible` is a trot on diagonal pairs
+(walk audit: 0.8 cm of slide a metre, its pairs [0,3] [1,2]), keeping the cart's turn-then-go (`def.tracks`) and the jam (a
+bomb on its legs: it can't turn, sparks off its knees). **Its look at you:** the eye unit is cut out of the pot's side and
+turns about the pot's own axis (a surface of revolution: it slides round the pot with no gap, the pot's surface under it
+made true to its profile and a patch of it behind), its lens its own part in the eye's colour. The pour: it sits back and
+tips its rim toward you on its legs (the plan's pose), the spout glowing, the brew rising; the ram: it backs up squatting,
+gravel off its heels. A plain shot crusts its brew grey (its own mesh, so the colour changes). Its armour: two riveted
+plates strapped round the pot's flanks. Dress per world: the Hangar's torch arms (on their own bones in the same mesh), the
+Buried Machine's iron hoops, the Moon Foundry's ember brew, the Overnight Train's luggage. Draws: the body one skinned mesh,
+the brew, the lens, the spout and its stream, the two plates (9, the Hangar's 11; the welding cart drew up to 17). The pot
+turns about its middle (`PIVOT`, 1.1 m): a blow's tip turned about the ground had swung its legs under the floor. The
+welding cart stays in plans/tracked.js as `legacyCartModel`: it stands in while the mesh loads and can come back as a foe
+of its own. Unity: `-fight machines` (engine/unity/game.js) pictures it standing, winding up the pour and pouring.
+
 ### The dune mummer (#800, `src/enemies/plans/dune-mummer-tripo.js`, `public/enemies/dunemummer/`)
 
 The second of the rebuild's new foes: `ARCHETYPES.dunemummer` beside today's mummer (kept as it was, the author: "I also

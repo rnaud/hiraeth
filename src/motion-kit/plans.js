@@ -266,6 +266,24 @@ export const PLANS = {
   // along the sole (by distance, so it never skates); rolled up it is a ball whose spin is locked to the ground it
   // covers (angle = distance / radius: it never slips), wobbling on a spring over bumps and as it starts and stops
   // (src/enemies/plans/roller.js)
+  // the crucible walker (#800: the cart's approved body, src/enemies/plans/cart-tripo.js): a squat pot on four stubby
+  // legs; trots on diagonal pairs (it keeps the cart's turn-then-go, def.tracks), the pot riding its feet on stiff springs
+  crucible: {
+    gait: { gait: 'alternate', drift: 0.3, stepTime: [0.14, 0.32], height: 0.2, arc: 'machine', duty: 0.62, reach: 0.45 },
+    knee: { lenA: 0.42, lenB: 0.36, pole: 'out-up' },
+    body: { bob: 0.035, lean: 0.03, bank: 0.03, sway: 0.12, tilt: 0.2, spring: { f: 4.2, z: 0.5, r: 0 }, height: { f: 4.5, z: 0.5, r: 0 } },
+    poses: {
+      coil: { y: -0.08, z: -0.06, pitch: -0.08 },                       // (the pour: it sits back on its hind legs as the pot tips)
+      strike: { y: 0, z: 0.05, pitch: 0.06 },
+      recover: { y: -0.03, pitch: 0.03 },
+      hurt: { y: -0.05, roll: 0.08 },
+      'coil:pour': { y: -0.1, z: 0.02, pitch: 0.36, spread: 1.12 },     // (its front legs bend: the pot tips its rim toward you)
+      'strike:pour': { y: -0.12, z: 0.04, pitch: 0.46 },
+      'coil:ram': { y: -0.14, z: -0.12, pitch: -0.14, spread: 1.15 },   // (the ram: backed up, squatting, its feet scrabbling)
+      'strike:ram': { y: -0.02, z: 0.12, pitch: 0.16 },
+    },
+    style: 'machine',
+  },
   roller: {
     shell: { radius: 0.7, tuck: { f: 2.6, z: 0.7, r: 0 } },        // (m; the foot and head pulling in and out)
     foot: { ripple: 0.28, waves: 3 },                                   // (m of sole a ripple travels per m glided; ripples along it)

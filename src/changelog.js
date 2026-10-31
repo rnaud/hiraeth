@@ -60,6 +60,8 @@ export const CHANGELOG = [
       // the storm ray (#800)
       { text: 'The sky ray has a new body, drawn from its new design: the storm ray, a plump cream-bellied body with a teal back, a small dark eye either side of its blunt head, a paddle of a tail and two long teal wings tipped red-brown. It glides on wings held in a shallow V, beating them in slow waves, and raises them high in a tall V when it stalls over you for its downdraft; it still sweeps them back to skim at you and lifts its tail to lash. In each world it keeps its colours and dress: mist trailing the cloud ray of Vael II, patches and wire on the scrap ray of the Sealed Hangar, glass facets on the Glass Dunes\' manta, ribbons on the porcelain ray, the abyss ray\'s long tail. It fights exactly as before, and a flight of rays is far lighter for your device to draw.',
         see: 'Land on Vael and watch a storm ray circling, or open the Arena and pick a ray from the foe list (D-pad ↓, K). Let it stall over you: its wings rise high before it beats them down.' },
+      // the crucible walker (#800)
+      'The crucible cart now walks: its new body is a squat sage-green pot on four stubby iron legs, its brew glowing orange inside the rim and one round eye on its side that slides round the pot to keep you in view. It fights as it did: when it sinks onto its front legs and tips its rim at you, get out of the pour; when it backs up squatting and scrabbling, step out of its charge. A plain shot still crusts its brew grey and a bomb on its legs still stops it turning. The Buried Machine’s ore cart wears rusted iron hoops, the Moon Foundry’s is cream enamel with an ember brew, and in the Arena its welding torches and its luggage come along.',
     ],
   },
   {

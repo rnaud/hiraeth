@@ -79,7 +79,11 @@ function teethGeometry() {
   return merged(parts);
 }
 
-export function cartModel(skin) {
+/**
+ * The welding cart on its tracks (until #800 the cart's body; kept under this name so the old look can come back as a
+ * foe of its own): it stands in for the crucible walker (plans/cart-tripo.js) where that one's mesh is not loaded.
+ */
+export function legacyCartModel(skin) {
   const PL = PLANS.tracked, P = skin.palette, props = new Set(skin.props), M = materials('cart', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

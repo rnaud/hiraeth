@@ -214,6 +214,8 @@ export const FOE_MOVES = {
   glider: { period: 0.9, step: [N('bandpass', 500, 0.35, 0.08, { f1: 1100, q: 0.8, rate: 0.7 })] },
   burrower: { stride: 0.8, step: [N('bandpass', 1500, 0.3, 0.06, { q: 0.8, rate: 0.5 })] },
   tracked: { stride: 0.6, step: [C(2, 0.05, 800, 0.025, 0.07, { q: 2, rate: 0.5 }), N('lowpass', 200, 0.2, 0.06, { rate: 0.3 })] },
+  // (#800: the crucible walker's four iron feet on diagonal pairs, a pair down every 0.38 m at its pace (trials/motion-audit.mjs: 2.6 steps a second at 2 m/s): a dull clank of the pot's weight)
+  crucible: { stride: 0.4, step: [N('lowpass', 260, 0.12, 0.16, { rate: 0.45 }), C(1, 0, 900, 0.03, 0.05, { q: 3, at: 0.01 })] },
   siege: { stride: 1.2, step: [N('lowpass', 200, 0.2, 0.2, { rate: 0.4 }), R(262, BRONZE, 0.3, 0.012, { at: 0.02 })] },
   hover: { period: 0.55, step: [T('sawtooth', 220, 230, 0.4, 0.012), N('bandpass', 900, 0.4, 0.02, { q: 4 })] },
   brute: { stride: 1.4, step: [N('lowpass', 220, 0.2, 0.22, { rate: 0.4 }), T('square', 80, 60, 0.12, 0.03)] },
