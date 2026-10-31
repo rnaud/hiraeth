@@ -1860,6 +1860,20 @@ export const CHANGELOG_MEDIA = {
       ] },
       { title: 'A sentinel arriving in the Arena: the worst frame of its arrival', unit: 'ms', better: 'lower', device: DEVICE800G, source: SOURCE800G_ARRIVE, rows: [{ where: 'High (no new program, before or after)', before: 7.7, after: 5.9 }] },
     ] },
+    // (issue #800 family G: the hulk on its Tripo body; hand-made pairs)
+    { match: 'The hulk has its new body', tags: ['combat'], shots: [
+      { name: 'hulk800-arena', title: 'The hulk', size: [1280, 720], caption: 'The hulk alone, three-quarters from its front: before, the slate-blue horned brute in its kilt of hide patches with its long banded club; after, the hunched teal root crusher with its cream belly, its small low head and dark mouth, huge rust-red fists and a shorter banded club', from: FROM800HULK,
+        reference: { sheet: 'references/enemy-redesign-2026-10-30/hulk/69ae4d9f-9bdb-4eab-998a-08bdf543617d-2.png', caption: 'The approved design the new body was made from (Tripo, from T-pose sheets drawn from this picture; the club is the old hulk’s, kept for its swings)' } },
+      { name: 'hulk800-stomp', title: 'The stomp', size: [480, 270], caption: 'From the front, 80 % into the stomp’s wind-up: before, the horned hulk on one leg, its arms flung up; after, the root crusher raising one great foot high, its fists flung up', from: FROM800HULK },
+      { name: 'hulk800-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'The Unity version in the Arena, as the blows land: the hulk stamping behind the sentinel, the mummer king to the right, the same bodies drawn by their colours', from: FROM800G_UNITY },
+    ], numbers: [
+      { title: 'What six hulks add to the Arena’s frame, standing in view', unit: '', better: 'lower', device: DEVICE800G, source: SOURCE800G('hulk'), rows: [
+        { where: 'High: draw calls', before: 162, after: 54 },
+        { where: 'Deck: draw calls', before: 108, after: 36 },
+        { where: 'High: triangles, every pass (thousands)', before: 141.2, after: 225.2 },
+      ] },
+      { title: 'A hulk arriving in the Arena: the worst frame of its arrival', unit: 'ms', better: 'lower', device: DEVICE800G, source: SOURCE800G_ARRIVE, rows: [{ where: 'High (no new program, before or after)', before: 7.3, after: 6.1 }] },
+    ] },
     { match: 'A new foe, the wood cutter', shots: [
       { name: 'woodcutter-lorn', title: 'Lorn’s Deep Wood', only: 'after', size: [1280, 720], caption: 'The sawyer where it is placed, slumped mid-cut at the meadow’s edge in the Deep Wood, its saw in its right hand.', from: 'Actual running game, muted headless Chrome (scripts/changelog-shots.mjs shoot, --mute-audio, every volume 0) against this branch’s own Vite on port 5460, High, 1280 × 720, 10:00, clear, 30 October 2026, on the wood cutter’s commit (pictured on its tree over 29488bd4d, before the rebase onto a9b33fb98): the traveller set 14 m off, the foe calm, the camera pinned on it. After-only: a new foe has no before. The placed one, as the game puts it.' },
       { name: 'woodcutter-viridel', title: 'Viridel', only: 'after', size: [1280, 720], caption: 'A hedge cutter in Viridel’s grass near the ship, its shears on its wrist.', from: 'Actual running game, muted headless Chrome (scripts/changelog-shots.mjs shoot, --mute-audio, every volume 0) against this branch’s own Vite on port 5460, High, 1280 × 720, 10:00, clear, 30 October 2026, on the wood cutter’s commit (pictured on its tree over 29488bd4d, before the rebase onto a9b33fb98): the traveller set 14 m off, the foe calm, the camera pinned on it. After-only: a new foe has no before. Set down by hand near the landing (foes.add) for the picture; in play it comes in Viridel’s packs and walks its old beat.' },

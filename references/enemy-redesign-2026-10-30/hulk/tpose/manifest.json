@@ -1,0 +1,47 @@
+{
+  "created": "2026-10-31",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, two full-body views side by side on a plain light cream background: on the left the front view, on the right the back view, both the same size and standing on the same level line. The exact creature of the reference image, the root crusher, with the same proportions, colours and details: an enormous heavy brute with muted teal-green skin and smooth simple forms; a massive rounded back and broad shoulders; a small rounded head low at the front between the shoulders, with two short black slit eyes and a dark mouth under them, no neck; a pale cream chest and belly; huge thick long arms, the forearms ending in big rust-red knuckled hands; short very thick legs on broad feet with terracotta toes. It stands in a strict T-pose: both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open, flat and empty, fingers together; legs straight and a little apart, feet flat and pointing forward; the head facing forward. The back view shows the smooth broad teal back, the backs of the arms, hands and legs. Empty hands, no rock, no root, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: rock, root, weapon, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-prompts-family-g.md#hulk-tpose",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/hulk/69ae4d9f-9bdb-4eab-998a-08bdf543617d-2.png"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-06-41-12-9785",
+      "candidate": "openai/1",
+      "sha256": "fa1cc7ba89bd3b709f3c6a194b792cb282d46aa6a02435bcd9d1e44bf3c4db3f",
+      "bytes": 79576,
+      "costUSD": 0.041,
+      "pickedBy": "agent (family G, #800; the author asleep: \"keep going with your own recommendations\")",
+      "why": "A true T-pose, arms level, the approved brute held (the massive teal shoulders, the small head low between them with its two slits and dark mouth, the cream chest and belly, the rust knuckled hands, the terracotta toes), hands empty and closed; the other OpenAI sheet has the same pose with a busier back, both Gemini sheets drop the arms below level and the second draws a ground line."
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, one full-body side view (left profile) on a plain light cream background. The exact creature of the reference image, the root crusher, with the same proportions, colours and details: an enormous heavy brute with muted teal-green skin and smooth simple forms; a massive rounded back and broad shoulders; a small rounded head low at the front of the shoulders, with two short black slit eyes and a dark mouth, seen in profile; a pale cream chest and belly bulging forward; huge thick long arms ending in big rust-red knuckled hands; short very thick legs on broad feet with terracotta toes. It stands in a strict T-pose: both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open and empty, so from the side the near arm points straight at the viewer and is seen end-on; legs straight and a little apart, feet flat and pointing forward. Show the depth of the chest and belly, the rounded back and how far forward the head sits. Empty hands, no rock, no root, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: rock, root, weapon, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-prompts-family-g.md#hulk-tpose-side",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/hulk/69ae4d9f-9bdb-4eab-998a-08bdf543617d-2.png"
+      ],
+      "ar": "1:1",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-06-41-13-4d5a",
+      "candidate": "openai/1",
+      "sha256": "605f0e4cce600e7c7a7d1cb378e95bc69a05f2bb5bb09acdbfa5426823c955e8",
+      "bytes": 106069,
+      "costUSD": 0.053,
+      "pickedBy": "agent (family G, #800; the author asleep: \"keep going with your own recommendations\")",
+      "why": "The near arm end-on (the rust knuckles toward the viewer), the head low and forward as in the front view and the approved image, flat colours (the second OpenAI side baked a dark shade down the leg); Gemini's both drew open fingers."
+    }
+  ]
+}

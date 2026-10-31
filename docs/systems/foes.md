@@ -3186,7 +3186,7 @@ the spirit on the clapper's bone and a hook under it; the Signal Market's coins 
 from its sides. The spider-legged bell walker stays in plans/siege.js as `legacyBellModel`: it stands in while the mesh
 loads and can come back as a foe of its own. Unity: `-fight machines` pictures it with the crucible walker.
 
-### Family G: the mummer king, the sentinel (#800, `src/enemies/plans/tripo-biped.js`)
+### Family G: the mummer king, the sentinel, the hulk (#800, `src/enemies/plans/tripo-biped.js`)
 
 The two-legged humanoids' approved redesigns are their bodies, each on Tripo's biped rig posed directly by the clips, never
 a hidden copy (`tripoBiped`: the humanoid rig's joints stood where Tripo put its joints, each limb the two sides' mean
@@ -3215,10 +3215,14 @@ README under the trials folder).
   visor on the head bone (`droidGlow`), its fists and soles whole, its legs the clips' own, the big oval shield on its left
   forearm kept facing out (its guard, bash and broken guard as before), the short leaf blade in its right fist
   (`SENTINEL_HOLD`); its scorched tier the droids' ceramic and joints. The slim droid: `legacySentinelModel`.
+- **The hulk** (`plans/hulk-tripo.js`, `public/enemies/hulk/`, 2.6 m): the root crusher on its renamed v2.5 rig, its pelvis
+  at its legs' roots, its chest drawn back 0.15 rad over the clips (the mesh is hunched already), two black slits on its head,
+  its fists whole; the banded club shorter (1.3 m) and carried with its forearm forward (`HULK_TRIPO_HOLD`: a club off its low
+  hanging fist ran into a slope), the stomp's leg swung higher (`TRIPO_STANCE`). The horned hulk: `legacyHulkModel`.
 
 Each draws 3 meshes (the body, its rigid parts in one skinned mesh, the eyes); six in the Arena add 54 draws on High (the
-old bodies 108–198). Unity: `-fight humanoids` (engine/unity/game.js) pictures the family standing, winding up and striking.
-Tests: `tests/mummer-king-tripo.test.js`, `tests/sentinel-tripo.test.js`.
+old bodies 108–198). Unity: `-fight humanoids` (engine/unity/game.js) pictures the three standing, winding up and striking.
+Tests: `tests/mummer-king-tripo.test.js`, `tests/sentinel-tripo.test.js`, `tests/hulk-tripo.test.js`.
 
 ### The dune mummer (#800, `src/enemies/plans/dune-mummer-tripo.js`, `public/enemies/dunemummer/`)
 

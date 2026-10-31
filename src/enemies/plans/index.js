@@ -28,7 +28,8 @@ import { wispModel } from './wisp-tripo.js';
 import { fencerModel } from './fencer.js';
 import { mummerModel, legacyMummerKingModel } from './mummer.js';
 import { tripoMummerKingModel } from './mummer-king-tripo.js';
-import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js';
+import { gruntModel, legacyHulkModel, prowlerModel, warlordModel } from './monster.js';
+import { tripoHulkModel } from './hulk-tripo.js';
 import { legacySentinelModel } from './sentinel.js';
 import { tripoSentinelModel } from './sentinel-tripo.js';
 import { oracleModel } from './oracle.js';
@@ -87,7 +88,9 @@ import { foeSource } from '../foe-assets.js';
 //   mummer.js     plan 23  the mummer and the old mummer king (on the humanoid rig, src/enemies/humanoid-rig.js: clips; issue #724)
 //   mummer-king-tripo.js plan 24  the mummer king (#800: the approved redesign, Tripo's rigged mesh on the humanoid clip rig,
 //                          plans/tripo-biped.js; mummer.js legacyMummerKingModel, the junk king, stands in while it loads)
-//   monster.js    plans 25, 26, 30, 31  roster v4's grunt, hulk, prowler and warlord (on the humanoid rig; issue #726)
+//   monster.js    plans 25, 26, 30, 31  roster v4's grunt, old hulk, prowler and warlord (on the humanoid rig; issue #726)
+//   hulk-tripo.js plan 26  the hulk (#800: the approved root crusher, Tripo's rigged mesh on the humanoid clip rig,
+//                          plans/tripo-biped.js; monster.js legacyHulkModel, the slate-blue horned hulk, stands in while it loads)
 //   droid.js               the makers' defunct droids' one material family (issue #726)
 //   sentinel.js   plan 27  the old sentinel (a slim droid duellist on the humanoid rig: blade and round shield)
 //   sentinel-tripo.js plan 27  the sentinel (#800: the approved cistern keeper, Tripo's rigged mesh on the humanoid clip
@@ -103,7 +106,7 @@ import { foeSource } from '../foe-assets.js';
 const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: stormRay, moth: lampMoth, jelly: cloudJelly,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel,
   shade: shadeModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel,
-  grunt: gruntModel, hulk: hulkModel,
+  grunt: gruntModel,
   oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel,
   cart: (skin) => { const src = foeSource('cart'); return src ? tripoCartModel(skin, src) : legacyCartModel(skin); },
@@ -112,7 +115,8 @@ const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, 
   woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); },
   dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); },
   mummerking: (skin) => { const src = foeSource('mummerking'); return src ? tripoMummerKingModel(skin, src) : legacyMummerKingModel(skin); },
-  sentinel: (skin) => { const src = foeSource('sentinel'); return src ? tripoSentinelModel(skin, src) : legacySentinelModel(skin); } };
+  sentinel: (skin) => { const src = foeSource('sentinel'); return src ? tripoSentinelModel(skin, src) : legacySentinelModel(skin); },
+  hulk: (skin) => { const src = foeSource('hulk'); return src ? tripoHulkModel(skin, src) : legacyHulkModel(skin); } };
 
 /**
  * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another

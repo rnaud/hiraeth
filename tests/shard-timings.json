@@ -366,6 +366,7 @@
  "tests/hud-look.test.js": 0.1,
  "tests/hud-shows.test.js": 0.1,
  "tests/hud.test.js": 0.6,
+ "tests/hulk-tripo.test.js": 0.5,
  "tests/hum.test.js": 10.8,
  "tests/i18n-shadow.test.js": 0.1,
  "tests/icons.test.js": 0.1,

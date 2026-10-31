@@ -934,9 +934,13 @@ About 12–13 sessions alongside the kit's 8–11. Phases 2–4 put the whole fi
 
 ## Status (the build, 2026-10-09)
 
-**v2.39 (issue #800, family G): the mummer king and the sentinel rebuilt** to their approved redesigns on Tripo bodies posed by the clips (docs/systems/foes.md, "Family G"): the mummer king a teal pear with a cream oval mask, three
+**v2.39 (issue #800, family G): the mummer king, the sentinel and the hulk rebuilt** to their approved redesigns on Tripo
+bodies posed by the clips (docs/systems/foes.md, "Family G"): the mummer king a teal pear with a cream oval mask, three
 ochre crown rods, huge cream gauntlets and a paddle club; the sentinel the cistern keeper, a squat pink ceramic barrel
-with a cylinder head, one amber eye in its visor and a big oval shield. Ids, defs, windows, skins and sounds kept; the old bodies kept as `legacyMummerKingModel` and `legacySentinelModel`. Still differing: the king's legs are longer than the drawing's, the sentinel's limbs slimmer and without elbow balls.
+with a cylinder head, one amber eye in its visor and a big oval shield; the hulk the root crusher, a hunched teal brute with
+a cream belly, a low head and rust-red fists. Ids, defs, windows, skins and sounds kept; the old bodies kept as
+`legacyMummerKingModel`, `legacySentinelModel` and `legacyHulkModel`. Still differing: the king's legs are longer than the
+drawing's, the sentinel's limbs slimmer and without elbow balls, the hulk keeps a club the drawing does not show.
 
 **v2.33 (issue #724): the 24th and 25th, the mummer and the mummer king** (`mummer`, `mummerking`: spirits, roles `camp
 rank and file` and `camp chief`, tiers 1 and 3, plans `mummer` and `mummerking`; docs/design/enemy-roster-v2.md and v3),

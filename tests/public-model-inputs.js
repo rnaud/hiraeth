@@ -36,6 +36,7 @@ const READERS = {
   "enemies/roller/body.glb": () => readFileSync(new URL("../public/enemies/roller/body.glb", import.meta.url)),
   "enemies/mummerking/body.glb": () => readFileSync(new URL("../public/enemies/mummerking/body.glb", import.meta.url)),
   "enemies/sentinel/body.glb": () => readFileSync(new URL("../public/enemies/sentinel/body.glb", import.meta.url)),
+  "enemies/hulk/body.glb": () => readFileSync(new URL("../public/enemies/hulk/body.glb", import.meta.url)),
   "guardians/elder-v3/model.glb": () => readFileSync(new URL("../public/guardians/elder-v3/model.glb", import.meta.url)),
   "guardians/keeper-v1/model.glb": () => readFileSync(new URL("../public/guardians/keeper-v1/model.glb", import.meta.url)),
   "models/ships/caravan-a/playable.glb": () => readFileSync(new URL("../public/models/ships/caravan-a/playable.glb", import.meta.url)),

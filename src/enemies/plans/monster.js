@@ -165,7 +165,7 @@ function hookClaw(at, dir, hook, r, l) {
  */
 const _bq = new THREE.Quaternion(), _pq = new THREE.Quaternion();
 const _h0 = new THREE.Vector3(), _f0 = new THREE.Vector3(), _kn = new THREE.Vector3(), _fwd = new THREE.Vector3(), _fq = new THREE.Quaternion(), _down = new THREE.Vector3(0, -1, 0);
-function liftOver(J, i, up, tilt = 0) {
+export function liftOver(J, i, up, tilt = 0) {
   const leg = J.legs[i], knee = J.knees[i], foot = J.feet[i];
   J.body.updateWorldMatrix(true, true);
   foot.getWorldPosition(_f0); foot.getWorldQuaternion(_fq);
@@ -202,7 +202,7 @@ function knobClub(L = 0.82) {
 }
 /** The hulk's long club along +y from the grip: a dark log thickening to its end, iron bands near it and at the grip (the
  * sheet draws bands only, no studs). */
-function bandedClub(L = 1.75) {
+export function bandedClub(L = 1.75) {
   const wood = [new THREE.CylinderGeometry(0.12, 0.055, L, 10, 3).translate(0, L * 0.38, 0), new THREE.CylinderGeometry(0.11, 0.12, 0.06, 10).translate(0, L * 0.88 + 0.03, 0)];
   const iron = [L * 0.6, L * 0.78, L * 0.86].map((y) => new THREE.CylinderGeometry(0.035 + 0.075 * (y / L) + 0.012, 0.035 + 0.075 * (y / L) + 0.012, 0.05, 10).translate(0, y - L * 0.12, 0));
   iron.push(new THREE.CylinderGeometry(0.064, 0.064, 0.05, 10).translate(0, -0.02, 0));
@@ -410,7 +410,11 @@ export const HULK_HOLD = {
     } },
 };
 
-export function hulkModel(skin) {
+/**
+ * The slate-blue horned hulk (#726), the game's hulk until #800: kept as the stand-in while the approved root crusher's
+ * Tripo body loads (plans/hulk-tripo.js), and so it can come back as a foe of its own.
+ */
+export function legacyHulkModel(skin) {
   const P = skin.palette, M = materials('hulk', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const rig = pivot(g, 0, 0, 0, 'rig');

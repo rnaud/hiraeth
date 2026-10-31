@@ -198,6 +198,7 @@ const readers = {
   'enemies/plans/hopper-legacy.js': () => readFileSync(new URL('../../src/enemies/plans/hopper-legacy.js', import.meta.url), 'utf8'),
   'enemies/plans/hound-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/hound-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/hover-legacy.js': () => readFileSync(new URL('../../src/enemies/plans/hover-legacy.js', import.meta.url), 'utf8'),
+  'enemies/plans/hulk-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/hulk-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/humanoid.js': () => readFileSync(new URL('../../src/enemies/plans/humanoid.js', import.meta.url), 'utf8'),
   'enemies/plans/index.js': () => readFileSync(new URL('../../src/enemies/plans/index.js', import.meta.url), 'utf8'),
   'enemies/plans/kit.js': () => readFileSync(new URL('../../src/enemies/plans/kit.js', import.meta.url), 'utf8'),

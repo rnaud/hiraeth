@@ -139,7 +139,7 @@ test('with the clips: every armed foe holds its weapon in a closed fist, along t
     const atk = f.def.attacks.find((a) => a.id === 'throw');
     for (let i = 0; i < 40; i++) { f.state = 'wind'; f.atk = atk; f.k = 0.5; foes.look(f, DT); }
     assert.equal(f.model.wield.name, null);
-    assert.ok(f.model.fists.every((x) => x.w < 0.1), `the hulk's hands open to take the grunt (${f.model.fists.map((x) => x.w.toFixed(2))})`);
+    assert.ok(f.model.fists.every((x) => !x || x.w < 0.1), `the hulk's hands open to take the grunt (a mitten of a fist, no fingers, #800: open) (${f.model.fists.map((x) => x?.w.toFixed(2) ?? "no fingers")})`);
     foes.remove(f);
   }
   // the bow: in the left fist at the middle of its stave, its limbs near upright at you in the volley, the cord drawn

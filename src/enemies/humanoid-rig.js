@@ -325,6 +325,8 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3
 const _m4q = new THREE.Quaternion();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3();
 let seed = 0;
+/** The next driver's clip phase (each driver starts its clips `seed` steps along): for a test that must not depend on how many came before (as the rigs' nextRigSeed). */
+export function nextDriverSeed(n) { seed = n; }
 
 /**
  * One foe's clips on its skeleton. J: humanoidSkeleton's joints; rig: the group the skeleton hangs in (the Animator's

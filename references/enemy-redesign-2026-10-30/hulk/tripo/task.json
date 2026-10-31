@@ -1,0 +1,130 @@
+{
+  "issue": 800,
+  "phase": "family G",
+  "foe": "hulk",
+  "fill": 0.5525,
+  "sources": [
+    {
+      "view": "front",
+      "sheet": "references/enemy-redesign-2026-10-30/hulk/tpose/sheet-1.jpg",
+      "box": [
+        17,
+        191,
+        803,
+        479
+      ],
+      "sent": "view-front.png",
+      "sha256": "805184b0b85bce48add7c4ca933575ef8171ecf2b69f8026bca1b18a33aa6106"
+    },
+    {
+      "view": "back",
+      "sheet": "references/enemy-redesign-2026-10-30/hulk/tpose/sheet-1.jpg",
+      "box": [
+        830,
+        191,
+        686,
+        479
+      ],
+      "sent": "view-back.png",
+      "sha256": "f5c10048e4ce653ad7e6afaa9b56193b558d1fda8efb48ac2380e1716a996e3f"
+    },
+    {
+      "view": "left",
+      "sheet": "references/enemy-redesign-2026-10-30/hulk/tpose/sheet-2.jpg",
+      "box": [
+        371,
+        126,
+        747,
+        1268
+      ],
+      "sent": "view-left.png",
+      "sha256": "bfe0fe576d9f2a2efc59174571db782ae54fdb0d3ff65a218800454330ef2861"
+    }
+  ],
+  "generation": {
+    "endpoint": "POST /v3/generation/multiview-to-model",
+    "request": {
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": false,
+      "texture_quality": "standard",
+      "texture_version": "v3.5-20260815",
+      "delight": true,
+      "texture_alignment": "original_image",
+      "face_limit": 30000,
+      "export_uv": true
+    },
+    "task": "c5f67b39-f93c-4113-9d4e-f987d5f6e0ed",
+    "started": "2026-10-31T06:46:52.785Z",
+    "finished": "2026-10-31T06:47:52.255Z",
+    "creditsConsumed": 30,
+    "balanceBefore": 915,
+    "balanceAfter": 825,
+    "model": {
+      "file": "model.glb",
+      "bytes": 1268320,
+      "sha256": "4a0fece7fef45bbf2c19494c0e2988035ce743da697ade807daf9f7d9fb7d579"
+    },
+    "preview": {
+      "file": "preview.png",
+      "bytes": 109857
+    }
+  },
+  "rigTries": [
+    {
+      "check": {
+        "endpoint": "POST /v3/animations/rig-check",
+        "task": "4598f0c0-5197-435f-ac5f-f712043329aa",
+        "output": {
+          "riggable": true,
+          "rig_type": "biped"
+        },
+        "creditsConsumed": 0
+      },
+      "endpoint": "POST /v3/animations/rig",
+      "request": {
+        "model": "v1.0-20240301",
+        "rig_type": "biped",
+        "spec": "mixamo",
+        "out_format": "glb"
+      },
+      "task": "3bd03b97-1572-4d85-ad68-a1eb259e1b1e",
+      "creditsConsumed": 25,
+      "balanceBefore": 825,
+      "balanceAfter": 750,
+      "model": {
+        "file": "rigged-1.glb",
+        "bytes": 1436832,
+        "sha256": "c0e6561b14e5e7bbf606b7a074c030852d2768a98e27a67543ffb36ef7ffe8da"
+      },
+      "why": "the v1.0 rig crossed the arms (LeftArm's joint right of the middle, its forearm out left) and set the feet behind the legs"
+    }
+  ],
+  "rig": {
+    "check": {
+      "endpoint": "POST /v3/animations/rig-check",
+      "task": "73a84e75-1af8-4db0-aaad-b67ae9f3dbf5",
+      "output": {
+        "riggable": true,
+        "rig_type": "biped"
+      },
+      "creditsConsumed": 0
+    },
+    "endpoint": "POST /v3/animations/rig",
+    "request": {
+      "model": "v2.5-20260210",
+      "rig_type": "biped",
+      "spec": "mixamo",
+      "out_format": "glb"
+    },
+    "task": "e9f65356-56a9-49e8-af90-70b18c4d43d3",
+    "creditsConsumed": 25,
+    "balanceBefore": 750,
+    "balanceAfter": 725,
+    "model": {
+      "file": "rigged.glb",
+      "bytes": 1439352,
+      "sha256": "88d8d05ce3dfe55ed64c69192cb05aa9ce6a8b80424e48ea4a79a04d604cc7f2"
+    }
+  }
+}

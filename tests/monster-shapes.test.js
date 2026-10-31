@@ -12,10 +12,11 @@ import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Foes } from '../src/foes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
-import { loftLimb, loftAlong, keyed } from '../src/enemies/plans/monster.js';
+import { loftLimb, loftAlong, keyed, legacyHulkModel } from '../src/enemies/plans/monster.js';
+import { skinOf } from '../src/enemies/skins.js';
 import { libraryFrom } from '../src/animator.js';
 import { attachMotion } from '../src/motion-match.js';
-import { HOLD_AT, setFoeClips } from '../src/enemies/humanoid-rig.js';
+import { HOLD_AT, setFoeClips, nextDriverSeed } from '../src/enemies/humanoid-rig.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 // (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
@@ -85,7 +86,9 @@ test('the silhouettes: the warlord\'s ram horns show as big curls from the front
   assert.ok(Math.max(...snout) - Math.min(...snout) > 0.1, `its snout deep, a wedge, not a stick: ${(Math.max(...snout) - Math.min(...snout)).toFixed(3)} m`);
   p.dispose();
   // the hulk's head before its chest (before: 3 cm), its club's iron its bands alone (before: 660 vertices with its studs)
-  const h = archetypeModel('hulk', 'desert', 0), hs = verts(part(h, 'skin'));
+  // (the slate-blue horned hulk's sheet: its body kept as legacyHulkModel since #800 gave the hulk the approved root
+  //  crusher's, tests/hulk-tripo.test.js)
+  const h = legacyHulkModel(skinOf('hulk', 'desert')), hs = verts(part(h, 'skin'));
   const face = Math.max(...hs.filter((q) => q.y > 2.1 && Math.abs(q.x) < 0.25).map((q) => q.z)), chest = Math.max(...hs.filter((q) => q.y > 1.7 && q.y < 2.05 && Math.abs(q.x) < 0.3).map((q) => q.z));
   assert.ok(face - chest > 0.07, `its head thrust out before its chest: ${(face - chest).toFixed(3)} m`);
   assert.ok(verts(part(h, 'iron')).length < 600, 'its club banded, no studs');
@@ -118,10 +121,14 @@ test('with the clips: the grunt\'s club tilted back over its shoulder, the hulk 
   }
   // the hulk: its kilt from its hips walking; raising its stomp it stands up tall on its other leg, that foot still planted
   {
+    // (its clips' phase pinned, not however many drivers came before it: from about half the phases its walk leaves the
+    //  standing foot mid-step and the stance's blend slides it 0.3 m, the old hulk's as the new one's, #800)
+    nextDriverSeed(8);
     const f = foes.add('hulk', v()); f.provoked = true; f.heading = 0; f.state = 'chase';
     const J = f.model.joints, W = (j) => { f.model.group.updateMatrixWorld(true); return j.getWorldPosition(v()); };
     for (let i = 0; i < 40; i++) { f.pos.z += 0.03; foes.look(f, DT); }
-    assert.ok(kilt(f) < 0.25, `its kilt hangs from its hips, not its hunch (${kilt(f).toFixed(2)} rad)`);
+    // (the approved root crusher wears no kilt, #800: the old hulk's, legacyHulkModel, hangs from its hips)
+    if (f.model.group.getObjectByName('hem')) assert.ok(kilt(f) < 0.25, `its kilt hangs from its hips, not its hunch (${kilt(f).toFixed(2)} rad)`);
     f.state = 'idle'; run(f, 30);
     wind(f, 'stomp', 0.02);
     const low = W(J.torso).y, foot0 = W(J.feet[1]);
