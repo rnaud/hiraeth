@@ -211,6 +211,59 @@ the newest player of its platform whenever its own build (`bundle.json`'s, the c
   the Surface CPU it did (the skin variants left out are the biggest): from ~49 min (26 Oct, 360 variants) to an
   expected ~25 min on the same source; the shader cache key is unchanged (each kept variant's source is the same).
 
+### Unity's own switches on the Odin 3 (issue #803)
+
+Six Unity-side candidates, each measured against the same build on the AYN Odin 3 (Adreno 830, 1920 × 1080 at 60 Hz,
+Vulkan): the bench's own player under an id of its own (`BridgeBuild.Android -package com.rnaud.hiraeth.perf803
+-unity-audio`), `scripts/bench/android-bridge.sh` with `-quality handheld -no-dyn-res` (Handheld held at its top, 0.75,
+FSR 1), `-bench 8 -split -metrics`, muted (`-mute` closes Unity's output stream; the script checked `dumpsys audio` at
+every run), the desert's five views and the City-Shaft's four, the configurations interleaved over three rounds after an
+unrecorded warm-up launch on each fresh install (no pipeline cache), medians of the rounds, then of the views. The
+frames are held to the display's 60 Hz, so the frame's median is 16.6 ms wherever the GPU fits; what the changes move
+is the threads under it (`-split` now gives the main thread's and the render thread's ms, FrameTimingManager's, and the
+C# apply by op, `split.applyOps`, LateUpdate's draws as `late`).
+
+| candidate | desert: frame, p95 / main / render / GPU (ms) | City-Shaft: frame, p95 / main / render / GPU | kept? |
+|---|---|---|---|
+| the build as it was | 16.65, 17.20 / 4.12 / 1.29 / 12.52 | 16.67, 19.04 / 6.34 / 4.02 / 14.01 (wide: 23.3, 26.1) | |
+| GPU Resident Drawer off (`-no-grd`) | 16.65, 17.01 / **3.42** / 1.30 / 12.53 | 16.66, 18.65 / 6.76 / 3.66 / 14.03 (wide: 23.3, 26.0) | **kept** |
+| LateUpdate's draws past nodes with none (`late`, ms) | 0.29-0.39 → 0.24-0.35 | 0.62-0.96 → 0.59-0.90 | **kept** |
+| graphics jobs, split (`-graphics-jobs`) | 16.64, 17.01 / 3.79 / **0.63** / **13.13** | **18.40, 22.62** / 5.32 / **1.04** / **17.96** (wide: **26.4, 32.4**) | dropped |
+| static batching off (`-no-static-batch`) | 16.64, 17.09 / 3.94 / 1.80 / 12.73 | 16.65, 18.46 / 6.76 / 3.89 / 14.67 (wide: 23.9, 25.8) | (already on) |
+| HDR off | no change possible: every camera has `allowHDR = false`, and the asset Android draws with has HDR off | | dropped |
+| Store Actions Optimization | obsolete in Unity 6 (the render graph sets every load and store; the property is a compile error from 6000.4) | | dropped |
+
+- **The GPU Resident Drawer** was **on** on Android: every quality level, Android's "Mobile" too, draws with
+  `PC_RPAsset` (Forward+, the drawer on); `Mobile_RPAsset`, the asset with HDR on and the drawer off, is used by none.
+  Off, the main thread was shorter at 8 of the 9 views (the desert's camps 4.83 → 4.22 ms, the Qanat tree 4.12 → 3.42,
+  the dunes 2.82 → 2.48, the spawn 4.55 → 4.08, the cave 2.76 → 2.56; the City-Shaft's crowds 5.11 → 4.91 and 6.08 →
+  5.70, the wide view 6.95 → 6.80; its start 6.34 → 6.76), its p95 6.98 → 6.05 in the desert, the GPU the same to
+  0.05 ms. Our shaders have no DOTS instancing, so the drawer drew nothing of ours; it only kept its books, as on the
+  Xbox and the Deck. Now off on Android as there (BridgeRunner `Experiments`; `-grd` keeps it). The build with it
+  (and the change below) against the old one, two more rounds: the desert's main thread 4.04 → 2.50 ms (median of views),
+  its p95 7.33 → 6.83; the City-Shaft's 6.19 → 6.63 (one round of the old build there: an adb failure lost the other);
+  the GPU and the frames the same.
+- **LateUpdate's draws** (BridgeRenderer `DrawCrowds`) asked Unity whether each of the scene's few thousand nodes was
+  active before looking for its footprints or GPU instances; most have neither, so the managed check goes first: 0.03-0.12
+  ms less at 8 of 9 views on the Odin (0.05-0.16 in the Mac editor's batch run). The same nodes drawn.
+- **The C# apply** is no longer the 2.1 ms of "A cheaper sync": 0.15-0.5 ms in the desert and 0.4-0.9 in the City-Shaft
+  on the Odin, of which the nodes' transforms 0.02-0.15, the bones' Burst job 0.02-0.13, the cloth's and flames' points
+  0.05-0.23, the GPU instances up to 0.32; LateUpdate's draws (0.3-1 ms) cost more than all of it. A Burst job for the
+  nodes' transforms (a TransformAccessArray of the nodes that move, as the bones') was tried: 0.01-0.05 ms less at 7 views,
+  more at the two stillest, so not kept.
+- **Graphics jobs** (split threading) took 0.7-3 ms off the render thread, but the GPU took 0.6 ms longer in the desert
+  and 4 in the City-Shaft, where the frame is the GPU's: its wide view 23.3 → 26.4 ms, p95 26.1 → 32.4. Off.
+- **Static batching** (already on Android, "BridgeRenderer.StaticBatch") still pays: off, the GPU 0.2-0.7 ms longer and the
+  desert's render thread 0.5 ms.
+- Every picture against the old build's at the same view: the same within what the moving people and smoke change
+  between two runs of one build (a mean difference of 0.01-3.8 of 255 a view, as between two runs of one build).
+
+Not measured: the Retroid (the same Android path; its CPU is slower, so the drawer's cost is likely larger there), the Steam
+Deck (not reachable; its player already has the drawer off), the Xbox (its player already has it off; graphics jobs on
+D3D12 untried: the Xbox build is D3D11). The bench's Android player without Unity's audio
+(`BridgeBuild.Android` as it is) no longer starts the game since the recorded effects became required (#622): "Sound
+effects couldn't load", so the plan never runs; `-unity-audio` builds it with Unity's audio, which `-mute` silences.
+
 ### The Unity licence (the author, once)
 
 GameCI activates a Unity seat for each editor run and returns it after. A **Personal** licence needs
