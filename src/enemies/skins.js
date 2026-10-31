@@ -168,7 +168,10 @@ export const SKINS = {
     // (sheet-1, the City-Shaft's: weathered brass plates with pink rust, ivory enamel rims, slate-blue undersides, the smoke
     // ink-black and violet; sheet-2, the Garden of Spheres': pearl-white plates with fine gold rims, gold arms, a faint prism
     // shimmer, the smoke a pale blue-grey)
-    incal: { name: 'rust drone', palette: { plate: '#c9a868', plate2: '#d8bc84', rim: '#efe5cd', under: '#7088a8', dark: '#2e2a2c', brass: '#b8924e', smoke: '#2c2834', smoke2: '#6e6680', eye: '#f6f2ff', steel: '#d0d4da', rust: '#d9998a', accent: '#7088a8' }, props: ['rust'] },
+    // (the spool drone, issue #800: its home skin the approved reference's colours,
+    // references/enemy-redesign-2026-10-30/keep-drone/e708a0d0-…-0.png: cream plates, a slate cap, an olive-brown pod, a dark
+    // green-black core with an orange slit eye; the other skins' cap is their `under`, their pod their brass, plans/drone-tripo.js)
+    incal: { name: 'rust drone', palette: { plate: '#ecc7a9', plate2: '#f4d6bd', rim: '#efe5cd', under: '#7088a8', cap: '#4e5d63', pod: '#6a4a2e', dark: '#121410', brass: '#b8924e', smoke: '#1d2b26', smoke2: '#36463f', eye: '#d8902e', steel: '#d0d4da', rust: '#d9998a', accent: '#7088a8' }, props: ['rust'] },
     garage: { name: 'scrap drone', palette: { plate: '#6a6e6a', plate2: '#7e827c', rim: '#9a9488', under: '#3a3a3a', dark: '#1e1e1e', brass: '#a07a48', smoke: '#1c1a20', smoke2: '#3e3a46', eye: '#f4f4e8', rust: '#a0603e', tints: ['#7a5a3e', null, '#5f6b4a'] }, props: ['scrap'] },
     // (the Glass Dunes: the Clock-House's drones, brass and cream marble, the glass's green in their eyes: October 2026)
     glassdunes: { name: 'clock drone', palette: { plate: '#e8dfcb', plate2: '#f4eee3', rim: '#d2a648', under: '#5ea79f', dark: '#34405e', brass: '#d2a648', smoke: '#2f5c4d', smoke2: '#7fbfae', eye: '#5fd8cc', rust: '#b8c9a0', accent: '#5fd8cc' }, props: ['pearl'] },

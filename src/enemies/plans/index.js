@@ -15,7 +15,7 @@ import { heronModel } from './stilt.js';
 import { skitterModel } from './skitter-tripo.js';
 import { rootknotModel } from './tentacled.js';
 import { bruteModel } from './brute.js';
-import { droneModel } from './hover.js';
+import { droneModel } from './drone-tripo.js';
 import { legacyCartModel } from './tracked.js';
 import { tripoCartModel } from './cart-tripo.js';
 import { legacyBellModel } from './siege.js';
@@ -60,7 +60,8 @@ import { foeSource } from '../foe-assets.js';
 //   tentacled.js  plan 12  the root knot (five three-segment root-arms on FABRIK)
 //   lamp-moth-tripo.js plan 13  the lamp moth (issue #800: Tripo's body, public/enemies/lamp-moth/body.glb; the signal
 //                 moth it replaced, signal-moth-legacy.js, stands in where the body is not loaded)
-//   hover.js      plan 13  the ring drone (a machine's: plates spinning on a spindle, dangling arms)
+//   drone-tripo.js plan 13 the ring drone (issue #800: Tripo's spool drone, public/enemies/drone/body.glb, two plates and
+//                 a core that looks at you, hovering; the legacy ring drone, hover-legacy.js, stands in where the body is not loaded)
 //   storm-ray-tripo.js plan 14  the storm ray (issue #800: Tripo's body, public/enemies/storm-ray/body.glb; the sky ray
 //                 it replaced, sky-ray-legacy.js, stands in where the body is not loaded)
 //   burrower.js   plan 15  the mound worm

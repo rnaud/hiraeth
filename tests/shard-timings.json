@@ -187,6 +187,7 @@
  "tests/door-light.test.js": 7,
  "tests/door-walk.test.js": 19.1,
  "tests/drone-attend.test.js": 0.8,
+ "tests/drone-tripo.test.js": 3.0,
  "tests/drone.test.js": 0.9,
  "tests/dunes.test.js": 1.1,
  "tests/eclipse-world.test.js": 2.4,

@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family E",
+  "foe": "drone",
+  "source": "references/enemy-redesign-2026-10-30/keep-drone/e708a0d0-e805-46fd-aee5-4c328202ff41-0.png",
+  "sourceSha256": "69d591cc0fe12884841e6da68c7c90ccc4c0724181ded9f6fdbfdf25e034a71a",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "e25f40fd-10e8-48c5-8abc-61733fd0cdd1",
+  "started": "2026-10-31T04:37:46.333Z",
+  "finished": "2026-10-31T04:39:24.765Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1245,
+  "balanceAfter": 1155,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1372656,
+    "sha256": "e621fa1665f1c4808170a5ba0e7c679c7fa3b8b39a14996db6280d631f065529",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 208253,
+    "sha256": "ee1334d95fee5bff20a7324596647aa82b803c50b90cb08c5d57f7eae1149b52"
+  }
+}

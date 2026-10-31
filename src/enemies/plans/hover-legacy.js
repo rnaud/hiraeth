@@ -5,6 +5,9 @@ import { SecondOrder, quantise } from '../../motion-kit/spring.js';
 import { materials, add, many, skinBy, pivot, lerp, ease, eyeColor, finish, V } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy ring drone (issue #800: the game's drone is the Tripo spool drone, plans/drone-tripo.js; this builder is
+// kept so its look can come back as a foe of its own, and stands in where the new body is not loaded).
+//
 // Plan 13 for a machine, the hovering machine (docs/systems/procedural-animation.md §4, the kit's `hover`): the ring
 // drone (docs/design/enemy-roster.md, archetype 16), drawn to its sheets (references/enemy-archetypes/drone/: sheet-1 the
 // City-Shaft's rust drone, sheet-2 the Garden of Spheres' ring drone). A floating cake stand: three flat round plates
@@ -31,7 +34,7 @@ import { gazePart } from '../gaze.js';
 const R = 0.6, TH = 0.16, YS = [0.42, 0.8, 1.18], ARM = { r: 0.36, y: 0.3, a: 0.5, b: 0.46 };
 const _v = new THREE.Vector3();
 
-export function droneModel(skin) {
+export function droneLegacyModel(skin) {
   const PL = PLANS.hover, P = skin.palette, props = new Set(skin.props), M = materials('drone', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

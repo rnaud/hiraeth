@@ -69,3 +69,33 @@ Home skin `incal` (the City-Shaft's inspection tripod).
   body (8 meshes), the home skin and the Underwater skin, its lens on the traveller and its beam's shaft, as on the web.
 - **Still off**: the head's flat drum has Tripo's own lumps at its back (the exhaust); the shins show the game's light as
   lilac shade on their lit side's edges; the lens's light shaft compiles at each arrival (the legacy's too).
+
+## The spool drone (`drone`)
+
+Reference: `../../keep-drone/e708a0d0-e805-46fd-aee5-4c328202ff41-0.png` (approved). One take (`../../keep-drone/tripo/`,
+task `e25f40fd-…`), 30 credits. Home skin `incal` (the City-Shaft's rust drone).
+
+- **What it is**: Tripo's 28.5k-triangle body, its plates 1.4 m across (the ring drone's were 1.2 m), its lowest point
+  0.25 m over the model's origin (the foe's hover lifts it as before), cut to 12,794 triangles; its parts by geometry: a
+  level cut at each plate's flat face where it meets the core (the core's caps go with the plates), the core between;
+  the slate cap and the olive pod by geometry too (over the top plate's face, under the bottom one's). The reference's
+  four flat colours; the painted eye (an orange oval with a black slit) painted out. No arms: the reference's note.
+- **The rig** (rigid parts, none bent): the hover plan's springs as before; the top plate spins on the axis; the bottom
+  plate holds its nozzle ahead as it hunts, turns slowly as it idles; both lock and spin up for the ram; for the harpoon
+  they part like jaws round the core (dark discs close the faces that part). The core turns to the traveller (yaw only:
+  its flat rim would touch the plates), its eye sliding on. The harpoon (one mesh) comes out of the nozzle on its line,
+  the nozzle's reel ring clicking round; the caught cloud leaks from the gap. The plates one mesh where one material.
+- **Kept**: id, def, attacks, windows (the harpoon's tell reworded to its nozzle), the tether, hiding between strikes,
+  the circle calm, sounds (`tin` / `hover`), the flyer's death recipe and lying body, every skin's dress (tinted plates,
+  pearl, a dish and feed horn on three struts, stripes, tilted plates).
+- **Measured**: bind round trip < 0.1 mm, each part's bone carries its vertices (`tests/drone-tripo.test.js`). Six drones in
+  the City-Shaft (two runs each, alternating, load 5–16): draws +108 → +127 (High), +73 → +86 (Handheld): the ring drone
+  was already five skinned meshes, the new one is seven drawn and three casting; triangles unchanged (+237k, +158k); the
+  script's time not separable at this load. Arena warm-up: its seven skins compile nothing at arrival (first frames
+  1.3–2.6 ms). Dodge: a back flip into the flurry. Defend: the harpoon blocked from 0.5 s, parried at 0.06–0.12 s,
+  evaded at 0.08–0.15 s; the ram (its dive) blocked from 0.3 s and missing him the other tries, as the ring drone's on
+  main does (the same run there: blocked at 0.3 s, missed or evaded otherwise). Sound unchanged.
+- **Unity**: `-fight drone`: the Tripo body (10 meshes), the home skin and the Antennas' relay drone, its plates parting
+  for the harpoon, as on the web.
+- **Still off**: a few more draws than the ring drone's; the eye's slit is its own mesh; the plates' painted seams are flat.
+

@@ -451,7 +451,7 @@ export const ARCHETYPES = {
   drone: {
     name: 'ring drone', family: 'machine', plan: 'hover', planNo: 13, role: 'tether', tier: 3, ranged: true,
     status: 'built', kind: 'drone', was: ['rust drone'], sound: 'tin', drop: 4, art: { main: 'incal', alt: 'spheres' },
-    possession: 'a caught cloud between its plates, leaking at the gaps, two eyes drifting in it',
+    possession: 'a caught cloud in its dark core, leaking at the gaps between its plates, its one slit eye turning to you',
     moves: ['harpoon', 'ram', 'hide'], answers: ['guard the harpoon (the line is cut)', 'stilling (it drops)', 'magnet glove (it is metal)', 'the hook pulls it down'],
     idle: 'circles its old post polishing a dome that isn’t there; drifts after anything that shines',
     def: S({
@@ -461,7 +461,7 @@ export const ARCHETYPES = {
       attacks: [
         // the plates part and slow, a reel slides out between them clicking; the harpoon flies along a line and reels you in
         { id: 'harpoon', name: 'harpoon', shape: 'lane', width: 1.1, range: 9.5, damage: 0.5, wind: 1.1, strike: 0.3, contact: 0.7, tether: { time: 0.9, pull: 7.5 }, min: 3, max: 9.5, weight: 2, onParry: 'cut',
-          tell: 'its plates part and slow, and a reel with a harpoon slides out between them, clicking round', counter: 'guard it and the line is cut (the drone dazed); evade; caught, a cut or stilling frees you' },
+          tell: 'its plates part and slow, its eye on you, and the reel on its nozzle clicks round as the harpoon comes out', counter: 'guard it and the line is cut (the drone dazed); evade; caught, a cut or stilling frees you' },
         // the plates lock and spin up, whining higher, as it rises rocked back; then it dives at you
         { id: 'ram', name: 'ram', shape: 'lane', width: 1.4, range: 6, damage: 0.75, wind: 0.95, strike: 0.35, contact: 0.8, dive: true, max: 6, weight: 1.2, onParry: 'cut',
           tell: 'its plates lock together and spin up, whining higher, as it rises rocked back', counter: 'guard it (a perfect parry dazes it); or evade' },

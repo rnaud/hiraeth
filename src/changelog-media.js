@@ -1484,6 +1484,9 @@ const SOURCE800A = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pa
 // (issue #800, family E's tripod: hand-made pairs as family A's, the camera's zoom given: a tall old body and a squat new one in one frame)
 const FROM800TRIPOD = (foe, before) => `Hand-made (no \`view\`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/familyE-tripo/pair-shots.mjs, scripts/changelog-shots.mjs's own shoot with a \`foe\` view (the creatures gallery: the game's own body through Foes.look, alone, 3D only; Vite on port 5490, muted headless Chrome, --mute-audio), High, 1280 × 720; ${foe}; before: ${before} (an archive of it on the same port), after: this change, 31 October 2026`;
 const SOURCE800TRIPOD = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 6–16); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh`;
+// (issue #800, family E's drone: the same hand-made pairs and bench as the tripod's)
+const FROM800DRONE = (foe, before) => FROM800TRIPOD(foe, before);
+const SOURCE800DRONE = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 5–16');
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
 const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
@@ -1824,6 +1827,23 @@ export const CHANGELOG_MEDIA = {
     { title: 'The script’s time a frame six tripods add', unit: 'ms', better: 'lower', device: DEVICE800, source: SOURCE800TRIPOD('inspection tripods in the City-Shaft') + '; the GPU time moved by more than the tripods either way between runs at this load, so no claim on it', rows: [
       { where: 'The City-Shaft, High', before: 3.1, after: 0.8 },
       { where: 'The City-Shaft, Handheld', before: 2.4, after: 1.0 },
+    ] },
+  ] },
+  // (issue #800: the spool drone on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The ring drone has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'drone800-cityshaft', title: 'The City-Shaft', caption: 'A rust drone of the City-Shaft, three-quarters from its front: before, three ivory-rimmed plates on a brass spindle, black smoke bulging between them, three thin brass arms dangling with claws; after, the spool drone: two thick cream plates round a dark core with one orange slit eye, a slate cap on top, the nozzle on its lower plate, no arms', from: FROM800DRONE('one drone@incal, idle 1.5 s, the three-quarter view (zoom 0.75)', '4463a9444'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/keep-drone/e708a0d0-e805-46fd-aee5-4c328202ff41-0.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'drone800-spheres', title: 'The Garden of Spheres', caption: 'A ring drone of the Garden of Spheres: before, pearl plates with gold rivets and pale smoke; after, the new body in pearl with a lilac shimmer, its core pale lilac and its eye white', from: FROM800DRONE('one drone@spheres, idle 1.5 s, the three-quarter view (zoom 0.75)', '4463a9444') },
+    { name: 'drone800-harpoon', title: 'The harpoon', caption: 'A rust drone at 80 % of its harpoon’s wind-up: before, the plates parted and the reel slid out between them; after, the two plates parted like jaws round the core, its eye gone orange, the harpoon out of the nozzle and its reel ring', from: FROM800DRONE('one drone@incal, its harpoon held at 80 % of the wind-up (zoom 0.75)', '4463a9444') },
+    { name: 'drone800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a rust drone ahead of the traveller winding up its harpoon: the same new body, its plates parted round the dark core', from: 'Unity 6000.6.4f1 editor batch run, muted (scripts/unity-js-run.sh familyE-drone -mute -level arena -fight drone), 31 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; its second picture (unity-drone-windup): the game’s follow camera; no picture on the body (each part one flat colour). Taken before its two plates were drawn as one mesh (the same picture)' },
+  ], numbers: [
+    { title: 'Draw calls six drones add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800DRONE('rust drones in the City-Shaft'), rows: [
+      { where: 'The City-Shaft, High', before: 108, after: 127 },
+      { where: 'The City-Shaft, Handheld', before: 73, after: 86 },
+    ] },
+    { title: 'Triangles six drones add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800DRONE('rust drones in the City-Shaft'), rows: [
+      { where: 'The City-Shaft, High', before: 237.4, after: 237.3 },
+      { where: 'The City-Shaft, Handheld', before: 158.1, after: 157.9 },
     ] },
   ] },
   ],

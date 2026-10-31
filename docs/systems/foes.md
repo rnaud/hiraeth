@@ -2966,6 +2966,21 @@ stays, renamed `-legacy`, standing in where the body is not loaded.
   (the other skins' `limb` their own); the dress per world (an enamel strip pair, a drill, portholes, a key and bubbles,
   gyroscope rings, a pump). Its defeat's sag is 0.55 m (the hub rides a metre up). 8 drawn meshes against the legacy's
   127. Tests: `tests/tripod-tripo.test.js`.
+- **The spool drone** (`drone`): `src/enemies/plans/drone-tripo.js` `droneModel`, `public/enemies/drone/` (392 KB,
+  12,794 triangles); the legacy ring drone is `plans/hover-legacy.js` `droneLegacyModel`. Its plates 1.4 m across, its
+  lowest point 0.25 m over the model's origin (it hovers, `def.hover` as before): two thick cream plates (a slate cap on
+  the top one, an olive pod under the bottom one, a stubby nozzle on its front) round a dark core with one orange slit
+  eye; no arms (the reference's note: "remove dangling mechanisms and keep the tether role"). Rigid parts, none bent:
+  each plate cut at its flat face where it meets the core (the core's caps go with the plates), the core between; dark
+  discs close the plates' and the core's faces where they part. The hover plan's springs as before (tilt into the drift,
+  turns in notches, bob); the top plate spins, the bottom one holds its nozzle ahead as it hunts and turns slowly as it
+  idles, both lock and spin up for the ram; the plates part like jaws for the harpoon (the top lifting and tipping back);
+  the core turns to the traveller (`gazePart` turn: yaw only, its flat rim would touch the plates) and the eye slides on.
+  The harpoon comes out of the nozzle on its line (`model.harpoon`, `model.line`, its reel ring clicking round), the
+  caught cloud leaks from the gap. 7 drawn meshes (4 skinned roles, the plates one where they share a material; the
+  fittings, the eye and its slit; the harpoon and the line shown as it fires) against the legacy's 9. The home skin (the City-Shaft's) wears the reference's colours
+  (`cap`, `pod` keys); the others their palettes and dress (tinted plates, pearl, a dish and feed horn, stripes, tilted
+  plates). Tests: `tests/drone-tripo.test.js`.
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

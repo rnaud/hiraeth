@@ -32,7 +32,7 @@ const planSources = {
   skitter: readFileSync(new URL('../src/enemies/plans/skitter-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/skitterers-legacy.js', import.meta.url), 'utf8'),
   rootknot: readFileSync(new URL('../src/enemies/plans/tentacled.js', import.meta.url), 'utf8'),
   brute: readFileSync(new URL('../src/enemies/plans/brute.js', import.meta.url), 'utf8'),
-  drone: readFileSync(new URL('../src/enemies/plans/hover.js', import.meta.url), 'utf8'),
+  drone: readFileSync(new URL('../src/enemies/plans/drone-tripo.js', import.meta.url), 'utf8'),
   cart: readFileSync(new URL('../src/enemies/plans/tracked.js', import.meta.url), 'utf8'),
   bell: readFileSync(new URL('../src/enemies/plans/siege.js', import.meta.url), 'utf8'),
   shade: readFileSync(new URL('../src/enemies/plans/humanoid.js', import.meta.url), 'utf8'),

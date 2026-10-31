@@ -301,7 +301,8 @@ Object.assign(SURFACES, {
         belly: { color: 'under', edge: -0.4, soft: 0.05 },
         gloss: { size: 0.025, sky: 0.4, amount: 0.5 },
       },
-      rim: { gloss: { size: 0.03, sky: 0.5, amount: 0.7 }, mottle: { color: 'rust', scale: 0.08, amount: 0.15, soft: 0.1, strength: 0.6 } },
+      // (#800: the spool drone's slate cap wears what the ring drone's ivory rims did)
+      cap: { gloss: { size: 0.03, sky: 0.5, amount: 0.7 }, mottle: { color: 'rust', scale: 0.08, amount: 0.15, soft: 0.1, strength: 0.6 } },
       smoke: { mottle: { color: 'smoke2', scale: 0.12, amount: 0.35, soft: 0.3, strength: 0.7, detail: 0.6 } },
       brass: { gloss: { size: 0.03, sky: 0.4, amount: 0.6 } },
     },
@@ -313,9 +314,11 @@ Object.assign(SURFACES, {
         belly: { color: 'under', edge: -0.4, soft: 0.05 },
         gloss: { size: 0.04, sky: 0.8, amount: 1 },
       },
-      rim: { gloss: { size: 0.04, sky: 0.8, amount: 1 }, mottle: { color: '#f0e0f4', scale: 0.1, amount: 0.2, soft: 0.3, strength: 0.5 } },
+      cap: { gloss: { size: 0.04, sky: 0.8, amount: 1 }, mottle: { color: '#f0e0f4', scale: 0.1, amount: 0.2, soft: 0.3, strength: 0.5 } },
       smoke: { mottle: { color: 'smoke2', scale: 0.14, amount: 0.45, soft: 0.35, strength: 0.8, detail: 0.5 } },
     },
+    // (the home skin, the approved #800 reference's: flat cream plates, a soft mottle and a little sheen; a little rust)
+    incal: { plate: { rust: { color: 'rust', color2: 'plate2', amount: 0.08, amount2: 0, scale: 0.12, down: 0.2, pits: 0.2 }, bands: null, belly: null, mottle: { color: 'plate2', scale: 0.25, amount: 0.3, soft: 0.2, strength: 0.4 }, gloss: { size: 0.02, sky: 0.3, amount: 0.35 } } },
     garage: { plate: { rust: { color: 'rust', color2: 'plate2', amount: 0.35, amount2: 0.15, scale: 0.1, down: 0.3, pits: 0.7 }, bands: { color: 'dark', axis: 0, period: 0.31, width: 0.02, ink: 0.5 }, belly: { color: 'under', edge: -0.4, soft: 0.05 } } },
     spacecity: { plate: { gloss: { size: 0.04, sky: 0.8, amount: 1 }, belly: { color: 'under', edge: -0.4, soft: 0.05 }, bands: { color: 'accent', axis: 3, period: 0.24, width: 0.08, ink: 0.2 } } },
   },
