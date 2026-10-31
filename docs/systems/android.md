@@ -140,7 +140,7 @@ The Odin 3's Unity player (v2.33, build 2957) never offered a newer APK, so it m
 the new foes' bodies): an installer was offered only when the newest game *needed* it (`minUnity`, `NATIVE_API`).
 Now each app also offers its newest installer whenever its own build is older, without ever being in the way.
 - **What is newest, published where the apps look.** The GeckoView app: `latest.json` (`code` = the APK's
-  versionCode, as before; `releases/latest` stays the last requested Android release). The Unity players:
+  versionCode, as before; `releases/latest` stays the last Android release, built after each tested push to main). The Unity players:
   `scripts/unity-publish.sh` uploads `player.json` beside each build on its prerelease, after the build itself
   (`release-info.mjs player-json`: `{ platform, build, version, commit, url, size, sha256 }`, the build being the
   commit count, as the player's own `bundle.json`); the Cloudflare deploy reads the three (`web-update.mjs
