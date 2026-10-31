@@ -30,8 +30,10 @@ import java.net.URL;
 // release, which the Android workflow uploads next to the APK: { "code": <versionCode>,
 // "name": "0.35", "apk": "<download url>", "native": <WebBundles.NATIVE_API> }.
 // Since NATIVE_API 10 (issue #805) any newer build is offered, not only one whose native bridge
-// is newer: UpdateRules.apkOffer decides. The launch asks once per build ("Later" is kept for that
-// build, `apkDismissed`; one the game needs, a newer native bridge, asks every launch as before),
+// is newer: UpdateRules.apkOffer decides. An APK is built after every tested push, so the launch
+// asks only for a new version (latest.json's name against this app's versionName), once ("Later" is
+// kept for that build, `apkDismissed`); a newer build of the same version is offered in the settings
+// only. One the game needs (a newer native bridge) asks every launch as before;
 // and the settings show it until it is installed (WebBundles.fill: apkBuild, apkState, apkGot,
 // apkTotal; src/updates.js appOffer). "Update" (or the settings' "Install the new app", AppShell
 // installApk) downloads it into the cache with its progress and hands it to the system installer.
@@ -66,9 +68,9 @@ final class Updater {
                 // (releases from before the over-the-air updates have no "native": a bridge newer than this one is required)
                 boolean required = latest.optInt("native", 0) > WebBundles.NATIVE_API;
                 SharedPreferences prefs = activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE);
-                String what = UpdateRules.apkOffer(code, currentCode(), required, prefs.getLong("apkDismissed", 0), debuggable());
+                String name = latest.optString("name", "");
+                String what = UpdateRules.apkOffer(code, currentCode(), required, prefs.getLong("apkDismissed", 0), debuggable(), name, currentName());
                 if (!"none".equals(what)) {
-                    String name = latest.optString("name", "");
                     String apk = latest.getString("apk");
                     offered(code, name, apk);
                     if (web != null) web.apkOffered(name, apk, latest.optString("page", ""));
@@ -92,6 +94,11 @@ final class Updater {
     private long currentCode() throws Exception {
         PackageInfo info = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
         return PackageInfoCompat.getLongVersionCode(info);
+    }
+
+    private String currentName() throws Exception {
+        String n = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+        return n == null ? "" : n;
     }
 
     private boolean debuggable() { return (activity.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0; }

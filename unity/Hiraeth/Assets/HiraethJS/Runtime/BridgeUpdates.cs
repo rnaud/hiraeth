@@ -381,6 +381,7 @@ namespace Hiraeth.Bridge
                 ["players"] = manifest?.Get("players") as Dictionary<string, object> ?? new Dictionary<string, object>(),
                 ["playerPlatform"] = BridgeArgs.Arg("-player-platform") ?? "",
                 ["apkInstall"] = BridgeApk.Supported,
+                ["appVersion"] = Builtin.version,   // (the player's own version: a newer one gets the title's card, a newer build of it only the page)
             };
             lock (logLines) d["log"] = string.Join("\n", logLines);
             return BridgeArgs.JsonText(d);

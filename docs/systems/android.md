@@ -148,8 +148,10 @@ Now each app also offers its newest installer whenever its own build is older, w
   names a missing or half-replaced file (`--no-players` leaves them out). A Unity build finished after the last deploy
   is advertised from the next one.
 - **The GeckoView app** (`Updater`, `UpdateRules.apkOffer`): `latest.json`'s build above the app's versionCode →
-  the launch dialog asks once a build (*Later* keeps that build in prefs, `apkDismissed`; one with a newer native bridge
-  asks every launch as before; a debug build never asks). *Update* downloads it into the cache (streamed, its length
+  an APK is built after every tested push, so the launch dialog asks only when its version (`latest.json`'s `name`, the
+  changelog's vX.Y) differs from the app's versionName, once (*Later* keeps that build in prefs, `apkDismissed`); a newer
+  build of the same version shows only in the settings' Updates section. One with a newer native bridge asks every
+  launch as before; a debug build never asks. *Update* downloads it into the cache (streamed, its length
   checked, with a progress dialog) and opens Android's installer through the FileProvider; the first time it opens
   *Install unknown apps* for Hiraeth (REQUEST_INSTALL_PACKAGES is in the manifest). The settings' Updates section says
   *A new app is available: v2.40 · build 3012* with **Install the new app** (`AppShell` `installApk`, NATIVE_API 10;

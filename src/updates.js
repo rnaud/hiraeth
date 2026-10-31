@@ -41,7 +41,8 @@ export const isNewerBuild = (build, info) => (build || 0) > Math.max(info?.web |
 // The players and the app ask for a new installer not only when the game needs one (minUnity, NATIVE_API) but whenever a
 // newer one is published: a Unity player whose own build is older than the newest player of its platform (unity.json's
 // `players`, from each prerelease's player.json: scripts/web-update.mjs newestPlayers), the Android app whose versionCode
-// is older than latest.json's `code`. Never in the way: an offer on the title and in Updates, dismissed until the next build.
+// is older than latest.json's `code`. Never in the way: a new version is offered at launch (the Unity title's card, the
+// app's dialog), dismissed until the next build; a newer build of the same version only in Updates.
 
 /** Where every newest player is downloaded from (its prerelease's file: release-metadata.mjs playerUrl). */
 export const PLAYER_DOWNLOADS = 'https://github.com/rnaud/hiraeth/releases/download/';
@@ -55,7 +56,9 @@ export const OFFER_DISMISSED_KEY = 'hiraeth.playerOffer.dismissed';
  * `playerPlatform` or `os`, `apkInstall` whether it can download and install an APK itself, `openUrl`.)
  * @param o.dismissed the build "Not now" was said to: still offered in Updates, no longer on the title
  * @returns null (none: no entry for this platform, the same or an older build, no file to point at) or
- *   { platform, build, version, size, url, sha256, how: 'install' | 'open' | 'notice', dismissed }
+ *   { platform, build, version, size, url, sha256, how: 'install' | 'open' | 'notice', dismissed, card }
+ *   card: a new version (the changelog's vX.Y) against the player's own (`appVersion`), shown on the title; a newer
+ *   build of the same version (a testers' build comes often) is offered on the Updates page only
  *   install: the Android player downloads it and opens Android's installer; open: its browser downloads it (a player
  *   with OpenUrl only); notice: the Deck's launcher or the Xbox's portal brings it, the offer only says so.
  */
@@ -67,7 +70,8 @@ export function playerOffer(info, { dismissed = 0 } = {}) {
   // (a record without its file is never offered: the deploy only writes those it found, this checks again)
   if (typeof p.url !== 'string' || !p.url.startsWith(PLAYER_DOWNLOADS) || !(p.size > 0) || !/^[0-9a-f]{64}$/i.test(p.sha256 ?? '')) return null;
   const how = platform !== 'android' ? 'notice' : info.apkInstall ? 'install' : info.openUrl ? 'open' : 'notice';
-  return { platform, build: p.build, version: String(p.version ?? ''), size: p.size, url: p.url, sha256: p.sha256, how, dismissed: +dismissed === p.build };
+  const version = String(p.version ?? ''), card = !version || !info.appVersion || version !== String(info.appVersion);
+  return { platform, build: p.build, version, size: p.size, url: p.url, sha256: p.sha256, how, dismissed: +dismissed === p.build, card };
 }
 
 /**

@@ -157,24 +157,26 @@ test('nothing in the update path touches the saves (the page\'s storage)', () =>
   }
 });
 
-test('the APK updater offers any newer APK, once a build at launch, and always one the game needs (issue #805)', () => {
+test('the APK updater offers any newer APK: a new version once at launch, a newer build in the settings only, one the game needs always (issue #805)', () => {
   const src = java('Updater.java'), rules = java('UpdateRules.java');
   assert.match(src, /boolean required = latest\.optInt\("native", 0\) > WebBundles\.NATIVE_API/);
-  assert.match(src, /UpdateRules\.apkOffer\(code, currentCode\(\), required, prefs\.getLong\("apkDismissed", 0\), debuggable\(\)\)/);
+  assert.match(src, /UpdateRules\.apkOffer\(code, currentCode\(\), required, prefs\.getLong\("apkDismissed", 0\), debuggable\(\), name, currentName\(\)\)/);
+  assert.match(src, /getPackageInfo\(activity\.getPackageName\(\), 0\)\.versionName/, 'its own versionName');
   assert.match(src, /web\.apkOffered\(name, apk, /, 'the settings know about the APK it offered');
   assert.match(src, /if \("ask"\.equals\(what\)\) ui\.post\(\(\) -> offer\(name, code, required\)\)/, 'the dialog only when it asks');
   // ("Later" keeps the build for the next launch, never for one the game needs)
   assert.match(src, /if \(!required\) activity\.getSharedPreferences\(PREFS, Activity\.MODE_PRIVATE\)\.edit\(\)\.putLong\("apkDismissed", code\)/);
   // the rule, as UpdateRulesTest checks it in Java
   const body = /static String apkOffer\([^)]*\) \{([\s\S]*?)\n    \}/.exec(rules)[1];
-  const apkOffer = new Function('code', 'current', 'required', 'dismissed', 'debug', body.replace(/"/g, "'"));
-  assert.equal(apkOffer(3000, 3000, false, 0, false), 'none', 'the same build');
-  assert.equal(apkOffer(2990, 3000, true, 0, false), 'none', 'an older one, even with a newer bridge');
-  assert.equal(apkOffer(3010, 3000, false, 0, false), 'ask', 'newer: the launch asks');
-  assert.equal(apkOffer(3010, 3000, false, 3010, false), 'quiet', '"Later" to it: the settings only');
-  assert.equal(apkOffer(3020, 3000, false, 3010, false), 'ask', 'the next build asks again');
-  assert.equal(apkOffer(3010, 3000, true, 3010, false), 'ask', 'one the game needs always asks');
-  assert.equal(apkOffer(3010, 1, false, 0, true), 'quiet', 'a debug build: the settings only');
+  const apkOffer = new Function('code', 'current', 'required', 'dismissed', 'debug', 'version', 'currentVersion', body.replace(/"/g, "'").replace(/!(\w+)\.isEmpty\(\)/g, "$1 !== ''").replace(/\.equals\(/g, ' === ('));
+  assert.equal(apkOffer(3000, 3000, false, 0, false, '2.40', '2.39'), 'none', 'the same build');
+  assert.equal(apkOffer(2990, 3000, true, 0, false, '2.40', '2.39'), 'none', 'an older one, even with a newer bridge');
+  assert.equal(apkOffer(3010, 3000, false, 0, false, '2.40', '2.39'), 'ask', 'a new version: the launch asks');
+  assert.equal(apkOffer(3010, 3000, false, 0, false, '2.39', '2.39'), 'quiet', 'a newer build of the same version: the settings only (an APK every push)');
+  assert.equal(apkOffer(3010, 3000, false, 3010, false, '2.40', '2.39'), 'quiet', '"Later" to it: the settings only');
+  assert.equal(apkOffer(3020, 3000, false, 3010, false, '2.41', '2.39'), 'ask', 'the next version asks again');
+  assert.equal(apkOffer(3010, 3000, true, 3010, false, '2.39', '2.39'), 'ask', 'one the game needs always asks');
+  assert.equal(apkOffer(3010, 1, false, 0, true, '2.40', 'dev'), 'quiet', 'a debug build: the settings only');
 });
 
 test('the new APK downloads into the cache with its progress, then Android\'s installer, from the dialog or the settings (NATIVE_API 10)', () => {

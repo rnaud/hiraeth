@@ -37,12 +37,15 @@ final class UpdateRules {
      * @param code latest.json's build (its versionCode), @param current this app's versionCode
      * @param required its native bridge is newer than this app's (the newest game may need it): asks at every launch, as before
      * @param dismissed the build "Later" was said to (prefs), @param debug a debug build (versionCode 1): never asks for a newer one
+     * @param version latest.json's name (the changelog's vX.Y), @param currentVersion this app's versionName: an APK is built
+     *   after every tested push, so a newer build of the same version is offered in the settings only, never at launch
      * @return "none" (not newer), "ask" (the launch's dialog) or "quiet" (offered in the settings only)
      */
-    static String apkOffer(long code, long current, boolean required, long dismissed, boolean debug) {
+    static String apkOffer(long code, long current, boolean required, long dismissed, boolean debug, String version, String currentVersion) {
         if (code <= current) return "none";
         if (required) return "ask";
-        return debug || code == dismissed ? "quiet" : "ask";
+        if (debug || code == dismissed) return "quiet";
+        return version != null && !version.isEmpty() && version.equals(currentVersion) ? "quiet" : "ask";
     }
 
     /**

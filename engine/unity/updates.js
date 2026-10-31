@@ -11,7 +11,7 @@
 //   updates.titleOffer(); updates.titleTick();   // (the title's card: a newer player is available, issue #805)
 //
 // A newer player (issue #805): when the feed's newest player of this platform (unity.json's players, BridgeUpdates.Info) is
-// newer than this one, the title shows a small card and the page starts with the offer (src/updates.js playerOffer,
+// newer than this one, the page starts with the offer, and for a new version the title shows a small card (src/updates.js playerOffer,
 // playerOfferView): on Android "Download and install" (BridgeHost.ApkInstall: the download with its progress, then
 // Android's installer, BridgeApk.cs), on the Deck and the Xbox how they update. "Not now" keeps that build out of the
 // title (the store's OFFER_DISMISSED_KEY) until a newer one; the page still has it. The script's own updates go on as before.
@@ -99,10 +99,10 @@ export class UnityUpdates {
   /** The offer of a newer player, or null (src/updates.js playerOffer). */
   offer() { return this.info ? playerOffer(this.info, { dismissed: this.dismissed() }) : null; }
   offerView() { return playerOfferView(this.offer(), this.apk); }
-  /** The title's card ({ title, sub, how, progress }), or null: none, or "Not now" said to this build. */
+  /** The title's card ({ title, sub, how, progress }), or null: none, a newer build of this version (the page only), or "Not now" said to it. */
   titleOffer() {
     const o = this.offer();
-    if (!o || o.dismissed) return null;
+    if (!o || !o.card || o.dismissed) return null;
     const v = playerOfferView(o, this.apk);
     return { ...v.card, progress: v.progress };
   }

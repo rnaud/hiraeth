@@ -26,14 +26,15 @@ public class UpdateRulesTest {
     }
 
     @Test
-    public void aNewerApkIsOfferedUntilLaterIsSaidToIt() {
-        assertEquals("none", UpdateRules.apkOffer(3000, 3000, false, 0, false));    // the same build
-        assertEquals("none", UpdateRules.apkOffer(2990, 3000, true, 0, false));     // older, even with a newer bridge
-        assertEquals("ask", UpdateRules.apkOffer(3010, 3000, false, 0, false));     // newer: the launch's dialog
-        assertEquals("quiet", UpdateRules.apkOffer(3010, 3000, false, 3010, false)); // "Later" to this one: the settings only
-        assertEquals("ask", UpdateRules.apkOffer(3020, 3000, false, 3010, false));  // the next build asks again
-        assertEquals("ask", UpdateRules.apkOffer(3010, 3000, true, 3010, false));   // one the game needs always asks
-        assertEquals("quiet", UpdateRules.apkOffer(3010, 1, false, 0, true));        // a debug build: the settings only
+    public void aNewerVersionAsksAtLaunchANewerBuildOnlyInTheSettings() {
+        assertEquals("none", UpdateRules.apkOffer(3000, 3000, false, 0, false, "2.40", "2.39"));     // the same build
+        assertEquals("none", UpdateRules.apkOffer(2990, 3000, true, 0, false, "2.40", "2.39"));      // older, even with a newer bridge
+        assertEquals("ask", UpdateRules.apkOffer(3010, 3000, false, 0, false, "2.40", "2.39"));      // a new version: the launch's dialog
+        assertEquals("quiet", UpdateRules.apkOffer(3010, 3000, false, 0, false, "2.39", "2.39"));    // a newer build of this version: the settings only
+        assertEquals("quiet", UpdateRules.apkOffer(3010, 3000, false, 3010, false, "2.40", "2.39")); // "Later" to this one: the settings only
+        assertEquals("ask", UpdateRules.apkOffer(3020, 3000, false, 3010, false, "2.41", "2.39"));   // the next version asks again
+        assertEquals("ask", UpdateRules.apkOffer(3010, 3000, true, 3010, false, "2.39", "2.39"));    // one the game needs always asks
+        assertEquals("quiet", UpdateRules.apkOffer(3010, 1, false, 0, true, "2.40", "dev"));          // a debug build: the settings only
     }
 
     @Test

@@ -167,8 +167,10 @@ the newest player of its platform whenever its own build (`bundle.json`'s, the c
   corners, a teal edge; `engine/menus.js titleView`'s `offer`, polled every 4 s, 0.4 s while downloading, never each
   frame), *A newer player is available* under the title's Updates entry, and the offer first on the Updates page (the
   title's, under Settings, and the Start menu's), before the script's own state, which works as before. A tap on the card
-  opens Updates. *Not now* keeps that build off the title (the store's `hiraeth.playerOffer.dismissed`) until a newer one;
-  the page still offers it.
+  opens Updates. The card (and the line under Updates) only for a new version: the feed's `version` against the player's
+  own (`appVersion`, its `bundle.json`'s); a newer build of the same version, which the daily testers' builds bring often,
+  is offered on the Updates page only. *Not now* keeps that build off the title (the store's
+  `hiraeth.playerOffer.dismissed`) until a newer one; the page still offers it.
 - **Android: one tap** (`BridgeHost.ApkInstall(build)` → `BridgeApk.cs`): only the feed's build, newer than this player,
   from `https://github.com/rnaud/hiraeth/releases/download/`, under 600 MB; downloaded with its progress into
   `temporaryCachePath/player/`, its size and sha256 checked on a thread, then handed to Android's package installer

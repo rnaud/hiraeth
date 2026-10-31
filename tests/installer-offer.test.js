@@ -109,10 +109,10 @@ test('unity.json carries players only when there are some; the deploy reads them
 // ---------------------------------------------------------------- the decision
 
 const players = { android: { build: 3012, version: '2.39', url: APK, size: 176_564_648, sha256: SHA }, linux: { ...record('linux', 3012) }, xbox: { ...record('xbox', 3012) } };
-const unity = (o = {}) => ({ platform: 'unity', web: 2957, app: 2957, native: 5, check: 'current', players, os: 'android', apkInstall: true, openUrl: true, ...o });
+const unity = (o = {}) => ({ platform: 'unity', web: 2957, app: 2957, appVersion: '2.33', native: 5, check: 'current', players, os: 'android', apkInstall: true, openUrl: true, ...o });
 
 test('a Unity player offers the newest player of its platform when its own build is older, and nothing otherwise', () => {
-  assert.deepEqual(playerOffer(unity()), { platform: 'android', build: 3012, version: '2.39', size: 176_564_648, url: APK, sha256: SHA, how: 'install', dismissed: false }, 'older: install');
+  assert.deepEqual(playerOffer(unity()), { platform: 'android', build: 3012, version: '2.39', size: 176_564_648, url: APK, sha256: SHA, how: 'install', dismissed: false, card: true }, 'older: install');
   assert.equal(playerOffer(unity({ app: 3012 })), null, 'the same build');
   assert.equal(playerOffer(unity({ app: 3050 })), null, 'a newer one installed by hand');
   assert.equal(playerOffer(unity({ players: {} })), null, 'no newest player advertised');
@@ -129,6 +129,11 @@ test('a Unity player offers the newest player of its platform when its own build
   assert.equal(playerOffer(unity({ os: 'xbox' }))?.how, 'notice', 'the Xbox: notice only');
   assert.equal(playerOffer(unity(), { dismissed: 3012 }).dismissed, true, '"Not now" to this build');
   assert.equal(playerOffer(unity(), { dismissed: 3001 }).dismissed, false, 'a newer build than the one dismissed');
+  // the title's card only for a new version: a testers' build comes often, a newer build of this version is the page's only
+  assert.equal(playerOffer(unity()).card, true, 'v2.39 over v2.33: the title says so');
+  assert.equal(playerOffer(unity({ appVersion: '2.39' })).card, false, 'a newer build of the same version: Updates only');
+  assert.equal(playerOffer(unity({ appVersion: '2.39' })).how, 'install', 'still offered, with its button');
+  assert.equal(playerOffer(unity({ appVersion: undefined })).card, true, 'its own version unknown: shown');
 });
 
 test('what the offer says and offers: install with its progress on Android, how they update on the Deck and the Xbox', () => {
@@ -237,6 +242,14 @@ test('the title shows the offer\'s card and says it under Updates; "Not now" hid
   host.info = { ...host.info, players: { ...players, android: { ...players.android, build: 3020 } } };
   t += 5000; m.tick();
   assert.match(m.view().offer.sub, /build 3020/);
+  // a newer build of the player's own version: no card, nothing under Updates; the page offers it
+  host.info = { ...host.info, appVersion: '2.39' };
+  t += 5000; m.tick();
+  assert.equal(m.view().offer, undefined, 'the same version: no card');
+  assert.equal(m.view().rows.find((r) => r.text === 'Updates').sub, '');
+  assert.deepEqual(updates.rows().filter((r) => r.act).map((r) => r.act), ['offer-install', 'offer-dismiss', 'check'], 'the page still offers it');
+  host.info = { ...host.info, appVersion: '2.33' };
+  t += 5000; m.tick();
   // a tap on the card: the Updates page
   m.pointer({ how: 'press', pt: 'offer' });
   assert.equal(m.title.screen, 'updates');
@@ -274,6 +287,7 @@ test('the Unity player: the feed\'s players in its info, the APK downloaded and 
   assert.match(upd, /\["players"\] = manifest\?\.Get\("players"\) as Dictionary<string, object> \?\? new Dictionary<string, object>\(\)/);
   assert.match(upd, /\["playerPlatform"\] = BridgeArgs\.Arg\("-player-platform"\) \?\? ""/);
   assert.match(upd, /\["apkInstall"\] = BridgeApk\.Supported/);
+  assert.match(upd, /\["appVersion"\] = Builtin\.version/, 'its own version: the title\'s card only for a new one');
   assert.match(host, /public static string ApkInfo\(\) => Ask\(BridgeApk\.Info\);/);
   assert.match(host, /public static void ApkInstall\(int build\) => On\(\(\) => BridgeApk\.Install\(build\)\);/);
   // only the feed's newer build, from the game's releases, at its size and sha256 (checked off the main thread)
