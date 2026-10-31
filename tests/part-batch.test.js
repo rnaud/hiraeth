@@ -95,27 +95,32 @@ test('every archetype of the roster is batched: about half the draws, nothing dr
   const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
   foes.setPractice('');
-  let parts = 0, draws = 0;
+  let parts = 0, draws = 0, all = 0;
   for (const id of Object.keys(ARCHETYPES).filter((a) => ARCHETYPES[a].status === 'built')) {
     const f = foes.add(id, v(0, 0, 5));
     foes.look(f, 1 / 60);
     f.model.group.updateMatrixWorld(true);
     const batched = new Set(f.batches.flatMap((b) => b.parts));
-    // (a rebuilt body, #800's flyers: a few meshes already, little left to batch: held to a handful of draws of its own)
-    const own = !!f.model.tripo; let mine = 0;
+    // (a rebuilt body, #800's: a few meshes already, little left to batch: held to a handful of draws of its own. The
+    // share below is the batched bodies'; every body's draws count toward the roster's budget)
+    const own = !!f.model.tripo, many = f.batches.length > 0; let mine = 0;
     f.model.group.traverse((o) => {
       if (!o.isMesh) return;
       if (own && o.layers.mask !== 0 && o.visible) mine++;
-      if (!o.userData.batch) parts++;
-      if (o.layers.mask !== 0) draws++;
+      if (o.layers.mask !== 0) all++;
+      if (many && !o.userData.batch) parts++;
+      if (many && o.layers.mask !== 0) draws++;
       if (batched.has(o)) assert.equal(o.layers.mask, 0, `${id}: a batched part is not drawn itself`);
       else if (!o.userData.batch) assert.ok(o.isSkinnedMesh || !batchable(o) || o.layers.mask !== 0, `${id}: every part is drawn`);
     });
     if (own) assert.ok(mine <= 9, `${id}: ${mine} meshes drawn`);
     foes.remove(f);
   }
-  // (0.7: the bodies #800 rebuilt are a few large parts each, little to batch, their draws a small fraction of the old ones')
-  assert.ok(draws < parts * 0.7, `${draws} meshes drawn for ${parts} parts`);
+  // (0.65 of the bodies that batch: 0.6 held while the old jelly, moth and ray, the roster's best batched, were among them;
+  // what keeps the draws down is the roster's budget below)
+  assert.ok(draws < parts * 0.65, `${draws} meshes drawn for ${parts} parts`);
+  // (the whole roster, one of each: 517 before #800's flyers were rebuilt; never more)
+  assert.ok(all <= 517, `${all} meshes drawn for the roster`);
 });
 
 test('a batch of small parts is as small as one part for a shadow map\'s texel (shadows.js ShadowCuller)', () => {
