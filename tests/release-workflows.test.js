@@ -35,7 +35,7 @@ test('the workflow_run deploys write their outcome on the tested commit', () => 
     const w = workflows[file];
     assert.match(w, file === 'cloudflare.yml' ? /^ {2}workflow_run:/m : /^ {2}workflow_dispatch:/m, file);
     assert.match(w, /^permissions:\n(?: {2}.*\n)* {2}statuses: write/m, file);
-    assert.match(w, file === 'cloudflare.yml' ? /SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/ : /SHA: \$\{\{ github\.sha \}\}/, file);
+    assert.match(w, file !== 'steam-deck.yml' ? /SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/ : /SHA: \$\{\{ github\.sha \}\}/, file);
     assert.ok(w.includes(`run: |\n          scripts/commit-status.sh pending "${context}"`), file);
     assert.ok(w.includes(`        if: always()\n        env:\n          GH_TOKEN: \${{ github.token }}\n        run: |\n          scripts/commit-status.sh "\${{ job.status }}" "${context}"`), file);
   }
@@ -113,7 +113,9 @@ test('native installers skip per-push builds; Unity has a conditional daily buil
   for (const file of ['android.yml', 'steam-deck.yml', 'unity-android.yml', 'unity-xbox.yml', 'xbox.yml']) {
     const triggers = workflows[file].split('on:\n')[1].split('\npermissions:')[0];
     assert.match(triggers, /^ {2}workflow_dispatch:/m, file);
-    assert.doesNotMatch(triggers, /^ {2}(push|workflow_run|pull_request):/m, file);
+    // the GeckoView APK builds again after every tested push to main (the author, 2026-10-30); the others stay manual
+    if (file === 'android.yml') { assert.match(triggers, /^ {2}workflow_run:\n {4}workflows: \[Tests\]/m, file); assert.doesNotMatch(triggers, /^ {2}(push|pull_request):/m, file); }
+    else assert.doesNotMatch(triggers, /^ {2}(push|workflow_run|pull_request):/m, file);
     if (file !== 'unity-android.yml') assert.doesNotMatch(triggers, /^ {2}schedule:/m, file);
   }
   for (const file of ['android.yml', 'steam-deck.yml']) {

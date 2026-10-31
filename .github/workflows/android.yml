@@ -1,6 +1,6 @@
 name: Android release
 
-# On demand, builds a signed APK (the web game in GeckoView, Mozilla's
+# Every push to main whose tests pass builds a signed APK (the web game in GeckoView, Mozilla's
 # engine, shipped inside it; Capacitor and the system WebView where GeckoView
 # can't run; fully offline) and publishes it to the GitHub release for the newest version
 # in src/changelog.js, e.g. v0.34. Pushes within one version replace that
@@ -14,11 +14,16 @@ name: Android release
 # The build number (versionCode) is the commit's (release-info.mjs build), the
 # same as the Cloudflare web bundle's, so the app compares the two.
 #
-# When: explicitly dispatched on main, after the exact commit's Tests gate passes.
-# Ordinary main pushes publish web/content updates without rebuilding this installer.
-
-# Native installers are built only on explicit request; content updates use the web deploy.
+# When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
+# run finishing and goes on only when that run was a push to main here and succeeded), building that run's
+# commit: SHA, github.event.workflow_run.head_sha (github.sha would be main's newest commit when this run
+# started). By hand (workflow_dispatch, on main): after that commit's Tests gate passes. The author asked for
+# the automatic build back on 2026-10-30, after it had been made manual-only (cb97e3eae).
 on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -30,8 +35,8 @@ permissions:
 # release without its manifest (run 90 made v0.52 and was cancelled a second later, before its
 # manifests went up). Pushes meanwhile wait; GitHub keeps
 # only the newest one waiting.
-# (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
-# a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
+# (Every run shares the one group; a run whose tests failed, or for another branch or event, is skipped by the
+# job's `if` as soon as its turn comes.)
 concurrency:
   group: android-release
   cancel-in-progress: false
@@ -39,10 +44,10 @@ concurrency:
 jobs:
   apk:
     # (the suite passed on a push to main in this repository, or a run by hand; else skipped)
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     env:
-      SHA: ${{ github.sha }}   # the tested commit: built, and a new release's target
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit: built, and a new release's target
     steps:
       - uses: actions/checkout@v5
         with:

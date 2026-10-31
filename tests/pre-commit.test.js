@@ -112,7 +112,9 @@ test('shared affected selection runs per change, and automatic web deploys wait 
   for (const f of ['android.yml','steam-deck.yml','xbox.yml','unity-android.yml']) {
     const code=read(`.github/workflows/${f}`).split('\n').filter(l=>!/^\s*#/.test(l)).join('\n');
     assert.match(code,/\n  workflow_dispatch:/, `${f}: manual native release`);
-    assert.doesNotMatch(code,/\n  (?:push|workflow_run):/, `${f}: no per-push native build`);
+    // the GeckoView APK builds again after every tested push to main (the author, 2026-10-30); the others stay manual
+    if(f==='android.yml') assert.match(code,/\n  workflow_run:\n    workflows: \[Tests\]\n    types: \[completed\]\n    branches: \[main\]/, 'android.yml: after the Tests run on main');
+    else assert.doesNotMatch(code,/\n  (?:push|workflow_run):/, `${f}: no per-push native build`);
     if(f==='unity-android.yml') {
       assert.match(code,/\n  schedule:/);
       assert.match(code,/scripts\/unity-release-plan\.mjs/,'daily native build checks changed inputs');

@@ -32,7 +32,7 @@ These are the canonical project rules for Codex and other coding agents. Read th
 - **A new version starts a new release.** Adding a new entry at the top
   (`{ v: '0.38', date: 'YYYY-MM-DD', items: [...] }`) makes the next push create
   a new GitHub release `v0.38`. Smaller follow-ups go into the current entry, and
-  each push updates its web/content release with a higher build number. Native installers are built on request; Unity Android/Linux also builds daily when relevant inputs changed.
+  each push updates its web/content release with a higher build number. The GeckoView APK builds after every tested push to main; the other native installers are built on request, and Unity Android/Linux also builds daily when relevant inputs changed.
 - **Bump the version often.** Start a new entry after every few significant
   features (a new system, a reworked world, a new screen), roughly every
   10–15 changelog lines, or whenever a batch of work lands. Never let one
@@ -61,7 +61,7 @@ These are the canonical project rules for Codex and other coding agents. Read th
   (or a new file there, added to the index in `docs/README.md`); keep `README.md`
   short.
 - Releases: only web and compatible game-content bundles publish automatically after tests.
-  Android, Steam Deck and Xbox native installers are manual workflows; Unity Android/Linux
+  The Android (GeckoView) APK also builds after every tested push to main; Steam Deck and Xbox native installers are manual workflows; Unity Android/Linux
   also builds daily if relevant inputs changed since its last successful build. Existing
   apps update game content over the air (`web.json` / `unity.json`); native bridge changes
   require a separately requested compatible installer. Bump `NATIVE_API` in

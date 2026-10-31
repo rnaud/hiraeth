@@ -69,7 +69,7 @@ Every player-visible change adds a line to the newest entry of `src/changelog.js
   `hiraeth` ([docs/cloudflare.md](docs/cloudflare.md)). `deploy.yml` also publishes it to GitHub
   Pages. `npm run dev:cloudflare` runs the Worker locally.
 - **Android.** `.github/workflows/android.yml` builds a signed APK (a Capacitor shell running the
-  game in its own GeckoView engine, the system WebView as fallback) on manual request and
+  game in its own GeckoView engine, the system WebView as fallback) after every tested push to main (or by hand) and
   publishes it to the GitHub release of the newest changelog version; the Unity port's testers'
   builds are added there as each finishes (Android/Linux daily when changed, Xbox on request). Installed apps update the
   game over the air from the site's `web.json`; a new APK is offered only when `NATIVE_API`

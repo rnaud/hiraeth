@@ -7,11 +7,11 @@ The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API. Since NATIVE_API 6 the app runs
 the game in its own engine, GeckoView, and in the system WebView only where that can't run
 (see "The engine: GeckoView").
-- **Release workflow** (`.github/workflows/android.yml`): a manual dispatch on `main`, after its exact test gate,
+- **Release workflow** (`.github/workflows/android.yml`): every push to `main` once its Tests run passes (back since 2026-10-30, after a stretch as manual-only), or a manual dispatch on `main` after its exact test gate,
   builds the web game, wraps it with Capacitor (`capacitor.config.json`,
   `android/`) and builds a signed release APK. The APK is published to the
   GitHub release for the newest version in `src/changelog.js` (`v0.34` and so
-  on, via `scripts/release-info.mjs`). Requested builds within one version replace that
+  on, via `scripts/release-info.mjs`). Builds within one version replace that
   release's APK; adding a changelog entry starts a new release. Next to the APK the release gets `latest.json` (APK URL, versionCode,
   native level) and, for apps up to NATIVE_API 4 only, `web-<build>.zip` + `web.json`, all from
   `scripts/release-info.mjs`. Newer apps take the game's updates from the site (see "Game updates
@@ -45,7 +45,7 @@ The successful automatic Cloudflare deployment publishes the newest changelog ve
 with `scripts/web-publish.sh`, including the exact web commit and build number. It preserves existing
 assets and their source labels. New web-only releases use `--latest=false`: GitHub's latest release
 continues to expose the last explicitly published Android `latest.json`, so the native updater is not
-pointed at a release without an APK. A requested Android build can make its release latest as before.
+pointed at a release without an APK. Each Android build, automatic or requested, can make its release latest as before.
 Compatible content arrives through `web.json` / `unity.json`; native minimum-version guards remain.
 A bridge change requires a separately requested installer before older clients can accept that content.
 Automatic site publication reuses and verifies the currently published Steam Deck runtime even if
