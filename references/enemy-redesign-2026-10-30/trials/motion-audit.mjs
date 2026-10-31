@@ -15,6 +15,7 @@ import { woodcutterModel } from '../../../src/enemies/plans/woodcutter.js';
 import { tripoWoodcutterModel } from '../../../src/enemies/plans/woodcutter-tripo.js';
 import { nodeSource as woodcutterSource } from './woodcutter-tripo/source-node.mjs';
 import { foeSystem, foeSubject, legsFor } from '../../../scripts/motion-audit/walk.mjs';
+import { toadLegacyModel } from '../../../src/enemies/plans/hopper-legacy.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2), json = args.includes('--json'), id = args.find((a) => !a.startsWith('--')) ?? 'crab@arzach2';
@@ -25,6 +26,8 @@ const src = shellbackSource();
 const BY_KIND = { crab: { current: null, direct: shellbackModel, tripo: (skin) => tripoShellbackModel(skin, src) } };
 BY_KIND.hound = (() => { const h = houndSource(); return { current: null, direct: broadHoundModel, tripo: (skin) => tripoHoundModel(skin, h) }; })();
 BY_KIND.brute = (() => { const w = woodcutterSource(); return { current: null, direct: woodcutterModel, tripo: (skin) => tripoWoodcutterModel(skin, w) }; })();
+// (family A, #800: the game's body is the Tripo one now; the legacy one beside it)
+BY_KIND.toad = { current: null, legacy: toadLegacyModel };
 const VARIANTS = BY_KIND[id.split('@')[0]];
 // (two measures of a foot: the audit's own, the leg's lowest drawn point, and the kit's foot joint itself: a broad flat
 //  sole has no one lowest point, its lowest vertex hops heel to toe, which reads as slide; the Tripo legs are bones

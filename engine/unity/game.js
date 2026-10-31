@@ -988,6 +988,15 @@ function makePlan(args) {
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@saltharbour', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('saltharbour'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@bazaar', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('bazaar'));
   }
+  for (const [fight, kind, home, other] of [['toad', 'toad', 'perdide', 'incal']]) if (fights.includes(fight)) {
+    // (-fight toad, issue #800: a family A foe on its Tripo body, public/enemies/<concept>/body.glb, its parts drawn by
+    // their materials (no picture): its home skin 4 m ahead and 2.4 m to the right, standing, then winding up its first
+    // attack; then another world's skin with its dress; the body each wears is said in the log)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-${fight}-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: `${kind}@${home}`, dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('home'),
+      { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('windup'),
+      { kind: 'foe', what: 'clear' }, { kind: 'foe', what: `${kind}@${other}`, dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot(other));
+  }
   if (fights.includes('armour')) {
     // (-fight armour, issue #722: a bell walker of the Signal Market set down 5 m ahead, kept up, locked on: its plates on;
     // three charged cuts at it (Foes.hurt, as the blade's): its plates knocked off onto the ground; then a banded bell walker
@@ -1734,7 +1743,7 @@ function playFrame(dt) {
       // (-fight shellback: which body each foe wears, its drawn meshes and whether it is coloured by its vertices)
       for (const f of F.list.filter((x) => x.alive)) {
         let n = 0, tinted = 0; f.model?.group?.traverseVisible?.((o) => { if (o.isMesh) { n++; if (o.material?.vertexColors || o.geometry?.attributes?.color) tinted++; } });
-        console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);
+        console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : f.model?.toad || f.model?.tripo ? `the ${f.model.toad ?? f.model.tripo} body` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);
       }
     } else if (step.what === 'houndlog') {
       // (-fight hounds, #800: each hound held solid (lit) or left to lie in wait; its body and how it is drawn)

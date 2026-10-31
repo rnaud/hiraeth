@@ -10,7 +10,7 @@ import { wormModel } from './burrower.js';
 import { rayModel } from './glider.js';
 import { mothModel } from './flyer.js';
 import { jellyModel } from './floater.js';
-import { toadModel } from './hopper.js';
+import { toadModel } from './toad-tripo.js';
 import { heronModel } from './stilt.js';
 import { skitterModel } from './skitterers.js';
 import { rootknotModel } from './tentacled.js';
@@ -43,10 +43,11 @@ import { foeSource } from '../foe-assets.js';
 //                 walker plan; the direct shellback.js stands in where the body is not loaded)
 //   skitterers.js plan 2   the skitter swarm (a flock of tiny tripods at the mid tier)
 //   centipede.js  plan 3   the ring centipede (a spine on its own path, legs in a metachronal wave)
-//   hopper.js     plan 5   the bellows toad (hop by hop: its body lands each hop on planted feet)
 //   quadruped.js  plan 6   the horn lizard
 //   hound-tripo.js plan 6  the horned hound (issue #800: Tripo's body, public/enemies/hound/body.glb, on the quadruped
 //                 plan; the direct broad-hound.js stands in where the body is not loaded)
+//   toad-tripo.js plan 5   the bellows toad (issue #800: Tripo's body, public/enemies/bellows-toad/body.glb, hop by hop on
+//                 planted feet; the legacy toad, hopper-legacy.js, stands in where the body is not loaded)
 //   brute.js      plan 8   the furnace brute (a slow heavy biped, its arms swinging; the hull and limbs skinned)
 //   humanoid.js   plan 9   the shade (a cloak worn by nothing on two empty boots; ribbons on verlet chains)
 //   stilt.js      plan 7   the stilt heron (two stilts one at a time, an S-neck of segments)

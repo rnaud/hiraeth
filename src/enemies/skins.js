@@ -44,10 +44,12 @@ export const SKINS = {
     antennas: { name: 'wire-wound centipede', palette: { plate: '#6a5848', plate2: '#86705a', under: '#d8c8a8', leg: '#4a3a2e', head: '#5a4a3c', accent: '#c98a54', dark: '#2a2018', eye: '#e8f07a' }, props: ['wire'] },
   },
   toad: {
-    // (sheet-1: mottled moss-green skin with pale lilac spots and warts, a cream belly, the throat sac pale lilac, violet
-    // shadows, heavy-lidded golden eyes; sheet-2: slate-blue skin with lilac spots, an ivory belly, pink lids and toe
-    // tips, a brass valve and a pressure gauge growing from its back, the swollen sac holding hot water and steam)
-    perdide: { name: 'spore toad', palette: { skin: '#8d9b5f', skin2: '#a6ae74', spots: '#b9a6d2', belly: '#efe4c4', sac: '#c4b1d9', dark: '#4c4060', eye: '#d6b450', lid: '#8d9b5f', toe: '#b4a8c4', glob: '#9a7fb8', dots: '#5a4878' }, props: [] },
+    // (the bellows toad, issue #800: its home skin the approved reference's colours, references/enemy-redesign-2026-10-30/
+    // bellows-toad/c5a76758-…-0.png: a plain sage skin, an orange belly, paler orange webbed feet, heavy-lidded eyes; the
+    // other worlds' skins recolour the same parts on its body, src/enemies/plans/toad-tripo.js, and keep their sheets' looks:
+    // sheet-2's slate-blue skin with lilac spots, an ivory belly, pink lids and toe tips, a brass valve and a pressure gauge
+    // growing from its back, the swollen sac holding hot water and steam)
+    perdide: { name: 'spore toad', palette: { skin: '#9bbb85', skin2: '#a9c695', spots: '#b9a6d2', belly: '#f0bd72', sac: '#f6d6a0', dark: '#3f4a32', eye: '#e9a85a', lid: '#9bbb85', toe: '#f2c27e', glob: '#b8c95a', dots: '#e8f0b0' }, props: [] },
     incal: { name: 'pressure toad', palette: { skin: '#6c84a6', skin2: '#8498b8', spots: '#ab9cc8', belly: '#efe6cf', sac: '#c8b2da', dark: '#363c5a', eye: '#2a2024', lid: '#e4a6b4', toe: '#e2a8b6', glob: '#f0a078', dots: '#ffd8a0', brass: '#c49a52' }, props: ['valve', 'gauge', 'steam'], moves: ['volley'] },
     waterfall: { name: 'pressure-jet toad', palette: { skin: '#e8907e', skin2: '#f2ad9a', spots: '#f6e6c8', belly: '#f7ecd8', sac: '#f4c6b4', dark: '#6a3a40', eye: '#2a2024', lid: '#e8907e', toe: '#f2c0b0', glob: '#9fd8e8', dots: '#e8f8ff', brass: '#c49a52' }, props: ['jet'], moves: ['volley'] },
     home: { name: 'bulb toad', palette: { skin: '#9bbf6a', skin2: '#b4d488', spots: '#f2a4c0', belly: '#f4ecd0', sac: '#f2c4d8', dark: '#3f5a3a', eye: '#2a2024', lid: '#9bbf6a', toe: '#c8dca8', glob: '#f2a4c0', dots: '#fff0f6', flower: '#f2a4c0' }, props: ['flower'], arena: true },

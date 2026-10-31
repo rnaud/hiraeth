@@ -149,6 +149,12 @@ Object.assign(SURFACES, {
       toe: { mottle: { color: 'skin', scale: 0.08, amount: 0.3, soft: 0.1, strength: 0.5 } },
       web: { stripes: { color: 'toe*0.85', axis: 0, period: 0.09, width: 0.1, ink: 0.3 } },
     },
+    // (the home skin, the approved #800 reference's: a plain sage skin, a smooth orange belly; a soft mottle only)
+    perdide: {
+      skin: { spots: null, spots2: null, mottle: { color: 'skin2', scale: 0.3, amount: 0.3, soft: 0.2, detail: 0.4, strength: 0.4 } },
+      belly: { bands: null, spots2: null, mottle: { color: 'belly*0.94', scale: 0.25, amount: 0.25, soft: 0.2, strength: 0.4 } },
+      toe: { mottle: null, stripes: { color: 'toe*0.9', axis: 2, period: 0.12, width: 0.08, ink: 0.15, amount: 0.35 } },
+    },
     incal: {
       // (sheet-2: denser smaller lilac-pink spots and a scatter of pale dots over the slate)
       skin: {

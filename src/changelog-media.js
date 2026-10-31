@@ -1471,6 +1471,9 @@ const FROM800 = 'Hand-made (no `view`, the commit to be rebased): a scratch scri
 const FROM800_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh shellback -level arena -fight shellback -mute), 30 October 2026, its first picture (unity-shellback-home): the game’s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
 const DEVICE800 = 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
 const SOURCE800 = 'scripts/enemy-roster/bench.mjs --level <world> --pack six crabs of its skin, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 13–29); renderer.info';
+// (issue #800, family A: hand-made pairs through the creatures gallery, the same camera before and after)
+const FROM800A = (foe, before) => `Hand-made (no \`view\`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/familyA-tripo/pair-shots.mjs, scripts/changelog-shots.mjs's own shoot with a \`foe\` view (the creatures gallery: the game's own body through Foes.look, alone, 3D only; Vite on port 5478, muted headless Chrome, --mute-audio), High, 1280 × 720; ${foe}; before: ${before} (an archive of it on the same port), after: this change, 30 October 2026`;
+const SOURCE800A = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 15–22); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh`;
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
 const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
@@ -1584,6 +1587,23 @@ export const CHANGELOG_MEDIA = {
       { name: 'dunemummer-mask', title: 'The mask', only: 'after', size: [1280, 720], caption: 'Close from the front, in the creatures gallery: the broadened cream mask and its two black slits.', from: 'The creatures gallery (enemies.html) of the same build, the game’s own body through Foes.look and the ink pass, muted headless Chrome, 1280 × 720. After-only.' },
       { name: 'dunemummer-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'Unity: a gourd mummer 3.5 m before the traveller in the Arena, with the two wood cutters behind it, on the same Tripo bodies by their vertex colours.', from: 'Actual running game in Unity 6000.6.4f1 editor batch mode on macOS (scripts/unity-js-run.sh newfoes2 -mute -level arena -fight newfoes), 30 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; High, 1280 × 720. The web’s same plan (headless Chrome, muted) matches it. After-only.' },
     ] },
+  // (issue #800: the bellows toad on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The bellows toad has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'toad800-lorn', title: 'Lorn', caption: 'A spore toad, Lorn’s, three-quarters from its front: before, the moss-green toad with lilac spots, its lilac throat sac hanging in folds and its cream belly; after, the new sage-green pear with its orange belly filling its front, long thin arms on webbed orange feet, the folded haunches and the heavy-lidded eyes on its head', from: FROM800A('one toad@perdide, idle 1.5 s, the three-quarter view', 'a9b33fb98'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/bellows-toad/c5a76758-e908-4034-acc5-7b88452dcb71-0.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'toad800-cityshaft', title: 'The City-Shaft', caption: 'A pressure toad of the City-Shaft: before, the slate toad with its lilac sac; after, the new body in the same slate with lilac spots, an ivory belly, pink feet, the brass valve on its head and the gauge on its back', from: FROM800A('one toad@incal, idle 1.5 s, the three-quarter view', 'a9b33fb98') },
+    { name: 'toad800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a spore toad 4 m ahead of the traveller: the same new body, its parts drawn in their colours', from: 'Unity editor batch run (scripts/unity-js-run.sh toad -level arena -fight toad -mute), 30 October 2026, its first picture (unity-toad-home): the game’s follow camera; no picture on the body (each part one flat colour)' },
+    { name: 'toad800-lob', title: 'The lob', caption: 'A spore toad at 80 % of its lob’s wind-up: before, the sac swollen into a see-through lilac ball; after, the belly swollen and glowing and a see-through bubble of throat over it, the toad rearing back', from: FROM800A('one toad@perdide, its lob held at 80 % of the wind-up', 'a9b33fb98') },
+  ], numbers: [
+    { title: 'Draw calls six toads add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800A('spore toads in Lorn'), rows: [
+      { where: 'Lorn, High', before: 486, after: 90 },
+      { where: 'Lorn, Handheld', before: 324, after: 60 },
+    ] },
+    { title: 'Triangles six toads add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800A('spore toads in Lorn'), rows: [
+      { where: 'Lorn, High', before: 122.4, after: 250.3 },
+      { where: 'Lorn, Handheld', before: 81.6, after: 166.9 },
+    ] },
+  ] },
   ],
   '2.38': [
   { match: 'When Nour talks to you, her cloak now stays behind her', shots: [

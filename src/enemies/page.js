@@ -15,6 +15,7 @@ import { setFoeClips } from './humanoid-rig.js';
 import { loadShellbackBody } from './plans/shellback-tripo.js';
 import { loadHoundBody } from './plans/hound-tripo.js';
 import { loadFoeAssets, FOE_ASSETS } from './foe-assets.js';
+import { loadToadBody } from './plans/toad-tripo.js';
 
 // The creatures and spirits gallery (enemies.html): the enemy roster's archetypes (src/enemies/archetypes.js), each in
 // every world's skin (src/enemies/skins.js), turning, standing, walking on the locomotion kit or winding up each of
@@ -150,6 +151,7 @@ await loadShellbackBody();   // (the crab's body, src/enemies/plans/shellback-tr
 await loadHoundBody();   // (the hound's, src/enemies/plans/hound-tripo.js)
 // (the generated bodies' meshes first, #800: else their direct stand-ins are drawn)
 await loadFoeAssets(Object.keys(FOE_ASSETS));
+await loadToadBody();   // (the toad's, src/enemies/plans/toad-tripo.js)
 choose(chosen, world);
 let last = performance.now(), paused = false;
 function frame(now) { if (!paused) { viewer.time += Math.min(0.05, (now - last) / 1000); viewer.setSize($('stage').clientWidth, $('stage').clientHeight); viewer.render(chosen); } last = now; requestAnimationFrame(frame); }

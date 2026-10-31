@@ -2818,6 +2818,30 @@ slate crab of `plans/walker.js` is gone; the direct shellback (`plans/shellback.
 - Tests: `tests/shellback-trial.test.js` (the shipped body is the trial's mesh, every skin's colours and dress, the
   contract, weights, lip, jaw, gaze, the fight), `tests/motion-plans.test.js` (its walk, by its foot bones:
   `leg.root.lowest`), `tests/foe-gaze-mirror.test.js`.
+### Family A on Tripo bodies: the bellows toad (v2.38, issue #800)
+
+The ground creatures on legs follow the crab, each landed alone (`.claude/skills/enemy-rework/references/tripo-rebuild.md`).
+Their shared reader is `src/enemies/plans/tripo-body.js` (`tripoBody(file, label)`: the shipped GLB read without three's
+loader, a 30 s deadline in a browser, at once in the engines and Node; `rolesOf`, `boneBoxes`, `subset`). Their assets are
+made in `references/enemy-redesign-2026-10-30/trials/familyA-tripo/` (`generate.mjs <foe>`, `prepare-<foe>.mjs`, the
+shared steps in `prep-kit.mjs`: parts cut by geometry with `splitAlong`, one flat colour a part) and shipped by
+`scripts/tripo/ship-body.mjs <foe>`: no picture and no UVs, the triangles grouped by part (`landmarks.parts`), each part
+its own skinned mesh on one skeleton, coloured and painted by its material; COLOR_0 holds each part's colour too. The
+replaced builder stays, renamed `-legacy`, standing in where the body is not loaded, so its look can come back as a foe
+of its own.
+
+- **The bellows toad** (`toad`): `src/enemies/plans/toad-tripo.js` `toadModel`, `public/enemies/bellows-toad/body.glb`
+  (353 KB, 221 KB gzipped, 13,234 triangles); the legacy toad is `plans/hopper-legacy.js` `toadLegacyModel`. The
+  hopper plan's four legs fitted to the mesh's (arms and hind legs: hip, knee, ankle, foot measured by slices), on
+  `SkinLegs` bones; the kit's first stance squared (its stagger would stretch the fused legs); the head (its top eased
+  onto it) turns to the traveller and two heavy-lidded eyes slide on; the belly is the bellows, its own bone eased out
+  to its edge, breathing as it sits and swelling and glowing in a lob's wind-up, the legacy toad's see-through throat
+  bubble and glob above it. Three skinned meshes (skin, belly, toes) plus the eyes: 5–12 drawn meshes a body with its
+  dress, against the legacy toad's 47. Its home skin (Lorn's spore toad, `skins.js` perdide) wears the reference's
+  colours with a soft mottle; the others keep their palettes, spots and dress (the City-Shaft's valve, gauge and pipe,
+  the Waterfall's jet, Home's flower), set on the mesh's measured back. Kept: id, def, attacks, windows, sounds
+  (`bellows` / `hopper`), the death recipe and lying body, the hops on planted feet. Tests: `tests/toad-tripo.test.js`.
+
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)
 and is the game's hound now (below).

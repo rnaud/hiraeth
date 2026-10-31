@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family A",
+  "foe": "toad",
+  "source": "references/enemy-redesign-2026-10-30/bellows-toad/c5a76758-e908-4034-acc5-7b88452dcb71-0.png",
+  "sourceSha256": "2bd798a5a8f3dc6259d28782224cda0ed9e3aaa8667ba978f75eecdbeb1bba07",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "6183568d-3cf2-4acc-807f-fd7784f5c672",
+  "started": "2026-10-30T23:17:55.429Z",
+  "finished": "2026-10-30T23:19:21.110Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1625,
+  "balanceAfter": 1565,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1351456,
+    "sha256": "a4f16c8d3837013c8f94045b986df356f1f8cb6ad8bec4a599b6d31fda3817c2",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 179399,
+    "sha256": "4afbeb10750d544b05c59bdc8634b36f25caee821aec492e2b2bb0b145b8138f"
+  }
+}

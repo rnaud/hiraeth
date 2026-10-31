@@ -34,6 +34,7 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `shellback-tripo/prepare.mjs` | that export into the trial asset: the game's frame and size, the 12k LOD, the dome cut along its lip, the texture repainted flat by part, vertex colours, the landmarks |
 | `../../../src/enemies/plans/shellback-tripo.js` | the Tripo body on the crab's rig (the custom skin: legs, claws with their inner finger, the face that turns to you): the game's crab since v2.38, moved out of `shellback-tripo/model.js`; its asset `public/enemies/shellback/body.glb` (`scripts/tripo/ship-shellback.mjs` from `tripo-lod.glb`) |
 | `shellback-tripo/closeups.mjs` | the gaze picture (the traveller to its left, then its right) and the snap close-up (in front and side on), a row a variant |
+| `familyA-tripo/` | family A in the game on Tripo bodies (the toad, the centipede, the skitter): its own scripts and write-up, `familyA-tripo/README.md` |
 | `gaze-shot.mjs` | the row of three idle and watching, the traveller to one side: a picture and each body's head/eye yaw toward him (gaze.js) |
 | `hound-tripo/generate.mjs [--rig]` | the hound's Tripo generation, then Tripo's free rig check and its quadruped rig; exports and record to `../hound/tripo/` |
 | `hound-tripo/prepare.mjs` | the rigged export into the trial asset: frame and size, flat texture, vertex colours, Tripo's weights gathered onto the game's bones, the 12k LOD, landmarks from the rig's joints |

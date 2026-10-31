@@ -4,6 +4,9 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tube, rod, many, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy bellows toad (kept, issue #800): the game's toad until the Tripo body (plans/toad-tripo.js) took its place;
+// it stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 5, the hopper (docs/systems/procedural-animation.md §4): the bellows toad (docs/design/enemy-roster.md,
 // archetype 4), drawn to its sheets (references/enemy-archetypes/toad/: sheet-1 Lorn's spore toad, sheet-2 the
 // City-Shaft's pressure toad). A squat pear sitting upright like a fat old man, 2.2 m to the top of its head: a broad
@@ -31,7 +34,7 @@ const PEAR = [[0.001, 0.16], [0.5, 0.2], [0.78, 0.36], [0.9, 0.62], [0.9, 0.9], 
 let toads = 0;
 const BELLY_CLEAR = 0.04;   // (group units: its belly's lowest point over the ground as it lands)
 
-export function toadModel(skin) {
+export function toadLegacyModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('toad', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

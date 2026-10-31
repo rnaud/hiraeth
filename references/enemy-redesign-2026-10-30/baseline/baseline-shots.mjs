@@ -4,7 +4,7 @@
 // hand (foes.look / foes.update, then renderFrame), so the frames are evenly spaced in game time.
 //
 //   PORT=5462 CDP=5463 node baseline-shots.mjs <repo> <out-dir> [crab@arzach2 hound@eclipse brute@perdide2 mummer@desert]
-//     [--variant current|direct|tripo|side] [--extra]
+//     [--variant current|direct|tripo|side] [--extra]      (SKIN_NAMES=1: files named <kind>-<skin>-…)
 //
 // Phase 2 (the trials, references/enemy-redesign-2026-10-30/trials/): --variant builds the foe in a trial variant
 // (trials/variants.js `use`: the archetype's builder stood in for, in the plain Arena page), everything else the same, so
@@ -101,7 +101,7 @@ try {
     return B.fs.map((f) => f.model.trial ?? 'current');
   })()`);
   for (const id of FOES) {
-    const name = id.split('@')[0];
+    const name = process.env.SKIN_NAMES ? id.replace('@', '-') : id.split('@')[0];   // (SKIN_NAMES=1: one kind's skins side by side, each its own files)
     const built = await spawn(id);
     const info = await c.ev(`(() => {
       const { THREE } = window, B = window.__b, f = B.f, T = window.__trial;
