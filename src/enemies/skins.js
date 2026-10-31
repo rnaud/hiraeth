@@ -304,11 +304,14 @@ export const SKINS = {
   prowler: {
     desert: { name: 'prowler', arena: true, palette: { skin: '#926456', skin2: '#a6786a', crease: '#6c463c', belly: '#767957', belly2: '#8a8d6c', muzzle: '#dcc99b', steel: '#b8c0c6', steel2: '#e6eaec', leather: '#76543a', bone: '#efe6cc', eye: '#16100e', pupil: '#16100e', ink: '#1a1210', spit: '#c8de6e', flare: '#ffcf6a' }, props: [] },
   },
-  // sheet-1 (references/enemy-archetypes/warlord/sheet-1.jpg): deep crimson skin, darker in its creases; a dark brown mane;
-  // ridged tan ram horns; rough bronze, blotched darker; a wide dark leather belt and a brown loincloth; a dark glaive
-  // shaft with steel rings and a grey steel blade; yellow eyes.
+  // #800: the resonator chief (the approved image, references/enemy-redesign-2026-10-30/warlord/b7d9aa56-...-2.png; its
+  // Tripo body plans/warlord-tripo.js): a brick red-orange egg of a body, a cream throat chamber and cream gloved hands, a
+  // salmon belly, plum shoes, black slit eyes; its forked iron staff, dark green-black; its four plates rough bronze as
+  // before. The legacy lion (monster.js legacyWarlordModel, standing in while the body loads) wears these too; its own
+  // sheet-1 colours were deep crimson skin (#b0384a, skin2 #c75866, crease #7c2234) and yellow eyes (#f2c33c); its mane,
+  // horns, cloth, belt and glaive keep theirs below.
   warlord: {
-    desert: { name: 'warlord', arena: true, palette: { skin: '#b0384a', skin2: '#c75866', crease: '#7c2234', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#f2c33c', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
+    desert: { name: 'warlord', arena: true, palette: { skin: '#c75c3f', skin2: '#d8704c', crease: '#8a3a24', belly: '#dc7a54', cream: '#e4c89b', shoe: '#51304a', iron: '#1f2e24', iron2: '#4a4058', mane: '#4a2b22', mane2: '#6c4030', ink: '#1c1012', horn: '#ddc699', horn2: '#a88c62', bronze: '#ab8a50', bronze2: '#7a6034', cloth: '#7e6a4c', leather: '#4f3a2c', wood: '#5f432e', wood2: '#7a5a3e', steel: '#cdd2d5', steel2: '#eef0f1', eye: '#140c0a', pupil: '#1c1012', flare: '#ffcf6a' }, props: [] },
   },
 };
 

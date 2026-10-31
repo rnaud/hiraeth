@@ -1,0 +1,55 @@
+{
+  "created": "2026-10-31",
+  "pickedBy": "agent (the author: \"you can do the t-pose yourself\"; #800, 2026-10-31)",
+  "why": "GPT Image 2 for both, one model so the views agree: a strict T-pose (both arms level, flat open cream hands, nothing held), legs straight, the design held (the egg body that is head and torso, the ear knobs, the heavy-lidded slit eyes, the cream throat chamber, the salmon belly, the plum shoes). Gemini's fronts sloped the arms down. Every side view drew the near hand end-on as a fist (a second batch asking for a flat hand turned the arms forward instead); this one is the cleanest T-pose of them, straight-legged and facing left, and the open hands of the front and back views lead.",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, two full-body views side by side on a plain light cream background: on the left the front view, on the right the back view, both the same size and standing on the same level line. The exact creature of the reference image, the resonator chief, with the same proportions, colours and details: one big rounded egg-shaped body that is head and torso at once with no neck, brick red-orange shading to a deep rust red at the bottom; two small rounded ear knobs standing out at the top of its sides; two narrow heavy-lidded black slit eyes high on the front; a big smooth pale cream oval throat chamber covering the lower face and upper chest; a lighter salmon-orange belly patch below it; thick red-orange arms; big pale cream four-fingered hands like thick gloves; short thick red-orange legs in flat oval plum-purple shoes. It stands in a strict T-pose: both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open and empty with the fingers straight and together; legs straight and a little apart, feet flat and pointing forward. The back view shows the smooth red-orange back of the egg body without the throat chamber, the backs of the ear knobs, arms, hands and shoes. Empty hands, nothing held, no staff, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: staff, fork, weapon, stick, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-warlord-prompts.md#warlord-tpose",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/warlord/b7d9aa56-69bf-44a7-becc-6a2e9737b4bf-2.png"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-08-59-48-5441",
+      "candidate": "openai/1",
+      "sha256": "65000cfbb30fda935b62582eb225075d7959251ace7fe548d325c2bc2e3b64cd",
+      "bytes": 83660,
+      "costUSD": 0.041,
+      "others": [
+        "gemini/1",
+        "gemini/2",
+        "openai/2"
+      ]
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, one full-body side view (left profile) on a plain light cream background. The exact creature of the reference image, the resonator chief, with the same proportions, colours and details: one big rounded egg-shaped body that is head and torso at once with no neck, brick red-orange shading to a deep rust red at the bottom; a small rounded ear knob standing out at the top of its side; a narrow heavy-lidded black slit eye high on the front; a big smooth pale cream oval throat chamber swelling forward over the lower face and upper chest, seen in profile; a lighter salmon-orange belly below it; thick red-orange arms; big pale cream four-fingered hands like thick gloves; short thick red-orange legs in flat oval plum-purple shoes. It stands in a strict T-pose: both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open and empty, so from the side the near arm points straight at the viewer and is seen end-on; legs straight and a little apart, feet flat and pointing forward. Show the depth and curve of the egg body, how far the throat chamber and belly stand forward and how the shoes reach forward. Empty hands, nothing held, no staff, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: staff, fork, weapon, stick, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-warlord-prompts.md#warlord-tpose-side",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/warlord/b7d9aa56-69bf-44a7-becc-6a2e9737b4bf-2.png"
+      ],
+      "ar": "1:1",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-08-59-48-1324",
+      "candidate": "openai/1",
+      "sha256": "5311f0743d40892b7b4308d3800f38ea310e63f1cbfe6ef4f37fd68ce6d2ccd7",
+      "bytes": 95036,
+      "costUSD": 0.053,
+      "others": [
+        "gemini/1",
+        "gemini/2",
+        "openai/2"
+      ]
+    }
+  ]
+}

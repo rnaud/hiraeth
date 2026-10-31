@@ -234,6 +234,7 @@ const readers = {
   'enemies/plans/tripo-body.js': () => readFileSync(new URL('../../src/enemies/plans/tripo-body.js', import.meta.url), 'utf8'),
   'enemies/plans/tripo-rigid.js': () => readFileSync(new URL('../../src/enemies/plans/tripo-rigid.js', import.meta.url), 'utf8'),
   'enemies/plans/tripod-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/tripod-tripo.js', import.meta.url), 'utf8'),
+  'enemies/plans/warlord-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/warlord-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/wisp-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/wisp-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/woodcutter-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/woodcutter-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/woodcutter.js': () => readFileSync(new URL('../../src/enemies/plans/woodcutter.js', import.meta.url), 'utf8'),

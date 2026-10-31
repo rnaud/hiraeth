@@ -93,3 +93,74 @@ design; never armour).
 **Still off:** its body is a little slimmer than the approved mass (the sheets drew it so); Tripo's sage flap between its
 legs (the tail seen through the front sheet's legs) is kept, on the tail's root. The Unity picture was taken just before
 `soleUp` (it raises the body by at most a few centimetres on slopes); the web pairs after it.
+
+## The warlord (`warlord`): the resonator chief
+
+Reference: `../../warlord/b7d9aa56-69bf-44a7-becc-6a2e9737b4bf-2.png` (approved; "Selected warlord: compact throat chamber
+calls the pack; no cape"). Its one skin is the Arena's (`desert`); its band of grunts (the Arena's wave
+`['warlord', 'grunt', 'grunt']`, the warlord-hold site's camp) is as it was.
+
+**The T-pose (picked by the agent).** Prompts in `docs/design/enemy-tpose-warlord-prompts.md`, the lab's default
+providers, two each, and a second side batch. Picked: GPT Image 2 for both (`../../warlord/tpose/`, `manifest.json`):
+the front and back a strict T-pose, flat open cream hands, nothing held, legs straight, the design held (the egg that is
+head and torso, the ear knobs, the heavy-lidded slit eyes, the cream throat chamber, the salmon belly, the plum shoes);
+Gemini's fronts sloped the arms down. Every side view drew the near hand end-on as a fist; the retry asking for a flat
+open hand turned the arms forward instead, so the side picked is the first batch's cleanest T-pose (straight-legged,
+facing left) and the open hands of the front and back lead (Tripo made mittens either way). Against the approved image:
+the staff left out (Tripo models empty hands; the game builds it); the belly's salmon patch, on the sheets, was lost in
+Tripo's texture and is painted back by place.
+
+**Tripo:** multiview task `3216cc93-6b2d-44f7-8801-4b402b85455d` (30 credits; 29,090 triangles), rig check (free):
+riggable, biped; rig task `7a282536-4587-4df4-91f2-d265dfb2f3d7` (25 credits): 23 joints, Mixamo names. **55 credits.**
+The untouched exports in `../../warlord/tripo/`.
+
+**Prepared** (`prepare-warlord.mjs`): 2.5 m to the egg's top in the T-pose (its def's height), centred on its hips,
+12,956 triangles. Four flat colours: the brick red-orange `#c75c3f` (Tripo's four oranges folded in), the cream throat
+chamber and hands `#e4c89b`, the plum shoes `#51304a`, the salmon belly `#dc7a54` on an oval on the egg's front (its
+edge a field the mesh is cut exactly on, `cutAlong`); the cream's and the shoes' borders cut on their own smoothed lines.
+The painted slit eyes painted out and measured (8–10 × 2.5–3 cm). Each limb's girth measured (`limbs`), for its plates.
+
+**In the game** (`src/enemies/plans/warlord-tripo.js` `tripoWarlordModel` on `biped-tripo.js`; the legacy crimson lion is
+`monster.js` `legacyWarlordModel`): the legacy's moves (`WARLORD_MOVES`: sweep, overhead, charge, roar, whirl), stance
+and holds (`WARLORD_HOLD`); **what it wields is the approved picture's**: the forked iron staff (the resonator, a
+tuning fork's two prongs on a crossbar, 2.4 m, the glaive's length and hold) through the right hand's measured centre;
+its four bronze plates (`ARMOUR.warlord`, in their order: the right shoulder, the left, the right greave, the left)
+fitted to the upper arms' and shins' measured girth, each its own mesh so it can be knocked off; the look on Tripo's head
+bone (0.6 rad), its two slit eyes on it sliding the rest of the way; its arms a little out from its round flanks; the
+broad shoes on the ground (`flatFeet` 0.8, stiff `soles` under 10 cm, `soleUp`; not the prowler's `ballOnGround`: the
+ball held up out of the clip's height dragged its long shoes 0.14 m through a strafe, over `tests/foe-slide.test.js`'s
+0.12). A planted foot flattened by `flatFeet` now turns about its ball, not its ankle (`humanoid-rig.js`): turned about
+the ankle the ball slid, the warlord's run 0.022 m a metre against the test's 0.02; now walk 0.010, run 0.003, strafe
+0.014, turn 0.047 a radian (the prowler's walk 0.009, run 0.007). The roar's tell its head
+(the arms flung wide, the head thrown back). In play its weapon is called the staff now (its moves, tells and note;
+the horns and the mane are gone from its tells). Seven meshes (the body, the staff, the eyes, four plates; the legacy
+lion's twelve). Tests: `tests/warlord-tripo.test.js`.
+
+**Kept:** the id, the `desert` skin (its palette the approved colours; the legacy lion, standing in, wears them too),
+the def (hp 12, the attacks and windows, the roar that wakes every one within 25 m, the last stand below a share of its
+health, its plates), its sounds (`hide`, `monster` steps), the ragdoll (#750/#794), its band.
+
+**Checked** (31 October 2026, this Mac, as the prowler):
+
+- *The Arena's warm-up*: no new GPU program at its arrival, the worst frame 5.9 ms.
+- *Defend* (`--kinds warlord --near 3`): the guard holds from 0.5 s on the sweep and the overhead, the parry at
+  0.06–0.12 s (sweep) and 0.12 s (overhead); the charge and the whirl did not come within the run's time. *Dodge*
+  (back flip and `--side`): both start a flurry off its charge.
+- *Sound*: its voice (`hide`) and steps (`monster`) on their targets; its keys unchanged.
+- *Bench* (six warlords in the Arena against the empty Arena, two rounds, before at the prowler's commit 6bbffafbc and
+  after alternating, load 7.5–13.5): draws added High 216 → 126, Steam Deck 144 → 82; script time High 1.10 → 0.95 ms,
+  Deck 1.10 → 0.75 ms; triangles every pass High 237.3k → 269.8k, Deck 158.6k → 178.2k; the frame 16.7 ms throughout.
+  The body is a 536 KB download.
+- *Unity* (`scripts/unity-js-run.sh familyH-warlord -mute -level arena -fight warlord`, the build lock held): the Tripo
+  body, its four plates, the staff; the overhead's wind-up pictured; against the web's, the same (taken just before its
+  feet settings were last changed: the web pairs after).
+- *Tests:* `tests/warlord-tripo.test.js` (new), `tests/prowler-warlord.test.js` (the warlord's head at its eyes),
+  `tests/monster-shapes.test.js` (the lion's horns on `legacyWarlordModel`), the ragdoll, defeat, slope, heights and
+  batch tests unchanged.
+
+**Still off:** walking, a shoe's toe dips up to 12 cm into the ground for a frame or two at a toe-off (standing
+−1.8 cm): turning a swinging shoe back toward flat lifted it out but made its feet slide past the test's 0.06 a radian
+turning on the spot, so it was left out; the salmon belly's oval reads a little patchy under the game's light in some views (the egg's own
+shading over it); the pauldrons sit high on the egg's shoulders, close to the throat chamber in a three-quarter view;
+the throat chamber does not swell for the roar (its weights straddle the head and the body: the roar's tell is its
+head thrown back, as before).

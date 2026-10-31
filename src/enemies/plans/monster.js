@@ -900,7 +900,9 @@ export function legacyProwlerModel(skin) {
 
 // ------------------------------------------------------------------ the warlord
 
-// The warlord (`warlord`), to its picked sheet (references/enemy-archetypes/warlord/sheet-1.jpg): 2.5 m to its horns,
+// The legacy warlord (`legacyWarlordModel`: the game's warlord before #800 rebuilt it as the resonator chief on its Tripo
+// body, plans/warlord-tripo.js; kept as the stand-in while that body loads, and so its look can come back as a foe of its
+// own), to its picked sheet (references/enemy-archetypes/warlord/sheet-1.jpg): 2.5 m to its horns,
 // broad and upright. Deep crimson skin, a dark brown mane round a great cat's face (a broad muzzle, a dark nose, a heavy
 // brow, yellow eyes) and down its chest and back, two curled ram horns; rough bronze: a plate on each shoulder, bracers,
 // greaves on its shins, plates on its wide leather belt; a brown loincloth; bare feet. A long glaive: a dark shaft with
@@ -947,7 +949,7 @@ export const WARLORD_HOLD = {
       whirl: { frame: 'body', wind: [-0.45, 0.05, -0.9], hit: [-1, 0.05, 0.2], both: { at: 0.5, from: 0.3, to: 1.0 } },
     } },
 };
-export function warlordModel(skin) {
+export function legacyWarlordModel(skin) {
   const P = skin.palette, M = materials('warlord', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const rig = pivot(g, 0, 0, 0, 'rig');

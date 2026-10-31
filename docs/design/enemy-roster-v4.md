@@ -60,7 +60,9 @@ and are built with the enemy-rework skill (procedural surface mandatory).
    prowler, big lofted ram horns, long locks, two-layer pauldrons and buckled greave straps for the warlord. Still
    unlike the sheets: the prowler's crest and plain neck, the warlord's mane thinner round its face.
    **Rebuilt (#800, v2.39):** the prowler is the pod stalker on its Tripo body (`plans/prowler-tripo.js`, the leaf-green
-   lizard kept as `legacyProwlerModel`, standing in while it loads): docs/systems/foes.md, "Family H on Tripo bodies".
+   lizard kept as `legacyProwlerModel`, standing in while it loads), and the warlord the resonator chief on its
+   (`plans/warlord-tripo.js`: a forked iron staff, its four bronze plates; the crimson lion kept as `legacyWarlordModel`):
+   docs/systems/foes.md, "Family H on Tripo bodies".
 4. **The world rosters**: every route world's sites and packs from this roster; the per-world animals (crab, lizard,
    toad, worm, centipede, heron, and the rest led by a world) and the mummers move to the Arena list for the debug
    menu. Blots stay as the first world's teacher. The shade, hound, skitters and flyers are reviewed then.

@@ -1041,34 +1041,34 @@ export const ARCHETYPES = {
   warlord: {
     name: 'warlord', family: 'monster', plan: 'monster', planNo: 31, role: 'the elite', tier: 4, ranged: false,
     status: 'built', kind: 'warlord', was: [], sound: 'hide', drop: 9, art: 'sheet-1',
-    moves: ['glaive sweep and overhead', 'charge', 'roar (wakes its band); low, its last stand'],
+    moves: ['staff sweep and overhead', 'charge', 'roar (wakes its band); low, its last stand'],
     answers: ['roll through the sweep', 'side hop the overhead and cut its back', 'step aside from the charge: it stalls on a wall', 'charged cuts knock its bronze off', 'back off from its last stand'],
-    idle: 'stands guard before its coffer, the glaive grounded, its band about it',
+    idle: 'stands guard before its coffer, the staff grounded, its band about it',
     def: S({
       name: 'warlord', hp: 12, hook: 'heavy', radius: 0.85, height: 2.5, speed: 3.2, sight: 20, giveUp: 34, reach: 14, heavy: true, stout: true,
       tone: '#b8323f', takes: { shoot: 1, fire: 1.2 },
       calm: { mode: 'stand', provoke: 10, alarm: 25 },
       whiffRecover: 0.6,
       attacks: [
-        // the glaive drawn back over its shoulder in both hands, its chest turned away (the sheet's attack pose); a wide sweep
-        { id: 'sweep', name: 'glaive sweep', shape: 'cone', range: 3.6, angle: 1.4, damage: 0.75, wind: 1.0, strike: 0.35, contact: 0.5, knock: 4, max: 3.5, weight: 2.5, dodge: 'back',
-          tell: 'it draws the glaive back over its shoulder in both hands, its chest turned away', counter: 'roll through it, or the air cut over it' },
-        // the glaive raised high over its horns, leaning back; then straight down through it
-        { id: 'overhead', name: 'glaive overhead', shape: 'lane', width: 1.2, range: 4.2, damage: 1, wind: 1.1, strike: 0.3, contact: 0.55, knock: 5, lunge: 0.6, max: 4, weight: 2, dodge: 'side',
-          tell: 'it raises the glaive high over its horns and leans back on its heels', counter: 'side hop, then cut its back' },
-        // the glaive lowered like a lance, its head down and one foot pawing; then it charges through where you stood
+        // the staff drawn back over its shoulder in both hands, its chest turned away (the sheet's attack pose); a wide sweep
+        { id: 'sweep', name: 'staff sweep', shape: 'cone', range: 3.6, angle: 1.4, damage: 0.75, wind: 1.0, strike: 0.35, contact: 0.5, knock: 4, max: 3.5, weight: 2.5, dodge: 'back',
+          tell: 'it draws the staff back over its shoulder in both hands, its chest turned away', counter: 'roll through it, or the air cut over it' },
+        // the staff raised high over its head, leaning back; then straight down through it
+        { id: 'overhead', name: 'staff overhead', shape: 'lane', width: 1.2, range: 4.2, damage: 1, wind: 1.1, strike: 0.3, contact: 0.55, knock: 5, lunge: 0.6, max: 4, weight: 2, dodge: 'side',
+          tell: 'it raises the staff high over its head and leans back on its heels', counter: 'side hop, then cut its back' },
+        // the staff lowered like a lance, its head down and one foot pawing; then it charges through where you stood
         { id: 'charge', name: 'charge', shape: 'lane', width: 1.6, range: 9, damage: 0.75, knock: 6, wind: 1.2, strike: 0.8, contact: 0.05, lunge: 9, sweep: true, stall: 1.6, min: 3.5, max: 9, weight: 1.6,
-          tell: 'it lowers the glaive like a lance, its horns down, and paws the ground', counter: 'step aside at the last moment; into a wall, it stalls' },
-        // its arms flung wide, its chest out, its maned head thrown back: every one round it within 25 m wakes and comes
+          tell: 'it lowers the staff like a lance, its head down, and paws the ground', counter: 'step aside at the last moment; into a wall, it stalls' },
+        // its arms flung wide, its chest out, its head thrown back: every one round it within 25 m wakes and comes
         { id: 'roar', name: 'roar', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.1, instant: true, horn: 25, max: 14, weight: 4, recover: 0.8,
-          tell: 'it flings its arms wide and throws its maned head back', counter: 'cut it before it roars, or ready for its band' },
-        // low (its desperation, fight.low 'last'): the glaive whirled round it twice, its whole body turning; then it sits open
+          tell: 'it flings its arms wide and throws its head back', counter: 'cut it before it roars, or ready for its band' },
+        // low (its desperation, fight.low 'last'): the staff whirled round it twice, its whole body turning; then it sits open
         { id: 'whirl', name: 'last stand', shape: 'ring', at: 'self', radius: 3.4, damage: 1, knock: 6, wind: 1.3, strike: 0.7, contact: 0.4, opens: 1.6, below: 0.3, max: 3.2, weight: 6,
-          tell: 'it plants its feet wide and swings the glaive back round behind it, roaring', counter: 'get out of its reach, then cut it while it reels' },
+          tell: 'it plants its feet wide and swings the staff back round behind it, roaring', counter: 'get out of its reach, then cut it while it reels' },
       ],
       recover: 1.1, cool: [1.1, 2.0], hit: 0.5,
     }),
-    note: 'The warlord: knock its bronze off. When it whirls its glaive, get clear.',
+    note: 'The warlord: knock its bronze off. When it whirls its staff, get clear.',
   },
 };
 

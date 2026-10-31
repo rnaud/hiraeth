@@ -105,6 +105,9 @@ export const CHANGELOG = [
       // the pod stalker (#800, family H)
       { text: 'The prowler has a new body, drawn from its new design: the pod stalker, a hunched mauve-brown creature with a big blunt head, a wide cream muzzle with a thin mouth line and two small black eyes, a sage-green belly, long heavy arms and a thick tail dragging on the ground behind it, on short legs with broad padded feet. It still holds its curved blade. It turns its head to watch you, and its eyes flash as it winds up. It fights exactly as before: it circles you, flips back out of your combo, darts in, swings its tail round at your knees and spits.',
         see: 'Open the Arena and pick the prowler from the foe list (D-pad ↓, K). Walk round it: its head and eyes follow you. Let it wind up its tail sweep, and jump the tail.' },
+      // the resonator chief (#800, family H)
+      { text: 'The warlord has a new body, drawn from its new design: the resonator chief, a great brick-red egg of a body that is head and chest at once, two little ear knobs, heavy-lidded slit eyes over a big cream throat chamber, a salmon belly, cream gloved hands and flat plum shoes. In its fist is a long forked iron staff in place of the glaive, and it still wears four bronze plates on its shoulders and shins for you to knock off. It turns its head to watch you. It fights exactly as before: it sweeps and brings the staff down, charges, roars to wake its band, and makes its last stand when it is low.',
+        see: 'Open the Arena and pick the warlord from the foe list (D-pad ↓, K), or fight through the Arena’s run to meet it with its grunts. Walk round it: its head and eyes follow you. Land charged cuts on its shoulders and shins to knock its plates off.' },
     ],
   },
   {

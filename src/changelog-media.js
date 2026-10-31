@@ -1493,6 +1493,10 @@ const FROM800CRAWLER = (foe, before) => FROM800TRIPOD(foe, before);
 const FROM800PROWLER = (foe, before) => `Hand-made (no \`view\`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/familyE-tripo/pair-shots.mjs, scripts/changelog-shots.mjs's own shoot with a \`foe\` view (the creatures gallery: the game's own body through Foes.look, alone, 3D only; Vite on port 5461, muted headless Chrome, --mute-audio), High, 1280 × 720; ${foe}; before: ${before} (an archive of it on the same port: the legacy lizard), after: this change, 31 October 2026`;
 const FROM800PROWLER_UNITY = 'Unity 6000.6.4f1 editor batch run, muted (scripts/unity-js-run.sh familyH-prowler -mute -level arena -fight prowler), 31 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; its first picture (unity-prowler-home): the game’s follow camera, a prowler 4 m ahead and to the right; the body drawn from its vertex colours (the engines decode no picture). After-only';
 const SOURCE800PROWLER = 'scripts/enemy-roster/bench.mjs --quality high|deck --pack six prowler@desert (and --pack none, the empty control of the same run), in the Arena, two rounds each, before (origin/main at 013023daa, the legacy lizard) and after alternating, the machine shared (load 3.8–13.4); the medians of 8 s of frames; renderer.info. The frame held at 16.7 ms (60 Hz) in every run; the GPU’s time moved by more than the difference between runs, so no claim on it. The body is a 539 KB download';
+// (#800 family H: the warlord's pictures and numbers)
+const FROM800WARLORD = (foe, before) => FROM800PROWLER(foe, before).replace('the legacy lizard', 'the legacy lion');
+const FROM800WARLORD_UNITY = FROM800PROWLER_UNITY.replace('familyH-prowler', 'familyH-warlord').replace('-fight prowler', '-fight warlord').replace('unity-prowler-home', 'unity-warlord-home').replace('a prowler 4 m ahead', 'a warlord 4 m ahead');
+const SOURCE800WARLORD = SOURCE800PROWLER.replace('six prowler@desert', 'six warlord@desert').replace('origin/main at 013023daa, the legacy lizard', 'the prowler’s commit 6bbffafbc, the legacy lion').replace('load 3.8–13.4', 'load 7.5–13.5').replace('a 539 KB download', 'a 536 KB download');
 const SOURCE800CRAWLER = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 13–23') + '; measured with its two ports a mesh of their own, folded into its joints’ since (one draw fewer each)';
 // (family F, #800: the creatures and spirits on Tripo bodies, hand-made pairs as family A's, the same script and camera before and after)
 const FROM800BLOT = (foe, before) => FROM800A(foe, before).replace('Vite on port 5478', 'Vite on port 5448').replace('30 October 2026', '31 October 2026');
@@ -2009,6 +2013,26 @@ export const CHANGELOG_MEDIA = {
     { title: 'Triangles six prowlers add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800PROWLER, rows: [
       { where: 'The Arena, High', before: 155.5, after: 248.1 },
       { where: 'The Arena, Steam Deck', before: 103.6, after: 164.2 },
+    ] },
+  ] },
+  // (issue #800, family H: the resonator chief on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The warlord has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'warlord800-desert', title: 'The warlord', caption: 'A warlord, three-quarters from its front: before, a crimson lion-faced giant with curled ram horns, a dark mane, a loincloth and bronze plates, a long glaive in its fist; after, the resonator chief: a brick-red egg of a body with ear knobs, slit eyes and a big cream throat chamber, a salmon belly, cream gloved hands and plum shoes, its four bronze plates on its shoulders and shins and a forked iron staff in its fist', from: FROM800WARLORD('one warlord@desert, idle 1.5 s, the three-quarter view', '6bbffafbc'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/warlord/b7d9aa56-69bf-44a7-becc-6a2e9737b4bf-2.png', caption: 'The approved design the new body was made from (Tripo, from T-pose sheets drawn from this picture)' } },
+    { name: 'warlord800-sweep', title: 'The sweep', caption: 'A warlord at 80 % of its sweep’s wind-up: before, the glaive drawn back up over its shoulder in both fists; after, the forked staff drawn back the same way over the egg’s shoulder, both cream hands on it', from: FROM800WARLORD('one warlord@desert, its sweep held at 80 % of the wind-up (yaw 0.6)', '6bbffafbc') },
+    { name: 'warlord800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a warlord ahead of the traveller: the same new body, drawn from its vertex colours', from: FROM800WARLORD_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six warlords add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800WARLORD, rows: [
+      { where: 'The Arena, High', before: 216, after: 126 },
+      { where: 'The Arena, Steam Deck', before: 144, after: 82 },
+    ] },
+    { title: 'Script time six warlords add to a frame', unit: 'ms', better: 'lower', device: DEVICE800, source: SOURCE800WARLORD, rows: [
+      { where: 'The Arena, High', before: 1.1, after: 0.95 },
+      { where: 'The Arena, Steam Deck', before: 1.1, after: 0.75 },
+    ] },
+    { title: 'Triangles six warlords add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800WARLORD, rows: [
+      { where: 'The Arena, High', before: 237.3, after: 269.8 },
+      { where: 'The Arena, Steam Deck', before: 158.6, after: 178.2 },
     ] },
   ] },
   ],

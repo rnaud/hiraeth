@@ -639,13 +639,18 @@ export class HumanoidDriver {
       } else if (S.free) { target = _c.lerpVectors(S.free.from, posed, smooth(S.free.t / K.free)); target.y = posed.y; }
       else if (J.ballOnGround && posed.y < groundY(posed)) target = _c.copy(posed);
       if (target && J.ballOnGround) target.y = Math.max(target.y, groundY(target));
+      const ballAt = target && J.flatFeet && S.at ? target.clone() : null;
       if (target) target.add(_y.subVectors(ankle, posed));   // (the ankle where it must be for the ball to be there, the foot turned as the clip has it)
       if (!target || target.distanceToSquared(ankle) < 1e-8) return;
       const knee = J.knees[i];
       const footQ = foot.getWorldQuaternion(_q2).clone();
       // (a broad flat foot held flat on the ground while it is planted, J.flatFeet of the way: the clip's roll and pitch of
       //  the traveller's narrow foot dug a Tripo biped's wide pad's edge 3-6 cm into the ground, #800)
-      if (J.flatFeet && S.at) { _fe.setFromQuaternion(footQ, 'YXZ'); footQ.slerp(_q.setFromEuler(_fe.set(0, _fe.y, 0, 'YXZ')), J.flatFeet); }
+      //  (the ankle moved for the flattened foot, so its ball stays where it is held: turned about the ball, not the ankle)
+      if (ballAt) {
+        _fe.setFromQuaternion(footQ, 'YXZ'); footQ.slerp(_q.setFromEuler(_fe.set(0, _fe.y, 0, 'YXZ')), J.flatFeet);
+        target.copy(ballAt).sub(_y.copy(ball).multiply(foot.getWorldScale(_x)).applyQuaternion(footQ));
+      }
       leg.getWorldPosition(_h); knee.getWorldPosition(_k);
       // (the knee bends the way the clip had it: the pole from the hip-ankle line out to the clip's knee)
       _y.lerpVectors(_h, ankle, 0.5); _z.subVectors(_k, _y);

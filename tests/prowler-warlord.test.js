@@ -335,7 +335,10 @@ test('with the clips: the dart crouched, the tail swung out at knee height round
     const f = foes.add('warlord', v()); f.provoked = true; f.heading = 0; f.state = 'chase';
     const J = f.model.joints;
     run(f, 40);
-    const stand = { head: W(f, J.head).y };
+    // (its head: the legacy lion's head joint sat on its neck; the resonator chief (#800) has none, Tripo's head joint is
+    //  at its shoulders' line, so its head is where its eyes are, as the prowler's)
+    const face = f.model.group.getObjectByName('face'), eyeMid = f.model.tripo?.eyeMid;
+    const stand = { head: f.model.tripo ? (f.model.group.updateMatrixWorld(true), v(...eyeMid).applyMatrix4(face.matrixWorld).y) : W(f, J.head).y };
     assert.ok(stand.head > 1.9 && stand.head < 2.3, `its head at ${stand.head.toFixed(2)} m`);
     const wind = (id, k) => run(f, 20, () => { f.state = 'wind'; f.atk = atk(f, id); f.k = k; });
     wind('roar', HOLD_AT);

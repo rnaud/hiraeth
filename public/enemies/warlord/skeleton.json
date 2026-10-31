@@ -1,0 +1,343 @@
+{
+ "frame": "game: +z ahead, +y up, metres, feet on y 0",
+ "source": "references/enemy-redesign-2026-10-30/warlord/tripo/rigged.glb",
+ "tasks": {
+  "generation": "3216cc93-6b2d-44f7-8801-4b402b85455d",
+  "rig": "7a282536-4587-4df4-91f2-d265dfb2f3d7"
+ },
+ "scale": 2.85319,
+ "height": 2.5,
+ "joints": [
+  {
+   "name": "Root",
+   "parent": null,
+   "at": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Hips",
+   "parent": "Root",
+   "at": [
+    0,
+    0.7779,
+    0
+   ]
+  },
+  {
+   "name": "Spine",
+   "parent": "Hips",
+   "at": [
+    -0.0055,
+    0.9915,
+    0.0122
+   ]
+  },
+  {
+   "name": "Spine1",
+   "parent": "Spine",
+   "at": [
+    -0.0134,
+    1.2947,
+    0.0295
+   ]
+  },
+  {
+   "name": "Spine2",
+   "parent": "Spine1",
+   "at": [
+    -0.0213,
+    1.5978,
+    0.0468
+   ]
+  },
+  {
+   "name": "Neck",
+   "parent": "Spine2",
+   "at": [
+    -0.0291,
+    1.9008,
+    0.064
+   ]
+  },
+  {
+   "name": "Head",
+   "parent": "Neck",
+   "at": [
+    -0.0327,
+    2.0384,
+    0.0719
+   ]
+  },
+  {
+   "name": "LeftShoulder",
+   "parent": "Spine2",
+   "at": [
+    -0.0287,
+    1.9007,
+    0.0641
+   ]
+  },
+  {
+   "name": "LeftArm",
+   "parent": "LeftShoulder",
+   "at": [
+    0.4112,
+    1.9264,
+    0.1675
+   ]
+  },
+  {
+   "name": "LeftForeArm",
+   "parent": "LeftArm",
+   "at": [
+    0.8057,
+    1.7986,
+    0.0135
+   ]
+  },
+  {
+   "name": "LeftHand",
+   "parent": "LeftForeArm",
+   "at": [
+    1.0579,
+    1.7728,
+    0.0386
+   ]
+  },
+  {
+   "name": "RightShoulder",
+   "parent": "Spine2",
+   "at": [
+    -0.0296,
+    1.9007,
+    0.0639
+   ]
+  },
+  {
+   "name": "RightArm",
+   "parent": "RightShoulder",
+   "at": [
+    -0.4695,
+    1.8747,
+    -0.0395
+   ]
+  },
+  {
+   "name": "RightForeArm",
+   "parent": "RightArm",
+   "at": [
+    -0.864,
+    1.7986,
+    0.0132
+   ]
+  },
+  {
+   "name": "RightHand",
+   "parent": "RightForeArm",
+   "at": [
+    -1.1356,
+    1.7476,
+    0.0633
+   ]
+  },
+  {
+   "name": "LeftUpLeg",
+   "parent": "Hips",
+   "at": [
+    0.372,
+    0.7779,
+    -0.0129
+   ]
+  },
+  {
+   "name": "LeftLeg",
+   "parent": "LeftUpLeg",
+   "at": [
+    0.3849,
+    0.4725,
+    0.0129
+   ]
+  },
+  {
+   "name": "LeftFoot",
+   "parent": "LeftLeg",
+   "at": [
+    0.3695,
+    0.1046,
+    -0.0488
+   ]
+  },
+  {
+   "name": "LeftToeBase",
+   "parent": "LeftFoot",
+   "at": [
+    0.4227,
+    0.0846,
+    0.0932
+   ]
+  },
+  {
+   "name": "RightUpLeg",
+   "parent": "Hips",
+   "at": [
+    -0.3721,
+    0.7772,
+    0.0129
+   ]
+  },
+  {
+   "name": "RightLeg",
+   "parent": "RightUpLeg",
+   "at": [
+    -0.4302,
+    0.4718,
+    -0.0126
+   ]
+  },
+  {
+   "name": "RightFoot",
+   "parent": "RightLeg",
+   "at": [
+    -0.3604,
+    0.1048,
+    -0.0432
+   ]
+  },
+  {
+   "name": "RightToeBase",
+   "parent": "RightFoot",
+   "at": [
+    -0.4145,
+    0.0847,
+    0.1049
+   ]
+  }
+ ],
+ "hands": {
+  "Left": {
+   "centre": [
+    1.2335,
+    1.7787,
+    0.0006
+   ],
+   "min": [
+    1.0417,
+    1.6581,
+    -0.169
+   ],
+   "max": [
+    1.3554,
+    1.8952,
+    0.152
+   ],
+   "vertices": 431
+  },
+  "Right": {
+   "centre": [
+    -1.3333,
+    1.7765,
+    -0.0054
+   ],
+   "min": [
+    -1.4976,
+    1.6572,
+    -0.1681
+   ],
+   "max": [
+    -1.1389,
+    1.8979,
+    0.1516
+   ],
+   "vertices": 511
+  }
+ },
+ "eyes": [
+  {
+   "centre": [
+    0.165,
+    2.2776,
+    0.3576
+   ],
+   "size": [
+    0.0813,
+    0.0253,
+    0.0694
+   ],
+   "front": 0.3923,
+   "texels": 167
+  },
+  {
+   "centre": [
+    -0.2154,
+    2.2783,
+    0.3605
+   ],
+   "size": [
+    0.098,
+    0.0303,
+    0.0801
+   ],
+   "front": 0.4006,
+   "texels": 233
+  }
+ ],
+ "limbs": {
+  "LeftArm": {
+   "median": 0.1729,
+   "most": 0.3133,
+   "vertices": 419
+  },
+  "LeftForeArm": {
+   "median": 0.1324,
+   "most": 0.2169,
+   "vertices": 432
+  },
+  "RightArm": {
+   "median": 0.1581,
+   "most": 0.2147,
+   "vertices": 434
+  },
+  "RightForeArm": {
+   "median": 0.1352,
+   "most": 0.2439,
+   "vertices": 297
+  },
+  "LeftUpLeg": {
+   "median": 0.1752,
+   "most": 0.4479,
+   "vertices": 362
+  },
+  "LeftLeg": {
+   "median": 0.1288,
+   "most": 0.1844,
+   "vertices": 298
+  },
+  "RightUpLeg": {
+   "median": 0.1786,
+   "most": 0.5048,
+   "vertices": 397
+  },
+  "RightLeg": {
+   "median": 0.1216,
+   "most": 0.1819,
+   "vertices": 338
+  }
+ },
+ "clusters": [
+  "#612b41",
+  "#ad3a20",
+  "#cc4b24",
+  "#d8542c",
+  "#e09963",
+  "#efc488"
+ ],
+ "palette": {
+  "body": "#c75c3f",
+  "belly": "#dc7a54",
+  "cream": "#e4c89b",
+  "shoe": "#51304a"
+ }
+}

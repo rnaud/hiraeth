@@ -12,7 +12,7 @@ import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Foes } from '../src/foes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
-import { loftLimb, loftAlong, keyed, legacyHulkModel, legacyProwlerModel } from '../src/enemies/plans/monster.js';
+import { loftLimb, loftAlong, keyed, legacyHulkModel, legacyProwlerModel, legacyWarlordModel } from '../src/enemies/plans/monster.js';
 import { skinOf } from '../src/enemies/skins.js';
 import { libraryFrom } from '../src/animator.js';
 import { attachMotion } from '../src/motion-match.js';
@@ -68,7 +68,9 @@ test('the lofts: a limb ring by ring (its masses where the profile puts them, ca
 });
 
 test('the silhouettes: the warlord\'s ram horns show as big curls from the front and the side; the prowler\'s head a long wedge; the hulk\'s head thrust out; its club banded only', () => {
-  const w = archetypeModel('warlord', 'desert', 0);
+  // (the legacy lion's horns: #800 made the game's warlord the resonator chief on its Tripo body, warlord-tripo.js,
+  //  tests/warlord-tripo.test.js; the lion stands in while that loads)
+  const w = legacyWarlordModel(skinOf('warlord', 'desert', 0));
   const G = [part(w, 'horn'), part(w, 'mane'), part(w, 'skin')];
   // (before the pass: 0.104 m² from the front, 0.067 m² from the side; the horns hidden in its mane)
   const front = shown(G, 0, 'z'), side = shown(G, 0, 'x');

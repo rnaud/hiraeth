@@ -3275,6 +3275,15 @@ T-pose picks and why: the folder's `README.md`.
   (the ball of the foot never under the ground), with `biped-tripo.js` `soles` (the pads stiff under 8 cm) and `soleUp`
   (the body raised by its deepest sole corner under the ground). Three meshes. Its def, moves, windows, sounds and ragdoll are the
   prowler's. Tests: `tests/prowler-tripo.test.js`.
+- **The warlord** (`warlord`): the resonator chief, `src/enemies/plans/warlord-tripo.js` `tripoWarlordModel`,
+  `public/enemies/warlord/` (12,956 triangles); the legacy crimson lion is `plans/monster.js` `legacyWarlordModel`. A
+  brick-red egg that is head and chest, 2.5 m, a cream throat chamber, a salmon belly (painted on its oval and cut there),
+  cream gloved hands, plum shoes, slit eyes on Tripo's head bone. What it wields is the approved picture's forked iron
+  staff (the resonator, the glaive's length and hold, `WARLORD_HOLD`), called the staff in play; its four bronze plates
+  (`ARMOUR.warlord`) fitted to its upper arms' and shins' measured girth (`skeleton.json` `limbs`). Its shoes: `flatFeet`
+  (a planted foot flattened about its ball, not its ankle, since #800's warlord), `soles`, `soleUp`. Seven meshes. Its def
+  (hp 12, sweep, overhead, charge, the roar that wakes its band, the last stand), windows, sounds, ragdoll and band are
+  the warlord's. Tests: `tests/warlord-tripo.test.js`.
 
 
 ## Tests
