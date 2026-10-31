@@ -22,9 +22,12 @@ const sources = {};
 /** The Tripo bodies' sources, loaded once. */
 async function tripoBuilder(kind) {
   if (kind === 'brute') {
-    const { loadTripoWoodcutter, tripoWoodcutterModel } = await import('./woodcutter-tripo/model.js');
-    sources.brute ??= await loadTripoWoodcutter(`${here}woodcutter-tripo/`);
-    return (skin) => tripoWoodcutterModel(skin, sources.brute);
+    // (the wood cutter, in the game since #800 as its own enemy: its body and source the game's; in the brute's slot
+    //  here, its reach laid over the brute's def as it is built: trialDef)
+    const [{ tripoWoodcutterModel }, { loadFoeAssets, foeSource }, { woodcutterDef }] = await Promise.all([import('/src/enemies/plans/woodcutter-tripo.js'), import('/src/enemies/foe-assets.js'), import('/src/enemies/plans/woodcutter.js')]);
+    await loadFoeAssets(['woodcutter']);
+    sources.brute ??= foeSource('woodcutter');
+    return (skin) => ({ ...tripoWoodcutterModel(skin, sources.brute), trial: 'tripo', trialDef: woodcutterDef });
   }
   if (kind !== 'crab') return null;
   // (the Tripo shellback is the game's crab since #800 landed it: its shipped body and builder, src/enemies/plans/shellback-tripo.js)

@@ -5,15 +5,17 @@ import { materials, add, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish
 import { surfaceColor } from '../surfaces.js';
 import { gazePart } from '../gaze.js';
 
-// The wood cutter, built direct (issue #800 phase 2b: a trial body, not in the game's roster until the author picks it;
-// the game's brute is plans/brute.js bruteModel). Drawn to the approved reference
+// The wood cutter, built direct (issue #800 phase 2b). The game draws Tripo's body (woodcutter-tripo.js, the author's
+// pick); this one is the trials' other, and stands in for it only while its mesh loads (src/enemies/foe-assets.js). This
+// file holds what both bodies share: the numbers, the def's reach (woodcutterDef), the tools and the motion. Drawn to
+// the approved reference
 // (references/enemy-redesign-2026-10-30/keep-brute/a1860f49-…-0.png): a compact sage-green robot 2.4 m tall (the author's
 // 2.2–2.6 m; today's brute is 4.7 m), a round barrel of a torso with a seam across its chest and an ochre vent on its
 // belly, a pale dome of a head sunk in its top with one black visor slit, two great round pauldrons, short thick legs
 // on wide rounded boots, a rust-red circular saw on its right forearm and an open dark-green clamp of a hand on its left.
 // Broad masses and few flat colours (the Scavengers Reign brief).
 //
-// It is the brute in everything but its body and its size: the same archetype id, kind, skins, sounds (FOE_CALLS 'iron',
+// It is the brute in everything but its body and its size (its own archetype since #800: the brute's skins' palettes, sounds (FOE_CALLS 'iron',
 // FOE_MOVES 'brute'), guard, stout, plates (#722: the two pauldrons and a breastplate), weak point (the belly vent, its
 // louvres glowing as it winds up), its coming apart into pieces, its calm (rusted mid-task, slumped). Its def is the
 // brute's with the reach scaled to its new height and every timing window kept (woodcutterDef). On the same rig family:
@@ -71,19 +73,8 @@ export function woodcutterDef(def) {
   return out;
 }
 
-/**
- * The wood cutter as its own enemy (the author, 2026-10-30): not the brute's replacement (today's 4.7 m brute stays in
- * the game as it is) but a new archetype, keyed `woodcutter`, on the brute's rig family. Ready to be registered (its own
- * entry in src/enemies/archetypes.js, skins.js and plans/index.js, its sounds and placement) when the author places it;
- * until then only the trial page builds it, standing in the brute's slot there. In no world's roster yet.
- */
+/** The wood cutter's archetype id (src/enemies/archetypes.js ARCHETYPES.woodcutter: its own enemy beside the brute, #800). */
 export const WOODCUTTER_ID = 'woodcutter';
-/** Its archetype, from the brute's (ARCHETYPES.brute): its own id and name, the brute's sounds and skins for now, its def. */
-export function woodcutterArchetype(brute) {
-  return { ...brute, name: 'wood cutter', kind: WOODCUTTER_ID, status: 'trial', planNo: undefined, art: { main: 'perdide2' },
-    def: { ...woodcutterDef(brute.def), name: 'wood cutter' }, skins: 'the brute\'s (src/enemies/skins.js SKINS.brute), its home perdide2 in WOODCUTTER_OWN',
-    note: 'A wood cutter: saw up? Get to its side and jump the quake.' };
-}
 
 /** The reference's own colours, on its home skin (Lorn II's wood cutter); the other skins keep their world's palette. */
 export const WOODCUTTER_OWN = {
@@ -123,7 +114,7 @@ export function sawDisc(r, t, n = 12) {
  */
 export const WOODCUTTER_TOOLS = {
   shears: () => ({ blades: pair((t) => new THREE.ConeGeometry(0.06, 0.55, 4).scale(1, 1, 0.35).rotateZ(Math.PI + t * 0.12).translate(t * 0.06, -0.38, 0.05)), pin: new THREE.CylinderGeometry(0.04, 0.04, 0.18, 10).rotateZ(Math.PI / 2).translate(0, -0.1, 0.05) }),
-  ladle: () => ({ iron: [new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8).translate(0, -0.3, 0.1).rotateX(0.5), new THREE.SphereGeometry(0.17, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, -0.7, 0.4)], melt: new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2).translate(0, -0.72, 0.4) }),
+  ladle: () => ({ iron: [new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8).translate(0, -0.3, 0.1).rotateX(-0.5), new THREE.SphereGeometry(0.17, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, -0.7, 0.4)], melt: new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2).translate(0, -0.72, 0.4) }),
   vanes: () => Array.from({ length: 8 }, (_, j) => new THREE.BoxGeometry(0.05, 0.22, 0.02).translate(0, 0.13, 0).rotateY(0.5).rotateZ((j / 8) * Math.PI * 2)),
 };
 

@@ -213,7 +213,7 @@ test('cheap to draw: each of batch 4 is a handful of meshes (its moving parts sk
 
 test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-worlds.js PLACED), it comes out calm as you come near and stands rusted mid-task; cut down, it is gone for good', async () => {
   const { PLACED } = await import('../src/foe-worlds.js');
-  assert.deepEqual(PLACED.perdide2.map((p) => p.archetype), ['brute']);
+  assert.deepEqual(PLACED.perdide2.map((p) => p.archetype), ['brute', 'woodcutter'], '(and the sawyer since #800, tests/woodcutter.test.js)');
   assert.ok(WORLDS.perdide2.placed.includes('brute'));
   clearTargets();
   // (PLACED is in the Deep Wood's own frame; it lies 480 m south in Lorn now, src/levels/names.js PART_OFFSET, and so on its own)
@@ -221,9 +221,9 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
   const make = () => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, 0) }, levelId: 'perdide2', content: { npcs: [] }, physics: flat, player: P, settings: { enemies: 'normal' }, game });
   let foes = make(); foes.packRest = 1e9;
   foes.update(DT);
-  assert.equal(foes.list.filter((f) => f.post).length, 0, 'far off: not out');
+  assert.equal(foes.list.filter((f) => f.post && f.kind === 'brute').length, 0, 'far off: not out');
   P.pos.set(13.7, 0, -720); foes.update(DT);
-  const w = foes.list.find((f) => f.post);
+  const w = foes.list.find((f) => f.post && f.kind === 'brute');
   assert.ok(w && w.kind === 'brute' && w.skin === 'perdide2', 'near: the wood cutter, in its own skin');
   assert.ok(Math.hypot(w.pos.x - 13.7, w.pos.z + 760) < 0.5 && w.state === 'idle', 'standing where it was placed, calm');
   for (let i = 0; i < 60; i++) foes.update(DT);
@@ -232,7 +232,7 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
   for (let i = 0; i < 60; i++) foes.update(DT);
   foes.dispose(); clearTargets();
   foes = make(); foes.packRest = 1e9; foes.update(DT);
-  assert.equal(foes.list.filter((f) => f.post).length, 0, 'broken, it does not come back');
+  assert.equal(foes.list.filter((f) => f.post && f.kind === 'brute').length, 0, 'broken, it does not come back');
   foes.dispose(); clearTargets();
 });
 

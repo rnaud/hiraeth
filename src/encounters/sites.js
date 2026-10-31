@@ -195,7 +195,9 @@ export const SITES = {
     { id: 'blot-fire', kind: 'camp', at: [152, 18.1, 356], heading: -2.5, foes: ['blot', 'blot', 'rootknot'], lookout: 'moth' },
     { id: 'brute-hoard', kind: 'hoard', at: [61, 18.1, 342], heading: 2.2, foes: ['brute', 'rootknot'] },
     { id: 'moth-shadow', kind: 'ambush', at: [-2, 6.4, 83], heading: 2.46, foes: ['moth', 'moth', 'moth'], sign: 'shadow' },
-    { id: 'brute-beat', kind: 'patrol', at: [68, -6, -274], heading: -0.6, foes: ['brute', 'blot'] },
+    // (issue #800: the hedge cutter walks the pruning machines' beat now; the brute keeps its hoard. The id kept: a save's
+    // cleared beat stays cleared)
+    { id: 'brute-beat', kind: 'patrol', at: [68, -6, -274], heading: -0.6, foes: ['woodcutter', 'blot'] },
   ],
   underwater: [
     { id: 'crab-nest', kind: 'nest', at: [-140, -0.6, -138], heading: 0.85, foes: ['crab', 'crab', 'crab', 'crab'] },
@@ -228,7 +230,8 @@ export const SITES = {
     { id: 'brute-hoard', kind: 'hoard', at: [-131, 0, -2], heading: 2.11, foes: ['brute', 'cart'] },
     // (issue #731: the foundry closed in; the beat and the nest, out on the plain before, brought in under the roof: the beat in
     //  the east bay by the east furnace, the nest in the north-west corner under the second hung moon)
-    { id: 'fencer-beat', kind: 'patrol', at: [148, 0, -8], heading: -Math.PI / 2, foes: ['fencer', 'fencer'] },
+    // (issue #800: a ladle hand works the beat with a fencer, by the east furnace)
+    { id: 'fencer-beat', kind: 'patrol', at: [148, 0, -8], heading: -Math.PI / 2, foes: ['fencer', 'woodcutter'] },
     { id: 'skitter-nest', kind: 'nest', at: [-128, 0, -250], heading: 0.6, foes: ['skitter', 'skitter', 'skitter', 'skitter', 'skitter', 'skitter'] },
   ],
   spheres: [

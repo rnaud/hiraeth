@@ -36,10 +36,13 @@ import sharp from 'sharp';
 import { MeshoptSimplifier as MS } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import { readTripo, sample, writeGlb } from '../shellback-tripo/glb.mjs';
 import { WOODCUTTER, WOODCUTTER_OWN } from '../../../../src/enemies/plans/woodcutter.js';
-import { PARTS } from './model.js';
+import { PARTS } from '../../../../src/enemies/plans/woodcutter-tripo.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '../../../..');
+// (the game's asset: public/enemies/woodcutter/, src/enemies/foe-assets.js; the flat texture's picture stays here; the game's
+// body.glb then has its picture taken out, scripts/tripo/strip-picture.mjs: every skin is drawn by its vertex colours)
+const OUT = join(ROOT, 'public/enemies/woodcutter');
 const IN = join(ROOT, 'references/enemy-redesign-2026-10-30/keep-brute/tripo/model.glb');
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 const TARGET = +opt('--target', 12000), TEX = 1024, AW = +opt('--attr', 0);
@@ -302,11 +305,11 @@ const landmarks = { frame: 'game: +z ahead, +y up, metres, feet on y 0, centred 
   head: { centre: sphere.centre, r: sphere.r, top: HEIGHT, note: 'the dome\'s fitted sphere: the head turns about its centre' }, visor,
   vent: VENT, pauldronY: PAULDRON_Y, chestY: CHEST_Y, saw: { centre: END0, tripo: DISC0, normal: sawFace, tripoNormal: sawN, turn: SAW_TURN, r: WOODCUTTER.saw },
   cuts, parts, partNames: PARTS, swatches, palette: PALETTE, swatchColours: SWATCH };
-writeFileSync(join(HERE, 'landmarks.json'), JSON.stringify(landmarks, null, 1) + '\n');
+writeFileSync(join(OUT, 'landmarks.json'), JSON.stringify(landmarks, null, 1) + '\n');
 
 const glb = writeGlb({ attrs: { POSITION: fin.P, NORMAL: fin.N, TEXCOORD_0: fin.UV, COLOR_0: fin.COL }, indices: I, image: png, name: 'wood cutter tripo lod',
   extras: { source: 'references/enemy-redesign-2026-10-30/keep-brute/tripo/model.glb', task: '32ba0f6c-65ed-4cb9-8685-bdfb19b47047', triangles: I.length / 3, decimated: I0.length / 3, simplifyError: +err.toFixed(5) } });
-writeFileSync(join(HERE, 'tripo-lod.glb'), glb);
+writeFileSync(join(OUT, 'body.glb'), glb);
 const sha = (b) => createHash('sha256').update(b).digest('hex').slice(0, 16);
 console.log(JSON.stringify({ source: { vertices: n0, triangles: m.I.length / 3, texture: [m.tex.w, m.tex.h] }, centre: [CX, CZ], lod: { vertices: nk, triangles: I.length / 3, decimated: I0.length / 3, dropped: I0.length / 3 - I.length / 3, error: +err.toFixed(5), bytes: glb.length, sha: sha(glb) },
   parts: Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, v[1]])), head: sphere, visor, cuts, sawN, swatches, pngBytes: png.length }));

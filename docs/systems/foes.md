@@ -2740,13 +2740,13 @@ a root knot's pack in Lorn II has root-edged blots round it rather than standing
 | Vael (the plain) | 0 | ray | ray 4, blot 3, crab 2 (the sky stones' cliff crab: `skinFor` takes a part's sibling skin) | `plain-fire`: two blots and a crab, a storm ray on watch | | blots, rays, crabs; last wave a crab and two rays |
 | Vael II (the sky stones) | 1 | crab | crab 4, ray 3, jelly 2, blot 2 | unchanged | | (Vael's) |
 | Lorn | 1 | toad | toad 3.5, rootknot 3, skitter 3, blot 1.5 | `toad-fire`: a blot on watch | | toads, root knots, skitters, blots |
-| Lorn II (the Deep Wood) | 1 | rootknot | rootknot 4, moth 3, jelly 2, blot 2, wisp 1.5, shade 1 | unchanged | furnace brute (the wood cutter) | (Lorn's) |
-| Viridel | 2 | moth | moth 4, rootknot 2, brute 1.5, blot 1 | unchanged | | unchanged |
+| Lorn II (the Deep Wood) | 1 | rootknot | rootknot 4, moth 3, jelly 2, blot 2, wisp 1.5, shade 1 | unchanged | furnace brute (the wood cutter); the wood cutter (the sawyer, #800) | (Lorn's) |
+| Viridel | 2 | moth | moth 4, rootknot 2, brute 1.5, woodcutter 1.5 (#800), blot 1 | `brute-beat`: a hedge cutter and a blot (#800) | | unchanged |
 | Underwater City | 2 | crab | crab 4, jelly 3, ray 2.5, tripod 2 | unchanged | | unchanged |
 | City-Shaft | 2 | tripod | tripod 4, toad 3.5, drone 2.5, shade 2.5, blot 1.5 | the lizards' fire: two blots and a toad (`blot-fire`) | | blots, drones, toads, tripods |
 | Glass Dunes | 3 (#796) | brute | brute 4, crab 3, ray 2, worm 2, drone 2, shade 1 | unchanged | | unchanged |
 | Buried Machine | 3 | worm | worm 3.5, skitter 3.5, tripod 3, centipede 3, cart 2, blot 1 | `centipede-fire`: two centipedes and a blot; `cart-beat`: a cart and a mining tripod | | skitters, worms, blots, carts |
-| Moon Foundry | 3 | cart | cart 4, skitter 3.5, wisp 3, brute 2.5, fencer 1.5, blot 1 | `fencer-fire`: two blots and a fencer | | skitters, blots, carts, wisps |
+| Moon Foundry | 3 | cart | cart 4, skitter 3.5, wisp 3, brute 2.5, woodcutter 2 (#800), fencer 1.5, blot 1 | `fencer-fire`: two blots and a fencer; `fencer-beat`: a fencer and a ladle hand (#800) | | skitters, blots, carts, wisps |
 | Garden of Spheres | 3 | roller | roller 4, centipede 4, hound 4 (late), shade 3.5, drone 1, jelly 1 | `hound-shadow`: a halo shade and two hounds | (the glass puppet gone) | last wave a pearl centipede and two hounds |
 | City Floating in Space | 4 (#796) | drone | drone 4, moth 3, roller 3, fencer 2 | unchanged | | unchanged |
 | Signal Market | 4 | hound | hound 5, crab 3, bell 2.5, moth 2, fencer 2 (late) | `hound-fire`, `crab-nest`, `moth-shadow` (three moths and a hound) | | hounds, crabs, moths; last wave the bell walker and a crab |
@@ -2846,14 +2846,51 @@ texture on the web; in the engines (no picture decoded: `engine/boot.js` `COLOUR
 colours, as every other skin is (their colours recoloured by role: coat shades, saddle, muzzle, horns). Unity's player
 copies the GLB (`BridgeBuild.cs`); an engine without it builds the direct body. Draws standing: 2 (the skin, the eyes),
 4 in the Garden of Spheres; the old antler hound drew 54 meshes. Tests: `tests/hound.test.js`, `tests/hound-trial.test.js`.
-A trial body of another size carries `trialDef(def)` (the wood cutter's: `src/enemies/plans/woodcutter.js`
-`woodcutterDef`, the brute's def with its reach scaled to 2.4 m and every timing window kept); `Foes.add` lays it over
-the foe's def as the body is built, so the page, the capture and the bench fight the body they draw. No game body has
-one (`tests/woodcutter-trial.test.js`). The wood cutter's Tripo body (the author's pick): `trials/woodcutter-tripo/`,
-rigid parts cut by geometry and blended across the limbs' cuts, on the shared motion (`woodcutterMotion`), each world's
-tool built on its wrist (`WOODCUTTER_TOOLS`). The wood cutter is to be its own enemy, not the brute's replacement:
-`WOODCUTTER_ID` (`'woodcutter'`) and `woodcutterArchetype(ARCHETYPES.brute)` key it for its own registration when it
-is placed; today's brute is unchanged and the wood cutter is in no roster yet.
+A trial body of another size carries `trialDef(def)` (the wood cutter's in the brute's slot on the trial page:
+`src/enemies/plans/woodcutter.js` `woodcutterDef`, the brute's def with its reach scaled to 2.4 m and every timing window
+kept); `Foes.add` lays it over the foe's def as the body is built, so the page, the capture and the bench fight the body
+they draw. No game body has one.
+
+### The wood cutter (#800, `src/enemies/plans/woodcutter-tripo.js`, `public/enemies/woodcutter/`)
+
+The first of the rebuild's foes in the game, and a new one: `ARCHETYPES.woodcutter` beside the furnace brute (kept as it
+was, the author: "I liked the old brute, we should keep both"). Its def is the brute's with `woodcutterDef`'s reach
+(written out in `archetypes.js`; `tests/woodcutter.test.js` checks it is the same), its own plan `woodcutter` (its own
+steps in `FOE_MOVES`, its trim), the brute's `iron` calls, its own voice (`FOE_VOICES.woodcutter`: a smaller iron barrel),
+fight (`FIGHT`, a little lighter: mass 3), armour (two pauldrons and a breastplate), tier (two quakes), death (a
+machine's, a shorter sag). Its slam sounds as its tools meet the ground, not at its hit's contact: `attack.land`
+(0.52 of the strike, measured on the Tripo body: `src/foe-sounds.js` `blowLayers`). Three skins: Lorn II's **sawyer**
+(the reference's colours and its toothed saw, `perdide2`, home), Viridel's **hedge cutter** (shears) and the Moon
+Foundry's **ladle hand** (a clamp hand, the left one's mirrored across the body, with a ladle); their names differ from
+the brute's skins' (the brute's Lorn II skin is still called the wood cutter).
+
+**Its body** is Tripo's, the trial's fixed asset moved into the game (`public/enemies/woodcutter/body.glb` and
+`landmarks.json`, the picture taken out by `scripts/tripo/strip-picture.mjs`; the trial's `prepare.mjs` writes there; Unity's
+builds carry both in StreamingAssets, BridgeBuild.cs). **Generated bodies load before they are built**
+(`src/enemies/foe-assets.js`, on the lines of the crab's loader): `foeSource(id)` gives the source (the engines' host and
+Node read it at once, so Unity and the tests build the real body; a browser fetches it within `LOAD_DEADLINE`); main.js and engine/game.js start `loadFoeAssets` for the archetypes the world fields
+(`assetsOfWorld`; every one in the Arena) with the other loads and wait for it (a race with 20 s in main.js) before
+the foes' warm, so the warm and the first foe build the Tripo body; the gallery waits for it too. Asked for before it
+loaded, the archetype's direct body (`woodcutterModel`) stands in, with a warning. The GLB's arrays are read without
+three's loader (`glbGeometry`) and its texture is not used: every skin draws the vertex colours the trial sampled from
+its flat texture, so the web and the engines draw the same body (Unity decodes no JPEG or PNG in the VM) and no foe
+carries a 5 MB texture. Fixed on the way in: Tripo's dark creases on the boots, the legs and under the barrel smoothed
+away (`smoothCreases`: a Taubin smoothing of those parts, welded, the rim, soles and cuts held, normals made smooth),
+the mirrored clamp hand turned onto the right forearm's line (it took the left hand's twist), the ladle's bowl back on
+its handle.
+
+**Where** (the author: "do whatever you want on where to place new enemies"; within #796's stages): a placed sawyer in
+Lorn II's Deep Wood (stage 1, calm, met once where it stands, as the brute there is: never in a pack so early), in the
+meadow at the wood's edge north of the brute (`PLACED.perdide2`, Deep Wood frame (-56, -158)); in Viridel's packs (stage 2,
+weight 1.5 beside the brute's pruning machines: the same numbers in a body with less reach) and the beat the brute walked
+(`brute-beat`); in the Moon Foundry's (stage 3, weight 2, the machinery world) and its east bay's beat with a fencer
+(`fencer-beat`). A heavy lead: two places, never before a world's second pack (`COSTS`, `FROM`). The Arena's run takes its
+three skins (#797). Combat check (`combat-review` defend and dodge, the traveller held 2 m before it): guarded, the slam
+and the sweep block from 0.5 s and parry at 0.06–0.12 s, as the brute's; an evade 0.15 s out swallows the slam and an
+earlier one carries you out of its shorter reach; the back flip and the side hop both start a flurry off its blows.
+Unity: `-fight newfoes` (engine/unity/game.js) sets two down in the Arena and pictures them standing, winding up and
+landing the slam.
+
 
 ## Tests
 

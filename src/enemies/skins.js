@@ -170,6 +170,15 @@ export const SKINS = {
     waterfall: { name: 'turbine guardian', palette: { body: '#b9c6cc', body2: '#d2dde2', joint: '#8fa3ad', brass: '#c49a52', verd: '#5f9fb8', tar: '#1a2028', core: '#9fe0ff', glow: '#8f7bff', seam: '#2e3a44', slab: '#6f8a94', dark: '#1e262c' }, props: ['turbine', 'wet'] },
     moonfoundry: { name: 'crucible hand', palette: { body: '#ece0c4', body2: '#f6ecd6', joint: '#5a4a3e', brass: '#8a6a3a', verd: '#4a3a30', tar: '#1d1a20', core: '#ff9a3e', glow: '#ff7a2e', seam: '#3a2e28', slab: '#5a4e46', dark: '#2a2220' }, props: ['ladle'] },
   },
+  woodcutter: {
+    // (issue #800: the approved reference, references/enemy-redesign-2026-10-30/keep-brute/a1860f49-…-0.png: a sage robot,
+    // a pale dome head with a black visor slit, an ochre vent, olive bands, dark joints, a toothed rust saw disc; its home,
+    // Lorn II's Deep Wood. The other worlds' wear their furnace brutes' palettes and their own tools on the same body:
+    // Viridel's shears, the Moon Foundry's clamp hand and ladle; src/enemies/plans/woodcutter.js)
+    perdide2: { name: 'sawyer', palette: { body: '#7f9f88', body2: '#93b19a', joint: '#2f4b3b', head: '#e5cfbb', visor: '#18161c', saw: '#8c3d2c', clamp: '#7a3527', brass: '#c8922f', band: '#5c5c37', core: '#f0b54a', glow: '#f3a361', slab: '#8a7f70', dark: '#1e2622' }, props: ['saw'] },
+    edena: { name: 'hedge cutter', palette: { body: '#ece6d4', body2: '#f6f1e2', joint: '#d9d2bd', brass: '#8fae7a', core: '#a6d86a', glow: '#9a6cff', slab: '#6f7a5a', blade: '#cfd4d8', dark: '#26302a' }, props: ['shears'] },
+    moonfoundry: { name: 'ladle hand', palette: { body: '#ece0c4', body2: '#f6ecd6', joint: '#5a4a3e', brass: '#8a6a3a', core: '#ff9a3e', glow: '#ff7a2e', slab: '#5a4e46', dark: '#2a2220' }, props: ['ladle'] },
+  },
   fencer: {
     // (issue #665: no picked sheet. The makers' high tech of their temples: ivory ceramic plates over a dark frame, brass
     // trim, seams of light; the Moon Foundry's warm with the furnaces' orange, the Space City's white and cyan with a round

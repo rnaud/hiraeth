@@ -1,19 +1,20 @@
 import * as THREE from 'three';
-import { Rig, planLeg } from '../../../../src/motion-kit/rig.js';
-import { materials, add, many, pivot, finish, plate, outerPoints } from '../../../../src/enemies/plans/kit.js';
-import { gazePart } from '../../../../src/enemies/gaze.js';
-import { SkinLegs, bendFrame } from '../../../../src/characters/creature-legs.js';
-import { RENDER_FRAME } from '../../../../src/render-frame.js';
-import { WOODCUTTER, WOODCUTTER_ID, WOODCUTTER_OWN, WOODCUTTER_PLAN, WOODCUTTER_TOOLS, woodcutterDef, woodcutterMotion, sawDisc } from '../../../../src/enemies/plans/woodcutter.js';
+import { Rig, planLeg } from '../../motion-kit/rig.js';
+import { materials, add, many, pivot, finish, plate, outerPoints } from './kit.js';
+import { gazePart } from '../gaze.js';
+import { SkinLegs, bendFrame } from '../../characters/creature-legs.js';
+import { RENDER_FRAME } from '../../render-frame.js';
+import { WOODCUTTER, WOODCUTTER_ID, WOODCUTTER_OWN, WOODCUTTER_PLAN, WOODCUTTER_TOOLS, woodcutterMotion, sawDisc } from './woodcutter.js';
 
-// The wood cutter from Tripo (issue #800 phase 2b and its fixes; a trial body, web only, behind the trial page): Tripo
-// task 32ba0f6c-… from the approved image (the untouched export in keep-brute/tripo/), made into the game asset by
-// prepare.mjs (the game's frame, the direct body's 2.4 m, a 1024² texture repainted by part in the reference's flat
-// colours, vertex colours, about 11k triangles cut into parts by geometry, Tripo's saw hand dropped) and put on the
-// brute's rig family here: the motion kit's brute plan for its legs (fitted to the mesh's own: landmarks.json), the
-// direct wood cutter's arm pivots and its motion (woodcutterMotion: the same poses, ground contact and attacks), its def
-// (woodcutterDef). Its own enemy, `woodcutter` (WOODCUTTER_ID), not the brute's replacement: the trial page stands it
-// in the brute's slot only.
+// The wood cutter's body (issue #800: the author's pick of the trials, its own enemy `woodcutter` beside the furnace
+// brute): Tripo task 32ba0f6c-… from the approved image (references/enemy-redesign-2026-10-30/keep-brute/, the untouched
+// export in its tripo/), made into the game's asset by the trial's prepare.mjs (references/enemy-redesign-2026-10-30/trials/
+// woodcutter-tripo/: the game's frame, 2.4 m, the texture repainted by part in the reference's flat colours and sampled
+// into the vertex colours, about 11k triangles cut into parts by geometry, Tripo's saw hand dropped; public/foes/
+// woodcutter/, loaded by src/enemies/foe-assets.js) and put on the brute's rig family here: the motion kit's brute plan
+// for its legs (fitted to the mesh's own: landmarks.json), the direct wood cutter's arm pivots and its motion
+// (woodcutter.js woodcutterMotion: the poses, the ground contact and the attacks), its def (woodcutterDef, in
+// src/enemies/archetypes.js). Its direct body (woodcutter.js woodcutterModel) stands in only while the source loads.
 //
 // A machine's rig, not a skinned humanoid: every triangle whole in one rigid part (each vertex weighted 1 to one joint):
 // the hull, the head, each arm's upper arm and forearm (the clamp arm's hand), each leg's thigh, shin and boot (bones
@@ -43,17 +44,6 @@ const JOINTS = [['elbow0', 'upper0', 'fore0'], ['elbow1', 'upper1', 'fore1'], ['
 /** How far either side of a cut its vertices are blended (m). */
 export const BLEND = 0.09;
 
-/** The trial's source in the browser: { geometry, map, landmarks }. base: this folder's URL. */
-export async function loadTripoWoodcutter(base) {
-  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-  const get = async (name) => { const r = await fetch(`${base}${name}`); if (!r.ok || /text\/html/.test(r.headers.get('content-type') ?? '')) throw new Error(`no ${base}${name} (${r.status})`); return r; };
-  const [bytes, landmarks] = await Promise.all([get('tripo-lod.glb').then((r) => r.arrayBuffer()), get('landmarks.json').then((r) => r.json())]);
-  const gltf = await new GLTFLoader().parseAsync(bytes, base);
-  let mesh = null; gltf.scene.traverse((o) => { if (o.isMesh && !mesh) mesh = o; });
-  const map = mesh.material.map; if (map) { map.colorSpace = THREE.NoColorSpace; map.flipY = false; map.needsUpdate = true; }
-  return { geometry: mesh.geometry, map, landmarks };
-}
-
 /** A hex colour's own 0–1 channels (the vertex colours are the texture's printed values: no colour-space conversion). */
 const raw = (hex) => { const h = parseInt(hex.slice(1), 16); return new THREE.Color((h >> 16) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255); };
 
@@ -64,14 +54,66 @@ const CACHE = new WeakMap();
  */
 export function partsOf(src) {
   const hit = CACHE.get(src.geometry); if (hit) return hit;
-  const geo = src.geometry, L = src.landmarks, C = geo.attributes.color, n = C.count, tri = new Uint8Array(geo.index.count / 3);
+  const geo = src.geometry, L = src.rig ?? src.landmarks, C = geo.attributes.color, n = C.count, tri = new Uint8Array(geo.index.count / 3);
   for (const [name, [first, count]] of Object.entries(L.parts)) tri.fill(PI[name], first, first + count);
+  smoothCreases(geo, tri);
   const keys = Object.keys(L.palette), ref = keys.map((k) => raw(L.palette[k])), role = new Uint8Array(n);
   for (let i = 0; i < n; i++) { const r = C.getX(i), g = C.getY(i), b = C.getZ(i); let best = 0, d = Infinity; ref.forEach((c, k) => { const e = (c.r - r) ** 2 + (c.g - g) ** 2 + (c.b - b) ** 2; if (e < d) { d = e; best = k; } }); role[i] = best; }
   const out = { tri, role, keys, A: L.arms.map((a) => ({ sh: vec(a.shoulder), el: vec(a.elbow), wr: vec(a.wrist), end: vec(a.end), tool: a.tool })),
     G: L.legs.map((l) => ({ hip: vec(l.hip), knee: vec(l.knee), ankle: vec(l.ankle), foot: vec(l.foot) })), hc: vec(L.head.centre), sawN: vec(L.saw.normal).normalize() };
   CACHE.set(src.geometry, out);
   return out;
+}
+
+/** The parts whose creases are smoothed (#800: Tripo's folds on the boots and the legs drew dark strokes), and the barrel's under it. */
+const SMOOTH = ['thigh0', 'shin0', 'foot0', 'thigh1', 'shin1', 'foot1'], UNDER = 1.05;
+/**
+ * Tripo's own dark creases on the boots, the legs and under the barrel (folds of its geometry the ink and the light drew
+ * as black strokes and shade), smoothed away once a source: those parts' vertices (welded by place, so a cut's two sides
+ * move as one) relaxed by a Taubin smoothing that keeps their volume, the region's rim, the soles and the cuts' planes
+ * held, then their normals made smooth across the welds. In place on the source's arrays.
+ */
+export function smoothCreases(geo, tri, { steps = 6, lambda = 0.55, mu = -0.58 } = {}) {
+  const P = geo.attributes.position, N = geo.attributes.normal, I = geo.index.array, n = P.count;
+  const sel = new Uint8Array(tri.length), want = new Set(SMOOTH.map((x) => PI[x]));
+  for (let t = 0; t < tri.length; t++) {
+    if (want.has(tri[t])) sel[t] = 1;
+    else if (tri[t] === PI.hull && [0, 1, 2].every((k) => P.getY(I[t * 3 + k]) < UNDER)) sel[t] = 1;
+  }
+  // (welded: one group a place)
+  const key = (i) => `${Math.round(P.getX(i) * 1e4)},${Math.round(P.getY(i) * 1e4)},${Math.round(P.getZ(i) * 1e4)}`, ids = new Map(), group = new Int32Array(n);
+  for (let i = 0; i < n; i++) { const k = key(i); if (!ids.has(k)) ids.set(k, ids.size); group[i] = ids.get(k); }
+  const G = ids.size, inSel = new Uint8Array(G), outSel = new Uint8Array(G), nb = Array.from({ length: G }, () => new Set());
+  for (let t = 0; t < tri.length; t++) {
+    const g3 = [0, 1, 2].map((k) => group[I[t * 3 + k]]);
+    for (const a of g3) (sel[t] ? inSel : outSel)[a] = 1;
+    if (sel[t]) for (const a of g3) for (const b of g3) if (a !== b) nb[a].add(b);
+  }
+  const pos = new Float64Array(G * 3), held = new Uint8Array(G);
+  for (let i = 0; i < n; i++) { const g = group[i]; pos[g * 3] = P.getX(i); pos[g * 3 + 1] = P.getY(i); pos[g * 3 + 2] = P.getZ(i); }
+  for (let g = 0; g < G; g++) held[g] = !inSel[g] || outSel[g] || pos[g * 3 + 1] < 0.03 ? 1 : 0;
+  const tmp = new Float64Array(G * 3);
+  for (let s = 0; s < steps * 2; s++) {
+    const f = s % 2 ? mu : lambda;
+    for (let g = 0; g < G; g++) {
+      if (held[g] || !nb[g].size) { tmp.set(pos.subarray(g * 3, g * 3 + 3), g * 3); continue; }
+      let x = 0, y = 0, z = 0; for (const b of nb[g]) { x += pos[b * 3]; y += pos[b * 3 + 1]; z += pos[b * 3 + 2]; }
+      const k = nb[g].size;
+      tmp[g * 3] = pos[g * 3] + f * (x / k - pos[g * 3]); tmp[g * 3 + 1] = pos[g * 3 + 1] + f * (y / k - pos[g * 3 + 1]); tmp[g * 3 + 2] = pos[g * 3 + 2] + f * (z / k - pos[g * 3 + 2]);
+    }
+    pos.set(tmp);
+  }
+  for (let i = 0; i < n; i++) { const g = group[i]; if (inSel[g]) P.setXYZ(i, pos[g * 3], pos[g * 3 + 1], pos[g * 3 + 2]); }
+  // the normals: each welded place's, the area-weighted sum of its selected faces'
+  const nor = new Float64Array(G * 3), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let t = 0; t < tri.length; t++) {
+    if (!sel[t]) continue;
+    a.fromBufferAttribute(P, I[t * 3]); b.fromBufferAttribute(P, I[t * 3 + 1]); c.fromBufferAttribute(P, I[t * 3 + 2]);
+    c.sub(b); b.sub(a); b.cross(c);   // (twice the face's area along its normal)
+    for (let k = 0; k < 3; k++) { const g = group[I[t * 3 + k]]; nor[g * 3] += b.x; nor[g * 3 + 1] += b.y; nor[g * 3 + 2] += b.z; }
+  }
+  for (let i = 0; i < n; i++) { const g = group[i]; if (!inSel[g] || outSel[g]) continue; a.set(nor[g * 3], nor[g * 3 + 1], nor[g * 3 + 2]); if (a.lengthSq() > 0) { a.normalize(); N.setXYZ(i, a.x, a.y, a.z); } }
+  P.needsUpdate = N.needsUpdate = true;
 }
 
 /** One part's triangles, their corners copied (non-indexed): position, normal, uv, colour (recoloured or kept). */
@@ -92,9 +134,9 @@ function skinColours(geo, prep, want) {
   return new THREE.BufferAttribute(out, 3);
 }
 
-/** The trial body (the model contract of plans/index.js), from the loaded source (loadTripoWoodcutter). */
+/** The wood cutter's body (the model contract of plans/index.js), from its loaded source (src/enemies/foe-assets.js foeSource). */
 export function tripoWoodcutterModel(skin, src) {
-  const L = src.landmarks, home = skin.id === 'perdide2', props = new Set(skin.props);
+  const L = src.rig ?? src.landmarks, home = skin.id === 'perdide2', props = new Set(skin.props);
   const P = { ...skin.palette, ...(home ? WOODCUTTER_OWN.perdide2 : {}) };
   P.visor ??= P.dark; P.head ??= P.body2; P.band ??= P.brass; P.clamp ??= P.joint;
   const M = materials('brute', skin), prep = partsOf(src), hipY = WOODCUTTER.hipY;
@@ -177,9 +219,13 @@ export function tripoWoodcutterModel(skin, src) {
     wristCap('dark');
     const T = WOODCUTTER_TOOLS.shears(); for (const b of T.blades) own(b, fist0, 'fist0', 'blade'); own(T.pin, fist0, 'fist0', 'brass');
   } else {
-    // a clamp hand: the left one's (Tripo's), mirrored onto the right wrist
-    const H = partGeo(src, prep, [PI.hand1], colour), inv = arms[1].fist.matrixWorld.clone().invert(), mirror = new THREE.Matrix4().makeScale(-1, 1, 1);
-    const toRight = new THREE.Matrix4().multiplyMatrices(fist0.matrixWorld, mirror).multiply(inv), nm = new THREE.Matrix3().getNormalMatrix(toRight);
+    // a clamp hand: the left one's (Tripo's), mirrored across the body onto the right wrist and turned from the mirrored
+    // left forearm's line onto the right's (#800: mirrored in the fists' own frames it took the left hand's twist, its
+    // fingers turned back and in; now its palm faces in and its fingers curl forward, as the left one's do)
+    const H = partGeo(src, prep, [PI.hand1], colour), [R0, L1] = prep.A, mirror = new THREE.Matrix4().makeScale(-1, 1, 1);
+    const wristL = L1.wr.clone().setX(-L1.wr.x), dirL = L1.wr.clone().sub(L1.el).setX(-(L1.wr.x - L1.el.x)).normalize(), dirR = R0.wr.clone().sub(R0.el).normalize();
+    const turn = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(dirL, dirR));
+    const toRight = new THREE.Matrix4().makeTranslation(R0.wr.x, R0.wr.y, R0.wr.z).multiply(turn).multiply(new THREE.Matrix4().makeTranslation(-wristL.x, -wristL.y, -wristL.z)).multiply(mirror), nm = new THREE.Matrix3().getNormalMatrix(toRight);
     for (let t = 0; t < H.part.length; t += 3) for (const k of [0, 2, 1]) {   // (mirrored: each triangle's winding turned)
       const i = t + k; _v.set(H.pos[i * 3], H.pos[i * 3 + 1], H.pos[i * 3 + 2]).applyMatrix4(toRight); S.pos.push(_v.x, _v.y, _v.z);
       _v.set(H.nor[i * 3], H.nor[i * 3 + 1], H.nor[i * 3 + 2]).applyMatrix3(nm).normalize(); S.nor.push(_v.x, _v.y, _v.z);
@@ -216,10 +262,11 @@ export function tripoWoodcutterModel(skin, src) {
   }
   skinGeo.setAttribute('skinIndex', new THREE.BufferAttribute(SI, 4)); skinGeo.setAttribute('skinWeight', new THREE.BufferAttribute(SW, 4));
   // (both sides drawn: a pauldron's or a plate's open edge shows its inside, not a hole)
-  const skinM = M.mat(home ? 'wcTripo' : 'wcTripoTint', '#ffffff', { side: THREE.DoubleSide, ...(home ? { map: src.map } : { vertexColors: true }) });
+  // (every skin in vertex colours, the home skin's the flat texture's own: src/enemies/foe-assets.js)
+  const skinM = M.mat('wcTripo', '#ffffff', { side: THREE.DoubleSide, vertexColors: true });
   const sm = new THREE.SkinnedMesh(skinGeo, skinM); sm.name = 'tripo skin'; sm.frustumCulled = false; g.add(sm);
   // the armour: the pauldrons cut out (on their shoulders), the breastplate copied off the chest, a little proud
-  const plateM = M.mat(home ? 'wcTripoPlate' : 'wcTripoPlateTint', '#ffffff', { side: THREE.DoubleSide, ...(home ? { map: src.map } : { vertexColors: true }) });
+  const plateM = M.mat('wcTripoPlate', '#ffffff', { side: THREE.DoubleSide, vertexColors: true });
   const jointM = M.mat('wcTripoJoint', P.joint);
   const geoOf = (A) => { const b = new THREE.BufferGeometry(); b.setAttribute('position', new THREE.Float32BufferAttribute(A.pos, 3)); b.setAttribute('normal', new THREE.Float32BufferAttribute(A.nor, 3)); b.setAttribute('uv', new THREE.Float32BufferAttribute(A.uv, 2)); b.setAttribute('color', new THREE.Float32BufferAttribute(A.col, 3)); return b; };
   const plates = [];
@@ -270,7 +317,7 @@ export function tripoWoodcutterModel(skin, src) {
   const motion = woodcutterMotion({ g, hull: hullTurn, hullY: hipY, arms, rig, slab, coreM, eyeM, bodyM: null, P, props, saw: props.has('saw') ? arms[0].saw : null, fan, head: headPivot });
   return {
     group: g, gaze, body: hullTurn, rig, parts, eyeMat: eyeM, base: P.visor, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.saw ?? P.joint],
-    plates, weak: { obj: core, r: 0.2, name: 'vent' }, trial: 'tripo', archetype: WOODCUTTER_ID, trialDef: woodcutterDef, wcJoints: { arms, legs, head: headPivot, legBones },
+    plates, weak: { obj: core, r: 0.2, name: 'vent' }, archetype: WOODCUTTER_ID, wcJoints: { arms, legs, head: headPivot, legBones },
     tell: (id) => (id === 'hurl' ? arms[1].fist : arms[0].fist),
     anim(f, c) {
       // (going down: the cuts' blends let go, each vertex all its own part's, so the parts come apart clean, not stretched)

@@ -67,7 +67,7 @@ test('a guard is raised only chasing you, near, not stunned, not past its hold',
 
 test('the guarded kinds: a few, each with its own breaker and an answer to spam, every window short (0.6-1.5 s)', () => {
   const guarded = Object.entries(FOES).filter(([, D]) => D.guard).map(([k]) => k).sort();
-  assert.deepEqual(guarded, ['brute', 'crab', 'fencer', 'sentinel', 'shade'], 'a few archetypes, not all');
+  assert.deepEqual(guarded, ['brute', 'crab', 'fencer', 'sentinel', 'shade', 'woodcutter'], 'a few archetypes, not all');
   for (const k of guarded) {
     const G = FOES[k].guard;
     assert.ok(G.breaks.length >= 1 && G.hint, `${k}: a breaker and a hint`);

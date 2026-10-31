@@ -13,6 +13,7 @@ import { GameState } from '../src/game-state.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { reachRig, swingAt } from '../scripts/combat-reach.mjs';
 import { seeded } from '../src/motion-kit/gait.js';
+import { nextRigSeed } from '../src/motion-kit/rig.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
@@ -103,7 +104,10 @@ test('the miss table\'s first row: every archetype on the ground is hit by a pla
   clearTargets();
   const rig = await reachRig();
   const misses = [];
-  for (const [id, A] of BUILT) {
+  // (each body's gait on a seed of its own, not on how many rigs were built before it: a foe added to the game shifted
+  //  the out-of-play lizard's crouch under the blade, #800)
+  for (const [i, [id, A]] of BUILT.entries()) {
+    nextRigSeed(1000 + i * 7);
     // (one hovering over you is met with a jump of your own: the swing never leaps at a foe, issue #747)
     if (A.def?.hover) {
       const y0 = rig.p.pos.y; let top = 0;

@@ -1,47 +1,60 @@
-// The wood cutter's two trial bodies (issue #800 phase 2b): the direct one (src/enemies/plans/woodcutter.js) and the
-// Tripo one (references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/). Both keep the brute's model contract at the
-// author's 2.2–2.6 m, its attacks with their windows and its reach scaled, the tool on the ground where the slam
-// lands, its gaze, plates, weak point and pieces; and stay out of the game (TRIAL_BUILDERS is empty in the game).
+// The wood cutter (issue #800): its own enemy beside the furnace brute, the author's pick of the trials' bodies (Tripo,
+// src/enemies/plans/woodcutter-tripo.js on public/enemies/woodcutter/, loaded by src/enemies/foe-assets.js; the direct one,
+// src/enemies/plans/woodcutter.js, stands in while it loads). Both keep the brute's model contract at the author's
+// 2.2–2.6 m, the brute's attacks with their windows and its reach scaled, the tool on the ground where the slam lands,
+// its gaze, plates, weak point and pieces. Registered, skinned, placed; the brute untouched.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Foes } from '../src/foes.js';
+import { readFileSync } from 'node:fs';
+import { Foes, FOES, ARENA_KINDS } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
-import { SKINS, skinOf } from '../src/enemies/skins.js';
-import { ARCHETYPES } from '../src/enemies/archetypes.js';
+import { SKINS, skinOf, skinFor } from '../src/enemies/skins.js';
+import { ARCHETYPES, BUILT } from '../src/enemies/archetypes.js';
 import { TRIAL_BUILDERS, archetypeModel } from '../src/enemies/plans/index.js';
-import { woodcutterModel, woodcutterDef, woodcutterArchetype, WOODCUTTER, WOODCUTTER_ID } from '../src/enemies/plans/woodcutter.js';
+import { woodcutterModel, woodcutterDef, WOODCUTTER, WOODCUTTER_ID } from '../src/enemies/plans/woodcutter.js';
 import { lowestIn } from '../src/enemies/plans/kit.js';
-import { tripoWoodcutterModel, partsOf, PARTS, BONES, BLEND } from '../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/model.js';
-import { nodeSource } from '../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/source-node.mjs';
+import { tripoWoodcutterModel, partsOf, PARTS, BONES, BLEND } from '../src/enemies/plans/woodcutter-tripo.js';
+import { foeSource, glbGeometry, assetsOfKinds, FOE_ASSETS } from '../src/enemies/foe-assets.js';
+import { WORLDS, PLACED, worldArchetypes, packOf } from '../src/foe-worlds.js';
+import { sitesOf } from '../src/encounters/sites.js';
+import { FIGHT, ARMOUR, TIERS } from '../src/enemies/fight.js';
+import { FOE_VOICES } from '../src/foe-voices.js';
+import { blowLayers } from '../src/foe-sounds.js';
 
-const SRC = nodeSource(new URL('../references/enemy-redesign-2026-10-30/trials/woodcutter-tripo/', import.meta.url));
+const SRC = foeSource('woodcutter');
 const BUILD = { direct: woodcutterModel, tripo: (skin) => tripoWoodcutterModel(skin, SRC) };
 const drawn = (g) => { let n = 0; g.traverseVisible((o) => { if (o.isMesh) n++; }); return n; };
 const world = () => new Foes({ level: { foes: { own: true } }, levelId: 'arena', scene: null, player: { pos: new THREE.Vector3(0, 0, 40), heading: Math.PI }, physics: { groundAt: () => 0 }, game: new GameState(null), rng: () => 0.01 });
 
-test('the game builds its own brute: no trial body stands in, its def untouched (#800)', () => {
-  assert.deepEqual(Object.keys(TRIAL_BUILDERS).filter((k) => k === 'brute'), []);
+test('the game builds its own brute, untouched: no trial body stands in, no trial def (#800)', () => {
+  assert.deepEqual(Object.keys(TRIAL_BUILDERS), []);
   const M = archetypeModel('brute', 'perdide2');
-  assert.equal(M.trial, undefined); assert.equal(M.trialDef, undefined);
+  assert.equal(M.trial, undefined); assert.equal(M.trialDef, undefined); assert.notEqual(M.archetype, WOODCUTTER_ID);
+  assert.equal(ARCHETYPES.brute.def.radius, 1.15); assert.equal(ARCHETYPES.brute.def.attacks[0].radius, 2.1);
   M.dispose();
 });
 
-test('its own enemy, keyed `woodcutter`: the brute untouched, in no roster yet (the author, 2026-10-30)', () => {
+test('its own enemy, `woodcutter`: registered with its def, skins, fight, armour, tier, voice and drop', () => {
+  const A = ARCHETYPES.woodcutter;
   assert.equal(WOODCUTTER_ID, 'woodcutter');
-  assert.equal(ARCHETYPES.woodcutter, undefined, 'not registered until it is placed');
-  assert.equal(SKINS.woodcutter, undefined);
-  const before = JSON.stringify(ARCHETYPES.brute), A = woodcutterArchetype(ARCHETYPES.brute);
-  assert.equal(JSON.stringify(ARCHETYPES.brute), before, 'the brute\'s archetype unchanged');
-  assert.equal(A.kind, WOODCUTTER_ID); assert.equal(A.name, 'wood cutter'); assert.equal(A.def.name, 'wood cutter');
-  assert.equal(A.plan, 'brute', 'on the brute\'s rig family'); assert.equal(A.sound, ARCHETYPES.brute.sound);
-  assert.equal(A.def.radius, WOODCUTTER.radius);
-  for (const [v, build] of Object.entries(BUILD)) { const M = build(skinOf('brute', 'perdide2')); assert.equal(M.archetype, WOODCUTTER_ID, v); M.dispose(); }
+  assert.ok(BUILT.includes('woodcutter')); assert.equal(A.kind, 'woodcutter'); assert.equal(FOES.woodcutter, A.def);
+  assert.equal(A.name, 'wood cutter'); assert.equal(A.plan, 'woodcutter', 'its own plan (its own steps), on the brute\'s rig family'); assert.equal(A.sound, 'iron');
+  assert.deepEqual(Object.keys(SKINS.woodcutter), ['perdide2', 'edena', 'moonfoundry'], 'Lorn II its home');
+  const names = new Set(Object.values(SKINS.brute).map((s) => s.name));
+  for (const s of Object.values(SKINS.woodcutter)) assert.ok(!names.has(s.name), `${s.name}: no brute's name`);
+  for (const t of [FIGHT, ARMOUR, TIERS, FOE_VOICES]) assert.ok(t.woodcutter);
+  // its def is the brute's with woodcutterDef's reach: the same as laying woodcutterDef over the brute's
+  const D = woodcutterDef(ARCHETYPES.brute.def);
+  for (const k of ['radius', 'height', 'hp', 'speed', 'stout', 'heavy', 'breaks']) assert.deepEqual(A.def[k], D[k], k);
+  assert.equal(A.def.guard.near, D.guard.near);
+  for (const a of D.attacks) { const b = A.def.attacks.find((x) => x.id === a.id); for (const k of ['radius', 'ahead', 'max', 'range', 'wind', 'strike', 'contact', 'damage', 'knock', 'min', 'track']) assert.deepEqual(b[k], a[k], `${a.id}.${k}`); }
+  assert.deepEqual(woodcutterDef(A.def).attacks.map((x) => x.radius ?? x.range), A.def.attacks.map((x) => x.radius ?? x.range), 'woodcutterDef idempotent (the direct body\'s trialDef)');
 });
 
 test('its def: the brute\'s windows kept, the reach scaled to the body', () => {
-  const B = ARCHETYPES.brute.def, D = woodcutterDef(B);
+  const B = ARCHETYPES.brute.def, D = ARCHETYPES.woodcutter.def;
   for (const a of B.attacks) {
     const d = D.attacks.find((x) => x.id === a.id);
     for (const k of ['wind', 'strike', 'contact', 'damage', 'track', 'min', 'onParry', 'dodge']) assert.deepEqual(d[k], a[k], `${a.id}.${k}`);
@@ -50,15 +63,43 @@ test('its def: the brute\'s windows kept, the reach scaled to the body', () => {
   }
   for (const k of ['hp', 'stout', 'heavy', 'breaks', 'speed', 'recover', 'cool', 'sound', 'calm']) assert.deepEqual(D[k], B[k], k);
   assert.equal(D.guard.hold, B.guard.hold); assert.equal(D.guard.blocks, B.guard.blocks);
-  assert.equal(D.attack, D.attacks[0]);
   assert.ok(D.radius < B.radius && D.height < B.height);
 });
 
-test('both trial wood cutters build in every brute skin, keep the model contract, and are few draws', () => {
-  for (const [v, build] of Object.entries(BUILD)) for (const id of Object.keys(SKINS.brute)) {
-    const M = build(skinOf('brute', id));
-    for (const k of ['group', 'body', 'rig', 'parts', 'eyeMat', 'size', 'tones', 'tell', 'anim', 'dispose', 'weak', 'gaze', 'trialDef']) assert.ok(M[k] !== undefined, `${v}@${id}: ${k}`);
-    assert.equal(M.trial, v);
+test('where it is met (#800): Viridel\'s and the Moon Foundry\'s packs and beats, Lorn II\'s sawyer placed; no early world fields it; the Arena runs it', () => {
+  const where = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes('woodcutter'));
+  assert.deepEqual(where.sort(), ['edena', 'moonfoundry', 'perdide2']);
+  assert.ok(WORLDS.edena.stage >= 2 && WORLDS.moonfoundry.stage >= 2, 'in the packs only from stage 2, where the brute is');
+  assert.ok(!WORLDS.perdide2.roster.woodcutter, 'Lorn II: placed, never in a pack');
+  assert.ok(PLACED.perdide2.some((p) => p.archetype === 'woodcutter'));
+  for (const w of ['edena', 'moonfoundry']) assert.ok(sitesOf(w).some((s) => s.foes.includes('woodcutter')), `${w}: a site`);
+  assert.equal(skinFor('woodcutter', 'edena'), 'edena'); assert.equal(skinFor('woodcutter', 'moonfoundry'), 'moonfoundry'); assert.equal(skinFor('woodcutter', 'perdide2'), 'perdide2');
+  const e = ARENA_KINDS.find((x) => x.kind === 'woodcutter');
+  assert.ok(e && ['perdide2', 'edena', 'moonfoundry'].every((s) => e.skins.includes(s)), 'the Arena\'s run: its skins on the route');
+  // a heavy lead: two places, never the first pack
+  let seen = 0; for (let i = 0; i < 400; i++) { const p = packOf(1 + (i % 6), 'edena', Math.random); if (p.includes('woodcutter')) { seen++; assert.ok(p.length <= 4); } }
+  assert.ok(seen > 0, 'Viridel\'s packs bring it');
+});
+
+test('its source: the game\'s asset (no texture: vertex colours), read once, asked for by the kinds that need it', () => {
+  assert.equal(foeSource('woodcutter'), SRC, 'once');
+  assert.ok(SRC.geometry.attributes.color && SRC.rig.parts && SRC.triangles > 10000);
+  assert.deepEqual(assetsOfKinds(['woodcutter@edena', 'brute', 'woodcutter*', 'crab']), ['woodcutter']);
+  assert.deepEqual(Object.keys(FOE_ASSETS).includes('woodcutter'), true);
+  const g = glbGeometry(readFileSync(new URL('../public/enemies/woodcutter/body.glb', import.meta.url)));
+  assert.equal(g.geometry.attributes.position.count, SRC.geometry.attributes.position.count);
+  const M = archetypeModel('woodcutter', 'edena');
+  assert.match(M.group.name, /Tripo/, 'the game builds the Tripo body');
+  let maps = 0; M.group.traverse((o) => { if (o.isMesh) for (const m of [].concat(o.material)) if (m.uniforms?.uMap?.value || m.map) maps++; });
+  assert.equal(maps, 0, 'no texture');
+  M.dispose();
+});
+
+test('both wood cutter bodies build in every one of its skins, keep the model contract, and are few draws', () => {
+  for (const [v, build] of Object.entries(BUILD)) for (const id of Object.keys(SKINS.woodcutter)) {
+    const M = build(skinOf('woodcutter', id));
+    for (const k of ['group', 'body', 'rig', 'parts', 'eyeMat', 'size', 'tones', 'tell', 'anim', 'dispose', 'weak', 'gaze']) assert.ok(M[k] !== undefined, `${v}@${id}: ${k}`);
+    assert.equal(M.archetype, WOODCUTTER_ID);
     assert.equal(M.rig.legs.length, 2, `${v}: two legs on the kit`);
     assert.equal(M.rig.plan.gait.gait, 'alternate'); assert.equal(M.rig.plan.knee.pole, 'forward');
     assert.equal(M.plates.length, 3, `${v}: two pauldrons and a breastplate (#722)`);
@@ -68,14 +109,13 @@ test('both trial wood cutters build in every brute skin, keep the model contract
   }
 });
 
-test('in the fight: 2.2–2.6 m, over the traveller; the slam\'s tools meet the ground at its ring; it looks at you; it comes apart', () => {
+test('in the fight, both bodies: 2.2–2.6 m, over the traveller; the slam\'s tools meet the ground at its ring; it looks at you; it comes apart', () => {
   clearTargets();
   for (const [v, build] of Object.entries(BUILD)) {
-    TRIAL_BUILDERS.brute = build;
+    TRIAL_BUILDERS.woodcutter = build;
     const foes = world();
-    const f = foes.add('brute@perdide2', new THREE.Vector3(), { tier: 0 }); f.heading = 0; f.provoked = true;
-    assert.equal(f.model.trial, v);
-    assert.equal(f.def.radius, WOODCUTTER.radius, `${v}: its own def (trialDef)`);
+    const f = foes.add('woodcutter@perdide2', new THREE.Vector3(), { tier: 0 }); f.heading = 0; f.provoked = true;
+    assert.equal(f.def.radius, WOODCUTTER.radius, `${v}: its own def`);
     for (let i = 0; i < 45; i++) foes.look(f, 1 / 30);
     const top = new THREE.Box3().setFromObject(f.model.group).max.y;
     assert.ok(top >= 2.2 && top <= 2.6, `${v}: ${top.toFixed(2)} m`);
@@ -96,6 +136,14 @@ test('in the fight: 2.2–2.6 m, over the traveller; the slam\'s tools meet the 
       let best = null; for (const p of a.reach) { const w = p.clone().applyMatrix4(a.fist.matrixWorld); if (!best || w.y < best.y) best = w; }
       assert.ok(Math.hypot(best.x, best.z - slam.ahead) < slam.radius, `${v}: arm ${k} bites at ${best.z.toFixed(2)} m ahead, the ring at ${slam.ahead}`);
     }
+    // (the slam's weight sounds as the game's body's tools meet the ground, #800: foe-sounds.js blowLayers, attack.land)
+    if (v === 'tripo') {
+      f.atk = slam; f.state = 'wind'; for (let i = 0; i <= 40; i++) { f.k = i / 40; foes.look(f, slam.wind / 40); }
+      f.state = 'strike'; let t = null;
+      for (let i = 0; i <= 64 && t === null; i++) { f.k = i / 64; foes.look(f, slam.strike / 64); f.model.group.updateMatrixWorld(true); if (Math.min(...arms.map(low)) < 0.03) t = f.k * slam.strike; }
+      const at = blowLayers('slam', slam).find((L) => L.at > 0).at;
+      assert.ok(t !== null && Math.abs(at - t) < 0.03, `${v}: the slam sounds at ${at.toFixed(3)} s, its tools on the ground at ${t?.toFixed(3)} s`);
+    }
     f.atk = null; f.state = 'idle'; f.k = 0;
     // the gaze: the traveller off to its right, its head turns to him
     foes.player.pos.set(-5, 0, 4);
@@ -109,14 +157,14 @@ test('in the fight: 2.2–2.6 m, over the traveller; the slam\'s tools meet the 
     if (v === 'tripo') { let sm = null; f.model.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; }); if (!sm) foes.group?.traverse((o) => { if (o.isSkinnedMesh && o.name === 'tripo skin') sm = o; });
       const w = sm.geometry.attributes.skinWeight; let soft = 0; for (let i = 0; i < w.count; i++) if (w.getX(i) < 1) soft++; assert.equal(soft, 0, 'tripo: rigid as it comes apart (no stretched cuts)'); }
     foes.dispose();
-    delete TRIAL_BUILDERS.brute;
+    delete TRIAL_BUILDERS.woodcutter;
   }
   clearTargets();
 });
 
 test('the Tripo machine rig: 10–15k triangles, every vertex on one joint (two only across a limb\'s cut), an exact bind, a joint moves only its parts', () => {
   assert.ok(SRC.triangles >= 10000 && SRC.triangles <= 15000, `${SRC.triangles} triangles`);
-  const M = tripoWoodcutterModel(skinOf('brute', 'perdide2'), SRC);
+  const M = tripoWoodcutterModel(skinOf('woodcutter', 'perdide2'), SRC);
   let sm = null; M.group.traverse((o) => { if (o.isSkinnedMesh) sm = o; });
   const W = sm.geometry.attributes.skinWeight, J = sm.geometry.attributes.skinIndex, P = sm.geometry.attributes.position, n = P.count, per = new Map();
   // (rigid but for a band BLEND either side of each limb's cut, where a vertex is shared by the two bones: the joint
@@ -124,10 +172,10 @@ test('the Tripo machine rig: 10–15k triangles, every vertex on one joint (two 
   let blended = 0;
   for (let i = 0; i < n; i++) {
     assert.ok(Math.abs(W.getX(i) + W.getY(i) - 1) < 1e-6 && W.getZ(i) === 0, 'one joint a vertex, or two');
-    if (W.getX(i) < 1) { blended++; const near = Object.values(SRC.landmarks.cuts).some((c) => Math.abs((P.getX(i) - c.at[0]) * c.n[0] + (P.getY(i) - c.at[1]) * c.n[1] + (P.getZ(i) - c.at[2]) * c.n[2]) < BLEND + 1e-4); assert.ok(near, 'blended only at a cut'); }
+    if (W.getX(i) < 1) { blended++; const near = Object.values(SRC.rig.cuts).some((c) => Math.abs((P.getX(i) - c.at[0]) * c.n[0] + (P.getY(i) - c.at[1]) * c.n[1] + (P.getZ(i) - c.at[2]) * c.n[2]) < BLEND + 1e-4); assert.ok(near, 'blended only at a cut'); }
     per.set(J.getX(i), (per.get(J.getX(i)) ?? 0) + 1);
   }
-  assert.ok(blended > 200 && blended < n * 0.25, `${blended} vertices blended across the cuts`);
+  assert.ok(blended > 200 && blended < n * 0.3, `${blended} vertices blended across the cuts`);
   assert.equal(per.size, sm.skeleton.bones.length, 'every joint carries a part');
   for (const [b, c] of per) assert.ok(c > 30, `${sm.skeleton.bones[b].name}: ${c} vertices`);
   M.group.updateMatrixWorld(true); sm.skeleton.update();

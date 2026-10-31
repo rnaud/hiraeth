@@ -212,6 +212,8 @@ export const FOE_MOVES = {
   siege: { stride: 1.2, step: [N('lowpass', 200, 0.2, 0.2, { rate: 0.4 }), R(262, BRONZE, 0.3, 0.012, { at: 0.02 })] },
   hover: { period: 0.55, step: [T('sawtooth', 220, 230, 0.4, 0.012), N('bandpass', 900, 0.4, 0.02, { q: 4 })] },
   brute: { stride: 1.4, step: [N('lowpass', 220, 0.2, 0.22, { rate: 0.4 }), T('square', 80, 60, 0.12, 0.03)] },
+  // (#800: the wood cutter's clogs, half the brute's size: a quicker, higher iron thud)
+  woodcutter: { stride: 0.95, step: [N('lowpass', 320, 0.14, 0.16, { rate: 0.5 }), T('square', 120, 90, 0.08, 0.02)] },
   fencer: { stride: 0.9, step: [C(1, 0, 1400, 0.02, 0.06, { q: 3 }), N('lowpass', 600, 0.05, 0.06, { rate: 0.7 })] },
   blob: { stride: 0.6, step: [N('lowpass', 700, 0.1, 0.08, { f1: 400, rate: 0.5 })] },
   humanoid: { stride: 1.0, step: [N('bandpass', 1600, 0.18, 0.04, { f1: 900, q: 0.8 })] },
@@ -271,11 +273,15 @@ export function attackSort(a = {}, metal = false) {
   return metal ? 'swing-metal' : 'swing';
 }
 
-/** A blow's layers: its sort's; a slam's whoosh then its weight landing at its contact (at once for an instant one). */
+/**
+ * A blow's layers: its sort's; a slam's whoosh then its weight landing at its contact (at once for an instant one), or
+ * where its body meets the ground if that is not its contact (attack.land: the share of the strike; the wood cutter's
+ * tools bite before the hit's window, #800).
+ */
 export function blowLayers(sort, a = {}, instant = false) {
   const B = FOE_BLOWS[sort] ?? [];
   if (sort !== 'slam') return B;
-  const at = instant ? 0 : (a.strike ?? 0.24) * (a.contact ?? 0.55);
+  const at = instant ? 0 : (a.strike ?? 0.24) * (a.land ?? a.contact ?? 0.55);
   return [...(instant ? [] : B), ...FOE_BLOWS.impact.map((L) => ({ ...L, at: (L.at ?? 0) + at }))];
 }
 

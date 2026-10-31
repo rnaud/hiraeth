@@ -33,8 +33,10 @@ export const WORLDS = {
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
   perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, skitter: 3, blot: 1.5 } },
   // (the root knots shoot since #769: root-edged blots come in round them, so a root knot's pack is not a lone mortar)
-  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5, blot: 2 }, placed: ['brute'] },
-  edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
+  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5, blot: 2 }, placed: ['brute', 'woodcutter'] },
+  // (issue #800: the wood cutter, the hedge cutter with Viridel's shears, beside its pruning machines: the brute's numbers
+  // in a 2.4 m body, so no harder than what the garden fields already)
+  edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, woodcutter: 1.5, blot: 1 } },
   // (v1.40: the Underwater City between Viridel and the City-Shaft: crabs and jellies in the halls, a lamp tripod or two)
   underwater: { stage: 2, budget: [3, 4], lead: 'crab', roster: { crab: 4, ray: 2.5, jelly: 3, tripod: 2 } },
   incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 2.5, toad: 3.5, shade: 2.5, blot: 1.5 }, temple: ['machine', 'drone'] },
@@ -48,7 +50,8 @@ export const WORLDS = {
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, centipede: 3, skitter: 3.5, blot: 1 }, temple: ['machine', 'drone'] },
   // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
   // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
-  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3.5, brute: 2.5, wisp: 3, fencer: 1.5, blot: 1 }, temple: ['machine', 'drone'] },
+  // (issue #800: the wood cutter's ladle hand, a clamp and a ladle of melt, works the casting floor with the crucible hands)
+  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3.5, brute: 2.5, woodcutter: 2, wisp: 3, fencer: 1.5, blot: 1 }, temple: ['machine', 'drone'] },
   spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound'] },
   // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
   spacecity: { stage: 4, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3, fencer: 2 }, temple: ['machine', 'drone'] },
@@ -75,7 +78,9 @@ export const WORLDS = {
  */
 export const PLACED = {
   desert: [{ archetype: 'tripod', at: [-489.0, -187.0], heading: Math.PI / 2 }],
-  perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }],
+  // (issue #800: and a sawyer, the wood cutter in its home skin with its toothed saw, stands stopped mid-cut 130 m north
+  // of it, where the glass spikes thin out at the edge of the wood's open meadow, turned toward the lit path)
+  perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }, { archetype: 'woodcutter', at: [-56.0, -158.0], heading: 1.1 }],
 };
 
 /**
@@ -93,9 +98,9 @@ export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', te
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2, mummer: 2 };
 /** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
 export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2, mummer: 2 };
-export const FROM = { wisp: 1, skitter: 1, mummer: 1, mummerking: 3, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
+export const FROM = { wisp: 1, skitter: 1, mummer: 1, mummerking: 3, machine: 2, brute: 1, woodcutter: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1, fencer: 2 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { mummerking: 2, machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
+export const COSTS = { mummerking: 2, machine: 2, brute: 2, woodcutter: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2, fencer: 2 };
 /** The places a kind takes in a pack: a group its group's, a big lead its own, else one. */
 export const costOf = (k) => (GROUP[k] ? GROUP_COST[k] ?? GROUP[k] : COSTS[k] ?? 1);
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */

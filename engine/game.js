@@ -131,6 +131,8 @@ import { callKind } from '../src/bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES, partsOf } from '../src/levels/names.js';
+import { loadFoeAssets, assetsOfWorld, assetsOfKinds } from '../src/enemies/foe-assets.js';
+import { worldArchetypes } from '../src/foe-worlds.js';
 import { fastTravel } from '../src/fast-travel.js';
 import { cueText, CueState as Cue, PlaceName, staminaHud, keysHud, findSummary } from '../src/hud-state.js';
 import { toastSeconds, Story } from '../src/quest.js';
@@ -398,6 +400,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
+  // the foes' generated bodies (src/enemies/foe-assets.js, #800: the wood cutter's mesh), read through the host as main.js fetches them
+  const foeBodies = loadFoeAssets(assetsOfWorld(levelId, (w) => partsOf(w).flatMap(worldArchetypes)));
   // the captured motion, as main.js loads it (src/motion-match.js loadMotionLibrary): the conversations' gestures (issue
   // #197: public/anim/gestures.glb, src/talk-gesture.js; `gestures` false, -js-off gestures, without them), the people's
   // own walks and the traveller's captured moves (walks.glb, moves.glb: his jumps, idles, starts and stops, src/player.js
@@ -862,6 +866,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (src/foe-shapes.js), so a foe's spawn makes no meshes in the host (issue #468: a brute and its skitters were 14 MB of
   // geometry and 100 ms of Unity's main thread on the Mac). Taken out after two frames, each body kept for the first foe of
   // its kind (Foes.add), so that foe is not built in its spawn's frame either; the shapes stay for the rest.
+  if (combat?.foes?.on) await Promise.all([foeBodies, loadFoeAssets(assetsOfKinds(combat.foes.rosterKinds()))]);   // (each load's failure caught: a stand-in body)
   let foeWarm = combat?.foes?.on ? optional('the foes\' bodies', () => combat.foes.warmModels()) : null;
   if (foeWarm) { foeWarm.group.position.set(0, -1e4, 0); foeWarm.group.updateMatrixWorld(true); scene.add(foeWarm.group); foeWarm.frames = 0; }
   // the Arena's list of foes (src/foe-spawner.js FoeList, the level's quick menu: every foe there is to fight, a world's

@@ -55,6 +55,8 @@ export const DEFEATS = {
   cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, topple: { angle: 0.15, at: [0.2, 0.7] }, puff: 'vent' },   // (it settles on its tracks, its crucible tipping forward)
   bell: { time: 1.5, sag: { y: -1.3, at: [0.05, 0.6] }, topple: { angle: 0.4, at: [0.35, 0.95] }, puff: 'vent' },
   brute: { time: 1.5, sag: { y: -0.75, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
+  // (#800: the wood cutter, half the brute's height: a shorter sag onto its knees, then over)
+  woodcutter: { time: 1.3, sag: { y: -0.4, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
   crawler: { time: 0.9, sag: { y: -0.3, at: [0, 0.4] }, puff: 'vent' },   // (its legs go limp and splay, its dome comes down flat)
   oracle: { time: 1.2, land: { at: [0, 0.6] }, sag: { y: -0.2, at: [0.5, 0.85] }, topple: { angle: 0.3, at: [0.55, 0.95] }, puff: 'vent' },   // (its light gone, it drops and settles on its shell, tipping forward)
   // spirits: they slump and empty
@@ -79,7 +81,7 @@ export const DEATHS = {
   crab: 'beast', skitter: 'beast', toad: 'beast', lizard: 'beast', heron: 'beast', hound: 'beast',
   centipede: 'long', rootknot: 'plant', roller: 'shell', worm: 'burrower',
   jelly: 'flyer', moth: 'flyer', ray: 'flyer', drone: 'flyer', wisp: 'flyer', oracle: 'flyer',
-  tripod: 'machine', cart: 'machine', bell: 'machine', brute: 'machine', crawler: 'machine',
+  tripod: 'machine', cart: 'machine', bell: 'machine', brute: 'machine', woodcutter: 'machine', crawler: 'machine',
   blot: 'spirit', shade: 'spirit', marionette: 'spirit', mummer: 'spirit',
   grunt: 'humanoid', hulk: 'humanoid', prowler: 'humanoid', warlord: 'humanoid', sentinel: 'humanoid', fencer: 'humanoid', mummerking: 'humanoid',
 };

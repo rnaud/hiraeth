@@ -41,6 +41,8 @@ import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
+import { loadFoeAssets, assetsOfWorld, assetsOfKinds } from './enemies/foe-assets.js';
+import { worldArchetypes } from './foe-worlds.js';
 import { fastTravel } from './fast-travel.js';
 import { startWebAnalytics } from './analytics/start-web.js';
 import { Player, CameraRig } from './player.js';
@@ -352,6 +354,8 @@ const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation li
 const shellbackBody = loadShellbackBody(import.meta.env.BASE_URL);
 // the horned hound's body (src/enemies/plans/hound-tripo.js, issue #800), the same way
 const houndBody = loadHoundBody(import.meta.env.BASE_URL);
+// the foes' generated bodies this world fields (src/enemies/foe-assets.js: the wood cutter's mesh, #800), ahead of their warm
+const foeBodies = loadFoeAssets(assetsOfWorld(levelId, (w) => partsOf(w).flatMap(worldArchetypes)));
 // B3 or the v2 rebuild (the debug switch, characters/traveller-v2.js; not on the outfits page, which dresses him itself)
 const travellerV2 = { ...travellerSetting.get(), dress: null, failed: null };
 if (query.has('outfits')) travellerV2.on = false;
@@ -2689,6 +2693,8 @@ await slice();
 // the foes this world can field (every kind in the Arena), in the scene for the warm passes only (src/foes.js warmModels;
 // v1.42, issue #1: a kind's first appearance compiled 1-5 programs mid-fight, 100-200 ms frames in the Arena's waves;
 // v1.41 measured it). Taken out again before the first frame; their materials keep the programs alive for the foes.
+// (the generated bodies first, theirs and a fight temple's run's, or the warm builds their stand-ins: a race with 20 s)
+if (foes.on) await Promise.race([Promise.all([foeBodies, loadFoeAssets(assetsOfKinds(level.foes?.warm ?? foes.rosterKinds()))]), new Promise((r) => setTimeout(r, 20000))]);
 const foeWarm = foes.on ? foes.warmModels(level.foes?.warm) : null;   // (a level may name its kinds: a fight temple its run's, #505)
 if (foeWarm) { foeWarm.group.position.set(0, -1e4, 0); scene.add(foeWarm.group); }
 {

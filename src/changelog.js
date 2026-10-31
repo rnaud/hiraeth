@@ -33,6 +33,8 @@ export const CHANGELOG = [
           { where: 'Handheld, worst', before: 16.8, after: 16.8 },
           { where: 'new GPU programs made at an arrival', before: 0, after: 0 },
         ], source: 'scripts/enemy-roster/arrivals.mjs, before at 192711a63: the new body is prepared with the rest while the Arena loads, so no hound arrives with anything left to build or compile' }] },
+      // a new foe (#800)
+      'A new foe, the wood cutter: a sage-green work robot half the furnace brute’s height, with a pale dome of a head, one visor slit that turns to watch you, and a toothed rust saw that spins up before it slams. It fights like a brute in a smaller body, so get round its side and jump the quake. One stands rusted mid-cut in Lorn’s Deep Wood, at the edge of the meadow north of the furnace brute; hedge cutters with shears walk Viridel’s gardens, and ladle hands with a clamp and a ladle work the Moon Foundry’s floor. The Arena brings it too.',
     ],
   },
   {

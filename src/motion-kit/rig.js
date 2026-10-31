@@ -148,6 +148,8 @@ export function planLeg(plan, o) {
 }
 
 let serial = 1;
+/** Set the next rig's seed (the tests': each body posed on a seed of its own, not on how many rigs came before it). */
+export function nextRigSeed(n) { serial = n; }
 
 export class Rig {
   /**

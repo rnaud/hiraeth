@@ -50,6 +50,8 @@ export const FIGHT = {
   bell: { mass: 5, poise: 8, low: { kind: 'enrage', below: 0.4 }, alone: 'rage' },
   drone: { mass: 0.8, poise: 3, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'ram', on: ['whiff'], chance: 0.4 } },
   brute: { mass: 4, poise: 8, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'sweep', on: ['whiff', 'block'], chance: 0.5 } },
+  // (#800: the wood cutter, the brute's fight in a 2.4 m body: lighter to knock, as stubborn)
+  woodcutter: { mass: 3, poise: 8, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'sweep', on: ['whiff', 'block'], chance: 0.5 } },
   fencer: { mass: 1.6, poise: 6, low: { kind: 'enrage', below: 0.4 }, alone: 'rage' },
   blot: { mass: 0.6, poise: 1, fodder: true, low: { kind: 'enrage', below: 0.5 }, alone: 'rage' },
   shade: { mass: 0.7, poise: 4, low: { kind: 'enrage', below: 0.4 }, alone: 'rage', follow: { id: 'cut', on: ['whiff', 'block'], chance: 0.5 }, backstep: 'feint' },
@@ -159,6 +161,7 @@ export function quickWind(wind, k, min) { return Math.min(wind, Math.max(min, wi
 export const ARMOUR = {
   bell: { plates: 3, hold: 3, pops: ['push'], soak: 0, bare: { clapper: false, stout: false } },
   brute: { plates: 3, hold: 3, pops: ['stun'], soak: 0.4, bare: { guard: null, stout: false, heavy: false } },
+  woodcutter: { plates: 3, hold: 3, pops: ['stun'], soak: 0.4, bare: { guard: null, stout: false, heavy: false } },
   crab: { plates: 2, hold: 2, pops: ['fire'], soak: 0, bare: { shell: false, guard: null, heavy: false } },
   tripod: { plates: 3, hold: 2, pops: ['stun'], soak: 0.4, bare: { heavy: false, shoot: 1 } },
   cart: { plates: 2, hold: 3, pops: ['shoot'], soak: 0.4, bare: { heavy: false } },
@@ -237,6 +240,7 @@ export const TIERS = {
   bell: { patch: { toll: { wave: { speed: 6.5, reach: 12, damage: 0.5, width: 0.6, count: 5, every: 0.55 } } }, words: 'its toll runs five rings' },
   drone: { combo: ['harpoon', 'ram'], words: 'it reels you in, then rams' },
   brute: { patch: { slam: { wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55, count: 2, every: 0.6 } } }, words: 'its slam sends two quakes' },
+  woodcutter: { patch: { slam: { wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55, count: 2, every: 0.6 } } }, words: 'its slam sends two quakes' },
   fencer: { combo: ['overhead', 'sweep'], words: 'an overhead, then a sweep' },
   shade: { combo: ['cut', 'cut'], words: 'it cuts twice' },
   hound: { combo: ['pounce', 'bite'], words: 'it bites as it lands its pounce' },

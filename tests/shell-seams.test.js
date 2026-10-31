@@ -37,6 +37,7 @@ const NOT_SHELLS = {
   markTripoHair: 'hair on a head (marks, never a shell)',
   warpFace: 'a face',
   keepThin: 'thin bars kept a pixel wide (moves sideways, never down)',
+  smoothCreases: 'a Tripo foe\'s mesh, its soles held (the wood cutter\'s creases, #800)',
 };
 
 for (const [name, fns] of Object.entries(HELPERS)) for (const [shell, make] of Object.entries(SHELLS)) {

@@ -42,11 +42,11 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `scripts/tripo/ship-hound.mjs` | the trial asset made into the game's (`public/enemies/hound/body.glb`: the texture at 512², the landmarks in the mesh's extras) |
 | `world-shot.mjs` | a foe as the game builds it, in its own worlds as you land (three-quarter, flank, head, wide; `--attack` its wind-up and leap, its pool): a before/after by hand (`ROOT=` another tree) |
 | `gaze-one.mjs` | the same check for one variant or the row, the traveller to the foe's right front (the wood cutter's gaze pictures) |
-| `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its trial asset: 2.4 m, decimated by geometry, cut into parts by geometry (Tripo's saw hand dropped), the texture repainted by part in the reference's colours with swatches, COLOR_0, landmarks (the cuts, the head's sphere, the visor, the disc) |
+| `woodcutter-tripo/generate.mjs`, `prepare.mjs` | the wood cutter's Tripo generation (to `../keep-brute/tripo/`) and its game asset (`public/enemies/woodcutter/`, since it landed): 2.4 m, decimated by geometry, cut into parts by geometry (Tripo's saw hand dropped), the texture repainted by part in the reference's colours with swatches, COLOR_0, landmarks (the cuts, the head's sphere, the visor, the disc) |
 | `mummer-tripo/generate.mjs`, `prepare.mjs` | the dune mummer's Tripo generation and rig (to `../keep-mummer/tripo/`) and its trial asset: 1.2 m, 12k LOD on Tripo's weights, the mittens widened, eight flat colours by part, COLOR_0, the skeleton (`--no-repaint --no-widen`: phase 2's asset) |
 | `mummer-tripo/model.js`, `node-source.mjs`, `closeups.mjs` | the Tripo mummer on the humanoid clip rig, Tripo's own skeleton posed directly; its source in node; the close rows (body, mask, mittens, the whack, clay) |
 | `mummer-tripo/archetype.js` | the dune mummer keyed as its own enemy, `dunemummer` (`duneMummerEntry()`: id, def, skins, weapons, sounds, places), not yet registered |
-| `woodcutter-tripo/model.js`, `source-node.mjs` | the Tripo wood cutter on the brute's rig family (the shared `woodcutterMotion`): rigid parts blended across the limbs' cuts, each world's own tool on the wrist, the head turning about its dome's centre; its source in node |
+| `../../../src/enemies/plans/woodcutter-tripo.js`, `woodcutter-tripo/source-node.mjs` | the Tripo wood cutter on the brute's rig family (the shared `woodcutterMotion`): rigid parts blended across the limbs' cuts, each world's own tool on the wrist, the head turning about its dome's centre; in the game since #800 (its asset in `public/enemies/woodcutter/`, loaded by `src/enemies/foe-assets.js`); its source in node for the motion audit |
 
 ## Shellback (`crab`), phase 2a and its fixes
 
@@ -549,6 +549,13 @@ folder into `src/`, then its places in the worlds; the mummer stays as it is.
 
 ## Wood cutter (`woodcutter`, in the brute's slot), phase 2b and its fixes
 
+**In the game since 2026-10-30 (v2.39)** as its own enemy beside the brute: `ARCHETYPES.woodcutter`, its Tripo body
+`src/enemies/plans/woodcutter-tripo.js` (moved from `woodcutter-tripo/model.js`) on `public/enemies/woodcutter/` (moved
+from this folder), every skin in its vertex colours (no texture), placed in Lorn II (a sawyer), Viridel and the Moon
+Foundry and in the Arena's run: docs/systems/foes.md, "The wood cutter". The trial page still stands it in the brute's
+slot (`foe=brute`, its reach laid over the brute's def: `trialDef`). Its open items are done there: the creases smoothed,
+the mirrored clamp turned, the slam's sound re-timed to its tools, the combat review's defend and dodge, Unity.
+
 **Its own enemy** (the author, 2026-10-30): the wood cutter is a new archetype, `woodcutter`, not the brute's replacement.
 Today's 4.7 m brute stays in the game as it is (its id, def and skins untouched). The wood cutter is built on the brute's
 rig family and carries its own key: `WOODCUTTER_ID` and `woodcutterArchetype(ARCHETYPES.brute)` in
@@ -730,7 +737,7 @@ for six) and a third more triangles than direct over all passes. Before it is pl
 (its entry in archetypes.js, skins.js and plans/index.js from `woodcutterArchetype`, its sounds), choose its worlds,
 run `defend.mjs` / `dodge.mjs` on the scaled reach, re-time the slam's blow sound to the bite, and wire it in Unity.
 
-### Not done (wood cutter)
+### Not done (wood cutter), as the trial left it (since landed: above)
 
 - The combat review's `defend.mjs` / `dodge.mjs` and the sound QC renders (windows and sound keys are the brute's own;
   the contact frames are checked in the strips and tests).

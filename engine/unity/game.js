@@ -987,6 +987,17 @@ function makePlan(args) {
       // (#724 polish: the mummer's bow volley side-on and the king's horn call, each on its clip with the arms by hand)
       { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'mummer-moves' }, { kind: 'wait', frames: 40, secs: 0.7 }, { kind: 'foe', what: 'rig' }, ...shot('volley'));
   }
+  if (fights.includes('newfoes')) {
+    // (-fight newfoes, issue #800: the enemy rebuild's new foes, each a Tripo body loaded through the host (src/enemies/
+    // foe-assets.js): the wood cutter in its home skin 5 m ahead, set to the traveller's right, and in the Moon Foundry's
+    // 8 m ahead; their bodies said in the log; standing, then each winding up its slam (its arms over its head), then the
+    // blow landed (the saw and the clamp on the ground))
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-newfoes-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'woodcutter@perdide2', dist: 5, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['woodcutter'] }, { kind: 'foe', what: 'woodcutter@moonfoundry', dist: 8, hp: 99, tier: 0 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bodies' }, ...shot('stand'),
+      { kind: 'foe', what: 'move', move: 'slam' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
+      { kind: 'wait', frames: 22, secs: 0.45 }, ...shot('blow'));
+  }
   if (fights.includes('monsters')) {
     // (-fight monsters, issue #726: roster v4's grunt and hulk on the humanoid rig: a hulk 7 m ahead and a grunt with its club
     // 4.5 m ahead, standing; their rig said; each winds up its first blow (the grunt's club over its head, the hulk's smash),
@@ -1638,6 +1649,12 @@ function playFrame(dt) {
         const a = f.def.attacks.find((x) => x.id === (f.kind === 'mummer' ? 'volley' : 'horn'));
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); }
       }
+    } else if (step.what === 'bodies') {
+      // (-fight newfoes, #800: which body each foe drew: the generated one, or its stand-in)
+      for (const f of F.list.filter((x) => x.alive)) console.log(`[unity] ${f.kind}@${f.skin}: ${f.model?.group?.name}`);
+    } else if (step.what === 'move') {
+      // (-fight newfoes, #800: each foe that has it winds up that move now)
+      for (const f of F.list.filter((x) => x.alive)) { const a = f.def.attacks.find((x) => x.id === step.move); if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); } }
     } else if (step.what === 'aside') {
       // (-fight monsters: the small ones set 2.4 m to the traveller's right, out from behind him in the follow camera)
       const p = game.player, h = p.heading ?? 0;

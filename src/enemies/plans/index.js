@@ -28,6 +28,9 @@ import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js'
 import { sentinelModel } from './sentinel.js';
 import { oracleModel } from './oracle.js';
 import { crawlerModel } from './crawler.js';
+import { woodcutterModel } from './woodcutter.js';
+import { tripoWoodcutterModel } from './woodcutter-tripo.js';
+import { foeSource } from '../foe-assets.js';
 
 // One body builder per body plan (docs/design/enemy-roster.md, "Build plan"): each exposes its joints to the
 // locomotion kit (src/motion-kit/) and draws the archetype in a world's skin (src/enemies/skins.js); a skin only
@@ -65,13 +68,16 @@ import { crawlerModel } from './crawler.js';
 //   sentinel.js   plan 27  the sentinel (a droid duellist on the humanoid rig: blade and round shield)
 //   oracle.js     plan 28  the oracle (a hovering caster droid: the rig's upper body over a ceramic shell)
 //   crawler.js    plan 29  the crawler (a knee-high droid dome on four legs, on the kit)
+//   woodcutter-tripo.js plan 8  the wood cutter (#800: Tripo's mesh on the brute's rig family, src/enemies/foe-assets.js;
+//                          woodcutter.js its direct body, standing in only while the mesh loads)
 
 const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
   shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
   grunt: gruntModel, hulk: hulkModel,
   sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
-  prowler: prowlerModel, warlord: warlordModel };
+  prowler: prowlerModel, warlord: warlordModel,
+  woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); } };
 
 /**
  * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another

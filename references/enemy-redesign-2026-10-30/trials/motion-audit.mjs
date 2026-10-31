@@ -12,7 +12,7 @@ import { broadHoundModel } from '../../../src/enemies/plans/broad-hound.js';
 import { tripoHoundModel } from './hound-tripo/model.js';
 import { nodeSource as houndSource } from './hound-tripo/node-source.mjs';
 import { woodcutterModel } from '../../../src/enemies/plans/woodcutter.js';
-import { tripoWoodcutterModel } from './woodcutter-tripo/model.js';
+import { tripoWoodcutterModel } from '../../../src/enemies/plans/woodcutter-tripo.js';
 import { nodeSource as woodcutterSource } from './woodcutter-tripo/source-node.mjs';
 import { foeSystem, foeSubject, legsFor } from '../../../scripts/motion-audit/walk.mjs';
 

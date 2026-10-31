@@ -33,7 +33,7 @@ export const DEBRIS = {
 // (tests/foe-debris.test.js). An old kind or a guardian with no archetype keeps its own `breaks` (src/foes.js FOES).
 export const MATTER = {
   // machines: the makers' droids and engines
-  tripod: 'machine', cart: 'machine', bell: 'machine', drone: 'machine', brute: 'machine', fencer: 'machine',
+  tripod: 'machine', cart: 'machine', bell: 'machine', drone: 'machine', brute: 'machine', woodcutter: 'machine', fencer: 'machine',
   sentinel: 'machine', oracle: 'machine', crawler: 'machine',
   // creatures: flesh, chitin, shell and hide
   crab: 'flesh', skitter: 'flesh', centipede: 'flesh', toad: 'flesh', lizard: 'flesh', heron: 'flesh', roller: 'flesh',

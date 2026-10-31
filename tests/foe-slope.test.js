@@ -146,8 +146,11 @@ test('every archetype standing and walking on a 14° slope, and standing on flat
   assert.ok(rows.length >= 17 * 3);
 }));
 
-test('the brute\'s hands and its saw stay over the ground in every skin, slumped at rest, on a slope', () => pinned(() => {
-  const foes = world(physicsOf(SLOPED));
+test('the brute\'s hands and its saw stay over the ground in every skin, slumped at rest, on a slope', () => {
+  // (the world made in a pin of its own: the Arena's run shuffles its kinds on Math.random, so a kind added to the game
+  //  shifted the brutes' twitches here, #800; the brutes then on a fresh seed)
+  const foes = pinned(() => world(physicsOf(SLOPED)));
+  pinned(() => {
   for (const skin of ['perdide2', 'edena', 'glassdunes', 'waterfall', 'moonfoundry']) {
     const f = foes.add(`brute@${skin}`, v(0, SLOPED(0, 6), 6));
     let saw = null;
@@ -164,5 +167,6 @@ test('the brute\'s hands and its saw stay over the ground in every skin, slumped
     if (saw) assert.ok(blade < 0, `its saw over the ground (${(blade * 100).toFixed(1)} cm; 51 cm under before)`);
     foes.remove(f);
   }
+  });
   foes.dispose(); clearTargets();
-}));
+});

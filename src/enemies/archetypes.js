@@ -30,6 +30,7 @@ import { fromPattern } from './attacks.js';
 //             'sheet-N': the built body is drawn to its picked sheet, references/enemy-archetypes/<id>/sheet-N.jpg
 //             { main, alt }: drawn to both its sheets, sheet-1.jpg in the main skin's world (main), sheet-2.jpg in
 //             the alternate's (alt): its palettes too (scripts/enemy-roster/compare.mjs sets them side by side)
+//             { reference, skin }: drawn to the enemy rebuild's approved image (#800, references/enemy-redesign-2026-10-30/), in that skin
 //
 // A built archetype's def is a foe kind's tuning (src/foe-kinds.js says what a kind and an attack may hold), with
 // the archetype's additions:
@@ -498,6 +499,43 @@ export const ARCHETYPES = {
       recover: 1.6, cool: [1.6, 2.6], hit: 0.55,
     }),
     note: 'A furnace brute: fists up? Get to its side and jump the quake.',
+  },
+  // the wood cutter (issue #800, the author 2026-10-30: a new enemy beside the furnace brute, not its replacement): the
+  // approved reference's compact sage robot, 2.4 m (the author's 2.2–2.6 m; the brute 4.7), a barrel of a torso with an
+  // ochre vent, a pale dome head with one visor slit, great sloping pauldrons, a toothed rust saw disc on its right wrist
+  // (each world its own tool) and an open clamp of a hand. On the brute's rig family and its kit of moves: the brute's
+  // windows, damage, hp and guard, its reach scaled to its height (src/enemies/plans/woodcutter.js woodcutterDef: the
+  // slam's ring 2.1 → 1.45 m, the sweep 3.6 → 2.5 m, the slab's mark 1.7 → 1.4 m, the guard from 3.2 m). Its body is
+  // Tripo's (src/enemies/plans/woodcutter-tripo.js, public/enemies/woodcutter/).
+  woodcutter: {
+    name: 'wood cutter', family: 'machine', plan: 'woodcutter', planNo: 32, role: 'close heavy', tier: 3, ranged: false,
+    status: 'built', kind: 'woodcutter', was: [], sound: 'iron', drop: 8, art: { reference: 'references/enemy-redesign-2026-10-30/keep-brute/a1860f49-ecc5-4922-91f6-94b031e5e9a7-0.png', skin: 'perdide2' },
+    possession: 'ink in its seams: the dark seeping from every joint of the barrel and out of its visor',
+    moves: ['slam (saw and clamp)', 'hurl', 'sweep (the saw)'], answers: ['riposte (×2 on the stunned)', 'bombs ×2 crack the hull', 'charged cut through its raised forearms', 'jump the quake', 'get round its side: its reach is short'],
+    idle: 'stands where it stopped working, rusted mid-cut, its saw still; wakes with a groan when you come close',
+    def: S({
+      name: 'wood cutter', hp: 8, hook: 'heavy', radius: 0.7, height: 1.45, speed: 1.7, sight: 18, giveUp: 32, reach: 12, heavy: true, stout: true, breaks: true,
+      tone: '#c8922f', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 },
+      calm: { mode: 'stand', provoke: 7 },
+      // its guard (the brute's): forearms crossed before its visor between its blows; nearer, as its arms are shorter
+      guard: { pose: 'arms', arc: 1.05, near: 3.2, hold: 3, rest: 1.8, blocks: 3, counter: 'sweep', breaks: ['charged', 'riposte', 'bomb'], open: 1.2,
+        hint: 'Its forearms are up: light cuts ring off. A charged cut smashes through, or get round its side.' },
+      attacks: [
+        // both arms straight up over its head, the saw whining up and the vent glowing; then a deep bend onto its knees,
+        // the saw's teeth and the clamp biting the ground before it, and a quake runs out
+        // (land: its saw's teeth and clamp meet the ground at 0.52 of the strike, measured: the slam's weight sounds then)
+        { id: 'slam', name: 'slam', shape: 'ring', radius: 1.45, ahead: 1.5, damage: 1, knock: 6, wind: 1.3, strike: 0.32, contact: 0.6, land: 0.52, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 }, max: 2.7, weight: 2, onParry: 'chip',
+          tell: 'both arms rise straight up over its head, the saw whining up and the vent glowing', counter: 'evade to the side and jump the quake; a perfect parry chips it' },
+        // it bends over and tears a slab out of the ground in its clamp, straightens with it high over its shoulder, throws it
+        { id: 'hurl', name: 'hurl', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.4, damage: 0.75, wind: 1.5, track: 0.5, min: 4.5, max: 12, weight: 1.5,
+          tell: 'it bends over and tears a slab out of the ground with its clamp, then holds it high over its shoulder', counter: 'walk out of the mark where it will land' },
+        // the saw arm swung back behind it, the shoulder turning; then a backhand across its front at chest height
+        { id: 'sweep', name: 'sweep', shape: 'cone', range: 2.5, angle: 1.3, damage: 0.75, knock: 5, wind: 1.05, strike: 0.3, contact: 0.5, max: 2.4, weight: 1.2, dodge: 'back',
+          tell: 'its saw arm swings back behind it, the shoulder turning away', counter: 'back flip out of it, duck under it with an evade, or guard' },
+      ],
+      recover: 1.6, cool: [1.6, 2.6], hit: 0.55,
+    }),
+    note: 'A wood cutter: saw up? Get to its side and jump the quake.',
   },
   // the makers' fencer (issue #665; docs/design/combat-botw-study.md, ranked changes 5-8): a sword-and-shield duelist that
   // fights the way you do. Its shield guards your light combo from the front; hide behind your own and it bashes it aside;
