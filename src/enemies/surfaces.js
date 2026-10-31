@@ -213,6 +213,8 @@ Object.assign(SURFACES, {
       limbs: { ...SPECKS('dark', 0.35, 0.025) },   // (the legs and feelers as one skinned mesh, the joints tinted)
       joint: { bands: { color: 'joint*0.8', axis: 1, period: 0.05, width: 0.15, ink: 0.4 } },
     },
+    // (the home skin, the approved #800 reference's: a plain orange shell, a soft mottle only)
+    desert: { dome: { bands: null, spots2: null, gloss: null, mottle: { color: 'dome2', scale: 0.2, amount: 0.3, soft: 0.2, strength: 0.4 } } },
     moonfoundry: {
       // (sheet-2: dark iron, pitted and stippled, a glowing seam down the back; no band)
       dome: { bands: null, rust: { color: 'dome2', color2: 'band', amount: 0.25, amount2: 0.1, scale: 0.06, down: 0.3, pits: 0.6 }, ...SPECKS('#18161a', 0.6, 0.03), gloss: { size: 0.025, sky: 0.3, amount: 0.6 } },

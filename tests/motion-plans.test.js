@@ -30,7 +30,7 @@ const SUBJECTS = [
   { id: 'tripod@underwater', legs: kitLegs, n: 3, groups: [[0], [1], [2]] },
   { id: 'centipede', legs: kitLegs, n: 10, groups: 'wave' },             // (a metachronal wave: a pair's two legs never together; the Tripo body's five pairs, #800)
   { id: 'centipede@eclipse', legs: kitLegs, n: 10, groups: 'wave' },
-  { id: 'skitter', legs: kitLegs, n: 6, groups: [[0, 2, 4], [1, 3, 5]] },
+  { id: 'skitter', legs: kitLegs, n: 8, groups: [[0, 3, 4, 7], [1, 2, 5, 6]] },   // (the Tripo body's eight, #800: alternate)
   { id: 'heron', legs: kitLegs, n: 2, groups: [[0], [1]] },
   { id: 'heron@arzach', legs: kitLegs, n: 2, groups: [[0], [1]] },
   { id: 'rootknot', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] },

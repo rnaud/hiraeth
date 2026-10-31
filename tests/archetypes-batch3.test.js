@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foe } from '../src/foes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
+import { skitterLegacyModel } from '../src/enemies/plans/skitterers-legacy.js';
+import { skinOf } from '../src/enemies/skins.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -13,11 +15,13 @@ const env = { ground: () => 0, seen: () => true };
 const player = (at, vel = v()) => ({ pos: at, vel, heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} });
 const run = (f, P, secs, e = env) => { const ev = []; for (let i = 0; i < secs / DT; i++) ev.push(...f.update(DT, P, e)); return ev; };
 
-test('the skitter\'s legs are bowed: each thigh and shin bends in the leg\'s own plane', () => {
+test('the skitter\'s legs are bowed: each thigh and shin bends in the leg\'s own plane (the legacy skitter, #800)', () => {
   for (const skin of ['desert', 'moonfoundry']) {
-    const m = archetypeModel('skitter', skin);
+    const m = skitterLegacyModel(skinOf('skitter', skin));
     assert.ok(m.rig.legs.length === 6 && m.rig.legs.every((l) => l.bowed), `${skin}: six bowed legs`);
     m.dispose?.();
+    // (the game's skitter is the Tripo seedpod skitter: eight legs fitted to its mesh, tests/skitter-tripo.test.js)
+    const t = archetypeModel('skitter', skin); assert.equal(t.rig.legs.length, 8, `${skin}: the Tripo body's eight`); t.dispose?.();
   }
 });
 

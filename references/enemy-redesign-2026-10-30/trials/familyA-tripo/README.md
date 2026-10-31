@@ -85,3 +85,38 @@ Reference: `../../centipede/616e0bd4-9a63-476b-9485-1e5efda02210-3.png` (approve
   `centipede` steps on target).
 - **Still off**: the front legs' pads look crumpled seen head-on; standing still the stubs lean where the wave last
   planted them; the head's halves part only 0.42 rad.
+
+## The seedpod skitter (`skitter`)
+
+Reference: `../../keep-skitter/711f83a4-63bc-4576-b299-458c14ce5bac-1.png` (approved). Task `118d9422-…`, 30 credits
+(balance 1,505 → 1,475). Home skin `desert` (the Desert's dune skitter).
+
+- **What it is**: Tripo's 29k-triangle body (a long low shell with a head plate, eight legs) at 0.55 m to the top of its
+  shell (×1.75 grown, #741: 0.96 m, at the traveller's hip and still under the old level arc; the reference's proportions
+  make it 2.3 m long), cut to
+  6,000 triangles (a flock of eight: half the others' budget), its eight legs cut out exactly on a capsule round each
+  under the rim (7,648 triangles with the cut), the shell and the cream underside by colour (the rim a crease). Tripo
+  drew the reference's sage band under the rim cream: one part. The painted eye dots painted out.
+- **The rig** (many-legged: a custom skin on the game's legs, the shellback's route): the skitterers plan on eight legs
+  (two alternating groups of four) on SkinLegs bones, slack in the solve (1.4: the stubs stand nearly straight, and a
+  run's long stance left a planted foot out of reach), the knees out and up and kept over their ankles by half their rise; the head plate ahead of the
+  shell's seam its own bone (eased across it), turned to the traveller (0.35 rad), two dot eyes on its front sliding on;
+  the pads on their foot bones; the rim kept 2 cm off the ground as it banks, bobs and rears; the plan's rear at 0.45 of
+  its pitch. The furnace beetles' and ash grubs' seam a tube down the measured ridge on the body.
+- **Fixes on the way**: shards of leg on the underside where the leg colour ran (the legs cut by geometry); the pads'
+  rims and the shell's low rim dipped into a slope (pads on their foot bones, the rim lifted); the eyes sat inside the
+  shell at the painted dots' depth (on the head plate's front surface now); the rush's full pitch stood the long shell on
+  its tail; feet out of reach through a run's stance slid; the stub's side and the shell's rim dug into a slope as it
+  turned (the rim measured against the ground's plane, the knees kept up); at 0.56 m the old level arc at 1.1 m caught
+  its shell (0.55).
+- **Measured**: walk audit slide 1.8 cm a metre at full pace (worst 6 cm), 1.3 cm at half (the legacy: 0); the hook's
+  slide, slope and reach tests in bounds after the fixes; bind round trip
+  < 0.1 mm; standing, the shell within 1.2 cm of its bind. Six skitters in the Desert (High, one run each; the Handheld
+  runs did not all finish): draws +93 → +72, triangles +95k → +141k. Arena warm-up: its run's four skins (desert, Lorn, the Buried
+  Machine, the Moon Foundry) compile nothing at arrival (first frames 0.9–2.3 ms); the Underside's, never in the run,
+  compiles one program brought in by hand. Dodge: a back flip into the flurry. Defend: the rush never reached him in the
+  tries (the flock rings him and one darts at a time; the pile not drawn in the time given). Sound unchanged (`chitin`,
+  the `skitterers` steps on target).
+- **Still off**: its feet slide a couple of centimetres a metre (the legacy's none); the solve's slack stretches the knees a
+  little; the seam reads only on the silhouette from
+  the side; the body is long for a flock of eight.

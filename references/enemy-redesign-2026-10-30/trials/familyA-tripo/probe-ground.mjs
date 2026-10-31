@@ -25,6 +25,7 @@ for (let seed = 1; seed <= +seeds; seed++) {
   foes.setPractice('');
   const f = foes.add(kind, new THREE.Vector3(0, G(0, 6), 6));
   for (let i = 0; i < +frames; i++) {
+    if (process.env.WALK) { const D = [[0.8, 0.6], [-0.6, 0.8], [-0.8, -0.6]][Math.floor((i * 3) / +frames)]; if ((i * 3) % +frames < 3) f.home.set(f.pos.x + D[0] * 30, 0, f.pos.z + D[1] * 30); f.state = 'home'; }   // (WALK=1: as the slope test walks it)
     clock += 1000 / 60; foes.update(1 / 60);
     if (i < 20 || i % 3) continue;
     f.model.group.updateMatrixWorld(true);

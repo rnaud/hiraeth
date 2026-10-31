@@ -988,7 +988,7 @@ function makePlan(args) {
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@saltharbour', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('saltharbour'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: 'crab@bazaar', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['crab'] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot('bazaar'));
   }
-  for (const [fight, kind, home, other] of [['toad', 'toad', 'perdide', 'incal'], ['centipede', 'centipede', 'buried', 'spheres']]) if (fights.includes(fight)) {
+  for (const [fight, kind, home, other] of [['toad', 'toad', 'perdide', 'incal'], ['centipede', 'centipede', 'buried', 'spheres'], ['skitter', 'skitter', 'desert', 'moonfoundry']]) if (fights.includes(fight)) {
     // (-fight toad, issue #800: a family A foe on its Tripo body, public/enemies/<concept>/body.glb, its parts drawn by
     // their materials (no picture): its home skin 4 m ahead and 2.4 m to the right, standing, then winding up its first
     // attack; then another world's skin with its dress; the body each wears is said in the log)

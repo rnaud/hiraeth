@@ -2818,7 +2818,7 @@ slate crab of `plans/walker.js` is gone; the direct shellback (`plans/shellback.
 - Tests: `tests/shellback-trial.test.js` (the shipped body is the trial's mesh, every skin's colours and dress, the
   contract, weights, lip, jaw, gaze, the fight), `tests/motion-plans.test.js` (its walk, by its foot bones:
   `leg.root.lowest`), `tests/foe-gaze-mirror.test.js`.
-### Family A on Tripo bodies: the bellows toad, the drill-head centipede (v2.39, issue #800)
+### Family A on Tripo bodies: the bellows toad, the drill-head centipede, the seedpod skitter (v2.39, issue #800)
 
 The ground creatures on legs follow the crab, each landed alone (`.claude/skills/enemy-rework/references/tripo-rebuild.md`).
 Their bodies load through `src/enemies/foe-assets.js` (`FOE_ASSETS`, with the wood cutter's and the dune mummer's: the
@@ -2857,6 +2857,16 @@ of its own.
   others their palettes and dress (pearls, a gold head and seams, glowing seams, pale wet glints, copper wire). Kept:
   id, def, attacks, windows, the corral's wall (`spine`, 13 points), sounds (`chitin` / `centipede`), the ripple death
   and lying body. Tests: `tests/centipede-tripo.test.js`, `tests/motion-plans.test.js` (10 legs).
+- **The seedpod skitter** (`skitter`): `src/enemies/plans/skitter-tripo.js` `skitterModel`, `public/enemies/skitter/`
+  (235 KB, 7,648 triangles: a flock of eight, half the others' budget); the legacy skitter is
+  `plans/skitterers-legacy.js` `skitterLegacyModel`. The skitterers plan's quick gait on eight legs (two groups of four)
+  fitted to the mesh's, on `SkinLegs` bones (slack in the solve, 1.4, the knees up and kept over their ankles); the head plate ahead of the shell's seam its
+  own bone, turned to the traveller, two dot eyes on its front sliding on; the pads on their foot bones; the rim kept off
+  the ground (and the slope's plane) as it banks and bobs; the plan's rear taken at 0.45 of its pitch (the long shell stood on its tail). 0.55 m
+  tall, ×1.75 grown (#741): 0.96 m, at the traveller's hip and under the old level arc, 2.3 m long (the reference's low long shell). Three skinned
+  meshes and the eyes (4–5 drawn, against the legacy's 5). The home skin (the Desert's) wears the reference's colours;
+  the furnace beetles and ash grubs keep their glowing seam down the back. Tests: `tests/skitter-tripo.test.js`,
+  `tests/motion-plans.test.js` (8 legs), `tests/archetypes-batch3.test.js` (the legacy's bowed six).
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

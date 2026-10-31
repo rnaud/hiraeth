@@ -29,7 +29,10 @@ export const SKINS = {
   skitter: {
     // (sheet-1: sand-gold domes with an ochre band round them, ivory legs, tiny black eyes with turquoise glints;
     // sheet-2: dark iron-grey domes with a glowing ember-orange seam down the back, cream enamel legs)
-    desert: { name: 'dune skitter', palette: { dome: '#e0b25a', dome2: '#ecc878', band: '#d98a3c', leg: '#efe4cc', joint: '#e2d4b4', eye: '#1e2a2a', glint: '#5fd0c0', seam: '#ff7a2e', dark: '#6a4a2a' }, props: ['band'] },
+    // (the seedpod skitter, issue #800: its home skin the approved reference's colours,
+    // references/enemy-redesign-2026-10-30/keep-skitter/711f83a4-…-1.png: an orange shell and head plate, a cream
+    // underside, brown legs, two black dot eyes; the other skins recolour the same parts, src/enemies/plans/skitter-tripo.js)
+    desert: { name: 'dune skitter', palette: { dome: '#cf8553', dome2: '#d9966a', band: '#efe6c3', leg: '#b8703f', joint: '#a8653a', eye: '#1e1a18', glint: '#f2e8d0', seam: '#ff7a2e', dark: '#5a3a22' }, props: ['band'] },
     perdide: { name: 'spore mite', palette: { dome: '#c8b6dc', dome2: '#ddd0ea', band: '#8f7fb0', leg: '#efe8f0', joint: '#d8cce4', eye: '#2a2030', glint: '#9fe8d8', dark: '#4a3c60' }, props: ['band', 'dust'] },
     buried: { name: 'ash grub', palette: { dome: '#8d8a86', dome2: '#a8a49c', band: '#6a6660', leg: '#cfc8bc', joint: '#b0a898', eye: '#2a2420', glint: '#ff9a5a', seam: '#ff8a4c', dark: '#2e2a28' }, props: ['seam'] },
     moonfoundry: { name: 'furnace beetle', palette: { dome: '#4a4a4e', dome2: '#5e5e62', band: '#38383c', leg: '#efe4cc', joint: '#ddd0b4', eye: '#2a2020', glint: '#ff9a3e', seam: '#ff7a2e', dark: '#1e1c1e' }, props: ['seam'] },

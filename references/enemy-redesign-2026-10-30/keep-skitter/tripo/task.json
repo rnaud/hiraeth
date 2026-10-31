@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family A",
+  "foe": "skitter",
+  "source": "references/enemy-redesign-2026-10-30/keep-skitter/711f83a4-63bc-4576-b299-458c14ce5bac-1.png",
+  "sourceSha256": "ea21a59d39c6c1ce67705beb8cca33b65c6cac19fd5d4d374f931bd379874281",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "118d9422-ffa9-436d-8a27-b220f908afb4",
+  "started": "2026-10-30T23:41:42.494Z",
+  "finished": "2026-10-30T23:42:59.413Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1505,
+  "balanceAfter": 1475,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1484464,
+    "sha256": "293027a41d2082451c97b98c61766a59f482bc21aaf735cac7eb1b93e3c6f74a",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 156492,
+    "sha256": "8e841b5640b2c1385d08896e64b2272d253b00dc7bdb6d9e3e7f118441a3386d"
+  }
+}

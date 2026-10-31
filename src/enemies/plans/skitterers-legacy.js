@@ -3,6 +3,9 @@ import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tube, tubeGeometry, many, skinned, pivot, pair, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
 
+// The legacy skitter (kept, issue #800): the game's skitter until the Tripo body (plans/skitter-tripo.js) took its place;
+// it stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 2, the tiny skitterers (docs/systems/procedural-animation.md §4): the skitter swarm (docs/design/enemy-roster.md,
 // archetype 2), drawn to its sheets (references/enemy-archetypes/skitter/: sheet-1 the Desert's dune skitters, sheet-2
 // the Moon Foundry's furnace beetles). One skitter: a smooth round dome half a metre long, six short hooked legs whose
@@ -21,7 +24,7 @@ import { materials, add, tube, tubeGeometry, many, skinned, pivot, pair, ease, e
 
 const K = 1.3;   // (the sheet's silhouette: a dome to the traveller's knee; the prompt's fist would not read)
 
-export function skitterModel(skin) {
+export function skitterLegacyModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('skitter', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

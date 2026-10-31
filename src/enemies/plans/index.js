@@ -12,7 +12,7 @@ import { mothModel } from './flyer.js';
 import { jellyModel } from './floater.js';
 import { toadModel } from './toad-tripo.js';
 import { heronModel } from './stilt.js';
-import { skitterModel } from './skitterers.js';
+import { skitterModel } from './skitter-tripo.js';
 import { rootknotModel } from './tentacled.js';
 import { bruteModel } from './brute.js';
 import { droneModel } from './hover.js';
@@ -41,7 +41,8 @@ import { foeSource } from '../foe-assets.js';
 //
 //   shellback-tripo.js plan 1  the shellback crab (issue #800: Tripo's body, public/enemies/shellback/body.glb, on the
 //                 walker plan; the direct shellback.js stands in where the body is not loaded)
-//   skitterers.js plan 2   the skitter swarm (a flock of tiny tripods at the mid tier)
+//   skitter-tripo.js plan 2 the skitter swarm (issue #800: Tripo's body, public/enemies/skitter/body.glb, eight legs on the
+//                 skitterers plan; the legacy skitter, skitterers-legacy.js, stands in where the body is not loaded)
 //   centipede.js  plan 3   the ring centipede (a spine on its own path, legs in a metachronal wave)
 //   quadruped.js  plan 6   the horn lizard
 //   hound-tripo.js plan 6  the horned hound (issue #800: Tripo's body, public/enemies/hound/body.glb, on the quadruped

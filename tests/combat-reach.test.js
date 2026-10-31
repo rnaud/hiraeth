@@ -95,7 +95,7 @@ test('bodyHits: a blade swept through a foe\'s drawn body hits it there; through
   f.model.group.updateMatrixWorld(true);
   const S = bodySpan(f.model), y = (S.lo + S.hi) / 2;
   const hit = bodyHits(v(0, 1.1, 0), 3, null, { a: v(-1.2, y, 1.6), b: v(-0.4, y, 1.6) }, { a: v(0.4, y, 1.6), b: v(1.2, y, 1.6) });
-  assert.equal(hit.length, 1); assert.ok(hit[0].body && hit[0].point.distanceTo(S.centre) < 0.6 * (f.model.size ?? 1), 'at its body');
+  assert.equal(hit.length, 1); assert.ok(hit[0].body && hit[0].point.distanceTo(S.centre) < Math.max(0.6 * (f.model.size ?? 1), 0.75 * S.radius), 'at its body');   // (its edge: the Tripo skitter's long shell is no round dome, #800)
   assert.equal(bodyHits(v(0, 1.1, 0), 3, null, { a: v(-1.2, 1.1, 1.6), b: v(-0.4, 1.1, 1.6) }, { a: v(0.4, 1.1, 1.6), b: v(1.2, 1.1, 1.6) }).length, 0, 'the old level arc over it: nothing');
   foes.dispose(); clearTargets();
 });

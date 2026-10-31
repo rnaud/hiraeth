@@ -64,7 +64,7 @@ const BLEND = 0.06;   // m over which a leg's vertex is shared with the body
 /** The stubs stand nearly straight: their solve a little longer than the mesh's, so a foot reaches the ground it is set on. */
 const SLACK = 1.14;
 /** A foot's pad: what lies under `top` (m) within `r` of a foot is its foot bone's. */
-const PAD = { top: 0.1, r: 0.36 };
+const PAD = { top: 0.1, r: 0.36, foot: [0.1, 0.2] };   // (foot: the stub's lowest part eased onto its pad, so it tilts with it on a slope)
 /** A step's lift, a share of the leg (the legacy's long thin legs 0.42 of theirs: these stubs lift less), and its stride (m):
  *  the legacy's 0.5 m left a planted stub's foot out of its reach at the end of a stance. */
 const LIFT = 0.3, STRIDE = 0.3;
@@ -94,7 +94,7 @@ function weigh(src, bones) {
     // (a pad's rim, wider than its stub: on the ground near a foot, that foot's)
     if (p.y < PAD.top) L.legs.forEach((l, k) => { const d = Math.hypot(p.x - l.foot[0], p.z - l.foot[2]); if (d < PAD.r && (k !== leg ? d < Math.hypot(p.x - L.legs[leg].foot[0], p.z - L.legs[leg].foot[2]) || wl === 0 : true)) { leg = k; ld = -1; wl = 1; } });
     if (wl > 0) {
-      const B = bones.leg[leg], pad = 1 - smooth(p.y, 0.05, 0.1);
+      const B = bones.leg[leg], pad = 1 - smooth(p.y, PAD.foot[0], PAD.foot[1]);
       put(B.foot, wl * pad); put(which ? B.shin : B.thigh, wl * (1 - pad));
     }
     const torso = 1 - wl;
