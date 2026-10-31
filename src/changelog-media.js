@@ -1503,8 +1503,38 @@ export const CHANGELOG_MEDIA = {
       { name: 'enamel-unity-items', title: 'Unity Items', only: 'after', size: [1280, 720], caption: 'Unity: the four-column inventory and its passive item inspection card.', from: 'Actual running game in Unity 6000.6.4f1 editor batch mode on macOS, 30 October 2026, e0666df1f plus codex/enamel-menu-review changes. Handheld preset, PC renderer, 1280 × 720, -mute from startup, isolated temporary store with seven sample items. The mouse menu-pointer plan; after-only, no native before captured and no physical-device claim. Existing native item pictures and font rendering.' },
       { name: 'enamel-unity-pause', title: 'Unity Pause', only: 'after', size: [1280, 720], caption: 'Unity: the matching Pause frame, settings controls and controller prompts.', from: 'Actual running game in Unity editor batch mode, same isolated run and revision as enamel-unity-items. 1280 × 720, Handheld review preset, muted; the saved Graphics preference shown in the menu is High. After-only. The native settings list differs from the browser where platform controls differ.' },
     ] },
-  ],
-  '2.38': [
+  // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The crab has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'crab800-vael2', title: 'Vael II', caption: 'A cliff crab on the red sand of Vael II, three-quarters from its front: before, the low slate dome studded with lichen, thin pointed legs, pale claws held high and eyes on stalks; after, the tall ochre dome over a pale face with two slit eyes, the green collar, thick cream legs on red feet and the two red pincers hanging in front', from: FROM800,
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/shellback/e8102be7-014a-4a03-8150-394a7f722fec-2.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'crab800-saltharbour', title: 'The Salt Harbour', caption: 'An anchor crab on the Salt Harbour’s quay: before, the turquoise slate crab with its rope and anchor; after, the new body in the harbour’s turquoise, its dome crusted with cream barnacles, the old rope over its back and the anchor hanging off its side', from: FROM800 },
+    { name: 'crab800-bazaar', title: 'The Signal Market', caption: 'A stall crab in the Signal Market: before, the slate crab under a flat awning; after, the new body in the market’s tan and red, a striped gabled awning on four poles over its dome', from: FROM800 },
+    { name: 'crab800-fight', title: 'The fight', caption: 'In the Arena, behind the traveller as a crab winds up its snap: before, the slate crab’s claw raised high; after, the new crab rears its near pincer up and forward, the jaw open, its face and eyes on him', from: FROM800 },
+    { name: 'crab800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a cliff crab 4 m ahead of the traveller: the same new body, drawn by its colours', from: FROM800_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six crabs add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800, rows: [
+      { where: 'Vael II, High', before: 594, after: 91 },
+      { where: 'Vael II, Handheld', before: 396, after: 60 },
+      { where: 'The Salt Harbour (with its barnacles, rope and anchor), High', before: 758, after: 146 },
+      { where: 'The Salt Harbour, Handheld', before: 504, after: 96 },
+    ] },
+    { title: 'Triangles six crabs add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800, rows: [
+      { where: 'Vael II, High', before: 152.6, after: 239.8 },
+      { where: 'Vael II, Handheld', before: 101.8, after: 155.3 },
+      { where: 'The Salt Harbour, High', before: 190.7, after: 270.4 },
+      { where: 'The Salt Harbour, Handheld', before: 127.1, after: 180.3 },
+    ] },
+    { title: 'The script’s time a frame six crabs add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; the GPU’s time could not be told from the world’s own at this load, and every run held 60 fps`, rows: [
+      { where: 'Vael II, High', before: 1.7, after: 0.8 },
+      { where: 'Vael II, Handheld', before: 1.3, after: 0 },
+      { where: 'The Salt Harbour, High', before: 2.4, after: 1.5 },
+      { where: 'The Salt Harbour, Handheld', before: 2.3, after: 0.7 },
+    ] },
+    { title: 'Memory the crabs hold on the graphics card', unit: 'MB', better: 'lower', device: DEVICE800, source: `${SOURCE800}; every vertex buffer and picture the six crabs draw, each counted once however many share it`, rows: [
+      { where: 'Vael II (its picture: 512 × 512, five flat colours)', before: 0.32, after: 2.1 },
+      { where: 'The Salt Harbour (no picture: its colours on the vertices)', before: 0.36, after: 0.95 },
+    ] },
+  ] },
   // (issue #800: the Tripo hound in the game, every world's skin in its own world)
   { match: 'The horned hound now stalks', tags: ['combat'], shots: [
     { name: 'hound800-eclipse', title: 'The Eclipse', size: [1280, 720], caption: 'The Eclipse’s night hound on the plaza by the ship: before, the antler hound, a black deer on stick legs under a spiky violet mane and a crown of white antlers; after, the horned hound, a long dark hound on big paws, a mauve saddle on its withers, cream ram’s horns curled round its head and a pale muzzle', from: FROM800H },
@@ -1515,6 +1545,8 @@ export const CHANGELOG_MEDIA = {
     { name: 'hound800-pool', title: 'Lying in wait', size: [1280, 720], caption: 'A hound lying in wait as a pool of shadow, its head rising out of it: before, the antlers; after, the same curled ram’s horns as its body', from: FROM800H },
     { name: 'hound800-unity', title: 'Unity', only: 'after', size: [1280, 540], caption: 'The Eclipse’s horned hound standing in the Arena: on the left the web version, on the right the Unity version (drawn by the colours its model carries, as the engines decode no texture): the same dark coat, cream horns and muzzle and saddle', from: 'Left: world-shot.mjs on this branch (muted headless Chrome, High, the Arena, 30 October 2026), cropped. Right: Unity editor batch mode, muted (scripts/unity-js-run.sh hounds -level arena -fight hounds -mute), this branch, 30 October 2026, the follow camera with the hound held 5 m off to his right, cropped; the two cameras are not the same view' },
   ], see: 'In the Eclipse or the Signal Market, walk out from the ship until a shadow on the ground stands up: the horned hound. Or in the Arena, pick a hound from the foe list (D-pad ↓, K) in each world’s look. Lock on and watch it crouch, coil and pounce.' },
+  ],
+  '2.38': [
   { match: 'When Nour talks to you, her cloak now stays behind her', shots: [
     { name: 'nour-cape782', size: [1278, 720], caption: 'Nour talking with her hands, from in front, three-quarters and her side: before, the cloak thrown forward over her forearms, her right arm and hand under it and, from the side, the whole of her front behind it; after, both hands and the staff out in front of it, the cloak falling behind her arm', from: FROM782 },
   ], see: 'In Qanat, open the chest by the great tree; Nour comes over. Talk to her and walk round her as she speaks: her hands move in front of her cloak, which stays at her back and sides.' },
@@ -1650,38 +1682,6 @@ export const CHANGELOG_MEDIA = {
       commit: '2a40bf95c', view: { ...studio('who=traveller&bg=flat&gaze=free', [1280, 720]), setup: FOES741_SETUP } },
     { name: 'foes741-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Desert, a mummer set down 4.5 m ahead of the traveller (behind him from this camera): its pot of a head rises over his, though it stands 4.5 m further off',
       from: 'Unity editor batch run (scripts/unity-js-run.sh -level desert -fight mummers -mute) at 2a40bf95c, its first picture (unity-mummers-stand); the mummer king 7 m ahead is hidden behind them, and the run stopped before its later wind-up pictures' },
-  ] },
-  // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)
-  { match: 'The crab has a new body, drawn from its new design', tags: ['combat'], shots: [
-    { name: 'crab800-vael2', title: 'Vael II', caption: 'A cliff crab on the red sand of Vael II, three-quarters from its front: before, the low slate dome studded with lichen, thin pointed legs, pale claws held high and eyes on stalks; after, the tall ochre dome over a pale face with two slit eyes, the green collar, thick cream legs on red feet and the two red pincers hanging in front', from: FROM800,
-      reference: { sheet: 'references/enemy-redesign-2026-10-30/shellback/e8102be7-014a-4a03-8150-394a7f722fec-2.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
-    { name: 'crab800-saltharbour', title: 'The Salt Harbour', caption: 'An anchor crab on the Salt Harbour’s quay: before, the turquoise slate crab with its rope and anchor; after, the new body in the harbour’s turquoise, its dome crusted with cream barnacles, the old rope over its back and the anchor hanging off its side', from: FROM800 },
-    { name: 'crab800-bazaar', title: 'The Signal Market', caption: 'A stall crab in the Signal Market: before, the slate crab under a flat awning; after, the new body in the market’s tan and red, a striped gabled awning on four poles over its dome', from: FROM800 },
-    { name: 'crab800-fight', title: 'The fight', caption: 'In the Arena, behind the traveller as a crab winds up its snap: before, the slate crab’s claw raised high; after, the new crab rears its near pincer up and forward, the jaw open, its face and eyes on him', from: FROM800 },
-    { name: 'crab800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a cliff crab 4 m ahead of the traveller: the same new body, drawn by its colours', from: FROM800_UNITY },
-  ], numbers: [
-    { title: 'Draw calls six crabs add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800, rows: [
-      { where: 'Vael II, High', before: 594, after: 91 },
-      { where: 'Vael II, Handheld', before: 396, after: 60 },
-      { where: 'The Salt Harbour (with its barnacles, rope and anchor), High', before: 758, after: 146 },
-      { where: 'The Salt Harbour, Handheld', before: 504, after: 96 },
-    ] },
-    { title: 'Triangles six crabs add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800, rows: [
-      { where: 'Vael II, High', before: 152.6, after: 239.8 },
-      { where: 'Vael II, Handheld', before: 101.8, after: 155.3 },
-      { where: 'The Salt Harbour, High', before: 190.7, after: 270.4 },
-      { where: 'The Salt Harbour, Handheld', before: 127.1, after: 180.3 },
-    ] },
-    { title: 'The script’s time a frame six crabs add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; the GPU’s time could not be told from the world’s own at this load, and every run held 60 fps`, rows: [
-      { where: 'Vael II, High', before: 1.7, after: 0.8 },
-      { where: 'Vael II, Handheld', before: 1.3, after: 0 },
-      { where: 'The Salt Harbour, High', before: 2.4, after: 1.5 },
-      { where: 'The Salt Harbour, Handheld', before: 2.3, after: 0.7 },
-    ] },
-    { title: 'Memory the crabs hold on the graphics card', unit: 'MB', better: 'lower', device: DEVICE800, source: `${SOURCE800}; every vertex buffer and picture the six crabs draw, each counted once however many share it`, rows: [
-      { where: 'Vael II (its picture: 512 × 512, five flat colours)', before: 0.32, after: 2.1 },
-      { where: 'The Salt Harbour (no picture: its colours on the vertices)', before: 0.36, after: 0.95 },
-    ] },
   ] },
   ],
   '2.37': [

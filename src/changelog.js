@@ -13,6 +13,26 @@ export const CHANGELOG = [
     items: [
       { text: 'The Journal and Pause menus now match the HUD in the browser and Unity: dark enamel, fine brass borders, ivory lettering and a turquoise selection mark. Items have an ivory inspection card beside the grid that follows your selection; confirming still opens the item’s actions. Smaller screens keep the card beneath the grid.',
         see: 'Open the Journal with View or J, turn to Items with RB / R1 or E, and move through the grid. Open Pause with Menu or Esc to try Settings and Controls. Unity players get the new menu frames in the updated native app.' },
+      // the shellback crab (#800)
+      { text: 'The crab has a new body, drawn from its new design: a tall ochre dome with a pale face peering out from under its rim, a fat green collar, six thick cream legs on broad red feet and two big curved red pincers. It turns its face and eyes to follow you as you move round it, and its snap opens the pincer wide before it chops down and slams it shut. In each world it wears that world’s colours and dress: barnacles, a rope and an anchor in the Salt Harbour, a stall’s striped awning in the Signal Market, coral in the Underwater City, glass spikes in the Glass Dunes, a beetle’s feelers in the Sealed Hangar and the Forest of Antennas. It fights exactly as before, and a pack of crabs is far lighter for your device to draw.',
+        see: 'Land on Vael II: The Sky Stones and meet a cliff crab, or open the Arena and pick a crab from the foe list (D-pad ↓, K). Walk round it: its face and slit eyes turn to keep you in view. Let it snap, and watch the pincer open before the blow.' },
+      // the hound rebuilt (#800)
+      { text: 'The horned hound now stalks the Eclipse, the Mangrove, the Garden of Spheres and the Signal Market in place of the antler hound. Where a thin black deer on stick legs used to come at you under a spiky mane and a crown of antlers, a long, deep-chested hound now prowls on big paws, a patch of colour on its back and two great ram’s horns curling round its head. It still runs as a shadow far off, rises out of its pool to face you, turns its head to watch you, crouches and coils before it pounces, and fights exactly as before. Each world dresses it its own way: cream horns in the Eclipse, thick bleached horns and dripping ink in the Mangrove, dark gold-flecked horns under a pearl halo in the Garden of Spheres, and a tangle of brass wire in the Signal Market.',
+        numbers: [{ title: 'What a pack of six hounds adds to a world’s frame, standing solid in view', unit: '', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720, as you land, 10:00; the medians of two runs each, alternated, against the same world with no hounds; the machine shared (load 19–35)', rows: [
+          { where: 'the Eclipse, High: draw calls', before: 358, after: 28 },
+          { where: 'the Eclipse, Handheld: draw calls', before: 231, after: 21 },
+          { where: 'the Signal Market, High: draw calls', before: 432, after: 28 },
+          { where: 'the Signal Market, Handheld: draw calls', before: 280, after: 23 },
+          { where: 'the Eclipse, High: triangles, every pass (thousands)', before: 84.6, after: 242.8 },
+          { where: 'the Eclipse, High: CPU ms a frame', before: 1.2, after: 0.5 },
+          { where: 'the Signal Market, High: CPU ms a frame', before: 2.2, after: 3.1 },
+        ], source: 'scripts/enemy-roster/bench.mjs --level eclipse|bazaar --quality high|handheld --pack 6 hounds --solid (and --pack none), before at 192711a63; the frame held at 16.7 ms (60 Hz) in every run; the GPU time and the JS heap moved by more than the hounds either way between runs at this load, so no claim on them. The model is a 540 KB download (337 KB compressed), its texture 512 × 512 (1.3 MB on the GPU)' },
+        { title: 'A hound arriving in the Arena: the worst frame from its arrival to 2.5 s after', unit: 'ms', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720; ?level=arena&enemy=hound@<world>, each of the four looks, 2–3 arrivals each, each cut down 2.6 s after it came in', rows: [
+          { where: 'High, typical', before: 16.8, after: 16.8 },
+          { where: 'High, worst', before: 33.3, after: 33.3 },
+          { where: 'Handheld, worst', before: 16.8, after: 16.8 },
+          { where: 'new GPU programs made at an arrival', before: 0, after: 0 },
+        ], source: 'scripts/enemy-roster/arrivals.mjs, before at 192711a63: the new body is prepared with the rest while the Arena loads, so no hound arrives with anything left to build or compile' }] },
     ],
   },
   {
@@ -56,9 +76,6 @@ export const CHANGELOG = [
         see: 'Go into the Rose House and walk slowly down the Great Hall turning the camera: the side walls and the far wall stay still instead of shimmering, and the circuits light up only on the walls right beside you.' },
       // no tiny foes (#741)
       'No foe is tiny any more. The Desert’s mummers and the grunts of the Arena now stand as tall as you, and the skitters and the Arena’s crawlers come up to your hip, so your blade finds them easily. Everything about them grew with them: where your blows land, how close they get to you and the lock-on round them. Their voices and the way they fight are as before.',
-      // the shellback crab (#800)
-      { text: 'The crab has a new body, drawn from its new design: a tall ochre dome with a pale face peering out from under its rim, a fat green collar, six thick cream legs on broad red feet and two big curved red pincers. It turns its face and eyes to follow you as you move round it, and its snap opens the pincer wide before it chops down and slams it shut. In each world it wears that world’s colours and dress: barnacles, a rope and an anchor in the Salt Harbour, a stall’s striped awning in the Signal Market, coral in the Underwater City, glass spikes in the Glass Dunes, a beetle’s feelers in the Sealed Hangar and the Forest of Antennas. It fights exactly as before, and a pack of crabs is far lighter for your device to draw.',
-        see: 'Land on Vael II: The Sky Stones and meet a cliff crab, or open the Arena and pick a crab from the foe list (D-pad ↓, K). Walk round it: its face and slit eyes turn to keep you in view. Let it snap, and watch the pincer open before the blow.' },
       // the Arena (#797)
       { text: 'The Arena now sends a different kind of enemy each time, picked at random: each of the game’s 30 kinds of foe comes once before any comes again, never the same kind twice in a row, each in the look of one of the worlds on your way where you meet it. Before, it went through every look of every enemy, 138 in all, so the same few foes kept coming back in other colours. The foes of the abandoned side worlds no longer come, nor the three taken out of the worlds.',
         see: 'Open the Arena and fight a few foes: the notice at the top now counts “Foe 3 of 30”, and each foe is a different kind from the last (a crab, then a drone, then a grunt…), in the colours of a world you visit, such as the Glass Dunes or the Signal Market.' },
@@ -73,23 +90,6 @@ export const CHANGELOG = [
           { where: 'High', before: 2.2, after: 3.5 },
           { where: 'Handheld', before: 2.8, after: '3.6–4.5' },
         ], source: 'the game’s own “load: total” after the modules load; 109 enemy bodies prepared instead of 33' }] },
-      // the hound rebuilt (#800)
-      { text: 'The horned hound now stalks the Eclipse, the Mangrove, the Garden of Spheres and the Signal Market in place of the antler hound. Where a thin black deer on stick legs used to come at you under a spiky mane and a crown of antlers, a long, deep-chested hound now prowls on big paws, a patch of colour on its back and two great ram’s horns curling round its head. It still runs as a shadow far off, rises out of its pool to face you, turns its head to watch you, crouches and coils before it pounces, and fights exactly as before. Each world dresses it its own way: cream horns in the Eclipse, thick bleached horns and dripping ink in the Mangrove, dark gold-flecked horns under a pearl halo in the Garden of Spheres, and a tangle of brass wire in the Signal Market.',
-        numbers: [{ title: 'What a pack of six hounds adds to a world’s frame, standing solid in view', unit: '', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720, as you land, 10:00; the medians of two runs each, alternated, against the same world with no hounds; the machine shared (load 19–35)', rows: [
-          { where: 'the Eclipse, High: draw calls', before: 358, after: 28 },
-          { where: 'the Eclipse, Handheld: draw calls', before: 231, after: 21 },
-          { where: 'the Signal Market, High: draw calls', before: 432, after: 28 },
-          { where: 'the Signal Market, Handheld: draw calls', before: 280, after: 23 },
-          { where: 'the Eclipse, High: triangles, every pass (thousands)', before: 84.6, after: 242.8 },
-          { where: 'the Eclipse, High: CPU ms a frame', before: 1.2, after: 0.5 },
-          { where: 'the Signal Market, High: CPU ms a frame', before: 2.2, after: 3.1 },
-        ], source: 'scripts/enemy-roster/bench.mjs --level eclipse|bazaar --quality high|handheld --pack 6 hounds --solid (and --pack none), before at 192711a63; the frame held at 16.7 ms (60 Hz) in every run; the GPU time and the JS heap moved by more than the hounds either way between runs at this load, so no claim on them. The model is a 540 KB download (337 KB compressed), its texture 512 × 512 (1.3 MB on the GPU)' },
-        { title: 'A hound arriving in the Arena: the worst frame from its arrival to 2.5 s after', unit: 'ms', better: 'lower', device: 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), 1280 × 720; ?level=arena&enemy=hound@<world>, each of the four looks, 2–3 arrivals each, each cut down 2.6 s after it came in', rows: [
-          { where: 'High, typical', before: 16.8, after: 16.8 },
-          { where: 'High, worst', before: 33.3, after: 33.3 },
-          { where: 'Handheld, worst', before: 16.8, after: 16.8 },
-          { where: 'new GPU programs made at an arrival', before: 0, after: 0 },
-        ], source: 'scripts/enemy-roster/arrivals.mjs, before at 192711a63: the new body is prepared with the rest while the Arena loads, so no hound arrives with anything left to build or compile' }] },
     ],
   },
   {
