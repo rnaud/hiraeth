@@ -2981,6 +2981,18 @@ stays, renamed `-legacy`, standing in where the body is not loaded.
   fittings, the eye and its slit; the harpoon and the line shown as it fires) against the legacy's 9. The home skin (the City-Shaft's) wears the reference's colours
   (`cap`, `pod` keys); the others their palettes and dress (tinted plates, pearl, a dish and feed horn, stripes, tilted
   plates). Tests: `tests/drone-tripo.test.js`.
+- **The survey crawler** (`crawler`): `src/enemies/plans/crawler-tripo.js` `crawlerModel`, `public/enemies/crawler/`
+  (395 KB, 11,631 triangles); the legacy dome is `plans/crawler-legacy.js` `crawlerLegacyModel`. Tripo's second take (seed
+  7: six legs, three a side; the first drew five): the front and middle pairs kept, the back pair cut off where it leaves
+  its sockets (dark ports close them), as the reference's note asks ("four-legged anatomy remains the target"). 0.66 m to
+  its antenna's knob as built, ×1.5 grown (#741): its dome at the traveller's thigh (0.81 m), the knob at his hip (0.99 m).
+  Rigid parts cut at each socket, knee and ankle (blended 2 cm) and round the head; the kit's crawler plan (the trot on
+  diagonal pairs) on `SkinLegs` bones fitted to the mesh; the head turns to the traveller (`gazePart` turn) with two
+  burnt-orange eyes sliding on; the antenna sways on its own joint and sparks for the call; the navy band is the seam that
+  blinks red in the fuse. Its skin (the Arena's) wears the reference's colours over the droids' palette, its tier the
+  droids' scorch. 6 drawn meshes (5 skinned roles, the ports in the joints'; the eyes; the dome and the legs cast its
+  shadow) against the legacy's 5. Tests: `tests/crawler-tripo.test.js`, `tests/droids.test.js`
+  (`CRAWLER_SIZE` from it).
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

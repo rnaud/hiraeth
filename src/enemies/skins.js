@@ -313,7 +313,9 @@ export const DROID_TIER = { ceramic: '#7a7064', ceramic2: '#8c8274', stain: '#2b
 const droid = (name) => ({ desert: { name, arena: true, palette: { ...DROID_PALETTE }, props: [], tier: { palette: DROID_TIER } } });
 SKINS.sentinel = droid('sentinel');
 SKINS.oracle = droid('oracle');
-SKINS.crawler = droid('crawler');
+// (the survey crawler, issue #800: the approved reference's colours, references/enemy-redesign-2026-10-30/keep-crawler/
+// 22d8861b-…-0.png: cream ceramic, sage legs, dark joints, a navy band under the dome, pink sockets, amber eyes; its tier the droids')
+SKINS.crawler = { desert: { ...droid('crawler').desert, palette: { ...DROID_PALETTE, ceramic: '#e4cdb6', ceramic2: '#efdcc8', leg: '#7e8d7c', joint: '#3a4640', band: '#1a2230', socket: '#a06a66', eye: '#d0661c' } } };
 
 // The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in
 // Lorn, rust in the Hangar). Its skins are made from this table of edge colours.

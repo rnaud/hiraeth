@@ -81,6 +81,9 @@ export const CHANGELOG = [
       // the spool drone (#800)
       { text: 'The ring drone has a new body, drawn from its new design: the spool drone, two thick cream plates with a slate cap on top and an olive pod underneath, and between them a dark core with one orange slit eye, a stubby nozzle on its lower plate. No more dangling arms. Its core turns between the plates to keep its eye on you as it hovers and drifts. When the plates part and slow, the reel on its nozzle clicks round and the harpoon comes out of it: guard it to cut the line, or it reels you in; when they spin up together it rams. Each world keeps its look: mismatched plates in the Sealed Hangar, pearl in the Glass Dunes and the Garden of Spheres, a dish on its cap in the Forest of Antennas, blue stripes in Space City, tilted plates in the Fallen Ring. It fights exactly as before.',
         see: 'Land in the City-Shaft and meet a rust drone, or open the Arena and pick the ring drone from the foe list (D-pad ↓, K). Move round it: its eye follows you. Watch its plates part before the harpoon.' },
+      // the survey crawler (#800)
+      { text: 'The crawler has a new body, drawn from its new design: the survey crawler, a low cream dome over a dark blue band, a round head under its lip with two small orange eyes, a stubby antenna with a knob, and four sage legs on domed feet coming out of pink sockets in its sides. It turns its head to watch you; when it calls the others it rears up on its back legs with its antenna sparking, and when it runs at you to blow itself up its band and eyes blink red faster and faster. It is still knee-high, its dome at your thigh, and it fights exactly as before.',
+        see: 'Open the Arena and pick the crawler from the foe list (D-pad ↓, K). Walk round it: its head turns to follow you. Bring it low and watch its band blink red before it bursts.' },
     ],
   },
   {

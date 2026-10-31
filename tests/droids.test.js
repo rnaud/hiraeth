@@ -19,7 +19,7 @@ import { PROC_POSES } from '../src/enemies/humanoid-rig.js';
 import { PLANS } from '../src/motion-kit/plans.js';
 import { SENTINEL_MOVES, SENTINEL_BODY } from '../src/enemies/plans/sentinel.js';
 import { ORACLE_MOVES } from '../src/enemies/plans/oracle.js';
-import { CRAWLER_SIZE } from '../src/enemies/plans/crawler.js';
+import { CRAWLER_SIZE } from '../src/enemies/plans/crawler-tripo.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';

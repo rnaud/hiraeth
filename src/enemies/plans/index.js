@@ -30,7 +30,7 @@ import { mummerModel, mummerKingModel } from './mummer.js';
 import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js';
 import { sentinelModel } from './sentinel.js';
 import { oracleModel } from './oracle.js';
-import { crawlerModel } from './crawler.js';
+import { crawlerModel } from './crawler-tripo.js';
 import { woodcutterModel } from './woodcutter.js';
 import { tripoWoodcutterModel } from './woodcutter-tripo.js';
 import { duneMummerModel } from './dune-mummer.js';
@@ -83,7 +83,8 @@ import { foeSource } from '../foe-assets.js';
 //   droid.js               the makers' defunct droids' one material family (issue #726)
 //   sentinel.js   plan 27  the sentinel (a droid duellist on the humanoid rig: blade and round shield)
 //   oracle.js     plan 28  the oracle (a hovering caster droid: the rig's upper body over a ceramic shell)
-//   crawler.js    plan 29  the crawler (a knee-high droid dome on four legs, on the kit)
+//   crawler-tripo.js plan 29 the crawler (issue #800: Tripo's survey crawler, public/enemies/crawler/body.glb, four legs on the
+//                 kit's crawler plan, its head looking at you; the legacy dome, crawler-legacy.js, stands in where it is not loaded)
 //   woodcutter-tripo.js plan 8  the wood cutter (#800: Tripo's mesh on the brute's rig family, src/enemies/foe-assets.js;
 //                          woodcutter.js its direct body, standing in only while the mesh loads)
 //   dune-mummer-tripo.js plan 33  the dune mummer (#800: Tripo's rigged mesh on the humanoid clip rig; dune-mummer.js

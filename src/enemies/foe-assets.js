@@ -34,6 +34,7 @@ export const FOE_ASSETS = {
   // (family E, #800: the droids, their rigid parts' skin weights baked in the file, scripts/tripo/ship-body.mjs)
   tripod: { folder: 'enemies/tripod/', rig: 'landmarks.json' },
   drone: { folder: 'enemies/drone/', rig: 'landmarks.json' },
+  crawler: { folder: 'enemies/crawler/', rig: 'landmarks.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -94,6 +95,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/tripod/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/tripod/landmarks.json', import.meta.url))]),
   drone: (host, fs) => (host ? [host.readFile('enemies/drone/body.glb'), host.readFile('enemies/drone/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/drone/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/drone/landmarks.json', import.meta.url))]),
+  crawler: (host, fs) => (host ? [host.readFile('enemies/crawler/body.glb'), host.readFile('enemies/crawler/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/crawler/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/crawler/landmarks.json', import.meta.url))]),
 };
 function readNow(id) {
   try {

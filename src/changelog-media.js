@@ -1487,6 +1487,9 @@ const SOURCE800TRIPOD = (foe) => `scripts/enemy-roster/bench.mjs --level <world>
 // (issue #800, family E's drone: the same hand-made pairs and bench as the tripod's)
 const FROM800DRONE = (foe, before) => FROM800TRIPOD(foe, before);
 const SOURCE800DRONE = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 5–16');
+// (issue #800, family E's crawler: the same hand-made pairs and bench as the tripod's, in the Arena: it is fielded nowhere else yet)
+const FROM800CRAWLER = (foe, before) => FROM800TRIPOD(foe, before);
+const SOURCE800CRAWLER = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 13–23') + '; measured with its two ports a mesh of their own, folded into its joints’ since (one draw fewer each)';
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
 const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
@@ -1844,6 +1847,22 @@ export const CHANGELOG_MEDIA = {
     { title: 'Triangles six drones add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800DRONE('rust drones in the City-Shaft'), rows: [
       { where: 'The City-Shaft, High', before: 237.4, after: 237.3 },
       { where: 'The City-Shaft, Handheld', before: 158.1, after: 157.9 },
+    ] },
+  ] },
+  // (issue #800: the survey crawler on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The crawler has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'crawler800-desert', title: 'The crawler', caption: 'A crawler, three-quarters from its front: before, a pale ceramic ball with amber seams, one big amber eye and a thin antenna on four thin dark legs with ivory sickle shins; after, the survey crawler: a low cream dome over a dark blue band, a round head with a small orange eye, a stubby antenna with a knob, four sage legs on domed feet out of pink sockets', from: FROM800CRAWLER('one crawler@desert, idle 1.5 s, the three-quarter view (zoom 0.75)', 'ab7001115'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/keep-crawler/22d8861b-51c8-4a48-9776-9c45ee542615-0.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'crawler800-call', title: 'The call', caption: 'A crawler at 80 % of its call’s wind-up, from its side: before, the dome reared up on its hind legs, the front pair raised; after, the new body reared up on its hind pair the same way, its front legs raised and its antenna tipped back', from: FROM800CRAWLER('one crawler@desert, its call held at 80 % of the wind-up, from its side (yaw 1.2, zoom 0.75)', 'ab7001115') },
+    { name: 'crawler800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a crawler ahead of the traveller sinking back for its bite: the same new body', from: 'Unity 6000.6.4f1 editor batch run, muted (scripts/unity-js-run.sh familyE-crawler -mute -level arena -fight crawler), 31 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; its second picture (unity-crawler-windup): the game’s follow camera; no picture on the body (each part one flat colour)' },
+  ], numbers: [
+    { title: 'Draw calls six crawlers add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800CRAWLER('crawlers in the Arena'), rows: [
+      { where: 'The Arena, High', before: 90, after: 126 },
+      { where: 'The Arena, Handheld', before: 60, after: 86 },
+    ] },
+    { title: 'Triangles six crawlers add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800CRAWLER('crawlers in the Arena'), rows: [
+      { where: 'The Arena, High', before: 92.0, after: 210.1 },
+      { where: 'The Arena, Handheld', before: 61.5, after: 140.3 },
     ] },
   ] },
   ],

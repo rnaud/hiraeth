@@ -5,6 +5,9 @@ import { materials, add, many, skinBy, pivot, ease, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 import { droidMaterials, droidGlow, lathe, lensParts } from './droid.js';
 
+// The legacy crawler (issue #800: the game's crawler is the Tripo survey crawler, plans/crawler-tripo.js; this builder is
+// kept so its look can come back as a foe of its own, and stands in where the new body is not loaded).
+//
 // The crawler (issue #726, docs/design/enemy-roster-v4.md; its sheet: a new `crawler/` folder under the enemy references,
 // sheet-1): the makers' defunct scout. A knee-high dome of the droids' weathered ivory ceramic, cut into panels by amber
 // seams, one big amber eye in a dark socket at its front, a thin antenna; under the dome a dark band and four jointed
@@ -22,7 +25,7 @@ import { droidMaterials, droidGlow, lathe, lensParts } from './droid.js';
 export const CRAWLER_SIZE = { centre: 0.34, r: 0.29, top: 0.63 };
 const R = CRAWLER_SIZE.r;
 
-export function crawlerModel(skin) {
+export function crawlerLegacyModel(skin) {
   const P = skin.palette, M = materials('crawler', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

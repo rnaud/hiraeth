@@ -656,7 +656,8 @@ export const DROID_TIER_SURFACE = {
 const droidParts = (names) => Object.fromEntries(names.map((n) => [n, DROID_SURFACE[n]]));
 SURFACES.sentinel['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss', 'steel']);
 SURFACES.oracle['*'] = droidParts(['ceramic', 'joint', 'seam', 'ring']);
-SURFACES.crawler['*'] = droidParts(['ceramic', 'joint', 'seam', 'moss']);
+// (#800: the survey crawler, the reference's clean ceramic: the droids' joints, a soft mottle on its cream and sage)
+SURFACES.crawler['*'] = { ...droidParts(['joint']), ceramic: { mottle: { color: 'ceramic2', scale: 0.12, amount: 0.3, soft: 0.25, strength: 0.4 }, gloss: { size: 0.02, sky: 0.3, amount: 0.3 } }, leg: { mottle: { color: 'leg*0.9', scale: 0.08, amount: 0.25, soft: 0.2, strength: 0.4 } } };
 /** An archetype's own stronger-tier surface instead of the bands (TIER_SURFACE): the droids' scorch. */
 export const TIER_SURFACES = { sentinel: DROID_TIER_SURFACE, oracle: DROID_TIER_SURFACE, crawler: DROID_TIER_SURFACE };
 // The third batch (issue #726; sheets in references/enemy-archetypes/prowler/ and warlord/).

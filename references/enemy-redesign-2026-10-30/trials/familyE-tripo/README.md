@@ -99,3 +99,35 @@ task `e25f40fd-…`), 30 credits. Home skin `incal` (the City-Shaft's rust drone
   for the harpoon, as on the web.
 - **Still off**: a few more draws than the ring drone's; the eye's slit is its own mesh; the plates' painted seams are flat.
 
+## The survey crawler (`crawler`)
+
+Reference: `../../keep-crawler/22d8861b-51c8-4a48-9776-9c45ee542615-0.png` (approved). Two takes, 60 credits: the first
+(`../../keep-crawler/tripo/`, task `c740ba5e-…`) drew five legs; seed 7 (`../../keep-crawler/tripo-seed7/`, task
+`c7b50a5d-…`) six, three a side, symmetric. Its one skin is the Arena's (`desert`, the droids' family; roster v4).
+
+- **What it is**: Tripo's 28k-triangle body at 0.66 m to the top of its antenna's knob as built (×1.5 grown, #741: the
+  knob at the traveller's hip, 0.99 m; the dome under it, 0.81 m), cut to 11,631 triangles. Four legs, the reference's
+  note's ("four-legged anatomy remains the target"): the front and middle pairs kept, the back pair cut off at their
+  sockets' mouths (their roots in the sockets by colour near the socket's middle too), a dark port closing each. Its
+  parts by geometry: the head (the round front under the dome's lip: a plane behind it, its sides and top bounded), the
+  antenna (a cylinder over the dome's top), the body (dome, band, belly, sockets), each leg's thigh (round its own line
+  out of the socket to the knee), shin and foot (under the ankle's stem). The reference's five flat colours; the
+  painted eye (one orange dot) painted out: two eyes are the model's own, small and burnt orange.
+- **The rig**: the hip, knee, ankle and head cuts blended over 2 cm; the kit's crawler plan (the quick trot on diagonal
+  pairs) on `SkinLegs` bones fitted to the measured socket, knee and ankle, each leg's bend plane from its knee; the
+  first stance the kit's own (a squared one stepped a pack in unison). The head turns to the traveller and the eyes
+  slide on; the antenna sways and sparks for the call (reared on the hind pair); the band is the seam that blinks red
+  through the blast's fuse; the call's front legs paw.
+- **Kept**: id, def, attacks (bite, call, blast), windows, its size class (`CRAWLER_SIZE.top` 0.54 as built), sounds
+  (`servo` / `crawler`), the machine's death recipe (its sag unchanged) and its burst into pieces, its tier (the droids'
+  scorch), the Arena-only skin.
+- **Measured**: bind round trip < 0.1 mm; a knee bent alone moves only its shin (`tests/crawler-tripo.test.js`). Six
+  crawlers in the Arena (it is fielded nowhere else; in a world that does not field it its body is not loaded and the
+  legacy stands in; two runs each, load 13–23): draws +90 → +126 (High), +60 → +86 (Handheld); triangles +92k → +210k:
+  the legacy dome was five meshes and 5k triangles (measured with the ports a mesh of their own: one draw fewer each since). Arena warm-up: compiles nothing at arrival (2.8 ms). Dodge: a back
+  flip into the flurry. Defend (held 1.4 m off him, `defend.mjs --near 1.4`): the bite blocked from 0.5 s, parried at
+  0.06–0.12 s, evaded at 0.08–0.15 s; the blast (low health only) left to `tests/droids.test.js`. Sound unchanged.
+- **Unity**: `-fight crawler`: the Tripo body (11 meshes), standing and winding up its bite, as on the web.
+- **Still off**: more draws and triangles than the legacy dome; a few sage shards left at the dropped sockets' rims;
+  the call's rearing is the plan's steep one.
+

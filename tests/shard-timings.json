@@ -135,6 +135,7 @@
  "tests/courts-bays.test.js": 9.7,
  "tests/covered-cap.test.js": 0.1,
  "tests/cracks.test.js": 0.3,
+ "tests/crawler-tripo.test.js": 3.0,
  "tests/crowd-later.test.js": 0.6,
  "tests/crowd.test.js": 23.4,
  "tests/crystal-shader.test.js": 0.2,

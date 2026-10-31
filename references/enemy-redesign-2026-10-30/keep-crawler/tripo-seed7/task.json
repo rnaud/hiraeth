@@ -1,0 +1,39 @@
+{
+  "issue": 800,
+  "phase": "family E",
+  "foe": "crawler",
+  "source": "references/enemy-redesign-2026-10-30/keep-crawler/22d8861b-51c8-4a48-9776-9c45ee542615-0.png",
+  "sourceSha256": "1aedcc2326ac7a09f0739952c82b16248bf4fb1ddb52e2e3649a4fae4bf91616",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true,
+    "model_seed": 7,
+    "texture_seed": 7
+  },
+  "task": "c7b50a5d-154d-4216-abc4-0861094e2b42",
+  "started": "2026-10-31T04:42:39.566Z",
+  "finished": "2026-10-31T04:44:05.242Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1155,
+  "balanceAfter": 1065,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1458472,
+    "sha256": "6140a6ad3a50acc0946b5b8b537b2dace59a7b570b8dd1c0e0c525ccf9de2a5c",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 155710,
+    "sha256": "3c8c3c9dc1890302587c1414387c12d928fdd7a4831ab540e774a01db9433932"
+  }
+}

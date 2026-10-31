@@ -36,6 +36,9 @@ and are built with the enemy-rework skill (procedural surface mandatory).
   camps' racks and the warlord's hold staged behind `?staged=roster4` as before. Steps 4 and on below are not planned.
 - 2026-10-28: the sentinel, the oracle and the crawler built (issue #726; docs/systems/foes.md, "The makers' droids"), met in
   the Arena only until step 4.
+- 2026-10-31: the crawler's body rebuilt from its approved design (#800, Tripo: `plans/crawler-tripo.js`, the dome kept as
+  `plans/crawler-legacy.js`): a cream dome over a navy band, a round head with two amber eyes, four sage legs out of pink
+  sockets; its moves, size and Arena-only skin as before (docs/systems/foes.md, "Family E on Tripo bodies").
 
 ## Where they live
 
