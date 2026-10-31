@@ -13,7 +13,8 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 ADB=${ADB:-$SDK/platform-tools/adb}
 [ -x "$ADB" ] || ADB=/Applications/Unity/Hub/Editor/6000.6.4f1/PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb
-PKG=com.rnaud.hiraeth.bridge
+PKG=${PKG:-com.rnaud.hiraeth.bridge}   # (PKG another bench build's own id: never the web app's nor the testers')
+case $PKG in com.rnaud.hiraeth|com.rnaud.hiraeth.unity) echo "never $PKG" >&2; exit 1 ;; esac
 APK=${APK:-$ROOT/unity/Hiraeth/Builds/bridge-android/hiraeth-js.apk}
 LEVEL=${1:?a level: desert, bazaar, incal…}; shift
 OUT=${OUT:-$ROOT/output/engine-bridge/android-$LEVEL}
@@ -51,7 +52,7 @@ done
 # ...and its sound must be silent: with -mute the player never starts its AudioSource, so the package has no
 # player in the "started" state (dumpsys audio); one that has is stopped at once
 sleep 4
-UID_=$("$ADB" shell dumpsys package "$PKG" | grep -m1 -o "userId=[0-9]*" | cut -d= -f2)
+UID_=$("$ADB" shell dumpsys package "$PKG" | grep -m1 -oE "(userId|appId)=[0-9]+" | cut -d= -f2)   # (newer Androids say appId)
 [ -n "$UID_" ] || { "$ADB" shell am force-stop "$PKG"; echo "no uid for $PKG: stopped" >&2; exit 1; }
 if "$ADB" shell dumpsys audio | grep "u/pid:$UID_/" | grep -q "state:started"; then
   "$ADB" shell am force-stop "$PKG"

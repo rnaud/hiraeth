@@ -1156,10 +1156,12 @@ namespace Hiraeth.Bridge
             Buffer.BlockCopy(b, 0, fu, 0, words * 4);
             Buffer.BlockCopy(b, 0, ff, 0, words * 4);
             int o = 0;
+            bool prof = profileOps;
             while (o < words)
             {
                 uint op = fu[o++];
                 if (op == 0) break;
+                long ts = prof ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
                 switch (op)
                 {
                     case 1:   // transforms
@@ -1432,9 +1434,30 @@ namespace Hiraeth.Bridge
                         o = words;
                         break;
                 }
+                if (prof && op < OpTicks.Length) { OpTicks[op] += System.Diagnostics.Stopwatch.GetTimestamp() - ts; OpCount[op]++; }
             }
+            long tb = prof ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
             bonesJob?.Apply();
+            if (prof) OpTicks[0] += System.Diagnostics.Stopwatch.GetTimestamp() - tb;
             msFrame += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
+        }
+
+        /// <summary>A bench's -split: the C# apply's time by op (pack.js OP's numbers; 0 the bones' job, 31 LateUpdate's draws).</summary>
+        public static bool profileOps;   // (BridgeRunner sets it: -split)
+        static readonly long[] OpTicks = new long[32]; static readonly int[] OpCount = new int[32];
+        static readonly string[] OpNames = { "bonesJob", "transforms", "visible", "instances", "bones", "camera", "remove", "skeleton", "vertices", "crowd", "puffs", "lights", "grass", "grassView", "brush", "material", "fluid", "cloth", "matVec", "keys", "cape", "skin", "op22", "op23", "op24", "op25", "op26", "op27", "brushTrail", "op29", "op30", "late" };
+        /// <summary>The split since the last call, ms summed by op name (with how many ops), then cleared.</summary>
+        public string TakeOpSplit()
+        {
+            var sb = new System.Text.StringBuilder("{");
+            for (int i = 0; i < OpTicks.Length; i++)
+            {
+                if (OpTicks[i] == 0 && OpCount[i] == 0) continue;
+                if (sb.Length > 1) sb.Append(',');
+                sb.Append('"').Append(OpNames[i]).Append("\":[").Append((OpTicks[i] * 1000.0 / System.Diagnostics.Stopwatch.Frequency).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(',').Append(OpCount[i]).Append(']');
+                OpTicks[i] = 0; OpCount[i] = 0;
+            }
+            return sb.Append('}').ToString();
         }
 
         void BakeInstances(Node nd, MeshData md, int cnt, int mo, int co)
@@ -1473,7 +1496,12 @@ namespace Hiraeth.Bridge
             nd.mf.sharedMesh = mesh;
         }
 
-        void LateUpdate() { FinishCloths(); DrawCrowds(); }
+        void LateUpdate()
+        {
+            long ts = profileOps ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+            FinishCloths(); DrawCrowds();
+            if (profileOps) { OpTicks[31] += System.Diagnostics.Stopwatch.GetTimestamp() - ts; OpCount[31]++; }
+        }
 
         /// <summary>The motes' quads, turned to the camera: clamp(size × 900 / depth, 1.5, 14) × (1 + 0.8 glow) px across, as life.js's gl_PointSize.</summary>
         void PointQuads()

@@ -425,7 +425,10 @@ namespace Hiraeth.EditorTools
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
             Common();
             PlayerSettings.productName = release ? ReleaseName : "Hiraeth JS";
-            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, release ? ReleasePackage : Package);
+            // (-package another id for a bench build of its own beside the bridge's, never the web app's nor the testers')
+            var pkg = release ? ReleasePackage : NonEmpty(Arg("-package"), Package);
+            if (pkg == "com.rnaud.hiraeth" || (!release && pkg == ReleasePackage)) { Debug.LogError($"Hiraeth: {pkg} is not a bench package"); EditorApplication.Exit(1); return; }
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, pkg);
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Android, Il2CppCompilerConfiguration.Release);
             PlayerSettings.Android.targetArchitectures = Flag("-x86_64") ? AndroidArchitecture.ARM64 | AndroidArchitecture.X86_64 : AndroidArchitecture.ARM64;
@@ -439,7 +442,23 @@ namespace Hiraeth.EditorTools
             if (release && !Release()) { EditorApplication.Exit(1); return; }
             EditorUserBuildSettings.buildAppBundle = false;
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
-            if (!release) UnityAudio(true);   // (the bench's player: silent on the device whatever its flags; the testers' has its sound)
+            // (-graphics-jobs [-graphics-job-mode native|split|legacy]: a test build with Unity's graphics jobs, issue #803)
+            if (Flag("-graphics-jobs"))
+            {
+                // (Unity 6.6 keeps the per-platform setters internal: by reflection)
+                var gm = Arg("-graphics-job-mode", "split");
+                var mode = gm == "native" ? GraphicsJobMode.Native : gm == "legacy" ? GraphicsJobMode.Legacy : GraphicsJobMode.Split;
+                const System.Reflection.BindingFlags any = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+                typeof(PlayerSettings).GetMethod("SetGraphicsJobsForPlatform", any, null, new[] { typeof(BuildTarget), typeof(bool) }, null).Invoke(null, new object[] { BuildTarget.Android, true });
+                typeof(PlayerSettings).GetMethod("SetGraphicsJobModeForPlatform", any, null, new[] { typeof(BuildTarget), typeof(GraphicsJobMode) }, null).Invoke(null, new object[] { BuildTarget.Android, mode });
+                var on = typeof(PlayerSettings).GetMethod("GetGraphicsJobsForPlatform", any, null, new[] { typeof(BuildTarget) }, null).Invoke(null, new object[] { BuildTarget.Android });
+                var was = typeof(PlayerSettings).GetMethod("GetGraphicsJobModeForPlatform", any, null, new[] { typeof(BuildTarget) }, null).Invoke(null, new object[] { BuildTarget.Android });
+                Debug.Log($"Hiraeth: graphics jobs {on} ({was})");
+            }
+            // (-unity-audio: a bench build that keeps Unity's audio: the recorded effects are decoded by Unity's AudioClips, and since
+            // the game waits for them (#622) a build without its audio stops at "Sound effects couldn't load"; -mute still closes its
+            // output stream, and android-bridge.sh stops a player whose stream plays)
+            if (!release && !Flag("-unity-audio")) UnityAudio(true);   // (the bench's player: silent on the device whatever its flags; the testers' has its sound)
             Build(BuildTarget.Android, outPath);
         }
 

@@ -37,7 +37,7 @@ namespace Hiraeth.Bridge
         /// <summary>Whether this start is a reboot's (the prewarm already done; the sound's engine disposed on its way out).</summary>
         public static bool Rebooted;
         string pendingReboot, firstArgs;
-        public double cpuMs, gpuMs;
+        public double cpuMs, gpuMs, mainMs, renderMs;   // (the last frame's: FrameTimingManager; main and render: its threads' own)
         public BridgeGpuSplit gpuSplit;   // (a bench with -split: the GPU's passes)
         JsRuntime js;
         bool started, failed;
@@ -603,6 +603,7 @@ namespace Hiraeth.Bridge
             // the still meshes in Unity's static batches (BridgeRenderer.StaticBatch): on Android, -static-batch elsewhere, -no-static-batch off
             if (BridgeArgs.Flag("-static-batch")) BridgeRenderer.staticBatch = true;
             if (BridgeArgs.Flag("-no-static-batch")) BridgeRenderer.staticBatch = false;
+            BridgeRenderer.profileOps = BridgeArgs.Flag("-split");
             if (BridgeArgs.Arg("-merge-max") is string mmx && int.TryParse(mmx, out int mmv)) BridgeRenderer.mergeMax = mmv;
             if (BridgeArgs.Arg("-merge-min") is string mmn && int.TryParse(mmn, out int mnv)) BridgeRenderer.mergeMin = mnv;
             BridgeRenderer.skinCull = BridgeArgs.Flag("-skin-cull");
@@ -727,7 +728,7 @@ namespace Hiraeth.Bridge
             if (thread == null || scriptEnvMade.IsSet) BridgePrewarm.Draw(cam, !booted);
             BridgePso.Tick(thread == null || scriptEnvMade.IsSet, scene && scene.Nodes > 0);   // (its warm-up waits for the engine too: it holds this thread as long; the Xbox's batches stop once the world is mirrored)
             FrameTimingManager.CaptureFrameTimings();
-            if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
+            if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; mainMs = timing[0].cpuMainThreadFrameTime; renderMs = timing[0].cpuRenderThreadFrameTime; }
             gpuSplit?.Tick();
             SampleRenderStats();
             DynamicResolution();

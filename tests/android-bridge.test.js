@@ -15,7 +15,9 @@ test('android-bridge.sh passes the plan quoted, stops a player that did not read
   assert.match(sh, /am force-stop "\$PKG"\s*\n\s*echo "the player did not read its plan/);
   assert.match(sh, /grep -q "mIsShowing=true"/, 'the keyguard itself (showingAndNotOccluded stays true unlocked on the Retroid)');
   assert.match(sh, /the plan from the intent: -level\.\* -mute/, 'the plan it read must carry -mute');
-  assert.match(sh, /^PKG=com\.rnaud\.hiraeth\.bridge$/m, 'its own package, never the web game\'s');
+  assert.match(sh, /^PKG=\$\{PKG:-com\.rnaud\.hiraeth\.bridge\}/m, 'its own package, never the web game\'s');
+  assert.match(sh, /case \$PKG in com\.rnaud\.hiraeth\|com\.rnaud\.hiraeth\.unity\) echo "never \$PKG" >&2; exit 1 ;; esac/, 'another bench id (PKG), never the web app\'s nor the testers\'');
+  assert.match(sh, /grep -m1 -oE "\(userId\|appId\)=\[0-9\]\+"/, 'the uid as newer Androids print it too (the Odin 3: appId=)');
 });
 
 test('android-bridge.sh stops a player whose audio stream starts; the bench\'s APK is built without Unity\'s audio', () => {
@@ -24,7 +26,8 @@ test('android-bridge.sh stops a player whose audio stream starts; the bench\'s A
   const checks = sh.match(/dumpsys audio \| grep "u\/pid:\$UID_\/" \| grep -q "state:started"/g) ?? [];
   assert.equal(checks.length, 2, 'once after the plan, then every 5 s while it runs');
   assert.match(sh, /am force-stop "\$PKG"\s*\n\s*echo "the player is playing sound despite -mute: stopped"/);
-  assert.match(build, /if \(!release\) UnityAudio\(true\);/, 'only the bench build, not the testers\'');
+  assert.match(build, /if \(!release && !Flag\("-unity-audio"\)\) UnityAudio\(true\);/, 'only the bench build, not the testers\' (-unity-audio keeps it: the effects decode through Unity, issue #803)');
+  assert.match(build, /if \(pkg == "com\.rnaud\.hiraeth" \|\| \(!release && pkg == ReleasePackage\)\)/, '-package never the web app\'s nor the testers\'');
   assert.match(build, /UnityAudio\(null\);\s*\n\s*Exit\(/, 'the project setting restored before the editor exits');
 });
 

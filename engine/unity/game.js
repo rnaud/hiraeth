@@ -2007,7 +2007,7 @@ function playFrame(dt) {
   else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (step.until ? step.until(game) || P.t >= (step.cap ?? 10) : ++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
     if (!P.samples && step.talk) talkClock(game, P);
-    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); host.RenderStats?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
+    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ApplySplit?.(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); host.RenderStats?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     if (step.path) {   // (along the path by the clock: the traveller set there, not walked, as the web bench does)
       P.pathT0 ??= now();
       const at = pathAt(step.path, ((now() - P.pathT0) / 1000) * (step.path.speed ?? 4));
@@ -2015,7 +2015,7 @@ function playFrame(dt) {
       game.pin({ eye: at.eye, target: at.target, fov: at.fov, hidePlayer: false });
     }
     P.samples ??= [];
-    P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
+    P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), main: host.LastFrameMainMs?.() ?? 0, render: host.LastFrameRenderMs?.() ?? 0, moved: r.stats.moved });
     P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
     if (P.t >= step.secs) {
       const s = P.samples.slice(5);
@@ -2023,12 +2023,14 @@ function playFrame(dt) {
       const nf = Math.max(backend.stats.frames - P.n0, 1);
       const split = { ...game.mirror.profile(), audio: +(S.audioMs / nf).toFixed(3), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks, clothWait: +((host.ClothMs?.() ?? 0) / nf).toFixed(3), capeWait: +((host.CapeMs?.() ?? 0) / nf).toFixed(3), mainWait: +((host.WaitMs?.() ?? 0) / nf).toFixed(3), threaded: !!host.Threaded?.() };   // (clothWait: the main thread waiting on the overshirt's job, BridgeCloth; capeWait: on the capes' jobs and their meshes)
       if (S.args.split && game.sections) split.update = game.sections();
+      // (the C# apply by op, ms a frame and ops a frame: BridgeRenderer.TakeOpSplit; 'late' its LateUpdate's draws)
+      if (S.args.split && host.ApplySplit) { try { split.applyOps = Object.fromEntries(Object.entries(JSON.parse(host.ApplySplit())).map(([k, [ms, n]]) => [k, [+(ms / nf).toFixed(3), +(n / nf).toFixed(1)]])); } catch { /* none */ } }
       if (S.args.split && host.GpuSplit) { try { split.gpu = JSON.parse(host.GpuSplit()); } catch { /* none */ } }
       // (the hitches: frames over twice the median, how many and how the script's time and the main thread's wait went then)
       const med = q('dt', 0.5), hit = s.filter((x) => x.dt > 2 * med);
       const hitches = { n: hit.length, vm: hit.length ? +(hit.reduce((a, x) => a + x.vm, 0) / hit.length).toFixed(2) : 0, every: hit.length > 1 ? +((s.indexOf(hit[hit.length - 1]) - s.indexOf(hit[0])) / (hit.length - 1)).toFixed(1) : 0 };
       if (P.talkMs) { split.talkGestures = +(P.talkMs.ms / nf).toFixed(3); split.talking = P.talkMs.n; P.talkMs.off(); P.talkMs = null; }
-      const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), frameP99: q('dt', 0.99), hitches, vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
+      const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), frameP99: q('dt', 0.99), hitches, vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), gpuP95: q('gpu', 0.95), main: q('main', 0.5), mainP95: q('main', 0.95), render: q('render', 0.5), renderP95: q('render', 0.95), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       // (every frame's interval, for the 1 % lows and the stalls: scripts/bench/deck-engines-summary.mjs)
       res.raw = s.map((x) => +x.dt.toFixed(2));
       // (what Unity drew a frame over the measure: its SetPass calls, triangles and vertices, every pass)

@@ -129,11 +129,11 @@ namespace Hiraeth.Bridge
         {
             keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName(); pointer = TakePointer(); menuPointer = TakeMenuPointer();
             RumbleTick();
-            if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; }
+            if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; mainMs = Runner.mainMs; renderMs = Runner.renderMs; }
             clock0 = Time.realtimeSinceStartupAsDouble * 1000 - clock.Elapsed.TotalMilliseconds;
         }
         static string keys = "", pad, mouse, padName = "", pointer = "", menuPointer = "";
-        static double cpuMs, gpuMs;
+        static double cpuMs, gpuMs, mainMs, renderMs;
 
         // ---------------------------------------------------------------- the mirror's ops
         public static void Geometry(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Geometry(key, b, n)); }
@@ -532,12 +532,17 @@ namespace Hiraeth.Bridge
         public static void WriteText(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, text); }
         public static double LastFrameCpuMs() => OnMain ? (Runner ? Runner.cpuMs : 0) : cpuMs;
         public static double LastFrameGpuMs() => OnMain ? (Runner ? Runner.gpuMs : 0) : gpuMs;
+        /// <summary>The last frame's main thread and render thread (FrameTimingManager's cpuMainThreadFrameTime, cpuRenderThreadFrameTime).</summary>
+        public static double LastFrameMainMs() => OnMain ? (Runner ? Runner.mainMs : 0) : mainMs;
+        public static double LastFrameRenderMs() => OnMain ? (Runner ? Runner.renderMs : 0) : renderMs;
         /// <summary>The GPU's passes, ms a frame since the last call (BridgeGpuSplit; "{}" without -split).</summary>
         /// <summary>Unity's SetPass calls, triangles and vertices, the mean a frame since the last call (JSON: BridgeRunner.RenderStats).</summary>
         public static string RenderStats() => Ask(() => Runner ? Runner.RenderStats() : "{}");
         public static string GpuSplit() => Ask(() => Runner && Runner.gpuSplit != null ? Runner.gpuSplit.Take() : "{}");
         /// <summary>The C# side's time applying the frames' commands since the last call (ms, summed).</summary>
         public static double ApplyMs() { var r = R; if (r is null) return 0; var v = r.msFrame; r.msFrame = 0; return v; }
+        /// <summary>The C# apply by op since the last call (a bench's -split: ms summed, JSON by op name; LateUpdate's draws as "late").</summary>
+        public static string ApplySplit() => Ask(() => R is { } r ? r.TakeOpSplit() : "{}");
         public static void Exit(int code) => On(() => Runner?.Exit(code));
         /// <summary>The main thread's time waiting on the script's frame since the last call (ms, summed; 0 without the thread).</summary>
         public static double WaitMs() { var r = Runner; if (r is null) return 0; var v = r.waitMs; r.waitMs = 0; return v; }
