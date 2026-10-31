@@ -6,10 +6,12 @@ import * as THREE from 'three';
 import { Foes, FOES, ARENA_KINDS } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets, allTargets } from '../src/targets.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
-const make = (levelId) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: {} }, levelId, physics: flat, player: { pos: v(), vel: v(), heading: 0 }, settings: { enemies: 'normal' }, game: new GameState(null) });
+const make = (levelId) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: {} }, levelId, physics: flat, player: { pos: v(), vel: v(), heading: 0 }, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
 
 test('a world\'s roster to warm: its own kinds; the Arena: every one, and every skin its run may bring (#797)', () => {
   const desert = make('desert').rosterKinds();

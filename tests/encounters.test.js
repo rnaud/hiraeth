@@ -20,6 +20,8 @@ import { ChimeField, connectDrops } from '../src/chimes.js';
 import { clearTargets } from '../src/targets.js';
 import { clearInteractables, allInteractables } from '../src/interact.js';
 import { hintsFor } from '../src/hint-level.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 30;
@@ -112,7 +114,7 @@ function world({ sites = null, at = v(0, 0, 0), enemies = true } = {}) {
   const levelId = 'desert';
   const saved = SITES[levelId];
   if (sites) SITES[levelId] = sites;
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -900), id: levelId }, levelId, content: { npcs: [] }, physics: flat, player: P, settings: { enemies: enemies ? 'normal' : 'off' }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -900), id: levelId }, levelId, content: { npcs: [] }, physics: flat, player: P, settings: { enemies: enemies ? 'normal' : 'off' }, game, rng: seeded() });
   const E = new Encounters({ foes, scene: new THREE.Scene(), level: { id: levelId }, levelId, physics: flat, player: P, game, toast: (t) => toasts.push(t), teach: (t) => toasts.push(t), rng: () => 0.5 });
   const restore = () => { SITES[levelId] = saved; E.dispose(); foes.dispose(); };
   const step = (secs) => { for (let i = 0; i < secs / DT; i++) { foes.update(DT); E.update(DT, i * DT); } };
@@ -251,7 +253,7 @@ test('a pack comes in together where the ground holds all of it, or not at all (
   const kinds = ['lizard', 'lizard', 'crab', 'crab'];
   assert.equal(F.packSpots(kinds), null, 'no spot holds the pack: it waits');
   // open ground: all of it, round its lead, each within the spread
-  const G = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -900) }, levelId: 'bazaar', content: { npcs: [] }, physics: flat, player: P, settings: { enemies: 'normal' }, game });
+  const G = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -900) }, levelId: 'bazaar', content: { npcs: [] }, physics: flat, player: P, settings: { enemies: 'normal' }, game, rng: seeded() });
   const spots = G.packSpots(kinds);
   assert.equal(spots.length, 4);
   for (const s of spots.slice(1)) assert.ok(s.distanceTo(spots[0]) <= PACK.spread[1] + 1e-6, 'together round its lead');

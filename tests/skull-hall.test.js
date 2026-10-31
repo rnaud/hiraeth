@@ -14,6 +14,8 @@ import { WORLDS, worldArchetypes } from '../src/foe-worlds.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
 import { clearInteractables } from '../src/interact.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
@@ -31,7 +33,7 @@ function world({ at = v(0, 0, 20), enemies = true, armed = true, site = HALL } =
   game.on('site:fell', (e) => fell.push(e));
   const tool = armed ? null : { swordOn: false };
   const level = { spawn: v(0, 0, -900), id: 'desert', sites: [site] };
-  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', content: { npcs: [] }, physics: flat, player: P, tool, settings: { enemies: enemies ? 'normal' : 'off' }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', content: { npcs: [] }, physics: flat, player: P, tool, settings: { enemies: enemies ? 'normal' : 'off' }, game, rng: seeded() });
   const E = new Encounters({ foes, scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, game, tool, toast: (t) => toasts.push(t), teach: (t) => toasts.push(t), rng: () => 0.5 });
   const step = (secs) => { for (let i = 0; i < secs / DT; i++) { foes.update(DT); E.update(DT, i * DT); } };
   return { game, P, foes, E, toasts, fell, step, restore: () => { E.dispose(); foes.dispose(); } };

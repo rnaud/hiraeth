@@ -12,6 +12,8 @@ import { fistTurn, curlAngles, slerpDir, frameDir, WRIST, SWORD_WRIST } from '..
 import { Foes } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60, deg = 180 / Math.PI;
 const parse = async (n) => { const b = await readFile(new URL(`../public/anim/${n}`, import.meta.url)); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
@@ -75,7 +77,7 @@ test('with the clips: every armed foe holds its weapon in a closed fist, along t
   setFoeClips(await library());
   clearTargets();
   const P = { pos: v(0, 0, -4), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: true, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } }, rng: seeded() });
   foes.setPractice('');
   const quat = (o) => o.getWorldQuaternion(new THREE.Quaternion());
   for (const [kind, K] of Object.entries(KINDS)) {

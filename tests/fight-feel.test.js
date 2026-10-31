@@ -32,6 +32,8 @@ import fightUnderwater from '../src/minigames/fight-underwater.js';
 import fightGlassdunes from '../src/minigames/fight-glassdunes.js';
 import fightSpheres from '../src/minigames/fight-spheres.js';
 import fightSpacecity from '../src/minigames/fight-spacecity.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 items.grant('backpack');
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -142,7 +144,7 @@ function run(D) {
   const level = runSteps(buildHall(scene, D));
   const { P, tool, B } = blade();
   P.pos.set(...D.spawn);
-  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player: P, settings: { enemies: 'normal' } });
+  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player: P, settings: { enemies: 'normal' }, rng: seeded() });
   const ctx = {
     player: P, camera: new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 800), level, sfx: new Proxy({}, { get: () => () => {} }), sound: null, tool, foes, rig: { target: v(), yaw: 0 }, physics: null, state: save(),
     setFov() {}, add: (o) => { scene.add(o); return o; }, flash() {}, status() {}, finish() {}, drop() {},

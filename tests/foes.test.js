@@ -11,6 +11,8 @@ import { clearTargets, registerTarget, allTargets } from '../src/targets.js';
 import { HIT } from '../src/temples/boss.js';
 import { GameState } from '../src/game-state.js';
 import { items } from '../src/items.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 items.grant('backpack');
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -94,7 +96,7 @@ test('out in the wilds a pack of ink blots comes in (the first time one), out of
   clearTargets();
   const game = new GameState(null), notes = [];
   const P = player(v(0, 0, 400));
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', content: { npcs: [{ at: [0, 30] }] }, physics: flat, player: P, settings: { enemies: true }, game, notice: (t) => notes.push(t) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', content: { npcs: [{ at: [0, 30] }] }, physics: flat, player: P, settings: { enemies: true }, game, notice: (t) => notes.push(t), rng: seeded() });
   let t = 0;
   for (; t < 20 && !foes.list.length; t += DT) foes.update(DT);
   assert.ok(t > PACK.settle, 'not at once: a few seconds out there first');
@@ -119,14 +121,14 @@ test('out in the wilds a pack of ink blots comes in (the first time one), out of
   // near the ship there are none
   clearTargets();
   const Q = player(v(0, 0, 5));
-  const calm = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: Q, settings: { enemies: true }, game });
+  const calm = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: Q, settings: { enemies: true }, game, rng: seeded() });
   for (let i = 0; i < 10 / DT; i++) calm.update(DT);
   assert.equal(calm.list.length, 0, 'by the ship: none');
   // the Enemies setting off, or a peaceful world: none
-  const off = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: player(v(0, 0, 400)), settings: { enemies: false }, game });
+  const off = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: player(v(0, 0, 400)), settings: { enemies: false }, game, rng: seeded() });
   for (let i = 0; i < 10 / DT; i++) off.update(DT);
   assert.equal(off.list.length, 0, 'Enemies off: none');
-  const home = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'home', physics: flat, player: player(v(0, 0, 400)), settings: { enemies: true }, game });
+  const home = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'home', physics: flat, player: player(v(0, 0, 400)), settings: { enemies: true }, game, rng: seeded() });
   for (let i = 0; i < 10 / DT; i++) home.update(DT);
   assert.equal(home.list.length, 0, 'at home: none');
   clearTargets();
@@ -139,14 +141,14 @@ test('cutting a foe down gives the tank a charge back; a broken machine stays br
   const marks = [{ pos: v(0, 0, 0), heading: 0 }, { pos: v(0, 0, 30), heading: 0 }];
   const level = { spawn: v(), temple: { marks, inside: () => true } };
   const P = player(v(0, 0, 30));
-  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game, rng: seeded() });
   assert.equal(foes.list.filter((f) => f.kind === 'machine').length, 1, 'one machine by the second room\'s mark (none by the first)');
   const m = foes.list[0];
   for (const d of BLADE.damage) foes.hurt(m, 'blade', v(0, 0, 1), { damage: d });
   assert.equal(tool.reserve.level, 2, 'a charge back');
   assert.equal(game.flag(m.id), true, 'remembered');
   clearTargets();
-  const again = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  const again = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game, rng: seeded() });
   assert.equal(again.list.length, 0, 'broken, it stays broken');
   clearTargets();
 });
@@ -160,7 +162,7 @@ test('unarmed (v1.44: the sword not found), nothing comes to fight: no pack, no 
   const rt = { id: 'desert', marks, inside: () => false, def: { encounter: { room: 'chest', extra: 1, on: () => on } } };
   const level = { spawn: v(), temple: rt };
   const P = player(v(0, 0, 400));
-  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game, rng: seeded() });
   for (let i = 0; i < 12 / DT; i++) foes.update(DT);
   assert.equal(foes.list.length, 0, 'unarmed: no pack out in the wilds, no machine in the temple');
   assert.equal(foes.wild(P.pos), false);
@@ -180,7 +182,7 @@ test('a house redone to issue #336 tags its rooms: no machine by a puzzle roomâ€
   const tool = { swordOn: true, reserve: { level: 1, max: 3 }, drops: { add() {} }, glow: { add() {} }, modeTones: ['#fff'] };
   const marks = [{ pos: v(0, 0, 0), heading: 0, room: 'a' }, { pos: v(0, 0, 30), heading: 0, room: 'puzzle' }, { pos: v(-12, 0, 60), heading: 0, room: 'fight', foes: v(0, 0, 75) }];
   const rt = { id: 'desert', marks, inside: () => false, def: { logic: { rooms: { a: { kind: 'passage' }, puzzle: { kind: 'puzzle' }, fight: { kind: 'combat' } } } } };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: rt }, levelId: 'desert', physics: flat, player: player(v(0, 0, 400)), tool, settings: { enemies: true }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: rt }, levelId: 'desert', physics: flat, player: player(v(0, 0, 400)), tool, settings: { enemies: true }, game, rng: seeded() });
   foes.update(DT);
   assert.equal(foes.list.filter((f) => f.room === 'puzzle').length, 0, 'none in the puzzleâ€™s room');
   const fight = foes.list.filter((f) => f.room === 'fight');
@@ -229,7 +231,7 @@ test('held, the separate guard button raises the guard: a strike from in front i
   assert.ok(tool.blade.guarding, 'the guard is up');
   assert.equal(typeof P.guard, 'function', 'the player asks the blade');
   const game = new GameState(null);
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies: true }, game, rng: seeded() });
   const front = foes.add('blot', v(0, 0, 1.5)), charges = tool.reserve.charges;
   assert.equal(foes.strike(front), false, 'blocked');
   assert.deepEqual(P.hurts, [], 'no harm');
@@ -265,7 +267,7 @@ test('feel: a hit-stop nearly stops the world for its length, then lets go; four
   assert.equal(feelDt(DT), DT, 'and back to its pace');
   clearTargets();
   const P = player(v(0, 0, 0));
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null), rng: seeded() });
   foes.waveRest = 999;
   for (const [x, z] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) foes.add('blot', v(x, 0, z));
   let most = 0;
@@ -326,13 +328,13 @@ test('difficulty: gentle halves the harm, slows the wind-ups and lets one strike
   assert.equal(migrateSettings({ enemies: false }).enemies, 'off');
   clearTargets();
   const P = player(v(0, 0, 0));
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'gentle' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'gentle' }, game: new GameState(null), rng: seeded() });
   assert.equal(foes.strikers, 1);
   const f = foes.add('blot', v(0, 0, 1.5));
   P.health = 0.2; foes.strike(f);
   assert.ok(Math.abs(P.hurts.at(-1) - FOES.blot.attack.damage * GENTLE.harm) < 1e-9, 'half the harm');
   assert.equal(foes.env.slow(), GENTLE.wind);
-  const off = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'off' }, game: new GameState(null) });
+  const off = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'off' }, game: new GameState(null), rng: seeded() });
   assert.equal(off.on, false);
   foes.dispose(); off.dispose(); clearTargets();
 });
@@ -349,7 +351,7 @@ test('the shade: a cloak worn by nothing (batch 5), in later packs and in the Ar
   assert.equal(waveWords(['shade', 'shade', 'blot']), '2 shades and 1 ink blot');
   // (its body is its own: src/enemies/plans/humanoid.js, built in node too)
   clearTargets();
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: player(v()), settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: player(v()), settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const s = foes.add('shade', v(0, 0, 2));
   for (let i = 0; i < 4; i++) foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
   assert.equal(s.alive, true, 'four cuts are not enough');
@@ -365,7 +367,7 @@ test('in a temple the machines meet its kit: a gust shoves them, and one standin
   const gust = { dirW: v(1, 0, 0), push: 7.5, state: 1, box: new THREE.Box3(v(-5, -1, -5), v(5, 5, 5)), sheltered: () => false };
   const plate = { id: 'p1', pos: v(20, 0, 0), r: 1.3, solid: {}, weighed: () => false };
   const rt = { kit, pieces: [gust, plate], marks: [], logic: { press: (id, by) => pressed.add(`${id}:${by}`), release: (id, by) => pressed.delete(`${id}:${by}`) }, inside: () => true };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), temple: rt }, levelId: 'desert', physics: flat, player: player(v(0, 0, -30)), settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), temple: rt }, levelId: 'desert', physics: flat, player: player(v(0, 0, -30)), settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const m = foes.add('machine', v(0, 0, 0)), n = foes.add('machine', v(20, 0, 0));
   foes.templeKit();
   assert.ok(m.vel.x > 4, 'shoved down the hall');
@@ -378,7 +380,7 @@ test('in a temple the machines meet its kit: a gust shoves them, and one standin
 test('encounters request battle music on engagement and release on defeat, pause, death and disabled enemies', () => {
   clearTargets();
   const P = player(), events = [];
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null), sound: { combat: on => events.push(on) } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null), sound: { combat: on => events.push(on) }, rng: seeded() });
   const f = foes.add('blot', v(0, 0, 8));
   foes.update(DT); assert.equal(events.at(-1), true, 'noticed enemy begins combat');
   foes.update(DT, true); assert.equal(events.at(-1), false, 'paused');

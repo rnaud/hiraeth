@@ -13,12 +13,14 @@ import { foeSections, filterSections, FoeList } from '../src/foe-spawner.js';
 import { GUARDIANS, ArenaGuardians, RING } from '../src/arena-guardians.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 function player(at = v()) { return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: 0, knocks: 0, hurt() { this.hurts++; }, knockDown() { this.knocks++; return true; }, flinch() {} }; }
-const world = (P, notes = []) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t) });
+const world = (P, notes = []) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t), rng: seeded() });
 const skinWaves = BUILT.reduce((n, a) => n + Object.keys(SKINS[a]).length, 0);
 
 test('the Arena’s waves: the ink and the worlds’ kinds first, then each built archetype in each of its skins, then each world’s own; round again', () => {

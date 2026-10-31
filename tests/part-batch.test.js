@@ -13,6 +13,8 @@ import { Foes } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const near = (a, b, eps = 1e-5) => a.every((x, i) => Math.abs(x - b[i]) < eps);
@@ -93,7 +95,7 @@ test('every archetype of the roster is batched: about half the draws, nothing dr
   clearTargets();
   const P = { pos: v(), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
   const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } }, rng: seeded() });
   foes.setPractice('');
   let parts = 0, draws = 0, all = 0;
   for (const id of Object.keys(ARCHETYPES).filter((a) => ARCHETYPES[a].status === 'built')) {

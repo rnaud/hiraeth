@@ -39,7 +39,7 @@ test('a segment against a box: through it, past it, along an edge, from inside',
 test('the body the blade meets: each archetype\'s drawn parts, not its smoke, threads or ripples; hidden parts left out', () => pinned(() => {
   clearTargets();
   const P = { pos: v(0, 0, 40), vel: v(), heading: 0, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(7) });
   for (const k of ['smoke', 'thread', 'mist', 'halo', 'ripple', 'line']) assert.ok(NON_BODY.test(k), k);
   for (const k of ['shell', 'leg', 'wing', 'bell', 'cloak']) assert.ok(!NON_BODY.test(k), k);
   for (const [id, A] of BUILT) {

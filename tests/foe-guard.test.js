@@ -7,6 +7,8 @@ import { hopFits, perfectAgainst } from '../src/flurry.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { setHintLevel } from '../src/hint-level.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // Guards and their breakers (issue #661, docs/design/combat-botw-study.md ranked changes 2-4; docs/systems/foes.md
 // "Guards and their breakers"). Each guarded kind is fought in the Arena, headless: the right answer wins it, the wrong
@@ -22,7 +24,7 @@ function player(o = {}) {
 function arena(kind, o = {}) {
   clearTargets();
   const notes = [], P = player(o);
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t), rng: seeded() });
   const f = foes.add(kind, v(0, 0, o.at ?? 2.4)); f.heading = Math.PI;   // (facing the traveller at the origin)
   return { foes, f, P, notes, done: () => { foes.dispose(); clearTargets(); } };
 }

@@ -9,6 +9,8 @@ import { SceneMirror } from '../engine/mirror.js';
 import { Foes } from '../src/foes.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 installMatrixCache();
 watchSceneEdits();
@@ -22,7 +24,7 @@ for (const opts of [{}, { quietWalk: true, listMatrices: true, stillMatrices: tr
     clearTargets();
     const P = { pos: v(5, 0, 3), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} };
     const scene = new THREE.Scene();
-    const foes = new Foes({ scene, level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+    const foes = new Foes({ scene, level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
     foes.waveRest = 1e9;
     const sent = new Map(), bones = new Map();
     const B = { geometry() {}, material() {}, create() {}, visible() {}, geometryOf() {}, vertices() {}, instances() {}, materialLive() {}, keyWeights() {}, remove() {}, camera() {},

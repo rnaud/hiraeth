@@ -26,6 +26,8 @@ import { UNDERWATER_FIGHT } from '../src/fight-temples/underwater.js';
 import { GLASSDUNES_FIGHT } from '../src/fight-temples/glassdunes.js';
 import { SPHERES_FIGHT } from '../src/fight-temples/spheres.js';
 import { SPACECITY_FIGHT } from '../src/fight-temples/spacecity.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const TEMPLES = [D, ARZACH_FIGHT, PERDIDE_FIGHT, MOONFOUNDRY_FIGHT, EDENA_FIGHT, INCAL_FIGHT, BURIED_FIGHT, BAZAAR_FIGHT, UNDERWATER_FIGHT, GLASSDUNES_FIGHT, SPHERES_FIGHT, SPACECITY_FIGHT];
@@ -147,7 +149,7 @@ function simulate() {
     frame: { dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)), headingOf: (v) => Math.atan2(v.x, v.z) },
     respawn: (p) => pos.copy(p), restore(h) { this.hearts = Math.min(this.maxHearts, this.hearts + h); }, restart() {},
   };
-  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: 'normal' } });
+  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: 'normal' }, rng: seeded() });
   const flags = {}, state = { data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; }, emit() {}, on: () => () => {} };
   const out = { flashes: [], ticks: [] };
   const sound = { lockOn: (on) => out.ticks.push(on) };

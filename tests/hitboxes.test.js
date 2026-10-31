@@ -9,6 +9,8 @@ import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { collectHitboxes, foeHitboxes, playerHitboxes, gadgetHitboxes, registerHitboxes, hitboxes, HITBOX_COLORS } from '../src/hitboxes.js';
 import { HitboxBuilder } from '../src/hitbox-overlay.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
 const env = { ground: () => 0, seen: () => true };
@@ -137,7 +139,7 @@ test('a bellows toad\'s lobbed glob: the ring where you stood, telegraphed, chec
 test('a foe\'s hurt sphere is its registered target\'s, the blade ring that plus BLADE_TOUCH; ranges and label', () => {
   clearTargets();
   const P = { pos: v(0, 0, 50), vel: v(), frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   for (const kind of Object.keys(FOES)) {
     const f = foes.add(kind, v(3, 0, 0));
     const t = allTargets().find((x) => x.foe === f);

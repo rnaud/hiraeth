@@ -7,6 +7,8 @@ import * as THREE from 'three';
 import { shareShapes, disposeOwnShapes, disposeShapes } from '../src/foe-shapes.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { Foes } from '../src/foes.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const geos = (root) => { const s = []; root.traverse((o) => { if (o.geometry) s.push(o.geometry); }); return s; };
 const disposed = (g) => { let n = 0; g.addEventListener('dispose', () => n++); return () => n; };
@@ -55,7 +57,7 @@ test('a foe let go keeps the shared shapes; the cache lets go of them last', () 
 });
 
 test('Foes: the warm bodies seed the shapes, every spawn of a kind draws them, a death lets go of none', () => {
-  const foes = new Foes({ scene: new THREE.Scene(), level: { foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new THREE.Vector3(), heading: 0 } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new THREE.Vector3(), heading: 0 }, rng: seeded() });
   const warm = foes.warmModels(['brute', 'skitter']);
   const warmGeos = new Set(geos(warm.group));
   warm.dispose();

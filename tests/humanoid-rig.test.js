@@ -16,6 +16,8 @@ import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { Foes, FOES } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -88,7 +90,7 @@ test('with the clips: the bodies take the clip\'s pose, hold the loaded wind-up,
   assert.ok(foeClips());
   clearTargets();
   const P = { pos: v(0, 0, -4), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: true, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } }, rng: seeded() });
   foes.setPractice('');
   for (const [kind, D, id] of [['mummer', MUMMER_BODY, 'whack'], ['mummerking', KING_BODY, 'smash']]) {
     const f = foes.add(kind, v(0, 0, 0)); f.provoked = true;

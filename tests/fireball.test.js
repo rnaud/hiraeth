@@ -15,6 +15,8 @@ import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { BALL_VOICES, CUES, FOE_VOICES } from '../src/foe-voices.js';
 import { MOONFOUNDRY_FIGHT } from '../src/fight-temples/moonfoundry.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -23,7 +25,7 @@ function player(at = v(), o = {}) {
   return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: [], knocks: 0, flinches: 0,
     hurt(a) { this.hurts.push(a); }, knockDown() { this.knocks++; return true; }, flinch() { this.flinches++; }, ...o };
 }
-const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
+const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(), ...o });
 /** A wisp 10 m ahead of the traveller (who faces it, +z), a blade that cuts when told. */
 function fight(o = {}) {
   clearTargets();

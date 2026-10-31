@@ -33,6 +33,8 @@ import { FOES, Foes } from '../src/foes.js';
 import { WORLDS } from '../src/foe-worlds.js';
 import { spawnKindOf } from '../src/enemies/archetypes.js';
 import { colourById, colourOfWorld, chosenColour, PIECES } from '../src/kit-colours.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const GAMES = [fightArzach, fightPerdide, fightMoonfoundry, fightEdena, fightIncal, fightBuried, fightBazaar, fightUnderwater, fightGlassdunes, fightSpheres, fightSpacecity];
 const save = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; }, emit() {}, on: () => () => {} });
@@ -224,7 +226,7 @@ function simulate(D, { flags = {}, gentle = false, harm = 1 } = {}) {
     hurt(n, why) { hurts.push([why, n]); }, flinch() {}, dodge() { return this.rolling; },
     respawn: (p) => pos.copy(p), restore(h) { this.hearts = Math.min(this.maxHearts, this.hearts + h); }, restart() {},
   };
-  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: gentle ? 'gentle' : 'normal' } });
+  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: gentle ? 'gentle' : 'normal' }, rng: seeded() });
   const state = save(flags);
   const out = { finished: null, drops: 0, added: [] };
   const ctx = {

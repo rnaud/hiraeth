@@ -11,6 +11,8 @@ import { Sound } from '../src/audio.js';   // (its synthesis only, on a bare con
 import { Foe, Foes } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const fightRng = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const RATE = 24000;
 /** A bare voice box: Sound's own synthesis on a fresh in-memory context, its fx bus straight to the output (no reverb, no score). */
@@ -133,7 +135,7 @@ function arena() {
   const sounds = [], P = { pos: v(0, 0, 0), vel: v(), heading: 0, onGround: true, ride: null, down: null, dead: false, health: 1, opts: {}, hurt() {}, knockDown() { return true; } };
   const sound = { foeHurt: (k, s) => sounds.push(`hurt:${k}:${s ?? ''}`), foeBurst: (k, s) => sounds.push(`burst:${k}:${s ?? ''}`), foeGlance: () => sounds.push('glance'), foeArmour: () => sounds.push('armour'), whoosh() {}, foeWarn() {}, combat() {} };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, sound,
-    settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+    settings: { enemies: 'normal' }, game: new GameState(null), notice() {}, rng: fightRng() });
   foes.waveRest = 1e9;
   return { foes, sounds };
 }
@@ -244,7 +246,7 @@ test('the foes give their sounds a place: a wind-up and a cut each pass the foe\
   const calls = [], P = { pos: v(0, 0, 0), vel: v(), heading: 0, onGround: true, ride: null, down: null, dead: false, health: 1, opts: {}, hurt() {}, knockDown() { return true; }, guard: () => null, dodge: () => false };
   const sound = { foeHurt: (k, s, pos) => calls.push({ e: 'hurt', pos }), foeWarn: (k, d, pos) => calls.push({ e: 'warn', pos }), foeBurst() {}, foeGlance() {}, foeArmour() {}, whoosh() {}, combat() {} };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, sound,
-    settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+    settings: { enemies: 'normal' }, game: new GameState(null), notice() {}, rng: fightRng() });
   foes.waveRest = 1e9;
   const f = foes.add('blot', v(0, 0, 3));
   for (let i = 0; i < 1200 && !calls.some((c) => c.e === 'warn'); i++) foes.update(1 / 60);

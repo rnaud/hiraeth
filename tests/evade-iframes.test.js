@@ -13,6 +13,8 @@ import { GameState } from '../src/game-state.js';
 import { items } from '../src/items.js';
 import { feelState, resetFeel } from '../src/feel.js';
 import { tune } from '../src/minigames/kit/onfoot.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 items.grant('backpack');
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -31,7 +33,7 @@ function setup(enemies = true) {
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
   const P = player();
   const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics: flat, camera, rig: { aimK: 0 }, state: new GameState(null) });
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies }, game: new GameState(null), rng: seeded() });
   const B = tool.blade;
   B.gentle = foes.gentle;
   /** Rested (no cooldown, no rest), then an evade `frames` frames old. */

@@ -14,6 +14,8 @@ import { clearTargets, registerTarget } from '../src/targets.js';
 import { Foes, FOES } from '../src/foes.js';
 import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
 import { snapshot } from './rollback.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
 
@@ -109,7 +111,7 @@ const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => nul
 function arena(kind, at) {
   clearTargets();
   const P = { pos: v(), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, stagger() {}, flinch() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const f = foes.add(kind, v(0, 0, at)); f.heading = Math.PI;
   for (let i = 0; i < 100 && f.guardK < 1; i++) { f.cool = Math.max(f.cool, 3); foes.update(dt); }
   return { foes, f };

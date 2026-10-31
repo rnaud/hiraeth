@@ -15,6 +15,8 @@ import { items } from '../src/items.js';
 import { clearTargets } from '../src/targets.js';
 import { SmokePuffs, SMOKE, blobScale } from '../src/smoke-puff.js';
 import { GUARDIANS } from '../src/arena-guardians.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60;
 
@@ -124,7 +126,7 @@ function world() {
   const P = stillPlayer();
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics: flat, camera, rig: { aimK: 0 }, state: new GameState(null) });
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   return { P, tool, foes };
 }
 

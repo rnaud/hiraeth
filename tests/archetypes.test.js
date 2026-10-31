@@ -21,6 +21,8 @@ import { VerletChain } from '../src/motion-kit/chain.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { setHintLevel } from '../src/hint-level.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');
@@ -33,7 +35,7 @@ function player(at = v(), o = {}) {
   return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: [], knocks: 0, flinches: 0,
     hurt(a) { this.hurts.push(a); }, knockDown() { this.knocks++; return true; }, flinch() { this.flinches++; }, ...o };
 }
-const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
+const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(), ...o });
 // (issue #724: the humanoid foes on clips join the roster world by world, docs/design/enemy-roster-v3.md: the mummers
 // keep camp in the Desert first, the rest of their worlds and skins to come; until then they stand in fewer worlds)
 const ROLLING_OUT = new Set(['mummer', 'mummerking', 'dunemummer']);   // (the camp tribe, met where its camps are: the Desert, and the dune mummer the Glass Dunes too, #800)
@@ -415,7 +417,7 @@ test('calm until provoked: wildlife grazes or basks, backs off or watches; close
   assert.ok(l.provoked && l.state !== 'idle', 'hurt: provoked');
   // one of its own roused nearby: the partner too (Foes.alarm)
   clearTargets();
-  const Q = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'bazaar', physics: flat, player: Q, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const Q = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'bazaar', physics: flat, player: Q, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const a = foes.add('lizard', v(0, 0, 4), { calm: true }), b = foes.add('lizard', v(4, 0, 9), { calm: true });
   for (let i = 0; i < 30; i++) foes.update(DT);
   assert.ok(a.state !== 'idle', 'the near one is roused (6 m)');
@@ -602,7 +604,7 @@ test('the ring centipede: it spirals round where you stood into a ring and close
 
 test('the lantern jelly: it never starts a fight but joins one; it wards a neighbour (half the harm, no staggers) with a lantern a shot or the boomerang pops; it mends in its tier-2 skins; its curtain stings under it', () => {
   clearTargets();
-  const P = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'spheres', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const P = player(v(0, 0, 0)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'spheres', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const j = foes.add('jelly', v(0, 0, 1), { calm: true }), r = foes.add('crab', v(0, 0, 9), { calm: true });
   for (let i = 0; i < 30; i++) foes.update(DT);
   assert.equal(j.state, 'idle', 'right over you, it still starts nothing');

@@ -18,6 +18,8 @@ import { attachMotion } from '../src/motion-match.js';
 import { HOLD_AT, setFoeClips } from '../src/enemies/humanoid-rig.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 /** A model's skinned meshes of one material (its bind pose: the body as built, standing). */
@@ -97,7 +99,7 @@ test('with the clips: the grunt\'s club tilted back over its shoulder, the hulk 
   setFoeClips(lib);
   clearTargets();
   const P = { pos: v(0, 0, -6), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: true, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, stagger() {}, flinch() {}, guarding() { return false; }, guard() { return false; } };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   foes.setPractice('');
   const DT = 1 / 60, run = (f, n, set) => { for (let i = 0; i < n; i++) { set?.(i); foes.look(f, DT); } };
   const atk = (f, id) => f.def.attacks.find((a) => a.id === id);

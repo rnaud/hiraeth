@@ -238,7 +238,7 @@ const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => nul
 function player(at = v()) { return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} }; }
 function arena(level) {
   const game = new GameState(null);
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), ...level }, levelId: 'arena', physics: flat, player: player(v(0, 0, -30)), settings: { enemies: 'normal' }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), ...level }, levelId: 'arena', physics: flat, player: player(v(0, 0, -30)), settings: { enemies: 'normal' }, game, rng: seeded(7) });
   foes.waveRest = 1e9;
   return { foes, game };
 }

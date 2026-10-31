@@ -9,6 +9,8 @@ import { ARCHETYPE_KINDS } from '../src/enemies/archetypes.js';
 import { BLADE, EVADE, GUARD } from '../src/fluid-blade.js';
 import { checkGame } from '../src/minigames/kit/registry.js';
 import { mulberry32 } from '../src/noise.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const costOf = (kinds) => kinds.reduce((a, k) => a + COST[k] / (GROUP[k] ?? 1), 0);
 const standing = (kinds) => kinds.reduce((a, k) => a + heads(k), 0);
@@ -140,11 +142,11 @@ test('the basin: a flat floor, a low rim, the shore down under the ink; the spri
 
 test('a game’s own foes: on whatever the Enemies setting, none from the wilds, no ink for the blade', () => {
   const level = { foes: { own: true, wild: false, noInk: true } };
-  const F = new Foes({ scene: null, level, levelId: 'arena', physics: null, player: { pos: { x: 0, y: 0, z: 0 } }, settings: { enemies: 'off' } });
+  const F = new Foes({ scene: null, level, levelId: 'arena', physics: null, player: { pos: { x: 0, y: 0, z: 0 } }, settings: { enemies: 'off' }, rng: seeded() });
   assert.equal(F.on, true);
   assert.equal(F.waves, true);
   assert.equal(F.own, true);
-  const plain = new Foes({ scene: null, level: { foes: { wild: false } }, levelId: 'arena', physics: null, player: {}, settings: { enemies: 'off' } });
+  const plain = new Foes({ scene: null, level: { foes: { wild: false } }, levelId: 'arena', physics: null, player: {}, settings: { enemies: 'off' }, rng: seeded() });
   assert.equal(plain.on, false);
 });
 
@@ -152,7 +154,7 @@ test('foes made and let go leave no materials behind (200 over a long Ink tide, 
   const THREE = await import('three');
   const { materialCount } = await import('../src/materials.js');
   const level = { foes: { own: true, wild: false, noInk: true } };
-  const F = new Foes({ scene: new THREE.Scene(), level, levelId: 'arena', physics: null, player: { pos: { x: 0, y: 0, z: 0 } }, settings: { enemies: 'off' } });
+  const F = new Foes({ scene: new THREE.Scene(), level, levelId: 'arena', physics: null, player: { pos: { x: 0, y: 0, z: 0 } }, settings: { enemies: 'off' }, rng: seeded() });
   const kinds = Object.keys(FIRST).concat('crab@saltharbour', 'lizard@bazaar', 'tripod@underwater', 'hound@spheres');
   const wave = (n) => { const fs = []; for (let i = 0; i < n; i++) fs.push(F.add(kinds[i % kinds.length], new THREE.Vector3(i, 0, 0))); for (const f of fs) F.remove(f); };
   wave(kinds.length);   // the shared ones made once

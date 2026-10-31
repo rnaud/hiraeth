@@ -8,11 +8,13 @@ import * as THREE from 'three';
 import { Foes, BODY_BLOCK, blockPush, blockSweep } from '../src/foes.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 const player = (at) => ({ pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} });
-const world = (P) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+const world = (P) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
 
 test('the push: none outside the ring, the overlap inside it', () => {
   assert.equal(blockPush(2, 1.2), 0); assert.ok(Math.abs(blockPush(0.7, 1.2) - 0.5) < 1e-9);
@@ -105,7 +107,7 @@ test('a wall at his back: the foe gives way instead, and never steps through a w
   clearTargets();
   // a wall along z = -1 (nothing passes from z > -1 to z < -1)
   const walled = { groundAt: () => 0, rayHit: () => null, rayDistance: (o, d, far) => { if (d.z >= 0 || o.z < -1) return Infinity; const t = (o.z + 1) / -d.z; return t <= far ? t : Infinity; } };
-  const P = player(v(0, 0, -0.6)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: walled, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const P = player(v(0, 0, -0.6)), foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: walled, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const g = foes.add('grunt', v(0, 0, 0));
   g.state = 'idle';
   foes.keepOff();

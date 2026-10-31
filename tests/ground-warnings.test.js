@@ -11,6 +11,8 @@ import { inArea } from '../src/temples/boss.js';
 import { Foes, FOES } from '../src/foes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets } from '../src/targets.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -128,7 +130,7 @@ function field() {
   clearTargets();
   const P = { pos: v(), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: 0, rolling: false,
     hurt() { this.hurts++; }, knockDown() { return true; }, flinch() {}, stagger() {}, guarding() { return false; }, guard() { return false; }, dodge() { return false; } };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   foes.waveRest = 1e9;
   return { foes, P, done: () => { foes.dispose(); clearTargets(); } };
 }

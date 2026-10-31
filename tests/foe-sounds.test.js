@@ -13,6 +13,8 @@ import { clearTargets } from '../src/targets.js';
 import { voiceLength } from '../src/foe-voices.js';
 import { FOE_TRIM } from '../src/foe-sound-trims.js';
 import { FOE_CALLS, FOE_MOVES, FOE_BLOWS, FOE_SOUND, FoeSounds, attackSort, blowLayers, callKey, callsOf, moveKey, movesOf, isMetal, dying, bodyPitch, bodyLoud, trimOf } from '../src/foe-sounds.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const fightRng = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const RATE = 24000;
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -178,7 +180,7 @@ test('the foes voice it: spotting you, winding up, striking, each at its chest; 
   const P = { pos: v(0, 0, 0), vel: v(), heading: 0, onGround: true, ride: null, down: null, dead: false, health: 1, opts: {}, hurt() {}, knockDown() { return true; }, guard: () => null, dodge: () => false };
   const sound = { foeSay: (layers, pos, o) => { said.push({ layers, pos, warn: !!o?.warn }); return voiceLength(layers); }, foeHurt() {}, foeBurst: (k, s, pos) => other.push({ e: 'burst', pos }), foeGlance() {}, foeArmour() {}, whoosh() {}, foeWarn() {}, combat() {} };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, sound,
-    settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+    settings: { enemies: 'normal' }, game: new GameState(null), notice() {}, rng: fightRng() });
   foes.waveRest = 1e9;
   const f = foes.add('grunt', v(0, 0, 3));
   for (let i = 0; i < 1500 && !said.some((c) => c.warn); i++) foes.update(1 / 60);

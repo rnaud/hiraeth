@@ -11,6 +11,8 @@ import { archetypeModel } from '../src/enemies/plans/index.js';
 import { windMin } from '../src/telegraph.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // The makers' fencer (issue #665; docs/design/combat-botw-study.md ranked changes 5-8; docs/systems/foes.md "The makers'
 // fencer"): a sword-and-shield duelist that mirrors the traveller's kit. Fought in the Arena, headless: its shield turns
@@ -27,7 +29,7 @@ function duel(o = {}) {
   const P = { pos: v(), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: 0, staggers: 0, guardUp: false, parry: false,
     hurt() { this.hurts++; }, knockDown() { return true; }, stagger() { this.staggers++; }, flinch() {},
     guarding() { return this.guardUp || this.parry; }, guard() { return this.parry ? 'perfect' : this.guardUp ? true : false }, ...o };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   const f = foes.add(o.kind ?? 'fencer', v(0, 0, o.at ?? 2.6)); f.heading = Math.PI;
   return { foes, f, P, done: () => { foes.dispose(); clearTargets(); } };
 }

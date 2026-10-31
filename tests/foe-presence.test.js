@@ -8,12 +8,14 @@ import { presenceOf, presenceProblems, lightMaterial, PRESENCE } from '../src/fo
 import { makeMaterial } from '../src/materials.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 function player(at = v()) { return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} }; }
-const world = (P, physics = flat) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+const world = (P, physics = flat) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
 
 test('presenceOf measures what is drawn over the ground, and what of it is light', () => {
   const g = new THREE.Group();

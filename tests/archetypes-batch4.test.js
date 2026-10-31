@@ -17,6 +17,8 @@ import { windMin, groundMark } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -26,7 +28,7 @@ function player(at = v(), o = {}) {
   return { pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurts: [], knocks: 0, flinches: 0,
     hurt(a) { this.hurts.push(a); }, knockDown() { this.knocks++; return true; }, flinch() { this.flinches++; }, ...o };
 }
-const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
+const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(), ...o });
 const run = (f, P, secs, e = env) => { const ev = []; for (let i = 0; i < secs / DT; i++) ev.push(...f.update(DT, P, e)); return ev; };
 const BATCH4 = ['brute', 'drone', 'cart', 'bell'];
 
@@ -219,7 +221,7 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
   clearTargets();
   // (PLACED is in the Deep Wood's own frame; it lies 480 m south in Lorn now, src/levels/names.js PART_OFFSET, and so on its own)
   const game = new GameState(null), P = player(v(13.7, 0, -680));
-  const make = () => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, 0) }, levelId: 'perdide2', content: { npcs: [] }, physics: flat, player: P, settings: { enemies: 'normal' }, game });
+  const make = () => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, 0) }, levelId: 'perdide2', content: { npcs: [] }, physics: flat, player: P, settings: { enemies: 'normal' }, game, rng: seeded() });
   let foes = make(); foes.packRest = 1e9;
   foes.update(DT);
   assert.equal(foes.list.filter((f) => f.post && f.kind === 'brute').length, 0, 'far off: not out');

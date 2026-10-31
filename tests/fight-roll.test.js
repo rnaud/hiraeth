@@ -20,6 +20,8 @@ import { fightTempleGame } from '../src/fight-temples/index.js';
 import { SEE, inTheWay, sightPoints } from '../src/fight-temples/rules.js';
 import { SEE_HOLE } from '../src/materials.js';
 import { runSteps } from '../src/load-steps.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 items.grant('backpack');
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -39,7 +41,7 @@ function setup({ wall = null } = {}) {
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
   const P = player();
   const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics, player: P, tool, settings: { enemies: true }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics, player: P, tool, settings: { enemies: true }, game: new GameState(null), rng: seeded() });
   const B = tool.blade;
   const rest = () => { for (let i = 0; i < 1.5 / DT; i++) tool.update(DT, {}); P.pos.set(0, 0, 0); P.vel.set(0, 0, 0); };
   return { P, tool, foes, B, physics, rest };
@@ -178,7 +180,7 @@ function hall() {
   const { P, tool, foes: _f } = setup();
   void _f;
   P.pos.set(...DESERT_FIGHT.spawn);
-  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player: P, settings: { enemies: 'normal' } });
+  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player: P, settings: { enemies: 'normal' }, rng: seeded() });
   const flags = {};
   const state = { data: { flags }, flag: (k) => flags[k], set: (k, x) => { flags[k] = x; return x; }, emit() {}, on: () => () => {} };
   const camera = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 800);

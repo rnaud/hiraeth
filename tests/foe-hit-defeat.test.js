@@ -14,6 +14,8 @@ import { FoeReact, REACT, applyReact, restoreBody, installFlash, splashTones, li
 import { DEFEATS, GROUNDED, defeatPose, startDefeat, stage } from '../src/enemies/defeat.js';
 import { resetFeel } from '../src/feel.js';
 import { underGround, plane } from './under-ground.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
@@ -22,7 +24,7 @@ function world(physics = flat) {
   clearTargets(); resetFeel();
   const P = { pos: v(0, 0, 0), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
   const game = new GameState(null), drops = [];
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game, tool: { drops: { add: (d) => drops.push(d) } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game, tool: { drops: { add: (d) => drops.push(d) } }, rng: seeded() });
   foes.setPractice('');
   return { foes, P, game, drops };
 }

@@ -6,6 +6,8 @@ import { REACT } from '../src/foe-react.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { setHintLevel } from '../src/hint-level.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // A guarded blow throws the attacker back (issue #672, the Breath of the Wild study, docs/design/combat-botw-study.md):
 // its body reels off the shield on the hit-reaction springs (src/foe-react.js), a perfect parry a held stagger, a plain
@@ -15,7 +17,7 @@ setHintLevel('full');
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 const player = (o = {}) => ({ pos: v(), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {}, ...o });
-const world = (P) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+const world = (P) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
 
 function guarded(result) {
   clearTargets();

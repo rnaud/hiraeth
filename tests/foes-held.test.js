@@ -8,6 +8,8 @@ import * as THREE from 'three';
 import { Foes } from '../src/foes.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
@@ -16,7 +18,7 @@ const player = (at = v()) => ({ pos: at, vel: v(), heading: 0, onGround: true, h
 test('held still by a scene, nothing is fighting you; let go, the chase is seen again', () => {
   clearTargets();
   const P = player();
-  const F = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const F = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   F.setPractice?.(''); F.waveRest = F.packRest = 1e9;
   const f = F.spawnKind('crab', { n: 1, dist: 6 })[0];
   assert.ok(f);

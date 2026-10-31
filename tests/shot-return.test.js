@@ -9,6 +9,8 @@ import { Foes, FOES, attackOf } from '../src/foes.js';
 import { isShot, RETURN, returnedBlow } from '../src/shot-return.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
@@ -20,7 +22,7 @@ function player(guard) {
 function shotAt(kind, id, guard, dist = 9) {
   clearTargets();
   const P = player(guard);
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   foes.waveRest = 1e9;
   const f = foes.add(kind, v(0, 0, dist));
   if (f.buried) f.surfaced();   // (the worm spits only while it is up)

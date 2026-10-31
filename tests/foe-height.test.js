@@ -11,6 +11,8 @@ import { clearHazards } from '../src/hazards.js';
 import { clearWorkings, workingsAt, registerWorking } from '../src/workings.js';
 import { GameState } from '../src/game-state.js';
 import { setHintLevel } from '../src/hint-level.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');
@@ -159,7 +161,7 @@ test('knocked off a ledge by your blow: dazed a long while with stars, a cut lan
   const make = (h) => {
     const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: physics(h), player: P,
       sound: { foeHurt: (k) => sounds.push(`hurt:${k}`), foeBurst: (k) => sounds.push(`burst:${k}`), foeWarn() {}, combat() {}, whoosh() {} },
-      settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t) });
+      settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t), rng: seeded() });
     foes.waveRest = 1e9;
     return foes;
   };
@@ -221,7 +223,7 @@ test('knocked into deep water: swept away with a splash, off a bank or a ledge; 
   const make = (h, top) => {
     const waters = { surfaceAt: (x, z, y) => (z > -40 && top >= y - 0.6 ? { y: top, body: {} } : null), splash: (p, s, k) => splashes.push({ s, k }) };
     const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: physics(h), player: P, waters,
-      sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t) });
+      sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t), rng: seeded() });
     foes.waveRest = 1e9;
     return foes;
   };
@@ -327,7 +329,7 @@ test('the archetypes (src/enemies/archetypes.js) go by the same rules: up the le
   const physics = { groundAt: (x, y, z, r = 600) => groundOf((x, z) => (z > -40 ? -0.9 : 0))(x, y, z, r) ?? -Infinity, rayDistance: () => Infinity, rayHit: () => null };
   const waters = { surfaceAt: (x, z, y) => (z > -40 && 0.5 >= y - 0.6 ? { y: 0.5, body: {} } : null), splash() {} };
   const F = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: player(v(0, 2, -30)), waters,
-    sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+    sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {}, rng: seeded() });
   F.waveRest = 1e9;
   const crabby = F.add('crab@saltharbour', v(0, 0, -40.3)); crabby.state = 'chase'; crabby.cool = 5;
   assert.equal(crabby.skin, 'saltharbour');
@@ -351,7 +353,7 @@ test('stunned, a foe reels and stars turn over it, not only its eyes going pale 
   const P = player(v(0, 0, -30));
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena',
     physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P,
-    sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+    sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {}, rng: seeded() });
   foes.waveRest = 1e9;
   const b = foes.add('blot', v(0, 0, -34)); b.state = 'chase'; b.cool = 9; b.stunned = 1.5;
   let swayed = 0;

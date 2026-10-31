@@ -8,6 +8,8 @@ import { ROSTERS, CLASSIC, GROUP, rosterOf, packOf, templeKind } from '../src/fo
 import { TITLES } from '../src/levels/names.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // Each world's own foes (src/foe-kinds.js), the new attacks of the old ones, the world rosters (src/foe-worlds.js).
 
@@ -26,7 +28,7 @@ function untilWind(f, P, id = null, secs = 12) {
 }
 const runFor = (f, P, secs) => { const ev = []; for (let i = 0; i < secs / DT; i++) ev.push(...f.update(DT, P, env)); return ev; };
 const strikes = (ev) => ev.filter((e) => e?.type === 'strike');
-const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
+const world = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(), ...o });
 /** A foe that only ever uses attack `id` (its others taken out of reach). */
 function only(kind, id, at = v(), o = {}) {
   const f = new Foe(kind, at, { rng: () => 0.5, ...o });
@@ -131,7 +133,7 @@ test('sign moths: a flash blinds only when you look at it; a gust or a cut ends 
   assert.equal(foes.blinded, 0);
   assert.equal(new Foe('moth', v()).hit('push', v(0, 0, 1), { shove: 2, source: 'gust' }), 'burst', 'a gust ends it');
   // gentle: a shorter white
-  const G = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'gentle' }, game: new GameState(null), camera: foes.camera });
+  const G = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'gentle' }, game: new GameState(null), camera: foes.camera, rng: seeded() });
   G.strike(G.add('moth', v(0, 0, 4)), flash);
   assert.ok(G.blinded < foes.blinded + flash.blind && G.blinded <= flash.blind * 0.6 + 1e-9, 'gentle: shorter');
   foes.dispose(); G.dispose(); clearTargets();
@@ -312,7 +314,7 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   assert.ok(lobDrawn, 'a lobbed glob marks where it will land');
   foes.dispose(); clearTargets();
   // gentle: the same wind-up takes GENTLE.wind as long; a shockwave and slag bite half
-  const G = player(v(0, 0, 0)), gentle = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: G, settings: { enemies: 'gentle' }, game: new GameState(null) });
+  const G = player(v(0, 0, 0)), gentle = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: G, settings: { enemies: 'gentle' }, game: new GameState(null), rng: seeded() });
   const k = gentle.add('crab', v(0, 0, 5)); k.attacksAt = () => [attackOf('crab', 'spin')];
   for (let i = 0; i < 3 / DT && k.state !== 'wind'; i++) gentle.update(DT);
   let t = 0; while (k.state === 'wind' && t < 5) { gentle.update(DT); t += DT; }
@@ -361,7 +363,7 @@ test('the worlds’ rosters: each world draws its packs and its temple rooms fro
 test('placed encounters use the roster: the Hangar’s temple has drones among its machines, a Gentle pack is two at most', () => {
   clearTargets();
   const marks = [0, 1, 2, 3].map((i) => ({ pos: v(0, 0, i * 30), heading: 0 }));
-  const H = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: { marks, inside: () => true } }, levelId: 'garage', physics: flat, player: player(v(0, 0, 300)), settings: { enemies: true }, game: new GameState(null) });
+  const H = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: { marks, inside: () => true } }, levelId: 'garage', physics: flat, player: player(v(0, 0, 300)), settings: { enemies: true }, game: new GameState(null), rng: seeded() });
   assert.deepEqual(H.list.map((f) => f.kind), ['machine', 'drone', 'machine']);
   assert.ok(H.list.every((f) => f.placed && f.id));
   H.dispose(); clearTargets();

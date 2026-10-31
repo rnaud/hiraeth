@@ -10,8 +10,10 @@ import { SKINS, skinOf } from '../src/enemies/skins.js';
 import { stormRay, stormRaySource, setStormRaySource, tripoRayModel, STORM_RAY_BODY, WING_DOWN } from '../src/enemies/plans/storm-ray-tripo.js';
 import { rayModel as skyRayModel } from '../src/enemies/plans/sky-ray-legacy.js';
 import { parseTripoBody } from '../src/enemies/plans/tripo-body.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
-const make = () => new Foes({ scene: new THREE.Scene(), level: {}, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new THREE.Vector3(0, 0, 6), chest: new THREE.Vector3(0, 1.2, 6) } });
+const make = () => new Foes({ scene: new THREE.Scene(), level: {}, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new THREE.Vector3(0, 0, 6), chest: new THREE.Vector3(0, 1.2, 6) }, rng: seeded() });
 const run = (foes, f, n = 30) => { for (let i = 0; i < n; i++) foes.look(f, 1 / 60); f.model.group.updateMatrixWorld(true); };
 
 test('the shipped body: 10–15k triangles in its parts (the body with its wings, the tail), its landmarks beside it, the drawn shadow dropped', () => {

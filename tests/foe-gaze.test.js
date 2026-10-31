@@ -8,12 +8,14 @@ import { Foes } from '../src/foes.js';
 import { GAZE, gazePart, gazeApply, watchingHim } from '../src/enemies/gaze.js';
 import { clearTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 const player = (at) => ({ pos: at, vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} });
-const world = (P) => { const scene = new THREE.Scene(); const foes = new Foes({ scene, level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) }); foes.waveRest = 1e9; return { scene, foes }; };
+const world = (P) => { const scene = new THREE.Scene(); const foes = new Foes({ scene, level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() }); foes.waveRest = 1e9; return { scene, foes }; };
 // (a frame: the scene's matrices as the renderer leaves them, then the foe drawn)
 const frames = (scene, foes, f, n, each = () => {}) => { for (let i = 0; i < n; i++) { each(i); f.dist = Math.hypot(foes.player.pos.x - f.pos.x, foes.player.pos.z - f.pos.z); scene.updateMatrixWorld(true); foes.look(f, DT); } };
 const versions = (g) => { const out = []; g.traverse((o) => { if (o.geometry?.attributes?.position) out.push([o.geometry, o.geometry.attributes.position.version]); }); return out; };

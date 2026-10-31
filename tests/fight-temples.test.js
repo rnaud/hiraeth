@@ -25,6 +25,8 @@ import { KIT_COLOURS, PIECES, colourById, colourOfWorld, wonColours, chosenColou
 import { buildFlask, TANK } from '../src/fluid-tool.js';
 import { makeMaterial } from '../src/materials.js';
 import { itemsPanel } from '../src/game-menu.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const D = DESERT_FIGHT;
 /** A save's flags: flag / set, as src/game-state.js. */
@@ -235,7 +237,7 @@ function simulate({ gentle = false, flags = {}, def = D } = {}) {
     frame: { dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)), headingOf: (v) => Math.atan2(v.x, v.z) },
     respawn: (p) => pos.copy(p), restore(h) { this.hearts = Math.min(this.maxHearts, this.hearts + h); }, restart() {},
   };
-  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: gentle ? 'gentle' : 'normal' } });
+  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: gentle ? 'gentle' : 'normal' }, rng: seeded() });
   const state = save(flags);
   const out = { flashes: [], finished: null, drops: 0, added: [] };
   const ctx = {

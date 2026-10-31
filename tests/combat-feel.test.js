@@ -13,6 +13,8 @@ import { items } from '../src/items.js';
 import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
 import { setHintLevel } from '../src/hint-level.js';
 import { ALERT } from '../src/enemies/fight.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');
@@ -70,7 +72,7 @@ test('a foe off the screen waits its turn while one you can see is striking', ()
   const P = player(v());
   const camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 500);
   camera.position.set(0, 2, -4); camera.lookAt(0, 1, 4); camera.updateMatrixWorld(); camera.updateProjectionMatrix();
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), camera });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), camera, rng: seeded() });
   foes.waveRest = 1e9;
   const seen = foes.add('blot', v(0, 0, 2)), behind = foes.add('blot', v(0, 0, -8));
   assert.ok(foes.onScreen(seen) && !foes.onScreen(behind));
@@ -92,7 +94,7 @@ test('the dune ray: a cut at its fin flushes it; up, it stays up to fight for a 
 test('the lock: cut down, it moves on to the next foe in reach; the reticle reads the foe', () => {
   clearTargets();
   const P = player(v());
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
   foes.waveRest = 1e9;
   const a = foes.add('blot', v(0, 0, 3)), b = foes.add('blot', v(0, 0, 6)), far = foes.add('blot', v(0, 0, 40));
   assert.equal(foes.cycleLock(), a);
@@ -156,7 +158,7 @@ test('a press during an evade is kept, and the blade swings as the evade ends', 
   tool.dispose(); clearTargets();
 });
 
-const arena = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
+const arena = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded(), ...o });
 
 test('locked on, a quick flick of the look switches to the nearest foe that way; a slow push does not', () => {
   clearTargets();

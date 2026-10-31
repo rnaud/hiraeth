@@ -10,6 +10,8 @@ import { makeMaterial } from '../src/materials.js';
 import { TempleKit } from '../src/temples/kit.js';
 import { Updraft, Gust, Swing } from '../src/temples/pieces.js';
 import { setHintLevel } from '../src/hint-level.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');
@@ -30,7 +32,7 @@ function foesIn({ ground, level = {}, settings = { enemies: 'normal' }, P = play
   const sounds = [], notes = [];
   const sound = { foeHurt: (k) => sounds.push(`hurt:${k}`), foeBurst: (k) => sounds.push(`burst:${k}`), whoosh: () => sounds.push('whoosh'), foeWarn() {}, combat() {} };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true }, ...level }, levelId: 'arena', physics: physics(ground), player: P, sound,
-    settings, game: new GameState(null), notice: (t) => notes.push(t) });
+    settings, game: new GameState(null), notice: (t) => notes.push(t), rng: seeded() });
   foes.waveRest = 1e9;
   return { foes, sounds, notes, P };
 }

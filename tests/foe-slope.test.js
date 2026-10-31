@@ -14,6 +14,8 @@ import { SLOPE, planeUnder, readSlope, tiltRoot, slopeOf, slopeAlong } from '../
 import { GaitPlanner } from '../src/motion-kit/gait.js';
 import { BodyFromFeet } from '../src/motion-kit/body.js';
 import { underGround, plane } from './under-ground.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60;
 const BUILT = Object.entries(ARCHETYPES).filter(([, A]) => A.status === 'built');
@@ -36,7 +38,7 @@ function pinned(fn, seed = 4242) {
 function world(physics) {
   clearTargets(); resetFeel();
   const P = { pos: v(0, 0, -10), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: true, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } }, rng: seeded() });
   foes.setPractice('');
   return foes;
 }

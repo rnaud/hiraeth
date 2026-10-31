@@ -18,6 +18,8 @@ import { lyingBody } from '../src/enemies/defeat.js';
 import { presenceOf, presenceProblems } from '../src/foe-presence.js';
 import { PLANS } from '../src/motion-kit/plans.js';
 import { COLOURED_PICTURES } from '../engine/boot.js';
+// (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
+const seeded = (s = 7) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 
 const SRC = parseHound(readFileSync(new URL('../public/enemies/hound/body.glb', import.meta.url)));
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -144,7 +146,7 @@ test('the Tripo hound shows itself in every state in every skin, calm or fightin
   for (const skin of Object.keys(SKINS.hound)) for (const calm of [false, true]) {
     clearTargets();
     const P = { pos: v(), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, hurt() {}, knockDown() { return true; }, flinch() {} };
-    const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
+    const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), rng: seeded() });
     foes.waveRest = 1e9;
     const f = foes.add(`hound@${skin}`, v(0, 0, calm ? 14 : 8), { calm });
     assert.equal(f.model.body3d, 'tripo');
