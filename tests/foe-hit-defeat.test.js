@@ -11,7 +11,7 @@ import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { FoeReact, REACT, applyReact, restoreBody, installFlash, splashTones, lightness } from '../src/foe-react.js';
-import { DEFEATS, GROUNDED, defeatPose, startDefeat, stage } from '../src/enemies/defeat.js';
+import { DEFEATS, GROUNDED, defeatPose, startDefeat, stage, defeatHull, skinnedWorld } from '../src/enemies/defeat.js';
 import { resetFeel } from '../src/feel.js';
 import { underGround, plane } from './under-ground.js';
 // (the fights' picks seeded: unseeded, a rare draw failed a test as the bodies changed, #800)
@@ -209,6 +209,33 @@ test('a defeat\'s pose: each move over its own window, eased; a flyer comes down
   // (issue #767: the crab slumps onto its belly, its legs folding, never onto its back)
   const C = startDefeat({ alt: 0, heading: 0 }, DEFEATS.crab), CP = defeatPose(C, 1);
   assert.ok(CP.flip === 0 && CP.roll === 0 && CP.body.y < -0.3 && CP.curl > 1, 'the crab: down on its belly, legs drawn in');
+});
+
+test('the hull\'s skinned points are where three skins them, every frame of a defeat (a body let go as it dies too)', () => {
+  // (skinnedWorld: each bone's matrix once a frame, not applyBoneTransform's two products a point; the crucible walker's
+  // weights rewritten as it dies, RigidSkin.letGo; the centipede's 47 bones; a grunt's, laid by its ragdoll)
+  const p = v();
+  for (const kind of ['cart', 'centipede', 'grunt']) {
+    const { foes } = world(), f = foes.add(kind, v(0, 0, 6));
+    for (let i = 0; i < 10; i++) foes.update(DT);
+    f.hp = 1; cut(foes, f, 5);
+    const parts = defeatHull(f.model.group).parts.filter((q) => q.skin);
+    assert.ok(parts.length, `${kind}: a skinned part`);
+    let worst = 0, n = 0;
+    for (let frame = 0; frame < 60 && f.dying && f.dead === undefined; frame++) {
+      foes.update(DT); f.model.group.updateMatrixWorld(true);
+      for (const part of parts) {
+        const W = skinnedWorld(part), P = part.mesh.geometry.attributes.position;
+        for (let j = 0; j < part.ids.length; j++, n++) {
+          part.mesh.applyBoneTransform(part.ids[j], p.fromBufferAttribute(P, part.ids[j])).applyMatrix4(part.mesh.matrixWorld);
+          worst = Math.max(worst, Math.abs(p.x - W[j * 3]), Math.abs(p.y - W[j * 3 + 1]), Math.abs(p.z - W[j * 3 + 2]));
+        }
+      }
+    }
+    assert.ok(n > 1000 && worst < 1e-9, `${kind}: ${n} points skinned, ${worst.toExponential(1)} m from three's at most`);
+    foes.dispose();
+  }
+  clearTargets();
 });
 
 test('many going down at once stay cheap', async () => {

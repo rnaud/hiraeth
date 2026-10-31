@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Ragdoll, J as RJ, JOINTS, toppleVelocities, trunkFrame, RAG } from '../ragdoll.js';
 import { boxOf } from './debris.js';
-import { defeatHull } from './defeat.js';
+import { defeatHull, skinnedWorld } from './defeat.js';
 
 // Defeated foes ragdoll (issue #750; docs/systems/foes.md, "Hit and defeat"): a humanoid foe on the clip rig
 // (src/enemies/humanoid-rig.js) goes limp under the killing blow instead of playing a fall onto its side. The people's
@@ -366,15 +366,19 @@ function fitToDrawn(R, physics, dt) {
     for (let o = m; o && o !== S.group.parent; o = o.parent) if (!o.visible) { shown = false; break; }
     if (!shown) continue;
     const A = m.geometry.attributes.position, n = m.isInstancedMesh ? m.count : 1, ids = P.ids, seg = P.seg;
+    // (a skinned part's points skinned with its bones' matrices once a frame: src/enemies/defeat.js skinnedWorld)
+    const SK = m.isSkinnedMesh ? skinnedWorld(P) : null;
     for (let k = 0; k < n; k++) {
       const e = (m.isInstancedMesh ? _fm.multiplyMatrices(m.matrixWorld, (m.getMatrixAt(k, _fi), _fi)) : m.matrixWorld).elements;
       for (let j = 0; j < ids.length; j++) {
         const s = seg[j];
         if (s < 0) continue;
-        _fp.fromBufferAttribute(A, ids[j]);
-        if (m.isSkinnedMesh) m.applyBoneTransform(ids[j], _fp);
-        const px = _fp.x, py = _fp.y, pz = _fp.z, w = 1 / (e[3] * px + e[7] * py + e[11] * pz + e[15]);
-        const X = (e[0] * px + e[4] * py + e[8] * pz + e[12]) * w, Y = (e[1] * px + e[5] * py + e[9] * pz + e[13]) * w, Z = (e[2] * px + e[6] * py + e[10] * pz + e[14]) * w;
+        let X, Y, Z;
+        if (SK) { X = SK[j * 3]; Y = SK[j * 3 + 1]; Z = SK[j * 3 + 2]; } else {
+          _fp.fromBufferAttribute(A, ids[j]);
+          const px = _fp.x, py = _fp.y, pz = _fp.z, w = 1 / (e[3] * px + e[7] * py + e[11] * pz + e[15]);
+          X = (e[0] * px + e[4] * py + e[8] * pz + e[12]) * w; Y = (e[1] * px + e[5] * py + e[9] * pz + e[13]) * w; Z = (e[2] * px + e[6] * py + e[10] * pz + e[14]) * w;
+        }
         const h = Y - (G.y + G.sx * (X - G.x) + G.sz * (Z - G.z));
         if (h < low[s]) { low[s] = h; S.pt[s].set(X, Y, Z); }
         // (and how far it is into a wall: behind a face, on the side away from the pelvis, within the face's own bounds)

@@ -66,6 +66,15 @@ export const CHANGELOG = [
       'The bell walker has its new body: a pink bronze bell under a cream arch on four sturdy green legs, with a squat machine behind it and, under the bell’s mouth, its clapper: a black ball with two pale slit eyes that turns to watch you. It fights as before. When it rears back on its hind legs and the clapper swings higher three times, get ready to jump the rings; when it rises on straight legs, get out from under it, then strike the clapper while it sits tipped back. The Salt Harbour’s dock winch and the Underside’s cable crane wind a drum in the arch instead, a hook swinging under the clapper, and the Signal Market’s hangs coins and patched pennants from its arch.',
       // the pearl roller rebuilt (#800)
       'The pearl roller is a snail again, drawn from its new design: a big smooth pale-green shell coiled on its side, a soft olive foot that ripples as it glides, a terracotta face and two eyes on stalks that turn to follow you. Its fight is the same: when its stalks sink and the shell rocks three times, it is about to curl up and roll at you, so guard to bounce it off or step aside into a wall. The Garden of Spheres’ pearl keeps its glowing gold spiral, its wind-up key and its rocking runners, and each world keeps its own colours.',
+      // dying foes cheap again (#800)
+      { text: 'Cutting down a crowd is light on your device again. The new bodies had made working out how each falling foe lies on the ground far costlier; now sixteen going down at once take a third of the work they did, and half of what they took before the new bodies came. They land and lie exactly as before, never sinking into the ground.',
+        numbers: [{ title: 'Sixteen foes going down at once, the game’s own work a frame while they fall', unit: 'ms', better: 'lower', device: 'Mac, Apple M4 Pro, node 24 (no drawing), the Arena’s sixteen kinds cut down together; three runs each, before and after in turn, the machine shared (load 7–10)', rows: [
+          { where: 'all sixteen, a frame on average', before: '3.9–4.6', after: '1.2–1.8' },
+          { where: 'the drill-head centipede, each a frame', before: 1.3, after: 0.13 },
+          { where: 'the seedpod skitter, each a frame', before: 0.55, after: 0.08 },
+          { where: 'the bellows toad, each a frame', before: 0.51, after: 0.06 },
+          { where: 'the shellback crab, each a frame', before: 0.29, after: 0.06 },
+        ], source: 'the test’s own sixteen deaths (tests/foe-hit-defeat.test.js, “many going down at once stay cheap”) timed frame by frame, and four of a kind for each kind, before at ab7001115; before the new bodies (9ff845d25) the sixteen took about 2.5 ms. Where each body lies is unchanged: its points within 4·10⁻¹⁵ m of before, every frame of every kind’s fall' }] },
     ],
   },
   {

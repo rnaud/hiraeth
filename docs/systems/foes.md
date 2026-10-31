@@ -1182,6 +1182,14 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   its back its pincers stick up with its legs instead of propping it; a ray or a moth's bank comes out as it touches
   down (`defeatPose`, `plans/glider.js`): it lands flat, not on a wing's tip. Cost: building the hull 0.1–5 ms at the
   blow (in its hit-stop), then about 0.1 ms a falling foe a frame in node (16 falling at once: 2.2 ms against 0.4).
+  A skinned part's hull points are skinned by `skinnedWorld`: each bone's matrix once a frame (the mesh's world and
+  bind, the bone's world and inverse in one 3×4) and each point its bones' weighted sum, read with the weights as they
+  are that frame (`RigidSkin.letGo` rewrites them as a machine dies). three's `applyBoneTransform` did two matrix
+  products a bone a point: after the Tripo rebuilds (#800) put most bodies on a few skinned meshes of many bones (the
+  centipede's 5,052 hull points on 47), 16 falling at once cost 3.9–4.0 ms a frame (this Mac, node; GitHub's runner
+  about 3× that, over the test's 12 ms) and now 1.2–1.3 ms. The same positions to 4·10⁻¹⁵ m, every frame of every
+  kind's defeat (`tests/foe-hit-defeat.test.js` holds three of them to three's own); the ragdoll's limb fit
+  (`fitToDrawn`, `foe-ragdoll.js`) skins its points the same way.
   `tests/foe-hit-defeat.test.js` holds every archetype's defeat (but the worm's) to 3 cm under the ground at most, every
   vertex of every drawn part, on flat ground and on a 14° slope, with Math.random seeded and a clock run by the frames (`pinned`: unseeded, the slope's worst read 2.0-3.2 cm from run to run and failed pushes at random).
 - **Cost** (the Arena, High, headless Chrome on the M4 Pro): `Foes.update` for twelve foes standing 0.5 ms a frame, 0.7

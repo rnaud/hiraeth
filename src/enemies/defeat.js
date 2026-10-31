@@ -219,6 +219,53 @@ function hullOf(o) {
   return h.ids;
 }
 
+// ------------------------------------------------------------------ skinning the hull's points
+// Since the rebuilt bodies (#800) a foe is a few skinned meshes on many bones, and the hull keeps each bone's outermost
+// points: thousands of skinned points each frame of a defeat (the centipede's 5,052 on 47 bones). three's
+// applyBoneTransform multiplies two matrices for each of a point's bones, for each point; 16 going down at once went
+// from 2.5 to 4-5 ms a frame (this Mac, node). Now each bone's matrix is worked out once a frame (the mesh's world, its
+// bind, the bone's world and inverse in one 3×4) and each point is its bones' weighted sum: the same positions
+// (to within rounding), at a fraction of the cost.
+
+const _A = new THREE.Matrix4(), _B = new THREE.Matrix4();
+/**
+ * The world positions of a skinned part's hull points this frame (into part.world, x y z for each of part.ids): what
+ * applyBoneTransform and the mesh's matrixWorld give, each bone's matrix once (its world matrices already updated).
+ */
+export function skinnedWorld(part) {
+  const { mesh, ids } = part, sk = mesh.skeleton, bones = sk.bones, inv = sk.boneInverses, n = ids.length;
+  const K = (part.K ??= new Float64Array(bones.length * 12)), out = (part.world ??= new Float64Array(n * 3));
+  // A: the mesh's world after its bind's inverse; each bone's K = A · the bone's world · its inverse · the bind, less
+  // A's own translation (added once to each point, as three adds the bind inverse's once to the weighted sum)
+  _A.multiplyMatrices(mesh.matrixWorld, mesh.bindMatrixInverse);
+  const a = _A.elements, tx = a[12], ty = a[13], tz = a[14];
+  for (let b = 0; b < bones.length; b++) {
+    const e = _B.multiplyMatrices(bones[b].matrixWorld, inv[b]).multiply(mesh.bindMatrix).premultiply(_A).elements, o = b * 12;
+    K[o] = e[0]; K[o + 1] = e[1]; K[o + 2] = e[2]; K[o + 3] = e[4]; K[o + 4] = e[5]; K[o + 5] = e[6];
+    K[o + 6] = e[8]; K[o + 7] = e[9]; K[o + 8] = e[10]; K[o + 9] = e[12] - tx; K[o + 10] = e[13] - ty; K[o + 11] = e[14] - tz;
+  }
+  // (the weights read as they are now: a body let go as it dies rewrites them, RigidSkin.letGo)
+  const A = mesh.geometry.attributes, P = A.position, J = A.skinIndex, W = A.skinWeight;
+  const plain = (x, size) => !x.isInterleavedBufferAttribute && !x.normalized && x.itemSize === size;
+  const fp = plain(P, 3), fs = plain(J, 4) && plain(W, 4), pa = P.array, ja = J.array, wa = W.array;
+  for (let j = 0; j < n; j++) {
+    const i = ids[j];
+    let x, y, z;
+    if (fp) { x = pa[i * 3]; y = pa[i * 3 + 1]; z = pa[i * 3 + 2]; } else { _p.fromBufferAttribute(P, i); x = _p.x; y = _p.y; z = _p.z; }
+    let X = 0, Y = 0, Z = 0;
+    for (let k = 0; k < 4; k++) {
+      const w = fs ? wa[i * 4 + k] : W.getComponent(i, k);
+      if (w === 0) continue;
+      const o = (fs ? ja[i * 4 + k] : J.getComponent(i, k)) * 12;
+      X += w * (K[o] * x + K[o + 3] * y + K[o + 6] * z + K[o + 9]);
+      Y += w * (K[o + 1] * x + K[o + 4] * y + K[o + 7] * z + K[o + 10]);
+      Z += w * (K[o + 2] * x + K[o + 5] * y + K[o + 8] * z + K[o + 11]);
+    }
+    out[j * 3] = X + tx; out[j * 3 + 1] = Y + ty; out[j * 3 + 2] = Z + tz;
+  }
+  return out;
+}
+
 /**
  * The points of a model that can be its lowest however it is turned (once, at its defeat's first frame): each drawn
  * part's outermost vertices along DIRS (a skinned part's for each bone that moves most of it, skinned each frame).
@@ -229,7 +276,7 @@ export function defeatHull(group) {
   group.traverseVisible((o) => {
     if (!o.isMesh || o.userData.noGround || !o.geometry?.attributes?.position?.count) return;
     const ids = hullOf(o);
-    if (ids.length) parts.push({ mesh: o, ids, sphere: !o.isSkinnedMesh && !o.isInstancedMesh ? o.geometry.boundingSphere : null });
+    if (ids.length) parts.push({ mesh: o, ids, skin: !!(o.isSkinnedMesh && o.geometry.attributes.skinIndex), sphere: !o.isSkinnedMesh && !o.isInstancedMesh ? o.geometry.boundingSphere : null });
   });
   return { parts, group };
 }
@@ -268,8 +315,15 @@ export function belowGround(hull, plane) {
   }
   todo.sort((a, b) => b.bound - a.bound);
   let worst = -Infinity;
-  for (const { mesh, ids, bound } of todo) {
+  for (const part of todo) {
+    const { mesh, ids, bound } = part;
     if (bound <= worst) break;
+    if (part.skin) {
+      // (a skinned part keeps its hull, its points skinned: skinnedWorld)
+      const W = skinnedWorld(part);
+      for (let j = 0; j < W.length; j += 3) { const d = under(W[j], W[j + 1], W[j + 2]); if (d > worst) worst = d; }
+      continue;
+    }
     const P = mesh.geometry.attributes.position, n = mesh.isInstancedMesh ? mesh.count : 1;
     for (let k = 0; k < n; k++) {
       const M = mesh.isInstancedMesh ? _mm.multiplyMatrices(mesh.matrixWorld, (mesh.getMatrixAt(k, _im), _im)) : mesh.matrixWorld, e = M.elements;
