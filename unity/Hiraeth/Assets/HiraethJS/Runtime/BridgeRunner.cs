@@ -424,9 +424,10 @@ namespace Hiraeth.Bridge
         {
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             // (the GPU Resident Drawer: off on the Xbox, where it only kept books (our shaders have no DOTS instancing; off changed
-            // neither the load nor the frame), and on the Steam Deck's Linux player (0.3-0.7 ms of its frame in the City-Shaft);
-            // -grd keeps it, -no-grd elsewhere)
-#if (UNITY_WSA || UNITY_STANDALONE_LINUX) && !UNITY_EDITOR
+            // neither the load nor the frame), on the Steam Deck's Linux player (0.3-0.7 ms of its frame in the City-Shaft), and on
+            // Android (issue #803: the AYN Odin 3's main thread 0.2-0.7 ms shorter at 8 of 9 views, the GPU and the picture the same;
+            // every quality level there draws with PC_RPAsset, which has it on); -grd keeps it, -no-grd elsewhere)
+#if (UNITY_WSA || UNITY_STANDALONE_LINUX || UNITY_ANDROID) && !UNITY_EDITOR
             if (urp != null && !BridgeArgs.Flag("-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
 #else
             if (urp != null && BridgeArgs.Flag("-no-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
