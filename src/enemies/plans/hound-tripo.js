@@ -344,7 +344,8 @@ export function tripoHoundModel(skin, src) {
       sm.visible = body.visible = solid > 0.08; body.scale.set(1, Math.max(0.05, solid), 1);
       pool.visible = solid < 0.9; pool.scale.setScalar(1.2 - solid * 0.5);
       glowRim.visible = rising.visible = solid < 0.6;
-      rising.position.y = -0.12 + (1 - solid) * 0.12 + Math.sin(c.now / 140) * 0.015;
+      // (3 cm higher than first shipped: at the bob's low point the Signal Market's head dipped under the 0.3 m presence floor)
+      rising.position.y = -0.09 + (1 - solid) * 0.12 + Math.sin(c.now / 140) * 0.015;
       glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
       crouch = ease(crouch, id === 'pounce' && wind ? c.wind : 0, 10, dt);
       coil = ease(coil, id === 'pounce' && wind ? THREE.MathUtils.smoothstep(f.k, 0.5, 0.8) : 0, 14, dt);
