@@ -1,5 +1,5 @@
 // The cloud jelly (issue #800, family B: src/enemies/plans/cloud-jelly-tripo.js): Tripo's body, shipped as
-// public/enemies/cloud-jelly/body.glb, is the game's jelly in every skin; the lantern jelly it replaced is kept and
+// public/enemies/cloud-jelly/body.glb (loaded by src/enemies/foe-assets.js), is the game's jelly in every skin; the lantern jelly it replaced is kept and
 // stands in where the body is not loaded.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,7 +26,8 @@ test('the shipped body: one mesh, 10–15k triangles in its parts (the cap, thre
   assert.equal(L.lanterns.length, 3); assert.equal(L.arms.length, 2);
   assert.equal(L.eyes.filter(Boolean).length, 2, 'both painted eyes found (and painted out)');
   for (const e of L.eyes) assert.ok(e.size[0] < 0.08 && e.size[1] < 0.15, `an eye's size ${e.size}`);
-  assert.ok(src.image, 'its flat texture');
+  assert.ok(!src.image, 'no picture: every skin draws its vertex colours (src/enemies/foe-assets.js)');
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../public/enemies/cloud-jelly/landmarks.json', import.meta.url), 'utf8')).parts, L.parts, 'its landmarks beside it');
 });
 
 test('the jelly is the cloud jelly in every skin; the lantern jelly stands in without the body', () => {
@@ -41,13 +42,9 @@ test('the jelly is the cloud jelly in every skin; the lantern jelly stands in wi
     foes.remove(f);
   }
   foes.dispose();
-  const src = cloudJellySource();
+  // (no source: the lantern jelly's bell on its threads)
   setCloudJellySource(null);
-  try {
-    // (no source and none to read: the lantern jelly's bell on its threads)
-    const keep = globalThis.process.getBuiltinModule; globalThis.process.getBuiltinModule = () => null;
-    try { const m = cloudJelly(skinOf('jelly', 'arzach2')); assert.equal(m.tripo, undefined); m.dispose(); } finally { globalThis.process.getBuiltinModule = keep; }
-  } finally { setCloudJellySource(src); }
+  try { const m = cloudJelly(skinOf('jelly', 'arzach2')); assert.equal(m.tripo, undefined); m.dispose(); } finally { setCloudJellySource(undefined); }
   const old = lanternJellyModel(skinOf('jelly', 'spheres')); assert.ok(old.group.children.length > 0, 'the lantern jelly is kept'); old.dispose();
 });
 

@@ -1473,6 +1473,8 @@ const FROM800B = 'Hand-made (no `view`, the commit to be rebased): references/en
 const FROM800B_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh flyers -level arena -fight flyers -mute), 30 October 2026, its picture of the home skin (unity-flyers-jelly-home): the game\'s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
 const FROM800M = FROM800B.replace('before: a9b33fb98', 'before: 776d01af8');
 const FROM800M_UNITY = FROM800B_UNITY.replace('unity-flyers-jelly-home', 'unity-flyers-moth-home');
+const FROM800R = FROM800B.replace('before: a9b33fb98', 'before: b94fc0a92').replace('three-quarters from its front', 'three-quarters from its front and a little above');
+const FROM800R_UNITY = FROM800B_UNITY.replace('unity-flyers-jelly-home', 'unity-flyers-ray-home');
 const SOURCE800B = 'references/enemy-redesign-2026-10-30/trials/flyer-tripo/bench-worlds.mjs (scripts/enemy-roster/bench.mjs --level <world> --pack six of the skin, against the same world with none; the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 11–22); renderer.info';
 const DEVICE800 = 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
 const SOURCE800 = 'scripts/enemy-roster/bench.mjs --level <world> --pack six crabs of its skin, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 13–29); renderer.info';
@@ -1566,10 +1568,6 @@ export const CHANGELOG_MEDIA = {
       { where: 'The Garden of Spheres, High', before: 2.0, after: 1.8 },
       { where: 'The Garden of Spheres, Handheld', before: 0.8, after: 0.5 },
     ] },
-    { title: 'Memory the jellies hold on the graphics card', unit: 'MB', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; every vertex buffer and picture the six jellies draw, each counted once however many share it`, rows: [
-      { where: 'Vael II (its picture: 512 × 512, four flat colours)', before: 0.22, after: 2.14 },
-      { where: 'The Garden of Spheres (no picture: its colours on the vertices)', before: 0.4, after: 0.78 },
-    ] },
   ] },
   // (issue #800 family B: the lamp moth on its Tripo body; hand-made pairs from the creatures gallery, one camera)
   { match: 'The signal moth has a new body, drawn from its new design', tags: ['combat'], shots: [
@@ -1596,6 +1594,34 @@ export const CHANGELOG_MEDIA = {
     { title: 'The script’s time a frame six moths add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; every run held 60 fps; the machine was busy (load 20–40)`, rows: [
       { where: 'Lorn II, High', before: 2.4, after: 1.6 },
       { where: 'Lorn II, Handheld', before: 2.7, after: 0.3 },
+    ] },
+  ] },
+  // (issue #800 family B: the storm ray on its Tripo body; hand-made pairs from the creatures gallery, one camera)
+  { match: 'The sky ray has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'ray800-vael', title: 'Vael', caption: 'A storm ray alone, three-quarters from its front and a little above: before, the flat rust-red diamond of strips with its pale rim and a long whip tail; after, the plump body with its cream belly and teal back, a dark eye on its head, its long teal wings let down in a shallow V, their tips red-brown, the paddle tail behind', from: FROM800R,
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/storm-ray/4fc2da68-aa8c-4a93-bc00-5f1795b5e039-0.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'ray800-draft', title: 'The downdraft', caption: 'At 80 % of the downdraft’s wind-up: before, the diamond’s wings bent up; after, the wings raised in the reference’s tall V, the eye orange', from: FROM800R },
+    { name: 'ray800-lash', title: 'The lash', caption: 'At 80 % of the lash’s wind-up: before, the whip tail curled up high; after, the paddle tail lifted behind the body', from: FROM800R },
+    { name: 'ray800-vael2', title: 'Vael II', caption: 'The cloud ray: before, the pale diamond trailing mist puffs on its whip; after, the new body in white and pale blue, the mist behind its tail', from: FROM800R },
+    { name: 'ray800-hangar', title: 'The Sealed Hangar', caption: 'The scrap ray: before, a patched canvas diamond with its wire; after, the new body in grey-tan, patched, a wire along its wing', from: FROM800R },
+    { name: 'ray800-glassdunes', title: 'The Glass Dunes', caption: 'The glass manta: before, the faceted mint diamond; after, the new body in mint and white, glass facets on its wings', from: FROM800R },
+    { name: 'ray800-underwater', title: 'The Underwater City', caption: 'The porcelain ray: before, the white diamond with blue ribbons; after, the new body glazed white with blue markings and ribbons off its wing tips', from: FROM800R },
+    { name: 'ray800-underside', title: 'The Underside', caption: 'The abyss ray: before, the dark diamond on a very long whip; after, the new body in deep blue with white ink, its tail drawn out longer', from: FROM800R },
+    { name: 'ray800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a storm ray 7 m ahead of the traveller: the same new body drawn by its colours', from: FROM800R_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six rays add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800B, rows: [
+      { where: 'Vael, High', before: 828, after: 54 },
+      { where: 'Vael, Handheld', before: 576, after: 36 },
+      { where: 'The Sealed Hangar (patches and wire), High', before: 882, after: 54 },
+      { where: 'The Sealed Hangar, Handheld', before: 611, after: 36 },
+    ] },
+    { title: 'Triangles six rays add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800B, rows: [
+      { where: 'Vael, High', before: 36.7, after: 225.7 },
+      { where: 'Vael, Handheld', before: 25.1, after: 150.5 },
+    ] },
+    { title: 'The script’s time a frame six rays add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; every run held 60 fps`, rows: [
+      { where: 'Vael, High', before: 1.0, after: 0.3 },
+      { where: 'The Sealed Hangar, High', before: 3.3, after: 1.7 },
     ] },
   ] },
   // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)

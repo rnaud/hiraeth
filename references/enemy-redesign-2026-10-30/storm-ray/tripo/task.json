@@ -1,0 +1,34 @@
+{
+  "issue": 800,
+  "phase": "family B",
+  "source": "references/enemy-redesign-2026-10-30/storm-ray/4fc2da68-aa8c-4a93-bc00-5f1795b5e039-0.png",
+  "sourceSha256": "09a9215431fb5fac496f93709063cc83b8f8cfcacd523c25bfe9c2020eff90d4",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "e9077ebe-b1ce-4d64-afcb-be364d3d44e0",
+  "started": "2026-10-30T23:19:50.013Z",
+  "finished": "2026-10-30T23:21:00.093Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1565,
+  "balanceAfter": 1535,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1391216,
+    "sha256": "a4284e305f86a40dfb3f7d18711694d4dbec3748c581ce70c3e15f76ac0089e1",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 179373
+  }
+}

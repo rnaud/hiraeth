@@ -25,6 +25,9 @@ export const FOE_ASSETS = {
   toad: { folder: 'enemies/bellows-toad/', rig: 'landmarks.json' },
   centipede: { folder: 'enemies/centipede/', rig: 'landmarks.json' },
   skitter: { folder: 'enemies/skitter/', rig: 'landmarks.json' },
+  jelly: { folder: 'enemies/cloud-jelly/', rig: 'landmarks.json' },
+  moth: { folder: 'enemies/lamp-moth/', rig: 'landmarks.json' },
+  ray: { folder: 'enemies/storm-ray/', rig: 'landmarks.json' },
 };
 /** How long the browser waits for a body (ms) before the direct body stands in (as the crab's, plans/shellback-tripo.js). */
 export const LOAD_DEADLINE = 30000;
@@ -61,6 +64,12 @@ const made = (glb, rig) => ({ ...glbGeometry(glb), rig: JSON.parse(text(rig)) })
 const READ = {
   woodcutter: (host, fs) => (host ? [host.readFile('enemies/woodcutter/body.glb'), host.readFile('enemies/woodcutter/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/woodcutter/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/woodcutter/landmarks.json', import.meta.url))]),
+  jelly: (host, fs) => (host ? [host.readFile('enemies/cloud-jelly/body.glb'), host.readFile('enemies/cloud-jelly/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/cloud-jelly/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/cloud-jelly/landmarks.json', import.meta.url))]),
+  moth: (host, fs) => (host ? [host.readFile('enemies/lamp-moth/body.glb'), host.readFile('enemies/lamp-moth/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/lamp-moth/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/lamp-moth/landmarks.json', import.meta.url))]),
+  ray: (host, fs) => (host ? [host.readFile('enemies/storm-ray/body.glb'), host.readFile('enemies/storm-ray/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/storm-ray/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/storm-ray/landmarks.json', import.meta.url))]),
   dunemummer: (host, fs) => (host ? [host.readFile('enemies/dunemummer/body.glb'), host.readFile('enemies/dunemummer/skeleton.json')]
     : [fs.readFileSync(new URL('../../public/enemies/dunemummer/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/dunemummer/skeleton.json', import.meta.url))]),
   toad: (host, fs) => (host ? [host.readFile('enemies/bellows-toad/body.glb'), host.readFile('enemies/bellows-toad/landmarks.json')]

@@ -11,7 +11,7 @@ landed straight from the skill's recipe. The signal moth it replaced is kept as 
   body (in front of the wings' sheet, within its silhouette's half-width a height; its feet and shoulder nubs), the head
   and antennae (over the neck's plane), the wings, and each eye-spot (an ellipse in the wing's plane round its cream,
   through both faces); six flat colours; the painted eyes found on the head (3.3 × 3.7 cm) and painted out. Shipped by
-  `scripts/tripo/ship-flyer.mjs moth`: `public/enemies/lamp-moth/body.glb`, 430 KB, the texture 512².
+  `scripts/tripo/ship-flyer.mjs moth`: `public/enemies/lamp-moth/body.glb`, 430 KB; since the storm ray landed it loads through `src/enemies/foe-assets.js` (no picture: every skin draws its vertex colours, `landmarks.json` beside it).
 - **Rig**: the body one mesh on the frame; the wings one skinned mesh, each on a hinge at the body's side and an outer
   joint half way out, the root held from the egg's half-width (the body's back never moves: `tests/lamp-moth-tripo.test.js`);
   the eye-spots their own skinned mesh on the same joints (they blaze for the flash); the head skinned on its neck (the

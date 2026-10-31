@@ -5,7 +5,8 @@ import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, pivot, lerp, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
-import { tripoBody, piece, pick, rolesOf, roleColours, boneBoxes, normalNear } from './flyer-body.js';
+import { foeSource } from '../foe-assets.js';
+import { piece, pick, rolesOf, roleColours, boneBoxes, normalNear } from './flyer-body.js';
 import { mothModel as signalMothModel } from './signal-moth-legacy.js';
 
 // The lamp moth (issue #800, family B): the game's `moth`, everywhere it is fielded (its worlds, the Arena, the
@@ -41,21 +42,20 @@ import { mothModel as signalMothModel } from './signal-moth-legacy.js';
 // antennae, the space moth's colours. The engines (Unity) decode no picture: there the home skin is drawn by its vertex
 // colours too.
 
-/** The shipped body, under public/. */
+/** The shipped body, under public/ (loaded by src/enemies/foe-assets.js, its landmarks.json beside it). */
 export const LAMP_MOTH_BODY = 'enemies/lamp-moth/body.glb';
-const body0 = tripoBody(LAMP_MOTH_BODY, 'lamp moth', () => {
-  // (the engines' host reads public/; Node, its files; a browser fetches it in load)
-  const host = globalThis.__HIRAETH_HOST__;
-  if (host?.readFile) return host.readFile(LAMP_MOTH_BODY);
-  const fs = globalThis.process?.getBuiltinModule?.('node:fs');
-  return fs ? fs.readFileSync(new URL(`../../../public/${LAMP_MOTH_BODY}`, import.meta.url)) : null;
-});
-/** The loaded body (null until loaded; the engines and Node read it on first use). */
-export const lampMothSource = body0.source;
-/** The body, loaded once: the game awaits it before it builds its foes (src/main.js); a failed load leaves the signal moth. */
-export const loadLampMothBody = body0.load;
-/** Stand a source in (a test's, a trial's), or null to forget it. */
-export const setLampMothSource = body0.set;
+const ADAPT = new WeakMap();
+let forced;
+/** The loaded body as this builder reads it ({ geometry, landmarks, map: null }), or null (not loaded: the signal moth stands in). */
+export function lampMothSource() {
+  if (forced !== undefined) return forced;
+  const src = foeSource('moth');
+  if (!src) return null;
+  if (!ADAPT.has(src)) ADAPT.set(src, { geometry: src.geometry, landmarks: src.rig, map: null });
+  return ADAPT.get(src);
+}
+/** Stand a source in (a test's), null for none (the signal moth), or undefined to go back to the loaded one. */
+export function setLampMothSource(src) { forced = src; }
 
 /** The moth's builder (src/enemies/plans/index.js): the Tripo body, or the signal moth where it is not loaded. */
 export function lampMoth(skin) {
@@ -152,8 +152,9 @@ export function tripoMothModel(skin, src) {
   const PL = PLANS.flyer, L = src.landmarks, P = skin.palette, props = new Set(skin.props), M = materials('moth', skin);
   const home = skin.id === 'perdide2', textured = home && !!src.map, wasp = props.has('wasp'), neon = props.has('neon');
   const prep = prepare(src);
-  const colours = textured ? null : (prep.colours ??= new Map()).get(skin.id) ?? prep.colours.set(skin.id, roleColours(prep.roles, { wing: P.wing, spot: P.glow, body: P.body, head: P.wing2, nub: P.spot, dark: P.antenna }, ROLES)).get(skin.id);
-  const key = textured ? 't' : skin.id;
+  // (the home skin's own colours: the source's COLOR_0, the flat texture's own; the others' over the roles)
+  const colours = home ? null : (prep.colours ??= new Map()).get(skin.id) ?? prep.colours.set(skin.id, roleColours(prep.roles, { wing: P.wing, spot: P.glow, body: P.body, head: P.wing2, nub: P.spot, dark: P.antenna }, ROLES)).get(skin.id);
+  const key = home ? 't' : skin.id;
   const g = new THREE.Group(); g.name = `${skin.name} · lamp moth`;
   const body = pivot(g, 0, BODY_Y, 0, 'body');
   const frame = pivot(body, 0, 0, 0, 'frame');   // (tilted with its acceleration; tipped forward to dart)

@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-31T03:34:59.814Z",
+  "key": "KeyS",
+  "results": [
+    {
+      "foe": "ray",
+      "atk": "skim",
+      "wind": 1.2,
+      "pressedAt": 0.307,
+      "lead": 0.42,
+      "hop": "back",
+      "flurry": true,
+      "locked": true
+    }
+  ],
+  "errors": []
+}

@@ -6,7 +6,8 @@ import { SecondOrder, SecondOrderAngle } from '../../motion-kit/spring.js';
 import { materials, add, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 import { gazePart } from '../gaze.js';
 
-// Plan 14, the winged glider (docs/systems/procedural-animation.md §4): the sky ray (docs/design/enemy-roster.md,
+// The SKY RAY, kept (issue #800): the game's ray until the storm ray (storm-ray-tripo.js, Tripo's body) took its
+// place; it stands in where that body is not loaded, and can come back as a foe of its own. Plan 14, the winged glider (docs/systems/procedural-animation.md §4): the sky ray (docs/design/enemy-roster.md,
 // archetype 11), the air striker. A broad flat diamond against the sky with a long whip tail; two little horns at its
 // front edge.
 //

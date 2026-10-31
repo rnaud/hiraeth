@@ -7,7 +7,7 @@ import { tripodModel } from './piston.js';
 import { blotModel } from './blob.js';
 import { centipedeModel } from './centipede-tripo.js';
 import { wormModel } from './burrower.js';
-import { rayModel } from './glider.js';
+import { stormRay } from './storm-ray-tripo.js';
 import { lampMoth } from './lamp-moth-tripo.js';
 import { cloudJelly } from './cloud-jelly-tripo.js';
 import { toadModel } from './toad-tripo.js';
@@ -58,7 +58,8 @@ import { foeSource } from '../foe-assets.js';
 //   lamp-moth-tripo.js plan 13  the lamp moth (issue #800: Tripo's body, public/enemies/lamp-moth/body.glb; the signal
 //                 moth it replaced, signal-moth-legacy.js, stands in where the body is not loaded)
 //   hover.js      plan 13  the ring drone (a machine's: plates spinning on a spindle, dangling arms)
-//   glider.js     plan 14  the sky ray
+//   storm-ray-tripo.js plan 14  the storm ray (issue #800: Tripo's body, public/enemies/storm-ray/body.glb; the sky ray
+//                 it replaced, sky-ray-legacy.js, stands in where the body is not loaded)
 //   burrower.js   plan 15  the mound worm
 //   roller.js     plan 16  the pearl roller (a snail on its rippling foot; rolled, its spin locked to the ground)
 //   tracked.js    plan 17  the crucible cart (tracks locked to the ground, a turret on a spring)
@@ -79,7 +80,7 @@ import { foeSource } from '../foe-assets.js';
 //   dune-mummer-tripo.js plan 33  the dune mummer (#800: Tripo's rigged mesh on the humanoid clip rig; dune-mummer.js
 //                          its direct body, standing in only while the mesh loads)
 
-const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: lampMoth, jelly: cloudJelly,
+const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: stormRay, moth: lampMoth, jelly: cloudJelly,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, cart: cartModel, bell: bellModel,
   shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
   grunt: gruntModel, hulk: hulkModel,

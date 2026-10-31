@@ -12,7 +12,7 @@ lantern jelly it replaced is kept as `src/enemies/plans/lantern-jelly-legacy.js`
   triangles; the cap cut along its lip (the lowest cream round it, a Fourier curve) and round the two arms; each bulb
   cut across its neck; four flat colours (cap cream, sage, salmon, dark); the painted eyes found by their dark texels on
   the cap's front lobe (3.8 × 9.2 cm each) and painted out. Shipped by `scripts/tripo/ship-flyer.mjs jelly`:
-  `public/enemies/cloud-jelly/body.glb`, 402 KB (300 KB gzipped), the texture 512².
+  `public/enemies/cloud-jelly/body.glb`, 402 KB (300 KB gzipped); since the storm ray landed it loads through `src/enemies/foe-assets.js` (no picture: every skin draws its vertex colours, `landmarks.json` beside it).
 - **Rig**: the cap on the bell's joint; one skinned mesh (skirt, stems, arms) on the bell, two arms and three lanterns,
   two influences, normalised, bind round trip < 0.1 mm, each joint moving only its own vertices
   (`tests/cloud-jelly-tripo.test.js`); each bulb its own mesh on its lantern's joint.

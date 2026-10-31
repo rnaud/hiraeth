@@ -1,12 +1,10 @@
 import * as THREE from 'three';
 import { RENDER_FRAME } from '../../render-frame.js';
 
-// (the flyers' own; family A's share src/enemies/plans/tripo-body.js) The shipped Tripo bodies of #800 (public/enemies/<concept>/body.glb, made by scripts/tripo/ship-<name>.mjs from a
-// trial's prepared asset), what their builders share: the GLB read at once without three's loader (one mesh, plain
-// accessors: position, normal, uv, COLOR_0, indices, the flat texture, its extras), loaded once a body (a browser
-// fetches it and decodes its texture; the engines and Node read the file at once and draw its vertex colours), a
-// sub-mesh of its triangles, a skin's colours over its roles, and a skinned mesh's moving bounds. The shellback crab
-// (shellback-tripo.js) has its own copy of these from before; the flyers (cloud-jelly-tripo.js, …) use this one.
+// The shipped Tripo bodies of #800, what the flyers' builders share (family A's share src/enemies/plans/tripo-body.js) (cloud-jelly-tripo.js, lamp-moth-tripo.js,
+// storm-ray-tripo.js; their files loaded by src/enemies/foe-assets.js): the GLB read without three's loader (one mesh,
+// plain accessors, its extras: the tests read the shipped file with it), a part of it as a geometry of its own, a skin's
+// colours over its roles, a skinned mesh's moving bounds, the surface's normal near a point.
 
 const TY = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array, 5121: Uint8Array }, CO = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
 /** The GLB's mesh: { geometry (position, normal, uv, color: COLOR_0's bytes normalised), extras, landmarks, image, map: null }. */
@@ -24,43 +22,6 @@ export function parseTripoBody(bytes) {
   g.setIndex(acc(p.indices));
   const im = json.images?.[0];
   return { geometry: g, extras: mesh.extras, landmarks: mesh.extras.landmarks, image: im ? { bytes: view(im.bufferView), mime: im.mimeType } : null, map: null };
-}
-
-/** The load's deadline (ms): past it the foes are made with the stand-in body (tests/load-awaits.test.js). */
-export const LOAD_DEADLINE = 30000;
-
-/**
- * One shipped body (`file` under public/): { source() (the loaded body or null; the engines and Node read it on first
- * use, through `readNow`), load(base) (once; resolves to the body, or null with the stand-in left in), set(src) (a test's,
- * a trial's) }. `readNow()`: the file's bytes where they can be read at once (the engines' host, Node's files), else null;
- * each body's own module gives it, its path a constant there, so the test selector can see what it reads.
- */
-export function tripoBody(file, name, readNow) {
-  let source = null, pending = null, tried = false;
-  const read = () => { try { return readNow() ?? null; } catch (e) { return null; } };   // (not there: the stand-in body)
-  const get = () => { if (!source && !tried) { tried = true; const b = read(); if (b) source = parseTripoBody(b); } return source; };
-  const load = (base = import.meta.env?.BASE_URL ?? '/') => {
-    if (get()) return Promise.resolve(source);
-    if (typeof fetch !== 'function') return Promise.resolve(null);
-    // (a deadline, as the load's other assets have: a fetch that never answers leaves the stand-in body)
-    let timer = null;
-    const deadline = new Promise((resolve) => { timer = setTimeout(() => resolve(null), LOAD_DEADLINE); });
-    return pending ??= Promise.race([deadline, (async () => {
-      const r = await fetch(`${base}${file}`);
-      if (!r.ok || /text\/html/.test(r.headers.get('content-type') ?? '')) throw new Error(`no ${file} (${r.status})`);
-      const src = parseTripoBody(await r.arrayBuffer());
-      if (src.image && typeof createImageBitmap === 'function') {
-        const bmp = await createImageBitmap(new Blob([src.image.bytes], { type: src.image.mime }), { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
-        // (its texels are the printed colours the G-buffer takes; glTF's UVs: not flipped)
-        const map = new THREE.Texture(bmp); map.colorSpace = THREE.NoColorSpace; map.flipY = false; map.needsUpdate = true;
-        src.map = map;
-      }
-      return (source = src);
-    })()]).then((src) => { clearTimeout(timer); if (!src) { pending = null; console.warn(`the ${name} body did not load in time: its stand-in`); } return src; },
-      (e) => { clearTimeout(timer); pending = null; console.warn(`the ${name} body did not load: its stand-in`, e); return null; });
-  };
-  const set = (src) => { source = src; tried = !!src; pending = null; };
-  return { source: get, load, set, file };
 }
 
 /** A sub-geometry of `geo`: these triangles (first, count) of its index, its attributes shared. */

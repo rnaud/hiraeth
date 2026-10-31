@@ -5,7 +5,8 @@ import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, pivot, lerp, ease, eyeColor, finish, merged } from './kit.js';
 import { gazePart } from '../gaze.js';
-import { tripoBody, subset, piece, pick, rolesOf, roleColours, boneBoxes, normalNear } from './flyer-body.js';
+import { foeSource } from '../foe-assets.js';
+import { subset, piece, pick, rolesOf, roleColours, boneBoxes, normalNear } from './flyer-body.js';
 import { jellyModel as lanternJellyModel } from './lantern-jelly-legacy.js';
 
 // The cloud jelly (issue #800, family B): the game's `jelly`, everywhere it is fielded (its worlds, the Arena, the
@@ -42,23 +43,23 @@ import { jellyModel as lanternJellyModel } from './lantern-jelly-legacy.js';
 // caps on each lantern, the halo jelly's prism lanterns and halo, the porcelain jelly's glass floats in their nets and
 // glaze, the sun jelly's glowing core.
 //
-// The engines (Unity) decode no picture: there the home skin is drawn by its vertex colours too (the texture's four).
+// Every skin draws its vertex colours (the home skin's are the flat texture's own colours, COLOR_0), in the browser as in
+// the engines (their VMs decode no picture), as the other generated bodies of src/enemies/foe-assets.js do.
 
-/** The shipped body, under public/. */
+/** The shipped body, under public/ (loaded by src/enemies/foe-assets.js, its landmarks.json beside it). */
 export const CLOUD_JELLY_BODY = 'enemies/cloud-jelly/body.glb';
-const body = tripoBody(CLOUD_JELLY_BODY, 'cloud jelly', () => {
-  // (the engines' host reads public/; Node, its files; a browser fetches it in load)
-  const host = globalThis.__HIRAETH_HOST__;
-  if (host?.readFile) return host.readFile(CLOUD_JELLY_BODY);
-  const fs = globalThis.process?.getBuiltinModule?.('node:fs');
-  return fs ? fs.readFileSync(new URL(`../../../public/${CLOUD_JELLY_BODY}`, import.meta.url)) : null;
-});
-/** The loaded body (null until loaded; the engines and Node read it on first use). */
-export const cloudJellySource = body.source;
-/** The body, loaded once: the game awaits it before it builds its foes (src/main.js); a failed load leaves the lantern jelly. */
-export const loadCloudJellyBody = body.load;
-/** Stand a source in (a test's, a trial's), or null to forget it. */
-export const setCloudJellySource = body.set;
+const ADAPT = new WeakMap();
+let forced;
+/** The loaded body as this builder reads it ({ geometry, landmarks, map: null }), or null (not loaded: the lantern jelly stands in). */
+export function cloudJellySource() {
+  if (forced !== undefined) return forced;
+  const src = foeSource('jelly');
+  if (!src) return null;
+  if (!ADAPT.has(src)) ADAPT.set(src, { geometry: src.geometry, landmarks: src.rig, map: null });
+  return ADAPT.get(src);
+}
+/** Stand a source in (a test's), null for none (the lantern jelly), or undefined to go back to the loaded one. */
+export function setCloudJellySource(src) { forced = src; }
 
 /** The jelly's builder (src/enemies/plans/index.js): the Tripo body, or the lantern jelly where it is not loaded. */
 export function cloudJelly(skin) {
@@ -206,7 +207,8 @@ export function tripoJellyModel(skin, src) {
   // ---------------------------------------------------------------- the meshes
   // (the home skin's own colours: the texture's, or where no picture is drawn (the engines) its vertex colours, the same four)
   const skinM = M.mat(textured ? 'cjTripo' : 'cjTripoTint', '#ffffff', { side: THREE.DoubleSide, ...(textured ? { map: src.map } : { vertexColors: true }) });
-  const sgeo = skinGeometry(src, prep, skin, P, props, textured);
+  // (the home skin's own colours: the source's COLOR_0, the flat texture's own; the others' over the roles)
+  const sgeo = skinGeometry(src, prep, skin, P, props, home);
   const sm = new THREE.SkinnedMesh(sgeo, skinM); sm.name = 'cloud jelly skin'; sm.frustumCulled = false; frame.add(sm);
   // the cap: one colour, its skin's bell surface, on the bell's joint (the asset's frame moved to the joint)
   // (its own geometry, its origin at the lip: the skin's bell patterns sit as they did on the lantern jelly's bell)
@@ -223,7 +225,7 @@ export function tripoJellyModel(skin, src) {
       bg = new THREE.OctahedronGeometry(1, 0).scale(l.radius * 0.95, h * 0.55, l.radius * 0.95); own.push(bg);
       light = M.own(`light${k}`, P.light, { glow: 0.75 });
     } else {
-      bg = bulbGeometry(prep, k, textured ? null : colours());
+      bg = bulbGeometry(prep, k, home ? null : colours());
       light = M.own(`light${k}`, '#ffffff', { glow: 0.45, ...(textured ? { map: src.map } : { vertexColors: true }) });
     }
     const m = add(lanterns[k], bg, light, at.x, at.y, at.z);

@@ -121,7 +121,9 @@ export const SKINS = {
     spacecity: { name: 'space moth', palette: { wing: '#5f7fd8', wing2: '#a8b8f0', body: '#d8f0ff', spot: '#f2f4ff', glow: '#ffffff', antenna: '#d8dff2', eye: '#101830' }, props: ['sail'] },
   },
   ray: {
-    arzach: { name: 'storm ray', palette: { top: '#c8573a', top2: '#d8704c', under: '#ece2c8', edge: '#9fb3d8', spots: '#8a3424', eye: '#2a1810', tail: '#e8dcc0' }, props: [], moves: ['draft'] },
+    // (#800: the approved image's colours, storm-ray/4fc2da68-…-0.png: a teal back and wings, a cream belly and undersides, the
+    // wing tips red-brown; the Tripo body's texture is painted in them)
+    arzach: { name: 'storm ray', palette: { top: '#5f8578', top2: '#78a090', under: '#e6d6aa', edge: '#a5523c', spots: '#3e6654', eye: '#1b1f1d', tail: '#5f8578' }, props: [], moves: ['draft'] },
     arzach2: { name: 'cloud ray', palette: { top: '#e8e4ec', top2: '#f6f4f8', under: '#ffffff', edge: '#a8c8e0', spots: '#a8c8e0', eye: '#4a6a8a', tail: '#a8b8c8' }, props: ['mist'], moves: ['draft'] },
     garage: { name: 'scrap ray', palette: { top: '#b8a888', top2: '#cdbf9e', under: '#e8dcc0', edge: '#5a5654', spots: '#5a5654', eye: '#ffb347', tail: '#3a3634' }, props: ['patches', 'wire'] },
     glassdunes: { name: 'glass manta', palette: { top: '#8fd9c0', top2: '#c9f2e2', under: '#e8f8f0', edge: '#ffffff', spots: '#ffffff', eye: '#fff4b0', tail: '#5fbf9f' }, props: ['facets'] },

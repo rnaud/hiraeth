@@ -2368,8 +2368,9 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch). Batch 2 rides the kit's chains
   (phase 4, procedural-animation.md): `centipede.js` (plan 3: segments on the head's own path, `PathTrail`; 24 legs
   stepping in a metachronal wave on distance, `src/motion-kit/wave-legs.js`), `burrower.js` (plan 15: the worm's
-  mounds on its path, its ring stack rising on a spring that dips first), `glider.js` (plan 14: the ray's wings as
-  strips turned by a travelling `Wave`, the tail on a `FollowChain`), `lamp-moth-tripo.js` (plan 13: the lamp moth,
+  mounds on its path, its ring stack rising on a spring that dips first), `storm-ray-tripo.js` (plan 14: the storm ray,
+  Tripo's body, its wings bent at their roots on a travelling `Wave`; the sky ray's strips and `FollowChain` tail kept in
+  `sky-ray-legacy.js`), `lamp-moth-tripo.js` (plan 13: the lamp moth,
   Tripo's body, its wings beating on a `Wave` by speed; the signal moth's strips and chains kept in `signal-moth-legacy.js`), `cloud-jelly-tripo.js` (plan 11: the cloud jelly, Tripo's body on its own joints, its bell pulsing on a `Wave`
   that quickens as it winds up, each lantern a pendulum; the lantern jelly's threads and lanterns on verlet chains kept
   in `lantern-jelly-legacy.js`). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
@@ -2872,13 +2873,14 @@ of its own.
 
 The flyers have no legs for the kit to plant, so their Tripo bodies are rigid parts on joints of their own, driven by the
 plan's own motion (the skill's table's nearest family, the machine's: each vertex on its part's joint, blended where two
-meet), not a skeleton Tripo guesses. What they share: `src/enemies/plans/flyer-body.js` (`tripoBody`: the GLB read at
-once without three's loader, loaded once with the 30 s deadline; `piece`, `subset`, the role colours, the skinned mesh's
-moving bounds), `scripts/tripo/ship-flyer.mjs` (the trial's asset into `public/enemies/<concept>/body.glb`: 16-bit indices,
-the flat texture at 512², the landmarks in its extras) and the trials' `flyer-tripo/` scripts (`prep-lib.mjs`: the
+meet), not a skeleton Tripo guesses. Their files load as the other generated bodies' do, through `src/enemies/foe-assets.js`
+(`FOE_ASSETS.jelly`, `.moth`, `.ray`: `body.glb` and `landmarks.json` under `public/enemies/<concept>/`, read at once by the
+engines and Node, fetched by a browser for the worlds that field them and for the Arena); every skin draws the vertex
+colours (the home skin's are the flat texture's own). What they share: `src/enemies/plans/flyer-body.js` (`piece`,
+`subset`, the role colours, the skinned mesh's moving bounds, the GLB read for the tests), `scripts/tripo/ship-flyer.mjs`
+(the trial's asset into `public/enemies/<concept>/`: 16-bit indices, no picture, the landmarks beside it and in its extras) and the trials' `flyer-tripo/` scripts (`prep-lib.mjs`: the
 recipe's steps; `splat.mjs`, `pairs.mjs`, `arrivals.mjs`, `bench-worlds.mjs`). `src/main.js` and the gallery await each
-body before the foes are made; the engines and Node read it at once and draw its vertex colours. The body each replaced is
-kept under a legacy name and stands in where the new one is not loaded.
+The body each replaced is kept under a legacy name and stands in where the new one is not loaded.
 
 **The cloud jelly** (`jelly`, `plans/cloud-jelly-tripo.js` `cloudJelly`; the lantern jelly kept as
 `plans/lantern-jelly-legacy.js`). `public/enemies/cloud-jelly/body.glb` (402 KB, 300 KB gzipped, 13,210 triangles), from
@@ -2910,7 +2912,20 @@ mesh on the wings' joints, blazing white for the flash. The beat is the signal m
 as it flies, open flat for the flash, folded for the dart, fanning for the dust); three come together. Its eyes are the
 painted ones' size and place, on the head. Skins recolour the roles and keep their dress: the glass wasp's slimmer body
 and no eye-spots, the sign moth's neon ink and painted letters, the signal moth's dishes. Drawn: 5 meshes a body against
-the signal moth's 126.
+the signal moth's 126. Tests: `tests/lamp-moth-tripo.test.js`.
+
+**The storm ray** (`ray`, `plans/storm-ray-tripo.js` `stormRay`; the sky ray kept as `plans/sky-ray-legacy.js`).
+`public/enemies/storm-ray/body.glb` (364 KB, 263 KB gzipped, 12,260 triangles), from the approved
+`storm-ray/4fc2da68-…-0.png` (Tripo task e9077ebe-…, 30 credits; the shadow disc Tripo drew under it dropped). 2.3 m from
+nose to tail. One skinned mesh for the body and wings (each wing on a joint where it leaves the body's back and another half
+way out, weighted by geometry over its root so the body's lens never moves), the tail its own skinned mesh on two joints
+(its own bands). The reference's raised V is the downdraft's pose: as it glides the wings are let down by `WING_DOWN`
+(0.72 rad) and beat on the plan's wave, the tip lagging; the skim sweeps them back and stills them; the lash lifts the
+tail high and cracks it down; grounded (a parried skim, the defeat) they lie flat. It banks and pitches as the sky ray
+did. Its eyes are the painted ones' size and place, slid by the gaze. Skins recolour the roles (back, belly, tips, dark)
+and keep their dress: the cloud ray's mist, the scrap ray's patches and wire, the glass manta's facets, the porcelain
+ray's ribbons, the abyss ray's long tail and white ink. Drawn: 3 meshes a body against the sky ray's 60. Tests:
+`tests/storm-ray-tripo.test.js`.
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

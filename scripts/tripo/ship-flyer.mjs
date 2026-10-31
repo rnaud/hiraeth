@@ -6,15 +6,15 @@
 // - the same mesh, its triangles grouped by part (extras.parts), positions, normals, UVs and COLOR_0 (the flat colours:
 //   what the engines draw, as their VMs decode no picture: engine/boot.js COLOURED_PICTURES);
 // - its indices as 16 bits;
-// - the flat texture at 512² (a few flat colours, one a part: nearest, so no new colour is made);
-// - the landmarks the rig is fitted to in the mesh's extras (one file to load).
+// - no texture: every skin draws the vertex colours (the home skin's are the flat texture's own), as the other
+//   generated bodies loaded by src/enemies/foe-assets.js do;
+// - the landmarks the rig is fitted to beside it, landmarks.json (foe-assets.js reads the two files), and in its extras.
 //
 //   node scripts/tripo/ship-flyer.mjs jelly|moth|ray        (deterministic: the same inputs write the same bytes)
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import sharp from 'sharp';
 import { writeGlb } from '../../references/enemy-redesign-2026-10-30/trials/shellback-tripo/glb.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -24,7 +24,6 @@ export const FLYERS = {
   moth: { trial: 'moth-tripo', shipped: 'public/enemies/lamp-moth/body.glb', name: 'lamp moth' },
   ray: { trial: 'ray-tripo', shipped: 'public/enemies/storm-ray/body.glb', name: 'storm ray' },
 };
-const TEX = 512;
 const which = process.argv[2], F = FLYERS[which];
 if (!F) throw new Error(`which flyer? ${Object.keys(FLYERS).join(' | ')}`);
 const TRIAL = join(ROOT, 'references/enemy-redesign-2026-10-30/trials', F.trial);
@@ -37,11 +36,10 @@ const P = acc(p.attributes.POSITION), N = acc(p.attributes.NORMAL), UV = acc(p.a
 if (P.length / 3 > 65535) throw new Error('too many vertices for 16-bit indices');
 const I = Uint16Array.from(I32);
 const landmarks = JSON.parse(readFileSync(join(TRIAL, 'landmarks.json'), 'utf8'));
-const png = await sharp(readFileSync(join(TRIAL, 'flat-texture.png'))).resize(TEX, TEX, { kernel: 'nearest' }).removeAlpha()
-  .png({ compressionLevel: 9, palette: true, colours: 16, dither: 0 }).toBuffer();
-const glb = writeGlb({ attrs: { POSITION: P, NORMAL: N, TEXCOORD_0: UV, COLOR_0: COL }, indices: I, image: png, name: F.name,
-  extras: { ...extras, source: `references/enemy-redesign-2026-10-30/trials/${F.trial}/tripo-lod.glb`, texture: TEX, landmarks } });
+const glb = writeGlb({ attrs: { POSITION: P, NORMAL: N, TEXCOORD_0: UV, COLOR_0: COL }, indices: I, image: null, name: F.name,
+  extras: { ...extras, source: `references/enemy-redesign-2026-10-30/trials/${F.trial}/tripo-lod.glb`, landmarks } });
 mkdirSync(join(ROOT, dirname(F.shipped)), { recursive: true });
 writeFileSync(join(ROOT, F.shipped), glb);
+writeFileSync(join(ROOT, dirname(F.shipped), 'landmarks.json'), JSON.stringify(landmarks) + '\n');
 const sha = createHash('sha256').update(glb).digest('hex').slice(0, 16);
-console.log(JSON.stringify({ file: F.shipped, bytes: glb.length, sha, vertices: P.length / 3, triangles: I.length / 3, parts: extras.parts, texture: TEX, pngBytes: png.length }));
+console.log(JSON.stringify({ file: F.shipped, bytes: glb.length, sha, vertices: P.length / 3, triangles: I.length / 3, parts: extras.parts }));

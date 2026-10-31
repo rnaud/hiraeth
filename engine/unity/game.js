@@ -1002,7 +1002,7 @@ function makePlan(args) {
     // their vertex colours (no picture decoded here): each home skin 7 m ahead and 2.4 m to the right, hovering, then
     // winding up its first move; then a skin with its dress; the body each wears is said in the log)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-flyers-${name}.png` }] : []);
-    for (const [id, dressed] of [['jelly@arzach2', 'jelly@perdide2'], ['moth@perdide2', 'moth@bazaar']]) {
+    for (const [id, dressed] of [['jelly@arzach2', 'jelly@perdide2'], ['moth@perdide2', 'moth@bazaar'], ['ray@arzach', 'ray@garage']]) {
       const kind = id.split('@')[0];
       steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: id, dist: 7, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot(`${kind}-home`),
         { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 40, secs: 0.7 }, ...shot(`${kind}-windup`),

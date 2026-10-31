@@ -38,10 +38,9 @@ test('the moth is the lamp moth in every skin, three together; the signal moth s
     foes.remove(f);
   }
   foes.dispose();
-  const src = lampMothSource();
+  // (no source: the signal moth)
   setLampMothSource(null);
-  const keep = globalThis.process.getBuiltinModule; globalThis.process.getBuiltinModule = () => null;
-  try { const m = lampMoth(skinOf('moth', 'perdide2')); assert.equal(m.tripo, undefined); m.dispose(); } finally { globalThis.process.getBuiltinModule = keep; setLampMothSource(src); }
+  try { const m = lampMoth(skinOf('moth', 'perdide2')); assert.equal(m.tripo, undefined); m.dispose(); } finally { setLampMothSource(undefined); }
   const old = signalMothModel(skinOf('moth', 'bazaar')); assert.ok(old.group.children.length > 0, 'the signal moth is kept'); old.dispose();
 });
 
