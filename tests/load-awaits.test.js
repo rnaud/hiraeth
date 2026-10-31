@@ -36,6 +36,7 @@ const KNOWN = [
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
   [/^houndBody\b/, 'the horned hound\'s body (src/enemies/plans/hound-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
   [/^cloudJellyBody\b/, 'the cloud jelly\'s body (src/enemies/plans/cloud-jelly-tripo.js, through src/enemies/plans/flyer-body.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), its old body standing in'],
+  [/^lampMothBody\b/, 'the lamp moth\'s body (src/enemies/plans/lamp-moth-tripo.js, through src/enemies/plans/flyer-body.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), its old body standing in'],
   [/^shellbackBody\b/, 'the shellback crab\'s body (src/enemies/plans/shellback-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
   [/^warmShaders\(/, 'the race below: compileAsync or 2 s'],

@@ -1,6 +1,6 @@
 # Cloud jelly (`jelly`), #800 family B
 
-The game's jelly since v2.38: Tripo's body from the approved image
+The game's jelly since v2.39: Tripo's body from the approved image
 [`../../cloud-jelly/0cdfba00-da12-409f-8fd5-03de262f50ca-1.png`](../../cloud-jelly/0cdfba00-da12-409f-8fd5-03de262f50ca-1.png),
 landed straight from the skill's recipe (the author picked Tripo for all four trial foes; no direct body was made). The
 lantern jelly it replaced is kept as `src/enemies/plans/lantern-jelly-legacy.js` (the stand-in where the body is not loaded).

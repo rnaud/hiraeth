@@ -1471,6 +1471,8 @@ const FROM800 = 'Hand-made (no `view`, the commit to be rebased): a scratch scri
 const FROM800_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh shellback -level arena -fight shellback -mute), 30 October 2026, its first picture (unity-shellback-home): the game’s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
 const FROM800B = 'Hand-made (no `view`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/flyer-tripo/pairs.mjs (scripts/changelog-shots.mjs serve, chrome and shoot on its `view.foe`: the creatures gallery\'s body alone, large, 3D only, inked by the post pass; Vite on port 5462, muted headless Chrome, --mute-audio, hiraeth.muted and every volume 0 before load), High, 1280 × 720, three-quarters from its front, the same camera before and after; before: a9b33fb98 (an archive of it), after: this change, 30 October 2026';
 const FROM800B_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh flyers -level arena -fight flyers -mute), 30 October 2026, its picture of the home skin (unity-flyers-jelly-home): the game\'s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
+const FROM800M = FROM800B.replace('before: a9b33fb98', 'before: 776d01af8');
+const FROM800M_UNITY = FROM800B_UNITY.replace('unity-flyers-jelly-home', 'unity-flyers-moth-home');
 const SOURCE800B = 'references/enemy-redesign-2026-10-30/trials/flyer-tripo/bench-worlds.mjs (scripts/enemy-roster/bench.mjs --level <world> --pack six of the skin, against the same world with none; the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 11–22); renderer.info';
 const DEVICE800 = 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
 const SOURCE800 = 'scripts/enemy-roster/bench.mjs --level <world> --pack six crabs of its skin, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 13–29); renderer.info';
@@ -1567,6 +1569,33 @@ export const CHANGELOG_MEDIA = {
     { title: 'Memory the jellies hold on the graphics card', unit: 'MB', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; every vertex buffer and picture the six jellies draw, each counted once however many share it`, rows: [
       { where: 'Vael II (its picture: 512 × 512, four flat colours)', before: 0.22, after: 2.14 },
       { where: 'The Garden of Spheres (no picture: its colours on the vertices)', before: 0.4, after: 0.78 },
+    ] },
+  ] },
+  // (issue #800 family B: the lamp moth on its Tripo body; hand-made pairs from the creatures gallery, one camera)
+  { match: 'The signal moth has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'moth800-lorn2', title: 'Lorn II', caption: 'A lamp moth alone, three-quarters from its front: before, the slim ribbed paper lantern on six thread legs under kite wings of rods and a red-ringed spot; after, the round orange body on its two feet, the cream head with dark eyes and orange-tipped feelers, the broad lilac wing with its pale eye-spot', from: FROM800M,
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/lamp-moth/5b88e9ea-3cc5-4ea8-ab97-4431bfb5584b-1.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'moth800-flash', title: 'The flash', caption: 'At 80 % of the flash’s wind-up: before, the kite wings snapped open flat, the spots burning; after, the lilac wings open flat toward you, both eye-spots white and the eyes red', from: FROM800M },
+    { name: 'moth800-viridel', title: 'Viridel', caption: 'The glass wasp: before, the slim lantern on its legs under one pink kite wing; after, the new body slimmer and paler, banded, its pink wings without eye-spots', from: FROM800M },
+    { name: 'moth800-bazaar', title: 'The Signal Market', caption: 'The sign moth: before, the pink lantern under a black kite wing with a cyan spot; after, the pink banded body under black neon-inked wings, the painted cyan letters on the wing', from: FROM800M },
+    { name: 'moth800-antennas', title: 'The Forest of Antennas', caption: 'The signal moth: before, the mint lantern under a cream wing of rods; after, the mint body under cream veined wings, dish feelers on its head', from: FROM800M },
+    { name: 'moth800-spacecity', title: 'The City Floating in Space', caption: 'The space moth: before, the pale lantern under a blue kite wing; after, the pale blue banded body under blue wings, its eye-spots white', from: FROM800M },
+    { name: 'moth800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a lamp moth 7 m ahead of the traveller: the same new body drawn by its colours', from: FROM800M_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six moths add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800B, rows: [
+      { where: 'Lorn II, High', before: 630, after: 90 },
+      { where: 'Lorn II, Handheld', before: 421, after: 61 },
+      { where: 'The Signal Market (letters and neon), High: the second round (the first after-run caught the world still loading)', before: 540, after: 82 },
+      { where: 'The Signal Market, Handheld', before: 349, after: 56 },
+    ] },
+    { title: 'Triangles six moths add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800B, rows: [
+      { where: 'Lorn II, High', before: 88.3, after: 249.3 },
+      { where: 'Lorn II, Handheld', before: 58.9, after: 166.2 },
+      { where: 'The Signal Market, Handheld', before: 44.1, after: 165.1 },
+    ] },
+    { title: 'The script’s time a frame six moths add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; every run held 60 fps; the machine was busy (load 20–40)`, rows: [
+      { where: 'Lorn II, High', before: 2.4, after: 1.6 },
+      { where: 'Lorn II, Handheld', before: 2.7, after: 0.3 },
     ] },
   ] },
   // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)

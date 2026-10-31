@@ -13,6 +13,7 @@ import { loadAnimationLibrary } from '../animator.js';
 import { loadMotionLibrary } from '../motion-match.js';
 import { setFoeClips } from './humanoid-rig.js';
 import { loadShellbackBody } from './plans/shellback-tripo.js';
+import { loadLampMothBody } from './plans/lamp-moth-tripo.js';
 import { loadHoundBody } from './plans/hound-tripo.js';
 import { loadFoeAssets, FOE_ASSETS } from './foe-assets.js';
 import { loadCloudJellyBody } from './plans/cloud-jelly-tripo.js';
@@ -148,6 +149,7 @@ $('stage').onpointermove = (e) => { if (drag) { dragOrbit(viewer.orbit, e.client
 $('stage').onpointerup = () => drag = null;
 $('stage').addEventListener('wheel', (e) => { e.preventDefault(); zoomOrbit(viewer.orbit, Math.exp(e.deltaY * 0.001)); }, { passive: false });
 await loadShellbackBody();   // (the crab's body, src/enemies/plans/shellback-tripo.js: in before any crab is built)
+await loadLampMothBody();   // (the lamp moth's, src/enemies/plans/lamp-moth-tripo.js)
 await loadHoundBody();   // (the hound's, src/enemies/plans/hound-tripo.js)
 // (the generated bodies' meshes first, #800: else their direct stand-ins are drawn)
 await loadFoeAssets(Object.keys(FOE_ASSETS));

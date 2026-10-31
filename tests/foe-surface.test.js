@@ -23,7 +23,7 @@ const planSources = {
   centipede: readFileSync(new URL('../src/enemies/plans/centipede-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/centipede-legacy.js', import.meta.url), 'utf8'),
   worm: readFileSync(new URL('../src/enemies/plans/burrower.js', import.meta.url), 'utf8'),
   ray: readFileSync(new URL('../src/enemies/plans/glider.js', import.meta.url), 'utf8'),
-  moth: readFileSync(new URL('../src/enemies/plans/flyer.js', import.meta.url), 'utf8'),
+  moth: readFileSync(new URL('../src/enemies/plans/lamp-moth-tripo.js', import.meta.url), 'utf8'),
   jelly: readFileSync(new URL('../src/enemies/plans/cloud-jelly-tripo.js', import.meta.url), 'utf8'),
   // (the Tripo toad, #800, and the legacy one standing in where its body is not loaded)
   toad: readFileSync(new URL('../src/enemies/plans/toad-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/hopper-legacy.js', import.meta.url), 'utf8'),

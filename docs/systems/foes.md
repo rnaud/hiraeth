@@ -2369,8 +2369,8 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   (phase 4, procedural-animation.md): `centipede.js` (plan 3: segments on the head's own path, `PathTrail`; 24 legs
   stepping in a metachronal wave on distance, `src/motion-kit/wave-legs.js`), `burrower.js` (plan 15: the worm's
   mounds on its path, its ring stack rising on a spring that dips first), `glider.js` (plan 14: the ray's wings as
-  strips turned by a travelling `Wave`, the tail on a `FollowChain`), `flyer.js` (plan 13: the moth's flap by speed,
-  its antennae on chains), `cloud-jelly-tripo.js` (plan 11: the cloud jelly, Tripo's body on its own joints, its bell pulsing on a `Wave`
+  strips turned by a travelling `Wave`, the tail on a `FollowChain`), `lamp-moth-tripo.js` (plan 13: the lamp moth,
+  Tripo's body, its wings beating on a `Wave` by speed; the signal moth's strips and chains kept in `signal-moth-legacy.js`), `cloud-jelly-tripo.js` (plan 11: the cloud jelly, Tripo's body on its own joints, its bell pulsing on a `Wave`
   that quickens as it winds up, each lantern a pendulum; the lantern jelly's threads and lanterns on verlet chains kept
   in `lantern-jelly-legacy.js`). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
   `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
@@ -2868,7 +2868,7 @@ of its own.
   meshes and the eyes (4–5 drawn, against the legacy's 5). The home skin (the Desert's) wears the reference's colours;
   the furnace beetles and ash grubs keep their glowing seam down the back. Tests: `tests/skitter-tripo.test.js`,
   `tests/motion-plans.test.js` (8 legs), `tests/archetypes-batch3.test.js` (the legacy's bowed six).
-### The flyers on Tripo's bodies (v2.38, issue #800, family B)
+### The flyers on Tripo's bodies (v2.39, issue #800, family B)
 
 The flyers have no legs for the kit to plant, so their Tripo bodies are rigid parts on joints of their own, driven by the
 plan's own motion (the skill's table's nearest family, the machine's: each vertex on its part's joint, blended where two
@@ -2897,6 +2897,20 @@ prism lanterns and the halo (the halo jelly), glass floats in nets and the glaze
 16.8 ms in every skin, no program compiled. Kept: the id, def, attacks and windows (ward, mend, curtain), the lanterns
 and their pop, its support role, sounds (`floater`/`glass`), the death recipe (it deflates and lands on its bulbs),
 saves and encounters. Unity: `-fight flyers` pictures it. Tests: `tests/cloud-jelly-tripo.test.js`.
+
+**The lamp moth** (`moth`, `plans/lamp-moth-tripo.js` `lampMoth`; the signal moth kept as `plans/signal-moth-legacy.js`).
+`public/enemies/lamp-moth/body.glb` (430 KB, 310 KB gzipped, 13,572 triangles), from the approved
+`lamp-moth/5b88e9ea-…-1.png` (Tripo task 3c2ccaf8-…, 30 credits). Cut by geometry: the body (in front of the wings' sheet,
+inside its silhouette's half-width at each height, its feet and shoulder nubs with it) one mesh on the frame; the head
+and antennae over the neck's plane, a skinned mesh on the head (the gaze turns it, yaw only, about the neck's own axis)
+and its antennae's joints (they trail its motion); the wings one skinned mesh, each on a hinge at the body's side and an
+outer joint half way out, the root held on the frame from the egg's own half-width (what lies behind the body never
+moves); the eye-spots cut exactly round their cream (an ellipse in the wing's plane, through both faces), their own
+mesh on the wings' joints, blazing white for the flash. The beat is the signal moth's (about the upright, swept back
+as it flies, open flat for the flash, folded for the dart, fanning for the dust); three come together. Its eyes are the
+painted ones' size and place, on the head. Skins recolour the roles and keep their dress: the glass wasp's slimmer body
+and no eye-spots, the sign moth's neon ink and painted letters, the signal moth's dishes. Drawn: 5 meshes a body against
+the signal moth's 126.
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

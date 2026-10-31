@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-31T01:21:56.259Z",
+  "key": "KeyS",
+  "results": [
+    {
+      "foe": "moth",
+      "atk": "flash",
+      "wind": 1,
+      "pressedAt": 0.25,
+      "lead": 0.35,
+      "hop": "back",
+      "flurry": true,
+      "locked": true
+    }
+  ],
+  "errors": []
+}

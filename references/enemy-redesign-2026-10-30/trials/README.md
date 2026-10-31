@@ -51,7 +51,7 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `mummer-tripo/model.js`, `node-source.mjs`, `closeups.mjs` | the Tripo mummer on the humanoid clip rig, Tripo's own skeleton posed directly; its source in node; the close rows (body, mask, mittens, the whack, clay) |
 | `mummer-tripo/archetype.js` | the dune mummer keyed as its own enemy, `dunemummer` (`duneMummerEntry()`: id, def, skins, weapons, sounds, places), not yet registered |
 | `woodcutter-tripo/model.js`, `source-node.mjs` | the Tripo wood cutter on the brute's rig family (the shared `woodcutterMotion`): rigid parts blended across the limbs' cuts, each world's own tool on the wrist, the head turning about its dome's centre; its source in node |
-| `flyer-tripo/`, `jelly-tripo/` (and the moth's and ray's) | family B, the flyers landed straight from the recipe: `prep-lib.mjs` (the shared preparation steps), `splat.mjs` (the cuts by eye), `pairs.mjs` (before/after from the gallery), `arrivals.mjs` (the Arena's warm-up), `bench-worlds.mjs`; each foe's write-up in its own folder: [`jelly/README.md`](jelly/README.md) |
+| `flyer-tripo/`, `jelly-tripo/` (and the moth's and ray's) | family B, the flyers landed straight from the recipe: `prep-lib.mjs` (the shared preparation steps), `splat.mjs` (the cuts by eye), `pairs.mjs` (before/after from the gallery), `arrivals.mjs` (the Arena's warm-up), `bench-worlds.mjs`; each foe's write-up in its own folder: [`jelly/README.md`](jelly/README.md), [`moth/README.md`](moth/README.md) |
 
 ## Shellback (`crab`), phase 2a and its fixes
 

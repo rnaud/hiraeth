@@ -105,6 +105,8 @@ export const SURFACES = {
     },
     antennas: { wing: { stripes: { color: 'antenna', axis: 0, period: 0.14, width: 0.05, ink: 0, amount: 0.35 } }, lantern: { glow: { color: '#d8f0d8', amount: 0.4, rim: 0.2, core: 1.4, pulse: 1.6, emit: 0.3 }, bands: { color: 'antenna', axis: 1, period: 0.16, width: 0.06, ink: 0.4 } } },
     bazaar: { lantern: { glow: { color: 'body', amount: 0.7, rim: 0.5, core: 1.2, pulse: 4, emit: 0.9 } } },
+    // (the lamp moth, #800: the reference's plain orange body, warm from inside; no lantern's ribs)
+    perdide2: { lantern: { glow: { color: 'glow', amount: 0.35, rim: 0.2, core: 1.4, pulse: 2.2, emit: 0.35 }, bands: null } },
   },
   centipede: {
     '*': {

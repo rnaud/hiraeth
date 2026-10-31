@@ -111,7 +111,9 @@ export const SKINS = {
     fallenring: { name: 'sun jelly', palette: { bell: '#3f8f8a', bell2: '#5aa8a0', thread: '#2a6a66', lantern: '#ffcf8a', light: '#ff9a3e', eye: '#fff4b0', dark: '#16302e' }, props: ['core'], moves: ['mend'] },
   },
   moth: {
-    perdide2: { name: 'lamp moth', palette: { wing: '#a39bbf', wing2: '#c8c2d8', body: '#f2cf86', spot: '#d8504a', glow: '#fff2d0', antenna: '#c9a050', eye: '#1a1420' }, props: ['lit', 'dusty'], moves: ['dust'] },
+    // (#800: the approved image's colours, lamp-moth/5b88e9ea-…-1.png: lilac wings with cream eye-spots, an orange body on two
+    // stubby feet, a cream head with dark eyes, dark antennae with orange tips; the Tripo body's texture is painted in them)
+    perdide2: { name: 'lamp moth', palette: { wing: '#b3a7c3', wing2: '#c9bfd6', body: '#e7aa6e', spot: '#a4574a', glow: '#f5e8c3', antenna: '#2b2620', eye: '#1e1d24' }, props: ['lit', 'dusty'], moves: ['dust'] },
     edena: { name: 'glass wasp', palette: { wing: '#f2b8c8', wing2: '#f8dce4', body: '#f7d8a8', spot: '#e0607a', glow: '#fff0f4', antenna: '#5a3a44', eye: '#2a1e24' }, props: ['wasp'] },
     bazaar: { name: 'sign moth', palette: { wing: '#2a1f36', wing2: '#3a2c48', body: '#ff9ac8', spot: '#5ff0e8', glow: '#ffffff', antenna: '#ff5fa2', eye: '#101018' }, props: ['neon', 'letters'] },
     // (sheet-2: cream paper wings traced with copper, a mint-green lantern, copper hood and legs)

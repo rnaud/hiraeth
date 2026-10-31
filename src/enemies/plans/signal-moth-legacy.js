@@ -6,7 +6,8 @@ import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, rod, pivot, pair, lerp, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 
-// Plan 13, the flyer (docs/systems/procedural-animation.md §4): the signal moth (docs/design/enemy-roster.md,
+// The SIGNAL MOTH, kept (issue #800): the game's moth until the lamp moth (lamp-moth-tripo.js, Tripo's body) took its
+// place; it stands in where that body is not loaded, and can come back as a foe of its own. Plan 13, the flyer (docs/systems/procedural-animation.md §4): the signal moth (docs/design/enemy-roster.md,
 // archetype 10), the disruptor. Drawn to its picked sheet (references/enemy-archetypes/moth/sheet-1.jpg, the Deep
 // Wood's lamp moth): an otherworldly lamp creature hovering upright, its body a slender ribbed paper lantern with a
 // warm light inside, a small hooded face with two dark eyes, two antennae ending in glowing bulbs, two kite-like wings

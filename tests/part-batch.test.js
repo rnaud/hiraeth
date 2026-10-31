@@ -101,16 +101,21 @@ test('every archetype of the roster is batched: about half the draws, nothing dr
     foes.look(f, 1 / 60);
     f.model.group.updateMatrixWorld(true);
     const batched = new Set(f.batches.flatMap((b) => b.parts));
+    // (a rebuilt body, #800's flyers: a few meshes already, little left to batch: held to a handful of draws of its own)
+    const own = !!f.model.tripo; let mine = 0;
     f.model.group.traverse((o) => {
       if (!o.isMesh) return;
+      if (own && o.layers.mask !== 0 && o.visible) mine++;
       if (!o.userData.batch) parts++;
       if (o.layers.mask !== 0) draws++;
       if (batched.has(o)) assert.equal(o.layers.mask, 0, `${id}: a batched part is not drawn itself`);
       else if (!o.userData.batch) assert.ok(o.isSkinnedMesh || !batchable(o) || o.layers.mask !== 0, `${id}: every part is drawn`);
     });
+    if (own) assert.ok(mine <= 9, `${id}: ${mine} meshes drawn`);
     foes.remove(f);
   }
-  assert.ok(draws < parts * 0.6, `${draws} meshes drawn for ${parts} parts`);
+  // (0.7: the bodies #800 rebuilt are a few large parts each, little to batch, their draws a small fraction of the old ones')
+  assert.ok(draws < parts * 0.7, `${draws} meshes drawn for ${parts} parts`);
 });
 
 test('a batch of small parts is as small as one part for a shadow map\'s texel (shadows.js ShadowCuller)', () => {

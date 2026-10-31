@@ -1,0 +1,34 @@
+{
+  "issue": 800,
+  "phase": "family B",
+  "source": "references/enemy-redesign-2026-10-30/lamp-moth/5b88e9ea-3cc5-4ea8-ab97-4431bfb5584b-1.png",
+  "sourceSha256": "8aecb81db52d397d910f1bb46611efc87a09028be8991bdc24eef406be1600ab",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "3c2ccaf8-7fc1-4638-8195-e03c424d3a9e",
+  "started": "2026-10-30T23:18:31.775Z",
+  "finished": "2026-10-30T23:19:48.820Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1595,
+  "balanceAfter": 1565,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1372184,
+    "sha256": "ff9585ef77bc04d285365fc79987e69930363a584e6dff296f953a133075df43",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 137307
+  }
+}

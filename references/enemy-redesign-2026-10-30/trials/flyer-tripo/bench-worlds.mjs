@@ -14,7 +14,12 @@ const argv = process.argv.slice(2), ri = argv.indexOf('--rounds'), ROUNDS = ri >
 const [OUT, BEFORE, ...CASES] = argv;
 const ROOT = resolve(new URL('../../../..', import.meta.url).pathname);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const run = async (args) => {
+// (a run already in the file is not run again: a long bench resumes; a failed run is tried again twice)
+const done = existsSync(OUT) ? readFileSync(OUT, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l)) : [];
+const run = async (args, tries = 3) => {
+  for (let i = 1; ; i++) { try { return await run1(args); } catch (e) { if (i >= tries) throw e; console.log('run failed, again:', String(e).slice(0, 120)); } }
+};
+const run1 = async (args) => {
   while (loadavg()[0] > 25) { console.log('load', loadavg()[0].toFixed(1), 'waiting'); await sleep(30000); }
   const out = execFileSync('node', [join(ROOT, 'scripts/enemy-roster/bench.mjs'), ...args], { cwd: ROOT, encoding: 'utf8', env: process.env, maxBuffer: 1 << 26 });
   const line = out.trim().split('\n').filter((l) => l.startsWith('{')).at(-1);
@@ -26,6 +31,7 @@ for (let round = 0; round < ROUNDS; round++) for (const c of CASES) {
     const order = round % 2 ? ['after', 'before', 'none'] : ['before', 'after', 'none'];
     for (const what of order) {
       const args = ['--quality', quality, '--level', world, '--pack', what === 'none' ? 'none' : Array(6).fill(id).join(','), ...(what === 'before' ? ['--commit', BEFORE] : [])];
+      if (done.some((d) => d.round === round && d.id === id && d.world === world && d.quality === quality && d.what === what)) continue;
       const r = await run(args);
       const rec = { round, id, world, quality, what, load: +loadavg()[0].toFixed(1), calls: r.calls, tris: r.tris, cpu: r.cpu, gpu: r.gpu, frame: r.frame, made: r.made?.length ?? r.made, memory: r.memory, errors: r.errors };
       appendFileSync(OUT, JSON.stringify(rec) + '\n');
