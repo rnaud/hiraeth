@@ -612,6 +612,7 @@
  "tests/ring-jets.test.js": 1,
  "tests/rings.test.js": 0.4,
  "tests/robes.test.js": 2.1,
+ "tests/roller-tripo.test.js": 0.6,
  "tests/room-size.test.js": 3.2,
  "tests/route-ilen.test.js": 0.2,
  "tests/route-spawn.test.js": 57.4,

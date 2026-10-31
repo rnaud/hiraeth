@@ -32,7 +32,11 @@ const _v = new THREE.Vector3();
 /** The roll locked to the ground: the angle a ball of radius r turns through rolling d m (never a slip). */
 export const rollAngle = (d, r) => d / r;
 
-export function rollerModel(skin) {
+/**
+ * The steel snail (until #800 the roller's body; kept under this name so the old look can come back as a foe of its own):
+ * it stands in for the Tripo pearl roller (plans/roller-tripo.js) where that one's mesh is not loaded.
+ */
+export function legacyRollerModel(skin) {
   const PL = PLANS.roller, P = skin.palette, props = new Set(skin.props), M = materials('roller', skin);
   const R = PL.shell.radius, UP_Y = R + 0.13;   // (the shell's centre: on its foot, and rolled on the ground)
   const g = new THREE.Group(); g.name = skin.name;

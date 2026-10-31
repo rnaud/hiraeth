@@ -3023,7 +3023,25 @@ Buried Machine's iron hoops, the Moon Foundry's ember brew, the Overnight Train'
 the brew, the lens, the spout and its stream, the two plates (9, the Hangar's 11; the welding cart drew up to 17). The pot
 turns about its middle (`PIVOT`, 1.1 m): a blow's tip turned about the ground had swung its legs under the floor. The
 welding cart stays in plans/tracked.js as `legacyCartModel`: it stands in while the mesh loads and can come back as a foe
-of its own. Unity: `-fight machines` (engine/unity/game.js) pictures it standing, winding up the pour and pouring.
+of its own. It goes down on its planted legs (`DEFEATS.cart.limp: false`: limp feet slid a shin under a slope). Unity:
+`-fight machines` (engine/unity/game.js) pictures it standing, winding up the pour and pouring.
+
+### The pearl roller rebuilt (#800, family D, `src/enemies/plans/roller-tripo.js`, `public/enemies/roller/`)
+
+The roller's approved snail-and-pearl redesign (references/enemy-redesign-2026-10-30/keep-roller/: "a smooth round shell and
+broad muscular foot; retracts to roll") is the roller's body: the id, def, bowl, ricochet and last roll with their windows,
+skins and sounds the roller's. Tripo task bac43175-… (30 credits) faced its own -z (turned onto +z in prepare) and modelled
+the reference's shadow as a flat puddle round its foot (left out: the sheet under 2 % of its height outside the foot's
+outline). The trial's `prepare.mjs` (trials/roller-tripo/) scales it so its shell's fitted radius is the roller plan's
+0.7 m (1.37 m tall: a shell 1.4 m across, as tall as the traveller's chest, its roll still locked to the ground at
+angle = distance / 0.7), and cuts it by geometry into the shell (a sphere fitted to its pale top), the head (the terracotta
+under the eyes), each eye stalk, each eyeball (fitted spheres) and the foot in three lengths (planes across it, blended
+10 cm). Not a machine, but nothing in it bends at a joint either: it takes the family's rigid parts (`plans/tripo-rigid.js`)
+on the kit's `roller` plan. The shell spins as it rolls; the foot's ripple runs back along its three lengths by the
+distance it glides; the stalks lag its moves and sink for a wind-up; each eyeball turns on its stalk's tip to look at you,
+its pupil its own part. Rolled up, the foot, head and stalks are drawn into the shell (their bones shrunk to its middle).
+The spiral is its own fine line on the side the shell coils (it glows for the pearl, the ricochet and the last roll); the
+Garden of Spheres' wind-up key and rocking runners kept. The steel snail stays in plans/roller.js as `legacyRollerModel`.
 
 ### The bell walker rebuilt (#800, family D, `src/enemies/plans/bell-tripo.js`, `public/enemies/bell/`)
 

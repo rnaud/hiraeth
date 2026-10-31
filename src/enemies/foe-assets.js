@@ -22,6 +22,7 @@ export const FOE_ASSETS = {
   woodcutter: { folder: 'enemies/woodcutter/', rig: 'landmarks.json' },
   cart: { folder: 'enemies/cart/', rig: 'landmarks.json' },
   bell: { folder: 'enemies/bell/', rig: 'landmarks.json' },
+  roller: { folder: 'enemies/roller/', rig: 'landmarks.json' },
   dunemummer: { folder: 'enemies/dunemummer/', rig: 'skeleton.json' },
   // (family A, #800: the toad, the centipede and the skitter, their triangles grouped by part, scripts/tripo/ship-body.mjs)
   toad: { folder: 'enemies/bellows-toad/', rig: 'landmarks.json' },
@@ -76,6 +77,8 @@ const READ = {
     : [fs.readFileSync(new URL('../../public/enemies/cart/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/cart/landmarks.json', import.meta.url))]),
   bell: (host, fs) => (host ? [host.readFile('enemies/bell/body.glb'), host.readFile('enemies/bell/landmarks.json')]
     : [fs.readFileSync(new URL('../../public/enemies/bell/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/bell/landmarks.json', import.meta.url))]),
+  roller: (host, fs) => (host ? [host.readFile('enemies/roller/body.glb'), host.readFile('enemies/roller/landmarks.json')]
+    : [fs.readFileSync(new URL('../../public/enemies/roller/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/roller/landmarks.json', import.meta.url))]),
   dunemummer: (host, fs) => (host ? [host.readFile('enemies/dunemummer/body.glb'), host.readFile('enemies/dunemummer/skeleton.json')]
     : [fs.readFileSync(new URL('../../public/enemies/dunemummer/body.glb', import.meta.url)), fs.readFileSync(new URL('../../public/enemies/dunemummer/skeleton.json', import.meta.url))]),
   toad: (host, fs) => (host ? [host.readFile('enemies/bellows-toad/body.glb'), host.readFile('enemies/bellows-toad/landmarks.json')]

@@ -205,6 +205,7 @@ const readers = {
   'enemies/plans/oracle.js': () => readFileSync(new URL('../../src/enemies/plans/oracle.js', import.meta.url), 'utf8'),
   'enemies/plans/piston.js': () => readFileSync(new URL('../../src/enemies/plans/piston.js', import.meta.url), 'utf8'),
   'enemies/plans/quadruped.js': () => readFileSync(new URL('../../src/enemies/plans/quadruped.js', import.meta.url), 'utf8'),
+  'enemies/plans/roller-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/roller-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/roller.js': () => readFileSync(new URL('../../src/enemies/plans/roller.js', import.meta.url), 'utf8'),
   'enemies/plans/sentinel.js': () => readFileSync(new URL('../../src/enemies/plans/sentinel.js', import.meta.url), 'utf8'),
   'enemies/plans/shellback-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/shellback-tripo.js', import.meta.url), 'utf8'),

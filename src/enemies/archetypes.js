@@ -246,7 +246,7 @@ export const ARCHETYPES = {
   },
   roller: {
     name: 'pearl roller', family: 'creature', plan: 'roller', planNo: 16, role: 'charger', tier: 2, ranged: false,
-    status: 'built', kind: 'roller', was: [], sound: 'shell', drop: 4, art: { main: 'garage', alt: 'spheres' },
+    status: 'built', kind: 'roller', was: ['steel snail'], sound: 'shell', drop: 4, art: { main: 'garage', alt: 'spheres', reference: 'references/enemy-redesign-2026-10-30/keep-roller/f586ce93-9d9c-4203-a22c-2731075f1065-1.png', skin: 'garage' },
     moves: ['bowl', 'ricochet', 'last roll'], answers: ['guard: it bounces off stunned (then the charged cut into its foot)', 'walls: sidestep it into one', 'the bubble (it floats, helpless)'],
     idle: 'grazes moss in slow glistening trails, and pulls in if you touch it',
     def: S({

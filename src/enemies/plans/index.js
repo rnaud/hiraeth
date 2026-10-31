@@ -21,7 +21,8 @@ import { tripoCartModel } from './cart-tripo.js';
 import { legacyBellModel } from './siege.js';
 import { tripoBellModel } from './bell-tripo.js';
 import { shadeModel } from './humanoid.js';
-import { rollerModel } from './roller.js';
+import { legacyRollerModel } from './roller.js';
+import { tripoRollerModel } from './roller-tripo.js';
 import { marionetteModel } from './strings.js';
 import { wispModel } from './ember.js';
 import { fencerModel } from './fencer.js';
@@ -63,7 +64,8 @@ import { foeSource } from '../foe-assets.js';
 //   storm-ray-tripo.js plan 14  the storm ray (issue #800: Tripo's body, public/enemies/storm-ray/body.glb; the sky ray
 //                 it replaced, sky-ray-legacy.js, stands in where the body is not loaded)
 //   burrower.js   plan 15  the mound worm
-//   roller.js     plan 16  the pearl roller (a snail on its rippling foot; rolled, its spin locked to the ground)
+//   roller-tripo.js plan 16  the pearl roller (#800: Tripo's snail, rigid parts, its foot rippling in three lengths, its
+//                          shell's spin locked to the ground; roller.js legacyRollerModel, the steel snail, stands in while it loads)
 //   cart-tripo.js plan 17  the crucible walker (#800: Tripo's mesh, rigid parts on four kit legs, src/enemies/foe-assets.js;
 //                          tracked.js legacyCartModel, the welding cart on its tracks, stands in while the mesh loads)
 //   piston.js     plan 18  the lamp tripod
@@ -86,12 +88,13 @@ import { foeSource } from '../foe-assets.js';
 
 const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: stormRay, moth: lampMoth, jelly: cloudJelly,
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel,
-  shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
+  shade: shadeModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
   grunt: gruntModel, hulk: hulkModel,
   sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel,
   cart: (skin) => { const src = foeSource('cart'); return src ? tripoCartModel(skin, src) : legacyCartModel(skin); },
   bell: (skin) => { const src = foeSource('bell'); return src ? tripoBellModel(skin, src) : legacyBellModel(skin); },
+  roller: (skin) => { const src = foeSource('roller'); return src ? tripoRollerModel(skin, src) : legacyRollerModel(skin); },
   woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); },
   dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); } };
 

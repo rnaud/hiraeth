@@ -55,6 +55,7 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `machine-tripo/prep.mjs`, `look.mjs`, `islands.mjs`, `box-probe.mjs`, `probe.mjs`, `death-check.mjs`, `defeat-ground.mjs` | #800 family D (the machines): the shared steps of their `prepare.mjs` (load and frame, decimate, parts by geometry with a vertex two parts share copied, the flat repaint with swatches, COLOR_0, the weights in the GLB), a software look at a prepared body (its colours or its parts, five views), its connected pieces, the vertices in a box, a probe of the running game, its death's rigidity and its defeat against the ground in node |
 | `cart-tripo/generate.mjs`, `prepare.mjs` | the crucible walker (`cart`): its Tripo generation (to `../keep-cart/tripo/`) and its game asset (`public/enemies/cart/`); its write-up in `cart/README.md` |
 | `bell-tripo/generate.mjs`, `prepare.mjs` | the bell walker (`bell`): its Tripo generation (to `../keep-bell/tripo/`) and its game asset (`public/enemies/bell/`); its write-up in `bell/README.md` |
+| `roller-tripo/generate.mjs`, `prepare.mjs` | the pearl roller (`roller`): its Tripo generation (to `../keep-roller/tripo/`) and its game asset (`public/enemies/roller/`, facing -z, the ground puddle dropped); its write-up in `roller/README.md` |
 
 ## Shellback (`crab`), phase 2a and its fixes
 

@@ -1,0 +1,35 @@
+{
+  "issue": 800,
+  "phase": "family D",
+  "foe": "roller",
+  "source": "references/enemy-redesign-2026-10-30/keep-roller/f586ce93-9d9c-4203-a22c-2731075f1065-1.png",
+  "sourceSha256": "1e2de55b0e5f5b805861b3ac071a7b8743b21f51713fbf6c16461c9fbce1203d",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "bac43175-5270-46f9-a047-cdb348ab423d",
+  "started": "2026-10-31T03:04:43.773Z",
+  "finished": "2026-10-31T03:06:12.562Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1275,
+  "balanceAfter": 1245,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1507676,
+    "sha256": "32dce686d8265da8037213da127b62765e0528dbe64c4dea0c740ca7c4cbfa80",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 199553
+  }
+}

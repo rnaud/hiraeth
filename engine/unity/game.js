@@ -1074,6 +1074,16 @@ function makePlan(args) {
       { kind: 'foe', what: 'move', move: 'toll' }, { kind: 'wait', frames: 70, secs: 1.2 }, ...shot('windup'),
       { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('blow'));
   }
+  if (fights.includes('rollers')) {
+    // (-fight rollers, issue #800 family D: the pearl roller's Tripo snail: the Hangar's 4 m ahead, set to the traveller's
+    // right, and the Garden of Spheres' pearl 7 m ahead; their bodies said in the log; standing, then winding up the bowl (its
+    // stalks sinking, the shell rocking; the pearl on its runners), then rolled up and rolling)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-rollers-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'roller@garage', dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['roller'] }, { kind: 'foe', what: 'roller@spheres', dist: 7, hp: 99, tier: 0 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bodies' }, ...shot('stand'),
+      { kind: 'foe', what: 'move', move: 'bowl' }, { kind: 'wait', frames: 45, secs: 0.8 }, ...shot('windup'),
+      { kind: 'wait', frames: 25, secs: 0.45 }, ...shot('blow'));
+  }
   if (fights.includes('monsters')) {
     // (-fight monsters, issue #726: roster v4's grunt and hulk on the humanoid rig: a hulk 7 m ahead and a grunt with its club
     // 4.5 m ahead, standing; their rig said; each winds up its first blow (the grunt's club over its head, the hulk's smash),
