@@ -26,7 +26,7 @@ g.traverse((o) => {
   o.skeleton.update();
   const P = o.geometry.attributes.position, SI = o.geometry.attributes.skinIndex, v = new THREE.Vector3(), r = new THREE.Vector3(), per = new Map();
   for (const i of new Set(o.geometry.index.array)) {
-    r.fromBufferAttribute(P, i); o.applyBoneTransform(i, v.fromBufferAttribute(P, i)); v.applyMatrix4(o.matrixWorld).applyMatrix4(inv);
+    r.fromBufferAttribute(P, i); r.z -= +(process.env.DZ ?? 0); o.applyBoneTransform(i, v.fromBufferAttribute(P, i)); v.applyMatrix4(o.matrixWorld).applyMatrix4(inv);
     const b = o.skeleton.bones[SI.getX(i)].name || SI.getX(i), d = v.distanceTo(r), e = per.get(b) ?? { n: 0, sum: 0, max: 0 };
     e.n++; e.sum += d; e.max = Math.max(e.max, d); per.set(b, e);
   }

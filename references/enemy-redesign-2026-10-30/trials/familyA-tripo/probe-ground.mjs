@@ -11,6 +11,8 @@ import { resetFeel } from '../../../../src/feel.js';
 
 const [kind = 'toad', seeds = '20', frames = '150'] = process.argv.slice(2);
 const v = new THREE.Vector3();
+// (SLOPE=1: the slope test's plane, a rise of 0.2 a metre along x and 0.15 along z)
+const G = process.env.SLOPE ? (x, z) => 0.2 * x + 0.15 * z : () => 0;
 const random = Math.random, now = performance.now;
 let worst = { d: -Infinity };
 for (let seed = 1; seed <= +seeds; seed++) {
@@ -19,9 +21,9 @@ for (let seed = 1; seed <= +seeds; seed++) {
   performance.now = () => clock;
   clearTargets(); resetFeel();
   const P = { pos: new THREE.Vector3(0, 0, -10), vel: new THREE.Vector3(), heading: 0, onGround: true, health: 1, down: null, dead: true, frame: { up: new THREE.Vector3(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: new THREE.Vector3(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: new THREE.Vector3(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: (x, y, z) => G(x, z), rayHit: () => null }, player: P, settings: { enemies: 'normal' }, game: new GameState(null), tool: { drops: { add() {} } } });
   foes.setPractice('');
-  const f = foes.add(kind, new THREE.Vector3(0, 0, 6));
+  const f = foes.add(kind, new THREE.Vector3(0, G(0, 6), 6));
   for (let i = 0; i < +frames; i++) {
     clock += 1000 / 60; foes.update(1 / 60);
     if (i < 20 || i % 3) continue;
@@ -32,8 +34,8 @@ for (let seed = 1; seed <= +seeds; seed++) {
       const Pp = o.geometry.attributes.position, J = o.geometry.attributes.skinIndex;
       for (const k of new Set(o.geometry.index.array)) {
         o.applyBoneTransform(k, v.fromBufferAttribute(Pp, k)).applyMatrix4(o.matrixWorld);
-        if (-v.y > worst.d && process.env.LEGS) { const L = f.model.rig.legs[+(process.env.LEGS)], w = (q) => q.getWorldPosition(new THREE.Vector3()).toArray().map((x) => +x.toFixed(2)); worst.legs = { hip: w(L.root), knee: w(L.shin), foot: w(L.foot), g: f.model.group.position.toArray().map((x) => +x.toFixed(2)) }; }
-        if (-v.y > worst.d) worst = { legs: worst.legs, d: +(-v.y).toFixed(3), seed, frame: i, mesh: o.name, bone: o.skeleton.bones[J.getX(k)].name, rest: [Pp.getX(k), Pp.getY(k), Pp.getZ(k)].map((x) => +x.toFixed(2)), state: f.state, body: +f.model.body.position.y.toFixed(3), scale: +f.model.body.scale.y.toFixed(3) };
+        if (G(v.x, v.z) - v.y > worst.d && process.env.LEGS) { const L = f.model.rig.legs[+(process.env.LEGS)], w = (q) => q.getWorldPosition(new THREE.Vector3()).toArray().map((x) => +x.toFixed(2)); worst.legs = { hip: w(L.root), knee: w(L.shin), foot: w(L.foot), g: f.model.group.position.toArray().map((x) => +x.toFixed(2)) }; }
+        if (G(v.x, v.z) - v.y > worst.d) worst = { legs: worst.legs, d: +(G(v.x, v.z) - v.y).toFixed(3), seed, frame: i, mesh: o.name, bone: o.skeleton.bones[J.getX(k)].name, rest: [Pp.getX(k), Pp.getY(k), Pp.getZ(k)].map((x) => +x.toFixed(2)), state: f.state, body: +f.model.body.position.y.toFixed(3), scale: +f.model.body.scale.y.toFixed(3) };
       }
     });
   }

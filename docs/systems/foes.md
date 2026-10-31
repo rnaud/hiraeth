@@ -2818,7 +2818,7 @@ slate crab of `plans/walker.js` is gone; the direct shellback (`plans/shellback.
 - Tests: `tests/shellback-trial.test.js` (the shipped body is the trial's mesh, every skin's colours and dress, the
   contract, weights, lip, jaw, gaze, the fight), `tests/motion-plans.test.js` (its walk, by its foot bones:
   `leg.root.lowest`), `tests/foe-gaze-mirror.test.js`.
-### Family A on Tripo bodies: the bellows toad (v2.38, issue #800)
+### Family A on Tripo bodies: the bellows toad, the drill-head centipede (v2.39, issue #800)
 
 The ground creatures on legs follow the crab, each landed alone (`.claude/skills/enemy-rework/references/tripo-rebuild.md`).
 Their shared reader is `src/enemies/plans/tripo-body.js` (`tripoBody(file, label)`: the shipped GLB read without three's
@@ -2841,6 +2841,20 @@ of its own.
   colours with a soft mottle; the others keep their palettes, spots and dress (the City-Shaft's valve, gauge and pipe,
   the Waterfall's jet, Home's flower), set on the mesh's measured back. Kept: id, def, attacks, windows, sounds
   (`bellows` / `hopper`), the death recipe and lying body, the hops on planted feet. Tests: `tests/toad-tripo.test.js`.
+- **The drill-head centipede** (`centipede`): `src/enemies/plans/centipede-tripo.js` `centipedeModel`,
+  `public/enemies/centipede/body.glb` (312 KB, 12,000 triangles); the legacy ring centipede is
+  `plans/centipede-legacy.js` `centipedeLegacyModel`. The legacy's own walking kept (its head the foe, `PathTrail`, the
+  legs in a metachronal wave, `WaveLegs`): fourteen spine bones along the mesh's measured spine from the tail's tip up the
+  reared neck, each at its distance back along the path at its own height and rest tilt (the neck stays reared), every
+  body vertex shared by the two bones round its place on the spine; five pairs of stubs on thigh, shin and foot bones
+  (two-bone IK framed in the bend plane, a little slack in the solve and a 0.3 m stride, the pads flat on the slope);
+  the head turns to the traveller and its two halves are their own bones, hinged at its back: apart through a wind-up,
+  the drill between them, shut in the strike; a slit eye on each half. The shed tail folds its bones into the last one
+  kept. Four skinned meshes (plates, head, the dark under them, the underside) and the dress in one more: 6–7 drawn a
+  body against the legacy's 190. Its home skin (the Buried Machine's) wears the reference's colours and the drill; the
+  others their palettes and dress (pearls, a gold head and seams, glowing seams, pale wet glints, copper wire). Kept:
+  id, def, attacks, windows, the corral's wall (`spine`, 13 points), sounds (`chitin` / `centipede`), the ripple death
+  and lying body. Tests: `tests/centipede-tripo.test.js`, `tests/motion-plans.test.js` (10 legs).
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

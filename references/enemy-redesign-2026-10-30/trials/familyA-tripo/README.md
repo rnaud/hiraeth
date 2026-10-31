@@ -51,3 +51,37 @@ Reference: `../../bellows-toad/c5a76758-e908-4034-acc5-7b88452dcb71-0.png` (appr
   given; the volley is not the home skin's). Sound unchanged: `bellows` and `hopper` steps on target (0.1 dB at most).
 - **Still off**: the belly's broad smooth front takes the hatch's contour rings on its shadowed side (the game's light: the
   clay view has them too); the eyes are small at play distance; the throat bubble is the legacy toad's, not of the mesh.
+
+## The drill-head centipede (`centipede`)
+
+Reference: `../../centipede/616e0bd4-9a63-476b-9485-1e5efda02210-3.png` (approved). Task `7a924a40-…`, 30 credits
+(balance 1,535 → 1,505). Home skin `buried` (the Buried Machine's drill-head centipede).
+
+- **What it is**: Tripo's 29k-triangle body (drawn facing +z, its neck reared, five pairs of stubby legs) at 2.4 m to the
+  top of its head and 4.3 m long (the legacy's tube as thick), cut to 12,000 triangles; four parts, each triangle by its
+  texels' majority with the lone ones folded into their neighbours' (the plates' edges are creases, so no ragged seam),
+  the head over its neck by geometry: salmon plates and head, the dark teal under them, the cream underside. The painted
+  slit eyes painted out.
+- **The rig** (many-legged: the legacy's own walking on a custom skin): its head the foe, its path kept (`PathTrail`);
+  fourteen spine bones along the measured spine (the tail's tip, the body's middle at each length, the neck's at each
+  height), each at its distance back along the path at its own height and rest tilt, so the neck stays reared as the body
+  runs flat; every body vertex shared by the two spine bones round its place on the spine; ten legs on thigh, shin and
+  foot bones (two-bone IK in the bend plane), stepping in the legacy's metachronal wave; the pads (their rims too) on the
+  foot bones, flat on the slope; the head turning to the traveller (0.45 rad), its halves their own bones hinged at its
+  back (0.42 rad apart in a wind-up, shut in the strike), a slit eye on each half sliding on.
+- **Fixes on the way**: the stubs stand nearly straight, so their solve left a planted foot out of reach at a stance's
+  end and it slid with the body (a little slack in the solve, 1.14, and a 0.3 m stride, not the legacy's 0.5); the walk
+  audit read the hip for a foot (each leg's `lowest` is its pad bone now); the pads' rims stayed with the body and dipped
+  into a slope (on their foot now); a tilted thigh bone read as the body tipping onto its side (the segments are the
+  parts the death test turns); the sky's gloss lit white patches on the broad plates (the glosses small, the home skin's
+  none); the drain crawler's dark plates had no light part (its seams and droplets pale).
+- **Measured**: walk audit slide 6 mm a metre at full pace (worst 3 cm), 0.1 mm at half (the legacy: 0); standing, the
+  body within 20 cm of its bind (the legs where the wave last planted them); a pack out of step. Six centipedes in the
+  Buried Machine (one run each, load 25–40): draws +1,365 → +126 (High), +1,020 → +82 (Handheld); triangles +223k → +219k
+  and +160k → +146k; the script's time a frame +5.0 → +1.8 ms and +2.7 → +1.2 ms (noisy at this load). Arena warm-up: the run's
+  two skins (buried, spheres) compile nothing at arrival, first frame 4.0 / 2.9 ms; the Fallen Ring's and the Eclipse's,
+  never in the run, compile one program brought in by hand. Dodge: a back flip into the flurry. Defend: the ring blocked
+  from 0.5 s; the lunge blocked from 0.5 s, parried at 0.12 s, evaded at 0.25 s. Sound unchanged (`chitin`, the
+  `centipede` steps on target).
+- **Still off**: the front legs' pads look crumpled seen head-on; standing still the stubs lean where the wave last
+  planted them; the head's halves part only 0.42 rad.

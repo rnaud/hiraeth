@@ -5,7 +5,7 @@ import { lizardModel } from './quadruped.js';
 import { houndModel } from './hound-tripo.js';
 import { tripodModel } from './piston.js';
 import { blotModel } from './blob.js';
-import { centipedeModel } from './centipede.js';
+import { centipedeModel } from './centipede-tripo.js';
 import { wormModel } from './burrower.js';
 import { rayModel } from './glider.js';
 import { mothModel } from './flyer.js';

@@ -36,7 +36,11 @@ export const SKINS = {
     underside: { name: 'bridge crawler', palette: { dome: '#4c566a', dome2: '#5f6a80', band: '#a7b6c9', leg: '#c9d2dc', joint: '#8a96a8', eye: '#1a1e28', glint: '#bfe9ff', dark: '#22283a' }, props: ['rivets'] },
   },
   centipede: {
-    buried: { name: 'drill-head centipede', palette: { plate: '#9a968c', plate2: '#b4b0a4', under: '#c8c2b4', leg: '#8a867c', head: '#a49e92', accent: '#d8743a', dark: '#3a3632', eye: '#ffb86a' }, props: ['bands', 'drill'] },
+    // (the drill-head centipede, issue #800: its home skin the approved reference's colours,
+    // references/enemy-redesign-2026-10-30/centipede/616e0bd4-…-3.png: salmon plates, head and legs, a dark teal under
+    // them, a cream underside, dark slit eyes; the other skins recolour the same parts on its body,
+    // src/enemies/plans/centipede-tripo.js)
+    buried: { name: 'drill-head centipede', palette: { plate: '#d9876b', plate2: '#e39c82', under: '#f2ead0', leg: '#d9876b', head: '#d9876b', accent: '#d8743a', dark: '#1f3a37', eye: '#1d2a28' }, props: ['bands', 'drill'] },
     spheres: { name: 'pearl centipede', palette: { plate: '#efe7dc', plate2: '#f8f2ea', under: '#d8cfe0', leg: '#b8a8c8', head: '#e8dff0', accent: '#c8b8d8', dark: '#4a4058', eye: '#9fd8f2' }, props: ['pearl'] },
     fallenring: { name: 'orbital centipede', palette: { plate: '#3f8f8a', plate2: '#5aa8a0', under: '#d8e8e0', leg: '#2a5a58', head: '#d8b048', accent: '#d8b048', dark: '#16302e', eye: '#fff4b0' }, props: ['gold'] },
     eclipse: { name: 'crescent crawler', palette: { plate: '#5b4a86', plate2: '#7a66a8', under: '#cfc2e8', leg: '#3a2e5a', head: '#4a3c70', accent: '#d6c2ff', dark: '#1d1630', eye: '#d6ffb0' }, props: ['glow'] },

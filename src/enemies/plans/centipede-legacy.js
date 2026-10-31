@@ -10,6 +10,9 @@ import { slopeAlong } from '../slope.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy ring centipede (kept, issue #800): the game's centipede until the Tripo body (plans/centipede-tripo.js) took
+// its place; it stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 3, the centipede (docs/systems/procedural-animation.md §4): the ring centipede (docs/design/enemy-roster.md,
 // archetype 3), the trapper. A long segmented body, about 5 m, with a heavy crab-like head and two pincers; coiled at
 // rest, a crescent; running round you, a ring (a shape nothing else in the game makes).
@@ -32,7 +35,7 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3
 const _m = new THREE.Matrix4(), _inv = new THREE.Matrix4(), _q = new THREE.Quaternion(), _qi = new THREE.Quaternion(), _e = new THREE.Euler(), _pole = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
 
-export function centipedeModel(skin) {
+export function centipedeLegacyModel(skin) {
   const PL = PLANS.centipede, P = skin.palette, props = new Set(skin.props), M = materials('centipede', skin);
   const N = PL.spine.segments, SP = PL.spine.spacing, RIDE = 0.6;   // (the body's centre: a tube about a metre thick, as tall as the traveller's chest)
   const g = new THREE.Group(); g.name = skin.name;

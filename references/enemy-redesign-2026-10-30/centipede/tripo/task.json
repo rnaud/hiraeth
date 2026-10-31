@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family A",
+  "foe": "centipede",
+  "source": "references/enemy-redesign-2026-10-30/centipede/616e0bd4-9a63-476b-9485-1e5efda02210-3.png",
+  "sourceSha256": "4a844cdd0ffa45050c4e85993c790d1c79bbdc979f163dfcc2e2b67949074efe",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "7a924a40-1173-4983-8d6d-34bcc7efee6f",
+  "started": "2026-10-30T23:40:46.158Z",
+  "finished": "2026-10-30T23:41:41.449Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1535,
+  "balanceAfter": 1505,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1572656,
+    "sha256": "151057d7b635224d1f818626ed6a67fff884395b99c6e5358cdfcb201f7851ba",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 111536,
+    "sha256": "196288b26cf5d8134860de039051a478726dc1bceb345c4c0174832a24ebb880"
+  }
+}

@@ -19,7 +19,8 @@ const planSources = {
   hound: readFileSync(new URL('../src/enemies/plans/broad-hound.js', import.meta.url), 'utf8'),
   tripod: readFileSync(new URL('../src/enemies/plans/piston.js', import.meta.url), 'utf8'),
   blot: readFileSync(new URL('../src/enemies/plans/blob.js', import.meta.url), 'utf8'),
-  centipede: readFileSync(new URL('../src/enemies/plans/centipede.js', import.meta.url), 'utf8'),
+  // (the Tripo body, #800, and the legacy one standing in where it is not loaded)
+  centipede: readFileSync(new URL('../src/enemies/plans/centipede-tripo.js', import.meta.url), 'utf8') + readFileSync(new URL('../src/enemies/plans/centipede-legacy.js', import.meta.url), 'utf8'),
   worm: readFileSync(new URL('../src/enemies/plans/burrower.js', import.meta.url), 'utf8'),
   ray: readFileSync(new URL('../src/enemies/plans/glider.js', import.meta.url), 'utf8'),
   moth: readFileSync(new URL('../src/enemies/plans/flyer.js', import.meta.url), 'utf8'),

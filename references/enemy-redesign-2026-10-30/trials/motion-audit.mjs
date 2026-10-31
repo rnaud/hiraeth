@@ -16,6 +16,7 @@ import { tripoWoodcutterModel } from '../../../src/enemies/plans/woodcutter-trip
 import { nodeSource as woodcutterSource } from './woodcutter-tripo/source-node.mjs';
 import { foeSystem, foeSubject, legsFor } from '../../../scripts/motion-audit/walk.mjs';
 import { toadLegacyModel } from '../../../src/enemies/plans/hopper-legacy.js';
+import { centipedeLegacyModel } from '../../../src/enemies/plans/centipede-legacy.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2), json = args.includes('--json'), id = args.find((a) => !a.startsWith('--')) ?? 'crab@arzach2';
@@ -28,6 +29,7 @@ BY_KIND.hound = (() => { const h = houndSource(); return { current: null, direct
 BY_KIND.brute = (() => { const w = woodcutterSource(); return { current: null, direct: woodcutterModel, tripo: (skin) => tripoWoodcutterModel(skin, w) }; })();
 // (family A, #800: the game's body is the Tripo one now; the legacy one beside it)
 BY_KIND.toad = { current: null, legacy: toadLegacyModel };
+BY_KIND.centipede = { current: null, legacy: centipedeLegacyModel };
 const VARIANTS = BY_KIND[id.split('@')[0]];
 // (two measures of a foot: the audit's own, the leg's lowest drawn point, and the kit's foot joint itself: a broad flat
 //  sole has no one lowest point, its lowest vertex hops heel to toe, which reads as slide; the Tripo legs are bones

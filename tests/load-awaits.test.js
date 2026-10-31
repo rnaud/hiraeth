@@ -35,6 +35,7 @@ const KNOWN = [
   [/^loadPlayableCaravan\(/, 'the ship asset: a 60 s deadline, with explicit reload guidance on failure'],
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
   [/^houndBody\b/, 'the horned hound\'s body (src/enemies/plans/hound-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
+  [/^centipedeBody\b/, 'the drill-head centipede\'s body (src/enemies/plans/centipede-tripo.js through tripo-body.js): its failure caught and a 30 s deadline, the legacy ring centipede standing in'],
   [/^toadBody\b/, 'the bellows toad\'s body (src/enemies/plans/toad-tripo.js through tripo-body.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the legacy toad standing in'],
   [/^shellbackBody\b/, 'the shellback crab\'s body (src/enemies/plans/shellback-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],

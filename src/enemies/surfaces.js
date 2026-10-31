@@ -109,10 +109,16 @@ export const SURFACES = {
   centipede: {
     '*': {
       // (the sheet's rivets: a ring of them near each plate's front and back edge)
-      plate: { rust: { color: 'plate*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.12, down: 0.5, pits: 0.4 }, gloss: { size: 0.02, sky: 0.4, amount: 0.6 }, rivets: { color: 'plate+0.25', axis: 2, period: 0.19, offset: 0.5, count: 16, size: 0.035, ink: 0.55, shine: 0.25 } },
-      head: { rust: { color: 'head*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.1, down: 0.5, pits: 0.4 }, gloss: { size: 0.02, sky: 0.4, amount: 0.6 } },
+      // (the glosses small and of the sun's alone, #800: on the Tripo body's broad smooth plates the sky's lit white patches)
+      plate: { rust: { color: 'plate*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.12, down: 0.5, pits: 0.4 }, gloss: { size: 0.01, sky: 0, amount: 0.5 }, rivets: { color: 'plate+0.25', axis: 2, period: 0.19, offset: 0.5, count: 16, size: 0.035, ink: 0.55, shine: 0.25 } },
+      head: { rust: { color: 'head*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.1, down: 0.5, pits: 0.4 }, gloss: { size: 0.01, sky: 0, amount: 0.5 } },
     },
-    fallenring: { plate: { gloss: { size: 0.03, sky: 0.5 }, mottle: { color: 'plate2', scale: 0.1, amount: 0.3, soft: 0.06, strength: 0.6 } } },
+    // (the home skin, the approved #800 reference's: flat salmon plates, a soft mottle and a small gloss only)
+    buried: {
+      plate: { rust: null, rivets: null, gloss: null, mottle: { color: 'plate2', scale: 0.3, amount: 0.3, soft: 0.2, detail: 0.4, strength: 0.4 } },
+      head: { rust: null, gloss: null, mottle: { color: 'plate2', scale: 0.25, amount: 0.25, soft: 0.2, strength: 0.4 } },
+    },
+    fallenring: { plate: { gloss: { size: 0.012, sky: 0 }, mottle: { color: 'plate2', scale: 0.1, amount: 0.3, soft: 0.06, strength: 0.6 } } },
     eclipse: { plate: { spots2: { color: 'accent', scale: 0.06, share: 0.3, size: 0.35 } } },
   },
   jelly: {

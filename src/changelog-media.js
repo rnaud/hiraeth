@@ -1587,6 +1587,23 @@ export const CHANGELOG_MEDIA = {
       { name: 'dunemummer-mask', title: 'The mask', only: 'after', size: [1280, 720], caption: 'Close from the front, in the creatures gallery: the broadened cream mask and its two black slits.', from: 'The creatures gallery (enemies.html) of the same build, the game’s own body through Foes.look and the ink pass, muted headless Chrome, 1280 × 720. After-only.' },
       { name: 'dunemummer-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'Unity: a gourd mummer 3.5 m before the traveller in the Arena, with the two wood cutters behind it, on the same Tripo bodies by their vertex colours.', from: 'Actual running game in Unity 6000.6.4f1 editor batch mode on macOS (scripts/unity-js-run.sh newfoes2 -mute -level arena -fight newfoes), 30 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; High, 1280 × 720. The web’s same plan (headless Chrome, muted) matches it. After-only.' },
     ] },
+  // (issue #800: the drill-head centipede on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The ring centipede has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'centipede800-buried', title: 'The Buried Machine', caption: 'A drill-head centipede of the Buried Machine, from its side: before, a long grey tube of riveted plates with orange bands, two curved pincers round a drill and a fringe of thin black legs; after, the new body: salmon plates over a dark teal body and a cream belly, its neck reared under a big split head with a slit eye on each half and a drill between them, five pairs of stubby legs on round pads', from: FROM800A('one centipede@buried, idle 1.5 s, from its side (yaw 1.2)', '4134126f0'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/centipede/616e0bd4-9a63-476b-9485-1e5efda02210-3.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'centipede800-eclipse', title: 'The Eclipse', caption: 'A crescent crawler of the Eclipse: before, the violet tube with pale bands and pincers; after, the new body in the same violet, its seams between the plates glowing pale', from: FROM800A('one centipede@eclipse, idle 1.5 s, from its side (yaw 1.2)', '4134126f0') },
+    { name: 'centipede800-lunge', title: 'The lunge', caption: 'A drill-head centipede at 80 % of its lunge’s wind-up: before, the head reared, its pincers gaping; after, the head reared and the two halves of the split head gaping apart, the drill between them', from: FROM800A('one centipede@buried, its lunge held at 80 % of the wind-up', '4134126f0') },
+    { name: 'centipede800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a drill-head centipede beside the traveller winding up its ring: the same new body, the halves of its head apart and its eyes lit', from: 'Unity editor batch run (scripts/unity-js-run.sh centipede -level arena -fight centipede -mute), 30 October 2026, its second picture (unity-centipede-windup): the game’s follow camera; no picture on the body (each part one flat colour)' },
+  ], numbers: [
+    { title: 'Draw calls six centipedes add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800A('drill-head centipedes in the Buried Machine').replace('two runs each', 'one run each'), rows: [
+      { where: 'The Buried Machine, High', before: 1365, after: 126 },
+      { where: 'The Buried Machine, Handheld', before: 1020, after: 82 },
+    ] },
+    { title: 'Triangles six centipedes add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800A('drill-head centipedes in the Buried Machine').replace('two runs each', 'one run each'), rows: [
+      { where: 'The Buried Machine, High', before: 223.0, after: 218.9 },
+      { where: 'The Buried Machine, Handheld', before: 160.0, after: 145.8 },
+    ] },
+  ] },
   // (issue #800: the bellows toad on its Tripo body; hand-made pairs, the same script and camera before and after)
   { match: 'The bellows toad has a new body, drawn from its new design', tags: ['combat'], shots: [
     { name: 'toad800-lorn', title: 'Lorn', caption: 'A spore toad, Lorn’s, three-quarters from its front: before, the moss-green toad with lilac spots, its lilac throat sac hanging in folds and its cream belly; after, the new sage-green pear with its orange belly filling its front, long thin arms on webbed orange feet, the folded haunches and the heavy-lidded eyes on its head', from: FROM800A('one toad@perdide, idle 1.5 s, the three-quarter view', 'a9b33fb98'),
