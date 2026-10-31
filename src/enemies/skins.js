@@ -331,8 +331,12 @@ const BLOT_EDGE = {
 };
 // Its sheets (references/enemy-archetypes/blot/): sheet-1, the Desert's, deep ink-black with violet light on its gloss and
 // cream eyes; sheet-2, the Hangar's, gunmetal ink with teal light, its edge rust and oily teal, metal shavings stuck in it.
-const BLOT_DRESS = { garage: { palette: { ink: '#1c2125', shine: '#4f7378', edge: '#c06c38', edge2: '#3f8682' }, props: ['shavings'] } };
-SKINS.blot = Object.fromEntries(Object.entries(BLOT_EDGE).map(([w, [name, edge]]) => [w, { name, palette: { ink: '#1e1a26', shine: '#5c4a8e', edge, eye: '#f4efe0', ...BLOT_DRESS[w]?.palette }, props: BLOT_DRESS[w]?.props }]));
+// (issue #800: the Tripo body, src/enemies/plans/blot-tripo.js, wears its edge on its belly plate too, `belly`; its home skin,
+// the Desert's, the approved reference's own colours, references/enemy-redesign-2026-10-30/blob/eb43fb37-…-2.png: slate ink,
+// a lilac light down one flank, a tan belly, cream eyes; the sand edge kept for its pool)
+const BLOT_DRESS = { desert: { palette: { ink: '#24363b', shine: '#a28c97', belly: '#e3b279', eye: '#fde9b2' } },
+  garage: { palette: { ink: '#1c2125', shine: '#4f7378', edge: '#c06c38', belly: '#c06c38', edge2: '#3f8682' }, props: ['shavings'] } };
+SKINS.blot = Object.fromEntries(Object.entries(BLOT_EDGE).map(([w, [name, edge]]) => [w, { name, palette: { ink: '#1e1a26', shine: '#5c4a8e', edge, belly: edge, eye: '#f4efe0', ...BLOT_DRESS[w]?.palette }, props: BLOT_DRESS[w]?.props }]));
 
 /** Each archetype's own skin: the first world it is met in (its skins' first entry). */
 export const HOME_SKIN = Object.fromEntries(Object.entries(SKINS).map(([a, s]) => [a, Object.keys(s)[0]]));

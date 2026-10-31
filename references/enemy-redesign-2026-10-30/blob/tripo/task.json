@@ -1,0 +1,37 @@
+{
+  "issue": 800,
+  "phase": "family F",
+  "foe": "blot",
+  "source": "references/enemy-redesign-2026-10-30/blob/eb43fb37-f063-47ab-9a4f-212ba29d443b-2.png",
+  "sourceSha256": "772ef7b933cf9fdde34d8f6c635f9316efe7ae5d20ba55c5b3e6cb3c1ef4c332",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "ebbb5fc2-d278-43be-ba37-4636776cdeef",
+  "started": "2026-10-31T05:55:43.480Z",
+  "finished": "2026-10-31T05:58:45.038Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1065,
+  "balanceAfter": 945,
+  "floor": 400,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1228964,
+    "sha256": "b3c8d3d95f006dbd88b8ff36686b5fd9d7b1724578e115c57fcdcccc14c1da91",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 148182,
+    "sha256": "f43b34a07f6617b58998c78d2412728e7622001f18806c0903f2993b924806ef"
+  }
+}

@@ -77,7 +77,9 @@ export const SURFACES = {
   },
   blot: {
     // (wet ink: a crisp white glint of the sun and a violet one of the sky, streaks of violet light in it)
-    '*': { ink: { gloss: { size: 0.09, sky: 0.9, amount: 1, color: 'shine+0.6', streaks: 9, streakWidth: 0.22 }, mottle: { color: 'shine', scale: 0.3, amount: 0.25, soft: 0.25, strength: 0.4, detail: 0.3 } }, edge: { mottle: { color: 'edge*0.75', scale: 0.08, amount: 0.4, soft: 0.06 } } },
+    '*': { ink: { gloss: { size: 0.09, sky: 0.9, amount: 1, color: 'shine+0.6', streaks: 9, streakWidth: 0.22 }, mottle: { color: 'shine', scale: 0.3, amount: 0.25, soft: 0.25, strength: 0.4, detail: 0.3 } }, edge: { mottle: { color: 'edge*0.75', scale: 0.08, amount: 0.4, soft: 0.06 } },
+      // (#800, the Tripo body: its lilac flank a soft wet light, its belly plate the world's colour soaked in, blotched)
+      shine: { gloss: { size: 0.12, sky: 0.7, amount: 0.7 }, fade: { color: 'shine*0.8', axis: 1, from: 0.2, to: 0.75 } }, belly: { mottle: { color: 'belly*0.86', scale: 0.1, amount: 0.35, soft: 0.2, strength: 0.6 } } },
     garage: { ink: { gloss: { size: 0.09, sky: 0.9, amount: 1, color: 'shine+0.6', streaks: 9, streakWidth: 0.22 }, mottle: { color: 'shine', scale: 0.2, amount: 0.35, soft: 0.2, strength: 0.55, detail: 0.6 }, spots2: { color: 'edge', scale: 0.08, share: 0.35, size: 0.6, amount: 0.8 } } },
   },
   worm: {

@@ -4,7 +4,7 @@ import { shellbackCrab } from './shellback-tripo.js';
 import { lizardModel } from './quadruped.js';
 import { houndModel } from './hound-tripo.js';
 import { tripodModel } from './tripod-tripo.js';
-import { blotModel } from './blob.js';
+import { blotModel } from './blot-tripo.js';
 import { centipedeModel } from './centipede-tripo.js';
 import { wormModel } from './burrower.js';
 import { stormRay } from './storm-ray-tripo.js';
@@ -74,7 +74,8 @@ import { foeSource } from '../foe-assets.js';
 //                 where the body is not loaded)
 //   bell-tripo.js plan 19  the bell walker (#800: Tripo's mesh, rigid parts on four kit legs, the spirit the clapper;
 //                          siege.js legacyBellModel, the spider-legged bell, stands in while the mesh loads)
-//   blob.js       plan 20  the ink blot
+//   blot-tripo.js plan 20  the ink blot (issue #800: Tripo's body, public/enemies/blot/body.glb, a drop that squashes and
+//                 stretches on two bones; the legacy blot, blob-legacy.js, stands in where the body is not loaded)
 //   strings.js    plan 21  the marionette (a puppet hung on four strings from a knot of smoke, a pendulum)
 //   ember.js      plan 22  the ember wisp (a stand-in: a shell in two lids round a glowing coal; issue #398)
 //   fencer.js     plan 9   the makers' fencer (a machine's biped: sword and shield; issue #665)

@@ -21,6 +21,7 @@ const READERS = {
   "enemies/tripod/body.glb": () => readFileSync(new URL("../public/enemies/tripod/body.glb", import.meta.url)),
   "enemies/drone/body.glb": () => readFileSync(new URL("../public/enemies/drone/body.glb", import.meta.url)),
   "enemies/crawler/body.glb": () => readFileSync(new URL("../public/enemies/crawler/body.glb", import.meta.url)),
+  "enemies/blot/body.glb": () => readFileSync(new URL("../public/enemies/blot/body.glb", import.meta.url)),
   "enemies/shellback/body.glb": () => readFileSync(new URL("../public/enemies/shellback/body.glb", import.meta.url)),
   "enemies/dunemummer/body.glb": () => readFileSync(new URL("../public/enemies/dunemummer/body.glb", import.meta.url)),
   "enemies/woodcutter/body.glb": () => readFileSync(new URL("../public/enemies/woodcutter/body.glb", import.meta.url)),

@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { materials, add, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 import { gazePart } from '../gaze.js';
 
+// The legacy ink blot (kept, issue #800): the game's blot until the Tripo body (plans/blot-tripo.js) took its place; it
+// stands in where that body is not loaded, and is kept so the old look can come back as a foe of its own.
+//
 // Plan 20, the blob (docs/systems/procedural-animation.md §4): the ink blot (docs/design/enemy-roster.md,
 // archetype 18), the rusher and the game's first teacher, drawn to its sheets (references/enemy-archetypes/blot/:
 // sheet-1 the Desert's sand-edged blot, sheet-2 the Sealed Hangar's rust-edged one). Loose ink with no body borrowed:
@@ -26,7 +29,7 @@ function ragged(r, n, seed) {
   return new THREE.ShapeGeometry(s).rotateX(-Math.PI / 2);
 }
 
-export function blotModel(skin) {
+export function blotLegacyModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('blot', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const inkM = M.mat('ink', P.ink, { flat: true }), edgeM = M.mat('edge', P.edge, { flat: true }), shineM = M.mat('shine', P.shine ?? '#5a4a8a', { flat: true });

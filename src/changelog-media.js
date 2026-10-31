@@ -1490,6 +1490,9 @@ const SOURCE800DRONE = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'loa
 // (issue #800, family E's crawler: the same hand-made pairs and bench as the tripod's, in the Arena: it is fielded nowhere else yet)
 const FROM800CRAWLER = (foe, before) => FROM800TRIPOD(foe, before);
 const SOURCE800CRAWLER = (foe) => SOURCE800TRIPOD(foe).replace('load 6–16', 'load 13–23') + '; measured with its two ports a mesh of their own, folded into its joints’ since (one draw fewer each)';
+// (family F, #800: the creatures and spirits on Tripo bodies, hand-made pairs as family A's, the same script and camera before and after)
+const FROM800BLOT = (foe, before) => FROM800A(foe, before).replace('Vite on port 5478', 'Vite on port 5448').replace('30 October 2026', '31 October 2026');
+const SOURCE800BLOT = (foe) => `scripts/enemy-roster/bench.mjs --level <world> --pack six ${foe}, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, High and Handheld, the machine shared: load 5–12); renderer.info; references/enemy-redesign-2026-10-30/trials/familyA-tripo/bench-world.sh, summed by familyF-tripo/bench-sum.mjs`;
 const FROM782 = 'Hand-made (no `view`): a scratch script (Vite + CDP, as scripts/changelog-shots.mjs serves and drives) ran muted headless Chrome (--mute-audio, hiraeth.muted and every volume at 0 set before load), High, 1280 × 720, 10:00, clear, the HUD hidden, the Desert with a new game’s save; the traveller on the terrace before the dais, the backpack’s chest opened at once (boxes.open instant) so Nour gets up and comes over as she does, then the talk opened as E does, her gestures’ seed fixed (the same gestures in both); 5 s into the talk (her talking loop), three views of her by the game’s own captureView from in front, three-quarters and her side, the traveller hidden for them; cwebp -q 72. Before: origin/main at 41d6c0347 (an archive of it on its own Vite, port 5452); after: the same tree with this change; 29 October 2026. The cloth is simulated, so the folds differ a little between any two runs';
 /** (v2.38, issue #784: the Font Room) The room from the doorway's side, pinned, in the save's state; the film's frames by hand. */
 const FONT784_SAVE = (full) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'tool.empty': !full, 'temple.desert.entered': true, 'temple.desert.drum.ball1': 1, 'temple.desert.lit.b0': true,
@@ -1623,6 +1626,24 @@ export const CHANGELOG_MEDIA = {
     ] },
   ] },
   // (issue #800 family B: the storm ray on its Tripo body; hand-made pairs from the creatures gallery, one camera)
+  // (issue #800: the ink blot on its Tripo body; hand-made pairs, the same script and camera before and after)
+  { match: 'The ink blot has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'blot800-desert', title: 'The Desert', caption: 'A sand-edged blot of the Desert, from a little to its left: before, a squat violet-black drop sitting in a ragged puddle of sand, big round eyes low on its front, drops of ink flying off its point; after, the new body standing on its own: a slate-dark drop drawn up into a hook swept back over its head, a tan belly plate, a lilac light down one flank and two cream eyes with slit pupils', from: FROM800BLOT('one blot@desert, idle 1.5 s, from a little to its left (yaw 0.5)', '698441032'),
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/blob/eb43fb37-f063-47ab-9a4f-212ba29d443b-2.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'blot800-lorn', title: 'Lorn', caption: 'A moss-edged blot of Lorn: before, the violet-black drop in its puddle of moss; after, the new body in the same violet-black ink, its belly plate the moss green of its world', from: FROM800BLOT('one blot@perdide, idle 1.5 s, from a little to its left (yaw 0.5)', '698441032') },
+    { name: 'blot800-garage', title: 'The Sealed Hangar', caption: 'The Hangar\u2019s rust-edged blot: before, gunmetal ink speckled with rust over a puddle of rust and oily teal; after, the new body in the same gunmetal with its rust belly, flecked with rust, metal shavings stuck in it', from: FROM800BLOT('one blot@garage, idle 1.5 s, from a little to its left (yaw 0.5)', '698441032') },
+    { name: 'blot800-lunge', title: 'The lunge', caption: 'A sand-edged blot at 80 % of its lunge\u2019s wind-up: before, the drop squashed down into its stacked rings in the puddle; after, the new drop pressed down into the same rings, leaning back, its eyes lit orange, the puddle spread under it', from: FROM800BLOT('one blot@desert, its lunge held at 80 % of the wind-up, three-quarters (yaw 0.75)', '698441032') },
+  ], numbers: [
+    { title: 'Six blots in the Desert: what they add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800BLOT('sand-edged blots in the Desert'), rows: [
+      { where: 'draw calls, High', before: 342, after: 87 },
+      { where: 'draw calls, Handheld', before: 228, after: 60 },
+      { where: 'triangles, High (thousand, every pass)', before: 31.0, after: 128.0 },
+    ] },
+    { title: 'The script\u2019s time a frame six blots add in the Desert', unit: 'ms', better: 'lower', device: DEVICE800, source: SOURCE800BLOT('sand-edged blots in the Desert'), rows: [
+      { where: 'High', before: 1.0, after: 0.55 },
+      { where: 'Handheld', before: 0.7, after: 0.15 },
+    ] },
+  ] },
   { match: 'The sky ray has a new body, drawn from its new design', tags: ['combat'], shots: [
     { name: 'ray800-vael', title: 'Vael', caption: 'A storm ray alone, three-quarters from its front and a little above: before, the flat rust-red diamond of strips with its pale rim and a long whip tail; after, the plump body with its cream belly and teal back, a dark eye on its head, its long teal wings let down in a shallow V, their tips red-brown, the paddle tail behind', from: FROM800R,
       reference: { sheet: 'references/enemy-redesign-2026-10-30/storm-ray/4fc2da68-aa8c-4a93-bc00-5f1795b5e039-0.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },

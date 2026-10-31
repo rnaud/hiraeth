@@ -2370,8 +2370,8 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   `GROUP_COST` places), and the first half of the route holds at most one ranged kind a pack. "Balance" below says
   how the curve was set.
 - **Bodies** (`src/enemies/plans/`, one builder per plan, `archetypeModel(kind, skin)`): `shellback-tripo.js` (plan 1: the
-  crab, on Tripo's body since v2.38, issue #800: "The shellback crab" below), `quadruped.js` (plan 6: the lizard and the hound, one rig), `piston.js` (plan 18: the tripod), `blob.js`
-  (plan 20: the blot). Each rides the locomotion kit (src/motion-kit/: the rig, the gait, the poses), its loose parts
+  crab, on Tripo's body since v2.38, issue #800: "The shellback crab" below), `quadruped.js` (plan 6: the lizard and the hound, one rig), `piston.js` (plan 18: the tripod), `blot-tripo.js`
+  (plan 20: the blot, on Tripo's body since v2.39, issue #800: "Family F" below; the legacy drop `blob-legacy.js`). Each rides the locomotion kit (src/motion-kit/: the rig, the gait, the poses), its loose parts
   on a verlet chain (`src/motion-kit/chain.js`: the lizard's tail, the hound's smoke); a leg may lift on its own
   (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch). Batch 2 rides the kit's chains
   (phase 4, procedural-animation.md): `centipede.js` (plan 3: segments on the head's own path, `PathTrail`; 24 legs
@@ -2997,6 +2997,26 @@ stays, renamed `-legacy`, standing in where the body is not loaded.
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)
 and is the game's hound now (below).
+
+### Family F on Tripo bodies: the ink blot (v2.39, issue #800)
+
+The creatures and spirits follow family A the same way (`references/enemy-redesign-2026-10-30/trials/familyF-tripo/`:
+`generate.mjs <foe>`, `prepare-<foe>.mjs` on family A's `prep-kit.mjs`, `shots.mjs` for working pictures, `bench-sum.mjs`
+for the world bench's table; shipped by `scripts/tripo/ship-body.mjs <foe>`, loaded by `src/enemies/foe-assets.js`; the
+write-up and the numbers in `familyF-tripo/README.md`).
+
+- **The ink blot** (`blot`, all 22 skins): `src/enemies/plans/blot-tripo.js` `blotModel`, `public/enemies/blot/body.glb`
+  (180 KB, 6,520 triangles); the legacy drop is `plans/blob-legacy.js` `blotLegacyModel`. Tripo drew the picture's view as
+  its front, so the export is turned 30° to centre its painted eyes. Three parts cut by geometry: the tan belly plate inside
+  an ellipse fitted to its texels on the front, the lilac flank beyond a plane turned out to its right side (Tripo's lilac
+  half, the picture's light on its edge, would have put a third of its face in lilac seen from the front), the ink. A soft
+  body on two bones (the drop, and its hook above the eyes, a spring that trails its hops and leans in as it rears); it
+  squashes and stretches, coils and rears as the legacy did (the same formulas on its drop). Its eyes are cream ovals where
+  the painted ones were, the slit pupils sliding toward the traveller. The pool (ink over a ragged rim of the world's
+  colour) shows only as it melts down calm and under its coil; standing, it is a drop of its own (the approved design: the
+  floor-attached one was rejected). Every skin keeps its palette: its world's colour is its pool's rim and its belly
+  (`belly`, skins.js; the Desert's the reference's tan), the Hangar's shavings on its surface. 5–6 drawn meshes standing
+  (8 pooled), against the legacy's 30. Tests: `tests/blot-tripo.test.js`.
 
 ### The horned hound in the game (v2.38, issue #800, `src/enemies/plans/hound-tripo.js`)
 

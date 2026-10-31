@@ -84,6 +84,9 @@ export const CHANGELOG = [
       // the survey crawler (#800)
       { text: 'The crawler has a new body, drawn from its new design: the survey crawler, a low cream dome over a dark blue band, a round head under its lip with two small orange eyes, a stubby antenna with a knob, and four sage legs on domed feet coming out of pink sockets in its sides. It turns its head to watch you; when it calls the others it rears up on its back legs with its antenna sparking, and when it runs at you to blow itself up its band and eyes blink red faster and faster. It is still knee-high, its dome at your thigh, and it fights exactly as before.',
         see: 'Open the Arena and pick the crawler from the foe list (D-pad ↓, K). Walk round it: its head turns to follow you. Bring it low and watch its band blink red before it bursts.' },
+      // the ink blot (#800)
+      { text: 'The ink blot has a new body, drawn from its new design: a glossy drop of dark ink standing on its own, its tip swept back into a hook over its head, a pale belly plate, a lilac light down one side and two cream eyes with sleepy slit pupils that follow you. Its hook bobs behind it as it hops. Left alone it still melts into a puddle and stands up as you come near; it still coils down into rings before it lunges and rears up tall and thin before it spits. In every world it keeps that world’s colour, now on its belly as well as round its puddle, and the Sealed Hangar’s still have metal shavings stuck in them. It fights exactly as before, and a group of blots is far lighter for your device to draw.',
+        see: 'Land in the Desert and meet a sand-edged blot, or open the Arena and pick the ink blot from the foe list (D-pad ↓, K). Come up slowly on one that has not seen you: it lies melted in a puddle and stands up as you near it. Walk round it: its pupils slide to keep you in view.' },
     ],
   },
   {
