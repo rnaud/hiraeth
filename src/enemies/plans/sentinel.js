@@ -89,7 +89,11 @@ function bladeParts(L = BLADE) {
   return { steel: [blade, tip], hilt, edge };
 }
 
-export function sentinelModel(skin) {
+/**
+ * The slim duelling droid (#726), the game's sentinel until #800: kept as the stand-in while the approved cistern
+ * keeper's Tripo body loads (plans/sentinel-tripo.js), and so it can come back as a foe of its own.
+ */
+export function legacySentinelModel(skin) {
   const P = skin.palette, M = materials('sentinel', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const rig = pivot(g, 0, 0, 0, 'rig');

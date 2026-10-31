@@ -1,0 +1,314 @@
+{
+ "frame": "game: +z ahead, +y up, metres, feet on y 0",
+ "source": "references/enemy-redesign-2026-10-30/sentinel/tripo/rigged.glb",
+ "scale": 2.3066,
+ "height": 2,
+ "joints": [
+  {
+   "name": "Root",
+   "parent": null,
+   "at": [
+    0,
+    0,
+    0.0209
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Hips",
+   "parent": "Root",
+   "at": [
+    0,
+    1.0921,
+    0.0209
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Spine",
+   "parent": "Hips",
+   "at": [
+    -0.0015,
+    1.2086,
+    0.0287
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Spine1",
+   "parent": "Spine",
+   "at": [
+    -0.0036,
+    1.3739,
+    0.0397
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Spine2",
+   "parent": "Spine1",
+   "at": [
+    -0.0057,
+    1.5392,
+    0.0507
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "Neck",
+   "parent": "Spine2",
+   "at": [
+    -0.0078,
+    1.7044,
+    0.0617
+   ],
+   "fold": "head"
+  },
+  {
+   "name": "Head",
+   "parent": "Neck",
+   "at": [
+    -0.0086,
+    1.7635,
+    0.0657
+   ],
+   "fold": "head"
+  },
+  {
+   "name": "LeftShoulder",
+   "parent": "Spine2",
+   "at": [
+    -0.0075,
+    1.7043,
+    0.0617
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "LeftArm",
+   "parent": "LeftShoulder",
+   "at": [
+    0.3324,
+    1.7038,
+    0.079
+   ],
+   "fold": "arm1"
+  },
+  {
+   "name": "LeftForeArm",
+   "parent": "LeftArm",
+   "at": [
+    0.6148,
+    1.6431,
+    0.0306
+   ],
+   "fold": "elbow1"
+  },
+  {
+   "name": "LeftHand",
+   "parent": "LeftForeArm",
+   "at": [
+    0.8553,
+    1.6232,
+    0.0306
+   ],
+   "fold": "hand1"
+  },
+  {
+   "name": "RightShoulder",
+   "parent": "Spine2",
+   "at": [
+    -0.0082,
+    1.7043,
+    0.0617
+   ],
+   "fold": "torso"
+  },
+  {
+   "name": "RightArm",
+   "parent": "RightShoulder",
+   "at": [
+    -0.3481,
+    1.7048,
+    0.0444
+   ],
+   "fold": "arm0"
+  },
+  {
+   "name": "RightForeArm",
+   "parent": "RightArm",
+   "at": [
+    -0.6724,
+    1.6232,
+    0.0724
+   ],
+   "fold": "elbow0"
+  },
+  {
+   "name": "RightHand",
+   "parent": "RightForeArm",
+   "at": [
+    -0.9546,
+    1.6232,
+    0.0179
+   ],
+   "fold": "hand0"
+  },
+  {
+   "name": "LeftUpLeg",
+   "parent": "Hips",
+   "at": [
+    0.2223,
+    1.0922,
+    0.0239
+   ],
+   "fold": "leg1"
+  },
+  {
+   "name": "LeftLeg",
+   "parent": "LeftUpLeg",
+   "at": [
+    0.2432,
+    0.642,
+    -0.0168
+   ],
+   "fold": "knee1"
+  },
+  {
+   "name": "LeftFoot",
+   "parent": "LeftLeg",
+   "at": [
+    0.2432,
+    0.0799,
+    -0.0101
+   ],
+   "fold": "foot1"
+  },
+  {
+   "name": "LeftToeBase",
+   "parent": "LeftFoot",
+   "at": [
+    0.174,
+    0.0653,
+    -0.0039
+   ],
+   "fold": "foot1"
+  },
+  {
+   "name": "RightUpLeg",
+   "parent": "Hips",
+   "at": [
+    -0.2223,
+    1.0911,
+    0.0179
+   ],
+   "fold": "leg0"
+  },
+  {
+   "name": "RightLeg",
+   "parent": "RightUpLeg",
+   "at": [
+    -0.2484,
+    0.6222,
+    0.03
+   ],
+   "fold": "knee0"
+  },
+  {
+   "name": "RightFoot",
+   "parent": "RightLeg",
+   "at": [
+    -0.2296,
+    0.0839,
+    -0.0109
+   ],
+   "fold": "foot0"
+  },
+  {
+   "name": "RightToeBase",
+   "parent": "RightFoot",
+   "at": [
+    -0.284,
+    0.0801,
+    0.0264
+   ],
+   "fold": "foot0"
+  }
+ ],
+ "hands": {
+  "Left": {
+   "centre": [
+    0.9642,
+    1.6206,
+    -0.0153
+   ],
+   "min": [
+    0.8314,
+    1.5553,
+    -0.1167
+   ],
+   "max": [
+    1.0801,
+    1.689,
+    0.0663
+   ],
+   "vertices": 360
+  },
+  "Right": {
+   "centre": [
+    -1.0905,
+    1.6244,
+    -0.0168
+   ],
+   "min": [
+    -1.2265,
+    1.5552,
+    -0.1162
+   ],
+   "max": [
+    -0.9664,
+    1.6993,
+    0.0668
+   ],
+   "vertices": 429
+  }
+ },
+ "widen": null,
+ "widened": {
+  "Left": 0,
+  "Right": 0
+ },
+ "clusters": [
+  "#191919",
+  "#2f3236",
+  "#43444b",
+  "#566466",
+  "#637c7f",
+  "#6d888b",
+  "#8f8277",
+  "#b5a495",
+  "#cfbba8",
+  "#e0c5b0"
+ ],
+ "palette": {
+  "ceramic": "#e5c7b4",
+  "joint": "#524d5b",
+  "fist": "#3f4a48",
+  "pelvis": "#3f5753",
+  "shin": "#819696",
+  "visor": "#141414"
+ },
+ "landmarks": {
+  "visor": {
+   "centre": [
+    -0.0163,
+    1.86,
+    0.2303
+   ],
+   "w": 0.2002,
+   "h": 0.0358,
+   "front": 0.2629,
+   "texels": 919
+  }
+ }
+}

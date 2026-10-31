@@ -29,7 +29,8 @@ import { fencerModel } from './fencer.js';
 import { mummerModel, legacyMummerKingModel } from './mummer.js';
 import { tripoMummerKingModel } from './mummer-king-tripo.js';
 import { gruntModel, hulkModel, prowlerModel, warlordModel } from './monster.js';
-import { sentinelModel } from './sentinel.js';
+import { legacySentinelModel } from './sentinel.js';
+import { tripoSentinelModel } from './sentinel-tripo.js';
 import { oracleModel } from './oracle.js';
 import { crawlerModel } from './crawler-tripo.js';
 import { woodcutterModel } from './woodcutter.js';
@@ -88,7 +89,9 @@ import { foeSource } from '../foe-assets.js';
 //                          plans/tripo-biped.js; mummer.js legacyMummerKingModel, the junk king, stands in while it loads)
 //   monster.js    plans 25, 26, 30, 31  roster v4's grunt, hulk, prowler and warlord (on the humanoid rig; issue #726)
 //   droid.js               the makers' defunct droids' one material family (issue #726)
-//   sentinel.js   plan 27  the sentinel (a droid duellist on the humanoid rig: blade and round shield)
+//   sentinel.js   plan 27  the old sentinel (a slim droid duellist on the humanoid rig: blade and round shield)
+//   sentinel-tripo.js plan 27  the sentinel (#800: the approved cistern keeper, Tripo's rigged mesh on the humanoid clip
+//                          rig, plans/tripo-biped.js; sentinel.js legacySentinelModel stands in while it loads)
 //   oracle.js     plan 28  the oracle (a hovering caster droid: the rig's upper body over a ceramic shell)
 //   crawler-tripo.js plan 29 the crawler (issue #800: Tripo's survey crawler, public/enemies/crawler/body.glb, four legs on the
 //                 kit's crawler plan, its head looking at you; the legacy dome, crawler-legacy.js, stands in where it is not loaded)
@@ -101,14 +104,15 @@ const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, 
   toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel,
   shade: shadeModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel,
   grunt: gruntModel, hulk: hulkModel,
-  sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
+  oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel,
   cart: (skin) => { const src = foeSource('cart'); return src ? tripoCartModel(skin, src) : legacyCartModel(skin); },
   bell: (skin) => { const src = foeSource('bell'); return src ? tripoBellModel(skin, src) : legacyBellModel(skin); },
   roller: (skin) => { const src = foeSource('roller'); return src ? tripoRollerModel(skin, src) : legacyRollerModel(skin); },
   woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); },
   dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); },
-  mummerking: (skin) => { const src = foeSource('mummerking'); return src ? tripoMummerKingModel(skin, src) : legacyMummerKingModel(skin); } };
+  mummerking: (skin) => { const src = foeSource('mummerking'); return src ? tripoMummerKingModel(skin, src) : legacyMummerKingModel(skin); },
+  sentinel: (skin) => { const src = foeSource('sentinel'); return src ? tripoSentinelModel(skin, src) : legacySentinelModel(skin); } };
 
 /**
  * Trial bodies (issue #800): a review page (the trials folder of the enemy-redesign references) may stand another

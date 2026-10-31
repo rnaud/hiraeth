@@ -3186,7 +3186,7 @@ the spirit on the clapper's bone and a hook under it; the Signal Market's coins 
 from its sides. The spider-legged bell walker stays in plans/siege.js as `legacyBellModel`: it stands in while the mesh
 loads and can come back as a foe of its own. Unity: `-fight machines` pictures it with the crucible walker.
 
-### Family G: the mummer king (#800, `src/enemies/plans/tripo-biped.js`)
+### Family G: the mummer king, the sentinel (#800, `src/enemies/plans/tripo-biped.js`)
 
 The two-legged humanoids' approved redesigns are their bodies, each on Tripo's biped rig posed directly by the clips, never
 a hidden copy (`tripoBiped`: the humanoid rig's joints stood where Tripo put its joints, each limb the two sides' mean
@@ -3211,10 +3211,14 @@ README under the trials folder).
   the drawing's clean oval, two black eyes proud of it on the head bone, the crown rods on the head, the belly patch and knee
   pads as discs laid on the mesh, the gauntlets whole on the hands, the paddle club held as the door beam was (`KING_HOLD`),
   the horn slung on its back and brought to its mask for the call (`hornDeep`). The junk king: `legacyMummerKingModel`.
+- **The sentinel** (`plans/sentinel-tripo.js`, `public/enemies/sentinel/`, 2 m): the cistern keeper, its amber lens in the
+  visor on the head bone (`droidGlow`), its fists and soles whole, its legs the clips' own, the big oval shield on its left
+  forearm kept facing out (its guard, bash and broken guard as before), the short leaf blade in its right fist
+  (`SENTINEL_HOLD`); its scorched tier the droids' ceramic and joints. The slim droid: `legacySentinelModel`.
 
 Each draws 3 meshes (the body, its rigid parts in one skinned mesh, the eyes); six in the Arena add 54 draws on High (the
 old bodies 108–198). Unity: `-fight humanoids` (engine/unity/game.js) pictures the family standing, winding up and striking.
-Tests: `tests/mummer-king-tripo.test.js`.
+Tests: `tests/mummer-king-tripo.test.js`, `tests/sentinel-tripo.test.js`.
 
 ### The dune mummer (#800, `src/enemies/plans/dune-mummer-tripo.js`, `public/enemies/dunemummer/`)
 

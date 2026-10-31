@@ -1,0 +1,48 @@
+{
+  "created": "2026-10-31",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, two full-body views side by side on a plain light sand background: on the left the front view, on the right the back view, both the same size and standing on the same level line. The exact robot of the reference image, the ceramic cistern keeper, with the same proportions, colours and details: a squat heavy ceramic robot; a big rounded barrel torso of pale pink ceramic with one horizontal seam line round its middle; a short upright cylinder head set on the top front of the torso, with a black visor slit across it and one small amber eye in the slit; dark purple-black ball joints at the shoulders, the elbows and the knees; pale pink ceramic cylinders for the upper arms, the forearms and the thighs; a dark slate-teal band of a pelvis under the barrel; slate-blue cylinder shin guards with a band round them; broad flat pointed slate-blue feet; dark grey robot hands. It stands in a strict T-pose: both arms held straight out to the sides at shoulder height, perfectly horizontal, palms facing down, hands open, flat and empty; legs straight and a little apart, feet flat and pointing forward. The back view shows the smooth back of the barrel and the head without the eye, the backs of the joints, arms and legs. Empty hands, no shield, no spear, no blade, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: shield, spear, blade, weapon, props, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-prompts-family-g.md#sentinel-tpose",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/sentinel/395884ff-9eec-4903-ba5c-e910310ff88d-0.png"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-06-41-12-05f1",
+      "candidate": "openai/1",
+      "sha256": "7f366ba2552ab1816d4053cf8a198e1b2a2251f332bbc9fa5d04c5bb1deba4cd",
+      "bytes": 89514,
+      "costUSD": 0.041,
+      "pickedBy": "agent (family G, #800; the author asleep: \"keep going with your own recommendations\")",
+      "why": "A true T-pose with the approved robot's parts in their places (the pink barrel with its seam, the cylinder head on its top front with the slit and one amber eye, purple-black shoulder and knee balls, the teal pelvis, teal shins and pointed feet) and plain open grey hands, nothing in them; Gemini's first let the arms hang, its second and OpenAI's second cut the arms into more segments than the approved image draws. Its limbs are slimmer than the approved image's thick cylinders."
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character model sheet for 3D modelling and rigging, one full-body side view (left profile, facing left) on a plain light sand background. The exact robot of the reference images, the ceramic cistern keeper, seen exactly from its left side: a squat heavy ceramic robot; a big rounded barrel torso of pale pink ceramic with one horizontal seam line round its middle; a short upright cylinder head on the top front of the torso, the black visor slit and its one small amber eye at the left edge facing left; a dark slate-teal pelvis band; pale pink thigh cylinders; dark purple-black ball knees; slate-blue cylinder shin guards; broad flat pointed slate-blue feet pointing left. It stands in the same strict T-pose as the front view: both arms stick straight out sideways from the shoulders, one toward the viewer and one away, so in this side view the near arm is seen exactly end-on as a circle: only the round purple-black shoulder ball and the round end of the near arm and its dark grey fist, overlapping the side of the barrel at shoulder height; no arm reaches forward or backward, nothing sticks out to the left or right of the body at shoulder height. Legs straight, feet flat. Empty hands, no shield, no spear, no blade, no weapon, no props. Even flat lighting, no cast shadows, no ground shadow, orthographic view with no perspective, the whole body in frame with a margin all round, clean fine ink contours and flat colours as in the reference. Avoid: shield, spear, blade, weapon, props, arm pointing forward, arm pointing backward, shadow, ground shadow, perspective, background scenery, text, lettering, labels, watermark, extra limbs.",
+      "from": "docs/design/enemy-tpose-prompts-family-g.md#sentinel-tpose-side2",
+      "refs": [
+        "references/enemy-redesign-2026-10-30/sentinel/395884ff-9eec-4903-ba5c-e910310ff88d-0.png",
+        "references/enemy-redesign-2026-10-30/sentinel/tpose/sheet-1.jpg"
+      ],
+      "ar": "1:1",
+      "date": "2026-10-31",
+      "batch": "2026-10-31-06-43-59-6bd9",
+      "candidate": "openai/1",
+      "sha256": "c59a17c6f9d6ded0c4084fe15a5467859baac618471a6da18992138f4b57de00",
+      "bytes": 95304,
+      "costUSD": 0.053,
+      "pickedBy": "agent (family G, #800; the author asleep: \"keep going with your own recommendations\")",
+      "why": "The second side run (the first two drew the near arm pointing backwards, not a T-pose; the first Gemini run was refused): the near arm end-on as the shoulder ball and fist, the head on the barrel's top front with its eye facing left, the foot pointing ahead; the clearest of the four (Gemini's drew a stub where the fist should be)."
+    }
+  ]
+}

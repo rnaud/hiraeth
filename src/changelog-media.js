@@ -1846,6 +1846,20 @@ export const CHANGELOG_MEDIA = {
       ] },
       { title: 'A mummer king arriving in the Arena: the worst frame of its arrival', unit: 'ms', better: 'lower', device: DEVICE800G, source: SOURCE800G_ARRIVE, rows: [{ where: 'High (no new program, before or after)', before: 7.7, after: 7.4 }] },
     ] },
+    // (issue #800 family G: the sentinel on its Tripo body; hand-made pairs)
+    { match: 'The sentinel has its new body', tags: ['combat'], shots: [
+      { name: 'sentinel800-arena', title: 'The sentinel', size: [1280, 720], caption: 'The sentinel alone, three-quarters from its front: before, the slim ivory duelling droid with its egg head, its round ringed shield and long blade; after, the squat pink ceramic barrel with its cylinder head and amber eye, purple-black ball joints, slate shins on broad pointed feet, the big oval shield on its left arm and the short leaf blade', from: FROM800SEN,
+        reference: { sheet: 'references/enemy-redesign-2026-10-30/sentinel/395884ff-9eec-4903-ba5c-e910310ff88d-0.png', caption: 'The approved design the new body was made from (Tripo, from T-pose sheets drawn from this picture)' } },
+      { name: 'sentinel800-cut', title: 'The cut', size: [480, 338], caption: 'From the front, 80 % into the cut’s wind-up: before, the droid’s blade raised over its right shoulder behind its round shield; after, the leaf blade raised high over the barrel behind the oval shield', from: FROM800SEN },
+      { name: 'sentinel800-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'The Unity version in the Arena, winding up: the sentinel before the traveller with its oval shield, the hulk raising its stomp behind it and the mummer king to the right, the same bodies drawn by their colours', from: FROM800G_UNITY },
+    ], numbers: [
+      { title: 'What six sentinels add to the Arena’s frame, standing in view', unit: '', better: 'lower', device: DEVICE800G, source: SOURCE800G('sentinel'), rows: [
+        { where: 'High: draw calls', before: 108, after: 54 },
+        { where: 'Deck: draw calls', before: 72, after: 36 },
+        { where: 'High: triangles, every pass (thousands)', before: 121.7, after: 237.8 },
+      ] },
+      { title: 'A sentinel arriving in the Arena: the worst frame of its arrival', unit: 'ms', better: 'lower', device: DEVICE800G, source: SOURCE800G_ARRIVE, rows: [{ where: 'High (no new program, before or after)', before: 7.7, after: 5.9 }] },
+    ] },
     { match: 'A new foe, the wood cutter', shots: [
       { name: 'woodcutter-lorn', title: 'Lorn’s Deep Wood', only: 'after', size: [1280, 720], caption: 'The sawyer where it is placed, slumped mid-cut at the meadow’s edge in the Deep Wood, its saw in its right hand.', from: 'Actual running game, muted headless Chrome (scripts/changelog-shots.mjs shoot, --mute-audio, every volume 0) against this branch’s own Vite on port 5460, High, 1280 × 720, 10:00, clear, 30 October 2026, on the wood cutter’s commit (pictured on its tree over 29488bd4d, before the rebase onto a9b33fb98): the traveller set 14 m off, the foe calm, the camera pinned on it. After-only: a new foe has no before. The placed one, as the game puts it.' },
       { name: 'woodcutter-viridel', title: 'Viridel', only: 'after', size: [1280, 720], caption: 'A hedge cutter in Viridel’s grass near the ship, its shears on its wrist.', from: 'Actual running game, muted headless Chrome (scripts/changelog-shots.mjs shoot, --mute-audio, every volume 0) against this branch’s own Vite on port 5460, High, 1280 × 720, 10:00, clear, 30 October 2026, on the wood cutter’s commit (pictured on its tree over 29488bd4d, before the rebase onto a9b33fb98): the traveller set 14 m off, the foe calm, the camera pinned on it. After-only: a new foe has no before. Set down by hand near the landing (foes.add) for the picture; in play it comes in Viridel’s packs and walks its old beat.' },
