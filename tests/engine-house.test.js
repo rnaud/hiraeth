@@ -259,7 +259,9 @@ test('the Engine-House on foot (issue #415): the engine woken, the clutch thrown
 
 test('the Boiler Keeper (issue #415, G3b): the Boiler Room’s one foe, a furnace brute grown huge; its slam winds up long, sends a quake you jump and leaves its fists stuck for the blade: the Tooth-Warden’s slam and open vents, a room early', () => {
   const H = house(), { rt, P, L, level, physics, wait } = H;
-  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'buried', physics, player: P, settings: { enemies: 'normal' }, game });
+  // (its picks seeded: unseeded, it could back off and lob its hurl for the whole half minute, no slam)
+  let seed = 7; const rng = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'buried', physics, player: P, settings: { enemies: 'normal' }, game, rng });
   foes.placeMachinesIn(rt);
   const ks = rt.machines.filter((f) => f.room === 'boiler');
   assert.equal(ks.length, 1, 'alone in its room');
