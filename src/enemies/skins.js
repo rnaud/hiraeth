@@ -101,7 +101,9 @@ export const SKINS = {
     waterfall: { name: 'weed knot', palette: { cap: '#2f3a3c', cap2: '#46575a', gill: '#6fa8a0', bulb: '#3a4a48', bulb2: '#4a5c5a', root: '#2a3432', root2: '#1e2826', tendril: '#5a7a70', eye: '#bff0e8', dark: '#121718', spore: '#bff0e8' }, props: ['slick'] },
   },
   jelly: {
-    arzach2: { name: 'cloud jelly', palette: { bell: '#efc4d4', bell2: '#f8dce6', under: '#a8c8e0', thread: '#d8e4ec', lantern: '#b39464', light: '#ffc27a', eye: '#1a1420', dark: '#8a6a78' }, props: ['paper', 'puffy'] },
+    // (#800: the approved image's colours, cloud-jelly/0cdfba00-…-1.png: a cream cap, a sage skirt, stems and curled arms, salmon
+    // lanterns with dark tips; the Tripo body's texture is painted in them)
+    arzach2: { name: 'cloud jelly', palette: { bell: '#efdcb4', bell2: '#f7ead0', under: '#8fa984', thread: '#8fa984', lantern: '#e3a07e', light: '#e9a884', eye: '#1e1d24', dark: '#2a2a22' }, props: ['paper', 'puffy'] },
     perdide2: { name: 'lamp jelly', palette: { bell: '#c8453e', bell2: '#e06a5a', thread: '#a8342e', lantern: '#b8955a', light: '#ffd27a', eye: '#fff2c0', dark: '#4a1a18' }, props: ['brass'], moves: ['mend'] },
     spheres: { name: 'halo jelly', palette: { bell: '#efe7f2', bell2: '#f8f4fa', thread: '#c8b8d8', lantern: '#e8f8ff', light: '#a8e0f2', eye: '#4a4058', dark: '#6a5a80' }, props: ['prism', 'halo'], moves: ['mend'] },
     // (sheet-2: white porcelain with cobalt bands and medallions, cobalt under the bell, coral-red threads, yellow glass lanterns in brass nets)

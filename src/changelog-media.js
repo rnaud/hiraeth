@@ -1469,6 +1469,9 @@ const FROM785 = 'Hand-made strip (no `view`): a scratch script (Vite + CDP, as s
 /** (v2.38, issue #782: Nour's cloak in a conversation) */
 const FROM800 = 'Hand-made (no `view`, the commit to be rebased): a scratch script (scripts/changelog-shots.mjs serve, chrome and shoot: Vite on port 5446, muted headless Chrome, --mute-audio, hiraeth.muted and every volume 0 before load), High, 1280 × 720, 10:00, clear, the HUD hidden; the world loaded with a save past the prologue, its own foes taken away, one crab set down 6 m ahead of the traveller (4 m in the Arena) and posed by the game (Foes.look, its mind stopped), the camera pinned 4.6 m off its front quarter (in the Arena behind the traveller), the snap held at 80 % of its wind-up; before: fcdac987d (an archive of it on the same port), after: this change, 30 October 2026';
 const FROM800_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh shellback -level arena -fight shellback -mute), 30 October 2026, its first picture (unity-shellback-home): the game’s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
+const FROM800B = 'Hand-made (no `view`, the commit to be rebased): references/enemy-redesign-2026-10-30/trials/flyer-tripo/pairs.mjs (scripts/changelog-shots.mjs serve, chrome and shoot on its `view.foe`: the creatures gallery\'s body alone, large, 3D only, inked by the post pass; Vite on port 5462, muted headless Chrome, --mute-audio, hiraeth.muted and every volume 0 before load), High, 1280 × 720, three-quarters from its front, the same camera before and after; before: a9b33fb98 (an archive of it), after: this change, 30 October 2026';
+const FROM800B_UNITY = 'Unity editor batch run (scripts/unity-js-run.sh flyers -level arena -fight flyers -mute), 30 October 2026, its picture of the home skin (unity-flyers-jelly-home): the game\'s follow camera; the body drawn from its vertex colours (the engines decode no picture)';
+const SOURCE800B = 'references/enemy-redesign-2026-10-30/trials/flyer-tripo/bench-worlds.mjs (scripts/enemy-roster/bench.mjs --level <world> --pack six of the skin, against the same world with none; the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 11–22); renderer.info';
 const DEVICE800 = 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
 const SOURCE800 = 'scripts/enemy-roster/bench.mjs --level <world> --pack six crabs of its skin, against the same world with none (the medians of 8 s of frames, two runs each, alternating before and after, the machine shared: load 13–29); renderer.info';
 // (issue #800, family A: hand-made pairs through the creatures gallery, the same camera before and after)
@@ -1532,6 +1535,39 @@ export const CHANGELOG_MEDIA = {
     { name: 'enamel-unity-confirm', title: 'Unity delete a save', only: 'after', size: [1280, 720], caption: 'Unity: “Delete Save 1?” in its framed enamel card over Saves with the Debug list open, Keep it in hand and Delete in the warm red.', from: FROM804_UNITY },
     { name: 'enamel-unity-title-settings', title: 'Unity title settings', only: 'after', size: [1280, 720], caption: 'Unity: the title’s Settings on the same enamel sheet, brass group headings, the sliders in turquoise.', from: FROM804_UNITY },
     { name: 'enamel-unity-devmenu', title: 'Unity dev menu', only: 'after', size: [960, 720], caption: 'Unity: the dev menu’s World tab with its own “Dev menu” heading (it said “Journal”), rows on brass hairlines and its headings and switches no longer in the paper’s red and ink.', from: `${FROM804_UNITY} The dev menu by -devmenu -level desert (its 960-wide menu canvas, the left 960 × 720 of the picture).` },
+  ] },
+  // (issue #800 family B: the cloud jelly on its Tripo body; hand-made pairs from the creatures gallery, one camera)
+  { match: 'The lantern jelly has a new body, drawn from its new design', tags: ['combat'], shots: [
+    { name: 'jelly800-vael2', title: 'Vael II', caption: 'A cloud jelly alone, three-quarters from its front: before, the pink bell on its long thin threads with two small paper lanterns; after, the puffy cream cap over its sage skirt, two curled green arms in front, the slit eyes on its front lobe and three salmon lanterns on green stems', from: FROM800B,
+      reference: { sheet: 'references/enemy-redesign-2026-10-30/cloud-jelly/0cdfba00-da12-409f-8fd5-03de262f50ca-1.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+    { name: 'jelly800-lorn2', title: 'Lorn II', caption: 'A lamp jelly of the Deep Wood: before, the red bell on its threads with brass-capped lanterns; after, the new body in red, its lanterns yellow paper with a brass collar and foot', from: FROM800B },
+    { name: 'jelly800-spheres', title: 'The Garden of Spheres', caption: 'A halo jelly: before, the white bell with prism drops and a halo; after, the new body in pale lilac, its lanterns turned to blue prisms and the halo turning over its cap', from: FROM800B },
+    { name: 'jelly800-underwater', title: 'The Underwater City', caption: 'A porcelain jelly: before, the white glazed bell with cobalt bands on coral threads; after, the new body glazed white with its cobalt bands, coral-red arms and stems, its lanterns yellow glass floats in dark nets', from: FROM800B },
+    { name: 'jelly800-ward', title: 'The ward', caption: 'The cloud jelly at 80 % of the ward’s wind-up: before, a lantern swelling among the threads; after, its eyes gone orange and the lantern it wards with swelling and glowing on its stem', from: FROM800B },
+    { name: 'jelly800-unity', title: 'Unity', only: 'after', caption: 'The Unity version in the Arena, a cloud jelly hovering 7 m ahead of the traveller, seen from below: the same new body, its cream cap, sage skirt and arms and its three salmon lanterns, drawn by its colours', from: FROM800B_UNITY },
+  ], numbers: [
+    { title: 'Draw calls six jellies add to the picture', unit: '', better: 'lower', device: DEVICE800, source: SOURCE800B, rows: [
+      { where: 'Vael II, High', before: 324, after: 108 },
+      { where: 'Vael II, Handheld', before: 216, after: 72 },
+      { where: 'The Garden of Spheres (prisms and halo), High', before: 324, after: 128 },
+      { where: 'The Garden of Spheres, Handheld', before: 216, after: 84 },
+    ] },
+    { title: 'Triangles six jellies add (every pass: the picture and the shadows)', unit: 'thousand', better: 'lower', device: DEVICE800, source: SOURCE800B, rows: [
+      { where: 'Vael II, High', before: 97.0, after: 242.8 },
+      { where: 'Vael II, Handheld', before: 64.7, after: 161.9 },
+      { where: 'The Garden of Spheres, High', before: 87.5, after: 182.0 },
+      { where: 'The Garden of Spheres, Handheld', before: 58.3, after: 121.3 },
+    ] },
+    { title: 'The script’s time a frame six jellies add', unit: 'ms', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; the frame’s own callbacks (the bench’s CPU time), each world against itself with none; every run held 60 fps`, rows: [
+      { where: 'Vael II, High', before: 1.8, after: 1.8 },
+      { where: 'Vael II, Handheld', before: 1.6, after: 1.2 },
+      { where: 'The Garden of Spheres, High', before: 2.0, after: 1.8 },
+      { where: 'The Garden of Spheres, Handheld', before: 0.8, after: 0.5 },
+    ] },
+    { title: 'Memory the jellies hold on the graphics card', unit: 'MB', better: 'lower', device: DEVICE800, source: `${SOURCE800B}; every vertex buffer and picture the six jellies draw, each counted once however many share it`, rows: [
+      { where: 'Vael II (its picture: 512 × 512, four flat colours)', before: 0.22, after: 2.14 },
+      { where: 'The Garden of Spheres (no picture: its colours on the vertices)', before: 0.4, after: 0.78 },
+    ] },
   ] },
   // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)
   { match: 'The crab has a new body, drawn from its new design', tags: ['combat'], shots: [

@@ -51,7 +51,7 @@ export const ENCODED_PICTURES = ['characters/father-v1/', 'characters/traveller-
  * his portrait head, the Keeper's and the Elder's skins, the shellback crab's and the horned hound's bodies (their COLOR_0, #800). Their JPEG went to three's own image path, which the VM lacks
  * (no Blob, no Image decoder): it failed, as meant, but logged "Couldn't load texture [object Promise]" for each (issue #537).
  */
-export const COLOURED_PICTURES = ['characters/traveller-b3/', 'characters/traveller-v1/head-v3/', 'guardians/keeper-v1/', 'guardians/elder-v3/', 'enemies/shellback/', 'enemies/hound/'];
+export const COLOURED_PICTURES = ['characters/traveller-b3/', 'characters/traveller-v1/head-v3/', 'guardians/keeper-v1/', 'guardians/elder-v3/', 'enemies/shellback/', 'enemies/hound/', 'enemies/cloud-jelly/'];
 
 /**
  * A picture file of the game's (under public/) kept encoded, for the engine to decode (BridgeHost.TextureImage): a Texture

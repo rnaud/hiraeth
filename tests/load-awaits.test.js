@@ -35,6 +35,7 @@ const KNOWN = [
   [/^loadPlayableCaravan\(/, 'the ship asset: a 60 s deadline, with explicit reload guidance on failure'],
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
   [/^houndBody\b/, 'the horned hound\'s body (src/enemies/plans/hound-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
+  [/^cloudJellyBody\b/, 'the cloud jelly\'s body (src/enemies/plans/cloud-jelly-tripo.js, through src/enemies/plans/flyer-body.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), its old body standing in'],
   [/^shellbackBody\b/, 'the shellback crab\'s body (src/enemies/plans/shellback-tripo.js): its failure caught and a 30 s deadline (LOAD_DEADLINE), the direct body standing in'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
   [/^warmShaders\(/, 'the race below: compileAsync or 2 s'],
@@ -90,6 +91,11 @@ test('the known waits keep their bounds', () => {
   assert.match(hound, /LOAD_DEADLINE = 30000/);
   assert.match(hound, /Promise\.race\(\[deadline/);
   assert.match(hound, /setTimeout\([\s\S]*?, LOAD_DEADLINE\)/);
+  // (the flyers' bodies, #800: src/enemies/plans/flyer-body.js tripoBody, the same bounds)
+  const tripoBody = readFileSync(new URL('../src/enemies/plans/flyer-body.js', import.meta.url), 'utf8');
+  assert.match(tripoBody, /LOAD_DEADLINE = 30000/);
+  assert.match(tripoBody, /Promise\.race\(\[deadline/);
+  assert.match(tripoBody, /setTimeout\([\s\S]*?, LOAD_DEADLINE\)/);
   const code = uncomment(main);
   // stage() waits for nextFrame(), which falls back on a timer
   assert.match(code, /const stage = \(msg\) => \{[\s\S]*?return nextFrame\(\)/, 'stage() waits on nextFrame()');

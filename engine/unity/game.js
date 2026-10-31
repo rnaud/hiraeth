@@ -997,6 +997,19 @@ function makePlan(args) {
       { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('windup'),
       { kind: 'foe', what: 'clear' }, { kind: 'foe', what: `${kind}@${other}`, dist: 4, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot(other));
   }
+  if (fights.includes('flyers')) {
+    // (-fight flyers, issue #800 family B: the flyers on their Tripo bodies (public/enemies/<concept>/body.glb), drawn by
+    // their vertex colours (no picture decoded here): each home skin 7 m ahead and 2.4 m to the right, hovering, then
+    // winding up its first move; then a skin with its dress; the body each wears is said in the log)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-flyers-${name}.png` }] : []);
+    for (const [id, dressed] of [['jelly@arzach2', 'jelly@perdide2']]) {
+      const kind = id.split('@')[0];
+      steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: id, dist: 7, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot(`${kind}-home`),
+        { kind: 'foe', what: 'raise' }, { kind: 'wait', frames: 40, secs: 0.7 }, ...shot(`${kind}-windup`),
+        { kind: 'foe', what: 'clear' }, { kind: 'foe', what: dressed, dist: 7, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: [kind] }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'foe', what: 'body' }, ...shot(`${kind}-dressed`),
+        { kind: 'foe', what: 'clear' });
+    }
+  }
   if (fights.includes('armour')) {
     // (-fight armour, issue #722: a bell walker of the Signal Market set down 5 m ahead, kept up, locked on: its plates on;
     // three charged cuts at it (Foes.hurt, as the blade's): its plates knocked off onto the ground; then a banded bell walker
@@ -1740,7 +1753,7 @@ function playFrame(dt) {
         if (a) { f.state = 'chase'; f.cool = 0; f.beginWind(a, game.player); console.log(`[unity] ${f.kind} winds up ${a.id}`); }
       }
     } else if (step.what === 'body') {
-      // (-fight shellback: which body each foe wears, its drawn meshes and whether it is coloured by its vertices)
+      // (-fight shellback, -fight flyers: which body each foe wears, its drawn meshes and whether it is coloured by its vertices)
       for (const f of F.list.filter((x) => x.alive)) {
         let n = 0, tinted = 0; f.model?.group?.traverseVisible?.((o) => { if (o.isMesh) { n++; if (o.material?.vertexColors || o.geometry?.attributes?.color) tinted++; } });
         console.log(`[unity] ${f.kind}: ${f.model?.shellback ? `the ${f.model.shellback} shellback` : f.model?.toad || f.model?.tripo ? `the ${f.model.toad ?? f.model.tripo} body` : 'its own body'}, ${n} meshes (${tinted} vertex-coloured)`);

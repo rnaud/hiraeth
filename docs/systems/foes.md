@@ -2370,8 +2370,9 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   stepping in a metachronal wave on distance, `src/motion-kit/wave-legs.js`), `burrower.js` (plan 15: the worm's
   mounds on its path, its ring stack rising on a spring that dips first), `glider.js` (plan 14: the ray's wings as
   strips turned by a travelling `Wave`, the tail on a `FollowChain`), `flyer.js` (plan 13: the moth's flap by speed,
-  its antennae on chains), `floater.js` (plan 11: the jelly's bell pulsing on a `Wave` that quickens as it winds up,
-  threads and lanterns on verlet chains). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
+  its antennae on chains), `cloud-jelly-tripo.js` (plan 11: the cloud jelly, Tripo's body on its own joints, its bell pulsing on a `Wave`
+  that quickens as it winds up, each lantern a pendulum; the lantern jelly's threads and lanterns on verlet chains kept
+  in `lantern-jelly-legacy.js`). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
   `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
   (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum); batch 5's:
   `humanoid.js` (plan 9: the shade's empty boots, on the humanoid rig's clips since #724, its cloak on lagging springs, its ribbons on
@@ -2867,6 +2868,35 @@ of its own.
   meshes and the eyes (4–5 drawn, against the legacy's 5). The home skin (the Desert's) wears the reference's colours;
   the furnace beetles and ash grubs keep their glowing seam down the back. Tests: `tests/skitter-tripo.test.js`,
   `tests/motion-plans.test.js` (8 legs), `tests/archetypes-batch3.test.js` (the legacy's bowed six).
+### The flyers on Tripo's bodies (v2.38, issue #800, family B)
+
+The flyers have no legs for the kit to plant, so their Tripo bodies are rigid parts on joints of their own, driven by the
+plan's own motion (the skill's table's nearest family, the machine's: each vertex on its part's joint, blended where two
+meet), not a skeleton Tripo guesses. What they share: `src/enemies/plans/flyer-body.js` (`tripoBody`: the GLB read at
+once without three's loader, loaded once with the 30 s deadline; `piece`, `subset`, the role colours, the skinned mesh's
+moving bounds), `scripts/tripo/ship-flyer.mjs` (the trial's asset into `public/enemies/<concept>/body.glb`: 16-bit indices,
+the flat texture at 512², the landmarks in its extras) and the trials' `flyer-tripo/` scripts (`prep-lib.mjs`: the
+recipe's steps; `splat.mjs`, `pairs.mjs`, `arrivals.mjs`, `bench-worlds.mjs`). `src/main.js` and the gallery await each
+body before the foes are made; the engines and Node read it at once and draw its vertex colours. The body each replaced is
+kept under a legacy name and stands in where the new one is not loaded.
+
+**The cloud jelly** (`jelly`, `plans/cloud-jelly-tripo.js` `cloudJelly`; the lantern jelly kept as
+`plans/lantern-jelly-legacy.js`). `public/enemies/cloud-jelly/body.glb` (402 KB, 300 KB gzipped, 13,210 triangles), from
+the approved `cloud-jelly/0cdfba00-…-1.png` (Tripo task b9a1a819-…, 30 credits). Its parts: the cap (cut along its lip by
+geometry, round the arms; one mesh on the bell's joint, wearing the skin's `bell` surface), the three lanterns' bulbs
+(cut across their necks; each its own mesh on its lantern's joint, its own light), and one skinned mesh for the skirt,
+stems and curled arms (the bell's joint, each arm's, each lantern's; a stem passes from the bell at its root to its
+lantern at its neck, so it bends as the lantern swings). The bell pulses, clenches and squashes as the lantern jelly's
+did; each lantern is a damped pendulum from its stem's root, trailing the drift and rocked by the pulse; the arms curl
+with each pulse and in for the clench. The ward swells and lights one bulb; a pop takes its bulb and folds its stem
+away; the curtain's stinging threads show only while they fall (the reference draws none). Its eyes are the painted
+ones' size and place (found by their dark texels on the cap's front lobe, painted out), their own mesh the gaze slides.
+Every skin recolours the roles (cap, green, bulb, dark) and keeps its dress: brass collars and feet (the lamp jelly),
+prism lanterns and the halo (the halo jelly), glass floats in nets and the glaze (the porcelain jelly), the glowing core
+(the sun jelly). Drawn: 6 meshes a body (7 with a halo or core) against the lantern jelly's 134; the Arena's arrivals hold
+16.8 ms in every skin, no program compiled. Kept: the id, def, attacks and windows (ward, mend, curtain), the lanterns
+and their pop, its support role, sounds (`floater`/`glass`), the death recipe (it deflates and lands on its bulbs),
+saves and encounters. Unity: `-fight flyers` pictures it. Tests: `tests/cloud-jelly-tripo.test.js`.
 
 The hound's direct body is `src/enemies/plans/broad-hound.js` (the hound's id, def, sounds, shadow form and quadruped
 rig family); its Tripo body carries Tripo's own rig weights gathered onto the game's bones (`tests/hound-trial.test.js`)

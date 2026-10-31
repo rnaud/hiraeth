@@ -124,14 +124,14 @@ export const SURFACES = {
   jelly: {
     '*': {
       bell: { glow: { color: 'bell2', amount: 0.35, rim: 0.45, core: 1.6, emit: 0.1 }, mottle: { color: 'bell2', scale: 0.25, amount: 0.4, soft: 0.25, strength: 0.6 } },
-      under: { glow: { color: 'light', amount: 0.3, rim: 0.2, core: 1.2, emit: 0.2 } },
       // the paper lanterns' globes (light0…2): ribs round them, brighter at the heart
       light: { glow: { color: '#fffaf0', amount: 0.45, rim: 0, core: 2.2, pulse: 1.8, emit: 0.6 }, bands: { color: 'lantern', axis: 1, period: 0.075, width: 0.06, ink: 0.45, amount: 0.6 } },
     },
+    // (the cloud jelly, #800: the reference's salmon bulbs drawn with fine ribs from their neck to their foot)
+    arzach2: { light: { glow: { color: '#fff4e8', amount: 0.3, rim: 0, core: 2.2, pulse: 1.8, emit: 0.35 }, bands: { color: 'lantern*0.8', axis: 4, period: 0.55, width: 0.05, ink: 0.35, amount: 0.5 } } },
     underwater: {
       // (white glaze with two cobalt bands round its crown and a broken one lower down, cobalt underneath)
       bell: { gloss: { size: 0.03, sky: 0.7 }, stripes: { color: 'dark', axis: 1, period: 1, width: 0.05, offset: -0.6 }, bands: { color: 'dark', axis: 1, period: 1, width: 0.025, offset: -0.5 }, spots: { color: 'dark', scale: 0.32, share: 0.18, size: 1.2, ring: 0.3, soft: 0.3 }, glow: null },
-      under: { glow: null },
       light: { glow: { color: '#fffaf0', amount: 0.45, rim: 0, core: 2.2, pulse: 1.8, emit: 0.6 }, bands: { color: 'dark', axis: 1, period: 0.1, width: 0.04, ink: 0.5, amount: 0.6 }, stripes: { color: 'dark', axis: 0, period: 0.1, width: 0.04, ink: 0.5, amount: 0.6 } },
     },
   },

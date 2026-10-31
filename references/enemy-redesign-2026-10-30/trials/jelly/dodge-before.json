@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-30T23:50:25.029Z",
+  "key": "KeyS",
+  "results": [
+    {
+      "foe": "jelly",
+      "atk": "curtain",
+      "wind": 0.9,
+      "pressedAt": 0.235,
+      "lead": 0.315,
+      "hop": "back",
+      "flurry": true,
+      "locked": true
+    }
+  ],
+  "errors": []
+}

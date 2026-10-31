@@ -1,0 +1,34 @@
+{
+  "issue": 800,
+  "phase": "family B",
+  "source": "references/enemy-redesign-2026-10-30/cloud-jelly/0cdfba00-da12-409f-8fd5-03de262f50ca-1.png",
+  "sourceSha256": "69dcc32928ba84925b782182c97b03ef15d1f8cca2eb4d3f25a177a3c095b14f",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "b9a1a819-c283-435b-b7e1-9181a3f2770c",
+  "started": "2026-10-30T23:16:58.592Z",
+  "finished": "2026-10-30T23:18:30.535Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1655,
+  "balanceAfter": 1595,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1356212,
+    "sha256": "248852fb6e64c36f9baa650284c34d84a50fc5f7b0179514c57665c49735493f",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 151655
+  }
+}

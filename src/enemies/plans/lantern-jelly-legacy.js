@@ -6,7 +6,9 @@ import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, pivot, lerp, ease, eyeColor, finish } from './kit.js';
 import { gazePart } from '../gaze.js';
 
-// Plan 11, the floater (docs/systems/procedural-animation.md §4): the lantern jelly (docs/design/enemy-roster.md,
+// The LANTERN JELLY, kept (issue #800): the game's jelly until the cloud jelly (cloud-jelly-tripo.js, Tripo's body) took
+// its place; it stands in where that body is not loaded, and can come back as a foe of its own (as the old brute and
+// mummer were kept). Plan 11, the floater (docs/systems/procedural-animation.md §4): the lantern jelly (docs/design/enemy-roster.md,
 // archetype 9), the support. A floating bell-cap with long trailing threads and two or three glowing lanterns hanging
 // under it: from far off, a floating lamp.
 //
