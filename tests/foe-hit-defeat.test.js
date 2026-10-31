@@ -173,13 +173,11 @@ function pinned(fn, seed = 12345) {
 
 test('every archetype goes down on the ground, never through it, on flat ground and on a slope (issue #304)', () => pinned(() => {
   for (const [where, ground] of [['flat ground', plane(0, 0)], ['a slope', plane(0.2, 0.15)]]) {
+    const { foes } = world({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
     for (const [id, A] of BUILT) {
       if (A.def.burrow) continue;   // (the worm lives under its sand, and goes back under it)
-      // (each foe on its own seed, by its name, in a world of its own: one body's draws on the random numbers, its pieces
-      // and what it leaves do not move the next one's defeat; the drone's and the tripod's rebuilds, #800, moved the
-      // warlord's on the slope when they shared one)
+      // (each foe on its own seed, by its name: one body's draws on the random numbers do not move the next one's defeat)
       reseed(id);
-      const { foes } = world({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
       const R = DEFEATS[id], f = foes.add(A.kind, v(0, 0, 6));
       for (let i = 0; i < 12; i++) foes.update(DT);
       // (what was under the ground already as the blow fell, a fist on the sand or a body square on a slope, comes up
@@ -198,8 +196,8 @@ test('every archetype goes down on the ground, never through it, on flat ground 
         if (deep > worst) { worst = deep; at = u; }
       }
       assert.ok(worst < 0.03, `${id} on ${where}: ${(worst * 100).toFixed(1)} cm under the ground at ${(at * 100).toFixed(0)} % of its defeat`);
-      foes.dispose(); clearTargets();
     }
+    foes.dispose(); clearTargets();
   }
 }));
 
