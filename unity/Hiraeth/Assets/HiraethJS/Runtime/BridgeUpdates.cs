@@ -185,7 +185,7 @@ namespace Hiraeth.Bridge
         }
 
         // ---------------------------------------------------------------- the check and the download (the main thread)
-        static BridgeUpdater Runner()
+        internal static BridgeUpdater Runner()
         {
             if (BridgeUpdater.Instance) return BridgeUpdater.Instance;
             var go = new GameObject("Updates");
@@ -376,10 +376,22 @@ namespace Hiraeth.Bridge
                 ["notes"] = notes.Cast<object>().ToList(),
                 ["checkedAt"] = checkedAt, ["error"] = error, ["page"] = page, ["apk"] = manifest?.S("apk") ?? "",
                 ["restart"] = RestartKind(),
+                // (a newer player than this one, issue #805: the newest of each platform, from the feed (unity.json's players);
+                // the script offers its own platform's (src/updates.js playerOffer); -player-platform: a test's platform)
+                ["players"] = manifest?.Get("players") as Dictionary<string, object> ?? new Dictionary<string, object>(),
+                ["playerPlatform"] = BridgeArgs.Arg("-player-platform") ?? "",
+                ["apkInstall"] = BridgeApk.Supported,
             };
             lock (logLines) d["log"] = string.Join("\n", logLines);
             return BridgeArgs.JsonText(d);
         }
+        /// <summary>The newest player of a platform the feed names (unity.json's players: { build, version, url, size, sha256 }), or null.</summary>
+        public static Dictionary<string, object> NewestPlayer(string platform)
+        {
+            if (!chosen) Choose();
+            return manifest.O("players")?.O(platform);
+        }
+
         static string RestartKind()
         {
 #if UNITY_STANDALONE_LINUX && !UNITY_EDITOR

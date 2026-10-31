@@ -77,8 +77,8 @@ it finishes:
   runs the script against a fake `gh`.
 - **The Unity APK's script updates itself** (issue #264, R4's script half; docs/systems/unity-updates.md): from the
   site's `unity.json` beside `web.json`, into the app's `files/bundle/`, played from the next start (or at once from
-  the Updates page), with the web's 30 s boot watchdog. Its saves are `files/store.json`. The APK offer (a new APK
-  through `latest.json`) is still to come (R2, R4).
+  the Updates page), with the web's 30 s boot watchdog. Its saves are `files/store.json`. A newer testers' APK is
+  offered through `unity.json`'s `players` (`player.json` beside the APK: "A newer app or player is available" below).
 - **Both Android and Linux players wait for the suite**: `unity-android.yml` publishes each only after tests.yml passed on its exact commit
   (Linux D12, now also applied to Android); the separate Xbox workflow is unchanged.
 - The prereleases still hold the builds from before the rename (issue #130): `memento-unity-linux.tar.gz` is
@@ -119,8 +119,9 @@ land on the commit it built.
   - A build that doesn't reach its first frame (`window.__hiraethBooted`) within
     30 s falls back to the game in the APK and is never tried again.
   - Old builds are deleted.
-- **APK updates** (`Updater.java`) are offered only when the native side changed,
-  that is when `latest.json`'s `native` is above the app's `WebBundles.NATIVE_API`.
+- **APK updates** (`Updater.java`) were offered only when the native side changed,
+  that is when `latest.json`'s `native` is above the app's `WebBundles.NATIVE_API`. Since
+  NATIVE_API 10 any newer APK is offered (below, "A newer app or player is available").
   - Bump `NATIVE_API` whenever the Java bridge changes. From then on, web builds
     need that APK (`minNative`), and the APK offer comes first.
   - Apps older than this one still get the APK offer once.
@@ -133,6 +134,33 @@ land on the commit it built.
   (How it stays silent since NATIVE_API 7: "Silent while away" below.)
 - **Testing a debug build:** `adb shell am start -n com.rnaud.hiraeth/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
+
+### A newer app or player is available (NATIVE_API 10, issue #805)
+The Odin 3's Unity player (v2.33, build 2957) never offered a newer APK, so it missed C# changes (the enamel menus,
+the new foes' bodies): an installer was offered only when the newest game *needed* it (`minUnity`, `NATIVE_API`).
+Now each app also offers its newest installer whenever its own build is older, without ever being in the way.
+- **What is newest, published where the apps look.** The GeckoView app: `latest.json` (`code` = the APK's
+  versionCode, as before; `releases/latest` stays the last requested Android release). The Unity players:
+  `scripts/unity-publish.sh` uploads `player.json` beside each build on its prerelease, after the build itself
+  (`release-info.mjs player-json`: `{ platform, build, version, commit, url, size, sha256 }`, the build being the
+  commit count, as the player's own `bundle.json`); the Cloudflare deploy reads the three (`web-update.mjs
+  newestPlayers`) into `unity.json`'s `players`, each only if its file answers a HEAD at that size, so the feed never
+  names a missing or half-replaced file (`--no-players` leaves them out). A Unity build finished after the last deploy
+  is advertised from the next one.
+- **The GeckoView app** (`Updater`, `UpdateRules.apkOffer`): `latest.json`'s build above the app's versionCode →
+  the launch dialog asks once a build (*Later* keeps that build in prefs, `apkDismissed`; one with a newer native bridge
+  asks every launch as before; a debug build never asks). *Update* downloads it into the cache (streamed, its length
+  checked, with a progress dialog) and opens Android's installer through the FileProvider; the first time it opens
+  *Install unknown apps* for Hiraeth (REQUEST_INSTALL_PACKAGES is in the manifest). The settings' Updates section says
+  *A new app is available: v2.40 · build 3012* with **Install the new app** (`AppShell` `installApk`, NATIVE_API 10;
+  info's `apkBuild`, `apkState`, `apkGot`, `apkTotal`, `apkError`; `src/updates.js appOffer`), its progress in the bar.
+  Apps before 10 get *Get the new app* (the release page) and, through `latest.json`'s `native` 10, the old dialog once.
+- **The Unity players**: docs/systems/unity.md, "A newer player is available".
+- **The first APK with this offer is installed by hand once** on each device that has an older one (the GeckoView app
+  is offered it by its old dialog; a Unity player from before has no `players` in its info, so nothing tells it).
+- Tests: `tests/installer-offer.test.js` (publishing, the decisions, the words, the title and page, the C# and Java
+  shape), `tests/android-ota.test.js` (Updater's rule and download), `UpdateRulesTest.apkOffer…`,
+  `tests/unity-version-release.test.js` (player.json after the build).
 
 ### Game updates from the site (NATIVE_API 5)
 The repository is going private, and GitHub's release files go with it, so the game's own

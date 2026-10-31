@@ -269,6 +269,13 @@ function titleShots() {
   const T = S.titleShots, [w, h] = T.sizes[T.k];
   if (++T.t < (S.args.titleWait ?? 45)) return;
   if (S.args.out) { const file = `${S.args.out}/unity-title-${T.k}-${w}x${h}.png`; host.Shot(file); console.log(`[unity] saved ${file}`); }
+  // (-title-updates: after the first picture, the title's Updates page as its entry opens it, for the next: the offer of a
+  // newer player, issue #805; what it offers logged)
+  if (S.args.titleUpdates && T.k === 0 && S.menus?.hasUpdates?.()) {
+    const m = S.menus;
+    m.title.screen = 'updates'; m.title.at = { in: 'page', i: m.updatesFirst() }; m.changed();
+    console.log(`[unity] the title's offer: ${JSON.stringify(m.playerOffer())}; Updates: ${JSON.stringify(m.updatesRowsNow().map((r) => r.act ? `[${r.text}]` : r.text))}`);
+  }
   T.t = 0;
   if (++T.k < T.sizes.length) { host.ScreenAs?.(...T.sizes[T.k]); return; }
   S.titleShots = null;

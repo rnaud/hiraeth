@@ -95,9 +95,11 @@ export class UpdatePanel {
       if (a === 'check') this.info = await callApp('check', this.win);
       else if (a === 'download') { this.armed = true; this.info = await callApp('download', this.win); }
       else if (a === 'apk') await callApp('openApk', this.win);
+      // (a newer app than this one: downloaded by the app, then Android's installer, NATIVE_API 10; issue #805)
+      else if (a === 'app-install') await callApp('installApk', this.win);
     } catch (e) {
       this.armed = false;
-      this.failed = a === 'download' ? 'The download couldn\'t start' : a === 'apk' ? 'The download page couldn\'t open' : 'The check couldn\'t start';
+      this.failed = a === 'download' ? 'The download couldn\'t start' : a === 'apk' ? 'The download page couldn\'t open' : a === 'app-install' ? 'The new app\'s download couldn\'t start' : 'The check couldn\'t start';
       console.warn('update', a, e);
     }
     await this.refresh();

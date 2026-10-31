@@ -3,12 +3,15 @@ package com.rnaud.hiraeth;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
@@ -23,20 +26,31 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-// APK updates from GitHub releases, for changes to the app itself. On launch
-// (when online) it reads latest.json from the newest release, which the
-// Android workflow uploads next to the APK: { "code": <versionCode>,
+// APK updates from GitHub releases. On launch (when online) it reads latest.json from the newest
+// release, which the Android workflow uploads next to the APK: { "code": <versionCode>,
 // "name": "0.35", "apk": "<download url>", "native": <WebBundles.NATIVE_API> }.
-// When that APK's native bridge is newer than this one's, it offers to download
-// it and hands it to the system installer. The same signing key lets it install
-// over this one and keep the save. Otherwise the game's own updates come over
-// the air without an APK, from the game's site (WebBundles.MANIFEST), which also
-// reports a needed APK in the settings (with a link to its release page).
-// Offline or on any error it stays silent: once the repository is private this
-// feed is out of reach, and the settings only say they couldn't check for a new
-// app (WebBundles.apkChecked); the game's own updates go on.
+// Since NATIVE_API 10 (issue #805) any newer build is offered, not only one whose native bridge
+// is newer: UpdateRules.apkOffer decides. The launch asks once per build ("Later" is kept for that
+// build, `apkDismissed`; one the game needs, a newer native bridge, asks every launch as before),
+// and the settings show it until it is installed (WebBundles.fill: apkBuild, apkState, apkGot,
+// apkTotal; src/updates.js appOffer). "Update" (or the settings' "Install the new app", AppShell
+// installApk) downloads it into the cache with its progress and hands it to the system installer.
+// The same signing key lets it install over this one and keep the save. The game's own updates
+// come over the air without an APK, from the game's site (WebBundles.MANIFEST).
+// Offline or on any error the check stays silent: once the repository is private this feed is out
+// of reach, and the settings only say they couldn't check for a new app (WebBundles.apkChecked).
 final class Updater {
     static final String LATEST = "https://github.com/rnaud/hiraeth/releases/latest/download/latest.json";
+    private static final String PREFS = "hiraeth.apk";
+    private static final long APK_LIMIT = 400L * 1024 * 1024;
+
+    // ---- the newer APK and its download, shared by the process (the settings read them: WebBundles.fill)
+    static volatile long offerCode, got, total;
+    static volatile String offerName = "", offerUrl = "", state = "idle", error = "";
+    private static volatile File downloaded;
+    private static volatile boolean downloading;
+    private static final Object LOCK = new Object();
+
     private final Activity activity;
     private final WebBundles web;
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -49,12 +63,16 @@ final class Updater {
             try {
                 JSONObject latest = new JSONObject(new String(fetch(UpdateRules.bust(LATEST, System.currentTimeMillis()), 64 * 1024), "UTF-8"));
                 long code = latest.getLong("code");
-                // (releases from before the over-the-air updates have no "native": they never ask for an APK)
-                if (latest.optInt("native", 0) > WebBundles.NATIVE_API && code > currentCode()) {
+                // (releases from before the over-the-air updates have no "native": a bridge newer than this one is required)
+                boolean required = latest.optInt("native", 0) > WebBundles.NATIVE_API;
+                SharedPreferences prefs = activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE);
+                String what = UpdateRules.apkOffer(code, currentCode(), required, prefs.getLong("apkDismissed", 0), debuggable());
+                if (!"none".equals(what)) {
                     String name = latest.optString("name", "");
                     String apk = latest.getString("apk");
+                    offered(code, name, apk);
                     if (web != null) web.apkOffered(name, apk, latest.optString("page", ""));
-                    ui.post(() -> offer(name, apk));
+                    if ("ask".equals(what)) ui.post(() -> offer(name, code, required));
                 }
                 if (web != null) web.apkChecked(null);
             } catch (Exception e) {
@@ -64,43 +82,106 @@ final class Updater {
         }, "hiraeth-update-check").start();
     }
 
+    private static void offered(long code, String name, String apk) {
+        synchronized (LOCK) {
+            if (code != offerCode) { downloaded = null; if (!downloading) { state = "idle"; error = ""; got = 0; total = 0; } }
+            offerCode = code; offerName = name == null ? "" : name; offerUrl = apk == null ? "" : apk;
+        }
+    }
+
     private long currentCode() throws Exception {
         PackageInfo info = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
         return PackageInfoCompat.getLongVersionCode(info);
     }
 
-    private void offer(String name, String apk) {
+    private boolean debuggable() { return (activity.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0; }
+
+    private void offer(String name, long code, boolean required) {
         if (activity.isFinishing()) return;
         new AlertDialog.Builder(activity)
             .setTitle("Hiraeth v" + name + " is available")
             .setMessage("Download and install it now? Your progress is kept.")
-            .setPositiveButton("Update", (d, w) -> download(apk))
-            .setNegativeButton("Later", null)
+            .setPositiveButton("Update", (d, w) -> { install(activity); progress(); })
+            // ("Later": not again at launch for this build, the settings still offer it; one the game needs asks again)
+            .setNegativeButton("Later", (d, w) -> {
+                if (!required) activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).edit().putLong("apkDismissed", code).apply();
+            })
             .show();
     }
 
-    private void download(String apk) {
-        Toast.makeText(activity, "Downloading the update…", Toast.LENGTH_SHORT).show();
-        new Thread(() -> {
-            try {
-                File dir = new File(activity.getCacheDir(), "updates");
-                dir.mkdirs();
-                File file = new File(dir, "hiraeth-update.apk");
-                try (OutputStream out = new FileOutputStream(file)) { out.write(fetch(apk, 200 * 1024 * 1024)); }
-                ui.post(() -> install(file));
-            } catch (Exception e) {
-                ui.post(() -> Toast.makeText(activity, "The update could not be downloaded.", Toast.LENGTH_LONG).show());
+    /** The dialog's download: its progress while it runs (the settings show it too). */
+    private void progress() {
+        if (activity.isFinishing()) return;
+        ProgressBar bar = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
+        bar.setMax(1000);
+        bar.setPadding(48, 24, 48, 0);
+        AlertDialog d = new AlertDialog.Builder(activity).setTitle("Downloading the update…").setView(bar)
+            .setNegativeButton("Hide", null).show();
+        Runnable tick = new Runnable() {
+            @Override public void run() {
+                if (!d.isShowing()) return;
+                bar.setIndeterminate(total <= 0); if (total > 0) bar.setProgress((int) Math.min(1000, got * 1000 / total));
+                if ("downloading".equals(state)) ui.postDelayed(this, 250);
+                else d.dismiss();
             }
-        }, "hiraeth-update-download").start();
+        };
+        ui.post(tick);
     }
 
-    private void install(File file) {
+    /**
+     * Download the newer APK (or hand the one downloaded to the installer again) and open Android's installer. Any
+     * thread; the launch's "Update" and the settings' "Install the new app" (AppShell installApk). @return false: none offered
+     */
+    static boolean install(Activity activity) {
+        String url;
+        long code;
+        synchronized (LOCK) {
+            if (downloading) return true;
+            if (offerUrl.isEmpty() || offerCode <= 0) return false;
+            File ready = downloaded;
+            if (ready != null && ready.isFile()) { new Handler(Looper.getMainLooper()).post(() -> installer(activity, ready)); return true; }
+            downloading = true; state = "downloading"; error = ""; got = 0; total = 0;
+            url = offerUrl; code = offerCode;
+        }
+        new Thread(() -> {
+            File dir = new File(activity.getCacheDir(), "updates");
+            File file = new File(dir, "hiraeth-" + code + ".apk");
+            try {
+                dir.mkdirs();
+                File[] old = dir.listFiles();
+                if (old != null) for (File f : old) if (!f.getName().equals(file.getName())) f.delete();   // (an older build's)
+                HttpURLConnection c = open(url);
+                try (InputStream in = c.getInputStream(); OutputStream out = new FileOutputStream(file)) {
+                    total = Math.max(0, c.getContentLengthLong());
+                    byte[] chunk = new byte[64 * 1024];
+                    long n = 0;
+                    for (int r; (r = in.read(chunk)) > 0; ) {
+                        out.write(chunk, 0, r);
+                        n += r; got = n;
+                        if (n > APK_LIMIT) throw new java.io.IOException("too large");
+                    }
+                } finally { c.disconnect(); }
+                if (total > 0 && got != total) throw new java.io.IOException("the download stopped at " + got + " of " + total + " bytes");
+                synchronized (LOCK) { downloaded = file; downloading = false; }
+                new Handler(Looper.getMainLooper()).post(() -> installer(activity, file));
+            } catch (Exception e) {
+                file.delete();
+                synchronized (LOCK) { downloading = false; state = "error"; error = "The new app didn't download (" + e.getMessage() + ")"; }
+                new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, "The update could not be downloaded.", Toast.LENGTH_LONG).show());
+            }
+        }, "hiraeth-update-download").start();
+        return true;
+    }
+
+    /** Hand the APK to Android's installer (UI thread); the first time, let Hiraeth install apps, then Install again. */
+    private static void installer(Activity activity, File file) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.getPackageManager().canRequestPackageInstalls()) {
-            // first time: let Hiraeth install updates, then come back and choose Update again
+            state = "permission";
             Toast.makeText(activity, "Allow Hiraeth to install updates, then choose Update again.", Toast.LENGTH_LONG).show();
             activity.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + activity.getPackageName())));
             return;
         }
+        state = "installing";
         Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".fileprovider", file);
         Intent intent = new Intent(Intent.ACTION_VIEW)
             .setDataAndType(uri, "application/vnd.android.package-archive")

@@ -379,6 +379,10 @@ namespace Hiraeth.Bridge
         public static void PlayerUpdateCheck() => On(BridgePlayerUpdates.Check);
         public static void PlayerUpdateDownload() => On(BridgePlayerUpdates.Download);
         public static void PlayerUpdateRestart() => On(BridgePlayerUpdates.Restart);
+        /// <summary>The Android player's newer APK (issue #805, BridgeApk): its download's state, and the download and install of the
+        /// build the offer names (the feed's players.android, newer than this player). The script calls them as host.X?.().</summary>
+        public static string ApkInfo() => Ask(BridgeApk.Info);
+        public static void ApkInstall(int build) => On(() => BridgeApk.Install(build));
         /// <summary>Open a link in the system's browser (the Android player's "Get the new player": the testers' APK, issue #715).
         /// Only the game's own release pages and site; a batch run logs it instead.</summary>
         public static void OpenUrl(string url) => On(() =>

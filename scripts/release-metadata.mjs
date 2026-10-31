@@ -71,6 +71,32 @@ export const UNITY_RELEASES = {
   xbox: { tag: 'unity-xbox', file: 'hiraeth-unity-xbox.zip', package: 'rnaud.HiraethUnity', title: 'Hiraeth (Unity) for Xbox (Developer Mode)' },
 };
 
+/**
+ * The newest player's record (issue #805): `player.json` beside each Unity build on its prerelease, written by
+ * scripts/unity-publish.sh after the build is up (release-info.mjs player-json), read by the Cloudflare deploy into
+ * unity.json's `players` (scripts/web-update.mjs newestPlayers), which the players' "a newer player is available" reads.
+ */
+export const PLAYER_JSON = 'player.json';
+const REPO_DEFAULT = 'rnaud/hiraeth';
+/** Where a platform's newest build is downloaded from (its prerelease's file, always the same name). */
+export const playerUrl = (platform, repo = REPO_DEFAULT) => {
+  const r = UNITY_RELEASES[platform];
+  if (!r) throw new Error(`unknown platform: ${platform}`);
+  return `https://github.com/${repo}/releases/download/${r.tag}/${r.file}`;
+};
+/** player.json: { platform, build, version, commit, url, size, sha256 } (build: the commit count, as the player's own bundle.json). */
+export function playerRecord({ platform, build, version, sha, size, sha256, repo = REPO_DEFAULT }) {
+  const p = { platform, build, version, commit: sha, url: playerUrl(platform, repo), size, sha256 };
+  if (!validPlayer(platform, p, repo)) throw new Error(`not a player record: ${JSON.stringify(p)}`);
+  return p;
+}
+/** A record the deploy may advertise: its platform's own file on this repository, a build, a size and a sha256. */
+export function validPlayer(platform, p, repo = REPO_DEFAULT) {
+  return !!UNITY_RELEASES[platform] && p?.platform === platform && Number.isSafeInteger(p.build) && p.build > 0
+    && typeof p.version === 'string' && /^\d+(\.\d+)*$/.test(p.version) && /^[0-9a-f]{7,40}$/.test(p.commit ?? '')
+    && p.url === playerUrl(platform, repo) && Number.isSafeInteger(p.size) && p.size > 0 && /^[0-9a-f]{64}$/.test(p.sha256 ?? '');
+}
+
 /** GitHub's limit on one release asset (2 GiB): a bigger Unity build would stay on its prerelease alone. */
 export const MAX_RELEASE_ASSET = 2 * 1024 ** 3;
 

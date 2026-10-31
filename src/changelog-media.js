@@ -1495,6 +1495,9 @@ const FROM739_ODIN = 'Hand-made (no `view`): the AYN Odin 3 (Adreno 830, 1920 ×
 const FROM739_UNITY = 'Unity editor batch mode, muted (scripts/unity-js-run.sh -mute -quality handheld -level desert -views <the same three views> -out …; the handoff’s build lock held), 30 October 2026, the Library cloned from the main checkout; before: 7656e9b09’s rose-house.js and SkinPatterns.hlsl swapped in for the run, after: this change. The batch picture 1280 × 720, WebP by cwebp -q 72';
 const FROM739_FRAMES = 'Hand-made (no `view`): the Odin 3’s own frames of scripts/motion-check/record.mjs --android (its Chrome, muted, Handheld at 0.75, the world held and the camera turned a third of a pixel a frame), frames 30 and 31 of the 60, a 1:1 crop of the canvas (832 × 388 device px) at the wall 17 m off; 7656e9b09 (before) and this change (after), 30 October 2026. WebP by cwebp -q 74';
 
+/** (v2.39, issue #805: the offer of a newer player in the Unity version) */
+const FROM805 = 'Unity 6000.6.4f1 editor batch mode on macOS, muted (scripts/unity-js-run.sh -mute -title-shots … -title-updates), 30 October 2026, this branch (built-in build 3110); a test feed served locally (-updates http://127.0.0.1:5461/updates/unity.json) advertising a made-up newer player, build 3124, -player-platform android (or linux) since the editor is neither; an isolated store; nothing downloaded or installed. The batch picture, WebP by cwebp -q 74. After-only: there was no offer before';
+
 export const CHANGELOG_MEDIA = {
   '2.39': [
     { match: 'The Journal and Pause menus now match the HUD in the browser and Unity', shots: [
@@ -1503,6 +1506,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'enamel-unity-items', title: 'Unity Items', only: 'after', size: [1280, 720], caption: 'Unity: the four-column inventory and its passive item inspection card.', from: 'Actual running game in Unity 6000.6.4f1 editor batch mode on macOS, 30 October 2026, e0666df1f plus codex/enamel-menu-review changes. Handheld preset, PC renderer, 1280 × 720, -mute from startup, isolated temporary store with seven sample items. The mouse menu-pointer plan; after-only, no native before captured and no physical-device claim. Existing native item pictures and font rendering.' },
       { name: 'enamel-unity-pause', title: 'Unity Pause', only: 'after', size: [1280, 720], caption: 'Unity: the matching Pause frame, settings controls and controller prompts.', from: 'Actual running game in Unity editor batch mode, same isolated run and revision as enamel-unity-items. 1280 × 720, Handheld review preset, muted; the saved Graphics preference shown in the menu is High. After-only. The native settings list differs from the browser where platform controls differ.' },
     ] },
+  // (issue #805: a newer player offered; after-only, the offer is new; hand-made, no `view`)
+  { match: 'The apps now tell you when a newer version of the app itself is out', shots: [
+    { name: 'offer805-title', title: 'Title', only: 'after', size: [1280, 720], caption: 'The Unity version’s title screen with a newer player out: the enamel card at the bottom right and “A newer player is available” under Updates', from: FROM805 },
+    { name: 'offer805-updates', title: 'Updates (Android)', only: 'after', size: [1280, 720], caption: 'Updates on Android: the newer player first, with Download and install and Not now, then the game’s own updates as before', from: FROM805 },
+    { name: 'offer805-deck', title: 'Updates (Steam Deck)', only: 'after', size: [960, 720], caption: 'Updates on the Steam Deck: it says how the Deck brings the new player, with Not now only', from: `${FROM805}; -player-platform linux, 960 × 720` },
+  ] },
   // (issue #800: the shellback crab on its Tripo body; hand-made pairs, the same script and camera before and after)
   { match: 'The crab has a new body, drawn from its new design', tags: ['combat'], shots: [
     { name: 'crab800-vael2', title: 'Vael II', caption: 'A cliff crab on the red sand of Vael II, three-quarters from its front: before, the low slate dome studded with lichen, thin pointed legs, pale claws held high and eyes on stalks; after, the tall ochre dome over a pale face with two slit eyes, the green collar, thick cream legs on red feet and the two red pincers hanging in front', from: FROM800,

@@ -151,6 +151,41 @@ checks must not be lowered to make an older player accept them. Builds remain se
   the C# port's bench APK on a device that has the testers' APK (or the other way round), uninstall
   `com.rnaud.hiraeth.unity` first (that deletes its saves, never the web app's).
 
+### A newer player is available (issue #805)
+
+A player asked for a new player only when the newest script needed one (`minUnity` above its `UnityApi`), so a player
+whose C# was behind (the enamel menus, the new foes' bodies) but whose script still ran never heard of it. Now it offers
+the newest player of its platform whenever its own build (`bundle.json`'s, the commit count) is older:
+- **The feed.** `unity.json`'s `players` (`{ android, linux, xbox }`: `{ build, version, commit, url, size, sha256 }`),
+  written by the Cloudflare deploy from the `player.json` that `scripts/unity-publish.sh` puts beside each build on its
+  prerelease after the build (docs/systems/android.md, "A newer app or player is available"). `BridgeUpdates.Info` passes
+  them on with `playerPlatform` (`-player-platform android|linux|xbox`: a test's platform) and `apkInstall`.
+- **The decision** (`src/updates.js playerOffer`, pure): this platform's entry, newer than `app`, on the game's GitHub
+  releases with a size and a sha256; else nothing (the same build, an older one, none advertised, no file). Android: *install*
+  (or *open* on a player with `OpenUrl` only); the Deck and the Xbox: a notice.
+- **Where it shows.** On the title a small enamel card at the bottom right (`BridgeMenu.Offer.cs`: the night panel, brass
+  corners, a teal edge; `engine/menus.js titleView`'s `offer`, polled every 4 s, 0.4 s while downloading, never each
+  frame), *A newer player is available* under the title's Updates entry, and the offer first on the Updates page (the
+  title's, under Settings, and the Start menu's), before the script's own state, which works as before. A tap on the card
+  opens Updates. *Not now* keeps that build off the title (the store's `hiraeth.playerOffer.dismissed`) until a newer one;
+  the page still offers it.
+- **Android: one tap** (`BridgeHost.ApkInstall(build)` → `BridgeApk.cs`): only the feed's build, newer than this player,
+  from `https://github.com/rnaud/hiraeth/releases/download/`, under 600 MB; downloaded with its progress into
+  `temporaryCachePath/player/`, its size and sha256 checked on a thread, then handed to Android's package installer
+  (`Assets/HiraethJS/Android/ApkInstaller.java`: a `PackageInstaller` session, the system's confirmation started from its
+  `STATUS_PENDING_USER_ACTION`, no FileProvider). The permission: `REQUEST_INSTALL_PACKAGES`, written into the generated
+  unityLibrary manifest by `Editor/BridgeAndroidManifest.cs` (`IPostGenerateGradleAndroidProject`, no custom manifest);
+  the first time, the player opens Android's *Install unknown apps* page and says to allow it, then *Install* again. A
+  cancelled installer leaves the file: *Download and install* hands it over again. The same release key signs every
+  testers' APK, so it installs over this one and keeps `persistentDataPath` (the saves). Downloads of builds the player has
+  become are deleted at the next start.
+- **The Deck**: *quit Hiraeth and launch it again*, its launcher fetches the player in the background (a managed install
+  also has *Update player and restart*, #620). **The Xbox**: *install it through the Device Portal*. Both only say so.
+- In the editor or a batch run nothing is installed: with `-player-platform android` a download goes as far as the
+  installer's step, logged. Checked in batch mode: `-updates <a local unity.json with players> -player-platform android
+  -title-shots 1280x720` (the card), `-updates-page` (the page).
+- **The first player with this offer is installed by hand once**: an older player's `Info` has no `players`.
+
 ### Android: Vulkan only, and the variants never asked for (issue #703)
 
 - **Vulkan only.** Android's players (the project's settings, `BridgeBuild.AndroidPlayer`, `BenchBuild.Android`)

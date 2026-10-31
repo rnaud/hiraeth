@@ -732,6 +732,8 @@ export class EngineMenus {
       const T = this.title;
       if (T.ask) { if (k === 'ask') { T.ask.on = n ? 1 : 0; if (press) act('confirm'); } }
       else if (k === 'row') { T.i = n; if (press) act('confirm'); }
+      // (the card of a newer player: its Updates page, issue #805)
+      else if (k === 'offer') { if (press && this.hasUpdates()) { T.screen = 'updates'; T.at = { in: 'page', i: this.updatesFirst() }; } }
       else if (k === 'set' || k === 'slide' || k === 'upd') { T.at = { in: 'page', i: n }; if (k === 'slide' && press) this.slideTo(n, x); else if (press) act('confirm'); }
       else took = false;
     } else if (this.mode === 'start') {
@@ -830,7 +832,8 @@ export class EngineMenus {
         sum ? { id: 'continue', text: t('title.continue'), sub: sum.world, primary: true } : { id: 'new', text: t('title.new'), primary: true },
         { id: 'saves', text: t('title.saves') },
         ...(this.settings ? [{ id: 'settings', text: t('title.settings') }] : []),
-        ...(this.hasUpdates() ? [{ id: 'updates', text: UPDATES_SIDE.label() }] : []),
+        // (a newer player than this one: said under Updates, issue #805)
+        ...(this.hasUpdates() ? [{ id: 'updates', text: UPDATES_SIDE.label(), ...(this.playerOffer() ? { sub: 'A newer player is available' } : {}) }] : []),
       ];
     }
     if (T.screen === 'saves') {
@@ -950,6 +953,8 @@ export class EngineMenus {
 
   /** Whether this player updates its script (engine/unity/updates.js). */
   hasUpdates() { return !!this.updates?.on; }
+  /** The title's card of a newer player ({ title, sub, how, progress }), or null (engine/unity/updates.js titleOffer, issue #805). */
+  playerOffer() { try { return this.hasUpdates() ? this.updates.titleOffer?.() ?? null : null; } catch { return null; } }
   /** The page's rows, the cursor's on (`at.i`): always a button, the nearest one when the rows changed under it. */
   updatesRows(at) {
     let rows = [];
@@ -1091,6 +1096,8 @@ export class EngineMenus {
     if (this.onMap && !this.mapRested && Date.now() - this.mapMoved >= 400) { this.mapRested = true; this.changed(); }
     // (the Updates page follows the player's check and download while it shows)
     if (this.updatesShown()) { try { if (this.updates.tick()) this.changed(); } catch (e) { console.warn(`[menus] the updates page: ${e?.message ?? e}`); } }
+    // (the title's card of a newer player follows the check and its download: issue #805)
+    else if (this.mode === 'title' && this.title.screen === 'main' && this.hasUpdates()) { try { if (this.updates.titleTick?.()) this.changed(); } catch (e) { console.warn(`[menus] the title's offer: ${e?.message ?? e}`); } }
   }
   startMove(x, y) {
     const S = this.start, SIDE = this.startSide(), side = SIDE.length;
@@ -1317,7 +1324,9 @@ export class EngineMenus {
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1), pt: `row:${i}` }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = `${T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose'}${this.dev() ? ' · L3 + R3 debug off' : ''}`;
-    return { ...base, head: T.screen === 'sound-error' ? 'Sound effects couldn’t load.' : T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null,
+    // (a newer player than this one: a small card on the main screen, issue #805; BridgeMenu.Offer.cs)
+    const offer = T.screen === 'main' ? this.playerOffer() : null;
+    return { ...base, head: T.screen === 'sound-error' ? 'Sound effects couldn’t load.' : T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null, ...(offer ? { offer } : {}),
       ask: T.ask ? { q: T.ask.q, what: T.ask.what, undone: T.ask.kind === 'delete' ? t('title.undone') : '', no: t('title.keep'), yes: T.ask.yes, on: T.ask.on } : null, hint };
   }
   startView() {

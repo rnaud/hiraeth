@@ -43,6 +43,10 @@ public class AppShellPlugin extends Plugin {
     @PluginMethod
     public void openApk(PluginCall call) { run("openApk", call); }
 
+    /** Download the newer APK and open Android's installer (NATIVE_API 10, issue #805). */
+    @PluginMethod
+    public void installApk(PluginCall call) { run("installApk", call); }
+
     /** One rumble pulse, { ms, strong, weak } (NATIVE_API 8). */
     @PluginMethod
     public void rumble(PluginCall call) {

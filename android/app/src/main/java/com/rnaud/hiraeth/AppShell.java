@@ -18,6 +18,8 @@ import org.json.JSONObject;
 // - download: fetch the update the last check found ("Download and restart");
 // - restart: switch to the downloaded build (the page reloads at the title screen);
 // - openApk: open the release page of the APK the newest game needs;
+// - installApk: download the newer APK latest.json names and open Android's installer (Updater.install;
+//   NATIVE_API 10, issue #805): info's apkBuild, apkState, apkGot, apkTotal, apkError follow it;
 // - rumble: one pulse on the pad's motors, { ms, strong, weak } (src/rumble.js, Rumbler; NATIVE_API 8);
 //   info's `rumble` says whether there is a pad that can shake.
 // check and download answer at once; the page follows with info and the
@@ -28,7 +30,7 @@ final class AppShell {
         void fail(String message);
     }
 
-    static final String[] METHODS = { "info", "check", "download", "restart", "openApk", "rumble" };
+    static final String[] METHODS = { "info", "check", "download", "restart", "openApk", "installApk", "rumble" };
 
     static JSONObject info(WebBundles b, String engine) throws JSONException {
         JSONObject ret = new JSONObject();
@@ -86,6 +88,10 @@ final class AppShell {
                     }
                     return;
                 }
+                case "installApk":
+                    if (Updater.install(activity)) reply.ok(info(b, engine));
+                    else reply.fail("no newer app offered");
+                    return;
                 default:
                     reply.fail("no such method: " + method);
             }

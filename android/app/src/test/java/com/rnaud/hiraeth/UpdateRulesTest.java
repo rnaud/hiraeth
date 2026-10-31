@@ -26,6 +26,17 @@ public class UpdateRulesTest {
     }
 
     @Test
+    public void aNewerApkIsOfferedUntilLaterIsSaidToIt() {
+        assertEquals("none", UpdateRules.apkOffer(3000, 3000, false, 0, false));    // the same build
+        assertEquals("none", UpdateRules.apkOffer(2990, 3000, true, 0, false));     // older, even with a newer bridge
+        assertEquals("ask", UpdateRules.apkOffer(3010, 3000, false, 0, false));     // newer: the launch's dialog
+        assertEquals("quiet", UpdateRules.apkOffer(3010, 3000, false, 3010, false)); // "Later" to this one: the settings only
+        assertEquals("ask", UpdateRules.apkOffer(3020, 3000, false, 3010, false));  // the next build asks again
+        assertEquals("ask", UpdateRules.apkOffer(3010, 3000, true, 3010, false));   // one the game needs always asks
+        assertEquals("quiet", UpdateRules.apkOffer(3010, 1, false, 0, true));        // a debug build: the settings only
+    }
+
+    @Test
     public void theStateAfterACheck() {
         assertEquals("downloading", UpdateRules.afterCheck("stage", 14, 0, true));   // automatic: fetch it by itself
         assertEquals("available", UpdateRules.afterCheck("stage", 14, 0, false));    // the settings: wait for Download

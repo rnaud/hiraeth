@@ -15,10 +15,11 @@
 //   node scripts/release-info.mjs newest-version <tags…>               → the newest vX.Y among the tags (newestVersionTag)
 //   node scripts/release-info.mjs unity-label <android|linux|xbox> <sha> → a Unity build's label on a version's release (unityLabel)
 //   node scripts/release-info.mjs unity-body <release.json>            → that release's notes with their Unity section redone (withUnitySection)
+//   node scripts/release-info.mjs player-json <android|linux|xbox> <sha> <file> → the newest player's player.json (playerRecord; unity-publish.sh)
 // The Cloudflare deploy writes its own web.json (scripts/web-update.mjs, from webJson below).
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, statSync } from 'node:fs';
+import { closeSync, openSync, readFileSync, readSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 import { UNITY_APK } from '../src/updates.js';
@@ -30,8 +31,9 @@ export {
   unityDecision, LAST_RUN_NUMBER_BUILD, releasePage, releaseNotes, staleWebZips,
   webDecision, xboxDecision, UNITY_RELEASES, MAX_RELEASE_ASSET, newestVersionTag,
   unityLabel, unityBuilds, UNITY_SECTION_START, UNITY_SECTION_END, unitySection,
-  webReleaseNotes, withUnitySection, unityNotes,
+  webReleaseNotes, withUnitySection, unityNotes, PLAYER_JSON, playerUrl, playerRecord, validPlayer,
 } from './release-metadata.mjs';
+import { playerRecord as record } from './release-metadata.mjs';
 
 const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/hiraeth/WebBundles.java', import.meta.url));
 const DESKTOP_MAIN = fileURLToPath(new URL('../desktop/main.mjs', import.meta.url));
@@ -87,12 +89,30 @@ export const unityBundleInfo = ({ build, version, minUnity = unityMinApi(), upda
 /**
  * The Unity script's manifest, updates/unity.json beside web.json (scripts/web-update.mjs; read by BridgeUpdates.cs):
  * the zip of the player's StreamingAssets/hiraeth-js without public/, its sha256 and size, `minUnity`, the player it needs,
- * and `apk`, the Android player to install when it is too old (the testers' APK, .github/workflows/unity-android.yml).
+ * `apk`, the Android player to install when it is too old (the testers' APK, .github/workflows/unity-android.yml), and
+ * `players`, the newest player of each platform ({ android, linux, xbox }: their player.json, only those whose file is
+ * there; scripts/web-update.mjs newestPlayers), which a player older than its own offers (issue #805).
  */
-export function unityJson({ build, version, zip, file, minUnity = unityMinApi(), notes = releaseNotes() }) {
+export function unityJson({ build, version, zip, file, minUnity = unityMinApi(), notes = releaseNotes(), players = null }) {
   const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
   const page = releasePage(zip);
-  return { version, build, sha256, zip, minUnity, size: statSync(file).size, notes, apk: UNITY_APK, ...(page ? { page } : {}) };
+  return {
+    version, build, sha256, zip, minUnity, size: statSync(file).size, notes, apk: UNITY_APK, ...(page ? { page } : {}),
+    ...(players && Object.keys(players).length ? { players } : {}),
+  };
+}
+
+/** A file's sha256, read a MiB at a time (a Linux player is 300 MB). */
+export function fileSha256(file) {
+  const h = createHash('sha256'), buf = Buffer.alloc(1024 * 1024), fd = openSync(file, 'r');
+  try { for (let n; (n = readSync(fd, buf, 0, buf.length, null)) > 0;) h.update(buf.subarray(0, n)); } finally { closeSync(fd); }
+  return h.digest('hex');
+}
+
+/** The newest player's player.json for a build of commit `sha` (scripts/unity-publish.sh, once the build is up). */
+export function playerJson({ platform, sha, file, git, repo = process.env.GITHUB_REPOSITORY || undefined }) {
+  const { version, build } = unityBuildOf(sha, git);
+  return record({ platform, build, version, sha, size: statSync(file).size, sha256: fileSha256(file), repo });
 }
 
 /**
@@ -168,6 +188,10 @@ function main(what = 'version', ...args) {
   else if (what === 'unity-body') {
     const r = readRelease(args[0]);
     process.stdout.write(withUnitySection(r.body ?? '', r.assets, process.env.GITHUB_REPOSITORY || undefined));
+  }
+  else if (what === 'player-json') {
+    const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8', maxBuffer: GIT_BUFFER }).trim();
+    console.log(JSON.stringify(playerJson({ platform: args[0], sha: args[1], file: args[2], git })));
   }
   else if (what === 'unity-notes') {
     const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8', maxBuffer: GIT_BUFFER }).trim();

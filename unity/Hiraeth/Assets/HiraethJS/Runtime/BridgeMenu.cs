@@ -347,6 +347,7 @@ namespace Hiraeth.Bridge
             PointerDrawStart();
             foreach (var l in new[] { logo, head, sub, hint, note, empty, tabPrev, tabNext, line }) Show(l, false);
             versionBox.Show(false); Show(titleArt, false); Show(titleLogo, false); titleUsed = 0;
+            OfferHide();   // (the title's card of a newer player: BridgeMenu.Offer.cs, drawn again by DrawTitle)
             // (the shop's sheet sets these its own way: back to theirs)
             tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal; line.fontStyle = FontStyle.Normal; line.color = Muted;   // (and the Arena list's filter: DrawFoes)
             foreach (var l in tabs) Show(l, false);
@@ -507,6 +508,7 @@ namespace Hiraeth.Bridge
                     y += h + gap;
                 }
                 note.alignment = TextAnchor.MiddleCenter;
+                DrawOffer(state.O("offer"));   // (a newer player is available: issue #805, BridgeMenu.Offer.cs)
                 return;
             }
             // Saves and Settings: a sheet with its heading and its list

@@ -37,6 +37,123 @@ export function compareVersions(a, b) {
 export const isNewerBuild = (build, info) => (build || 0) > Math.max(info?.web || 0, info?.platform === 'deck' ? 0 : info?.app || 0, info?.ready || 0);
 // (on the Steam Deck `app` is the runtime's build, on its own scale: platform 'deck', desktop/deck-updates.mjs)
 
+// ---------------------------------------------------------------- a newer installer (issue #805)
+// The players and the app ask for a new installer not only when the game needs one (minUnity, NATIVE_API) but whenever a
+// newer one is published: a Unity player whose own build is older than the newest player of its platform (unity.json's
+// `players`, from each prerelease's player.json: scripts/web-update.mjs newestPlayers), the Android app whose versionCode
+// is older than latest.json's `code`. Never in the way: an offer on the title and in Updates, dismissed until the next build.
+
+/** Where every newest player is downloaded from (its prerelease's file: release-metadata.mjs playerUrl). */
+export const PLAYER_DOWNLOADS = 'https://github.com/rnaud/hiraeth/releases/download/';
+/** The platforms a player reads its newest build for (BridgeHost.Platform; -player-platform in a test). */
+const PLAYER_OF = { android: 'android', linux: 'linux', xbox: 'xbox' };
+/** The store's key of the build "Not now" was said to (engine/unity/updates.js). */
+export const OFFER_DISMISSED_KEY = 'hiraeth.playerOffer.dismissed';
+
+/**
+ * The decision: does this Unity player offer a newer player? (BridgeUpdates.Info: `app` its own build, `players`,
+ * `playerPlatform` or `os`, `apkInstall` whether it can download and install an APK itself, `openUrl`.)
+ * @param o.dismissed the build "Not now" was said to: still offered in Updates, no longer on the title
+ * @returns null (none: no entry for this platform, the same or an older build, no file to point at) or
+ *   { platform, build, version, size, url, sha256, how: 'install' | 'open' | 'notice', dismissed }
+ *   install: the Android player downloads it and opens Android's installer; open: its browser downloads it (a player
+ *   with OpenUrl only); notice: the Deck's launcher or the Xbox's portal brings it, the offer only says so.
+ */
+export function playerOffer(info, { dismissed = 0 } = {}) {
+  if (info?.platform !== 'unity') return null;
+  const platform = PLAYER_OF[info.playerPlatform || info.os];
+  const p = platform ? info.players?.[platform] : null;
+  if (!p || !Number.isSafeInteger(p.build) || p.build <= 0 || p.build <= (info.app || 0)) return null;
+  // (a record without its file is never offered: the deploy only writes those it found, this checks again)
+  if (typeof p.url !== 'string' || !p.url.startsWith(PLAYER_DOWNLOADS) || !(p.size > 0) || !/^[0-9a-f]{64}$/i.test(p.sha256 ?? '')) return null;
+  const how = platform !== 'android' ? 'notice' : info.apkInstall ? 'install' : info.openUrl ? 'open' : 'notice';
+  return { platform, build: p.build, version: String(p.version ?? ''), size: p.size, url: p.url, sha256: p.sha256, how, dismissed: +dismissed === p.build };
+}
+
+/**
+ * What the offer says and offers (the Updates page's rows and the title's card: engine/unity/updates.js), from the
+ * offer and the Android player's own download (BridgeApk.Info: { state: idle | downloading | verifying | installing |
+ * permission | error, got, total, error }).
+ * @returns { title, card, detail, progress, progressText, actions: [{ a, label, primary }], busy }
+ */
+export function playerOfferView(offer, apk = null) {
+  if (!offer) return null;
+  const name = vb(offer.version, offer.build), size = formatBytes(offer.size);
+  const v = { title: `A newer player is available: ${name}`, card: { title: 'A newer player is available', sub: name }, detail: '', progress: null, progressText: '', actions: [], busy: false };
+  const notNow = () => (offer.dismissed ? [] : [{ a: 'offer-dismiss', label: 'Not now' }]);
+  if (offer.how === 'install') {
+    const s = apk?.state ?? 'idle';
+    if (s === 'downloading' || s === 'verifying') {
+      const total = apk.total || offer.size || 0, got = Math.min(apk.got || 0, total || Infinity);
+      v.title = s === 'verifying' ? 'Checking the new player…' : `Downloading the new player, ${name}…`;
+      v.progress = total ? got / total : 0;
+      v.progressText = total ? `${Math.floor(v.progress * 100)}% · ${formatBytes(got) || '0 KB'} of ${formatBytes(total)}` : formatBytes(got);
+      v.detail = 'You can keep playing. Android asks you to install it once it is here.';
+      v.busy = true;
+      v.card.sub = `${name} · downloading ${Math.floor(v.progress * 100)}%`;
+    } else if (s === 'permission') {
+      v.detail = 'Allow Hiraeth (Unity) to install apps in the screen that opened, then choose Install. Your saves are kept.';
+      v.actions.push({ a: 'offer-install', label: 'Install', primary: true }, ...notNow());
+    } else if (s === 'installing') {
+      v.detail = 'Android\'s installer is open: choose Install there. It installs over this one and keeps your saves.';
+      v.actions.push({ a: 'offer-install', label: 'Open the installer again', primary: true });
+    } else {
+      v.detail = `${s === 'error' && apk?.error ? `${apk.error}. ` : ''}Download it${size ? ` (${size})` : ''} and Android installs it over this one. Your saves are kept.`;
+      v.actions.push({ a: 'offer-install', label: s === 'error' ? 'Try the download again' : 'Download and install', primary: true }, ...notNow());
+    }
+    v.card.how = 'Open Updates to install it';
+    return v;
+  }
+  if (offer.how === 'open') {
+    v.detail = 'Get the new player, then open the download to install it over this one. Your saves are kept.';
+    v.actions.push({ a: 'offer-open', label: 'Get the new player', primary: true }, ...notNow());
+    v.card.how = 'Open Updates to get it';
+    return v;
+  }
+  v.detail = offer.platform === 'linux'
+    ? 'On the Steam Deck its launcher brings the new player: quit Hiraeth and launch it again, and it downloads it in the background. Your saves are kept.'
+    : offer.platform === 'xbox'
+      ? 'On the Xbox the new player is installed through the Device Portal, over this one, the way this one was. Your saves are kept.'
+      : `Download it from ${UNITY_APK_PAGE} and install it over this one. Your saves are kept.`;
+  v.card.how = offer.platform === 'linux' ? 'Relaunch to update' : offer.platform === 'xbox' ? 'Install it through the Device Portal' : 'See Updates';
+  v.actions.push(...notNow());
+  return v;
+}
+
+/** The NATIVE_API from which the Android app downloads and installs its newer APK itself (AppShell installApk). */
+export const APP_INSTALL_NATIVE = 10;
+
+/**
+ * The decision for the Android app (GeckoView or its WebView): latest.json's build (`apkBuild`, WebBundles.apkOffered)
+ * newer than the app's own versionCode (`app`). Not when the newest game already needs the new app (state 'apk': its
+ * own words), not on the Deck, the Xbox or a Unity player (their `platform`).
+ * @returns null or { build, version, how: 'install' | 'page', state, progress, progressText, line, action }
+ */
+export function appOffer(info) {
+  if (!info || info.platform || info.check === 'apk') return null;
+  const build = +info.apkBuild || 0;
+  if (!(build > (info.app || 0))) return null;
+  const name = vb(info.apkVersion, build), how = info.native >= APP_INSTALL_NATIVE ? 'install' : 'page';
+  const s = how === 'install' ? info.apkState || 'idle' : 'idle';
+  const o = { build, version: info.apkVersion || '', how, state: s, progress: null, progressText: '', line: '', action: null };
+  if (s === 'downloading') {
+    const total = info.apkTotal || 0, got = Math.min(info.apkGot || 0, total || Infinity);
+    o.progress = total ? got / total : 0;
+    o.progressText = total ? `${Math.floor(o.progress * 100)}% · ${formatBytes(got) || '0 KB'} of ${formatBytes(total)}` : formatBytes(got);
+    o.line = `Downloading the new app, ${name}…`;
+  } else if (s === 'permission') {
+    o.line = `A new app is available: ${name}. Allow Hiraeth to install apps in the screen that opened, then choose Install.`;
+    o.action = { a: 'app-install', label: 'Install the new app' };
+  } else if (s === 'installing') {
+    o.line = `The new app, ${name}, is downloaded: choose Install in Android's installer. Your saves are kept.`;
+    o.action = { a: 'app-install', label: 'Open the installer again' };
+  } else {
+    o.line = `A new app is available: ${name}.${s === 'error' && info.apkError ? ` ${info.apkError}.` : ''} It installs over this one and keeps your saves.`;
+    o.action = how === 'install' ? { a: 'app-install', label: s === 'error' ? 'Try the new app again' : 'Install the new app' } : { a: 'apk', label: 'Get the new app' };
+  }
+  return o;
+}
+
 /** 4.6 MB, 820 KB. */
 export function formatBytes(n) {
   if (!(n > 0)) return '';
@@ -65,7 +182,7 @@ const vb = (version, build) => [version && `v${version}`, build && `build ${buil
  * @param o.restarting the restart was asked for
  * @param o.failed a button's call failed (its message)
  * @returns {{ state, running, title, detail, notes, notesFor, more, progress, progressText, actions, busy, legacy }}
- *   actions: [{ a: 'check' | 'download' | 'restart' | 'apk' | 'player-apk' | 'player-…', label, primary }]
+ *   actions: [{ a: 'check' | 'download' | 'restart' | 'apk' | 'app-install' (a newer app: appOffer) | 'player-apk' | 'player-…', label, primary }]
  *   (a Unity player's info also has `os`, BridgeHost.Platform, and `openUrl`, whether it can open a link: engine/unity/updates.js)
  */
 export function updateView(info, { version = '', now = Date.now(), armed = false, restarting = false, failed = '', maxNotes = 4 } = {}) {
@@ -207,6 +324,14 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
         ? 'This player cannot update itself on the Xbox. Install the new Xbox package over this one, the way this one was installed. Your saves are kept.'
         : 'This player cannot update itself here. On Steam Deck, quit and relaunch Hiraeth so its launcher can fetch the new player; then launch again after the download. Other installs need their original installer. Your saves are kept.');
     }
+  }
+  // (the Android app: a newer APK than this one, whatever the game needs: latest.json's build, issue #805)
+  const app = appOffer(info);
+  if (app) {
+    v.app = app;
+    v.detail = [v.detail, app.line].filter(Boolean).join(' ');
+    if (app.progress !== null && v.progress === null) Object.assign(v, { progress: app.progress, progressText: app.progressText, busy: true });
+    if (app.action) v.actions.push(app.action);
   }
   if (failed) v.detail = `${failed}. ${v.detail}`.trim();
   return v;

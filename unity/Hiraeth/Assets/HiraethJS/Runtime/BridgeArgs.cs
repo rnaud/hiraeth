@@ -277,6 +277,9 @@ namespace Hiraeth.Bridge
             if (Arg("-title-slot") != null) args["titleSlot"] = Arg("-title-slot");
             // (-updates-page: the Start menu's Updates page photographed as it checks and downloads, with -updates: BridgeUpdates)
             if (Flag("-updates-page")) args["updatesPage"] = true;
+            // (-title-updates: -title-shots' second picture on the title's Updates page, the offer of a newer player with
+            // -player-platform and -updates: engine/unity/game.js, issue #805)
+            if (Flag("-title-updates")) args["titleUpdates"] = true;
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)
             if (Arg("-js-off") != null) args["off"] = Arg("-js-off");
             if (Arg("-js-on") != null) args["on"] = Arg("-js-on");   // (-js-on a,b: the script's tests turned on: lod, engine/unity/game.js)

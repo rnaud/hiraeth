@@ -103,6 +103,9 @@ process.exit(code);
   return () => JSON.parse(readFileSync(state, 'utf8'));
 }
 
+/** The builds' uploads (the prerelease's player.json, issue #805, apart: tests/installer-offer.test.js and below). */
+const builds = (s) => s.calls.filter((c) => c[1] === 'upload' && !c[3].endsWith('/player.json'));
+
 function publish(env = {}, opts) {
   const dir = tempDir('unity-publish-');
   const state = fakeGh(dir, opts);
@@ -119,7 +122,7 @@ function publish(env = {}, opts) {
 test('a Unity build goes onto its prerelease, then onto the built version\'s release even when newer tags exist, labelled with its commit', { skip: !existsSync(join(root, '.git')) && 'no git checkout' }, () => {
   const { r, s, sha } = publish({}, { tags: ['v999.0', VERSION_TAG] });
   assert.equal(r.status, 0, r.stderr);
-  const uploads = s.calls.filter((c) => c[1] === 'upload');
+  const uploads = builds(s);
   assert.deepEqual(uploads.map((c) => c[2]), ['unity-xbox', VERSION_TAG]);
   assert.ok(uploads.every((c) => c.includes('--clobber')));
   assert.match(uploads[0][3], /\/hiraeth-unity-xbox\.zip$/);   // (the prerelease's file as before: no label)
@@ -133,16 +136,23 @@ test('a Unity build goes onto its prerelease, then onto the built version\'s rel
   assert.match(body, new RegExp(`Xbox \\(Developer Mode\\): \`hiraeth-unity-xbox\\.zip\` below, built from commit \\[${sha.slice(0, 12)}\\]`));
   assert.ok(r.stdout.includes(`/releases/tag/${VERSION_TAG} (hiraeth-unity-xbox.zip as`));
   assert.ok(!s.calls.some((c) => c[1] === 'list'), 'never choose the newest remote version');
+  // the newest player's record, on the prerelease only, after its build (issue #805)
+  const all = s.calls.filter((c) => c[1] === 'upload'), rec = all.findIndex((c) => c[3].endsWith('/player.json'));
+  assert.ok(rec > all.findIndex((c) => c[3].endsWith('/hiraeth-unity-xbox.zip')), 'after the build');
+  assert.equal(all[rec][2], 'unity-xbox');
+  const asset = s.releases['unity-xbox'].assets.find((a) => a.name === 'player.json');
+  assert.ok(asset, 'player.json on the prerelease');
+  assert.ok(!s.releases[VERSION_TAG].assets.some((a) => a.name === 'player.json'), 'not on the version\'s release');
 });
 
 test('VERSION_TAG picks the release (a test one), NO_VERSION_RELEASE=1 leaves the prerelease alone, a failed version attachment fails the job', () => {
   let { r, s } = publish({ VERSION_TAG: 'test-186' });
   assert.equal(r.status, 0, r.stderr);
-  assert.deepEqual(s.calls.filter((c) => c[1] === 'upload').map((c) => c[2]), ['unity-xbox', 'test-186']);
+  assert.deepEqual(builds(s).map((c) => c[2]), ['unity-xbox', 'test-186']);
   assert.ok(!s.calls.some((c) => c[1] === 'list'));
   ({ r, s } = publish({ NO_VERSION_RELEASE: '1' }));
   assert.equal(r.status, 0, r.stderr);
-  assert.deepEqual(s.calls.filter((c) => c[1] === 'upload').map((c) => c[2]), ['unity-xbox']);
+  assert.deepEqual(builds(s).map((c) => c[2]), ['unity-xbox']);
   ({ r, s } = publish({}, { failVersionUpload: true }));
   assert.equal(r.status, 1, r.stderr);
   assert.ok(r.stdout.includes(`::error::hiraeth-unity-xbox.zip is on unity-xbox but could not be put on the built version's release ${VERSION_TAG}`));
@@ -161,11 +171,11 @@ test('the Unity workflows publish through the script, so every build lands on th
 test('publication waits for the matching release and fails visibly if it never appears', () => {
   let { r, s } = publish({}, { unavailableChecks: 2 });
   assert.equal(r.status, 0, r.stderr);
-  assert.deepEqual(s.calls.filter(c => c[1] === 'upload').map(c => c[2]), ['unity-xbox', VERSION_TAG]);
+  assert.deepEqual(builds(s).map(c => c[2]), ['unity-xbox', VERSION_TAG]);
   ({ r, s } = publish({}, { unavailableChecks: 99 }));
   assert.equal(r.status, 1);
   assert.match(r.stderr, /unavailable after 3 checks/);
-  assert.deepEqual(s.calls.filter(c => c[1] === 'upload').map(c => c[2]), ['unity-xbox']);
+  assert.deepEqual(builds(s).map(c => c[2]), ['unity-xbox']);
 });
 
 test('release targeting reads the specified commit and rejects an unknown version instead of falling back', () => {

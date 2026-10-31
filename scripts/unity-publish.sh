@@ -40,6 +40,13 @@ else
 fi
 echo "https://github.com/$REPO/releases/tag/$TAG ($NAME, $(du -h "$FILE" | cut -f1 | tr -d ' '), $(git rev-parse --short=12 "$SHA"))"
 
+# The newest player's record beside it (issue #805): player.json, its build (the commit count, as the player's own
+# bundle.json), version, commit, size and sha256 (release-info.mjs player-json), uploaded only now that the build is up,
+# so it never names a file that isn't there. The Cloudflare deploy reads it into unity.json's players (checking the file
+# is there at that size: scripts/web-update.mjs newestPlayers), and an older player offers this one.
+GITHUB_REPOSITORY="$REPO" node scripts/release-info.mjs player-json "$PLATFORM" "$SHA" "$FILE" > "$TMP/player.json"
+retry gh release upload "$TAG" "$TMP/player.json" -R "$REPO" --clobber
+
 # The same file onto the built version's release too (vX.Y, the players' page; docs/systems/android.md, "The Unity
 # builds on a version's release"), replacing the one there, labelled with what it is and the commit built: the notes'
 # Unity section is redone from the labels (release-info.mjs unity-body), as the Android release keeps it (notes).

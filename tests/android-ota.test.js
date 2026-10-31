@@ -157,10 +157,45 @@ test('nothing in the update path touches the saves (the page\'s storage)', () =>
   }
 });
 
-test('the APK updater only asks for native changes', () => {
-  const src = java('Updater.java');
-  assert.match(src, /latest\.optInt\("native", 0\) > WebBundles\.NATIVE_API/);
+test('the APK updater offers any newer APK, once a build at launch, and always one the game needs (issue #805)', () => {
+  const src = java('Updater.java'), rules = java('UpdateRules.java');
+  assert.match(src, /boolean required = latest\.optInt\("native", 0\) > WebBundles\.NATIVE_API/);
+  assert.match(src, /UpdateRules\.apkOffer\(code, currentCode\(\), required, prefs\.getLong\("apkDismissed", 0\), debuggable\(\)\)/);
   assert.match(src, /web\.apkOffered\(name, apk, /, 'the settings know about the APK it offered');
+  assert.match(src, /if \("ask"\.equals\(what\)\) ui\.post\(\(\) -> offer\(name, code, required\)\)/, 'the dialog only when it asks');
+  // ("Later" keeps the build for the next launch, never for one the game needs)
+  assert.match(src, /if \(!required\) activity\.getSharedPreferences\(PREFS, Activity\.MODE_PRIVATE\)\.edit\(\)\.putLong\("apkDismissed", code\)/);
+  // the rule, as UpdateRulesTest checks it in Java
+  const body = /static String apkOffer\([^)]*\) \{([\s\S]*?)\n    \}/.exec(rules)[1];
+  const apkOffer = new Function('code', 'current', 'required', 'dismissed', 'debug', body.replace(/"/g, "'"));
+  assert.equal(apkOffer(3000, 3000, false, 0, false), 'none', 'the same build');
+  assert.equal(apkOffer(2990, 3000, true, 0, false), 'none', 'an older one, even with a newer bridge');
+  assert.equal(apkOffer(3010, 3000, false, 0, false), 'ask', 'newer: the launch asks');
+  assert.equal(apkOffer(3010, 3000, false, 3010, false), 'quiet', '"Later" to it: the settings only');
+  assert.equal(apkOffer(3020, 3000, false, 3010, false), 'ask', 'the next build asks again');
+  assert.equal(apkOffer(3010, 3000, true, 3010, false), 'ask', 'one the game needs always asks');
+  assert.equal(apkOffer(3010, 1, false, 0, true), 'quiet', 'a debug build: the settings only');
+});
+
+test('the new APK downloads into the cache with its progress, then Android\'s installer, from the dialog or the settings (NATIVE_API 10)', () => {
+  const src = java('Updater.java'), shell = java('AppShell.java'), plugin = java('AppShellPlugin.java'), web = java('WebBundles.java');
+  assert.ok(nativeApi() >= 10, 'installApk is a bridge change: NATIVE_API 10');
+  assert.match(shell, /"openApk", "installApk", "rumble"/);
+  assert.match(shell, /case "installApk":\s*\n\s*if \(Updater\.install\(activity\)\) reply\.ok\(info\(b, engine\)\)/);
+  assert.match(plugin, /public void installApk\(PluginCall call\) \{ run\("installApk", call\); \}/);
+  for (const k of ['apkBuild', 'apkState', 'apkGot', 'apkTotal', 'apkError']) assert.match(web, new RegExp(`ret\\.put\\("${k}", Updater\\.`), k);
+  // streamed to a file (not into memory: ~100 MB), its length checked, one at a time, an older build's file deleted
+  assert.match(src, /new FileOutputStream\(file\)/);
+  assert.doesNotMatch(src, /out\.write\(fetch\(apk/);
+  assert.match(src, /got != total\) throw/);
+  assert.match(src, /if \(downloading\) return true;/);
+  // the installer through the FileProvider, the "install apps" permission asked for the first time
+  assert.match(src, /canRequestPackageInstalls\(\)[\s\S]*?state = "permission"[\s\S]*?ACTION_MANAGE_UNKNOWN_APP_SOURCES/);
+  assert.match(src, /state = "installing";[\s\S]*?FileProvider\.getUriForFile[\s\S]*?application\/vnd\.android\.package-archive/);
+  assert.match(readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8'), /android\.permission\.REQUEST_INSTALL_PACKAGES/);
+  // the page: installApk from NATIVE_API 10, the release page before
+  const panel = readFileSync(new URL('../src/update-panel.js', import.meta.url), 'utf8');
+  assert.match(panel, /a === 'app-install'\) await callApp\('installApk', this\.win\)/);
 });
 
 test('the workflow publishes the APK and its manifest, never half', () => {

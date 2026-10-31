@@ -207,3 +207,7 @@ release page's address instead of a button. The script reads the platform from `
 (`info.os`); the Deck keeps its launcher's update, the Xbox and other installs their installer's wording.
 A player from before this change gets the button only once a newer player is installed by hand from
 github.com/rnaud/hiraeth/releases/tag/unity-android (its script stops at the old player's level).
+
+Since issue #805 a newer player is also offered when the script doesn't need it: `unity.json`'s `players` (the newest of
+each platform), a card on the title and the offer first on this page, one tap to download and install on Android
+(docs/systems/unity.md, "A newer player is available").

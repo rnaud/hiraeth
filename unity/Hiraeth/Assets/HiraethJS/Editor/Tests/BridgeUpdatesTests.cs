@@ -183,5 +183,32 @@ namespace Hiraeth.Tests
                 "https://github.com.evil.example/rnaud/hiraeth/releases/", "file:///sdcard/x.apk", "intent://x", "https://github.com/rnaud/hiraeth/releases/a b" })
                 Assert.IsFalse(UpdateRules.OpenableUrl(bad), bad ?? "null");
         }
+
+        [Test]
+        public void OnlyTheFeedsNewerPlayerIsDownloaded()
+        {
+            const string apk = "https://github.com/rnaud/hiraeth/releases/download/unity-android/hiraeth-unity.apk", sha = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+            Assert.IsNull(BridgeApk.Refuse(15010, 15010, Builtin, apk, 176_564_648, sha), "newer, the one offered, ours");
+            Assert.IsNotNull(BridgeApk.Refuse(0, 15010, Builtin, apk, 1, sha), "none listed");
+            Assert.IsNotNull(BridgeApk.Refuse(15020, 15010, Builtin, apk, 1, sha), "the feed moved on: check again");
+            Assert.IsNotNull(BridgeApk.Refuse(Builtin, Builtin, Builtin, apk, 1, sha), "the same build");
+            Assert.IsNotNull(BridgeApk.Refuse(14990, 14990, Builtin, apk, 1, sha), "an older one");
+            Assert.IsNotNull(BridgeApk.Refuse(15010, 15010, Builtin, "https://hiraeth.alexandria-rnaud.workers.dev/x.apk", 1, sha), "not the releases");
+            Assert.IsNotNull(BridgeApk.Refuse(15010, 15010, Builtin, apk, 0, sha), "no size");
+            Assert.IsNotNull(BridgeApk.Refuse(15010, 15010, Builtin, apk, BridgeApk.ApkLimit + 1, sha), "too large");
+            Assert.IsNotNull(BridgeApk.Refuse(15010, 15010, Builtin, apk, 1, "abc"), "no checksum");
+        }
+
+        [Test]
+        public void ADownloadedPlayerIsCheckedBySizeAndSha256()
+        {
+            var f = Path.Combine(dir, "hiraeth-unity-15010.apk");
+            File.WriteAllBytes(f, Encoding.UTF8.GetBytes("a testers' build"));
+            string hex;
+            using (var h = SHA256.Create()) hex = string.Concat(h.ComputeHash(File.ReadAllBytes(f)).Select(b => b.ToString("x2")));
+            Assert.IsNull(BridgeApk.Check(f, 16, hex));
+            StringAssert.Contains("not 17", BridgeApk.Check(f, 17, hex));
+            StringAssert.Contains("damaged", BridgeApk.Check(f, 16, new string('0', 64)));
+        }
     }
 }

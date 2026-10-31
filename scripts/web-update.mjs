@@ -2,7 +2,8 @@
 //   dist/updates/web-<build>.zip  the built game (dist/ without updates/), the same files the APK and the Deck carry
 //                                 (without the site's own files and the themes fetched on demand: SHEET_FILE, MEDIA_FILE, onDemand)
 //   dist/updates/web.json         its manifest (release-info.mjs webJson): build, sha256, zip URL, minNative, minDesktop…
-//   dist/updates/unity-<build>.zip, unity.json   the Unity players' script (--unity <dir>: writeUnityUpdate, BridgeUpdates.cs)
+//   dist/updates/unity-<build>.zip, unity.json   the Unity players' script (--unity <dir>: writeUnityUpdate, BridgeUpdates.cs),
+//                                 and the newest player of each platform (`players`: newestPlayers, issue #805)
 // read by the Android app (WebBundles.MANIFEST), the Steam Deck updater (deck.py CONTENT_MANIFEST_URL) and the
 // Xbox app (xbox/Hiraeth/WebBundles.cs Manifest).
 //
@@ -20,7 +21,7 @@ import { deflateRawSync, crc32 } from 'node:zlib';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
-import { desktopApi, gameBuild, unityJson, webJson, xboxApi } from './release-info.mjs';
+import { desktopApi, gameBuild, unityJson, webJson, xboxApi, PLAYER_JSON, UNITY_RELEASES, validPlayer } from './release-info.mjs';
 import { sfxFiles } from '../src/sfx.js';
 
 import { SITE, UPDATES, MAX_FILE, MAX_FILES, UPDATE_PART, SHEET_FILE, MEDIA_FILE, AUDIT_FILE, REFERENCE_FILE, LORE_FILE, WALKTHROUGH_FILE, SITE_CONFIG, onDemand } from './content-policy.mjs';
@@ -117,6 +118,34 @@ export async function previousZip(site, build, { fetch = globalThis.fetch, log =
   }
 }
 
+/**
+ * The newest Unity player of each platform (issue #805), for unity.json's `players`: the player.json scripts/unity-publish.sh
+ * put beside each build on its prerelease, kept only when it is one of ours (validPlayer) and the file it names is there now,
+ * at the size it says (a HEAD past GitHub's redirect): never an offer of a missing or half-replaced file. A platform that
+ * fails any of it is left out (and a player then offers nothing); none of it ever fails the deploy.
+ * @returns { android?, linux?, xbox? }: { build, version, commit, url, size, sha256 }
+ */
+export async function newestPlayers({ fetch = globalThis.fetch, log = console.warn, repo = 'rnaud/hiraeth' } = {}) {
+  const out = {};
+  for (const [platform, r] of Object.entries(UNITY_RELEASES)) {
+    try {
+      const opts = (method = 'GET') => ({ method, redirect: 'follow', signal: AbortSignal.timeout(30_000), headers: { 'Cache-Control': 'no-cache' } });
+      const res = await fetch(`https://github.com/${repo}/releases/download/${r.tag}/${PLAYER_JSON}`, opts());
+      if (!res.ok) { log(`no ${PLAYER_JSON} on ${r.tag} (HTTP ${res.status}): no ${platform} player offered`); continue; }
+      const p = await res.json();
+      if (!validPlayer(platform, p, repo)) { log(`the ${PLAYER_JSON} on ${r.tag} is not one of ours: no ${platform} player offered`); continue; }
+      const head = await fetch(p.url, opts('HEAD'));
+      const size = +(head.headers?.get?.('content-length') ?? NaN);
+      if (!head.ok || size !== p.size) { log(`${r.file} on ${r.tag} is ${head.ok ? `${size} bytes, not ${p.size}` : `missing (HTTP ${head.status})`}: no ${platform} player offered`); continue; }
+      const { build, version, commit, url, sha256 } = p;
+      out[platform] = { build, version, commit, url, size, sha256 };
+    } catch (error) {
+      log(`couldn't read the newest ${platform} player (${error.message}): none offered`);
+    }
+  }
+  return out;
+}
+
 /** Check a built site against the Workers static asset limits. */
 export async function checkLimits(dir, { maxFile = MAX_FILE, maxFiles = MAX_FILES } = {}) {
   const all = await files(dir);
@@ -149,7 +178,7 @@ export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
  * manifest updates/unity.json (release-info.mjs unityJson), the previous build's zip kept as web's is. The zip's
  * bundle.json has to be this build's.
  */
-export async function writeUnityUpdate({ out, dir, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART }) {
+export async function writeUnityUpdate({ out, dir, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART, players = null }) {
   const effects = new Set(['public', 'public/sfx', 'public/sfx/manifest.json', ...sfxFiles().map(n => `public/sfx/${n}`)]);
   const { zip, names } = await zipDir(dir, { skip: (n) => (n.startsWith('public/') && !effects.has(n)) || n.endsWith('.meta') || n.endsWith('.DS_Store') });
   if (!names.includes('hiraeth.cjs')) throw new Error(`no hiraeth.cjs in ${dir}: node scripts/engine-bundle.mjs ota ${dir}`);
@@ -159,7 +188,7 @@ export async function writeUnityUpdate({ out, dir, build, version = CHANGELOG[0]
   await mkdir(out, { recursive: true });
   const file = join(out, `unity-${build}.zip`);
   await writeFile(file, zip);
-  const manifest = unityJson({ build, version, file, zip: new URL(`${UPDATES}/unity-${build}.zip`, site).href, minUnity: info.minUnity });
+  const manifest = unityJson({ build, version, file, zip: new URL(`${UPDATES}/unity-${build}.zip`, site).href, minUnity: info.minUnity, players });
   await rm(file);
   await writeArchive(out, `unity-${build}.zip`, zip, partSize);
   if (previous) await writeArchive(out, previous.name, previous.zip, partSize);
@@ -183,7 +212,7 @@ export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site 
   if (previous) await writeArchive(out, previous.name, previous.zip, partSize);
   await writeFile(join(out, 'web.json'), JSON.stringify(manifest) + '\n');
   // (the Unity script beside it: its manifest returned here, not written into web.json)
-  if (unity) return { ...manifest, unity: await writeUnityUpdate({ out, dir: unity.dir, build, version, site, previous: unity.previous ?? null, partSize }) };
+  if (unity) return { ...manifest, unity: await writeUnityUpdate({ out, dir: unity.dir, build, version, site, previous: unity.previous ?? null, partSize, players: unity.players ?? null }) };
   return manifest;
 }
 
@@ -200,11 +229,13 @@ async function main(args) {
   if (u >= 0 && !args[u + 1]) throw new Error('--unity <dir>');
   if (u >= 0 && process.env.WEB_BUILD) throw new Error('--unity numbers its script by the commit: not with WEB_BUILD');
   if (u >= 0) await (await import('./engine-bundle.mjs')).unityOta(args[u + 1]);
-  const unity = u >= 0 ? { dir: args[u + 1], previous: args.includes('--no-previous') ? null : await previousZip(site, build, { kind: 'unity' }) } : null;
+  // (and the newest player of each platform from its prerelease, unless --no-players: unity.json's players, issue #805)
+  const players = u >= 0 && !args.includes('--no-players') ? await newestPlayers() : null;
+  const unity = u >= 0 ? { dir: args[u + 1], previous: args.includes('--no-previous') ? null : await previousZip(site, build, { kind: 'unity' }), players } : null;
   const manifest = await writeUpdate({ dist, build, site, previous, unity });
   const count = await checkLimits(dist);
   console.log(`updates/web-${build}.zip (${(manifest.size / 1048576).toFixed(1)} MiB)${previous ? ` and the previous ${previous.name}` : ''}, web.json; ${count} files in the site`);
-  if (manifest.unity) console.log(`updates/unity-${build}.zip (${(manifest.unity.size / 1048576).toFixed(1)} MiB, needs player level ${manifest.unity.minUnity})${unity.previous ? ` and the previous ${unity.previous.name}` : ''}, unity.json`);
+  if (manifest.unity) console.log(`updates/unity-${build}.zip (${(manifest.unity.size / 1048576).toFixed(1)} MiB, needs player level ${manifest.unity.minUnity})${unity.previous ? ` and the previous ${unity.previous.name}` : ''}, unity.json; newest players: ${Object.entries(manifest.unity.players ?? {}).map(([k, p]) => `${k} ${p.build}`).join(', ') || 'none'}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
