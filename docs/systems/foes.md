@@ -3025,6 +3025,26 @@ turns about its middle (`PIVOT`, 1.1 m): a blow's tip turned about the ground ha
 welding cart stays in plans/tracked.js as `legacyCartModel`: it stands in while the mesh loads and can come back as a foe
 of its own. Unity: `-fight machines` (engine/unity/game.js) pictures it standing, winding up the pour and pouring.
 
+### The bell walker rebuilt (#800, family D, `src/enemies/plans/bell-tripo.js`, `public/enemies/bell/`)
+
+The bell's approved clean-background redesign (references/enemy-redesign-2026-10-30/keep-bell/: "bell, arch, clapper and four
+sturdy legs retained") is the bell's body: the id, def, toll and drop with their windows, the clapper (only it takes harm),
+skins and sounds the bell's. Tripo task 63c37cb8-… (30 credits); the trial's `prepare.mjs` (trials/bell-tripo/, on the
+family's shared steps) makes its asset: 3.4 m to the arch's top, 12,000 triangles cut by geometry into the hull (the machine
+behind, the pink skirt), the dome (inside the bell's radius over the skirt: its profile measured round its own axis), the
+arch (the band in the bell's middle plane outside that radius), the spirit (a sphere fitted to the black ball under the
+mouth) and each leg's thigh, shin and foot (planes at 0.88 and 0.22 m). Tripo had filled half the arch's inside with a web
+to the dome: its triangles dropped (a bridge between two parts that never touch, and what lies well inside the arch's outer
+edge). On the shared machine rig (`plans/tripo-rigid.js`), the kit's four legs on the siege plan, their knees bending forward;
+the frame turns about its middle (1.6 m: the toll's rearing back, the opening's tipping, a blow's tip). **The spirit is the
+clapper:** it hangs from the bell's mouth on its own pendulum (the toll's three swings, each higher; the hours tolled softly)
+and turns about its own centre to look at you, its two slit eyes its own (the eye's colour tells its state). The dome
+shivers as the rings go out. Its three plates are strapped round the skirt. The Salt Harbour's dock winch and the
+Underside's cable crane wear a drum in the arch where the dome was (its own bone, winding as it tolls), its chain down to
+the spirit on the clapper's bone and a hook under it; the Signal Market's coins on cords hang from the arch, its pennants
+from its sides. The spider-legged bell walker stays in plans/siege.js as `legacyBellModel`: it stands in while the mesh
+loads and can come back as a foe of its own. Unity: `-fight machines` pictures it with the crucible walker.
+
 ### The dune mummer (#800, `src/enemies/plans/dune-mummer-tripo.js`, `public/enemies/dunemummer/`)
 
 The second of the rebuild's new foes: `ARCHETYPES.dunemummer` beside today's mummer (kept as it was, the author: "I also

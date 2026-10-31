@@ -25,6 +25,7 @@ const READERS = {
   "enemies/lamp-moth/body.glb": () => readFileSync(new URL("../public/enemies/lamp-moth/body.glb", import.meta.url)),
   "enemies/cloud-jelly/body.glb": () => readFileSync(new URL("../public/enemies/cloud-jelly/body.glb", import.meta.url)),
   "enemies/cart/body.glb": () => readFileSync(new URL("../public/enemies/cart/body.glb", import.meta.url)),
+  "enemies/bell/body.glb": () => readFileSync(new URL("../public/enemies/bell/body.glb", import.meta.url)),
   "guardians/elder-v3/model.glb": () => readFileSync(new URL("../public/guardians/elder-v3/model.glb", import.meta.url)),
   "guardians/keeper-v1/model.glb": () => readFileSync(new URL("../public/guardians/keeper-v1/model.glb", import.meta.url)),
   "models/ships/caravan-a/playable.glb": () => readFileSync(new URL("../public/models/ships/caravan-a/playable.glb", import.meta.url)),

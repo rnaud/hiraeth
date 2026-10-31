@@ -62,6 +62,8 @@ export const CHANGELOG = [
         see: 'Land on Vael and watch a storm ray circling, or open the Arena and pick a ray from the foe list (D-pad ↓, K). Let it stall over you: its wings rise high before it beats them down.' },
       // the crucible walker (#800)
       'The crucible cart now walks: its new body is a squat sage-green pot on four stubby iron legs, its brew glowing orange inside the rim and one round eye on its side that slides round the pot to keep you in view. It fights as it did: when it sinks onto its front legs and tips its rim at you, get out of the pour; when it backs up squatting and scrabbling, step out of its charge. A plain shot still crusts its brew grey and a bomb on its legs still stops it turning. The Buried Machine’s ore cart wears rusted iron hoops, the Moon Foundry’s is cream enamel with an ember brew, and in the Arena its welding torches and its luggage come along.',
+      // the bell walker rebuilt (#800)
+      'The bell walker has its new body: a pink bronze bell under a cream arch on four sturdy green legs, with a squat machine behind it and, under the bell’s mouth, its clapper: a black ball with two pale slit eyes that turns to watch you. It fights as before. When it rears back on its hind legs and the clapper swings higher three times, get ready to jump the rings; when it rises on straight legs, get out from under it, then strike the clapper while it sits tipped back. The Salt Harbour’s dock winch and the Underside’s cable crane wind a drum in the arch instead, a hook swinging under the clapper, and the Signal Market’s hangs coins and patched pennants from its arch.',
     ],
   },
   {

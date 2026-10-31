@@ -1517,6 +1517,11 @@ const FROM800C_UNITY = 'Unity 6000.6.4f1 editor batch mode on macOS, muted (scri
 const DEVICE800C = 'Mac, Apple M4 Pro, Chrome on Metal (headless, muted), the browser version, 1280 × 720';
 const SOURCE800C = 'scripts/enemy-roster/bench.mjs --level buried --pack six ore carts (cart@buried ×6) --solid, High and Deck, two rounds each, before (origin/main at 9ff845d25) and after alternating, the machine shared (load 9–18); the medians of 8 s of frames; renderer.info. The frame held at 16.7 ms (60 Hz) in every run; the GPU’s time moved by more than the difference between runs (High after 11.3 / 8.2 ms, before 9.6 / 8.8; Deck after 7.5 / 5.5, before 4.1 / 5.5), so no GPU claim is made';
 
+/** (v2.39, issue #800 family D: the bell walker rebuilt; hand-made pairs, the same scripts and cameras before and after) */
+const FROM800B = 'Hand-made (no `view`, the commit to be rebased): muted headless Chrome (hiraeth.muted and every volume 0 before load, --mute-audio), High, 1280 × 720, 10:00, clear, the HUD hidden, 31 October 2026; before: origin/main at 9ff845d25 in a worktree of its own, after: this change, the same script and camera on each. The Arena pictures: references/enemy-redesign-2026-10-30/baseline/baseline-shots.mjs bell@bazaar (the camera pinned 14 m off its front quarter, the traveller beside it for scale; the toll at 75 % of its wind-up, side on, cropped from its strip). The worlds: references/enemy-redesign-2026-10-30/trials/world-shot.mjs bell bazaar,saltharbour,underside (the world loaded as you land, its own foes taken away, one bell in its skin 8 m ahead, the wide camera 14 m off its front quarter); cwebp -q 72';
+const FROM800B_UNITY = 'Unity 6000.6.4f1 editor batch mode on macOS, muted (scripts/unity-js-run.sh bells -level arena -fight bells -mute), 31 October 2026, the Library cloned from the main checkout, the handoff’s build lock held; the follow camera behind the traveller, a sign automaton 7 m ahead and a dock winch 11 m ahead rearing back for the toll, drawn by their vertex colours; the web’s Arena pictures above are the same bodies. After-only';
+const SOURCE800B = 'scripts/enemy-roster/bench.mjs --level bazaar --pack six sign automatons (bell@bazaar ×6) --solid, High and Deck, two rounds each, before (origin/main at 9ff845d25) then after, the machine shared (load 10–20); the medians of 8 s of frames; renderer.info. The frame held at 16.7 ms (60 Hz) in every run; the script’s time moved as much between runs of one tree (High after 7.1 / 9.4 ms, before 7.9 / 8.2) as between the trees, so no CPU claim is made';
+
 export const CHANGELOG_MEDIA = {
   '2.39': [
     { match: 'The Journal and Pause menus now match the HUD in the browser and Unity', shots: [
@@ -1690,6 +1695,26 @@ export const CHANGELOG_MEDIA = {
       ] },
       { title: 'A crucible cart arriving in the Arena: the worst frame from its arrival to 2.5 s after', unit: 'ms', better: 'lower', device: DEVICE800C, source: 'scripts/enemy-roster/arrivals.mjs --quality high --kinds cart@garage,cart@buried,cart@moonfoundry,cart@overnighttrain --n 3: every look, three arrivals each, before (9ff845d25) and after; no new GPU program made at any arrival', rows: [
         { where: 'High, every look', before: 16.8, after: 16.8 },
+      ] },
+    ] },
+    // (issue #800 family D: the bell walker on its Tripo body; hand-made pairs)
+    { match: 'The bell walker has its new body', tags: ['combat'], shots: [
+      { name: 'bell800-arena', title: 'The Arena', size: [1280, 720], caption: 'A sign automaton in the Arena, three-quarters from its front, the traveller beside it: before, the tall bronze bell hung in its riveted yoke over five spider legs; after, the pink bell under its cream arch on four sturdy green legs, the machine behind it, three plates strapped round its skirt, coins and pennants on the arch, the black clapper with its slit eyes under its mouth', from: FROM800B,
+        reference: { sheet: 'references/enemy-redesign-2026-10-30/keep-bell/b4852320-c23b-4bf7-a8e2-10c9ede8cabd-1.png', caption: 'The approved design the new body was made from (Tripo, from this picture)' } },
+      { name: 'bell800-market', title: 'The Signal Market', size: [1280, 720], caption: 'The Signal Market’s sign automaton by the ship: before, the bell in its tall loop on spider legs; after, the bell walker on its four legs, its clapper’s eyes on the traveller', from: FROM800B },
+      { name: 'bell800-harbour', title: 'The Salt Harbour', size: [1280, 720], caption: 'The Salt Harbour’s dock winch on the salt flat: before, its drum and chain in the tall loop over spider legs; after, the drum wound in the walker’s arch, the chain down to the clapper and a hook under it', from: FROM800B },
+      { name: 'bell800-underside', title: 'The Underside', size: [1280, 720], caption: 'The Underside’s cable crane: before, the slate drum in its gold loop; after, the slate walker with its drum in the gold arch, its hook hanging', from: FROM800B },
+      { name: 'bell800-toll', title: 'The toll', size: [480, 338], caption: 'Side on, 75 % into the toll’s wind-up: before, the bell rearing back on its rear spider legs, the clapper swung out; after, the walker reared back on its hind legs, its front ones lifted, its clapper swinging under it', from: FROM800B },
+      { name: 'bell800-unity', title: 'Unity', only: 'after', size: [1280, 720], caption: 'The Unity version in the Arena: a sign automaton and a dock winch rearing back for the toll, the same bodies drawn by their colours', from: FROM800B_UNITY },
+    ], numbers: [
+      { title: 'What six sign automatons add to the Signal Market’s frame, standing solid in view', unit: '', better: 'lower', device: DEVICE800C, source: SOURCE800B, rows: [
+        { where: 'High: draw calls', before: 646, after: 491 },
+        { where: 'Deck: draw calls', before: 492, after: 388 },
+        { where: 'High: triangles, every pass (thousands)', before: 1774.7, after: 1753.4 },
+      ] },
+      { title: 'A bell walker arriving in the Arena: the worst frame from its arrival to 2.5 s after', unit: 'ms', better: 'lower', device: DEVICE800C, source: 'scripts/enemy-roster/arrivals.mjs --quality high --kinds bell@bazaar,bell@saltharbour,bell@underside --n 3, before (9ff845d25) and after: one long frame at a first arrival in each (a winch, both times), the rest one frame; no new GPU program made at any arrival', rows: [
+        { where: 'High, typical', before: 16.8, after: 16.8 },
+        { where: 'High, worst', before: 50.1, after: 33.4 },
       ] },
     ] },
     { match: 'A new foe, the wood cutter', shots: [

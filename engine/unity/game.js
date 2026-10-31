@@ -1064,6 +1064,16 @@ function makePlan(args) {
       { kind: 'foe', what: 'move', move: 'pour' }, { kind: 'wait', frames: 55, secs: 1.0 }, ...shot('windup'),
       { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('blow'));
   }
+  if (fights.includes('bells')) {
+    // (-fight bells, issue #800 family D: the bell walker's Tripo body: the Signal Market's sign automaton 7 m ahead, set to
+    // the traveller's right, and the Salt Harbour's dock winch 11 m ahead; their bodies said in the log; standing, then
+    // winding up the toll (reared back, the clapper swinging higher), then the toll rung)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-bells-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'bell@bazaar', dist: 7, hp: 99, tier: 0 }, { kind: 'foe', what: 'aside', kinds: ['bell'] }, { kind: 'foe', what: 'bell@saltharbour', dist: 11, hp: 99, tier: 0 },
+      { kind: 'wait', frames: 90, secs: 2.5 }, { kind: 'foe', what: 'bodies' }, ...shot('stand'),
+      { kind: 'foe', what: 'move', move: 'toll' }, { kind: 'wait', frames: 70, secs: 1.2 }, ...shot('windup'),
+      { kind: 'wait', frames: 30, secs: 0.6 }, ...shot('blow'));
+  }
   if (fights.includes('monsters')) {
     // (-fight monsters, issue #726: roster v4's grunt and hulk on the humanoid rig: a hulk 7 m ahead and a grunt with its club
     // 4.5 m ahead, standing; their rig said; each winds up its first blow (the grunt's club over its head, the hulk's smash),

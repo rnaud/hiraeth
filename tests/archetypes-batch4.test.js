@@ -5,9 +5,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import { legacyBellModel } from '../src/enemies/plans/siege.js';
 import { existsSync } from 'node:fs';
 import { ARCHETYPES, BUILT, archetypeOfKind, parseKind, skinned, spawnKindOf } from '../src/enemies/archetypes.js';
-import { skinWorlds } from '../src/enemies/skins.js';
+import { skinWorlds, skinOf } from '../src/enemies/skins.js';
 import { archetypeModel } from '../src/enemies/plans/index.js';
 import { ROSTERS, WORLDS } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, HUSH } from '../src/foes.js';
@@ -237,7 +238,8 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
 });
 
 test('batch 4 against its sheets (v1.47, issue #31): the bell walker\'s spirit shows past its lip, its legs turned into their plane for their plates', () => {
-  const m = archetypeModel('bell', 'bazaar');
+  // (the spider-legged bell walker's look, kept as legacyBellModel since #800 gave the bell its Tripo body)
+  const m = legacyBellModel(skinOf('bell', 'bazaar'));
   m.group.updateMatrixWorld(true);
   const spirit = [];
   m.group.traverse((o) => { if (o.name === 'spirit') spirit.push(o); });

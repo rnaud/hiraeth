@@ -54,6 +54,7 @@ All four trial foes (the shellback, the hound, the dune mummer and the wood cutt
 | `flyer-tripo/`, `jelly-tripo/` (and the moth's and ray's) | family B, the flyers landed straight from the recipe: `prep-lib.mjs` (the shared preparation steps), `splat.mjs` (the cuts by eye), `pairs.mjs` (before/after from the gallery), `arrivals.mjs` (the Arena's warm-up), `bench-worlds.mjs`; each foe's write-up in its own folder: [`jelly/README.md`](jelly/README.md), [`moth/README.md`](moth/README.md), [`ray/README.md`](ray/README.md) |
 | `machine-tripo/prep.mjs`, `look.mjs`, `islands.mjs`, `box-probe.mjs`, `probe.mjs`, `death-check.mjs`, `defeat-ground.mjs` | #800 family D (the machines): the shared steps of their `prepare.mjs` (load and frame, decimate, parts by geometry with a vertex two parts share copied, the flat repaint with swatches, COLOR_0, the weights in the GLB), a software look at a prepared body (its colours or its parts, five views), its connected pieces, the vertices in a box, a probe of the running game, its death's rigidity and its defeat against the ground in node |
 | `cart-tripo/generate.mjs`, `prepare.mjs` | the crucible walker (`cart`): its Tripo generation (to `../keep-cart/tripo/`) and its game asset (`public/enemies/cart/`); its write-up in `cart/README.md` |
+| `bell-tripo/generate.mjs`, `prepare.mjs` | the bell walker (`bell`): its Tripo generation (to `../keep-bell/tripo/`) and its game asset (`public/enemies/bell/`); its write-up in `bell/README.md` |
 
 ## Shellback (`crab`), phase 2a and its fixes
 

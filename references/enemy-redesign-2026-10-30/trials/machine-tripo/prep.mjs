@@ -34,7 +34,7 @@ export const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
  * The export in the game's frame, decimated. roleOf(r, g, b) -> a role index (the texture's own colours: what each texel
  * is). Returns { P, N, UV, I, n, role (per vertex), texRole, W, H, px, S, shift }.
  */
-export async function load(file, { height, target = 12000, tex = 1024, roleOf, roles, centre, drop = null, majority = 3 }) {
+export async function load(file, { height, target = 12000, tex = 1024, roleOf, roles, centre, drop = null, majority = 3, facing = '+x' }) {
   await MS.ready;
   const m = await readTripo(file);
   const n0 = m.P.length / 3;
@@ -42,7 +42,8 @@ export async function load(file, { height, target = 12000, tex = 1024, roleOf, r
   for (let v = 0; v < n0; v++) { lo = Math.min(lo, m.P[v * 3 + 1]); hi = Math.max(hi, m.P[v * 3 + 1]); }
   // (a ground plate Tripo modelled under it, `drop`: its vertices left out of the height, then of the mesh)
   const S0 = height / (hi - lo);
-  const toGame0 = (v) => [-m.P[v * 3 + 2], m.P[v * 3 + 1], m.P[v * 3]];
+  // (Tripo's front is its +x as a rule; facing '-z': a body it drew facing its -z, turned half a turn about y onto +z)
+  const toGame0 = facing === '-z' ? (v) => [-m.P[v * 3], m.P[v * 3 + 1], -m.P[v * 3 + 2]] : (v) => [-m.P[v * 3 + 2], m.P[v * 3 + 1], m.P[v * 3]];
   let S = S0, LO = lo;
   if (drop) {
     let lo2 = Infinity; for (let v = 0; v < n0; v++) { const p = toGame0(v); const g = [p[0] * S0, (p[1] - lo) * S0, p[2] * S0]; if (!drop(g)) lo2 = Math.min(lo2, m.P[v * 3 + 1]); }
@@ -51,11 +52,11 @@ export async function load(file, { height, target = 12000, tex = 1024, roleOf, r
   // the middle between its feet (the vertices under 6 cm: their x and z extents' centre), or the script's own
   let CX = 0, CZ = 0;
   { let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
-    for (let v = 0; v < n0; v++) { const p = toGame0(v), y = (p[1] - LO) * S; if (y > 0.06 || y < -0.01) continue; const x = p[0] * S, z = p[2] * S; x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+    for (let v = 0; v < n0; v++) { const p = toGame0(v), y = (p[1] - LO) * S; if (y > 0.06 || y < -0.01) continue; if (drop && drop([p[0] * S0, (p[1] - lo) * S0, p[2] * S0])) continue; const x = p[0] * S, z = p[2] * S; x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
     CX = (x0 + x1) / 2; CZ = (z0 + z1) / 2; }
   if (centre) [CX, CZ] = centre;
   const P = new Float32Array(n0 * 3), N = new Float32Array(n0 * 3);
-  for (let v = 0; v < n0; v++) { const p = toGame0(v); P[v * 3] = p[0] * S - CX; P[v * 3 + 1] = (p[1] - LO) * S; P[v * 3 + 2] = p[2] * S - CZ; N[v * 3] = -m.N[v * 3 + 2]; N[v * 3 + 1] = m.N[v * 3 + 1]; N[v * 3 + 2] = m.N[v * 3]; }
+  for (let v = 0; v < n0; v++) { const p = toGame0(v); P[v * 3] = p[0] * S - CX; P[v * 3 + 1] = (p[1] - LO) * S; P[v * 3 + 2] = p[2] * S - CZ; if (facing === '-z') { N[v * 3] = -m.N[v * 3]; N[v * 3 + 1] = m.N[v * 3 + 1]; N[v * 3 + 2] = -m.N[v * 3 + 2]; } else { N[v * 3] = -m.N[v * 3 + 2]; N[v * 3 + 1] = m.N[v * 3 + 1]; N[v * 3 + 2] = m.N[v * 3]; } }
   // the texture's roles: a median filter, each texel's role, then the commonest role round each (2·majority + 1)²
   const { data: px, info } = await sharp(m.image.bytes).resize(tex, tex, { kernel: 'lanczos3' }).median(5).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const W = info.width, H = info.height, texRole = new Uint8Array(W * H);
@@ -66,7 +67,8 @@ export async function load(file, { height, target = 12000, tex = 1024, roleOf, r
       let best = src[y * W + x]; for (let k = 0; k < roles.length; k++) if (cnt[k] > cnt[best]) best = k; texRole[y * W + x] = best; } }
   // decimated by the geometry alone (the UV seams kept), after the dropped ground's triangles are taken out
   let I0 = m.I;
-  if (drop) { const keep = []; for (let t = 0; t < m.I.length; t += 3) { let all = true; for (let k = 0; k < 3; k++) { const v = m.I[t + k]; if (!drop([P[v * 3], P[v * 3 + 1], P[v * 3 + 2]])) all = false; } if (!all) keep.push(m.I[t], m.I[t + 1], m.I[t + 2]); } I0 = Uint32Array.from(keep); }
+  // (a triangle with any corner on the dropped piece goes with it: none is left hanging off its edge)
+  if (drop) { const gone = new Uint8Array(n0); for (let v = 0; v < n0; v++) { const q = toGame0(v); gone[v] = drop([q[0] * S0, (q[1] - lo) * S0, q[2] * S0]) ? 1 : 0; } const keep = []; for (let t = 0; t < m.I.length; t += 3) if (!gone[m.I[t]] && !gone[m.I[t + 1]] && !gone[m.I[t + 2]]) keep.push(m.I[t], m.I[t + 1], m.I[t + 2]); I0 = Uint32Array.from(keep); }
   const [simp, err] = MS.simplify(I0, P, 3, Math.min(I0.length, target * 3), 0.05, ['LockBorder']);
   const used = new Int32Array(n0).fill(-1); let nv = 0;
   for (const i of simp) if (used[i] < 0) used[i] = nv++;

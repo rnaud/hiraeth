@@ -41,14 +41,14 @@ export function skinColours(src, roles, want) {
 
 /**
  * The kit's legs on the mesh's own: legs [{ hip, knee, ankle, foot }] (the asset's landmarks, the model's frame), each a
- * planLeg (its segments' meshes taken out) and a thigh, shin and foot bone in its bend plane (SkinLegs). Returns
+ * planLeg (its segments' meshes taken out; `pole` its knees' side, else the plan's) and a thigh, shin and foot bone in its bend plane (SkinLegs). Returns
  * { legs, rig, bones: [{ thigh, shin, foot }], skinLegs, hide }.
  */
-export function kitLegs({ plan, g, body, hipParent, legs: LM, seed }) {
+export function kitLegs({ plan, g, body, hipParent, legs: LM, seed, pole }) {
   const hide = new THREE.MeshBasicMaterial({ visible: false });
   const G = LM.map((l) => ({ hip: vec(l.hip), knee: vec(l.knee), ankle: vec(l.ankle), foot: vec(l.foot) }));
   const legs = G.map((l, k) => {
-    const leg = planLeg(plan, { group: g, body, hipParent, hip: { x: l.hip.x, y: l.hip.y, z: l.hip.z }, foot: { x: l.foot.x, z: l.foot.z }, lenA: l.hip.distanceTo(l.knee), lenB: l.knee.distanceTo(l.ankle), ankle: l.ankle.y, radius: 0.02, mats: { joint: hide }, name: `leg ${k}` });
+    const leg = planLeg(plan, { group: g, body, hipParent, hip: { x: l.hip.x, y: l.hip.y, z: l.hip.z }, foot: { x: l.foot.x, z: l.foot.z }, lenA: l.hip.distanceTo(l.knee), lenB: l.knee.distanceTo(l.ankle), ankle: l.ankle.y, radius: 0.02, mats: { joint: hide }, name: `leg ${k}`, ...(pole ? { pole } : {}) });
     const gone = []; leg.root.traverse((o) => { if (o.isMesh) gone.push(o); }); for (const o of gone) { o.geometry.dispose(); o.removeFromParent(); }
     return leg;
   });

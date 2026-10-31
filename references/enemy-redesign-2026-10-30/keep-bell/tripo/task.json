@@ -1,0 +1,35 @@
+{
+  "issue": 800,
+  "phase": "family D",
+  "foe": "bell",
+  "source": "references/enemy-redesign-2026-10-30/keep-bell/b4852320-c23b-4bf7-a8e2-10c9ede8cabd-1.png",
+  "sourceSha256": "56da60a694ba4bbfd2b184679d99b8e001f710b293c0c9f8c206ba68a6f131f6",
+  "endpoint": "POST /v3/generation/image-to-model",
+  "request": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": false,
+    "texture_quality": "standard",
+    "texture_version": "v3.5-20260815",
+    "delight": true,
+    "texture_alignment": "original_image",
+    "face_limit": 30000,
+    "export_uv": true
+  },
+  "task": "63c37cb8-1f93-478f-8fc3-00e9d53434b6",
+  "started": "2026-10-31T03:02:55.522Z",
+  "finished": "2026-10-31T03:04:30.108Z",
+  "creditsConsumed": 30,
+  "balanceBefore": 1305,
+  "balanceAfter": 1275,
+  "model": {
+    "file": "model.glb",
+    "bytes": 1545004,
+    "sha256": "c79b7d2b133fcd369d14071be4f8e8152ee5f9f1f39f9ebb5b8d3053cd53e5e5",
+    "format": "glb"
+  },
+  "preview": {
+    "file": "preview.png",
+    "bytes": 155074
+  }
+}

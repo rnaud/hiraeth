@@ -9,7 +9,7 @@
 // and where the evade's, as the game times them (GUARD.perfect, EVADE.iframes), against its wind-up as seen.
 //
 //   node .claude/skills/combat-review/defend.mjs [<out-dir>] [--kinds blot,crab] [--per 45] [--group role|world]
-//        [--guard 0.5,0.3,0.2,0.12,0.06] [--evade 0.35,0.25,0.15,0.08,0.03]
+//        [--guard 0.5,0.3,0.2,0.12,0.06] [--evade 0.35,0.25,0.15,0.08,0.03] [--near 3: each foe held 3 m before him between blows]
 //   PORT (default 5337; never 5173), CDP (default 5395)
 // Writes <out-dir>/defend.json and defend.md (a table a kind and attack: its wind-up, each lead's outcome; grouped by the
 // kind's role or by the worlds that field it, for a large roster run in batches with --kinds). No game code is changed.
@@ -24,6 +24,9 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'combat-defend'));
 const PORT = Number(process.env.PORT ?? 5337), CDP = Number(process.env.CDP ?? 5395), PER = +arg('per', 45), GROUP = arg('group', 'role');
+// (--near m: each foe of the kind, between its blows, set that far before the traveller, so a melee blow the stock run never
+//  closes in for, the bell walker's drop, comes: the wood cutter's run held the traveller 2 m before it the same way)
+const NEAR = arg('near', null) == null ? null : +arg('near', null);
 const LEADS = { guard: arg('guard', '0.5,0.3,0.2,0.12,0.06').split(',').map(Number), evade: arg('evade', '0.35,0.25,0.15,0.08,0.03').split(',').map(Number) };
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
@@ -75,6 +78,7 @@ const setup = await ev(`(async () => {
     const t0 = performance.now();
     while (performance.now() - t0 < wait * 1000) {
       await frame();
+      if (${NEAR} != null) for (const f of foes.list.filter((x) => x.alive && x.dead === undefined && x.kind === kind && (x.state === 'chase' || x.state === 'idle') && !x.air)) { const dx = f.pos.x - P.pos.x, dz = f.pos.z - P.pos.z, d = Math.hypot(dx, dz); if (d > ${NEAR} + 0.5) { f.pos.x = P.pos.x + (dx / d) * ${NEAR}; f.pos.z = P.pos.z + (dz / d) * ${NEAR}; } }
       const s = threatOf(kind);
       if (!s) continue;
       foes.lock = s.f;

@@ -18,7 +18,8 @@ import { bruteModel } from './brute.js';
 import { droneModel } from './hover.js';
 import { legacyCartModel } from './tracked.js';
 import { tripoCartModel } from './cart-tripo.js';
-import { bellModel } from './siege.js';
+import { legacyBellModel } from './siege.js';
+import { tripoBellModel } from './bell-tripo.js';
 import { shadeModel } from './humanoid.js';
 import { rollerModel } from './roller.js';
 import { marionetteModel } from './strings.js';
@@ -66,7 +67,8 @@ import { foeSource } from '../foe-assets.js';
 //   cart-tripo.js plan 17  the crucible walker (#800: Tripo's mesh, rigid parts on four kit legs, src/enemies/foe-assets.js;
 //                          tracked.js legacyCartModel, the welding cart on its tracks, stands in while the mesh loads)
 //   piston.js     plan 18  the lamp tripod
-//   siege.js      plan 19  the bell walker (five spider legs, the bell and its clapper on pendulums)
+//   bell-tripo.js plan 19  the bell walker (#800: Tripo's mesh, rigid parts on four kit legs, the spirit the clapper;
+//                          siege.js legacyBellModel, the spider-legged bell, stands in while the mesh loads)
 //   blob.js       plan 20  the ink blot
 //   strings.js    plan 21  the marionette (a puppet hung on four strings from a knot of smoke, a pendulum)
 //   ember.js      plan 22  the ember wisp (a stand-in: a shell in two lids round a glowing coal; issue #398)
@@ -83,12 +85,13 @@ import { foeSource } from '../foe-assets.js';
 //                          its direct body, standing in only while the mesh loads)
 
 const BUILDERS = { crab: shellbackCrab, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: stormRay, moth: lampMoth, jelly: cloudJelly,
-  toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel, bell: bellModel,
+  toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel, brute: bruteModel, drone: droneModel,
   shade: shadeModel, roller: rollerModel, marionette: marionetteModel, wisp: wispModel, fencer: fencerModel, mummer: mummerModel, mummerking: mummerKingModel,
   grunt: gruntModel, hulk: hulkModel,
   sentinel: sentinelModel, oracle: oracleModel, crawler: crawlerModel,
   prowler: prowlerModel, warlord: warlordModel,
   cart: (skin) => { const src = foeSource('cart'); return src ? tripoCartModel(skin, src) : legacyCartModel(skin); },
+  bell: (skin) => { const src = foeSource('bell'); return src ? tripoBellModel(skin, src) : legacyBellModel(skin); },
   woodcutter: (skin) => { const src = foeSource('woodcutter'); return src ? tripoWoodcutterModel(skin, src) : woodcutterModel(skin); },
   dunemummer: (skin) => { const src = foeSource('dunemummer'); return src ? tripoMummerModel(skin, src) : duneMummerModel(skin); } };
 

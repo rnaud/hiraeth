@@ -428,8 +428,8 @@ export const ARCHETYPES = {
   },
   bell: {
     name: 'bell walker', family: 'machine', plan: 'siege', planNo: 19, role: 'siege', tier: 3, ranged: true,
-    status: 'built', kind: 'bell', was: [], sound: 'brass', drop: 8, art: { main: 'bazaar', alt: 'saltharbour' },
-    possession: 'the clapper is the spirit, swinging inside the bell; ink drips from its mouth',
+    status: 'built', kind: 'bell', was: ['spider-legged bell walker'], sound: 'brass', drop: 8, art: { main: 'bazaar', alt: 'saltharbour', reference: 'references/enemy-redesign-2026-10-30/keep-bell/b4852320-c23b-4bf7-a8e2-10c9ede8cabd-1.png', skin: 'bazaar' },
+    possession: 'the clapper is the spirit, a black ball with two pale slit eyes hanging under the bell’s mouth; ink drips from it',
     moves: ['toll', 'drop', 'opening'], answers: ['the bell-note whistle chokes its toll', 'strike the clapper while it sits open', 'jump the rings', 'guard its drop (it tips open)'],
     idle: 'stands in a square and tolls the hours, softly',
     def: S({

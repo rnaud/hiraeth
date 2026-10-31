@@ -38,8 +38,9 @@ const SUBJECTS = [
   { id: 'toad@incal', legs: kitLegs, n: 4, groups: [[0, 1], [2, 3]] },
   { id: 'brute', legs: kitLegs, n: 2, groups: [[0], [1]] },              // (batch 4: the slow brute, one heavy leg at a time)
   { id: 'brute@glassdunes', legs: kitLegs, n: 2, groups: [[0], [1]] },
-  { id: 'bell', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] }, // (the siege machine: five legs one at a time)
-  { id: 'bell@saltharbour', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] },
+  // (the siege machine one leg at a time: the bell walker's four sturdy legs since #800, its Tripo body; five spider legs before)
+  { id: 'bell', legs: kitLegs, n: 4, groups: [[0], [1], [2], [3]] },
+  { id: 'bell@saltharbour', legs: kitLegs, n: 4, groups: [[0], [1], [2], [3]] },
 ];
 
 // (a fixed seed: a foe's build and stride draw on Math.random, and one draw in a few hundred put the tripod's worst

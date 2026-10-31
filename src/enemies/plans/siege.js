@@ -54,7 +54,11 @@ function bandGeometry(curve, thick, wide, n) {
   return geo;
 }
 
-export function bellModel(skin) {
+/**
+ * The spider-legged bell walker (until #800 the bell's body; kept under this name so the old look can come back as a
+ * foe of its own): it stands in for the Tripo bell walker (plans/bell-tripo.js) where that one's mesh is not loaded.
+ */
+export function legacyBellModel(skin) {
   const PL = PLANS.siege, P = skin.palette, props = new Set(skin.props), M = materials('bell', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const body = pivot(g, 0, 0, 0, 'body');

@@ -176,6 +176,7 @@ const readers = {
   'enemies/gaze.js': () => readFileSync(new URL('../../src/enemies/gaze.js', import.meta.url), 'utf8'),
   'enemies/humanoid-rig.js': () => readFileSync(new URL('../../src/enemies/humanoid-rig.js', import.meta.url), 'utf8'),
   'enemies/page.js': () => readFileSync(new URL('../../src/enemies/page.js', import.meta.url), 'utf8'),
+  'enemies/plans/bell-tripo.js': () => readFileSync(new URL('../../src/enemies/plans/bell-tripo.js', import.meta.url), 'utf8'),
   'enemies/plans/blob.js': () => readFileSync(new URL('../../src/enemies/plans/blob.js', import.meta.url), 'utf8'),
   'enemies/plans/broad-hound.js': () => readFileSync(new URL('../../src/enemies/plans/broad-hound.js', import.meta.url), 'utf8'),
   'enemies/plans/brute.js': () => readFileSync(new URL('../../src/enemies/plans/brute.js', import.meta.url), 'utf8'),

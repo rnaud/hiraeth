@@ -55,7 +55,8 @@ export const DEFEATS = {
   // (#800: the crucible walker settles onto its four legs, its knees buckling, its feet kept where they stand: limp feet
   //  slid a shin under a slope's floor)
   cart: { time: 1.1, sag: { y: -0.2, at: [0, 0.4] }, topple: { angle: 0.15, at: [0.2, 0.7] }, puff: 'vent', limp: false },
-  bell: { time: 1.5, sag: { y: -1.3, at: [0.05, 0.6] }, topple: { angle: 0.4, at: [0.35, 0.95] }, puff: 'vent' },
+  // (#800: the 3.4 m bell walker on its four legs, its spirit hanging under it: a shorter sag onto its folded legs)
+  bell: { time: 1.5, sag: { y: -0.6, at: [0.05, 0.6] }, topple: { angle: 0.4, at: [0.35, 0.95] }, puff: 'vent' },
   brute: { time: 1.5, sag: { y: -0.75, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
   // (#800: the wood cutter, half the brute's height: a shorter sag onto its knees, then over)
   woodcutter: { time: 1.3, sag: { y: -0.4, at: [0, 0.4] }, topple: { angle: 1.4, at: [0.4, 0.95] }, puff: 'vent' },
